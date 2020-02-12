@@ -1,0 +1,1195 @@
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: nificlusters.nifi.orange.com
+spec:
+  group: nifi.orange.com
+  names:
+    kind: NifiCluster
+    listKind: NifiClusterList
+    plural: nificlusters
+    singular: nificluster
+  scope: Namespaced
+  subresources:
+    status: {}
+  validation:
+    openAPIV3Schema:
+      description: NifiCluster is the Schema for the nificlusters API
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: NifiClusterSpec defines the desired state of NifiCluster
+          properties:
+            clusterImage:
+              description: clusterImage can specify the whole nificluster image in
+                one place
+              type: string
+            clusterWideConfig:
+              description: clusterWideConfig specifies the cluster-wide nifi config,
+                all these can be overriden per node.
+              type: string
+            headlessServiceEnabled:
+              description: headlessServiceEnabled specifies if the cluster should
+                use headlessService for Nifi or individual services using service
+                per nodes may come an handy case of service mesh.
+              type: boolean
+            listenersConfig:
+              description: listenerConfig specifies nifi's listener specifig configs
+              properties:
+                externalListeners:
+                  description: externalListeners specifies settings required to access
+                    nifi externally
+                  items:
+                    description: ExternalListenerConfig defines the external listener
+                      config for Nifi
+                    properties:
+                      containerPort:
+                        format: int32
+                        type: integer
+                      externalStartingPort:
+                        format: int32
+                        type: integer
+                      hostnameOverride:
+                        type: string
+                      name:
+                        type: string
+                      type:
+                        description: 'TODO: remove type field # specific to Kafka'
+                        type: string
+                    required:
+                    - containerPort
+                    - externalStartingPort
+                    - name
+                    - type
+                    type: object
+                  type: array
+                internalListeners:
+                  description: internalListeners specifies settings required to access
+                    nifi internally
+                  items:
+                    description: 'InternalListenerConfig defines the internal listener
+                      config for Nifi TODO: improve logic about port usage.'
+                    properties:
+                      containerPort:
+                        format: int32
+                        type: integer
+                      name:
+                        type: string
+                      type:
+                        enum:
+                        - cluster
+                        - http
+                        - https
+                        - s2s
+                        type: string
+                    required:
+                    - containerPort
+                    - name
+                    type: object
+                  type: array
+                sslSecrets:
+                  description: sslSecrets contains information about ssl related kubernetes
+                    secrets if one of the listener setting type set to ssl these fields
+                    must be populated to
+                  properties:
+                    create:
+                      description: create tells the installed cert manager to create
+                        the required certs keys
+                      type: boolean
+                    jksPasswordName:
+                      description: jksPasswordName should contain a password field
+                        which contains the jks password
+                      type: string
+                    pkiBackend:
+                      description: PKIBackend represents an interface implementing
+                        the PKIManager
+                      enum:
+                      - cert-manager
+                      type: string
+                    tlsSecretName:
+                      description: 'tlsSecretName should contain all ssl certs required
+                        by nifi including: caCert, caKey, clientCert, clientKey serverCert,
+                        serverKey, peerCert, peerKey'
+                      type: string
+                  required:
+                  - jksPasswordName
+                  - tlsSecretName
+                  type: object
+              required:
+              - internalListeners
+              type: object
+            nifiClusterTaskSpec:
+              description: NifiClusterTaskSpec specifies the configuration of the
+                nifi cluster Tasks
+              properties:
+                RetryDurationMinutes:
+                  description: RetryDurationMinutes describes the amount of time the
+                    Operator waits for the task
+                  type: integer
+              required:
+              - RetryDurationMinutes
+              type: object
+            nodeConfigGroups:
+              additionalProperties:
+                description: NodeConfig defines the node configuration
+                properties:
+                  config:
+                    description: 'config parameter can be used to pass Nifi node config
+                      https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html
+                      TODO: to remove'
+                    type: string
+                  image:
+                    description: Docker image used by the operator to create the node
+                      associated
+                    type: string
+                  imagePullSecrets:
+                    description: imagePullSecrets specifies the secret to use when
+                      using private registry
+                    items:
+                      description: LocalObjectReference contains enough information
+                        to let you locate the referenced object inside the same namespace.
+                      properties:
+                        name:
+                          description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                            TODO: Add other useful fields. apiVersion, kind, uid?'
+                          type: string
+                      type: object
+                    type: array
+                  nifiAnnotations:
+                    additionalProperties:
+                      type: string
+                    description: "\tNifiHeapOpts      string                        `json:\"nifiHeapOpts,omitempty\"`
+                      \tNifiJVMPerfOÒpts   string                        `json:\"nifiJvmPerfOpts,omitempty\"`"
+                    type: object
+                  nodeAffinity:
+                    description: nodeAffinity can be specified, operator populates
+                      this value if new pvc added later to node
+                    properties:
+                      preferredDuringSchedulingIgnoredDuringExecution:
+                        description: The scheduler will prefer to schedule pods to
+                          nodes that satisfy the affinity expressions specified by
+                          this field, but it may choose a node that violates one or
+                          more of the expressions. The node that is most preferred
+                          is the one with the greatest sum of weights, i.e. for each
+                          node that meets all of the scheduling requirements (resource
+                          request, requiredDuringScheduling affinity expressions,
+                          etc.), compute a sum by iterating through the elements of
+                          this field and adding "weight" to the sum if the node matches
+                          the corresponding matchExpressions; the node(s) with the
+                          highest sum are the most preferred.
+                        items:
+                          description: An empty preferred scheduling term matches
+                            all objects with implicit weight 0 (i.e. it's a no-op).
+                            A null preferred scheduling term matches no objects (i.e.
+                            is also a no-op).
+                          properties:
+                            preference:
+                              description: A node selector term, associated with the
+                                corresponding weight.
+                              properties:
+                                matchExpressions:
+                                  description: A list of node selector requirements
+                                    by node's labels.
+                                  items:
+                                    description: A node selector requirement is a
+                                      selector that contains values, a key, and an
+                                      operator that relates the key and values.
+                                    properties:
+                                      key:
+                                        description: The label key that the selector
+                                          applies to.
+                                        type: string
+                                      operator:
+                                        description: Represents a key's relationship
+                                          to a set of values. Valid operators are
+                                          In, NotIn, Exists, DoesNotExist. Gt, and
+                                          Lt.
+                                        type: string
+                                      values:
+                                        description: An array of string values. If
+                                          the operator is In or NotIn, the values
+                                          array must be non-empty. If the operator
+                                          is Exists or DoesNotExist, the values array
+                                          must be empty. If the operator is Gt or
+                                          Lt, the values array must have a single
+                                          element, which will be interpreted as an
+                                          integer. This array is replaced during a
+                                          strategic merge patch.
+                                        items:
+                                          type: string
+                                        type: array
+                                    required:
+                                    - key
+                                    - operator
+                                    type: object
+                                  type: array
+                                matchFields:
+                                  description: A list of node selector requirements
+                                    by node's fields.
+                                  items:
+                                    description: A node selector requirement is a
+                                      selector that contains values, a key, and an
+                                      operator that relates the key and values.
+                                    properties:
+                                      key:
+                                        description: The label key that the selector
+                                          applies to.
+                                        type: string
+                                      operator:
+                                        description: Represents a key's relationship
+                                          to a set of values. Valid operators are
+                                          In, NotIn, Exists, DoesNotExist. Gt, and
+                                          Lt.
+                                        type: string
+                                      values:
+                                        description: An array of string values. If
+                                          the operator is In or NotIn, the values
+                                          array must be non-empty. If the operator
+                                          is Exists or DoesNotExist, the values array
+                                          must be empty. If the operator is Gt or
+                                          Lt, the values array must have a single
+                                          element, which will be interpreted as an
+                                          integer. This array is replaced during a
+                                          strategic merge patch.
+                                        items:
+                                          type: string
+                                        type: array
+                                    required:
+                                    - key
+                                    - operator
+                                    type: object
+                                  type: array
+                              type: object
+                            weight:
+                              description: Weight associated with matching the corresponding
+                                nodeSelectorTerm, in the range 1-100.
+                              format: int32
+                              type: integer
+                          required:
+                          - preference
+                          - weight
+                          type: object
+                        type: array
+                      requiredDuringSchedulingIgnoredDuringExecution:
+                        description: If the affinity requirements specified by this
+                          field are not met at scheduling time, the pod will not be
+                          scheduled onto the node. If the affinity requirements specified
+                          by this field cease to be met at some point during pod execution
+                          (e.g. due to an update), the system may or may not try to
+                          eventually evict the pod from its node.
+                        properties:
+                          nodeSelectorTerms:
+                            description: Required. A list of node selector terms.
+                              The terms are ORed.
+                            items:
+                              description: A null or empty node selector term matches
+                                no objects. The requirements of them are ANDed. The
+                                TopologySelectorTerm type implements a subset of the
+                                NodeSelectorTerm.
+                              properties:
+                                matchExpressions:
+                                  description: A list of node selector requirements
+                                    by node's labels.
+                                  items:
+                                    description: A node selector requirement is a
+                                      selector that contains values, a key, and an
+                                      operator that relates the key and values.
+                                    properties:
+                                      key:
+                                        description: The label key that the selector
+                                          applies to.
+                                        type: string
+                                      operator:
+                                        description: Represents a key's relationship
+                                          to a set of values. Valid operators are
+                                          In, NotIn, Exists, DoesNotExist. Gt, and
+                                          Lt.
+                                        type: string
+                                      values:
+                                        description: An array of string values. If
+                                          the operator is In or NotIn, the values
+                                          array must be non-empty. If the operator
+                                          is Exists or DoesNotExist, the values array
+                                          must be empty. If the operator is Gt or
+                                          Lt, the values array must have a single
+                                          element, which will be interpreted as an
+                                          integer. This array is replaced during a
+                                          strategic merge patch.
+                                        items:
+                                          type: string
+                                        type: array
+                                    required:
+                                    - key
+                                    - operator
+                                    type: object
+                                  type: array
+                                matchFields:
+                                  description: A list of node selector requirements
+                                    by node's fields.
+                                  items:
+                                    description: A node selector requirement is a
+                                      selector that contains values, a key, and an
+                                      operator that relates the key and values.
+                                    properties:
+                                      key:
+                                        description: The label key that the selector
+                                          applies to.
+                                        type: string
+                                      operator:
+                                        description: Represents a key's relationship
+                                          to a set of values. Valid operators are
+                                          In, NotIn, Exists, DoesNotExist. Gt, and
+                                          Lt.
+                                        type: string
+                                      values:
+                                        description: An array of string values. If
+                                          the operator is In or NotIn, the values
+                                          array must be non-empty. If the operator
+                                          is Exists or DoesNotExist, the values array
+                                          must be empty. If the operator is Gt or
+                                          Lt, the values array must have a single
+                                          element, which will be interpreted as an
+                                          integer. This array is replaced during a
+                                          strategic merge patch.
+                                        items:
+                                          type: string
+                                        type: array
+                                    required:
+                                    - key
+                                    - operator
+                                    type: object
+                                  type: array
+                              type: object
+                            type: array
+                        required:
+                        - nodeSelectorTerms
+                        type: object
+                    type: object
+                  nodeSelector:
+                    additionalProperties:
+                      type: string
+                    description: nodeSelector can be specified, which set the pod
+                      to fit on a node
+                    type: object
+                  resourceRequirements:
+                    description: resourceRequirements works exactly like Container
+                      resources, the user can specify the limit and the requests through
+                      this property
+                    properties:
+                      limits:
+                        additionalProperties:
+                          type: string
+                        description: 'Limits describes the maximum amount of compute
+                          resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/'
+                        type: object
+                      requests:
+                        additionalProperties:
+                          type: string
+                        description: 'Requests describes the minimum amount of compute
+                          resources required. If Requests is omitted for a container,
+                          it defaults to Limits if that is explicitly specified, otherwise
+                          to an implementation-defined value. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/'
+                        type: object
+                    type: object
+                  serviceAccountName:
+                    description: serviceAccountName specifies the serviceAccount used
+                      for this specific node
+                    type: string
+                  storageConfigs:
+                    description: storageConfigs specifies the node log related configs
+                    items:
+                      description: StorageConfig defines the node storage configuration
+                      properties:
+                        mountPath:
+                          type: string
+                        pvcSpec:
+                          description: PersistentVolumeClaimSpec describes the common
+                            attributes of storage devices and allows a Source for
+                            provider-specific attributes
+                          properties:
+                            accessModes:
+                              description: 'AccessModes contains the desired access
+                                modes the volume should have. More info: https://kubernetes.io/docs/concepts/storage/persistent-volumes#access-modes-1'
+                              items:
+                                type: string
+                              type: array
+                            dataSource:
+                              description: This field requires the VolumeSnapshotDataSource
+                                alpha feature gate to be enabled and currently VolumeSnapshot
+                                is the only supported data source. If the provisioner
+                                can support VolumeSnapshot data source, it will create
+                                a new volume and data will be restored to the volume
+                                at the same time. If the provisioner does not support
+                                VolumeSnapshot data source, volume will not be created
+                                and the failure will be reported as an event. In the
+                                future, we plan to support more data source types
+                                and the behavior of the provisioner may change.
+                              properties:
+                                apiGroup:
+                                  description: APIGroup is the group for the resource
+                                    being referenced. If APIGroup is not specified,
+                                    the specified Kind must be in the core API group.
+                                    For any other third-party types, APIGroup is required.
+                                  type: string
+                                kind:
+                                  description: Kind is the type of resource being
+                                    referenced
+                                  type: string
+                                name:
+                                  description: Name is the name of resource being
+                                    referenced
+                                  type: string
+                              required:
+                              - kind
+                              - name
+                              type: object
+                            resources:
+                              description: 'Resources represents the minimum resources
+                                the volume should have. More info: https://kubernetes.io/docs/concepts/storage/persistent-volumes#resources'
+                              properties:
+                                limits:
+                                  additionalProperties:
+                                    type: string
+                                  description: 'Limits describes the maximum amount
+                                    of compute resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/'
+                                  type: object
+                                requests:
+                                  additionalProperties:
+                                    type: string
+                                  description: 'Requests describes the minimum amount
+                                    of compute resources required. If Requests is
+                                    omitted for a container, it defaults to Limits
+                                    if that is explicitly specified, otherwise to
+                                    an implementation-defined value. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/'
+                                  type: object
+                              type: object
+                            selector:
+                              description: A label query over volumes to consider
+                                for binding.
+                              properties:
+                                matchExpressions:
+                                  description: matchExpressions is a list of label
+                                    selector requirements. The requirements are ANDed.
+                                  items:
+                                    description: A label selector requirement is a
+                                      selector that contains values, a key, and an
+                                      operator that relates the key and values.
+                                    properties:
+                                      key:
+                                        description: key is the label key that the
+                                          selector applies to.
+                                        type: string
+                                      operator:
+                                        description: operator represents a key's relationship
+                                          to a set of values. Valid operators are
+                                          In, NotIn, Exists and DoesNotExist.
+                                        type: string
+                                      values:
+                                        description: values is an array of string
+                                          values. If the operator is In or NotIn,
+                                          the values array must be non-empty. If the
+                                          operator is Exists or DoesNotExist, the
+                                          values array must be empty. This array is
+                                          replaced during a strategic merge patch.
+                                        items:
+                                          type: string
+                                        type: array
+                                    required:
+                                    - key
+                                    - operator
+                                    type: object
+                                  type: array
+                                matchLabels:
+                                  additionalProperties:
+                                    type: string
+                                  description: matchLabels is a map of {key,value}
+                                    pairs. A single {key,value} in the matchLabels
+                                    map is equivalent to an element of matchExpressions,
+                                    whose key field is "key", the operator is "In",
+                                    and the values array contains only "value". The
+                                    requirements are ANDed.
+                                  type: object
+                              type: object
+                            storageClassName:
+                              description: 'Name of the StorageClass required by the
+                                claim. More info: https://kubernetes.io/docs/concepts/storage/persistent-volumes#class-1'
+                              type: string
+                            volumeMode:
+                              description: volumeMode defines what type of volume
+                                is required by the claim. Value of Filesystem is implied
+                                when not included in claim spec. This is a beta feature.
+                              type: string
+                            volumeName:
+                              description: VolumeName is the binding reference to
+                                the PersistentVolume backing this claim.
+                              type: string
+                          type: object
+                      required:
+                      - mountPath
+                      - pvcSpec
+                      type: object
+                    type: array
+                  tolerations:
+                    description: tolerations can be specified, which set the pod's
+                      tolerations
+                    items:
+                      description: The pod this Toleration is attached to tolerates
+                        any taint that matches the triple <key,value,effect> using
+                        the matching operator <operator>.
+                      properties:
+                        effect:
+                          description: Effect indicates the taint effect to match.
+                            Empty means match all taint effects. When specified, allowed
+                            values are NoSchedule, PreferNoSchedule and NoExecute.
+                          type: string
+                        key:
+                          description: Key is the taint key that the toleration applies
+                            to. Empty means match all taint keys. If the key is empty,
+                            operator must be Exists; this combination means to match
+                            all values and all keys.
+                          type: string
+                        operator:
+                          description: Operator represents a key's relationship to
+                            the value. Valid operators are Exists and Equal. Defaults
+                            to Equal. Exists is equivalent to wildcard for value,
+                            so that a pod can tolerate all taints of a particular
+                            category.
+                          type: string
+                        tolerationSeconds:
+                          description: TolerationSeconds represents the period of
+                            time the toleration (which must be of effect NoExecute,
+                            otherwise this field is ignored) tolerates the taint.
+                            By default, it is not set, which means tolerate the taint
+                            forever (do not evict). Zero and negative values will
+                            be treated as 0 (evict immediately) by the system.
+                          format: int64
+                          type: integer
+                        value:
+                          description: Value is the taint value the toleration matches
+                            to. If the operator is Exists, the value should be empty,
+                            otherwise just a regular string.
+                          type: string
+                      type: object
+                    type: array
+                type: object
+              description: nodeConfigGroups specifies multiple node configs with unique
+                name
+              type: object
+            nodes:
+              description: all node requires an image, unique id, and storageConfigs
+                settings
+              items:
+                description: Node defines the nifi node basic configuration
+                properties:
+                  NodeConfig:
+                    description: node configuration
+                    properties:
+                      config:
+                        description: 'config parameter can be used to pass Nifi node
+                          config https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html
+                          TODO: to remove'
+                        type: string
+                      image:
+                        description: Docker image used by the operator to create the
+                          node associated
+                        type: string
+                      imagePullSecrets:
+                        description: imagePullSecrets specifies the secret to use
+                          when using private registry
+                        items:
+                          description: LocalObjectReference contains enough information
+                            to let you locate the referenced object inside the same
+                            namespace.
+                          properties:
+                            name:
+                              description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                TODO: Add other useful fields. apiVersion, kind, uid?'
+                              type: string
+                          type: object
+                        type: array
+                      nifiAnnotations:
+                        additionalProperties:
+                          type: string
+                        description: "\tNifiHeapOpts      string                        `json:\"nifiHeapOpts,omitempty\"`
+                          \tNifiJVMPerfOÒpts   string                        `json:\"nifiJvmPerfOpts,omitempty\"`"
+                        type: object
+                      nodeAffinity:
+                        description: nodeAffinity can be specified, operator populates
+                          this value if new pvc added later to node
+                        properties:
+                          preferredDuringSchedulingIgnoredDuringExecution:
+                            description: The scheduler will prefer to schedule pods
+                              to nodes that satisfy the affinity expressions specified
+                              by this field, but it may choose a node that violates
+                              one or more of the expressions. The node that is most
+                              preferred is the one with the greatest sum of weights,
+                              i.e. for each node that meets all of the scheduling
+                              requirements (resource request, requiredDuringScheduling
+                              affinity expressions, etc.), compute a sum by iterating
+                              through the elements of this field and adding "weight"
+                              to the sum if the node matches the corresponding matchExpressions;
+                              the node(s) with the highest sum are the most preferred.
+                            items:
+                              description: An empty preferred scheduling term matches
+                                all objects with implicit weight 0 (i.e. it's a no-op).
+                                A null preferred scheduling term matches no objects
+                                (i.e. is also a no-op).
+                              properties:
+                                preference:
+                                  description: A node selector term, associated with
+                                    the corresponding weight.
+                                  properties:
+                                    matchExpressions:
+                                      description: A list of node selector requirements
+                                        by node's labels.
+                                      items:
+                                        description: A node selector requirement is
+                                          a selector that contains values, a key,
+                                          and an operator that relates the key and
+                                          values.
+                                        properties:
+                                          key:
+                                            description: The label key that the selector
+                                              applies to.
+                                            type: string
+                                          operator:
+                                            description: Represents a key's relationship
+                                              to a set of values. Valid operators
+                                              are In, NotIn, Exists, DoesNotExist.
+                                              Gt, and Lt.
+                                            type: string
+                                          values:
+                                            description: An array of string values.
+                                              If the operator is In or NotIn, the
+                                              values array must be non-empty. If the
+                                              operator is Exists or DoesNotExist,
+                                              the values array must be empty. If the
+                                              operator is Gt or Lt, the values array
+                                              must have a single element, which will
+                                              be interpreted as an integer. This array
+                                              is replaced during a strategic merge
+                                              patch.
+                                            items:
+                                              type: string
+                                            type: array
+                                        required:
+                                        - key
+                                        - operator
+                                        type: object
+                                      type: array
+                                    matchFields:
+                                      description: A list of node selector requirements
+                                        by node's fields.
+                                      items:
+                                        description: A node selector requirement is
+                                          a selector that contains values, a key,
+                                          and an operator that relates the key and
+                                          values.
+                                        properties:
+                                          key:
+                                            description: The label key that the selector
+                                              applies to.
+                                            type: string
+                                          operator:
+                                            description: Represents a key's relationship
+                                              to a set of values. Valid operators
+                                              are In, NotIn, Exists, DoesNotExist.
+                                              Gt, and Lt.
+                                            type: string
+                                          values:
+                                            description: An array of string values.
+                                              If the operator is In or NotIn, the
+                                              values array must be non-empty. If the
+                                              operator is Exists or DoesNotExist,
+                                              the values array must be empty. If the
+                                              operator is Gt or Lt, the values array
+                                              must have a single element, which will
+                                              be interpreted as an integer. This array
+                                              is replaced during a strategic merge
+                                              patch.
+                                            items:
+                                              type: string
+                                            type: array
+                                        required:
+                                        - key
+                                        - operator
+                                        type: object
+                                      type: array
+                                  type: object
+                                weight:
+                                  description: Weight associated with matching the
+                                    corresponding nodeSelectorTerm, in the range 1-100.
+                                  format: int32
+                                  type: integer
+                              required:
+                              - preference
+                              - weight
+                              type: object
+                            type: array
+                          requiredDuringSchedulingIgnoredDuringExecution:
+                            description: If the affinity requirements specified by
+                              this field are not met at scheduling time, the pod will
+                              not be scheduled onto the node. If the affinity requirements
+                              specified by this field cease to be met at some point
+                              during pod execution (e.g. due to an update), the system
+                              may or may not try to eventually evict the pod from
+                              its node.
+                            properties:
+                              nodeSelectorTerms:
+                                description: Required. A list of node selector terms.
+                                  The terms are ORed.
+                                items:
+                                  description: A null or empty node selector term
+                                    matches no objects. The requirements of them are
+                                    ANDed. The TopologySelectorTerm type implements
+                                    a subset of the NodeSelectorTerm.
+                                  properties:
+                                    matchExpressions:
+                                      description: A list of node selector requirements
+                                        by node's labels.
+                                      items:
+                                        description: A node selector requirement is
+                                          a selector that contains values, a key,
+                                          and an operator that relates the key and
+                                          values.
+                                        properties:
+                                          key:
+                                            description: The label key that the selector
+                                              applies to.
+                                            type: string
+                                          operator:
+                                            description: Represents a key's relationship
+                                              to a set of values. Valid operators
+                                              are In, NotIn, Exists, DoesNotExist.
+                                              Gt, and Lt.
+                                            type: string
+                                          values:
+                                            description: An array of string values.
+                                              If the operator is In or NotIn, the
+                                              values array must be non-empty. If the
+                                              operator is Exists or DoesNotExist,
+                                              the values array must be empty. If the
+                                              operator is Gt or Lt, the values array
+                                              must have a single element, which will
+                                              be interpreted as an integer. This array
+                                              is replaced during a strategic merge
+                                              patch.
+                                            items:
+                                              type: string
+                                            type: array
+                                        required:
+                                        - key
+                                        - operator
+                                        type: object
+                                      type: array
+                                    matchFields:
+                                      description: A list of node selector requirements
+                                        by node's fields.
+                                      items:
+                                        description: A node selector requirement is
+                                          a selector that contains values, a key,
+                                          and an operator that relates the key and
+                                          values.
+                                        properties:
+                                          key:
+                                            description: The label key that the selector
+                                              applies to.
+                                            type: string
+                                          operator:
+                                            description: Represents a key's relationship
+                                              to a set of values. Valid operators
+                                              are In, NotIn, Exists, DoesNotExist.
+                                              Gt, and Lt.
+                                            type: string
+                                          values:
+                                            description: An array of string values.
+                                              If the operator is In or NotIn, the
+                                              values array must be non-empty. If the
+                                              operator is Exists or DoesNotExist,
+                                              the values array must be empty. If the
+                                              operator is Gt or Lt, the values array
+                                              must have a single element, which will
+                                              be interpreted as an integer. This array
+                                              is replaced during a strategic merge
+                                              patch.
+                                            items:
+                                              type: string
+                                            type: array
+                                        required:
+                                        - key
+                                        - operator
+                                        type: object
+                                      type: array
+                                  type: object
+                                type: array
+                            required:
+                            - nodeSelectorTerms
+                            type: object
+                        type: object
+                      nodeSelector:
+                        additionalProperties:
+                          type: string
+                        description: nodeSelector can be specified, which set the
+                          pod to fit on a node
+                        type: object
+                      resourceRequirements:
+                        description: resourceRequirements works exactly like Container
+                          resources, the user can specify the limit and the requests
+                          through this property
+                        properties:
+                          limits:
+                            additionalProperties:
+                              type: string
+                            description: 'Limits describes the maximum amount of compute
+                              resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/'
+                            type: object
+                          requests:
+                            additionalProperties:
+                              type: string
+                            description: 'Requests describes the minimum amount of
+                              compute resources required. If Requests is omitted for
+                              a container, it defaults to Limits if that is explicitly
+                              specified, otherwise to an implementation-defined value.
+                              More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/'
+                            type: object
+                        type: object
+                      serviceAccountName:
+                        description: serviceAccountName specifies the serviceAccount
+                          used for this specific node
+                        type: string
+                      storageConfigs:
+                        description: storageConfigs specifies the node log related
+                          configs
+                        items:
+                          description: StorageConfig defines the node storage configuration
+                          properties:
+                            mountPath:
+                              type: string
+                            pvcSpec:
+                              description: PersistentVolumeClaimSpec describes the
+                                common attributes of storage devices and allows a
+                                Source for provider-specific attributes
+                              properties:
+                                accessModes:
+                                  description: 'AccessModes contains the desired access
+                                    modes the volume should have. More info: https://kubernetes.io/docs/concepts/storage/persistent-volumes#access-modes-1'
+                                  items:
+                                    type: string
+                                  type: array
+                                dataSource:
+                                  description: This field requires the VolumeSnapshotDataSource
+                                    alpha feature gate to be enabled and currently
+                                    VolumeSnapshot is the only supported data source.
+                                    If the provisioner can support VolumeSnapshot
+                                    data source, it will create a new volume and data
+                                    will be restored to the volume at the same time.
+                                    If the provisioner does not support VolumeSnapshot
+                                    data source, volume will not be created and the
+                                    failure will be reported as an event. In the future,
+                                    we plan to support more data source types and
+                                    the behavior of the provisioner may change.
+                                  properties:
+                                    apiGroup:
+                                      description: APIGroup is the group for the resource
+                                        being referenced. If APIGroup is not specified,
+                                        the specified Kind must be in the core API
+                                        group. For any other third-party types, APIGroup
+                                        is required.
+                                      type: string
+                                    kind:
+                                      description: Kind is the type of resource being
+                                        referenced
+                                      type: string
+                                    name:
+                                      description: Name is the name of resource being
+                                        referenced
+                                      type: string
+                                  required:
+                                  - kind
+                                  - name
+                                  type: object
+                                resources:
+                                  description: 'Resources represents the minimum resources
+                                    the volume should have. More info: https://kubernetes.io/docs/concepts/storage/persistent-volumes#resources'
+                                  properties:
+                                    limits:
+                                      additionalProperties:
+                                        type: string
+                                      description: 'Limits describes the maximum amount
+                                        of compute resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/'
+                                      type: object
+                                    requests:
+                                      additionalProperties:
+                                        type: string
+                                      description: 'Requests describes the minimum
+                                        amount of compute resources required. If Requests
+                                        is omitted for a container, it defaults to
+                                        Limits if that is explicitly specified, otherwise
+                                        to an implementation-defined value. More info:
+                                        https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/'
+                                      type: object
+                                  type: object
+                                selector:
+                                  description: A label query over volumes to consider
+                                    for binding.
+                                  properties:
+                                    matchExpressions:
+                                      description: matchExpressions is a list of label
+                                        selector requirements. The requirements are
+                                        ANDed.
+                                      items:
+                                        description: A label selector requirement
+                                          is a selector that contains values, a key,
+                                          and an operator that relates the key and
+                                          values.
+                                        properties:
+                                          key:
+                                            description: key is the label key that
+                                              the selector applies to.
+                                            type: string
+                                          operator:
+                                            description: operator represents a key's
+                                              relationship to a set of values. Valid
+                                              operators are In, NotIn, Exists and
+                                              DoesNotExist.
+                                            type: string
+                                          values:
+                                            description: values is an array of string
+                                              values. If the operator is In or NotIn,
+                                              the values array must be non-empty.
+                                              If the operator is Exists or DoesNotExist,
+                                              the values array must be empty. This
+                                              array is replaced during a strategic
+                                              merge patch.
+                                            items:
+                                              type: string
+                                            type: array
+                                        required:
+                                        - key
+                                        - operator
+                                        type: object
+                                      type: array
+                                    matchLabels:
+                                      additionalProperties:
+                                        type: string
+                                      description: matchLabels is a map of {key,value}
+                                        pairs. A single {key,value} in the matchLabels
+                                        map is equivalent to an element of matchExpressions,
+                                        whose key field is "key", the operator is
+                                        "In", and the values array contains only "value".
+                                        The requirements are ANDed.
+                                      type: object
+                                  type: object
+                                storageClassName:
+                                  description: 'Name of the StorageClass required
+                                    by the claim. More info: https://kubernetes.io/docs/concepts/storage/persistent-volumes#class-1'
+                                  type: string
+                                volumeMode:
+                                  description: volumeMode defines what type of volume
+                                    is required by the claim. Value of Filesystem
+                                    is implied when not included in claim spec. This
+                                    is a beta feature.
+                                  type: string
+                                volumeName:
+                                  description: VolumeName is the binding reference
+                                    to the PersistentVolume backing this claim.
+                                  type: string
+                              type: object
+                          required:
+                          - mountPath
+                          - pvcSpec
+                          type: object
+                        type: array
+                      tolerations:
+                        description: tolerations can be specified, which set the pod's
+                          tolerations
+                        items:
+                          description: The pod this Toleration is attached to tolerates
+                            any taint that matches the triple <key,value,effect> using
+                            the matching operator <operator>.
+                          properties:
+                            effect:
+                              description: Effect indicates the taint effect to match.
+                                Empty means match all taint effects. When specified,
+                                allowed values are NoSchedule, PreferNoSchedule and
+                                NoExecute.
+                              type: string
+                            key:
+                              description: Key is the taint key that the toleration
+                                applies to. Empty means match all taint keys. If the
+                                key is empty, operator must be Exists; this combination
+                                means to match all values and all keys.
+                              type: string
+                            operator:
+                              description: Operator represents a key's relationship
+                                to the value. Valid operators are Exists and Equal.
+                                Defaults to Equal. Exists is equivalent to wildcard
+                                for value, so that a pod can tolerate all taints of
+                                a particular category.
+                              type: string
+                            tolerationSeconds:
+                              description: TolerationSeconds represents the period
+                                of time the toleration (which must be of effect NoExecute,
+                                otherwise this field is ignored) tolerates the taint.
+                                By default, it is not set, which means tolerate the
+                                taint forever (do not evict). Zero and negative values
+                                will be treated as 0 (evict immediately) by the system.
+                              format: int64
+                              type: integer
+                            value:
+                              description: Value is the taint value the toleration
+                                matches to. If the operator is Exists, the value should
+                                be empty, otherwise just a regular string.
+                              type: string
+                          type: object
+                        type: array
+                    type: object
+                  id:
+                    description: Unique Node id which is used as nifi config nifi.id
+                    format: int32
+                    type: integer
+                  nodeConfigGroup:
+                    description: nodeConfigGroup can be used to ease the node configuration,
+                      if set no only the id is required
+                    type: string
+                  readOnlyConfig:
+                    description: readOnlyConfig can be used to pass Nifi node config
+                      https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html
+                      which has type read-only these config changes will trigger rolling
+                      upgrade
+                    type: string
+                required:
+                - id
+                type: object
+              type: array
+            oneNifiNodePerNode:
+              description: oneNifiNodePerNode if set to true every nifi node is started
+                on a new node, if there is not enough node to do that it will stay
+                in pending state. If set to false the operator also tries to schedule
+                the nifi node to a unique node but if the node number is insufficient
+                the nifi node will be scheduled to a node where a nifi node is already
+                running.
+              type: boolean
+            propagateLabels:
+              type: boolean
+            rackAwareness:
+              description: rackAwarness add support for Nifi related metadatas should
+                be placed
+              properties:
+                labels:
+                  items:
+                    type: string
+                  type: array
+              required:
+              - labels
+              type: object
+            readOnlyConfig:
+              description: readOnlyConfig specifies the read-only type Nifi config
+                cluster wide, all theses will be merged withj node specified readOnly
+                configurations, so it can be overwritten per node.
+              type: string
+            rollingUpgradeConfig:
+              description: rollingUpgradeConfig specifies the rolling upgrade config
+                for the cluster
+              properties:
+                failureThreshold:
+                  description: failureThreshold states that how many errors can the
+                    cluster tolerate during rolling upgrade
+                  type: integer
+              required:
+              - failureThreshold
+              type: object
+            zkAddresse:
+              description: zKAddresse specifies the ZooKeeper connection string in
+                the form hostname:port where host and port are those of a Zookeeper
+                server.
+              type: string
+            zkPath:
+              description: zKPath specifies the Zookeeper chroot path as part of its
+                Zookeeper connection string which puts its data under same path in
+                the global ZooKeeper namespace.
+              type: string
+          required:
+          - headlessServiceEnabled
+          - listenersConfig
+          - nodes
+          - oneNifiNodePerNode
+          - rollingUpgradeConfig
+          - zkAddresse
+          type: object
+        status:
+          description: NifiClusterStatus defines the observed state of NifiCluster
+          properties:
+            nodesState:
+              additionalProperties:
+                description: NifiState holds information about nifi state
+                properties:
+                  configurationState:
+                    description: ConfigurationState holds info about the config
+                    type: string
+                  gracefulActionState:
+                    description: GracefulActionState holds info about cc action status
+                    properties:
+                      TaskStarted:
+                        description: TaskStarted hold the time when the execution
+                          started
+                        type: string
+                      actionState:
+                        description: ActionState holds the information about Action
+                          state
+                        type: string
+                      actionStep:
+                        description: ActionStep holds info about the action step ran
+                        type: string
+                      errorMessage:
+                        description: ErrorMessage holds the information what happened
+                          with CC
+                        type: string
+                    required:
+                    - actionState
+                    - errorMessage
+                    type: object
+                  rackAwarenessState:
+                    description: RackAwarenessState holds info about rack awareness
+                      status
+                    type: string
+                required:
+                - configurationState
+                - gracefulActionState
+                - rackAwarenessState
+                type: object
+              type: object
+            rollingUpgradeStatus:
+              description: RollingUpgradeStatus defines status of rolling upgrade
+              properties:
+                errorCount:
+                  type: integer
+                lastSuccess:
+                  type: string
+              required:
+              - errorCount
+              - lastSuccess
+              type: object
+            state:
+              description: ClusterState holds info about the cluster state
+              type: string
+          required:
+          - state
+          type: object
+      type: object
+  version: v1alpha1
+  versions:
+  - name: v1alpha1
+    served: true
+    storage: true
