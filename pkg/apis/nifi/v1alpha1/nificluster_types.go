@@ -28,7 +28,7 @@ type NifiClusterSpec struct {
 	ZKPath string `json:"zkPath,omitempty"`
 
 	// rackAwarness add support for Nifi related metadatas should be placed
-	RackAwareness	*RackAwareness	`json:"rackAwareness,omitempty"`
+	// RackAwareness	*RackAwareness	`json:"rackAwareness,omitempty"`
 
 	// clusterImage can specify the whole nificluster image in one place
 	ClusterImage	string	`json:"clusterImage,omitempty"`
@@ -102,6 +102,10 @@ type Node struct {
 
 // NodeConfig defines the node configuration
 type NodeConfig struct {
+	//RunAsUser define the id of the user to run in the Cassandra image
+	// +kubebuilder:validation:Minimum=1
+	RunAsUser *int64 `json:"runAsUser,omitempty"`
+
 	// Docker image used by the operator to create the node associated
 	Image              		string                        `json:"image,omitempty"`
 	// nodeAffinity can be specified, operator populates this value if new pvc added later to node
@@ -139,11 +143,14 @@ type RackAwareness struct {
 // StorageConfig defines the node storage configuration
 type StorageConfig struct {
 	//
+	// +kubebuilder:validation:Pattern=[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*
+	Name 			string                            	`json:"name"`
+	//
 	MountPath 			string                            	`json:"mountPath"`
 	//
 	PVCSpec   			*corev1.PersistentVolumeClaimSpec	`json:"pvcSpec"`
 	//
-	//IsProvenanceStorage	bool								`json:"isProvenanceStorage,omitempty"`
+	IsProvenanceStorage	bool								`json:"isProvenanceStorage,omitempty"`
 }
 
 //ListenersConfig defines the Nifi listener types
@@ -286,6 +293,16 @@ func (nConfig *NodeConfig) GetResources() *corev1.ResourceRequirements {
 			"memory": resource.MustParse("1Gi"),
 		},
 	}
+}
+
+//
+func (nConfig *NodeConfig) GetRunAsUser() *int64 {
+	var defaultUserID int64 = 1000
+	if nConfig.RunAsUser != nil {
+		return nConfig.RunAsUser
+	}
+
+	return func(i int64) *int64 { return &i }(defaultUserID)
 }
 
 

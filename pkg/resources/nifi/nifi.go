@@ -15,11 +15,11 @@ import (
 	"github.com/orangeopensource/nifi-operator/pkg/util"
 	nifiutils "github.com/orangeopensource/nifi-operator/pkg/util/nifi"
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -27,7 +27,7 @@ import (
 const(
 	componentName		= "nifi"
 	nodeConfigTemplate	= "%s-config"
-	nodeStorageTemplate	= "%s-storage"
+	nodeStorageTemplate	= "%s-%d-storage"
 //	nodeStorageTemplate	= "%s-%s-storage"
 	nodeName            = "%s-%d"
 
@@ -179,6 +179,10 @@ func (r *Reconciler) Reconcile(log logr.Logger) error {
 			if !r.NifiCluster.Spec.HeadlessServiceEnabled {
 				err = r.Client.Delete(context.TODO(), &corev1.Service{ObjectMeta: templates.ObjectMeta(fmt.Sprintf("%s-%s", r.NifiCluster.Name, node.Labels["nodeId"]), labelsForNifi(r.NifiCluster.Name), r.NifiCluster)})
 				if err != nil {
+					if apierrors.IsNotFound(err) {
+						// can happen when broker was not fully initialized and now is deleted
+						log.Info(fmt.Sprintf("Service for Node %s not found. Continue", node.Labels["nodeId"]))
+					}
 					return errors.WrapIfWithDetails(err, "could not delete service for node", "id", node.Labels["nodeId"])
 				}
 			}
@@ -189,6 +193,11 @@ func (r *Reconciler) Reconcile(log logr.Logger) error {
 						Namespace: r.NifiCluster.Namespace,
 					}})
 					if err != nil {
+						if apierrors.IsNotFound(err) {
+							// can happen when broker was not fully initialized and now is deleted
+							log.Info(fmt.Sprintf("PVC for Node %s not found. Continue", node.Labels["nodeId"]))
+						}
+
 						return errors.WrapIfWithDetails(err, "could not delete pvc for node", "id", node.Labels["nodeId"])
 					}
 				}
@@ -213,13 +222,13 @@ func (r *Reconciler) Reconcile(log logr.Logger) error {
 			}
 
 		}
-		if r.NifiCluster.Spec.RackAwareness == nil {
-			o := r.configMap(node.Id, nodeConfig, log)
-			err := k8sutil.Reconcile(log, r.Client, o, r.NifiCluster)
-			if err != nil {
+		//if r.NifiCluster.Spec.RackAwareness == nil {
+		o := r.configMap(node.Id, nodeConfig, log)
+		err = k8sutil.Reconcile(log, r.Client, o, r.NifiCluster)
+		if err != nil {
 				return errors.WrapIfWithDetails(err, "failed to reconcile resource", "resource", o.GetObjectKind().GroupVersionKind())
 			}
-		} else {
+		/*} else {
 			if nodeState, ok := r.NifiCluster.Status.NodesState[strconv.Itoa(int(node.Id))]; ok {
 				if nodeState.RackAwarenessState == v1alpha1.Configured {
 					o := r.configMap(node.Id, nodeConfig, log)
@@ -229,7 +238,7 @@ func (r *Reconciler) Reconcile(log logr.Logger) error {
 					}
 				}
 			}
-		}
+		}*/
 
 		pvcs, err := getCreatedPVCForNode(r.Client, node.Id, r.NifiCluster.Namespace, r.NifiCluster.Name)
 		if err != nil {
@@ -243,7 +252,7 @@ func (r *Reconciler) Reconcile(log logr.Logger) error {
 				return errors.WrapIfWithDetails(err, "failed to reconcile resource", "resource", o.GetObjectKind().GroupVersionKind())
 			}
 		}
-		o := r.pod(node.Id, nodeConfig, pvcs, log)
+		o = r.pod(node.Id, nodeConfig, pvcs, log)
 		err = r.reconcileNifiPod(log, o.(*corev1.Pod))
 		if err != nil {
 			return err
@@ -346,6 +355,7 @@ func (r *Reconciler) reconcileNifiPVC(log logr.Logger, desiredPVC *corev1.Persis
 		return errorfactory.New(errorfactory.APIFailure{}, err, "getting resource failed", "kind", desiredType)
 	}
 	mountPath := currentPVC.Annotations["mountPath"]
+	storageName := currentPVC.Annotations["storageName"]
 
 	// Creating the first PersistentVolume For Pod
 	if len(pvcList.Items) == 0 {
@@ -360,7 +370,7 @@ func (r *Reconciler) reconcileNifiPVC(log logr.Logger, desiredPVC *corev1.Persis
 	}
 	alreadyCreated := false
 	for _, pvc := range pvcList.Items {
-		if mountPath == pvc.Annotations["mountPath"] {
+		if mountPath == pvc.Annotations["mountPath"] && storageName == pvc.Annotations["storageName"] {
 			currentPVC = pvc.DeepCopy()
 			alreadyCreated = true
 			break
@@ -433,7 +443,7 @@ func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) e
 				return errorfactory.New(errorfactory.StatusUpdateError{}, err, "could not update node graceful action state")
 			}
 		}
-		if r.NifiCluster.Spec.RackAwareness != nil {
+/*		if r.NifiCluster.Spec.RackAwareness != nil {
 			if val, ok := r.NifiCluster.Status.NodesState[desiredPod.Labels["nodeId"]]; ok && val.RackAwarenessState == v1alpha1.Configured {
 				return nil
 			}
@@ -442,6 +452,7 @@ func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) e
 				return errorfactory.New(errorfactory.StatusUpdateError{}, err, "could not update node rack state")
 			}
 		}
+ */
 
 		log.Info("resource created")
 		return nil
@@ -449,7 +460,10 @@ func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) e
 		currentPod = podList.Items[0].DeepCopy()
 		nodeId := currentPod.Labels["nodeId"]
 		if _, ok := r.NifiCluster.Status.NodesState[nodeId]; ok {
-			if r.NifiCluster.Spec.RackAwareness != nil && (r.NifiCluster.Status.NodesState[nodeId].RackAwarenessState == v1alpha1.WaitingForRackAwareness || r.NifiCluster.Status.NodesState[nodeId].RackAwarenessState == "") {
+			//if r.NifiCluster.Spec.RackAwareness != nil && (r.NifiCluster.Status.NodesState[nodeId].RackAwarenessState == v1alpha1.WaitingForRackAwareness || r.NifiCluster.Status.NodesState[nodeId].RackAwarenessState == "") {
+			if currentPod.Spec.NodeName == "" {
+				log.Info(fmt.Sprintf("pod for NodeId %s does not scheduled to node yet", nodeId))
+			}/* else if r.NifiCluster.Spec.RackAwareness != nil {
 				err := k8sutil.UpdateCrWithRackAwarenessConfig(currentPod, r.NifiCluster, r.Client)
 				if err != nil {
 					return err
@@ -458,7 +472,7 @@ func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) e
 				if statusErr != nil {
 					return errorfactory.New(errorfactory.StatusUpdateError{}, err, "updating status for resource failed", "kind", desiredType)
 				}
-			}
+			}*/
 			if currentPod.Status.Phase == corev1.PodRunning && r.NifiCluster.Status.NodesState[nodeId].GracefulActionState.State == v1alpha1.GracefulUpdateRequired {
 				if r.NifiCluster.Status.NodesState[nodeId].GracefulActionState.State != v1alpha1.GracefulUpdateRunning &&
 					r.NifiCluster.Status.NodesState[nodeId].GracefulActionState.State != v1alpha1.GracefulUpscaleSucceeded {
@@ -507,7 +521,8 @@ func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) e
 		if err != nil {
 			log.Error(err, "could not match objects", "kind", desiredType)
 		} else if patchResult.IsEmpty() {
-			if isPodHealthy(currentPod) && r.NifiCluster.Status.NodesState[currentPod.Labels["nodeId"]].ConfigurationState == v1alpha1.ConfigInSync {
+			//if isPodHealthy(currentPod) && r.NifiCluster.Status.NodesState[currentPod.Labels["nodeId"]].ConfigurationState == v1alpha1.ConfigInSync {
+			if !k8sutil.IsPodContainsTerminatedContainer(currentPod) && r.NifiCluster.Status.NodesState[currentPod.Labels["nodeId"]].ConfigurationState == v1alpha1.ConfigInSync {
 				log.V(1).Info("resource is in sync")
 				return nil
 			}
@@ -523,7 +538,7 @@ func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) e
 			return errors.WrapIf(err, "could not apply last state to annotation")
 		}
 
-		if isPodHealthy(currentPod) {
+		if !k8sutil.IsPodContainsTerminatedContainer(currentPod) {
 
 			if r.NifiCluster.Status.State != v1alpha1.NifiClusterRollingUpgrading {
 				if err := k8sutil.UpdateCRStatus(r.Client, r.NifiCluster, v1alpha1.NifiClusterRollingUpgrading, log); err != nil {
@@ -532,7 +547,7 @@ func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) e
 			}
 
 			if r.NifiCluster.Status.State == v1alpha1.NifiClusterRollingUpgrading {
-				// Check if any nifi pod is in terminating state
+				// Check if any nifi pod is in terminating or pending state
 				podList := &corev1.PodList{}
 				matchingLabels := client.MatchingLabels{
 					"nifi_cr": r.NifiCluster.Name,
@@ -545,6 +560,10 @@ func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) e
 				for _, pod := range podList.Items {
 					if k8sutil.IsMarkedForDeletion(pod.ObjectMeta) {
 						return errorfactory.New(errorfactory.ReconcileRollingUpgrade{}, errors.New("pod is still terminating"), "rolling upgrade in progress")
+					}
+					// TODO: change for ready instead of running...
+					if k8sutil.IsPodContainsPendingContainer(&pod) {
+						return errorfactory.New(errorfactory.ReconcileRollingUpgrade{}, errors.New("pod is still creating"), "rolling upgrade in progress")
 					}
 				}
 				// TODO : replace with offloading check ??
@@ -585,16 +604,5 @@ func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) e
 	}
 	return nil
 
-}
-
-func isPodHealthy(pod *corev1.Pod) bool {
-	healthy := true
-	for _, containerState := range pod.Status.ContainerStatuses {
-		if containerState.State.Terminated != nil {
-			healthy = false
-			break
-		}
-	}
-	return healthy
 }
 

@@ -105,12 +105,11 @@ func (r *Reconciler) getConfigString(nConfig *v1alpha1.NodeConfig, id int32, log
 //		"StorageConfig":                      	generateStorageConfig(nConfig.StorageConfigs),
 
 func generateProvenanceStorageConfig(sConfig []v1alpha1.StorageConfig) string {
-	// TODO :to enabel
-	/*for _, storage := range sConfig {
+	for _, storage := range sConfig {
 		if storage.IsProvenanceStorage {
 			return storage.PVCSpec.Resources.Requests.Memory().String()
 		}
-	}*/
+	}
 	return ProvenanceStorage
 }
 

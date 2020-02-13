@@ -1,7 +1,7 @@
 apiVersion: nifi.orange.com/v1alpha1
 kind: NifiCluster
 metadata:
-  name: nifi
+  name: nifi2
 spec:
   # Specify if the cluster should use headlessService for Nifi or individual services
   # using service/node may come in handy in case of service mesh
@@ -10,7 +10,7 @@ spec:
   zkAddresse: "zookeepercluster-client.zookeeper:2181"
   # Specify the zookeeper path where the Nifi related metadatas should be placed
   # By default it is bound to "/" and can be left blank
-  zkPath: "/nifi-cluster"
+  zkPath: "/nifi-cluster2"
   # oneNifiNodePerNode if set to true every nifi node is started on a new node, if there is not enough node to do that
   # it will stay in pending state. If set to false the operator also tries to schedule the nifi node to a unique node
   # but if the node number is insufficient the nifi nodes will be scheduled to a node where a nifi node is already running.
@@ -22,7 +22,6 @@ spec:
   # readOnly configurations, so it can be overwritten per node.
   readOnlyConfig: |
     # nifi.web.http.network.interface.lo=lo
-    plop=toto
   # clusterWideConfig specifies the cluster-wide nifi config cluster wide, all these can be overridden per-node
   #clusterWideConfig: |
   #  background.threads=10

@@ -402,6 +402,12 @@ spec:
                           to an implementation-defined value. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/'
                         type: object
                     type: object
+                  runAsUser:
+                    description: RunAsUser define the id of the user to run in the
+                      Cassandra image
+                    format: int64
+                    minimum: 1
+                    type: integer
                   serviceAccountName:
                     description: serviceAccountName specifies the serviceAccount used
                       for this specific node
@@ -411,7 +417,12 @@ spec:
                     items:
                       description: StorageConfig defines the node storage configuration
                       properties:
+                        isProvenanceStorage:
+                          type: boolean
                         mountPath:
+                          type: string
+                        name:
+                          pattern: '[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*'
                           type: string
                         pvcSpec:
                           description: PersistentVolumeClaimSpec describes the common
@@ -537,6 +548,7 @@ spec:
                           type: object
                       required:
                       - mountPath
+                      - name
                       - pvcSpec
                       type: object
                     type: array
@@ -864,6 +876,12 @@ spec:
                               More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/'
                             type: object
                         type: object
+                      runAsUser:
+                        description: RunAsUser define the id of the user to run in
+                          the Cassandra image
+                        format: int64
+                        minimum: 1
+                        type: integer
                       serviceAccountName:
                         description: serviceAccountName specifies the serviceAccount
                           used for this specific node
@@ -874,7 +892,12 @@ spec:
                         items:
                           description: StorageConfig defines the node storage configuration
                           properties:
+                            isProvenanceStorage:
+                              type: boolean
                             mountPath:
+                              type: string
+                            name:
+                              pattern: '[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*'
                               type: string
                             pvcSpec:
                               description: PersistentVolumeClaimSpec describes the
@@ -1008,6 +1031,7 @@ spec:
                               type: object
                           required:
                           - mountPath
+                          - name
                           - pvcSpec
                           type: object
                         type: array
@@ -1083,17 +1107,6 @@ spec:
               type: boolean
             propagateLabels:
               type: boolean
-            rackAwareness:
-              description: rackAwarness add support for Nifi related metadatas should
-                be placed
-              properties:
-                labels:
-                  items:
-                    type: string
-                  type: array
-              required:
-              - labels
-              type: object
             readOnlyConfig:
               description: readOnlyConfig specifies the read-only type Nifi config
                 cluster wide, all theses will be merged withj node specified readOnly

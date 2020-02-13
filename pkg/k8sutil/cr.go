@@ -16,25 +16,16 @@ package k8sutil
 
 import (
 	"context"
-	"fmt"
-	"github.com/orangeopensource/nifi-operator/pkg/apis/nifi/v1alpha1"
-	"github.com/orangeopensource/nifi-operator/pkg/errorfactory"
-	"sort"
-	"strconv"
-	"strings"
-
 	"emperror.dev/errors"
-	corev1 "k8s.io/api/core/v1"
+	"github.com/orangeopensource/nifi-operator/pkg/apis/nifi/v1alpha1"
 	"k8s.io/apimachinery/pkg/types"
 	runtimeClient "sigs.k8s.io/controller-runtime/pkg/client"
+	"strconv"
 )
 
 // UpdateCrWithRackAwarenessConfig updates the CR with rack awareness config
-func UpdateCrWithRackAwarenessConfig(pod *corev1.Pod, cr *v1alpha1.NifiCluster, client runtimeClient.Client) error {
+/*func UpdateCrWithRackAwarenessConfig(pod *corev1.Pod, cr *v1alpha1.NifiCluster, client runtimeClient.Client) error {
 
-	if pod.Spec.NodeName == "" {
-		return errorfactory.New(errorfactory.ResourceNotReady{}, errors.New("pod does not scheduled to node yet"), "trying")
-	}
 	rackConfigMap, err := getSpecificNodeLabels(pod.Spec.NodeName, client, cr.Spec.RackAwareness.Labels)
 	if err != nil {
 		return errorfactory.New(errorfactory.StatusUpdateError{}, err, "updating cr with rack awareness info failed")
@@ -54,7 +45,7 @@ func UpdateCrWithRackAwarenessConfig(pod *corev1.Pod, cr *v1alpha1.NifiCluster, 
 				readOnlyConfig := fmt.Sprintf("node.rack=%s\n", strings.Join(rackConfigValues, ","))
 				node.ReadOnlyConfig = readOnlyConfig
 			} else if !strings.Contains(node.ReadOnlyConfig, "node.rack=") {
-				readOnlyConfig := node.ReadOnlyConfig + fmt.Sprintf("onde.rack=%s\n", strings.Join(rackConfigValues, ","))
+				readOnlyConfig := node.ReadOnlyConfig + fmt.Sprintf("node.rack=%s\n", strings.Join(rackConfigValues, ","))
 				node.ReadOnlyConfig = readOnlyConfig
 			}
 		}
@@ -62,7 +53,7 @@ func UpdateCrWithRackAwarenessConfig(pod *corev1.Pod, cr *v1alpha1.NifiCluster, 
 	}
 	cr.Spec.Nodes = nodeConfigs
 	return updateCr(cr, client)
-}
+}*/
 
 // AddNewNodeToCr modifies the CR and adds a new node
 func AddNewNodeToCr(node v1alpha1.Node, crName, namespace string, client runtimeClient.Client) error {

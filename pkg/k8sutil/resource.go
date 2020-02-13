@@ -116,11 +116,29 @@ func CheckIfObjectUpdated(log logr.Logger, desiredType reflect.Type, current, de
 		log.V(1).Info("resource is in sync")
 		return false
 	} else {
-		log.V(1).Info("resource diffs",
+		log.Info("resource diffs",
 			"patch", string(patchResult.Patch),
 			"current", string(patchResult.Current),
 			"modified", string(patchResult.Modified),
 			"original", string(patchResult.Original))
 		return true
 	}
+}
+
+func IsPodContainsTerminatedContainer(pod *corev1.Pod) bool {
+	for _, containerState := range pod.Status.ContainerStatuses {
+		if containerState.State.Terminated != nil {
+			return true
+		}
+	}
+	return false
+}
+
+func IsPodContainsPendingContainer(pod *corev1.Pod) bool {
+	for _, containerState := range pod.Status.ContainerStatuses {
+		if containerState.State.Waiting != nil {
+			return true
+		}
+	}
+	return false
 }

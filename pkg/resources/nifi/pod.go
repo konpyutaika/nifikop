@@ -96,8 +96,7 @@ exec bin/nifi.sh run
 	pod := &corev1.Pod{
 		//ObjectMeta: templates.ObjectMetaWithAnnotations(
 		ObjectMeta: templates.ObjectMetaWithGeneratedNameAndAnnotations(
-			//fmt.Sprintf(nodeName, r.NifiCluster.Name, id),
-			r.NifiCluster.Name,
+			fmt.Sprintf(nodeName, r.NifiCluster.Name, id),
 			util.MergeLabels(
 				labelsForNifi(r.NifiCluster.Name),
 				map[string]string{"nodeId": fmt.Sprintf("%d", id)},
@@ -108,6 +107,11 @@ exec bin/nifi.sh run
 			), r.NifiCluster,
 		),
 		Spec: corev1.PodSpec{
+			SecurityContext: &corev1.PodSecurityContext{
+				RunAsUser:    nodeConfig.GetRunAsUser(),
+				RunAsNonRoot: func(b bool) *bool { return &b }(true),
+				FSGroup:      func(i int64) *int64 { return &i }(1000),
+			},
 			InitContainers: append(initContainers, []corev1.Container{
 				{
 					Name: 		"zookeeper",
@@ -125,6 +129,18 @@ exec bin/nifi.sh run
 				PodAntiAffinity: generatePodAntiAffinity(r.NifiCluster.Name, r.NifiCluster.Spec.OneNifiNodePerNode),
 			},
 			Containers: []corev1.Container{
+					/*{
+						Name: "app-log",
+						Image: "ez123/alpine-tini",
+						Args: []string{"tail", "-n+1", "-F", "/var/log/nifi-app.log"},
+						VolumeMounts:[]corev1.VolumeMount{
+							{
+								Name:     "logs",
+								MountPath: "/var/log",
+
+							},
+						},
+					},*/
 				{
 					Name:	"nifi",
 					Image: 	util.GetNodeImage(nodeConfig, r.NifiCluster.Spec.ClusterImage),
@@ -188,7 +204,6 @@ fi`,
 			DNSPolicy:                     	corev1.DNSClusterFirst,
 			ImagePullSecrets:              	nodeConfig.GetImagePullSecrets(),
 			ServiceAccountName:            	nodeConfig.GetServiceAccount(),
-			SecurityContext:               	&corev1.PodSecurityContext{},
 			Priority:                      	util.Int32Pointer(0),
 			SchedulerName:                 	"default-scheduler",
 			Tolerations:                   	nodeConfig.GetTolerations(),
@@ -214,7 +229,8 @@ func generateDataVolumeAndVolumeMount(pvcs []corev1.PersistentVolumeClaim) (volu
 	for _, pvc := range pvcs {
 		volume = append(volume, corev1.Volume{
 			//Name: fmt.Sprintf(nifiDataVolumeMount+"-%d", i),
-			Name: fmt.Sprintf(nifiDataVolumeMount+"-%s", pvc.Name),
+			//Name: fmt.Sprintf(nifiDataVolumeMount+"-%s", pvc.Name),
+			Name: pvc.Annotations["storageName"],
 			VolumeSource: corev1.VolumeSource{
 				PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
 					ClaimName: pvc.Name,
@@ -223,7 +239,8 @@ func generateDataVolumeAndVolumeMount(pvcs []corev1.PersistentVolumeClaim) (volu
 		})
 		volumeMount = append(volumeMount, corev1.VolumeMount{
 			//Name:      fmt.Sprintf(nifiDataVolumeMount+"-%d", i),
-			Name: fmt.Sprintf(nifiDataVolumeMount+"-%s", pvc.Name),
+			//Name: fmt.Sprintf(nifiDataVolumeMount+"-%s", pvc.Name),
+			Name: pvc.Annotations["storageName"],
 			MountPath: pvc.Annotations["mountPath"],
 		})
 	}
