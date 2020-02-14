@@ -35,10 +35,6 @@ spec:
               description: clusterImage can specify the whole nificluster image in
                 one place
               type: string
-            clusterWideConfig:
-              description: clusterWideConfig specifies the cluster-wide nifi config,
-                all these can be overriden per node.
-              type: string
             headlessServiceEnabled:
               description: headlessServiceEnabled specifies if the cluster should
                 use headlessService for Nifi or individual services using service
