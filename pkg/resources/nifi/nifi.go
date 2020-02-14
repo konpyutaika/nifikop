@@ -29,7 +29,7 @@ const(
 	nodeConfigTemplate	= "%s-config"
 	nodeStorageTemplate	= "%s-%d-storage"
 //	nodeStorageTemplate	= "%s-%s-storage"
-	nodeName            = "%s-%d"
+	nodeName            = "%s-%d-node"
 
 	clusterListenerType = "cluster"
 	httpListenerType 	= "http"
