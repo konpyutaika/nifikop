@@ -119,9 +119,9 @@ func generateListenerSpecificConfig(l *v1alpha1.ListenersConfig, id int32, names
 	var hostListener string
 
 	if headlessServiceEnabled {
-		hostListener = fmt.Sprintf("%s-%d.%s-headless.%s.svc.cluster.local", crName, id, crName, namespace)
+		hostListener = fmt.Sprintf("%s.%s-headless.%s.svc.cluster.local", fmt.Sprintf(nodeName,crName, id), crName, namespace)
 	} else {
-		hostListener = fmt.Sprintf("%s-%d.%s.svc.cluster.local", crName, id, namespace)
+		hostListener = fmt.Sprintf("%s.%s.svc.cluster.local", fmt.Sprintf(nodeName,crName, id), namespace)
 	}
 
 	clusterPortConfig := "nifi.cluster.node.protocol.port=\n"

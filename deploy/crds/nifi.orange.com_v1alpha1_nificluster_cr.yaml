@@ -66,6 +66,7 @@ spec:
       # which has type read-only these config changes will trigger rolling upgrade
       readOnlyConfig: |
         auto.create.topics.enable=false
+        toto=titi
       #nodeConfig:
         # Docker image used by the operator to create the Node with id 0
         #image: "apache/nifi:1.11.0"
@@ -93,8 +94,21 @@ spec:
         # kafkaJvmPerfOpts specifies the jvm performance configs for the broker
         #kafkaJvmPerfOpts: "-server -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:InitiatingHeapOccupancyPercent=35 -XX:+ExplicitGCInvokesConcurrent -Djava.awt.headless=true -Dsun.net.inetaddr.ttl=60"
   # listenersConfig specifies kafka's listener specific configs
-    - id: 1
-      nodeConfigGroup: "default_group"
+    - id: 12
+      # Specify desired group name (eg., 'default_group')
+      nodeConfig:
+        # all the brokerConfig settings are available here
+        storageConfigs:
+          - mountPath: "/opt/nifi/nifi-current/log"
+            name: log
+            isProvenanceStorage: false
+            pvcSpec:
+              accessModes:
+                - ReadWriteOnce
+              storageClassName: "standard"
+              resources:
+                requests:
+                  storage: 10Gi
   listenersConfig:
     # externalListeners specifies settings required to access nifi externally
     externalListeners:

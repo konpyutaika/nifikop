@@ -604,7 +604,11 @@ spec:
               items:
                 description: Node defines the nifi node basic configuration
                 properties:
-                  NodeConfig:
+                  id:
+                    description: Unique Node id which is used as nifi config nifi.id
+                    format: int32
+                    type: integer
+                  nodeConfig:
                     description: node configuration
                     properties:
                       config:
@@ -1079,10 +1083,6 @@ spec:
                           type: object
                         type: array
                     type: object
-                  id:
-                    description: Unique Node id which is used as nifi config nifi.id
-                    format: int32
-                    type: integer
                   nodeConfigGroup:
                     description: nodeConfigGroup can be used to ease the node configuration,
                       if set no only the id is required

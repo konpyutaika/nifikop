@@ -97,7 +97,7 @@ type Node struct {
 	// which has type read-only these config changes will trigger rolling upgrade
 	ReadOnlyConfig string `json:"readOnlyConfig,omitempty"`
 	// node configuration
-	NodeConfig *NodeConfig `json:"NodeConfig,omitempty"`
+	NodeConfig *NodeConfig `json:"nodeConfig,omitempty"`
 }
 
 // NodeConfig defines the node configuration
