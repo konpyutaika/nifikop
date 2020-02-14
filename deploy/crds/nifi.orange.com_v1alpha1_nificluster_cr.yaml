@@ -23,9 +23,6 @@ spec:
   readOnlyConfig: |
     # nifi.web.http.network.interface.lo=lo
     plop=toto
-  # clusterWideConfig specifies the cluster-wide nifi config cluster wide, all these can be overridden per-node
-  #clusterWideConfig: |
-  #  background.threads=10
   # rollingUpgradeConfig specifies the rolling upgrade config for the cluster
   rollingUpgradeConfig:
     # failureThreshold states that how many errors can the cluster tolerate during rolling upgrade

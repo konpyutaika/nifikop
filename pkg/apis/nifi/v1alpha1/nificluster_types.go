@@ -37,9 +37,6 @@ type NifiClusterSpec struct {
 	// will be merged withj node specified readOnly configurations, so it can be overwritten per node.
 	ReadOnlyConfig	string	`json:"readOnlyConfig,omitempty"`
 
-	// clusterWideConfig specifies the cluster-wide nifi config, all these can be overriden per node.
-	ClusterWideConfig	string	`json:"clusterWideConfig,omitempty"`
-
 	// nodeConfigGroups specifies multiple node configs with unique name
 	NodeConfigGroups   map[string]NodeConfig `json:"nodeConfigGroups,omitempty"`
 

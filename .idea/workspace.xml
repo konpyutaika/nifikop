@@ -3,10 +3,9 @@
   <component name="ChangeListManager">
     <list default="true" id="26f2fc05-a515-426a-b716-3a7fcf5d1506" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/deploy/crds/nifi.orange.com_nificlusters_crd.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/deploy/crds/nifi.orange.com_nificlusters_crd.yaml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/deploy/crds/nifi.orange.com_v1alpha1_nificluster_cr.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/deploy/crds/nifi.orange.com_v1alpha1_nificluster_cr.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/deploy/crds/nifi.orange.com_v1alpha1_nificluster_cr2.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/deploy/crds/nifi.orange.com_v1alpha1_nificluster_cr2.yaml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/apis/nifi/v1alpha1/nificluster_types.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/apis/nifi/v1alpha1/nificluster_types.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/resources/nifi/configmap.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/resources/nifi/configmap.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -112,7 +111,7 @@
       <workItem from="1581583132745" duration="2467000" />
       <workItem from="1581607145930" duration="2147000" />
       <workItem from="1581629011628" duration="67000" />
-      <workItem from="1581665940474" duration="7158000" />
+      <workItem from="1581665940474" duration="7987000" />
     </task>
     <servers />
   </component>
@@ -334,18 +333,20 @@
     <state x="514" y="323" key="com.intellij.ide.util.TipDialog/37.23.1403.877@37.23.1403.877" timestamp="1581629014312" />
     <state x="173" y="-695" key="com.intellij.ide.util.TipDialog/40.23.1400.877/-480.-1057.1920.1057/1440.-552.1920.1057@-480.-1057.1920.1057" timestamp="1581665969278" />
     <state x="173" y="-696" key="com.intellij.ide.util.TipDialog/44.23.1396.877/-480.-1057.1920.1057/1440.-552.1920.1057@-480.-1057.1920.1057" timestamp="1581405702852" />
-    <state x="117" y="-894" width="1025" height="823" key="find.popup" timestamp="1581585115665">
+    <state x="117" y="-894" width="1025" height="823" key="find.popup" timestamp="1581698540942">
       <screen x="-480" y="-1057" width="1920" height="1057" />
     </state>
     <state x="-999" y="105" width="639" height="890" key="find.popup/-1875.-61.1875.1057/0.23.1440.877@-1875.-61.1875.1057" timestamp="1581287326269" />
     <state x="-1000" y="519" width="639" height="476" key="find.popup/-1876.-61.1876.1057/0.23.1440.877@-1876.-61.1876.1057" timestamp="1581369372279" />
     <state x="-1046" y="266" width="640" height="476" key="find.popup/-1877.-61.1877.1057/0.23.1440.877@-1877.-61.1877.1057" timestamp="1581282614701" />
+    <state x="117" y="-894" width="1025" height="823" key="find.popup/34.23.1406.877/-480.-1057.1920.1057/1440.-446.1920.1057@-480.-1057.1920.1057" timestamp="1581697588459" />
     <state x="149" y="-892" width="1178" height="890" key="find.popup/37.23.1403.877/-480.-1057.1920.1057/1440.-552.1920.1057@-480.-1057.1920.1057" timestamp="1581335740462" />
     <state x="474" y="158" width="750" height="683" key="find.popup/38.23.1402.877@38.23.1402.877" timestamp="1581552028294" />
     <state x="117" y="-894" width="1025" height="823" key="find.popup/39.23.1401.877/-480.-1057.1920.1057/1440.-552.1920.1057@-480.-1057.1920.1057" timestamp="1581585115665" />
     <state x="475" y="158" width="750" height="683" key="find.popup/39.23.1401.877@39.23.1401.877" timestamp="1581552907724" />
     <state x="262" y="-890" width="1178" height="890" key="find.popup/40.23.1400.877/-480.-1057.1920.1057/1440.-446.1920.1057@-480.-1057.1920.1057" timestamp="1581323707278" />
     <state x="475" y="158" width="748" height="683" key="find.popup/40.23.1400.877@40.23.1400.877" timestamp="1581460058181" />
+    <state x="117" y="-894" width="1025" height="823" key="find.popup/41.23.1399.877/-480.-1057.1920.1057/1440.-446.1920.1057@-480.-1057.1920.1057" timestamp="1581698540942" />
     <state x="117" y="-894" width="1025" height="823" key="find.popup/44.23.1396.877/-480.-1057.1920.1057/1440.-552.1920.1057@-480.-1057.1920.1057" timestamp="1581417129003" />
     <state x="-1538" y="174" width="670" height="676" key="search.everywhere.popup" timestamp="1581200898018">
       <screen x="-1875" y="-61" width="1875" height="1057" />
