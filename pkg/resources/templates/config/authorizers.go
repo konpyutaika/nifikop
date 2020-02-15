@@ -1,7 +1,6 @@
 package config
 
-var EmptyAuthorizersTemplate = `
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+var EmptyAuthorizersTemplate = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!--
   Licensed to the Apache Software Foundation (ASF) under one or more
   contributor license agreements.  See the NOTICE file distributed with
@@ -261,8 +260,7 @@ var EmptyAuthorizersTemplate = `
 `
 
 
-var AuthorizersTemplate = `
-{{- $replicas := int .NbNodes }}
+var AuthorizersTemplate = `{{- $replicas := int .NbNodes }}
 {{- $clusterName := .ClusterName }}
 {{- $namespace := .Namespace }}
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>

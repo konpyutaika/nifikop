@@ -7,8 +7,7 @@ import (
 	templates "github.com/orangeopensource/nifi-operator/pkg/resources/templates"
 )
 
-var NifiPropertiesTemplate = `
-# Licensed to the Apache Software Foundation (ASF) under one or more
+var NifiPropertiesTemplate = `# Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
 # The ASF licenses this file to You under the Apache License, Version 2.0
@@ -159,7 +158,7 @@ nifi.security.truststoreType=jks
 nifi.security.truststorePasswd=
 nifi.security.needClientAuth={{.NeedClientAuth}}
 nifi.security.user.authorizer={{.Authorizer}}
-    {{if .LdapEnabled}}
+    {{if .LdapConfiguration.Enabled}}
 nifi.security.user.login.identity.provider=ldap-provider
     {{else}}
 nifi.security.user.login.identity.provider=

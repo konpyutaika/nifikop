@@ -31,6 +31,17 @@ spec:
         spec:
           description: NifiClusterSpec defines the desired state of NifiCluster
           properties:
+            LdapConfiguration:
+              properties:
+                enabled:
+                  type: boolean
+                searchBase:
+                  type: string
+                searchFilter:
+                  type: string
+                url:
+                  type: string
+              type: object
             clusterImage:
               description: clusterImage can specify the whole nificluster image in
                 one place
@@ -1156,9 +1167,9 @@ spec:
               - failureThreshold
               type: object
             zkAddresse:
-              description: zKAddresse specifies the ZooKeeper connection string in
+              description: 'zKAddresse specifies the ZooKeeper connection string in
                 the form hostname:port where host and port are those of a Zookeeper
-                server.
+                server. TODO: rework for nice zookeeper connect string ='
               type: string
             zkPath:
               description: zKPath specifies the Zookeeper chroot path as part of its

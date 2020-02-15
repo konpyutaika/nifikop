@@ -74,21 +74,8 @@ func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev
 		return podVolumeMounts[i].Name < podVolumeMounts[j].Name
 	})
 
-	// TODO : manage properties based on configmap
 	command := []string{"bash", "-ce", `
-prop_replace () {
-	target_file=${NIFI_HOME}/conf/${3:-nifi.properties}
-	echo "updating ${1} in ${target_file}"
-	if egrep "^${1}=" ${target_file} &> /dev/null; then
-		sed -i -e "s|^$1=.*$|$1=$2|"  ${target_file}
-	else
-		echo ${1}=${2} >> ${target_file}
-	fi
-}
-FQDN=$(hostname -f)
-cp ${NIFI_HOME}/tmp/* ${NIFI_HOME}/conf/ 
-#cat "${NIFI_HOME}/conf/nifi.temp" > "${NIFI_HOME}/conf/nifi.properties"
-
+cp ${NIFI_HOME}/tmp/* ${NIFI_HOME}/conf/
 exec bin/nifi.sh run
 `}
 

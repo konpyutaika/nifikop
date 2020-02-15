@@ -1,7 +1,6 @@
 package config
 
-var LoginIdentityProvidersTemplate = `
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+var LoginIdentityProvidersTemplate = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!--
   Licensed to the Apache Software Foundation (ASF) under one or more
   contributor license agreements.  See the NOTICE file distributed with
@@ -65,7 +64,7 @@ var LoginIdentityProvidersTemplate = `
             for. If the user never logs out, they will be required to log back in following
             this duration.
     -->
-    {{if .Ldap.enabled}}
+    {{if .LdapConfiguration.Enabled}}
     <provider>
         <identifier>ldap-provider</identifier>
         <class>org.apache.nifi.ldap.LdapProvider</class>
@@ -86,8 +85,8 @@ var LoginIdentityProvidersTemplate = `
         <property name="Connect Timeout">10 secs</property>
         <property name="Read Timeout">10 secs</property>
         <property name="Url">{{.Ldap.host}}</property>
-        <property name="User Search Base">{{.Ldap.searchBase}}</property>
-        <property name="User Search Filter">{{.Ldap.searchFilter}}</property>
+        <property name="User Search Base">{{.LdapConfiguration.SearchBase}}</property>
+        <property name="User Search Filter">{{.LdapConfiguration.SearchFilter}}</property>
         <property name="Identity Strategy">USE_DN</property>
         <property name="Authentication Expiration">12 hours</property>
     </provider>

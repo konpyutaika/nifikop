@@ -306,7 +306,8 @@ func (r *Reconciler) checkCCTaskState(nodeIds []string, nodeState v1alpha1.NodeS
 		}
 
 	} else {
-		// TODO: implement logic for each cases (decommission, add node)
+		//
+		//TODO: implement logic for each cases (decommission, add node)
 		log.Info(fmt.Sprintf("Rollback nifi cluster task: %s", nodeState.GracefulActionState.ActionStep))
 		err := scale.KillCCTask(r.NifiCluster.Namespace, r.NifiCluster.Name)
 		if err != nil {

@@ -29,8 +29,8 @@ func (r *Reconciler) configMap(id int32, nodeConfig *v1alpha1.NodeConfig, log lo
 		Data: map[string]string{
 			"nifi.properties": r.generateNifiPropertiesNodeConfig(id, nodeConfig, log),
 			"zookeeper.properties": r.generateZookeeperPropertiesNodeConfig(id, nodeConfig, log),
-//			"state-management.xml": "",
-//			"login-identity-providers.xml": "",
+			"state-management.xml": r.getStateManagementConfigString(nodeConfig, id, log),
+			"login-identity-providers.xml": "",
 //			"logback.xml": "",
 //			"bootstrap.conf": "",
 //			"bootstrap-notification-servces.xml": "",
@@ -109,8 +109,8 @@ func (r *Reconciler) getNifiPropertiesConfigString(nConfig *v1alpha1.NodeConfig,
 		"NeedClientAuth": 			base.NeedClientAuth,
 		"Authorizer": 				base.GetAuthorizer(),
 		//
-		"LdapEnabled": 				false,					// TODO: replace by dynamic field
-		"IsNode": 					nConfig.GetIsNode(),	// TODO: replace by dynamic field
+		"LdapConfiguration": 		r.NifiCluster.Spec.LdapConfiguration,
+		"IsNode": 					nConfig.GetIsNode(),
 		"ZookeeperConnectString":	r.NifiCluster.Spec.ZKAddresse,
 		"ZookeeperPath": 			r.NifiCluster.Spec.GetZkPath(),
 	}); err != nil {
@@ -182,6 +182,22 @@ func (r *Reconciler) getZookeeperPropertiesConfigString(nConfig *v1alpha1.NodeCo
 	var out bytes.Buffer
 	t := template.Must(template.New("nConfig-config").Parse(config.ZookeeperPropertiesTemplate))
 	if err := t.Execute(&out, map[string]interface{}{
+	}); err != nil {
+		log.Error(err, "error occurred during parsing the config template")
+	}
+	return out.String()
+}
+
+//
+func (r *Reconciler) getStateManagementConfigString(nConfig *v1alpha1.NodeConfig, id int32, log logr.Logger) string {
+
+	var out bytes.Buffer
+	t := template.Must(template.New("nConfig-config").Parse(config.StateManagementTemplate))
+	if err := t.Execute(&out, map[string]interface{}{
+		"NifiCluster":				r.NifiCluster,
+		"Id": 						id,
+		"ZookeeperConnectString":	r.NifiCluster.Spec.ZKAddresse,
+		"ZookeeperPath": 			r.NifiCluster.Spec.GetZkPath(),
 	}); err != nil {
 		log.Error(err, "error occurred during parsing the config template")
 	}

@@ -31,6 +31,7 @@ type NifiClusterSpec struct {
 
 	// zKAddresse specifies the ZooKeeper connection string
 	// in the form hostname:port where host and port are those of a Zookeeper server.
+	// TODO: rework for nice zookeeper connect string =
 	ZKAddresse	string	`json:"zkAddresse"`
 
 	// zKPath specifies the Zookeeper chroot path as part
@@ -64,6 +65,9 @@ type NifiClusterSpec struct {
 	//
 	PropagateLabels bool `json:"propagateLabels,omitempty"`
 
+	//
+	LdapConfiguration	LdapConfiguration	`json:"LdapConfiguration,omitempty"`
+
 	// NifiClusterTaskSpec specifies the configuration of the nifi cluster Tasks
 	NifiClusterTaskSpec NifiClusterTaskSpec	`json:"nifiClusterTaskSpec,omitempty"`
 }
@@ -72,10 +76,8 @@ type NifiClusterSpec struct {
 type NifiClusterStatus struct {
 	//
 	NodesState map[string]NodeState `json:"nodesState,omitempty"`
-
 	//
 	State ClusterState `json:"state"`
-
 	//
 	RollingUpgrade RollingUpgradeStatus `json:"rollingUpgradeStatus,omitempty"`
 }
@@ -131,6 +133,9 @@ type ZookeeperProperties struct {
 	OverrideConfigs string `json:"overrideConfigs,omitempty"`
 }
 
+/*type StateManagement struct {
+	OverrideConfigs string `json:"overrideConfigs,omitempty"`
+}*/
 
 // NodeConfig defines the node configuration
 type NodeConfig struct {
@@ -218,8 +223,22 @@ type ExternalListenerConfig struct {
 type InternalListenerConfig struct {
 	// +kubebuilder:validation:Enum={"cluster", "http", "https", "s2s" }
 	Type                            string `json:"type,omitempty"`
+	//
 	Name                            string `json:"name"`
+	//
 	ContainerPort                   int32  `json:"containerPort"`
+}
+
+//
+type LdapConfiguration struct {
+	//
+	Enabled			bool 	`json:"enabled,omitempty"`
+	//
+	Url				string	`json:"url,omitempty"`
+	//
+	SearchBase		string 	`json:"searchBase,omitempty"`
+	//
+	SearchFilter	string 	`json:"searchFilter,omitempty"`
 }
 
 // NifiClusterTaskSpec specifies the configuration of the nifi cluster Tasks

@@ -1,7 +1,6 @@
 package config
 
-var StateManagmentTemplate = `
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+var StateManagementTemplate = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <stateManagement>
     <local-provider>
         <id>local-provider</id>
@@ -14,7 +13,7 @@ var StateManagmentTemplate = `
     <cluster-provider>
         <id>zk-provider</id>
         <class>org.apache.nifi.controller.state.providers.zookeeper.ZooKeeperStateProvider</class>
-        <property name="Connect String">{{ .ZookeeperUrl }}</property>
+        <property name="Connect String">{{ .ZookeeperConnectString }}</property>
         <property name="Root Node">{{ .ZookeeperPath }}</property>
         <property name="Session Timeout">10 seconds</property>
         <property name="Access Control">Open</property>
