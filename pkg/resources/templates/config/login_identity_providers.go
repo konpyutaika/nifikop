@@ -84,7 +84,7 @@ var LoginIdentityProvidersTemplate = `<?xml version="1.0" encoding="UTF-8" stand
         <property name="Referral Strategy">FOLLOW</property>
         <property name="Connect Timeout">10 secs</property>
         <property name="Read Timeout">10 secs</property>
-        <property name="Url">{{.Ldap.host}}</property>
+        <property name="Url">{{.LdapConfiguration.Url}}</property>
         <property name="User Search Base">{{.LdapConfiguration.SearchBase}}</property>
         <property name="User Search Filter">{{.LdapConfiguration.SearchFilter}}</property>
         <property name="Identity Strategy">USE_DN</property>

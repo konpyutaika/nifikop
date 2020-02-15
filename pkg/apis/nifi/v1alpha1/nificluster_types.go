@@ -66,7 +66,7 @@ type NifiClusterSpec struct {
 	PropagateLabels bool `json:"propagateLabels,omitempty"`
 
 	//
-	LdapConfiguration	LdapConfiguration	`json:"LdapConfiguration,omitempty"`
+	LdapConfiguration	LdapConfiguration	`json:"ldapConfiguration,omitempty"`
 
 	// NifiClusterTaskSpec specifies the configuration of the nifi cluster Tasks
 	NifiClusterTaskSpec NifiClusterTaskSpec	`json:"nifiClusterTaskSpec,omitempty"`

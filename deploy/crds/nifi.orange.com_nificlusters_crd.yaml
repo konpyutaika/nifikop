@@ -31,7 +31,16 @@ spec:
         spec:
           description: NifiClusterSpec defines the desired state of NifiCluster
           properties:
-            LdapConfiguration:
+            clusterImage:
+              description: clusterImage can specify the whole nificluster image in
+                one place
+              type: string
+            headlessServiceEnabled:
+              description: headlessServiceEnabled specifies if the cluster should
+                use headlessService for Nifi or individual services using service
+                per nodes may come an handy case of service mesh.
+              type: boolean
+            ldapConfiguration:
               properties:
                 enabled:
                   type: boolean
@@ -42,15 +51,6 @@ spec:
                 url:
                   type: string
               type: object
-            clusterImage:
-              description: clusterImage can specify the whole nificluster image in
-                one place
-              type: string
-            headlessServiceEnabled:
-              description: headlessServiceEnabled specifies if the cluster should
-                use headlessService for Nifi or individual services using service
-                per nodes may come an handy case of service mesh.
-              type: boolean
             listenersConfig:
               description: listenerConfig specifies nifi's listener specifig configs
               properties:
