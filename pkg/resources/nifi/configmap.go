@@ -34,7 +34,8 @@ func (r *Reconciler) configMap(id int32, nodeConfig *v1alpha1.NodeConfig, log lo
 			"logback.xml": 							r.getLogbackConfigString(nodeConfig, id, log),
 //			"bootstrap.conf": "",
 			"bootstrap-notification-servces.xml": 	r.getBootstrapNotificationServicesConfigString(nodeConfig, id, log),
-//			"authorizers.xml": "",
+			// TODO : review with OPS and secure part.
+//			"authorizers.xml": 						r.getAuthorizersConfigString(nodeConfig, id, log),
 		},
 	}
 }
@@ -255,6 +256,40 @@ func (r *Reconciler) getBootstrapNotificationServicesConfigString(nConfig *v1alp
 	if err := t.Execute(&out, map[string]interface{}{
 		"NifiCluster":				r.NifiCluster,
 		"Id": 						id,
+	}); err != nil {
+		log.Error(err, "error occurred during parsing the config template")
+	}
+	return out.String()
+}
+
+////////////////////////////////
+//  authorizers configuration //
+////////////////////////////////
+
+// TODO: Check if cases where is it necessary before using it (seems to be used for secured use cases)
+func (r *Reconciler) getAuthorizersConfigString(nConfig *v1alpha1.NodeConfig, id int32, log logr.Logger) string {
+
+	var nodeList map[int32]string
+	nodeList = make(map[int32]string)
+
+	for _, node := range r.NifiCluster.Spec.Nodes {
+		if r.NifiCluster.Spec.HeadlessServiceEnabled {
+			nodeList[node.Id] = fmt.Sprintf("%s.%s-headless.%s.svc.cluster.local", fmt.Sprintf(templates.NodeNameTemplate,r.NifiCluster.Name, node.Id), r.NifiCluster.Name, r.NifiCluster.Namespace)
+		} else {
+			nodeList[node.Id]  = fmt.Sprintf("%s.%s.svc.cluster.local", fmt.Sprintf(templates.NodeNameTemplate,r.NifiCluster.Name, node.Id), r.NifiCluster.Namespace)
+		}
+	}
+
+	//sort.Strings(nodeList)
+
+	var out bytes.Buffer
+	t := template.Must(template.New("nConfig-config").Parse(config.AuthorizersTemplate))
+	if err := t.Execute(&out, map[string]interface{}{
+		"NifiCluster":	r.NifiCluster,
+		"Id": 			id,
+		"ClusterName":	r.NifiCluster.Name,
+		"Namespace":	r.NifiCluster.Namespace,
+		"NodeList":		nodeList,
 	}); err != nil {
 		log.Error(err, "error occurred during parsing the config template")
 	}

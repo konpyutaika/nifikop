@@ -260,7 +260,7 @@ var EmptyAuthorizersTemplate = `<?xml version="1.0" encoding="UTF-8" standalone=
 `
 
 
-var AuthorizersTemplate = `{{- $replicas := int .NbNodes }}
+var AuthorizersTemplate = `{{- $nodeList := .NodeList }}
 {{- $clusterName := .ClusterName }}
 {{- $namespace := .Namespace }}
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -307,9 +307,10 @@ var AuthorizersTemplate = `{{- $replicas := int .NbNodes }}
         <class>org.apache.nifi.authorization.FileUserGroupProvider</class>
         <property name="Users File">./conf/users.xml</property>
         <property name="Legacy Authorized Users File"></property>
-{{- range $i := until $replicas }}
-        <property name="Initial User Identity {{ $i }}">CN={{ $clusterName }}-{{ $i }}.-{{ clusterName }}-headless.{{ $namespace }}.svc.cluster.local, OU=NIFI</property>
+{{- range $i, $host := .NodeList }}
+        <property name="Initial User Identity {{ $i }}">CN={{ $host }}, OU=NIFI</property>
 {{- end }}
+
         <property name="Initial User Identity admin">CN=admin, OU=NIFI</property>
     </userGroupProvider>
     <!--
@@ -479,8 +480,8 @@ var AuthorizersTemplate = `{{- $replicas := int .NbNodes }}
         <property name="Authorizations File">./conf/authorizations.xml</property>
         <property name="Initial Admin Identity">CN=admin, OU=NIFI</property>
         <property name="Legacy Authorized Users File"></property>
-{{- range $i := until $replicas }}
-        <property name="Node Identity {{ $i }}">CN={{ $clusterName }}-{{ $i }}.{{ $clusterName }}-headless.{{ $namespace }}.svc.cluster.local, OU=NIFI</property>
+{{- range $node := $nodeList }}
+        <property name="Node Identity {{ $node }}">CN={{ $nodeList }}.{{ $clusterName }}-headless.{{ $namespace }}.svc.cluster.local, OU=NIFI</property>
 {{- end }}
     </accessPolicyProvider>
      <!--
