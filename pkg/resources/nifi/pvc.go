@@ -13,7 +13,7 @@ import (
 func (r *Reconciler) pvc(id int32, storage v1alpha1.StorageConfig, log logr.Logger) runtime.Object {
 	return &corev1.PersistentVolumeClaim{
 		ObjectMeta: templates.ObjectMetaWithGeneratedNameAndAnnotations(
-			fmt.Sprintf(nodeStorageTemplate, r.NifiCluster.Name, id),
+			fmt.Sprintf(templates.NodeStorageTemplate, r.NifiCluster.Name, id),
 			util.MergeLabels(
 				labelsForNifi(r.NifiCluster.Name),
 				map[string]string{"nodeId": fmt.Sprintf("%d", id)},

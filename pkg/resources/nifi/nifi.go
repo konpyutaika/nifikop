@@ -26,17 +26,6 @@ import (
 
 const(
 	componentName		= "nifi"
-	nodeConfigTemplate	= "%s-config"
-	nodeStorageTemplate	= "%s-%d-storage"
-//	nodeStorageTemplate	= "%s-%s-storage"
-	nodeName            = "%s-%d-node"
-
-	clusterListenerType = "cluster"
-	httpListenerType 	= "http"
-	httpsListenerType 	= "https"
-	s2sListenerType 	= "s2s"
-
-	ProvenanceStorage   = "8 GB"
 
 	nodeConfigMapVolumeMount	= "node-config"
 	nifiDataVolumeMount			= "nifi-data"
@@ -45,9 +34,6 @@ const(
 	serverKeystorePath		= "/var/run/secrets/java.io/keystores/server"
 	clientKeystoreVolume	= "client-ks-files"
 	clientKeystorePath		= "/var/run/secrets/java.io/keystores/client"
-
-	metricsPort 		= 9020
-	defaultServicePort 	= 8080
 )
 
 // Reconciler implements the Component Reconciler
@@ -172,7 +158,7 @@ func (r *Reconciler) Reconcile(log logr.Logger) error {
 			if err != nil {
 				return errors.WrapIfWithDetails(err, "could not delete node", "id", node.Labels["nodeId"])
 			}
-			err = r.Client.Delete(context.TODO(), &corev1.ConfigMap{ObjectMeta: templates.ObjectMeta(fmt.Sprintf(nodeConfigTemplate+"-%s", r.NifiCluster.Name, node.Labels["nodeId"]), labelsForNifi(r.NifiCluster.Name), r.NifiCluster)})
+			err = r.Client.Delete(context.TODO(), &corev1.ConfigMap{ObjectMeta: templates.ObjectMeta(fmt.Sprintf(templates.NodeConfigTemplate+"-%s", r.NifiCluster.Name, node.Labels["nodeId"]), labelsForNifi(r.NifiCluster.Name), r.NifiCluster)})
 			if err != nil {
 				return errors.WrapIfWithDetails(err, "could not delete configmap for node", "id", node.Labels["nodeId"])
 			}

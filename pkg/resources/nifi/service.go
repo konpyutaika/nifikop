@@ -3,6 +3,7 @@ package nifi
 import (
 	"fmt"
 	"github.com/go-logr/logr"
+	"github.com/orangeopensource/nifi-operator/pkg/apis/nifi/v1alpha1"
 	"github.com/orangeopensource/nifi-operator/pkg/resources/templates"
 	"github.com/orangeopensource/nifi-operator/pkg/util"
 	corev1 "k8s.io/api/core/v1"
@@ -74,8 +75,8 @@ func (r *Reconciler) generateDefaultServicePort() []corev1.ServicePort{
 		{
 			Name:       "metrics",
 			Protocol:   corev1.ProtocolTCP,
-			Port:       metricsPort,
-			TargetPort: intstr.FromInt(metricsPort),
+			Port:       v1alpha1.MetricsPort,
+			TargetPort: intstr.FromInt(v1alpha1.MetricsPort),
 		},
 	}
 

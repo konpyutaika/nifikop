@@ -20,9 +20,14 @@ spec:
   clusterImage: "apache/nifi:1.11.0"
   # readOnlyConfig specifies the read-only type nifi config cluster wide, all these will be merged with node specified
   # readOnly configurations, so it can be overwritten per node.
-  readOnlyConfig: |
-    # nifi.web.http.network.interface.lo=lo
-    plop=toto
+  readOnlyConfig:
+    nifiProperties:
+      overrideConfigs: |
+        # nifi.web.http.network.interface.lo=lo
+        plop=toto
+    zookeeperProperties:
+      overrideConfigs: |
+        pop=toto
   # rollingUpgradeConfig specifies the rolling upgrade config for the cluster
   rollingUpgradeConfig:
     # failureThreshold states that how many errors can the cluster tolerate during rolling upgrade
@@ -61,9 +66,14 @@ spec:
       nodeConfigGroup: "default_group"
       # readOnlyConfig can be used to pass Kafka config https://kafka.apache.org/documentation/#brokerconfigs
       # which has type read-only these config changes will trigger rolling upgrade
-      readOnlyConfig: |
-        auto.create.topics.enable=false
-        toto=titi
+      readOnlyConfig:
+        nifiProperties:
+          overrideConfigs: |
+            plop=tata
+          siteToSiteSecure: false
+        zookeeperProperties:
+          overrideConfigs: |
+            pop=tata
       #nodeConfig:
         # Docker image used by the operator to create the Node with id 0
         #image: "apache/nifi:1.11.0"

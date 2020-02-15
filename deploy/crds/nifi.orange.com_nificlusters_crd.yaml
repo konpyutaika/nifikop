@@ -140,11 +140,6 @@ spec:
               additionalProperties:
                 description: NodeConfig defines the node configuration
                 properties:
-                  config:
-                    description: 'config parameter can be used to pass Nifi node config
-                      https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html
-                      TODO: to remove'
-                    type: string
                   image:
                     description: Docker image used by the operator to create the node
                       associated
@@ -162,6 +157,8 @@ spec:
                           type: string
                       type: object
                     type: array
+                  isNode:
+                    type: boolean
                   nifiAnnotations:
                     additionalProperties:
                       type: string
@@ -400,7 +397,7 @@ spec:
                     type: object
                   runAsUser:
                     description: RunAsUser define the id of the user to run in the
-                      Cassandra image
+                      Nifi image
                     format: int64
                     minimum: 1
                     type: integer
@@ -607,11 +604,6 @@ spec:
                   nodeConfig:
                     description: node configuration
                     properties:
-                      config:
-                        description: 'config parameter can be used to pass Nifi node
-                          config https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html
-                          TODO: to remove'
-                        type: string
                       image:
                         description: Docker image used by the operator to create the
                           node associated
@@ -630,6 +622,8 @@ spec:
                               type: string
                           type: object
                         type: array
+                      isNode:
+                        type: boolean
                       nifiAnnotations:
                         additionalProperties:
                           type: string
@@ -878,7 +872,7 @@ spec:
                         type: object
                       runAsUser:
                         description: RunAsUser define the id of the user to run in
-                          the Cassandra image
+                          the Nifi image
                         format: int64
                         minimum: 1
                         type: integer
@@ -1088,7 +1082,28 @@ spec:
                       https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html
                       which has type read-only these config changes will trigger rolling
                       upgrade
-                    type: string
+                    properties:
+                      nifiProperties:
+                        properties:
+                          authorizer:
+                            type: string
+                          clusterSecure:
+                            type: boolean
+                          needClientAuth:
+                            type: boolean
+                          overrideConfigs:
+                            type: string
+                          siteToSiteSecure:
+                            type: boolean
+                          webProxyHost:
+                            type: string
+                        type: object
+                      zookeeperProperties:
+                        properties:
+                          overrideConfigs:
+                            type: string
+                        type: object
+                    type: object
                 required:
                 - id
                 type: object
@@ -1105,9 +1120,30 @@ spec:
               type: boolean
             readOnlyConfig:
               description: readOnlyConfig specifies the read-only type Nifi config
-                cluster wide, all theses will be merged withj node specified readOnly
+                cluster wide, all theses will be merged with node specified readOnly
                 configurations, so it can be overwritten per node.
-              type: string
+              properties:
+                nifiProperties:
+                  properties:
+                    authorizer:
+                      type: string
+                    clusterSecure:
+                      type: boolean
+                    needClientAuth:
+                      type: boolean
+                    overrideConfigs:
+                      type: string
+                    siteToSiteSecure:
+                      type: boolean
+                    webProxyHost:
+                      type: string
+                  type: object
+                zookeeperProperties:
+                  properties:
+                    overrideConfigs:
+                      type: string
+                  type: object
+              type: object
             rollingUpgradeConfig:
               description: rollingUpgradeConfig specifies the rolling upgrade config
                 for the cluster

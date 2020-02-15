@@ -51,7 +51,7 @@ func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev
 			Name: nodeConfigMapVolumeMount,
 			VolumeSource: corev1.VolumeSource{
 				ConfigMap: &corev1.ConfigMapVolumeSource{
-					LocalObjectReference: corev1.LocalObjectReference{Name: fmt.Sprintf(nodeConfigTemplate+"-%d", r.NifiCluster.Name, id)},
+					LocalObjectReference: corev1.LocalObjectReference{Name: fmt.Sprintf(templates.NodeConfigTemplate+"-%d", r.NifiCluster.Name, id)},
 					DefaultMode:          util.Int32Pointer(0644),
 				},
 			},
@@ -96,14 +96,14 @@ exec bin/nifi.sh run
 	pod := &corev1.Pod{
 		//ObjectMeta: templates.ObjectMetaWithAnnotations(
 		ObjectMeta: templates.ObjectMetaWithGeneratedNameAndAnnotations(
-			fmt.Sprintf(nodeName, r.NifiCluster.Name, id),
+			fmt.Sprintf(templates.NodeNameTemplate, r.NifiCluster.Name, id),
 			util.MergeLabels(
 				labelsForNifi(r.NifiCluster.Name),
 				map[string]string{"nodeId": fmt.Sprintf("%d", id)},
 			),
 			util.MergeAnnotations(
 				nodeConfig.GetNodeAnnotations(),
-				util.MonitoringAnnotations(metricsPort),
+				util.MonitoringAnnotations(v1alpha1.MetricsPort),
 			), r.NifiCluster,
 		),
 		Spec: corev1.PodSpec{
@@ -212,7 +212,7 @@ fi`,
 	}
 
 	if r.NifiCluster.Spec.HeadlessServiceEnabled {
-		pod.Spec.Hostname	= fmt.Sprintf(nodeName, r.NifiCluster.Name, id)
+		pod.Spec.Hostname	= fmt.Sprintf(templates.NodeNameTemplate, r.NifiCluster.Name, id)
 		pod.Spec.Subdomain	= fmt.Sprintf(nifiutils.HeadlessServiceTemplate, r.NifiCluster.Name)
 	}
 
@@ -317,7 +317,7 @@ func (r *Reconciler) generateDefaultContainerPort() []corev1.ContainerPort{
 		{
 			Name:          "metrics",
 			Protocol:      corev1.ProtocolTCP,
-			ContainerPort: metricsPort,
+			ContainerPort: v1alpha1.MetricsPort,
 		},
 	}
 
@@ -330,9 +330,9 @@ func getServerPort(l *v1alpha1.ListenersConfig) int32 {
 	var httpsServerPort int32
 	var httpServerPort int32
 	for _, iListener := range l.InternalListeners {
-		if iListener.Type == httpsListenerType {
+		if iListener.Type == v1alpha1.HttpsListenerType {
 			httpsServerPort = iListener.ContainerPort
-		} else if iListener.Type == httpListenerType {
+		} else if iListener.Type == v1alpha1.HttpListenerType {
 			httpsServerPort = iListener.ContainerPort
 		}
 	}

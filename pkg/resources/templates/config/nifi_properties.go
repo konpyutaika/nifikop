@@ -1,5 +1,12 @@
 package config
 
+import (
+	"fmt"
+	"github.com/go-logr/logr"
+	"github.com/orangeopensource/nifi-operator/pkg/apis/nifi/v1alpha1"
+	templates "github.com/orangeopensource/nifi-operator/pkg/resources/templates"
+)
+
 var NifiPropertiesTemplate = `
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
@@ -233,3 +240,59 @@ nifi.kerberos.spnego.authentication.expiration=12 hours
 # supports a comma delimited list of file locations
 nifi.variable.registry.properties=
 `
+
+//
+func GenerateListenerSpecificConfig(l *v1alpha1.ListenersConfig, id int32, namespace, crName string, headlessServiceEnabled bool, log logr.Logger) string {
+	var nifiConfig string
+
+	var hostListener string
+
+	if headlessServiceEnabled {
+		hostListener = fmt.Sprintf("%s.%s-headless.%s.svc.cluster.local", fmt.Sprintf(templates.NodeNameTemplate,crName, id), crName, namespace)
+	} else {
+		hostListener = fmt.Sprintf("%s.%s.svc.cluster.local", fmt.Sprintf(templates.NodeNameTemplate,crName, id), namespace)
+	}
+
+	clusterPortConfig 	:= "nifi.cluster.node.protocol.port=\n"
+	httpPortConfig 		:= "nifi.web.http.port=\n"
+	httpHostConfig 		:= "nifi.web.http.host=\n"
+	httpsPortConfig 	:= "nifi.web.https.port=\n"
+	httpsHostConfig 	:= "nifi.web.https.host=\n"
+	s2sPortConfig 		:= "nifi.remote.input.socket.port=\n"
+
+	for _, iListener := range l.InternalListeners {
+		switch iListener.Type {
+		case v1alpha1.ClusterListenerType:
+			clusterPortConfig = fmt.Sprintf("nifi.cluster.node.protocol.port=%d", iListener.ContainerPort) + "\n"
+		case v1alpha1.HttpListenerType:
+			httpPortConfig = fmt.Sprintf("nifi.web.http.port=%d", iListener.ContainerPort) + "\n"
+			httpHostConfig = fmt.Sprintf("nifi.web.http.host=%s", hostListener) + "\n"
+		case v1alpha1.HttpsListenerType:
+			httpsPortConfig = fmt.Sprintf("nifi.web.https.port=%d", iListener.ContainerPort) + "\n"
+			httpsHostConfig = fmt.Sprintf("nifi.web.https.host=%s", hostListener) + "\n"
+		case v1alpha1.S2sListenerType:
+			s2sPortConfig = fmt.Sprintf("nifi.remote.input.socket.port=%d", iListener.ContainerPort) + "\n"
+		}
+	}
+	nifiConfig = nifiConfig +
+		clusterPortConfig +
+		httpPortConfig +
+		httpHostConfig +
+		httpsPortConfig +
+		httpsHostConfig +
+		s2sPortConfig
+
+	nifiConfig = nifiConfig + fmt.Sprintf("nifi.remote.input.host=%s", hostListener) + "\n"
+	nifiConfig = nifiConfig + fmt.Sprintf("nifi.cluster.node.address=%s", hostListener) + "\n"
+	return nifiConfig
+}
+
+//
+func GenerateProvenanceStorageConfig(sConfig []v1alpha1.StorageConfig) string {
+	for _, storage := range sConfig {
+		if storage.IsProvenanceStorage {
+			return storage.PVCSpec.Resources.Requests.Memory().String()
+		}
+	}
+	return v1alpha1.ProvenanceStorage
+}

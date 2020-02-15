@@ -7,6 +7,16 @@ import (
 	"strings"
 )
 
+const (
+	ClusterListenerType = "cluster"
+	HttpListenerType 	= "http"
+	HttpsListenerType 	= "https"
+	S2sListenerType 	= "s2s"
+	MetricsPort 		= 9020
+	ProvenanceStorage   = "8 GB"
+
+)
+
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
@@ -34,8 +44,8 @@ type NifiClusterSpec struct {
 	ClusterImage	string	`json:"clusterImage,omitempty"`
 
 	// readOnlyConfig specifies the read-only type Nifi config cluster wide, all theses
-	// will be merged withj node specified readOnly configurations, so it can be overwritten per node.
-	ReadOnlyConfig	string	`json:"readOnlyConfig,omitempty"`
+	// will be merged with node specified readOnly configurations, so it can be overwritten per node.
+	ReadOnlyConfig	ReadOnlyConfig	`json:"readOnlyConfig,omitempty"`
 
 	// nodeConfigGroups specifies multiple node configs with unique name
 	NodeConfigGroups   map[string]NodeConfig `json:"nodeConfigGroups,omitempty"`
@@ -92,24 +102,47 @@ type Node struct {
 	NodeConfigGroup string `json:"nodeConfigGroup,omitempty"`
 	// readOnlyConfig can be used to pass Nifi node config https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html
 	// which has type read-only these config changes will trigger rolling upgrade
-	ReadOnlyConfig string `json:"readOnlyConfig,omitempty"`
+	ReadOnlyConfig *ReadOnlyConfig `json:"readOnlyConfig,omitempty"`
 	// node configuration
 	NodeConfig *NodeConfig `json:"nodeConfig,omitempty"`
 }
 
+type ReadOnlyConfig struct {
+	NifiProperties NifiProperties ` json:"nifiProperties,omitempty"`
+	ZookeeperProperties ZookeeperProperties ` json:"zookeeperProperties,omitempty"`
+}
+
+type NifiProperties struct {
+	//
+	OverrideConfigs 	string	`json:"overrideConfigs,omitempty"`
+	//
+	SiteToSiteSecure	bool	`json:"siteToSiteSecure,omitempty"`
+	//
+	ClusterSecure		bool	`json:"clusterSecure,omitempty"`
+	//
+	WebProxyHost		string	`json:"webProxyHost,omitempty"`
+	//
+	NeedClientAuth		bool	`json:"needClientAuth,omitempty"`
+	//
+	Authorizer			string	`json:"authorizer,omitempty"`
+}
+
+type ZookeeperProperties struct {
+	OverrideConfigs string `json:"overrideConfigs,omitempty"`
+}
+
+
 // NodeConfig defines the node configuration
 type NodeConfig struct {
-	//RunAsUser define the id of the user to run in the Cassandra image
+	//RunAsUser define the id of the user to run in the Nifi image
 	// +kubebuilder:validation:Minimum=1
 	RunAsUser *int64 `json:"runAsUser,omitempty"`
-
+	//
+	IsNode	*bool	`json:"isNode,omitempty"`
 	// Docker image used by the operator to create the node associated
 	Image              		string                        `json:"image,omitempty"`
 	// nodeAffinity can be specified, operator populates this value if new pvc added later to node
 	NodeAffinity       		*corev1.NodeAffinity          `json:"nodeAffinity,omitempty"`
-	// config parameter can be used to pass Nifi node config https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html
-	// TODO: to remove
-	Config             		string                        `json:"config,omitempty"`
 	// storageConfigs specifies the node log related configs
 	StorageConfigs     		[]StorageConfig               `json:"storageConfigs,omitempty"`
 	// serviceAccountName specifies the serviceAccount used for this specific node
@@ -129,12 +162,6 @@ type NodeConfig struct {
  */
 	//
 	NodeAnnotations  		map[string]string             `json:"nifiAnnotations,omitempty"`
-}
-
-// TODO: maybe useless.
-// RackAwareness defines the required fields to enable nifi's rack aware feature
-type RackAwareness struct {
-	Labels []string `json:"labels"`
 }
 
 // StorageConfig defines the node storage configuration
@@ -300,6 +327,22 @@ func (nConfig *NodeConfig) GetRunAsUser() *int64 {
 	}
 
 	return func(i int64) *int64 { return &i }(defaultUserID)
+}
+
+//
+func (nConfig *NodeConfig) GetIsNode() bool {
+	if nConfig.IsNode != nil {
+		return *nConfig.IsNode
+	}
+	return true
+}
+
+//
+func (nProperties NifiProperties) GetAuthorizer() string {
+	if nProperties.Authorizer != "" {
+		return nProperties.Authorizer
+	}
+	return "managed-authorizer"
 }
 
 
