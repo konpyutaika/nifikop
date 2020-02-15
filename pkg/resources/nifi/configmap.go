@@ -31,7 +31,7 @@ func (r *Reconciler) configMap(id int32, nodeConfig *v1alpha1.NodeConfig, log lo
 			"zookeeper.properties": 				r.generateZookeeperPropertiesNodeConfig(id, nodeConfig, log),
 			"state-management.xml": 				r.getStateManagementConfigString(nodeConfig, id, log),
 			"login-identity-providers.xml": 		r.getLoginIdentityProvidersConfigString(nodeConfig, id, log),
-//			"logback.xml": "",
+			"logback.xml": 							r.getLogbackConfigString(nodeConfig, id, log),
 //			"bootstrap.conf": "",
 //			"bootstrap-notification-servces.xml": "",
 //			"authorizers.xml": "",
@@ -219,6 +219,24 @@ func (r *Reconciler) getLoginIdentityProvidersConfigString(nConfig *v1alpha1.Nod
 		"NifiCluster":				r.NifiCluster,
 		"Id": 						id,
 		"LdapConfiguration": 		r.NifiCluster.Spec.LdapConfiguration,
+	}); err != nil {
+		log.Error(err, "error occurred during parsing the config template")
+	}
+	return out.String()
+}
+
+////////////////////////////
+//  Logback configuration //
+////////////////////////////
+
+//
+func (r *Reconciler) getLogbackConfigString(nConfig *v1alpha1.NodeConfig, id int32, log logr.Logger) string {
+
+	var out bytes.Buffer
+	t := template.Must(template.New("nConfig-config").Parse(config.LogbackTemplate))
+	if err := t.Execute(&out, map[string]interface{}{
+		"NifiCluster":				r.NifiCluster,
+		"Id": 						id,
 	}); err != nil {
 		log.Error(err, "error occurred during parsing the config template")
 	}
