@@ -31,16 +31,7 @@ spec:
         spec:
           description: NifiClusterSpec defines the desired state of NifiCluster
           properties:
-            clusterImage:
-              description: clusterImage can specify the whole nificluster image in
-                one place
-              type: string
-            headlessServiceEnabled:
-              description: headlessServiceEnabled specifies if the cluster should
-                use headlessService for Nifi or individual services using service
-                per nodes may come an handy case of service mesh.
-              type: boolean
-            ldapConfiguration:
+            "0":
               properties:
                 enabled:
                   type: boolean
@@ -51,6 +42,15 @@ spec:
                 url:
                   type: string
               type: object
+            clusterImage:
+              description: clusterImage can specify the whole nificluster image in
+                one place
+              type: string
+            headlessServiceEnabled:
+              description: headlessServiceEnabled specifies if the cluster should
+                use headlessService for Nifi or individual services using service
+                per nodes may come an handy case of service mesh.
+              type: boolean
             listenersConfig:
               description: listenerConfig specifies nifi's listener specifig configs
               properties:
@@ -1094,6 +1094,13 @@ spec:
                       which has type read-only these config changes will trigger rolling
                       upgrade
                     properties:
+                      bootstrapProperties:
+                        properties:
+                          nifiJvmMemory:
+                            type: string
+                          overrideConfigs:
+                            type: string
+                        type: object
                       nifiProperties:
                         properties:
                           authorizer:
@@ -1134,6 +1141,13 @@ spec:
                 cluster wide, all theses will be merged with node specified readOnly
                 configurations, so it can be overwritten per node.
               properties:
+                bootstrapProperties:
+                  properties:
+                    nifiJvmMemory:
+                      type: string
+                    overrideConfigs:
+                      type: string
+                  type: object
                 nifiProperties:
                   properties:
                     authorizer:

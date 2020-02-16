@@ -110,8 +110,9 @@ type Node struct {
 }
 
 type ReadOnlyConfig struct {
-	NifiProperties NifiProperties ` json:"nifiProperties,omitempty"`
-	ZookeeperProperties ZookeeperProperties ` json:"zookeeperProperties,omitempty"`
+	NifiProperties 		NifiProperties		`json:"nifiProperties,omitempty"`
+	ZookeeperProperties	ZookeeperProperties	`json:"zookeeperProperties,omitempty"`
+	BootstrapProperties	BootstrapProperties	`json:"bootstrapProperties,omitempty"`
 }
 
 type NifiProperties struct {
@@ -130,8 +131,17 @@ type NifiProperties struct {
 }
 
 type ZookeeperProperties struct {
+	//
 	OverrideConfigs string `json:"overrideConfigs,omitempty"`
 }
+
+type BootstrapProperties struct {
+	//
+	NifiJvmMemory	string	`json:"nifiJvmMemory,omitempty"`
+	//
+	OverrideConfigs string `json:"overrideConfigs,omitempty"`
+}
+
 
 /*type StateManagement struct {
 	OverrideConfigs string `json:"overrideConfigs,omitempty"`
@@ -356,6 +366,13 @@ func (nConfig *NodeConfig) GetIsNode() bool {
 	return true
 }
 
+// GetNifiJvmMemory returns the default "2g" NifiJvmMemory if not specified otherwise
+func (bProperties *BootstrapProperties) GetNifiJvmMemory() string {
+	if bProperties.NifiJvmMemory != "" {
+		return bProperties.NifiJvmMemory
+	}
+	return "2g"
+}
 //
 func (nProperties NifiProperties) GetAuthorizer() string {
 	if nProperties.Authorizer != "" {

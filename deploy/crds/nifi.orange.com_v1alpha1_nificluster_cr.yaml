@@ -79,6 +79,10 @@ spec:
         zookeeperProperties:
           overrideConfigs: |
             pop=tata
+        bootstrapProperties:
+          nifiJvmMemory: "3g"
+          overrideConfigs: |
+            plop=tata
       #nodeConfig:
         # Docker image used by the operator to create the Node with id 0
         #image: "apache/nifi:1.11.0"
@@ -121,9 +125,6 @@ spec:
               resources:
                 requests:
                   storage: 10Gi
-    # listenersConfig specifies kafka's listener specific configs
-    - id: 1
-      nodeConfigGroup: "default_group"
   listenersConfig:
     # externalListeners specifies settings required to access nifi externally
     externalListeners:

@@ -32,7 +32,7 @@ func (r *Reconciler) configMap(id int32, nodeConfig *v1alpha1.NodeConfig, log lo
 			"state-management.xml": 				r.getStateManagementConfigString(nodeConfig, id, log),
 			"login-identity-providers.xml": 		r.getLoginIdentityProvidersConfigString(nodeConfig, id, log),
 			"logback.xml": 							r.getLogbackConfigString(nodeConfig, id, log),
-//			"bootstrap.conf": "",
+			"bootstrap.conf": 						r.getBootstrapPropertiesConfigString(nodeConfig, id, log),
 			"bootstrap-notification-servces.xml": 	r.getBootstrapNotificationServicesConfigString(nodeConfig, id, log),
 			// TODO : review with OPS and secure part.
 //			"authorizers.xml": 						r.getAuthorizersConfigString(nodeConfig, id, log),
@@ -244,9 +244,9 @@ func (r *Reconciler) getLogbackConfigString(nConfig *v1alpha1.NodeConfig, id int
 	return out.String()
 }
 
-////////////////////////////
-//  Logback configuration //
-////////////////////////////
+///////////////////////////////////////////////////
+//  Bootstrap notification service configuration //
+///////////////////////////////////////////////////
 
 //
 func (r *Reconciler) getBootstrapNotificationServicesConfigString(nConfig *v1alpha1.NodeConfig, id int32, log logr.Logger) string {
@@ -290,6 +290,76 @@ func (r *Reconciler) getAuthorizersConfigString(nConfig *v1alpha1.NodeConfig, id
 		"ClusterName":	r.NifiCluster.Name,
 		"Namespace":	r.NifiCluster.Namespace,
 		"NodeList":		nodeList,
+	}); err != nil {
+		log.Error(err, "error occurred during parsing the config template")
+	}
+	return out.String()
+}
+
+/////////////////////////////////////////
+//  Bootstrap properties configuration //
+/////////////////////////////////////////
+
+//
+func (r Reconciler) generateBootstrapPropertiesNodeConfig(id int32, nodeConfig *v1alpha1.NodeConfig, log logr.Logger) string {
+	var parsedReadOnlyClusterConfig map[string]string
+
+	if &r.NifiCluster.Spec.ReadOnlyConfig != nil && &r.NifiCluster.Spec.ReadOnlyConfig.BootstrapProperties != nil {
+		parsedReadOnlyClusterConfig = util.ParsePropertiesFormat(r.NifiCluster.Spec.ReadOnlyConfig.BootstrapProperties.OverrideConfigs)
+	}
+
+	var parsedReadOnlyNodeConfig = map[string]string{}
+
+	for _, node := range r.NifiCluster.Spec.Nodes {
+		if node.Id == id && node.ReadOnlyConfig != nil && &node.ReadOnlyConfig.BootstrapProperties != nil {
+			parsedReadOnlyNodeConfig = util.ParsePropertiesFormat(node.ReadOnlyConfig.BootstrapProperties.OverrideConfigs)
+			break
+		}
+	}
+
+	if err := mergo.Merge(&parsedReadOnlyNodeConfig, parsedReadOnlyClusterConfig); err != nil {
+		log.Error(err, "error occurred during merging readonly configs")
+	}
+
+	//Generate the Complete Configuration for the Node
+	completeConfigMap := map[string]string{}
+
+	if err := mergo.Merge(&completeConfigMap, util.ParsePropertiesFormat(r.getBootstrapPropertiesConfigString(nodeConfig, id, log))); err != nil {
+		log.Error(err, "error occurred during merging operator generated configs")
+	}
+
+	if err := mergo.Merge(&completeConfigMap, parsedReadOnlyNodeConfig); err != nil {
+		log.Error(err, "error occurred during merging readOnly config to complete configs")
+	}
+
+	completeConfig := []string{}
+
+	for key, value := range completeConfigMap {
+		completeConfig = append(completeConfig, fmt.Sprintf("%s=%s", key, value))
+	}
+
+	// We need to sort the config every time to avoid diffs occurred because of ranging through map
+	sort.Strings(completeConfig)
+
+	return strings.Join(completeConfig, "\n")
+}
+
+//
+func (r *Reconciler) getBootstrapPropertiesConfigString(nConfig *v1alpha1.NodeConfig, id int32, log logr.Logger) string {
+
+,	base := r.NifiCluster.Spec.ReadOnlyConfig.BootstrapProperties.DeepCopy()
+	for _, node := range r.NifiCluster.Spec.Nodes {
+		if node.Id == id && node.ReadOnlyConfig != nil && &node.ReadOnlyConfig.BootstrapProperties != nil{
+			mergo.Merge(base, node.ReadOnlyConfig.BootstrapProperties, mergo.WithOverride)
+		}
+	}
+
+	var out bytes.Buffer
+	t := template.Must(template.New("nConfig-config").Parse(config.BootstrapPropertiesTemplate))
+	if err := t.Execute(&out, map[string]interface{}{
+		"NifiCluster":	r.NifiCluster,
+		"Id": 			id,
+		"JvmMemory":	base.GetNifiJvmMemory(),
 	}); err != nil {
 		log.Error(err, "error occurred during parsing the config template")
 	}
