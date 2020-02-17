@@ -346,8 +346,7 @@ func (r Reconciler) generateBootstrapPropertiesNodeConfig(id int32, nodeConfig *
 
 //
 func (r *Reconciler) getBootstrapPropertiesConfigString(nConfig *v1alpha1.NodeConfig, id int32, log logr.Logger) string {
-
-,	base := r.NifiCluster.Spec.ReadOnlyConfig.BootstrapProperties.DeepCopy()
+	base := r.NifiCluster.Spec.ReadOnlyConfig.BootstrapProperties.DeepCopy()
 	for _, node := range r.NifiCluster.Spec.Nodes {
 		if node.Id == id && node.ReadOnlyConfig != nil && &node.ReadOnlyConfig.BootstrapProperties != nil{
 			mergo.Merge(base, node.ReadOnlyConfig.BootstrapProperties, mergo.WithOverride)

@@ -371,7 +371,7 @@ func (bProperties *BootstrapProperties) GetNifiJvmMemory() string {
 	if bProperties.NifiJvmMemory != "" {
 		return bProperties.NifiJvmMemory
 	}
-	return "2g"
+	return "512m"
 }
 //
 func (nProperties NifiProperties) GetAuthorizer() string {

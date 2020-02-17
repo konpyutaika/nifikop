@@ -80,7 +80,7 @@ spec:
           overrideConfigs: |
             pop=tata
         bootstrapProperties:
-          nifiJvmMemory: "3g"
+          nifiJvmMemory: "256m"
           overrideConfigs: |
             plop=tata
       #nodeConfig:

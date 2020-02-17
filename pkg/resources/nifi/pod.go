@@ -150,14 +150,16 @@ exec bin/nifi.sh run
 								Command: []string{
 									"bash",
 									"-c",
-									fmt.Sprintf(`curl -kv \
+/*									fmt.Sprintf(`curl -kv \
 http://$(hostname -f):%d/nifi-api/controller/cluster > $NIFI_BASE_DIR/data/cluster.state
 STATUS=$(jq -r ".cluster.nodes[] | select((.address==\"$(hostname -f)\") or .address==\"localhost\") | .status" $NIFI_BASE_DIR/data/cluster.state)
 if [[ ! $STATUS = "CONNECTED" ]]; then
 	echo "Node not found with CONNECTED state. Full cluster state:"
 	jq . $NIFI_BASE_DIR/data/cluster.state
 	exit 1
-fi`,
+fi`,*/
+										fmt.Sprintf(`curl -kv http://$(hostname -f):%d/nifi-api`,
+
 										getServerPort(&r.NifiCluster.Spec.ListenersConfig)),
 								},
 							},
