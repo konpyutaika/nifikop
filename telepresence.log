@@ -1,0 +1,44 @@
+   0.0 TEL | Telepresence 0.103 launched at Tue Feb 18 12:47:44 2020
+   0.0 TEL |   /usr/local/bin/telepresence --swap-deployment nifi-operator --mount=/tmp/known --env-file nifi-operator.env
+   0.0 TEL | uname: uname_result(system='Darwin', node='MBPdeAlexandre.nice.francetelecom.fr', release='19.2.0', version='Darwin Kernel Version 19.2.0: Sat Nov  9 03:47:04 PST 2019; root:xnu-6153.61.1~20/RELEASE_X86_64', machine='x86_64', processor='i386')
+   0.0 TEL | Platform: darwin
+   0.0 TEL | WSL: False
+   0.0 TEL | Python 3.7.5 (default, Nov  1 2019, 02:16:23)
+   0.0 TEL | [Clang 11.0.0 (clang-1100.0.33.8)]
+   0.1 TEL | BEGIN SPAN main.py:40(main)
+   0.1 TEL | BEGIN SPAN startup.py:83(set_kube_command)
+   0.2 TEL | Found kubectl -> /usr/local/bin/kubectl
+   0.2 TEL | [1] Capturing: kubectl version --short
+   1.2   1 | Unable to connect to the server: error executing access token command "/Users/aguitton/google-cloud-sdk/bin/gcloud config config-helper --format=json": err=exit status 1 output= stderr=ERROR: (gcloud.config.config-helper) There was a problem refreshing your current auth tokens: Unable to find the server at www.googleapis.com
+   1.2   1 | Please run:
+   1.2   1 | 
+   1.2   1 |   $ gcloud auth login
+   1.2   1 | 
+   1.2   1 | to obtain new credentials, or if you have already logged in with a
+   1.2   1 | different account:
+   1.2   1 | 
+   1.2   1 |   $ gcloud config set account ACCOUNT
+   1.2   1 | 
+   1.2   1 | to select an already authenticated account to use.
+   1.2 TEL | [1] exit 1 in 0.95 secs.
+   1.2 TEL | [2] Capturing: kubectl config current-context
+   1.2 TEL | [2] captured in 0.08 secs.
+   1.2 TEL | [3] Capturing: kubectl config view -o json
+   1.3 TEL | [3] captured in 0.09 secs.
+   1.3 TEL | [4] Capturing: kubectl --context gke_poc-rtc_europe-west1-c_data-ptf-europe-west1-c get ns nifi-demo
+   6.4   4 | Unable to connect to the server: error executing access token command "/Users/aguitton/google-cloud-sdk/bin/gcloud config config-helper --format=json": err=exit status 1 output= stderr=ERROR: (gcloud.config.config-helper) There was a problem refreshing your current auth tokens: Unable to find the server at www.googleapis.com
+   6.4   4 | Please run:
+   6.4   4 | 
+   6.4   4 |   $ gcloud auth login
+   6.4   4 | 
+   6.4   4 | to obtain new credentials, or if you have already logged in with a
+   6.4   4 | different account:
+   6.4   4 | 
+   6.4   4 |   $ gcloud config set account ACCOUNT
+   6.4   4 | 
+   6.4   4 | to select an already authenticated account to use.
+   6.4 TEL | [4] exit 1 in 5.05 secs.
+   6.4 >>> | 
+   6.4 >>> | Error: Namespace 'nifi-demo' does not exist
+   6.4 >>> | 
+   6.4 TEL | EXITING with status code 255

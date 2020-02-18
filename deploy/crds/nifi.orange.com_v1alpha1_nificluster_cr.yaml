@@ -3,6 +3,8 @@ kind: NifiCluster
 metadata:
   name: nifi
 spec:
+  nifiClusterTaskSpec:
+    retryDurationMinutes: 1
   # Specify if the cluster should use headlessService for Nifi or individual services
   # using service/node may come in handy in case of service mesh
   headlessServiceEnabled: true
@@ -22,7 +24,7 @@ spec:
   oneNifiNodePerNode: false
   # Specify the Nifi Node related settings
   # clusterImage can specify the whole nificluster image in one place
-  clusterImage: "apache/nifi:1.11.0"
+  clusterImage: "apache/nifi:1.11.1"
   # readOnlyConfig specifies the read-only type nifi config cluster wide, all these will be merged with node specified
   # readOnly configurations, so it can be overwritten per node.
   readOnlyConfig:
@@ -109,22 +111,7 @@ spec:
         #kafkaHeapOpts: "-Xmx4G -Xms4G"
         # kafkaJvmPerfOpts specifies the jvm performance configs for the broker
         #kafkaJvmPerfOpts: "-server -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:InitiatingHeapOccupancyPercent=35 -XX:+ExplicitGCInvokesConcurrent -Djava.awt.headless=true -Dsun.net.inetaddr.ttl=60"
-  # listenersConfig specifies kafka's listener specific configs
-    - id: 12
-      # Specify desired group name (eg., 'default_group')
-      nodeConfig:
-        # all the brokerConfig settings are available here
-        storageConfigs:
-          - mountPath: "/opt/nifi/nifi-current/log"
-            name: log
-            isProvenanceStorage: false
-            pvcSpec:
-              accessModes:
-                - ReadWriteOnce
-              storageClassName: "standard"
-              resources:
-                requests:
-                  storage: 10Gi
+    # listenersConfig specifies kafka's listener specific configs
   listenersConfig:
     # externalListeners specifies settings required to access nifi externally
     externalListeners:

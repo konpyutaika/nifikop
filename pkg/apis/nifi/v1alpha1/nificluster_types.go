@@ -254,7 +254,7 @@ type LdapConfiguration struct {
 // NifiClusterTaskSpec specifies the configuration of the nifi cluster Tasks
 type NifiClusterTaskSpec struct {
 	// RetryDurationMinutes describes the amount of time the Operator waits for the task
-	RetryDurationMinutes int `json:"RetryDurationMinutes"`
+	RetryDurationMinutes int `json:"retryDurationMinutes"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

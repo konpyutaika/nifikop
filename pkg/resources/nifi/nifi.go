@@ -20,6 +20,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sort"
 	"strings"
 	"time"
 )
@@ -124,73 +125,171 @@ func (r *Reconciler) Reconcile(log logr.Logger) error {
 			deletedNodes = append(deletedNodes, pod)
 		}
 
+		sort.Slice(deletedNodes, func(i, j int) bool {
+			return deletedNodes[i].Labels["nodeId"] < deletedNodes[j].Labels["nodeId"]
+		})
+
+		// If pods is still running
 		if !arePodsAlreadyDeleted(deletedNodes, log) {
+			// If pods doesn't start the gracefull scaledown.
 			if r.NifiCluster.Status.NodesState[generateNodeIdsFromPodSlice(deletedNodes)[0]].GracefulActionState.State != v1alpha1.GracefulUpdateRunning &&
 				r.NifiCluster.Status.NodesState[generateNodeIdsFromPodSlice(deletedNodes)[0]].GracefulActionState.State != v1alpha1.GracefulDownscaleSucceeded {
-				uTaskId, taskStartTime, err := scale.DownsizeCluster(strings.Join(generateNodeIdsFromPodSlice(deletedNodes), ","),
+
+				if r.NifiCluster.Status.NodesState[generateNodeIdsFromPodSlice(deletedNodes)[0]].GracefulActionState.ActionStep == v1alpha1.ConnectNodeAction {
+					err = r.checkNCActionStep(generateNodeIdsFromPodSlice(deletedNodes)[0],
+						r.NifiCluster.Status.NodesState[generateNodeIdsFromPodSlice(deletedNodes)[0]], v1alpha1.ConnectStatus, nil, log)
+					if err != nil {
+						return err
+					}
+				}
+
+//				uTaskId, taskStartTime, err := scale.DownsizeCluster(strings.Join(generateNodeIdsFromPodSlice(deletedNodes), ","),
+//					r.NifiCluster.Namespace, r.NifiCluster.Name)
+				actionStep, taskStartTime, err := scale.DisconnectClusterNode(r.NifiCluster.Spec.HeadlessServiceEnabled, r.NifiCluster.Spec.Nodes, GetServerPort(&r.NifiCluster.Spec.ListenersConfig), generateNodeIdsFromPodSlice(deletedNodes)[0],
 					r.NifiCluster.Namespace, r.NifiCluster.Name)
 				if err != nil {
 					log.Info(fmt.Sprintf("nifi cluster communication error during downscaling node(s) id(s): %s", strings.Join(generateNodeIdsFromPodSlice(deletedNodes), ",")))
 					return errorfactory.New(errorfactory.NifiClusterNotReady{}, err, fmt.Sprintf("node(s) id(s): %s", strings.Join(generateNodeIdsFromPodSlice(deletedNodes), ",")))
 				}
-				err = k8sutil.UpdateNodeStatus(r.Client, generateNodeIdsFromPodSlice(deletedNodes), r.NifiCluster,
-					v1alpha1.GracefulActionState{ActionStep: uTaskId, State: v1alpha1.GracefulUpdateRunning,
+				err = k8sutil.UpdateNodeStatus(r.Client, []string{generateNodeIdsFromPodSlice(deletedNodes)[0]}, r.NifiCluster,
+					v1alpha1.GracefulActionState{ActionStep: actionStep, State: v1alpha1.GracefulUpdateRunning,
 						TaskStarted: taskStartTime}, log)
 				if err != nil {
 					return errors.WrapIfWithDetails(err, "could not update status for node(s)", "id(s)", strings.Join(generateNodeIdsFromPodSlice(deletedNodes), ","))
 				}
 			}
-			if r.NifiCluster.Status.NodesState[generateNodeIdsFromPodSlice(deletedNodes)[0]].GracefulActionState.State == v1alpha1.GracefulUpdateRunning {
-				err = r.checkCCTaskState(generateNodeIdsFromPodSlice(deletedNodes),
-					r.NifiCluster.Status.NodesState[generateNodeIdsFromPodSlice(deletedNodes)[0]], v1alpha1.GracefulDownscaleSucceeded, log)
-				if err != nil {
-					return err
+			// If gracefull update is running
+			if r.NifiCluster.Status.NodesState[generateNodeIdsFromPodSlice(deletedNodes)[0]].GracefulActionState.State == v1alpha1.GracefulUpdateRunning &&
+				r.NifiCluster.Status.NodesState[generateNodeIdsFromPodSlice(deletedNodes)[0]].GracefulActionState.ActionStep != v1alpha1.OffloadStatus{
+
+				// Check if node finished to disconnect
+				if r.NifiCluster.Status.NodesState[generateNodeIdsFromPodSlice(deletedNodes)[0]].GracefulActionState.ActionStep == v1alpha1.DisconnectNodeAction {
+					err = r.checkNCActionStep(generateNodeIdsFromPodSlice(deletedNodes)[0],
+						r.NifiCluster.Status.NodesState[generateNodeIdsFromPodSlice(deletedNodes)[0]], v1alpha1.DisconnectStatus, nil, log)
+					if err != nil {
+						return err
+					}
+				}
+
+				// If node is disconnected, performing offload
+				if r.NifiCluster.Status.NodesState[generateNodeIdsFromPodSlice(deletedNodes)[0]].GracefulActionState.ActionStep == v1alpha1.DisconnectStatus {
+					actionStep, taskStartTime, err := scale.OffloadClusterNode(r.NifiCluster.Spec.HeadlessServiceEnabled, r.NifiCluster.Spec.Nodes, GetServerPort(&r.NifiCluster.Spec.ListenersConfig), generateNodeIdsFromPodSlice(deletedNodes)[0],
+						r.NifiCluster.Namespace, r.NifiCluster.Name)
+					if err != nil {
+						log.Info(fmt.Sprintf("nifi cluster communication error during removing node id: %s", generateNodeIdsFromPodSlice(deletedNodes)[0]))
+						return errorfactory.New(errorfactory.NifiClusterNotReady{}, err, fmt.Sprintf("node id: %s", generateNodeIdsFromPodSlice(deletedNodes)[0]))
+					}
+					err = k8sutil.UpdateNodeStatus(r.Client, []string{generateNodeIdsFromPodSlice(deletedNodes)[0]}, r.NifiCluster,
+						v1alpha1.GracefulActionState{ActionStep: actionStep, State: v1alpha1.GracefulUpdateRunning,
+							TaskStarted: taskStartTime}, log)
+					if err != nil {
+						return errors.WrapIfWithDetails(err, "could not update status for node(s)", "id(s)", strings.Join(generateNodeIdsFromPodSlice(deletedNodes), ","))
+					}
+				}
+
+				// Check if node finished to offload data
+				if r.NifiCluster.Status.NodesState[generateNodeIdsFromPodSlice(deletedNodes)[0]].GracefulActionState.ActionStep == v1alpha1.OffloadNodeAction {
+					// Check  gracefull downscale status
+					succeedState := v1alpha1.GracefulDownscaleSucceeded
+					err = r.checkNCActionStep(generateNodeIdsFromPodSlice(deletedNodes)[0],
+						r.NifiCluster.Status.NodesState[generateNodeIdsFromPodSlice(deletedNodes)[0]], v1alpha1.OffloadStatus, &succeedState, log)
+					if err != nil {
+						return err
+					}
 				}
 			}
 		}
 
 		for _, node := range deletedNodes {
-			if node.ObjectMeta.DeletionTimestamp != nil {
-				log.Info(fmt.Sprintf("Nopde %s is already on terminating state", node.Labels["nodeId"]))
-				continue
-			}
-			err = r.Client.Delete(context.TODO(), &node)
-			if err != nil {
-				return errors.WrapIfWithDetails(err, "could not delete node", "id", node.Labels["nodeId"])
-			}
-			err = r.Client.Delete(context.TODO(), &corev1.ConfigMap{ObjectMeta: templates.ObjectMeta(fmt.Sprintf(templates.NodeConfigTemplate+"-%s", r.NifiCluster.Name, node.Labels["nodeId"]), labelsForNifi(r.NifiCluster.Name), r.NifiCluster)})
-			if err != nil {
-				return errors.WrapIfWithDetails(err, "could not delete configmap for node", "id", node.Labels["nodeId"])
-			}
-			if !r.NifiCluster.Spec.HeadlessServiceEnabled {
-				err = r.Client.Delete(context.TODO(), &corev1.Service{ObjectMeta: templates.ObjectMeta(fmt.Sprintf("%s-%s", r.NifiCluster.Name, node.Labels["nodeId"]), labelsForNifi(r.NifiCluster.Name), r.NifiCluster)})
+
+			// If node is oflloaded
+			if r.NifiCluster.Status.NodesState[node.Labels["nodeId"]].GracefulActionState.ActionStep == v1alpha1.OffloadStatus || r.NifiCluster.Status.NodesState[node.Labels["nodeId"]].GracefulActionState.ActionStep == v1alpha1.RemovePodAction {
+				err = k8sutil.UpdateNodeStatus(r.Client, []string{node.Labels["nodeId"]}, r.NifiCluster,
+					v1alpha1.GracefulActionState{ActionStep: v1alpha1.RemovePodAction, State: v1alpha1.GracefulUpdateRunning,
+						TaskStarted: r.NifiCluster.Status.NodesState[node.Labels["nodeId"]].GracefulActionState.TaskStarted }, log)
 				if err != nil {
-					if apierrors.IsNotFound(err) {
-						// can happen when broker was not fully initialized and now is deleted
-						log.Info(fmt.Sprintf("Service for Node %s not found. Continue", node.Labels["nodeId"]))
-					}
-					return errors.WrapIfWithDetails(err, "could not delete service for node", "id", node.Labels["nodeId"])
+					return errors.WrapIfWithDetails(err, "could not update status for node(s)", "id(s)", node.Labels["nodeId"])
 				}
-			}
-			for _, volume := range node.Spec.Volumes {
-				if strings.HasPrefix(volume.Name, nifiDataVolumeMount) {
-					err = r.Client.Delete(context.TODO(), &corev1.PersistentVolumeClaim{ObjectMeta: metav1.ObjectMeta{
-						Name:      volume.PersistentVolumeClaim.ClaimName,
-						Namespace: r.NifiCluster.Namespace,
-					}})
+				if node.ObjectMeta.DeletionTimestamp != nil {
+					log.Info(fmt.Sprintf("Nopde %s is already on terminating state", node.Labels["nodeId"]))
+					continue
+				}
+				err = r.Client.Delete(context.TODO(), &node)
+				if err != nil {
+					return errors.WrapIfWithDetails(err, "could not delete node", "id", node.Labels["nodeId"])
+				}
+				err = r.Client.Delete(context.TODO(), &corev1.ConfigMap{ObjectMeta: templates.ObjectMeta(fmt.Sprintf(templates.NodeConfigTemplate+"-%s", r.NifiCluster.Name, node.Labels["nodeId"]), labelsForNifi(r.NifiCluster.Name), r.NifiCluster)})
+				if err != nil {
+					return errors.WrapIfWithDetails(err, "could not delete configmap for node", "id", node.Labels["nodeId"])
+				}
+				if !r.NifiCluster.Spec.HeadlessServiceEnabled {
+					err = r.Client.Delete(context.TODO(), &corev1.Service{ObjectMeta: templates.ObjectMeta(fmt.Sprintf("%s-%s", r.NifiCluster.Name, node.Labels["nodeId"]), labelsForNifi(r.NifiCluster.Name), r.NifiCluster)})
 					if err != nil {
 						if apierrors.IsNotFound(err) {
 							// can happen when broker was not fully initialized and now is deleted
-							log.Info(fmt.Sprintf("PVC for Node %s not found. Continue", node.Labels["nodeId"]))
+							log.Info(fmt.Sprintf("Service for Node %s not found. Continue", node.Labels["nodeId"]))
 						}
-
-						return errors.WrapIfWithDetails(err, "could not delete pvc for node", "id", node.Labels["nodeId"])
+						return errors.WrapIfWithDetails(err, "could not delete service for node", "id", node.Labels["nodeId"])
 					}
 				}
+				for _, volume := range node.Spec.Volumes {
+					if strings.HasPrefix(volume.Name, nifiDataVolumeMount) {
+						err = r.Client.Delete(context.TODO(), &corev1.PersistentVolumeClaim{ObjectMeta: metav1.ObjectMeta{
+							Name:      volume.PersistentVolumeClaim.ClaimName,
+							Namespace: r.NifiCluster.Namespace,
+						}})
+						if err != nil {
+							if apierrors.IsNotFound(err) {
+								// can happen when broker was not fully initialized and now is deleted
+								log.Info(fmt.Sprintf("PVC for Node %s not found. Continue", node.Labels["nodeId"]))
+							}
+
+							return errors.WrapIfWithDetails(err, "could not delete pvc for node", "id", node.Labels["nodeId"])
+						}
+					}
+				}
+				err = k8sutil.UpdateNodeStatus(r.Client, []string{node.Labels["nodeId"]}, r.NifiCluster,
+					v1alpha1.GracefulActionState{ActionStep: v1alpha1.RemovePodStatus, State: v1alpha1.GracefulUpdateRunning,
+						TaskStarted: r.NifiCluster.Status.NodesState[node.Labels["nodeId"]].GracefulActionState.TaskStarted }, log)
+				if err != nil {
+					return errors.WrapIfWithDetails(err, "could not update status for node(s)", "id(s)", node.Labels["nodeId"])
+				}
 			}
-			err = k8sutil.DeleteStatus(r.Client, node.Labels["nodeId"], r.NifiCluster, log)
-			if err != nil {
-				return errors.WrapIfWithDetails(err, "could not delete status for node", "id", node.Labels["nodeId"])
+
+			// TODO : Investigate workaround used because of error :
+			// 2020-02-18 08:30:07,850 INFO [Process Cluster Protocol Request-4] o.a.n.c.c.node.NodeClusterCoordinator Status of nifi-12-node.nifi-headless.nifi-demo.svc.cluster.local:8080
+			// changed from null to NodeConnectionStatus[nodeId=nifi-12-node.nifi-headless.nifi-demo.svc.cluster.local:8080, state=DISCONNECTED, Disconnect Code=Node was Shutdown,
+			// Disconnect Reason=Node was Shutdown, updateId=33]
+			// If pod finished deletion
+			if r.NifiCluster.Status.NodesState[node.Labels["nodeId"]].GracefulActionState.ActionStep == v1alpha1.RemovePodStatus {
+				actionStep, taskStartTime, err := scale.RemoveClusterNode(r.NifiCluster.Spec.HeadlessServiceEnabled, r.NifiCluster.Spec.Nodes, GetServerPort(&r.NifiCluster.Spec.ListenersConfig), generateNodeIdsFromPodSlice(deletedNodes)[0],
+					r.NifiCluster.Namespace, r.NifiCluster.Name)
+				if err != nil {
+					log.Info(fmt.Sprintf("nifi cluster communication error during removing node id: %s", generateNodeIdsFromPodSlice(deletedNodes)[0]))
+					return errorfactory.New(errorfactory.NifiClusterNotReady{}, err, fmt.Sprintf("node id: %s", generateNodeIdsFromPodSlice(deletedNodes)[0]))
+				}
+				err = k8sutil.UpdateNodeStatus(r.Client, []string{generateNodeIdsFromPodSlice(deletedNodes)[0]}, r.NifiCluster,
+					v1alpha1.GracefulActionState{ActionStep: actionStep, State: v1alpha1.GracefulUpdateRunning,
+						TaskStarted: taskStartTime}, log)
+				if err != nil {
+					return errors.WrapIfWithDetails(err, "could not update status for node(s)", "id(s)", strings.Join(generateNodeIdsFromPodSlice(deletedNodes), ","))
+				}
+			}
+
+			if r.NifiCluster.Status.NodesState[generateNodeIdsFromPodSlice(deletedNodes)[0]].GracefulActionState.ActionStep == v1alpha1.RemoveNodeAction {
+				err = r.checkNCActionStep(generateNodeIdsFromPodSlice(deletedNodes)[0],
+					r.NifiCluster.Status.NodesState[generateNodeIdsFromPodSlice(deletedNodes)[0]], v1alpha1.RemoveStatus, nil, log)
+				if err != nil {
+					return err
+				}
+			}
+
+			if r.NifiCluster.Status.NodesState[node.Labels["nodeId"]].GracefulActionState.ActionStep == v1alpha1.RemoveStatus {
+
+				err = k8sutil.DeleteStatus(r.Client, node.Labels["nodeId"], r.NifiCluster, log)
+				if err != nil {
+					return errors.WrapIfWithDetails(err, "could not delete status for node", "id", node.Labels["nodeId"])
+				}
 			}
 		}
 	}
@@ -272,54 +371,119 @@ func generateNodeIdsFromPodSlice(pods []corev1.Pod) []string {
 }
 
 //
-func (r *Reconciler) checkCCTaskState(nodeIds []string, nodeState v1alpha1.NodeState, state v1alpha1.State, log logr.Logger) error {
+func (r *Reconciler) checkNCTaskState(nodeId string, nodeState v1alpha1.NodeState, state v1alpha1.State, log logr.Logger) error {
 	parsedTime, err := nifiutils.ParseTimeStampToUnixTime(nodeState.GracefulActionState.TaskStarted)
 	if err != nil {
 		return errors.WrapIf(err, "could not parse timestamp")
 	}
 	if time.Now().Sub(parsedTime).Minutes() < r.NifiCluster.Spec.NifiClusterTaskSpec.GetDurationMinutes() {
-		finished, err := scale.CheckIfNCTaskFinished(nodeState.GracefulActionState.ActionStep,
+		finished, err := scale.CheckIfNCActionStepFinished(r.NifiCluster.Spec.HeadlessServiceEnabled, r.NifiCluster.Spec.Nodes, GetServerPort(&r.NifiCluster.Spec.ListenersConfig), nodeState.GracefulActionState.ActionStep, nodeId,
 			r.NifiCluster.Namespace, r.NifiCluster.Name)
+			//nodeState.GracefulActionState.ActionStep, r.NifiCluster.Namespace, r.NifiCluster.Name)
 		if err != nil {
 			log.Info(fmt.Sprintf("Nifi cluster communication error checking running task: %s", nodeState.GracefulActionState.ActionStep))
 			return errorfactory.New(errorfactory.NifiClusterNotReady{}, err, "nifi cluster communication error")
 		}
 		if !finished {
-			err = k8sutil.UpdateNodeStatus(r.Client, nodeIds, r.NifiCluster,
+			err = k8sutil.UpdateNodeStatus(r.Client, []string{nodeId}, r.NifiCluster,
 				v1alpha1.GracefulActionState{TaskStarted: nodeState.GracefulActionState.TaskStarted,
 					ActionStep: nodeState.GracefulActionState.ActionStep,
 					State:  nodeState.GracefulActionState.State,
 				}, log)
 			if err != nil {
-				return errors.WrapIfWithDetails(err, "could not update status for node(s)", "id(s)", strings.Join(nodeIds, ","))
+				return errors.WrapIfWithDetails(err, "could not update status for node(s)", "id(s)", nodeId)
 			}
-			log.Info(fmt.Sprintf("Cruise control task: %s is still running", nodeState.GracefulActionState.ActionStep))
-			return errorfactory.New(errorfactory.NifiClusterTaskRunning{}, errors.New("nifi cluster task is still running"), fmt.Sprintf("cc task id: %s", nodeState.GracefulActionState.ActionStep))
+			log.Info(fmt.Sprintf("Nifi cluster task: %s is still running", nodeState.GracefulActionState.ActionStep))
+			return errorfactory.New(errorfactory.NifiClusterTaskRunning{}, errors.New("nifi cluster task is still running"), fmt.Sprintf("Nifi cluster step: %s", nodeState.GracefulActionState.ActionStep))
 		}
-		err = k8sutil.UpdateNodeStatus(r.Client, nodeIds, r.NifiCluster,
+		err = k8sutil.UpdateNodeStatus(r.Client, []string{nodeId}, r.NifiCluster,
 			v1alpha1.GracefulActionState{State: state,
 				TaskStarted:	nodeState.GracefulActionState.TaskStarted,
 				ActionStep: 	nodeState.GracefulActionState.ActionStep,
 			}, log)
 		if err != nil {
-			return errors.WrapIfWithDetails(err, "could not update status for node(s)", "id(s)", strings.Join(nodeIds, ","))
+			return errors.WrapIfWithDetails(err, "could not update status for node(s)", "id(s)", nodeId)
 		}
 
 	} else {
-		//
-		//TODO: implement logic for each cases (decommission, add node)
 		log.Info(fmt.Sprintf("Rollback nifi cluster task: %s", nodeState.GracefulActionState.ActionStep))
-		err := scale.KillCCTask(r.NifiCluster.Namespace, r.NifiCluster.Name)
+
+		actionStep, taskStartTime, err  := scale.ConnectClusterNode(r.NifiCluster.Spec.HeadlessServiceEnabled, r.NifiCluster.Spec.Nodes, GetServerPort(&r.NifiCluster.Spec.ListenersConfig),
+			nodeId, r.NifiCluster.Namespace, r.NifiCluster.Name)
+
+		err = k8sutil.UpdateNodeStatus(r.Client, []string{nodeId}, r.NifiCluster,
+			v1alpha1.GracefulActionState{State: v1alpha1.GracefulUpdateFailed,
+				ErrorMessage: "Timed out waiting for the task to complete",
+				TaskStarted:  taskStartTime,
+				ActionStep: actionStep,
+			}, log)
 		if err != nil {
 			return errorfactory.New(errorfactory.NifiClusterNotReady{}, err, "nifi cluster communication error")
 		}
-		err = k8sutil.UpdateNodeStatus(r.Client, nodeIds, r.NifiCluster,
-			v1alpha1.GracefulActionState{State: v1alpha1.GracefulUpdateFailed,
-				ErrorMessage: "Timed out waiting for the task to complete",
-				TaskStarted:  nodeState.GracefulActionState.TaskStarted,
+
+		if err != nil {
+			return errors.WrapIfWithDetails(err, "could not update status for node(s)", "id(s)", nodeId)
+		}
+	}
+	return nil
+}
+
+func (r *Reconciler) checkNCActionStep(nodeId string, nodeState v1alpha1.NodeState, actionStep v1alpha1.ActionStep, state *v1alpha1.State, log logr.Logger) error {
+	parsedTime, err := nifiutils.ParseTimeStampToUnixTime(nodeState.GracefulActionState.TaskStarted)
+	if err != nil {
+		return errors.WrapIf(err, "could not parse timestamp")
+	}
+	if time.Now().Sub(parsedTime).Minutes() < r.NifiCluster.Spec.NifiClusterTaskSpec.GetDurationMinutes() {
+		finished, err := scale.CheckIfNCActionStepFinished(r.NifiCluster.Spec.HeadlessServiceEnabled, r.NifiCluster.Spec.Nodes, GetServerPort(&r.NifiCluster.Spec.ListenersConfig), nodeState.GracefulActionState.ActionStep, nodeId,
+			r.NifiCluster.Namespace, r.NifiCluster.Name)
+		//nodeState.GracefulActionState.ActionStep, r.NifiCluster.Namespace, r.NifiCluster.Name)
+		if err != nil {
+			log.Info(fmt.Sprintf("Nifi cluster communication error checking running task: %s", nodeState.GracefulActionState.ActionStep))
+			return errorfactory.New(errorfactory.NifiClusterNotReady{}, err, "nifi cluster communication error")
+		}
+		if !finished {
+			err = k8sutil.UpdateNodeStatus(r.Client, []string{nodeId}, r.NifiCluster,
+				v1alpha1.GracefulActionState{TaskStarted: nodeState.GracefulActionState.TaskStarted,
+					ActionStep: nodeState.GracefulActionState.ActionStep,
+					State:  nodeState.GracefulActionState.State,
+				}, log)
+			if err != nil {
+				return errors.WrapIfWithDetails(err, "could not update status for node(s)", "id(s)", nodeId)
+			}
+			log.Info(fmt.Sprintf("Nifi cluster task: %s is still running", nodeState.GracefulActionState.ActionStep))
+			return errorfactory.New(errorfactory.NifiClusterTaskRunning{}, errors.New("nifi cluster task is still running"), fmt.Sprintf("Nifi cluster step: %s", nodeState.GracefulActionState.ActionStep))
+		}
+
+		succeedState := nodeState.GracefulActionState.State
+		if state != nil {
+			succeedState = *state
+		}
+		err = k8sutil.UpdateNodeStatus(r.Client, []string{nodeId}, r.NifiCluster,
+			v1alpha1.GracefulActionState{State:  succeedState,
+				TaskStarted:	nodeState.GracefulActionState.TaskStarted,
+				ActionStep: 	actionStep,
 			}, log)
 		if err != nil {
-			return errors.WrapIfWithDetails(err, "could not update status for node(s)", "id(s)", strings.Join(nodeIds, ","))
+			return errors.WrapIfWithDetails(err, "could not update status for node(s)", "id(s)", nodeId)
+		}
+
+	} else {
+		log.Info(fmt.Sprintf("Rollback nifi cluster task: %s", nodeState.GracefulActionState.ActionStep))
+
+		actionStep, taskStartTime, err  := scale.ConnectClusterNode(r.NifiCluster.Spec.HeadlessServiceEnabled, r.NifiCluster.Spec.Nodes, GetServerPort(&r.NifiCluster.Spec.ListenersConfig),
+			nodeId, r.NifiCluster.Namespace, r.NifiCluster.Name)
+
+		if err != nil {
+			return errorfactory.New(errorfactory.NifiClusterNotReady{}, err, "nifi cluster communication error")
+		}
+		err = k8sutil.UpdateNodeStatus(r.Client, []string{nodeId}, r.NifiCluster,
+			v1alpha1.GracefulActionState{State: v1alpha1.GracefulUpdateFailed,
+				ErrorMessage: "Timed out waiting for the task to complete",
+				TaskStarted:  taskStartTime,
+				ActionStep: actionStep,
+			}, log)
+		if err != nil {
+			return errors.WrapIfWithDetails(err, "could not update status for node(s)", "id(s)", nodeId)
 		}
 	}
 	return nil
@@ -463,13 +627,13 @@ func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) e
 			if currentPod.Status.Phase == corev1.PodRunning && r.NifiCluster.Status.NodesState[nodeId].GracefulActionState.State == v1alpha1.GracefulUpdateRequired {
 				if r.NifiCluster.Status.NodesState[nodeId].GracefulActionState.State != v1alpha1.GracefulUpdateRunning &&
 					r.NifiCluster.Status.NodesState[nodeId].GracefulActionState.State != v1alpha1.GracefulUpscaleSucceeded {
-					uTaskId, taskStartTime, scaleErr := scale.UpScaleCluster(desiredPod.Labels["nodeId"], desiredPod.Namespace,  r.NifiCluster.Name)
+					actionStep, taskStartTime, scaleErr := scale.UpScaleCluster(desiredPod.Labels["nodeId"], desiredPod.Namespace,  r.NifiCluster.Name)
 					if scaleErr != nil {
 						log.Info(fmt.Sprintf("Nifi cluster communication error during upscaling node id: %s", nodeId))
 						return errorfactory.New(errorfactory.NifiClusterNotReady{}, scaleErr, fmt.Sprintf("node id: %s", nodeId))
 					}
 					statusErr := k8sutil.UpdateNodeStatus(r.Client, []string{nodeId}, r.NifiCluster,
-						v1alpha1.GracefulActionState{ActionStep: uTaskId, State: v1alpha1.GracefulUpdateRunning,
+						v1alpha1.GracefulActionState{ActionStep: actionStep, State: v1alpha1.GracefulUpdateRunning,
 							TaskStarted: taskStartTime}, log)
 					if statusErr != nil {
 						return errors.WrapIfWithDetails(err, "could not update status for node", "id", nodeId)
@@ -477,7 +641,7 @@ func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) e
 				}
 			}
 			if r.NifiCluster.Status.NodesState[nodeId].GracefulActionState.State == v1alpha1.GracefulUpdateRunning {
-				err = r.checkCCTaskState([]string{nodeId}, r.NifiCluster.Status.NodesState[nodeId], v1alpha1.GracefulUpscaleSucceeded, log)
+				err = r.checkNCTaskState(nodeId, r.NifiCluster.Status.NodesState[nodeId], v1alpha1.GracefulUpscaleSucceeded, log)
 				if err != nil {
 					return err
 				}
@@ -538,7 +702,7 @@ func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) e
 				podList := &corev1.PodList{}
 				matchingLabels := client.MatchingLabels{
 					"nifi_cr": r.NifiCluster.Name,
-					"app":      "nifi",
+					"app":     "nifi",
 				}
 				err := r.Client.List(context.TODO(), podList, client.ListOption(client.InNamespace(r.NifiCluster.Namespace)), client.ListOption(matchingLabels))
 				if err != nil {

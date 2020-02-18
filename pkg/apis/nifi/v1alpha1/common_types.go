@@ -20,6 +20,9 @@ type RackAwarenessState string
 // State holds info about the state of action
 type State string
 
+// Action step holds info about the action step
+type ActionStep string
+
 // ClusterState holds info about the cluster state
 type ClusterState string
 
@@ -39,7 +42,7 @@ type GracefulActionState struct {
 	// ErrorMessage holds the information what happened with CC
 	ErrorMessage string `json:"errorMessage"`
 	// ActionStep holds info about the action step ran
-	ActionStep string `json:"actionStep,omitempty"`
+	ActionStep ActionStep `json:"actionStep,omitempty"`
 	// TaskStarted hold the time when the execution started
 	TaskStarted string `json:"TaskStarted,omitempty"`
 	// ActionState holds the information about Action state
@@ -83,4 +86,24 @@ const (
 	ConfigInSync ConfigurationState = "ConfigInSync"
 	// ConfigOutOfSync states that the generated nodeConfig is out of sync with the Node
 	ConfigOutOfSync ConfigurationState = "ConfigOutOfSync"
+	//
+	DisconnectNodeAction ActionStep	= "DISCONNECTING"
+	//
+	DisconnectStatus ActionStep = "DISCONNECTED"
+	//
+	OffloadNodeAction ActionStep = "OFFLOADING"
+	//
+	OffloadStatus ActionStep = "OFFLOADED"
+	//
+	RemovePodAction ActionStep = "POD_REMOVING"
+	//
+	RemovePodStatus ActionStep = "POD_REMOVED"
+	//
+	RemoveNodeAction ActionStep = "REMOVING"
+	//
+	RemoveStatus ActionStep = "REMOVED"
+	//
+	ConnectNodeAction ActionStep = "CONNECTING"
+	//
+	ConnectStatus ActionStep = "CONNECTED"
 )

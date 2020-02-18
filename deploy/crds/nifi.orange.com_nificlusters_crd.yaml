@@ -140,12 +140,12 @@ spec:
               description: NifiClusterTaskSpec specifies the configuration of the
                 nifi cluster Tasks
               properties:
-                RetryDurationMinutes:
+                retryDurationMinutes:
                   description: RetryDurationMinutes describes the amount of time the
                     Operator waits for the task
                   type: integer
               required:
-              - RetryDurationMinutes
+              - retryDurationMinutes
               type: object
             nodeConfigGroups:
               additionalProperties:

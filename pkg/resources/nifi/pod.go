@@ -131,7 +131,7 @@ exec bin/nifi.sh run
 				{
 					Name:	"nifi",
 					Image: 	util.GetNodeImage(nodeConfig, r.NifiCluster.Spec.ClusterImage),
-					Lifecycle: &corev1.Lifecycle{
+					/*Lifecycle: &corev1.Lifecycle{
 						PreStop: &corev1.Handler{
 							Exec: &corev1.ExecAction{
 								Command: []string{"bash", "-c", "$NIFI_HOME/bin/nifi.sh stop"},
@@ -139,7 +139,7 @@ exec bin/nifi.sh run
 						},
 						// TODO: add dynamic PostStart for additional lib https://github.com/cetic/helm-nifi/blob/master/values.yaml#L58
 
-					},
+					},*/
 					// TODO : Manage https setup use cases https://github.com/cetic/helm-nifi/blob/master/templates/statefulset.yaml#L165
 					ReadinessProbe: &corev1.Probe{
 						InitialDelaySeconds: readinessInitialDelaySeconds,
@@ -160,7 +160,7 @@ if [[ ! $STATUS = "CONNECTED" ]]; then
 fi`,*/
 										fmt.Sprintf(`curl -kv http://$(hostname -f):%d/nifi-api`,
 
-										getServerPort(&r.NifiCluster.Spec.ListenersConfig)),
+										GetServerPort(&r.NifiCluster.Spec.ListenersConfig)),
 								},
 							},
 						},
@@ -171,7 +171,7 @@ fi`,*/
 						PeriodSeconds:       livenessHealthCheckPeriod,
 						Handler: corev1.Handler{
 							TCPSocket: &corev1.TCPSocketAction{
-								Port: *util.IntstrPointer(int(getServerPort(&r.NifiCluster.Spec.ListenersConfig))),
+								Port: *util.IntstrPointer(int(GetServerPort(&r.NifiCluster.Spec.ListenersConfig))),
 							},
 						},
 					},
@@ -315,7 +315,7 @@ func (r *Reconciler) generateDefaultContainerPort() []corev1.ContainerPort{
 }
 
 // TODO : manage default port
-func getServerPort(l *v1alpha1.ListenersConfig) int32 {
+func GetServerPort(l *v1alpha1.ListenersConfig) int32 {
 	var httpsServerPort int32
 	var httpServerPort int32
 	for _, iListener := range l.InternalListeners {

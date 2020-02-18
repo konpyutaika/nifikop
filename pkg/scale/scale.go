@@ -15,17 +15,29 @@
 package scale
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"github.com/openshift/origin/Godeps/_workspace/src/k8s.io/kubernetes/pkg/util/json"
+	"github.com/orangeopensource/nifi-operator/pkg/apis/nifi/v1alpha1"
+	nifiutil "github.com/orangeopensource/nifi-operator/pkg/util/nifi"
+	"io/ioutil"
 	"net/http"
-	"strings"
+	"strconv"
+
+	//	"strconv"
 	"time"
 
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
 
 const (
-	basePath                 	= "kafkacruisecontrol"
+	basePath				= "nifi-api"
+
+	endpointCluster	= "controller/cluster"
+	endpointNode	= "controller/cluster/nodes/%s"
+
+
 	removeNodeAction       		= "remove_node"
 	stateAction 				= "state"
 	addNodeAction         		= "add_node"
@@ -38,90 +50,138 @@ const (
 	nodeAlive              		= "ALIVE"
 )
 
-var errCruiseControlNotReady = errors.New("cruise-control is not ready")
-var errCruiseControlNotReturned200 = errors.New("non 200 response from cruise-control")
+var errNodeNotConnected = errors.New("The targeted node id disconnected")
+var errNifiClusterNotReturned200 = errors.New("non 200 response from nifi cluster")
+var errNifiClusterReturned404 = errors.New("404 response from nifi cluster")
 
 var log = logf.Log.WithName("cruise-control-methods")
 
-func generateUrlForCC(action, namespace string, options map[string]string, clusterName string) string {
-	optionURL := ""
-	for option, value := range options {
-		optionURL = optionURL + option + "=" + value + "&"
-	}
-	/*if ccEndpoint != "" {
-		return "http://" + ccEndpoint + "/" + basePath + "/" + action + "?" + strings.TrimSuffix(optionURL, "&")
-	}*/
-	return "http://" + fmt.Sprintf(serviceNameTemplate, clusterName) + "." + namespace + ".svc.cluster.local:8090/" + basePath + "/" + action + "?" + strings.TrimSuffix(optionURL, "&")
-	//TODO only for testing
-	//return "http://localhost:8090/" + basePath + "/" + action + "?" + strings.TrimSuffix(optionURL, "&")
+func generateUrlForNN(headlessServiceEnabled bool, nodeId , serverPort int32, endpoint, namespace string, clusterName string) string {
+	var baseUrl string
+	baseUrl = nifiutil.ComputeHostname(headlessServiceEnabled, nodeId, clusterName, namespace)
+	return "http://" + fmt.Sprintf("%s:%d/%s/%s", baseUrl, serverPort, basePath, endpoint)
 }
 
-func postCruiseControl(action, namespace string, options map[string]string, clusterName string) (*http.Response, error) {
+func putNifiNode(headlessServiceEnabled bool, nodeId, serverPort int32, endpoint, namespace, clusterName, action, nifiNodeId string) (*http.Response, error) {
 
-	requestURl := generateUrlForCC(action, namespace, options, clusterName)
-	rsp, err := http.Post(requestURl, "text/plain", nil)
+	requestURl := generateUrlForNN(headlessServiceEnabled, nodeId, serverPort, endpoint, namespace, clusterName)
+
+	var bodyStr = []byte(fmt.Sprintf(`{"node":{"nodeId": "%s", "status": "%s"}}`, nifiNodeId, action))
+
+	req, err := http.NewRequest(http.MethodPut, requestURl, bytes.NewBuffer(bodyStr))
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	rsp, err := client.Do(req)
 	if err != nil {
-		log.Error(err, "error during talking to cruise-control")
+		log.Error(err, "error during talking to nifi node")
 		return nil, err
 	}
 	if rsp.StatusCode != 200 && rsp.StatusCode != 202 {
-		log.Error(errors.New("Non 200 response from cruise-control: "+rsp.Status), "error during talking to cruise-control")
-		return nil, errCruiseControlNotReturned200
+		log.Error(errors.New("Non 200 response from nifi node: "+rsp.Status), "error during talking to nifi node")
+		return nil, errNifiClusterNotReturned200
 	}
 
 	return rsp, nil
 }
 
-func getCruiseControl(action, namespace string, options map[string]string, clusterName string) (*http.Response, error) {
+func getNifiNode(headlessServiceEnabled bool, nodeId, serverPort int32, endpoint, namespace, clusterName string) (*http.Response, error) {
 
-	requestURl := generateUrlForCC(action, namespace, options, clusterName)
+	requestURl := generateUrlForNN(headlessServiceEnabled, nodeId, serverPort, endpoint, namespace, clusterName)
 	rsp, err := http.Get(requestURl)
 	if err != nil {
-		log.Error(err, "error during talking to cruise-control")
+		log.Error(err, "error during talking to nifi node")
+		return nil, err
+	}
+	if rsp.StatusCode == 404 {
+		log.Error(errors.New("404 response from nifi node: "+rsp.Status), "error during talking to nifi node")
+		return rsp, errNifiClusterReturned404
+	}
+
+	if rsp.StatusCode != 200 {
+		log.Error(errors.New("Non 200 response from nifi node: "+rsp.Status), "error during talking to nifi node")
+		return nil, errors.New("Non 200 response from nifi node: " + rsp.Status)
+	}
+
+	return rsp, nil
+}
+
+func deleteNifiNode(headlessServiceEnabled bool, nodeId, serverPort int32, endpoint, namespace, clusterName string) (*http.Response, error) {
+
+	requestURl := generateUrlForNN(headlessServiceEnabled, nodeId, serverPort, endpoint, namespace, clusterName)
+	req, err := http.NewRequest(http.MethodDelete, requestURl, nil)
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	rsp, err := client.Do(req)
+	if err != nil {
+		log.Error(err, "error during talking to nifi node")
 		return nil, err
 	}
 	if rsp.StatusCode != 200 {
-		log.Error(errors.New("Non 200 response from cruise-control: "+rsp.Status), "error during talking to cruise-control")
-		return nil, errors.New("Non 200 response from cruise-control: " + rsp.Status)
+		log.Error(errors.New("Non 200 response from nifi node: "+rsp.Status), "error during talking to nifi node")
+		return nil, errors.New("Non 200 response from nifi node: " + rsp.Status)
 	}
 
 	return rsp, nil
 }
 
-func GetCruiseControlStatus(namespace, clusterName string) error {
+func GetNifiClsuterNodesStatus(headlessServiceEnabled bool, nodeId, serverPort int32, namespace, clusterName string) (map[string]interface{}, error) {
 
-	/*options := map[string]string{
-		"substates": "ANALYZER",
-		"json":      "true",
-	}
+	rsp, err := getNifiNode(headlessServiceEnabled, nodeId, serverPort, endpointCluster, namespace, clusterName)
 
-	rsp, err := getCruiseControl(stateAction, namespace, options, clusterName)
 	if err != nil {
-		log.Error(err, "can't work with cruise-control because it is not ready")
-		return err
+		log.Error(err, "can't work with nifi node because it is not ready")
+		return nil, err
 	}
+
 	body, err := ioutil.ReadAll(rsp.Body)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	err = rsp.Body.Close()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	var response map[string]interface{}
 
 	err = json.Unmarshal(body, &response)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	if !response["AnalyzerState"].(map[string]interface{})["isProposalReady"].(bool) {
-		log.Info("could not handle graceful operation because cruise-control is not ready")
-		return errCruiseControlNotReady
-	}*/
 
-	return nil
+	return response, nil
+}
+
+func GetNifiClusterNodeStatus(headlessServiceEnabled bool, nodeId, serverPort int32, namespace, clusterName, targetNodeId string) (map[string]interface{}, error) {
+
+	rsp, err := getNifiNode(headlessServiceEnabled, nodeId, serverPort, fmt.Sprintf(endpointNode, targetNodeId), namespace, clusterName)
+
+	if err != nil {
+		log.Error(err, "can't work with nifi node because it is not ready")
+		return nil, err
+	}
+
+	body, err := ioutil.ReadAll(rsp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	err = rsp.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	var response map[string]interface{}
+
+	err = json.Unmarshal(body, &response)
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
 }
 
 func isNifiNodeReady(nodeId, namespace, clusterName string) (bool, error) {
@@ -223,85 +283,175 @@ func isNifiNodeReady(nodeId, namespace, clusterName string) (bool, error) {
 
 
 // UpScaleCluster upscales Kafka cluster
-func UpScaleCluster(nodeId, namespace, clusterName string) (string, string, error) {
-	/*
-	err := GetCruiseControlStatus(namespace, clusterName)
-	if err != nil {
-		return "", "", err
-	}
-
-	ready, err := isKafkaBrokerReady(brokerId, namespace, clusterName)
-	if err != nil {
-		return "", "", err
-	}
-	if !ready {
-		return "", "", errors.New("broker is not ready yet")
-	}
-
-	options := map[string]string{
-		"json":     "true",
-		"dryrun":   "false",
-		"brokerid": brokerId,
-	}
-
-	uResp, err := postCruiseControl(addBrokerAction, namespace, options, clusterName)
-	if err != nil && err != errCruiseControlNotReturned200 {
-		log.Error(err, "can't upscale cluster gracefully since post to cruise-control failed")
-		return "", "", err
-	}
-	if err == errCruiseControlNotReturned200 {
-		log.Info("trying to communicate with cc")
-		return "", "", err
-	}
-
-	log.Info("Initiated upscale in cruise control")
-
-	uTaskId := uResp.Header.Get("User-Task-Id")
-	startTimeStamp := uResp.Header.Get("Date")*/
-	// TODO: to remove after implementation
-	uTaskId := "mock"
+func UpScaleCluster(nodeId, namespace, clusterName string) (v1alpha1.ActionStep, string, error) {
+	actionStep := v1alpha1.ConnectNodeAction
 	currentTime := time.Now()
-	// TODO: centralzed information
 	startTimeStamp := currentTime.Format("Mon, 2 Jan 2006 15:04:05 GMT")
-	return uTaskId, startTimeStamp, nil
+	return actionStep, startTimeStamp, nil
 }
 
-// DownsizeCluster downscales Kafka cluster
-func DownsizeCluster(nodeId, namespace, clusterName string) (string, string, error) {
+func getNifiNodeIdFromAddress(headlessServiceEnabled bool, nodeId, serverPort int32, namespace, clusterName, searchedAddress string) (string, error) {
+	var clusterStatus map[string]interface{}
+	var err error
 
-	/*err := GetCruiseControlStatus(namespace, clusterName)
+	clusterStatus, err = GetNifiClsuterNodesStatus(headlessServiceEnabled, nodeId, serverPort, namespace, clusterName)
 	if err != nil {
-		return "", "", err
+		return "", err
 	}
 
-	options := map[string]string{
-		"brokerid": brokerId,
-		"dryrun":   "false",
-		"json":     "true",
+	var targetNodeId string
+
+	for _, node := range clusterStatus["cluster"].(map[string]interface{})["nodes"].([]interface{}){
+		address := node.(map[string]interface{})["address"].(string)
+		if address == searchedAddress {
+			targetNodeId = node.(map[string]interface{})["nodeId"].(string)
+		}
+	}
+
+	return targetNodeId, nil
+}
+
+func getAvailableNifiClusterNode(headlessServiceEnabled bool, availableNodes []v1alpha1.Node, serverPort int32, namespace, clusterName string) (v1alpha1.Node, error) {
+	var err error
+	for _, n := range availableNodes {
+		_, err = GetNifiClsuterNodesStatus(headlessServiceEnabled, n.Id, serverPort, namespace, clusterName)
+		if err == nil {
+			return n, nil
+		}
+	}
+	return v1alpha1.Node{}, err
+}
+
+// DownsizeCluster downscales Nifi cluster
+func DisconnectClusterNode(headlessServiceEnabled bool, availableNodes []v1alpha1.Node, serverPort int32, nodeId, namespace, clusterName string) (v1alpha1.ActionStep, string, error) {
+	var node v1alpha1.Node
+	var err error
+	var rsp map[string]interface{}
+
+	// Look for available nifi node.
+	node, err = getAvailableNifiClusterNode(headlessServiceEnabled, availableNodes, serverPort, namespace, clusterName)
+
+	if &node == nil {
+		return "", "", err
 	}
 
 	var dResp *http.Response
 
-	dResp, err = postCruiseControl(removeNodeAction, namespace, options, clusterName)
-	if err != nil && err != errCruiseControlNotReturned200 {
-		log.Error(err, "downsize cluster gracefully failed since CC returned non 200")
-		return "", "", err
-	}
-	if err == errCruiseControlNotReturned200 {
-		log.Error(err, "could not communicate with cc")
+	// Extract nifi node Id, from nifi node address.
+	intNodeId, err := strconv.ParseInt(nodeId,10, 32)
+	int32NodeId := int32(intNodeId)
+	searchedAddress := nifiutil.ComputeHostname(headlessServiceEnabled, int32NodeId, clusterName, namespace)
+
+	targetNodeId, err := getNifiNodeIdFromAddress(headlessServiceEnabled, node.Id, serverPort, namespace, clusterName, searchedAddress)
+	if err != nil {
 		return "", "", err
 	}
 
-	log.Info("Initiated downsize in cruise control")
-	uTaskId := dResp.Header.Get("User-Task-Id")
-	startTimeStamp := dResp.Header.Get("Date")*/
+	rsp, err = GetNifiClusterNodeStatus(headlessServiceEnabled, node.Id, serverPort, namespace, clusterName, targetNodeId)
 
-	// TODO: to remove after implementation
-	uTaskId := "mock"
-	currentTime := time.Now()
-	// TODO: centralzed information
-	startTimeStamp := currentTime.Format("Mon, 2 Jan 2006 15:04:05 GMT")
-	return uTaskId, startTimeStamp, nil
+	if err != nil {
+		return "", "", err
+	}
+	if rsp["node"].(map[string]interface{})["status"].(string) != string(v1alpha1.ConnectStatus) {
+		return "", "", errNodeNotConnected
+	}
+
+	// Disconnect node
+	dResp, err = putNifiNode(headlessServiceEnabled, node.Id, serverPort, fmt.Sprintf(endpointNode, targetNodeId), namespace, clusterName, string(v1alpha1.DisconnectNodeAction), targetNodeId)
+	if err != nil && err != errNifiClusterNotReturned200 {
+		log.Error(err, "Disconnect cluster gracefully failed since Nifi node returned non 200")
+		return "", "", err
+	}
+	if err == errNifiClusterNotReturned200 {
+		log.Error(err, "could not communicate with nifi node")
+		return "", "", err
+	}
+
+	log.Info("Disconnect in nifi node")
+	startTimeStamp := dResp.Header.Get("Date")
+	actionStep :=  v1alpha1.DisconnectNodeAction
+	return actionStep, startTimeStamp, nil
+}
+
+func OffloadClusterNode(headlessServiceEnabled bool, availableNodes []v1alpha1.Node, serverPort int32, nodeId, namespace, clusterName string) (v1alpha1.ActionStep, string, error) {
+	var node v1alpha1.Node
+	var err error
+
+	// Look for available nifi node.
+	node, err = getAvailableNifiClusterNode(headlessServiceEnabled, availableNodes, serverPort, namespace, clusterName)
+
+	if &node == nil {
+		return "", "", err
+	}
+
+	var dResp *http.Response
+
+	// Extract nifi node Id, from nifi node address.
+	intNodeId, err := strconv.ParseInt(nodeId,10, 32)
+	int32NodeId := int32(intNodeId)
+	searchedAddress := nifiutil.ComputeHostname(headlessServiceEnabled, int32NodeId, clusterName, namespace)
+
+	targetNodeId, err := getNifiNodeIdFromAddress(headlessServiceEnabled, node.Id, serverPort, namespace, clusterName, searchedAddress)
+	if err != nil {
+		return "", "", err
+	}
+
+	// Offload node
+	dResp, err = putNifiNode(headlessServiceEnabled, node.Id, serverPort, fmt.Sprintf(endpointNode, targetNodeId), namespace, clusterName, string(v1alpha1.OffloadNodeAction), targetNodeId)
+	if err != nil && err != errNifiClusterNotReturned200 {
+		log.Error(err, "Offload node gracefully failed since Nifi node returned non 200")
+		return "", "", err
+	}
+	if err == errNifiClusterNotReturned200 {
+		log.Error(err, "could not communicate with nifi node")
+		return "", "", err
+	}
+
+	log.Info("Offload in nifi node")
+	startTimeStamp := dResp.Header.Get("Date")
+	actionStep :=  v1alpha1.OffloadNodeAction
+	return actionStep, startTimeStamp, nil
+}
+
+func RemoveClusterNode(headlessServiceEnabled bool, availableNodes []v1alpha1.Node, serverPort int32, nodeId, namespace, clusterName string) (v1alpha1.ActionStep, string, error) {
+	var node v1alpha1.Node
+	var err error
+
+	// Look for available nifi node.
+	node, err = getAvailableNifiClusterNode(headlessServiceEnabled, availableNodes, serverPort, namespace, clusterName)
+
+	if &node == nil {
+		return "", "", err
+	}
+
+	var dResp *http.Response
+
+
+	// Extract nifi node Id, from nifi node address.
+	intNodeId, err := strconv.ParseInt(nodeId,10, 32)
+	int32NodeId := int32(intNodeId)
+	searchedAddress := nifiutil.ComputeHostname(headlessServiceEnabled, int32NodeId, clusterName, namespace)
+
+	targetNodeId, err := getNifiNodeIdFromAddress(headlessServiceEnabled, node.Id, serverPort, namespace, clusterName, searchedAddress)
+	if err != nil {
+		return "", "", err
+	}
+
+	// Remove node
+	dResp, err = deleteNifiNode(headlessServiceEnabled, node.Id, serverPort, fmt.Sprintf(endpointNode, targetNodeId), namespace, clusterName)
+	if err != nil && err != errNifiClusterNotReturned200 {
+		log.Error(err, "Remove node gracefully failed since Nifi node returned non 200")
+		return "", "", err
+	}
+	if err == errNifiClusterNotReturned200 {
+		log.Error(err, "could not communicate with nifi node")
+		return "", "", err
+	}
+
+	log.Info("Remove in nifi node")
+	startTimeStamp := dResp.Header.Get("Date")
+	actionStep :=  v1alpha1.RemoveNodeAction
+	return actionStep, startTimeStamp, nil
 }
 
 // RebalanceCluster rebalances Kafka cluster using CC
@@ -360,9 +510,48 @@ func RunPreferedLeaderElectionInCluster(namespace, clusterName string) (string, 
 
 	return uTaskId, nil
 }
+func ConnectClusterNode(headlessServiceEnabled bool, availableNodes []v1alpha1.Node, serverPort int32, nodeId, namespace, clusterName string) (v1alpha1.ActionStep, string, error) {
+	var node v1alpha1.Node
+	var err error
 
-// KillCCTask kills the specified CC task
-func KillCCTask(namespace, clusterName string) error {
+	// Look for available nifi node.
+	node, err = getAvailableNifiClusterNode(headlessServiceEnabled, availableNodes, serverPort, namespace, clusterName)
+
+	if &node == nil {
+		return "", "", err
+	}
+
+	var dResp *http.Response
+
+	// Extract nifi node Id, from nifi node address.
+	intNodeId, err := strconv.ParseInt(nodeId,10, 32)
+	int32NodeId := int32(intNodeId)
+	searchedAddress := nifiutil.ComputeHostname(headlessServiceEnabled, int32NodeId, clusterName, namespace)
+
+	targetNodeId, err := getNifiNodeIdFromAddress(headlessServiceEnabled, node.Id, serverPort, namespace, clusterName, searchedAddress)
+	if err != nil {
+		return "", "", err
+	}
+
+	// Connect node
+	dResp, err = putNifiNode(headlessServiceEnabled, node.Id, serverPort, fmt.Sprintf(endpointNode, targetNodeId), namespace, clusterName, string(v1alpha1.ConnectNodeAction), targetNodeId)
+	if err != nil && err != errNifiClusterNotReturned200 {
+		log.Error(err, "Connect node gracefully failed since Nifi node returned non 200")
+		return "", "", err
+	}
+	if err == errNifiClusterNotReturned200 {
+		log.Error(err, "could not communicate with nifi node")
+		return "", "", err
+	}
+
+	log.Info("Connect in nifi node")
+	startTimeStamp := dResp.Header.Get("Date")
+	actionStep :=  v1alpha1.ConnectNodeAction
+	return actionStep, startTimeStamp, nil
+}
+
+// KillNCTask kills the specified CC task
+func KillNCTask(namespace, clusterName string) error {
 	/*err := GetCruiseControlStatus(namespace, clusterName)
 	if err != nil {
 		return err
@@ -382,7 +571,8 @@ func KillCCTask(namespace, clusterName string) error {
 }
 
 // CheckIfCCTaskFinished checks whether the given CC Task ID finished or not
-func CheckIfNCTaskFinished(uTaskId, namespace, clusterName string) (bool, error) {
+// headlessServiceEnabled bool, availableNodes []v1alpha1.Node, serverPort int32, nodeId, namespace, clusterName string
+func CheckIfNCTaskFinished(headlessServiceEnabled bool, availableNodes []v1alpha1.Node, serverPort int32, actionStep v1alpha1.ActionStep,nodeId, namespace, clusterName string) (bool, error) {
 
 	/*gResp, err := getCruiseControl(getTaskListAction, namespace, map[string]string{
 		"json":          "true",
@@ -419,3 +609,60 @@ func CheckIfNCTaskFinished(uTaskId, namespace, clusterName string) (bool, error)
 	log.Info("Cruise control task finished", "taskID", uTaskId)*/
 	return true, nil
 }
+
+// CheckIfCCTaskFinished checks whether the given CC Task ID finished or not
+// headlessServiceEnabled bool, availableNodes []v1alpha1.Node, serverPort int32, nodeId, namespace, clusterName string
+func CheckIfNCActionStepFinished(headlessServiceEnabled bool, availableNodes []v1alpha1.Node, serverPort int32, actionStep v1alpha1.ActionStep, nodeId, namespace, clusterName string) (bool, error) {
+	var node v1alpha1.Node
+	var err error
+
+	// Look for available nifi node.
+	node, err = getAvailableNifiClusterNode(headlessServiceEnabled, availableNodes, serverPort, namespace, clusterName)
+
+	if &node == nil {
+		return false, err
+	}
+
+	var dResp map[string]interface{}
+
+	// Extract nifi node Id, from nifi node address.
+	intNodeId, err := strconv.ParseInt(nodeId,10, 32)
+	int32NodeId := int32(intNodeId)
+	searchedAddress := nifiutil.ComputeHostname(headlessServiceEnabled, int32NodeId, clusterName, namespace)
+
+	targetNodeId, err := getNifiNodeIdFromAddress(headlessServiceEnabled, node.Id, serverPort, namespace, clusterName, searchedAddress)
+	if err != nil {
+		return false, err
+	}
+
+	dResp, err = GetNifiClusterNodeStatus(headlessServiceEnabled, node.Id, serverPort, namespace, clusterName, targetNodeId)
+
+	if err == errNifiClusterReturned404 && actionStep == v1alpha1.RemoveNodeAction {
+		return true, nil
+	}
+
+	if err != nil {
+		return false, nil
+	}
+
+
+
+	currentStatus := dResp["node"].(map[string]interface{})["status"].(string)
+	switch actionStep {
+
+		case v1alpha1.DisconnectNodeAction:
+			if currentStatus == string(v1alpha1.DisconnectStatus) {
+				return true, nil
+			}
+		case v1alpha1.OffloadNodeAction:
+			if currentStatus == string(v1alpha1.OffloadStatus) {
+				return true, nil
+			}
+		case v1alpha1.ConnectNodeAction:
+			if currentStatus == string(v1alpha1.ConnectStatus) {
+				return true, nil
+			}
+	}
+	return false, nil
+}
+
