@@ -55,14 +55,14 @@ func (r *Reconciler) generateServicePortForInternalListeners() []corev1.ServiceP
 func (r *Reconciler) generateServicePortForExternalListeners() []corev1.ServicePort{
 	var usedPorts []corev1.ServicePort
 
-	for _, eListener := range r.NifiCluster.Spec.ListenersConfig.ExternalListeners {
+	/*for _, eListener := range r.NifiCluster.Spec.ListenersConfig.ExternalListeners {
 		usedPorts = append(usedPorts, corev1.ServicePort{
 			Name:       eListener.Name,
 			Protocol:   corev1.ProtocolTCP,
 			Port:       eListener.ContainerPort,
 			TargetPort: intstr.FromInt(int(eListener.ContainerPort)),
 		})
-	}
+	}*/
 
 	return usedPorts
 }

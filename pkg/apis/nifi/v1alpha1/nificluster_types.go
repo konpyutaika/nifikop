@@ -14,7 +14,6 @@ const (
 	S2sListenerType 	= "s2s"
 	MetricsPort 		= 9020
 	ProvenanceStorage   = "8 GB"
-
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
@@ -24,136 +23,126 @@ const (
 type NifiClusterSpec struct {
 	// headlessServiceEnabled specifies if the cluster should use headlessService for Nifi or individual services
 	// using service per nodes may come an handy case of service mesh.
-	HeadlessServiceEnabled	bool	`json:"headlessServiceEnabled"`
-
+	HeadlessServiceEnabled	bool					`json:"headlessServiceEnabled"`
 	// listenerConfig specifies nifi's listener specifig configs
-	ListenersConfig	ListenersConfig	`json:"listenersConfig"`
-
+	ListenersConfig			ListenersConfig			`json:"listenersConfig"`
 	// zKAddresse specifies the ZooKeeper connection string
 	// in the form hostname:port where host and port are those of a Zookeeper server.
 	// TODO: rework for nice zookeeper connect string =
-	ZKAddresse	string	`json:"zkAddresse"`
-
+	ZKAddresse				string					`json:"zkAddresse"`
 	// zKPath specifies the Zookeeper chroot path as part
 	// of its Zookeeper connection string which puts its data under same path in the global ZooKeeper namespace.
-	ZKPath string `json:"zkPath,omitempty"`
-
-	// rackAwarness add support for Nifi related metadatas should be placed
-	// RackAwareness	*RackAwareness	`json:"rackAwareness,omitempty"`
-
+	ZKPath 					string 					`json:"zkPath,omitempty"`
 	// clusterImage can specify the whole nificluster image in one place
-	ClusterImage	string	`json:"clusterImage,omitempty"`
-
+	ClusterImage			string					`json:"clusterImage,omitempty"`
 	// readOnlyConfig specifies the read-only type Nifi config cluster wide, all theses
 	// will be merged with node specified readOnly configurations, so it can be overwritten per node.
-	ReadOnlyConfig	ReadOnlyConfig	`json:"readOnlyConfig,omitempty"`
-
+	ReadOnlyConfig			ReadOnlyConfig			`json:"readOnlyConfig,omitempty"`
 	// nodeConfigGroups specifies multiple node configs with unique name
-	NodeConfigGroups   map[string]NodeConfig `json:"nodeConfigGroups,omitempty"`
-
+	NodeConfigGroups   		map[string]NodeConfig	`json:"nodeConfigGroups,omitempty"`
 	// all node requires an image, unique id, and storageConfigs settings
-	Nodes []Node `json:"nodes"`
-
+	Nodes 					[]Node 					`json:"nodes"`
 	// rollingUpgradeConfig specifies the rolling upgrade config for the cluster
-	RollingUpgradeConfig RollingUpgradeConfig `json:"rollingUpgradeConfig"`
-
+	RollingUpgradeConfig 	RollingUpgradeConfig 	`json:"rollingUpgradeConfig"`
 	// oneNifiNodePerNode if set to true every nifi node is started on a new node, if there is not enough node to do that
 	// it will stay in pending state. If set to false the operator also tries to schedule the nifi node to a unique node
 	// but if the node number is insufficient the nifi node will be scheduled to a node where a nifi node is already running.
-	OneNifiNodePerNode bool `json:"oneNifiNodePerNode"`
-
+	OneNifiNodePerNode 		bool 					`json:"oneNifiNodePerNode"`
 	//
-	PropagateLabels bool `json:"propagateLabels,omitempty"`
-
-	//
-	LdapConfiguration	LdapConfiguration	`json:"0,omitempty"`
-
+	PropagateLabels 		bool 					`json:"propagateLabels,omitempty"`
+	// LdapConfiguration specifies the configuration if you want to use LDAP
+	LdapConfiguration		LdapConfiguration		`json:"ldapConfiguration,omitempty"`
 	// NifiClusterTaskSpec specifies the configuration of the nifi cluster Tasks
-	NifiClusterTaskSpec NifiClusterTaskSpec	`json:"nifiClusterTaskSpec,omitempty"`
+	NifiClusterTaskSpec 	NifiClusterTaskSpec		`json:"nifiClusterTaskSpec,omitempty"`
 }
 
 // NifiClusterStatus defines the observed state of NifiCluster
 type NifiClusterStatus struct {
-	//
-	NodesState map[string]NodeState `json:"nodesState,omitempty"`
-	//
-	State ClusterState `json:"state"`
-	//
-	RollingUpgrade RollingUpgradeStatus `json:"rollingUpgradeStatus,omitempty"`
+	// Store the state of each nifi node
+	NodesState 		map[string]NodeState	`json:"nodesState,omitempty"`
+	// ClusterState holds info about the cluster state
+	State 			ClusterState 			`json:"state"`
+	// RollingUpgradeStatus defines status of rolling upgrade
+	RollingUpgrade 	RollingUpgradeStatus 	`json:"rollingUpgradeStatus,omitempty"`
 }
 
 // RollingUpgradeStatus defines status of rolling upgrade
 type RollingUpgradeStatus struct {
 	//
-	LastSuccess string `json:"lastSuccess"`
+	LastSuccess	string	`json:"lastSuccess"`
 	//
-	ErrorCount  int    `json:"errorCount"`
+	ErrorCount	int		`json:"errorCount"`
 }
 
 // RollingUpgradeConfig defines the desired config of the RollingUpgrade
 type RollingUpgradeConfig struct {
 	// failureThreshold states that how many errors can the cluster tolerate during rolling upgrade
-	FailureThreshold int `json:"failureThreshold"`
+	FailureThreshold	int	`json:"failureThreshold"`
 }
 
 // Node defines the nifi node basic configuration
 type Node struct {
 	// Unique Node id which is used as nifi config nifi.id
-	Id  int32 `json:"id"`
+	Id				int32 			`json:"id"`
 	// nodeConfigGroup can be used to ease the node configuration, if set no only the id is required
-	NodeConfigGroup string `json:"nodeConfigGroup,omitempty"`
+	NodeConfigGroup	string			`json:"nodeConfigGroup,omitempty"`
 	// readOnlyConfig can be used to pass Nifi node config https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html
 	// which has type read-only these config changes will trigger rolling upgrade
-	ReadOnlyConfig *ReadOnlyConfig `json:"readOnlyConfig,omitempty"`
+	ReadOnlyConfig	*ReadOnlyConfig	`json:"readOnlyConfig,omitempty"`
 	// node configuration
-	NodeConfig *NodeConfig `json:"nodeConfig,omitempty"`
+	NodeConfig 		*NodeConfig 	`json:"nodeConfig,omitempty"`
 }
 
 type ReadOnlyConfig struct {
+	// NifiProperties configuration that will be applied to the node.
 	NifiProperties 		NifiProperties		`json:"nifiProperties,omitempty"`
+	// ZookeeperProperties configuration that will be applied to the node.
 	ZookeeperProperties	ZookeeperProperties	`json:"zookeeperProperties,omitempty"`
+	// BootstrapProperties configuration that will be applied to the node.
 	BootstrapProperties	BootstrapProperties	`json:"bootstrapProperties,omitempty"`
 }
 
+// NifiProperties configuration that will be applied to the node.
 type NifiProperties struct {
-	//
+	// Additionnals nifi.properties configuration that will override the one produced based
+	// on template and configurations.
 	OverrideConfigs 	string	`json:"overrideConfigs,omitempty"`
-	//
+	// Site to Site properties Secure mode
 	SiteToSiteSecure	bool	`json:"siteToSiteSecure,omitempty"`
-	//
+	// Cluster nodes secure mode
 	ClusterSecure		bool	`json:"clusterSecure,omitempty"`
-	//
+	// A comma separated list of allowed HTTP Host header values to consider when NiFi
+	// is running securely and will be receiving requests to a different host[:port] than it is bound to.
 	WebProxyHost		string	`json:"webProxyHost,omitempty"`
-	//
+	// Nifi security client auth
 	NeedClientAuth		bool	`json:"needClientAuth,omitempty"`
-	//
+	// Indicates which of the configured authorizers in the authorizers.xml file to use
 	Authorizer			string	`json:"authorizer,omitempty"`
 }
 
+// ZookeeperProperties configuration that will be applied to the node.
 type ZookeeperProperties struct {
-	//
+	// Additionnals zookeeper.properties configuration that will override the one produced based
+	// on template and configurations.
 	OverrideConfigs string `json:"overrideConfigs,omitempty"`
 }
 
+// BootstrapProperties configuration that will be applied to the node.
 type BootstrapProperties struct {
-	//
+	// JVM memory settings
 	NifiJvmMemory	string	`json:"nifiJvmMemory,omitempty"`
-	//
+	// Additionnals bootstrap.properties configuration that will override the one produced based
+	// on template and configurations.
 	OverrideConfigs string `json:"overrideConfigs,omitempty"`
 }
-
-
-/*type StateManagement struct {
-	OverrideConfigs string `json:"overrideConfigs,omitempty"`
-}*/
 
 // NodeConfig defines the node configuration
 type NodeConfig struct {
 	//RunAsUser define the id of the user to run in the Nifi image
 	// +kubebuilder:validation:Minimum=1
-	RunAsUser *int64 `json:"runAsUser,omitempty"`
-	//
-	IsNode	*bool	`json:"isNode,omitempty"`
+	RunAsUser 				*int64 							`json:"runAsUser,omitempty"`
+	// Set this to true if the instance is a node in a cluster.
+	IsNode					*bool							`json:"isNode,omitempty"`
 	// Docker image used by the operator to create the node associated
 	Image              		string                        `json:"image,omitempty"`
 	// nodeAffinity can be specified, operator populates this value if new pvc added later to node
@@ -171,83 +160,94 @@ type NodeConfig struct {
 	NodeSelector       		map[string]string             `json:"nodeSelector,omitempty"`
 	// tolerations can be specified, which set the pod's tolerations
 	Tolerations       		[]corev1.Toleration           `json:"tolerations,omitempty"`
-/*
-	NifiHeapOpts      string                        `json:"nifiHeapOpts,omitempty"`
-	NifiJVMPerfOÒpts   string                        `json:"nifiJvmPerfOpts,omitempty"`
- */
-	//
+	// Additionnal annotation to attach to the pod associated
 	NodeAnnotations  		map[string]string             `json:"nifiAnnotations,omitempty"`
 }
 
 // StorageConfig defines the node storage configuration
 type StorageConfig struct {
-	//
+	// Name of the storage config, used to name PV to reuse into sidecars for example.
 	// +kubebuilder:validation:Pattern=[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*
-	Name 			string                            	`json:"name"`
-	//
+	Name string                            	`json:"name"`
+	// Path where the volume will be mount into the main nifi container inside the pod.
 	MountPath 			string                            	`json:"mountPath"`
-	//
-	PVCSpec   			*corev1.PersistentVolumeClaimSpec	`json:"pvcSpec"`
-	//
+	// Kubernetes PVC spec
+	PVCSpec				*corev1.PersistentVolumeClaimSpec	`json:"pvcSpec"`
+	// IsProvenanceStorage allows to specify if this volume as to be used for
+	// provenance storage, if true, then we will use the requested memory into
+	// nifi properies configuration
+	// TODO: add mount path into the nifi.properties too.
 	IsProvenanceStorage	bool								`json:"isProvenanceStorage,omitempty"`
 }
 
 //ListenersConfig defines the Nifi listener types
 type ListenersConfig struct {
 	// externalListeners specifies settings required to access nifi externally
-	ExternalListeners []ExternalListenerConfig `json:"externalListeners,omitempty"`
+	// TODO: enable externalListener configuration
+	//ExternalListeners []ExternalListenerConfig `json:"externalListeners,omitempty"`
 	// internalListeners specifies settings required to access nifi internally
-	InternalListeners []InternalListenerConfig `json:"internalListeners"`
+	InternalListeners	[]InternalListenerConfig	`json:"internalListeners"`
 
 	// sslSecrets contains information about ssl related kubernetes secrets if one of the
 	// listener setting type set to ssl these fields must be populated to
-	SSLSecrets        *SSLSecrets              `json:"sslSecrets,omitempty"`
+	// TODO: enable this feature.
+	//SSLSecrets        *SSLSecrets              `json:"sslSecrets,omitempty"`
 }
 
 // SSLSecrets defines the Nifi SSL secrets
+// TODO: implement SSL management
 type SSLSecrets struct {
 	// tlsSecretName should contain all ssl certs required by nifi including: caCert, caKey, clientCert, clientKey
 	// serverCert, serverKey, peerCert, peerKey
-	TLSSecretName   string `json:"tlsSecretName"`
+	TLSSecretName   string		`json:"tlsSecretName"`
 	// jksPasswordName should contain a password field which contains the jks password
-	JKSPasswordName string `json:"jksPasswordName"`
+	JKSPasswordName string 		`json:"jksPasswordName"`
 	// create tells the installed cert manager to create the required certs keys
-	Create          bool   `json:"create,omitempty"`
+	Create          bool   		`json:"create,omitempty"`
 
 	// +kubebuilder:validation:Enum={"cert-manager"}
-	PKIBackend PKIBackend `json:"pkiBackend,omitempty"`
+	PKIBackend		PKIBackend	`json:"pkiBackend,omitempty"`
 }
 
 // ExternalListenerConfig defines the external listener config for Nifi
+// TODO: enable configuration of ingress or something like this.
 type ExternalListenerConfig struct {
 	// TODO: remove type field # specific to Kafka
-	Type                 string `json:"type"`
+	//
+	Type                 string	`json:"type"`
+	//
 	Name                 string `json:"name"`
+	//
 	ExternalStartingPort int32  `json:"externalStartingPort"`
+	//
 	ContainerPort        int32  `json:"containerPort"`
+	//
 	HostnameOverride     string `json:"hostnameOverride,omitempty"`
 }
 
 // InternalListenerConfig defines the internal listener config for Nifi
-// TODO: improve logic about port usage.
 type InternalListenerConfig struct {
-	// +kubebuilder:validation:Enum={"cluster", "http", "https", "s2s" }
-	Type                            string `json:"type,omitempty"`
-	//
-	Name                            string `json:"name"`
-	//
-	ContainerPort                   int32  `json:"containerPort"`
+	// +kubebuilder:validation:Enum={"cluster", "http", "https", "s2s"}
+	// (Optional field) Type allow to specify if we are in a specific nifi listener
+	// it's allowing to define some required information such as Cluster Port,
+	// Http Port, Https Port or S2S port
+	Type  			string	`json:"type,omitempty"`
+	// An identifier for the port which will be configured.
+	Name			string `json:"name"`
+	// The container port.
+	ContainerPort	int32  `json:"containerPort"`
 }
 
-//
+// LdapConfiguration specifies the configuration if you want to use LDAP
 type LdapConfiguration struct {
-	//
+	// If set to true, we will enable ldap usage into nifi.properties configuration.
 	Enabled			bool 	`json:"enabled,omitempty"`
-	//
+	// Space-separated list of URLs of the LDAP servers (i.e. ldap://<hostname>:<port>).
 	Url				string	`json:"url,omitempty"`
-	//
+	// Base DN for searching for users (i.e. CN=Users,DC=example,DC=com).
 	SearchBase		string 	`json:"searchBase,omitempty"`
-	//
+	// Filter for searching for users against the 'User Search Base'.
+	// (i.e. sAMAccountName={0}). The user specified name is inserted into '{0}'.
 	SearchFilter	string 	`json:"searchFilter,omitempty"`
 }
 

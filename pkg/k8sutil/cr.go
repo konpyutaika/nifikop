@@ -23,38 +23,6 @@ import (
 	"strconv"
 )
 
-// UpdateCrWithRackAwarenessConfig updates the CR with rack awareness config
-/*func UpdateCrWithRackAwarenessConfig(pod *corev1.Pod, cr *v1alpha1.NifiCluster, client runtimeClient.Client) error {
-
-	rackConfigMap, err := getSpecificNodeLabels(pod.Spec.NodeName, client, cr.Spec.RackAwareness.Labels)
-	if err != nil {
-		return errorfactory.New(errorfactory.StatusUpdateError{}, err, "updating cr with rack awareness info failed")
-	}
-	rackConfigValues := make([]string, 0, len(rackConfigMap))
-	for _, value := range rackConfigMap {
-		rackConfigValues = append(rackConfigValues, value)
-	}
-	sort.Strings(rackConfigValues)
-
-	nodeConfigs := []v1alpha1.Node{}
-
-	for _, node := range cr.Spec.Nodes {
-		if strconv.Itoa(int(node.Id)) == pod.Labels["nodeId"] {
-			// TODO: seems useless
-			if node.ReadOnlyConfig == "" {
-				readOnlyConfig := fmt.Sprintf("node.rack=%s\n", strings.Join(rackConfigValues, ","))
-				node.ReadOnlyConfig = readOnlyConfig
-			} else if !strings.Contains(node.ReadOnlyConfig, "node.rack=") {
-				readOnlyConfig := node.ReadOnlyConfig + fmt.Sprintf("node.rack=%s\n", strings.Join(rackConfigValues, ","))
-				node.ReadOnlyConfig = readOnlyConfig
-			}
-		}
-		nodeConfigs = append(nodeConfigs, node)
-	}
-	cr.Spec.Nodes = nodeConfigs
-	return updateCr(cr, client)
-}*/
-
 // AddNewNodeToCr modifies the CR and adds a new node
 func AddNewNodeToCr(node v1alpha1.Node, crName, namespace string, client runtimeClient.Client) error {
 	cr, err := GetCr(crName, namespace, client)

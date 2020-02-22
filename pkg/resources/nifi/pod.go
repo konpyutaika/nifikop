@@ -131,7 +131,7 @@ exec bin/nifi.sh run
 				{
 					Name:	"nifi",
 					Image: 	util.GetNodeImage(nodeConfig, r.NifiCluster.Spec.ClusterImage),
-					/*Lifecycle: &corev1.Lifecycle{
+					Lifecycle: &corev1.Lifecycle{
 						PreStop: &corev1.Handler{
 							Exec: &corev1.ExecAction{
 								Command: []string{"bash", "-c", "$NIFI_HOME/bin/nifi.sh stop"},
@@ -139,7 +139,7 @@ exec bin/nifi.sh run
 						},
 						// TODO: add dynamic PostStart for additional lib https://github.com/cetic/helm-nifi/blob/master/values.yaml#L58
 
-					},*/
+					},
 					// TODO : Manage https setup use cases https://github.com/cetic/helm-nifi/blob/master/templates/statefulset.yaml#L165
 					ReadinessProbe: &corev1.Probe{
 						InitialDelaySeconds: readinessInitialDelaySeconds,

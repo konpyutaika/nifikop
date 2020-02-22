@@ -32,22 +32,9 @@ import (
 )
 
 const (
-	basePath				= "nifi-api"
-
+	basePath		= "nifi-api"
 	endpointCluster	= "controller/cluster"
 	endpointNode	= "controller/cluster/nodes/%s"
-
-
-	removeNodeAction       		= "remove_node"
-	stateAction 				= "state"
-	addNodeAction         		= "add_node"
-	getTaskListAction        	= "user_tasks"
-	nifiClusterStateAction  	= "nifi_cluster_state"
-	clusterLoad              	= "load"
-	rebalanceAction         	= "rebalance"
-	killProposalAction       	= "stop_proposal_execution"
-	serviceNameTemplate      	= "%s-cruisecontrol-svc"
-	nodeAlive              		= "ALIVE"
 )
 
 var errNodeNotConnected = errors.New("The targeted node id disconnected")
@@ -183,104 +170,6 @@ func GetNifiClusterNodeStatus(headlessServiceEnabled bool, nodeId, serverPort in
 
 	return response, nil
 }
-
-func isNifiNodeReady(nodeId, namespace, clusterName string) (bool, error) {
-
-	running := false
-
-	/*options := map[string]string{
-		"json": "true",
-	}
-
-	rsp, err := getCruiseControl(clusterLoad, namespace, options, clusterName)
-	if err != nil {
-		log.Error(err, "can't work with cruise-control because it is not ready")
-		return running, err
-	}
-
-	body, err := ioutil.ReadAll(rsp.Body)
-	if err != nil {
-		return running, err
-	}
-
-	err = rsp.Body.Close()
-	if err != nil {
-		return running, err
-	}
-
-	var response map[string]interface{}
-
-	err = json.Unmarshal(body, &response)
-	if err != nil {
-		return running, err
-	}
-
-	bIdToFloat, _ := strconv.ParseFloat(brokerId, 32)
-
-	for _, broker := range response["brokers"].([]interface{}) {
-		if broker.(map[string]interface{})["Broker"].(float64) == bIdToFloat &&
-			broker.(map[string]interface{})["BrokerState"].(string) == brokerAlive {
-			log.Info("broker is available in cruise-control")
-			running = true
-			break
-		}
-	}*/
-	// TODO: to remove after implementation
-	running = true
-	return running, nil
-}
-
-// GetBrokerIDWithLeastPartition returns
-/*func GetBrokerIDWithLeastPartition(namespace, clusterName string) (string, error) {
-
-
-	brokerWithLeastPartition := ""
-
-	err := GetCruiseControlStatus(namespace, clusterName)
-	if err != nil {
-		return brokerWithLeastPartition, err
-	}
-
-	options := map[string]string{
-		"json": "true",
-	}
-
-	rsp, err := getCruiseControl(kafkaClusterStateAction, namespace, options, clusterName)
-	if err != nil {
-		log.Error(err, "can't work with cruise-control because it is not ready")
-		return brokerWithLeastPartition, err
-	}
-
-	body, err := ioutil.ReadAll(rsp.Body)
-	if err != nil {
-		return brokerWithLeastPartition, err
-	}
-
-	err = rsp.Body.Close()
-	if err != nil {
-		return brokerWithLeastPartition, err
-	}
-
-	var response map[string]interface{}
-
-	err = json.Unmarshal(body, &response)
-	if err != nil {
-		return brokerWithLeastPartition, err
-	}
-
-	replicaCountByBroker := response["KafkaBrokerState"].(map[string]interface{})["ReplicaCountByBrokerId"].(map[string]interface{})
-	replicaCount := float64(99999)
-
-	for brokerID, replica := range replicaCountByBroker {
-		if replicaCount > replica.(float64) {
-			replicaCount = replica.(float64)
-			brokerWithLeastPartition = brokerID
-		}
-	}
-	return brokerWithLeastPartition, nil
-
-}*/
-
 
 // UpScaleCluster upscales Kafka cluster
 func UpScaleCluster(nodeId, namespace, clusterName string) (v1alpha1.ActionStep, string, error) {
@@ -454,62 +343,7 @@ func RemoveClusterNode(headlessServiceEnabled bool, availableNodes []v1alpha1.No
 	return actionStep, startTimeStamp, nil
 }
 
-// RebalanceCluster rebalances Kafka cluster using CC
-func RebalanceCluster(namespace, ccEndpoint, clusterName string) (string, error) {
-	/*
-	err := GetCruiseControlStatus(namespace, clusterName)
-	if err != nil {
-		return "", err
-	}
-
-	options := map[string]string{
-		"dryrun": "false",
-		"json":   "true",
-	}
-
-	dResp, err := postCruiseControl(rebalanceAction, namespace, options, clusterName)
-	if err != nil {
-		log.Error(err, "can't rebalance cluster gracefully since post to cruise-control failed")
-		return "", err
-	}
-	log.Info("Initiated rebalance in cruise control")
-
-	uTaskId := dResp.Header.Get("User-Task-Id")*/
-
-	// TODO: to remove after implementation
-	uTaskId := "mock"
-
-	return uTaskId, nil
-}
-
-// RunPreferedLeaderElectionInCluster runs leader election in  Kafka cluster using CC
-func RunPreferedLeaderElectionInCluster(namespace, clusterName string) (string, error) {
-
-	/*err := GetCruiseControlStatus(namespace, clusterName)
-	if err != nil {
-		return "", err
-	}
-
-	options := map[string]string{
-		"dryrun": "false",
-		"json":   "true",
-		"goals":  "PreferredLeaderElectionGoal",
-	}
-
-	dResp, err := postCruiseControl(rebalanceAction, namespace, options, clusterName)
-	if err != nil {
-		log.Error(err, "can't rebalance cluster gracefully since post to cruise-control failed")
-		return "", err
-	}
-	log.Info("Initiated rebalance in cruise control")
-
-	uTaskId := dResp.Header.Get("User-Task-Id")*/
-
-	// TODO: to remove after implementation
-	uTaskId := "mock"
-
-	return uTaskId, nil
-}
+//
 func ConnectClusterNode(headlessServiceEnabled bool, availableNodes []v1alpha1.Node, serverPort int32, nodeId, namespace, clusterName string) (v1alpha1.ActionStep, string, error) {
 	var node v1alpha1.Node
 	var err error
@@ -550,66 +384,6 @@ func ConnectClusterNode(headlessServiceEnabled bool, availableNodes []v1alpha1.N
 	return actionStep, startTimeStamp, nil
 }
 
-// KillNCTask kills the specified CC task
-func KillNCTask(namespace, clusterName string) error {
-	/*err := GetCruiseControlStatus(namespace, clusterName)
-	if err != nil {
-		return err
-	}
-	options := map[string]string{
-		"json": "true",
-	}
-
-	_, err = postCruiseControl(killProposalAction, namespace, options, clusterName)
-	if err != nil {
-		log.Error(err, "can't kill running tasks since post to cruise-control failed")
-		return err
-	}
-	log.Info("Task killed")*/
-
-	return nil
-}
-
-// CheckIfCCTaskFinished checks whether the given CC Task ID finished or not
-// headlessServiceEnabled bool, availableNodes []v1alpha1.Node, serverPort int32, nodeId, namespace, clusterName string
-func CheckIfNCTaskFinished(headlessServiceEnabled bool, availableNodes []v1alpha1.Node, serverPort int32, actionStep v1alpha1.ActionStep,nodeId, namespace, clusterName string) (bool, error) {
-
-	/*gResp, err := getCruiseControl(getTaskListAction, namespace, map[string]string{
-		"json":          "true",
-		"user_task_ids": uTaskId,
-	}, clusterName)
-	if err != nil {
-		log.Error(err, "can't get task list from cruise-control")
-		return false, err
-	}
-
-	var taskLists map[string]interface{}
-
-	body, err := ioutil.ReadAll(gResp.Body)
-	if err != nil {
-		return false, err
-	}
-
-	err = gResp.Body.Close()
-	if err != nil {
-		return false, err
-	}
-
-	err = json.Unmarshal(body, &taskLists)
-	if err != nil {
-		return false, err
-	}
-	// TODO use struct instead of casting things
-	for _, task := range taskLists["userTasks"].([]interface{}) {
-		if task.(map[string]interface{})["Status"].(string) != "Completed" {
-			log.Info("Cruise control task  still running", "taskID", uTaskId)
-			return false, nil
-		}
-	}
-	log.Info("Cruise control task finished", "taskID", uTaskId)*/
-	return true, nil
-}
-
 // CheckIfCCTaskFinished checks whether the given CC Task ID finished or not
 // headlessServiceEnabled bool, availableNodes []v1alpha1.Node, serverPort int32, nodeId, namespace, clusterName string
 func CheckIfNCActionStepFinished(headlessServiceEnabled bool, availableNodes []v1alpha1.Node, serverPort int32, actionStep v1alpha1.ActionStep, nodeId, namespace, clusterName string) (bool, error) {
@@ -644,8 +418,6 @@ func CheckIfNCActionStepFinished(headlessServiceEnabled bool, availableNodes []v
 	if err != nil {
 		return false, nil
 	}
-
-
 
 	currentStatus := dResp["node"].(map[string]interface{})["status"].(string)
 	switch actionStep {

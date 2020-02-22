@@ -31,17 +31,6 @@ spec:
         spec:
           description: NifiClusterSpec defines the desired state of NifiCluster
           properties:
-            "0":
-              properties:
-                enabled:
-                  type: boolean
-                searchBase:
-                  type: string
-                searchFilter:
-                  type: string
-                url:
-                  type: string
-              type: object
             clusterImage:
               description: clusterImage can specify the whole nificluster image in
                 one place
@@ -51,49 +40,51 @@ spec:
                 use headlessService for Nifi or individual services using service
                 per nodes may come an handy case of service mesh.
               type: boolean
+            ldapConfiguration:
+              description: LdapConfiguration specifies the configuration if you want
+                to use LDAP
+              properties:
+                enabled:
+                  description: If set to true, we will enable ldap usage into nifi.properties
+                    configuration.
+                  type: boolean
+                searchBase:
+                  description: Base DN for searching for users (i.e. CN=Users,DC=example,DC=com).
+                  type: string
+                searchFilter:
+                  description: Filter for searching for users against the 'User Search
+                    Base'. (i.e. sAMAccountName={0}). The user specified name is inserted
+                    into '{0}'.
+                  type: string
+                url:
+                  description: Space-separated list of URLs of the LDAP servers (i.e.
+                    ldap://<hostname>:<port>).
+                  type: string
+              type: object
             listenersConfig:
               description: listenerConfig specifies nifi's listener specifig configs
               properties:
-                externalListeners:
-                  description: externalListeners specifies settings required to access
-                    nifi externally
+                internalListeners:
+                  description: 'externalListeners specifies settings required to access
+                    nifi externally TODO: enable externalListener configuration ExternalListeners
+                    []ExternalListenerConfig `json:"externalListeners,omitempty"`
+                    internalListeners specifies settings required to access nifi internally'
                   items:
-                    description: ExternalListenerConfig defines the external listener
+                    description: InternalListenerConfig defines the internal listener
                       config for Nifi
                     properties:
                       containerPort:
-                        format: int32
-                        type: integer
-                      externalStartingPort:
-                        format: int32
-                        type: integer
-                      hostnameOverride:
-                        type: string
-                      name:
-                        type: string
-                      type:
-                        description: 'TODO: remove type field # specific to Kafka'
-                        type: string
-                    required:
-                    - containerPort
-                    - externalStartingPort
-                    - name
-                    - type
-                    type: object
-                  type: array
-                internalListeners:
-                  description: internalListeners specifies settings required to access
-                    nifi internally
-                  items:
-                    description: 'InternalListenerConfig defines the internal listener
-                      config for Nifi TODO: improve logic about port usage.'
-                    properties:
-                      containerPort:
+                        description: The container port.
                         format: int32
                         type: integer
                       name:
+                        description: An identifier for the port which will be configured.
                         type: string
                       type:
+                        description: (Optional field) Type allow to specify if we
+                          are in a specific nifi listener it's allowing to define
+                          some required information such as Cluster Port, Http Port,
+                          Https Port or S2S port
                         enum:
                         - cluster
                         - http
@@ -105,34 +96,6 @@ spec:
                     - name
                     type: object
                   type: array
-                sslSecrets:
-                  description: sslSecrets contains information about ssl related kubernetes
-                    secrets if one of the listener setting type set to ssl these fields
-                    must be populated to
-                  properties:
-                    create:
-                      description: create tells the installed cert manager to create
-                        the required certs keys
-                      type: boolean
-                    jksPasswordName:
-                      description: jksPasswordName should contain a password field
-                        which contains the jks password
-                      type: string
-                    pkiBackend:
-                      description: PKIBackend represents an interface implementing
-                        the PKIManager
-                      enum:
-                      - cert-manager
-                      type: string
-                    tlsSecretName:
-                      description: 'tlsSecretName should contain all ssl certs required
-                        by nifi including: caCert, caKey, clientCert, clientKey serverCert,
-                        serverKey, peerCert, peerKey'
-                      type: string
-                  required:
-                  - jksPasswordName
-                  - tlsSecretName
-                  type: object
               required:
               - internalListeners
               type: object
@@ -169,12 +132,12 @@ spec:
                       type: object
                     type: array
                   isNode:
+                    description: Set this to true if the instance is a node in a cluster.
                     type: boolean
                   nifiAnnotations:
                     additionalProperties:
                       type: string
-                    description: "\tNifiHeapOpts      string                        `json:\"nifiHeapOpts,omitempty\"`
-                      \tNifiJVMPerfOÒpts   string                        `json:\"nifiJvmPerfOpts,omitempty\"`"
+                    description: Additionnal annotation to attach to the pod associated
                     type: object
                   nodeAffinity:
                     description: nodeAffinity can be specified, operator populates
@@ -422,16 +385,23 @@ spec:
                       description: StorageConfig defines the node storage configuration
                       properties:
                         isProvenanceStorage:
+                          description: 'IsProvenanceStorage allows to specify if this
+                            volume as to be used for provenance storage, if true,
+                            then we will use the requested memory into nifi properies
+                            configuration TODO: add mount path into the nifi.properties
+                            too.'
                           type: boolean
                         mountPath:
+                          description: Path where the volume will be mount into the
+                            main nifi container inside the pod.
                           type: string
                         name:
+                          description: Name of the storage config, used to name PV
+                            to reuse into sidecars for example.
                           pattern: '[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*'
                           type: string
                         pvcSpec:
-                          description: PersistentVolumeClaimSpec describes the common
-                            attributes of storage devices and allows a Source for
-                            provider-specific attributes
+                          description: Kubernetes PVC spec
                           properties:
                             accessModes:
                               description: 'AccessModes contains the desired access
@@ -634,12 +604,13 @@ spec:
                           type: object
                         type: array
                       isNode:
+                        description: Set this to true if the instance is a node in
+                          a cluster.
                         type: boolean
                       nifiAnnotations:
                         additionalProperties:
                           type: string
-                        description: "\tNifiHeapOpts      string                        `json:\"nifiHeapOpts,omitempty\"`
-                          \tNifiJVMPerfOÒpts   string                        `json:\"nifiJvmPerfOpts,omitempty\"`"
+                        description: Additionnal annotation to attach to the pod associated
                         type: object
                       nodeAffinity:
                         description: nodeAffinity can be specified, operator populates
@@ -898,16 +869,23 @@ spec:
                           description: StorageConfig defines the node storage configuration
                           properties:
                             isProvenanceStorage:
+                              description: 'IsProvenanceStorage allows to specify
+                                if this volume as to be used for provenance storage,
+                                if true, then we will use the requested memory into
+                                nifi properies configuration TODO: add mount path
+                                into the nifi.properties too.'
                               type: boolean
                             mountPath:
+                              description: Path where the volume will be mount into
+                                the main nifi container inside the pod.
                               type: string
                             name:
+                              description: Name of the storage config, used to name
+                                PV to reuse into sidecars for example.
                               pattern: '[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*'
                               type: string
                             pvcSpec:
-                              description: PersistentVolumeClaimSpec describes the
-                                common attributes of storage devices and allows a
-                                Source for provider-specific attributes
+                              description: Kubernetes PVC spec
                               properties:
                                 accessModes:
                                   description: 'AccessModes contains the desired access
@@ -1095,30 +1073,55 @@ spec:
                       upgrade
                     properties:
                       bootstrapProperties:
+                        description: BootstrapProperties configuration that will be
+                          applied to the node.
                         properties:
                           nifiJvmMemory:
+                            description: JVM memory settings
                             type: string
                           overrideConfigs:
+                            description: Additionnals bootstrap.properties configuration
+                              that will override the one produced based on template
+                              and configurations.
                             type: string
                         type: object
                       nifiProperties:
+                        description: NifiProperties configuration that will be applied
+                          to the node.
                         properties:
                           authorizer:
+                            description: Indicates which of the configured authorizers
+                              in the authorizers.xml file to use
                             type: string
                           clusterSecure:
+                            description: Cluster nodes secure mode
                             type: boolean
                           needClientAuth:
+                            description: Nifi security client auth
                             type: boolean
                           overrideConfigs:
+                            description: Additionnals nifi.properties configuration
+                              that will override the one produced based on template
+                              and configurations.
                             type: string
                           siteToSiteSecure:
+                            description: Site to Site properties Secure mode
                             type: boolean
                           webProxyHost:
+                            description: A comma separated list of allowed HTTP Host
+                              header values to consider when NiFi is running securely
+                              and will be receiving requests to a different host[:port]
+                              than it is bound to.
                             type: string
                         type: object
                       zookeeperProperties:
+                        description: ZookeeperProperties configuration that will be
+                          applied to the node.
                         properties:
                           overrideConfigs:
+                            description: Additionnals zookeeper.properties configuration
+                              that will override the one produced based on template
+                              and configurations.
                             type: string
                         type: object
                     type: object
@@ -1142,30 +1145,54 @@ spec:
                 configurations, so it can be overwritten per node.
               properties:
                 bootstrapProperties:
+                  description: BootstrapProperties configuration that will be applied
+                    to the node.
                   properties:
                     nifiJvmMemory:
+                      description: JVM memory settings
                       type: string
                     overrideConfigs:
+                      description: Additionnals bootstrap.properties configuration
+                        that will override the one produced based on template and
+                        configurations.
                       type: string
                   type: object
                 nifiProperties:
+                  description: NifiProperties configuration that will be applied to
+                    the node.
                   properties:
                     authorizer:
+                      description: Indicates which of the configured authorizers in
+                        the authorizers.xml file to use
                       type: string
                     clusterSecure:
+                      description: Cluster nodes secure mode
                       type: boolean
                     needClientAuth:
+                      description: Nifi security client auth
                       type: boolean
                     overrideConfigs:
+                      description: Additionnals nifi.properties configuration that
+                        will override the one produced based on template and configurations.
                       type: string
                     siteToSiteSecure:
+                      description: Site to Site properties Secure mode
                       type: boolean
                     webProxyHost:
+                      description: A comma separated list of allowed HTTP Host header
+                        values to consider when NiFi is running securely and will
+                        be receiving requests to a different host[:port] than it is
+                        bound to.
                       type: string
                   type: object
                 zookeeperProperties:
+                  description: ZookeeperProperties configuration that will be applied
+                    to the node.
                   properties:
                     overrideConfigs:
+                      description: Additionnals zookeeper.properties configuration
+                        that will override the one produced based on template and
+                        configurations.
                       type: string
                   type: object
               type: object
@@ -1239,6 +1266,7 @@ spec:
                 - gracefulActionState
                 - rackAwarenessState
                 type: object
+              description: Store the state of each nifi node
               type: object
             rollingUpgradeStatus:
               description: RollingUpgradeStatus defines status of rolling upgrade

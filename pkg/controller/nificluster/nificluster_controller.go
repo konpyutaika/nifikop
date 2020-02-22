@@ -12,7 +12,6 @@ import (
 	"github.com/orangeopensource/nifi-operator/pkg/util"
 	corev1 "k8s.io/api/core/v1"
 	apiErrors "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
@@ -27,11 +26,6 @@ import (
 var log = logf.Log.WithName("controller_nificluster")
 
 var clusterFinalizer =  "finalizer.nificlusters.nifi.orange.com"
-
-/**
-* USER ACTION REQUIRED: This is a scaffold file intended for the user to modify with their own Controller
-* business logic.  Delete these comments after modifying this file.*
- */
 
 // Add creates a new NifiCluster Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
@@ -58,7 +52,6 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	// TODO(user): Modify this to be the types you create that are owned by the primary resource
 	// Watch for changes to secondary resource Pods and requeue the owner NifiCluster
 	err = c.Watch(&source.Kind{Type: &corev1.Pod{}}, &handler.EnqueueRequestForOwner{
 		IsController: true,
@@ -84,8 +77,6 @@ type ReconcileNifiCluster struct {
 
 // Reconcile reads that state of the cluster for a NifiCluster object and makes changes based on the state read
 // and what is in the NifiCluster.Spec
-// TODO(user): Modify this Reconcile function to implement your Controller logic.  This example creates
-// a Pod as an example
 // Note:
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
@@ -121,12 +112,7 @@ func (r *ReconcileNifiCluster) Reconcile(request reconcile.Request) (reconcile.R
 	}
 
 	reconcilers := []resources.ComponentReconciler{
-//		envoy.New(r.Client, instance),
-//		istioingress.New(r.Client, instance),
-//		kafkamonitoring.New(r.Client, instance),
-//		cruisecontrolmonitoring.New(r.Client, instance),
 		nifi.New(r.client, r.scheme, instance),
-//		cruisecontrol.New(r.Client, instance),
 	}
 
 	for _, rec := range reconcilers {
@@ -203,92 +189,6 @@ func (r *ReconcileNifiCluster) checkFinalizers(ctx context.Context, log logr.Log
 		return requeueWithError(log, "failed to get namespace list", err)
 	}
 
-	/*// If we haven't deleted all kafkatopics yet, iterate namespaces and delete all kafkatopics
-	// with the matching label.
-	if util.StringSliceContains(cluster.GetFinalizers(), clusterTopicsFinalizer) {
-		log.Info(fmt.Sprintf("Sending delete kafkatopics request to all namespaces for cluster %s/%s", cluster.Namespace, cluster.Name))
-		for _, ns := range namespaces.Items {
-			if err := r.Client.DeleteAllOf(
-				ctx,
-				&v1alpha1.KafkaTopic{},
-				client.InNamespace(ns.Name),
-				client.MatchingLabels{clusterRefLabel: clusterLabelString(cluster)},
-			); err != nil {
-				if client.IgnoreNotFound(err) != nil {
-					return requeueWithError(log, "failed to send delete request for children kafkatopics", err)
-				}
-				log.Info(fmt.Sprintf("No matching kafkatopics in namespace: %s", ns.Name))
-			}
-
-		}
-		if cluster, err = r.removeFinalizer(ctx, cluster, clusterTopicsFinalizer); err != nil {
-			return requeueWithError(log, "failed to remove topics finalizer from kafkacluster", err)
-		}
-	}*/
-
-	/*// If any of the topics still exist, it means their finalizer is still running.
-	// Wait to make sure we have fully cleaned up zookeeper. Also if we delete
-	// our kafkausers before all topics are finished cleaning up, we will lose
-	// our controller certificate.
-	log.Info("Ensuring all topics have finished cleaning up")
-	var childTopics v1alpha1.KafkaTopicList
-	if err = r.Client.List(
-		ctx,
-		&childTopics,
-		client.InNamespace(metav1.NamespaceAll),
-		client.MatchingLabels{clusterRefLabel: clusterLabelString(cluster)},
-	); err != nil {
-		return requeueWithError(log, "failed to list kafkatopics", err)
-	}
-	if len(childTopics.Items) > 0 {
-		log.Info(fmt.Sprintf("Still waiting for the following topics to be deleted: %v", topicListToStrSlice(childTopics)))
-		return ctrl.Result{
-			Requeue:      true,
-			RequeueAfter: time.Duration(3) * time.Second,
-		}, nil
-	}*/
-
-	if cluster.Spec.ListenersConfig.SSLSecrets != nil {
-		/*// If we haven't deleted all kafkausers yet, iterate namespaces and delete all kafkausers
-		// with the matching label.
-		if util.StringSliceContains(cluster.GetFinalizers(), clusterUsersFinalizer) {
-			log.Info(fmt.Sprintf("Sending delete kafkausers request to all namespaces for cluster %s/%s", cluster.Namespace, cluster.Name))
-			for _, ns := range namespaces.Items {
-				if err := r.Client.DeleteAllOf(
-					ctx,
-					&v1alpha1.KafkaUser{},
-					client.InNamespace(ns.Name),
-					client.MatchingLabels{clusterRefLabel: clusterLabelString(cluster)},
-				); err != nil {
-					if client.IgnoreNotFound(err) != nil {
-						return requeueWithError(log, "failed to send delete request for children kafkausers", err)
-					}
-					log.Info(fmt.Sprintf("No matching kafkausers in namespace: %s", ns.Name))
-				}
-			}
-			if cluster, err = r.removeFinalizer(ctx, cluster, clusterUsersFinalizer); err != nil {
-				return requeueWithError(log, "failed to remove users finalizer from kafkacluster", err)
-			}
-		}*/
-
-		/*// Do any necessary PKI cleanup - a PKI backend should make sure any
-		// user finalizations are done before it does its final cleanup
-		log.Info("Tearing down any PKI resources for the kafkacluster")
-		if err = pki.GetPKIManager(r.client, cluster).FinalizePKI(ctx, log); err != nil {
-			switch err.(type) {
-			case errorfactory.ResourceNotReady:
-				log.Info("The PKI is not ready to be torn down")
-				return ctrl.Result{
-					Requeue:      true,
-					RequeueAfter: time.Duration(5) * time.Second,
-				}, nil
-			default:
-				return requeueWithError(log, "failed to finalize PKI", err)
-			}
-		}*/
-
-	}
-
 	log.Info("Finalizing deletion of nificluster instance")
 	if _, err = r.removeFinalizer(ctx, cluster, clusterFinalizer); err != nil {
 		if client.IgnoreNotFound(err) == nil {
@@ -317,40 +217,6 @@ func (r *ReconcileNifiCluster) updateAndFetchLatest(ctx context.Context, cluster
 	return cluster, nil
 }
 
-
-// newPodForCR returns a busybox pod with the same name/namespace as the cr
-func newPodForCR(cr *v1alpha1.NifiCluster) *corev1.Pod {
-	labels := map[string]string{
-		"app": cr.Name,
-	}
-	return &corev1.Pod{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      cr.Name + "-pod",
-			Namespace: cr.Namespace,
-			Labels:    labels,
-		},
-		Spec: corev1.PodSpec{
-			Containers: []corev1.Container{
-				{
-					Name:    "busybox",
-					Image:   "busybox",
-					Command: []string{"sleep", "3600"},
-				},
-			},
-		},
-	}
-}
-
 func (r *ReconcileNifiCluster) ensureFinalizers(ctx context.Context, cluster *v1alpha1.NifiCluster) (updated *v1alpha1.NifiCluster, err error) {
-	/*finalizers := []string{clusterFinalizer, clusterTopicsFinalizer}
-	if cluster.Spec.ListenersConfig.SSLSecrets != nil {
-		finalizers = append(finalizers, clusterUsersFinalizer)
-	}
-	for _, finalizer := range finalizers {
-		if util.StringSliceContains(cluster.GetFinalizers(), finalizer) {
-			continue
-		}
-		cluster.SetFinalizers(append(cluster.GetFinalizers(), finalizer))
-	}*/
 	return r.updateAndFetchLatest(ctx, cluster)
 }
