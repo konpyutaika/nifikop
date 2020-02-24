@@ -4,7 +4,7 @@ metadata:
   name: nifi
 spec:
   nifiClusterTaskSpec:
-    retryDurationMinutes: 1
+    retryDurationMinutes: 10
   # Specify if the cluster should use headlessService for Nifi or individual services
   # using service/node may come in handy in case of service mesh
   headlessServiceEnabled: true

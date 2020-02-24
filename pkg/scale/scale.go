@@ -241,6 +241,13 @@ func DisconnectClusterNode(headlessServiceEnabled bool, availableNodes []v1alpha
 	if err != nil {
 		return "", "", err
 	}
+
+	if rsp["node"].(map[string]interface{})["status"].(string) == string(v1alpha1.DisconnectNodeAction) ||
+		rsp["node"].(map[string]interface{})["status"].(string) == string(v1alpha1.DisconnectStatus){
+		currentTime := time.Now()
+		return  v1alpha1.DisconnectNodeAction, currentTime.Format("Mon, 2 Jan 2006 15:04:05 GMT"), nil
+	}
+
 	if rsp["node"].(map[string]interface{})["status"].(string) != string(v1alpha1.ConnectStatus) {
 		return "", "", errNodeNotConnected
 	}

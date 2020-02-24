@@ -32,6 +32,33 @@ type ConfigurationState string
 // PKIBackend represents an interface implementing the PKIManager
 type PKIBackend string
 
+func (r State) IsUpscale() bool {
+	return r == GracefulUpscaleRequired || r == GracefulUpscaleSucceeded || r == GracefulUpscaleRunning
+}
+
+func (r State) IsDownscale() bool {
+	return r == GracefulDownscaleRequired || r == GracefulDownscaleSucceeded || r == GracefulDownscaleRunning
+}
+
+func (r State) IsRunningState() bool {
+	return r == GracefulDownscaleRunning || r == GracefulUpscaleRunning
+}
+
+func (r State) IsRequiredState() bool {
+	return r == GracefulDownscaleRequired || r == GracefulUpscaleRequired
+}
+
+func (r State) Complete() State {
+	switch r {
+	case GracefulUpscaleRequired, GracefulUpscaleRunning:
+		return GracefulUpscaleSucceeded
+	case GracefulDownscaleRequired, GracefulDownscaleRunning:
+		return GracefulDownscaleSucceeded
+	default:
+		return r
+	}
+}
+
 const (
 	// PKIBackendCertManager invokes cert-manager for user certificate management
 	PKIBackendCertManager PKIBackend = "cert-manager"
@@ -62,12 +89,22 @@ type NodeState struct {
 const (
 	// Configured states the node is running
 	Configured RackAwarenessState = "Configured"
-	// WaitingForRackAwareness states the node is waiting for the rack awareness config
-	WaitingForRackAwareness RackAwarenessState = "WaitingForRackAwareness"
+
+	// GracefulUpscaleRequired states that a node upscale is required
+	GracefulUpscaleRequired State = "GracefulUpscaleRequired"
+	// GracefulUpscaleRunning states that the node upscale task is still running
+	GracefulUpscaleRunning State = "GracefulUpscaleRunning"
 	// GracefulUpscaleSucceeded states the node is updated gracefully
 	GracefulUpscaleSucceeded State = "GracefulUpscaleSucceeded"
+
+	// Downscale cruise control states
+	// GracefulDownscaleRequired states that a node downscale is required
+	GracefulDownscaleRequired State = "GracefulDownscaleRequired"
+	// GracefulDownscaleRunning states that the node downscale is still running in
+	GracefulDownscaleRunning State = "GracefulDownscaleRunning"
 	// GracefulUpscaleSucceeded states the node is updated gracefully
 	GracefulDownscaleSucceeded State = "GracefulDownscaleSucceeded"
+
 	// GracefulUpdateRunning states the node update task is still running in Nifi cluster
 	GracefulUpdateRunning State = "GracefulUpdateRunning"
 	// GracefulUpdateFailed states the node could not be updated gracefully

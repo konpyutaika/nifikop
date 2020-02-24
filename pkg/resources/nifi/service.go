@@ -22,14 +22,14 @@ func (r *Reconciler) service(id int32, log logr.Logger) runtime.Object {
 	return &corev1.Service{
 		ObjectMeta: templates.ObjectMeta(fmt.Sprintf("%s-%d", r.NifiCluster.Name, id),
 			util.MergeLabels(
-				labelsForNifi(r.NifiCluster.Name),
+				LabelsForNifi(r.NifiCluster.Name),
 				map[string]string{"nodeId": fmt.Sprintf("%d", id)},
 			),
 			r.NifiCluster),
 		Spec: corev1.ServiceSpec{
 			Type:            corev1.ServiceTypeClusterIP,
 			SessionAffinity: corev1.ServiceAffinityNone,
-			Selector:        util.MergeLabels(labelsForNifi(r.NifiCluster.Name), map[string]string{"nodeId": fmt.Sprintf("%d", id)}),
+			Selector:        util.MergeLabels(LabelsForNifi(r.NifiCluster.Name), map[string]string{"nodeId": fmt.Sprintf("%d", id)}),
 			Ports:           usedPorts,
 		},
 	}

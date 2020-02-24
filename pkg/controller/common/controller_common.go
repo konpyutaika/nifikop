@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package nificluster
+package common
 
 import (
 	"fmt"
@@ -23,13 +23,13 @@ import (
 
 // clusterRefLabel is the label key used for referencing NifiUsers/NifiDataflow
 // to a NifiCluster
-var clusterRefLabel = "nifiCluster"
+var ClusterRefLabel = "nifiCluster"
 
 
 // requeueWithError is a convenience wrapper around logging an error message
 // separate from the stacktrace and then passing the error through to the controller
 // manager
-func requeueWithError(logger logr.Logger, msg string, err error) (reconcile.Result, error) {
+func RequeueWithError(logger logr.Logger, msg string, err error) (reconcile.Result, error) {
 	// Info log the error message and then let the reconciler dump the stacktrace
 	logger.Info(msg)
 	return reconcile.Result{}, err
@@ -37,28 +37,28 @@ func requeueWithError(logger logr.Logger, msg string, err error) (reconcile.Resu
 
 // reconciled returns an empty result with nil error to signal a successful reconcile
 // to the controller manager
-func reconciled() (reconcile.Result, error) {
+func Reconciled() (reconcile.Result, error) {
 	return reconcile.Result{}, nil
 }
 
 
 // clusterLabelString returns the label value for a cluster reference
-func clusterLabelString(cluster *v1alpha1.NifiCluster) string {
+func ClusterLabelString(cluster *v1alpha1.NifiCluster) string {
 	return fmt.Sprintf("%s.%s", cluster.Name, cluster.Namespace)
 }
 
 // applyClusterRefLabel ensures a map of labels contains a reference to a parent nifi cluster
-func applyClusterRefLabel(cluster *v1alpha1.NifiCluster, labels map[string]string) map[string]string {
-	labelValue := clusterLabelString(cluster)
+func ApplyClusterRefLabel(cluster *v1alpha1.NifiCluster, labels map[string]string) map[string]string {
+	labelValue := ClusterLabelString(cluster)
 	if labels == nil {
 		labels = make(map[string]string, 0)
 	}
-	if label, ok := labels[clusterRefLabel]; ok {
+	if label, ok := labels[ClusterRefLabel]; ok {
 		if label != labelValue {
-			labels[clusterRefLabel] = labelValue
+			labels[ClusterRefLabel] = labelValue
 		}
 	} else {
-		labels[clusterRefLabel] = labelValue
+		labels[ClusterRefLabel] = labelValue
 	}
 	return labels
 }

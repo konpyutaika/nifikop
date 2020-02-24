@@ -5,6 +5,7 @@ import (
 	"emperror.dev/errors"
 	"github.com/go-logr/logr"
 	v1alpha1 "github.com/orangeopensource/nifi-operator/pkg/apis/nifi/v1alpha1"
+	common "github.com/orangeopensource/nifi-operator/pkg/controller/common"
 	"github.com/orangeopensource/nifi-operator/pkg/errorfactory"
 	"github.com/orangeopensource/nifi-operator/pkg/k8sutil"
 	"github.com/orangeopensource/nifi-operator/pkg/resources"
@@ -61,6 +62,25 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
+
+	// Watch for changes to secondary resource ConfigMap and requeue the owner NifiCluster
+	err = c.Watch(&source.Kind{Type: &corev1.ConfigMap{}}, &handler.EnqueueRequestForOwner{
+		IsController: true,
+		OwnerType:    &v1alpha1.NifiCluster{},
+	})
+	if err != nil {
+		return err
+	}
+
+	// Watch for changes to secondary resource PersistentVolumeClaim and requeue the owner NifiCluster
+	err = c.Watch(&source.Kind{Type: &corev1.PersistentVolumeClaim{}}, &handler.EnqueueRequestForOwner{
+		IsController: true,
+		OwnerType:    &v1alpha1.NifiCluster{},
+	})
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -94,10 +114,10 @@ func (r *ReconcileNifiCluster) Reconcile(request reconcile.Request) (reconcile.R
 			// Request object not found, could have been deleted after reconcile request.
 			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
 			// Return and don't requeue
-			return reconciled()
+			return common.Reconciled()
 		}
 		// Error reading the object - requeue the request.
-		return requeueWithError(reqLogger, err.Error(), err)
+		return common.RequeueWithError(reqLogger, err.Error(), err)
 	}
 
 	// Check if marked for deletion and run finalizers
@@ -107,7 +127,7 @@ func (r *ReconcileNifiCluster) Reconcile(request reconcile.Request) (reconcile.R
 
 	if instance.Status.State != v1alpha1.NifiClusterRollingUpgrading {
 		if err := k8sutil.UpdateCRStatus(r.client, instance, v1alpha1.NifiClusterReconciling, reqLogger); err != nil {
-			return requeueWithError(log, err.Error(), err)
+			return common.RequeueWithError(log, err.Error(), err)
 		}
 	}
 
@@ -149,28 +169,28 @@ func (r *ReconcileNifiCluster) Reconcile(request reconcile.Request) (reconcile.R
 					RequeueAfter: time.Duration(20) * time.Second,
 				}, nil
 			default:
-				return requeueWithError(reqLogger, err.Error(), err)
+				return common.RequeueWithError(reqLogger, err.Error(), err)
 			}
 		}
 	}
 
 	reqLogger.Info("ensuring finalizers on nificluster")
 	if instance, err = r.ensureFinalizers(ctx, instance); err != nil {
-		return requeueWithError(log, "failed to ensure finalizers on kafkacluster instance", err)
+		return common.RequeueWithError(log, "failed to ensure finalizers on kafkacluster instance", err)
 	}
 
 	//Update rolling upgrade last successful state
 	if instance.Status.State == v1alpha1.NifiClusterRollingUpgrading {
 		if err := k8sutil.UpdateRollingUpgradeState(r.client, instance, time.Now(), reqLogger); err != nil {
-			return requeueWithError(reqLogger, err.Error(), err)
+			return common.RequeueWithError(reqLogger, err.Error(), err)
 		}
 	}
 
 	if err := k8sutil.UpdateCRStatus(r.client, instance, v1alpha1.NifiClusterRunning, reqLogger); err != nil {
-		return requeueWithError(log, err.Error(), err)
+		return common.RequeueWithError(log, err.Error(), err)
 	}
 
-	return reconciled()
+	return common.Reconciled()
 }
 
 func (r *ReconcileNifiCluster) checkFinalizers(ctx context.Context, log logr.Logger, cluster *v1alpha1.NifiCluster) (reconcile.Result, error) {
@@ -178,7 +198,7 @@ func (r *ReconcileNifiCluster) checkFinalizers(ctx context.Context, log logr.Log
 
 	// If the main finalizer is gone then we've already finished up
 	if !util.StringSliceContains(cluster.GetFinalizers(), clusterFinalizer) {
-		return reconciled()
+		return common.Reconciled()
 	}
 
 	var err error
@@ -186,7 +206,7 @@ func (r *ReconcileNifiCluster) checkFinalizers(ctx context.Context, log logr.Log
 	// Fetch a list of all namespaces for DeleteAllOf requests
 	var namespaces corev1.NamespaceList
 	if err := r.client.List(ctx, &namespaces); err != nil {
-		return requeueWithError(log, "failed to get namespace list", err)
+		return common.RequeueWithError(log, "failed to get namespace list", err)
 	}
 
 	log.Info("Finalizing deletion of nificluster instance")
@@ -194,9 +214,9 @@ func (r *ReconcileNifiCluster) checkFinalizers(ctx context.Context, log logr.Log
 		if client.IgnoreNotFound(err) == nil {
 			// We may have been a requeue from earlier with all conditions met - but with
 			// the state of the finalizer not yet reflected in the response we got.
-			return reconciled()
+			return common.Reconciled()
 		}
-		return requeueWithError(log, "failed to remove main finalizer", err)
+		return common.RequeueWithError(log, "failed to remove main finalizer", err)
 	}
 
 	return reconcile.Result{}, nil

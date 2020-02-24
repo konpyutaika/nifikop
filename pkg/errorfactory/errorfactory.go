@@ -55,8 +55,14 @@ type ReconcileRollingUpgrade struct{ error }
 // NifiClusterNotReady states that NC is not ready to receive actions
 type NifiClusterNotReady struct{ error }
 
-// DecommissionTaskRunning states that CC task is still running
+// DecommissionTaskRunning states that NC task is still running
 type NifiClusterTaskRunning struct{ error }
+
+// NifiClusterTaskTimeout states that NC task timed out
+type  NifiClusterTaskTimeout struct{ error }
+
+// NifiClusterTaskFailure states that NC task was not found (CC restart?) or failed
+type  NifiClusterTaskFailure struct{ error }
 
 // New creates a new error factory error
 func New(t interface{}, err error, msg string, wrapArgs ...interface{}) error {

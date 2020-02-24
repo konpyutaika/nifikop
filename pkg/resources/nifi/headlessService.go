@@ -20,13 +20,13 @@ func (r *Reconciler) headlessService() runtime.Object {
 	return &corev1.Service{
 		ObjectMeta: templates.ObjectMeta(
 			fmt.Sprintf(nifiutils.HeadlessServiceTemplate, r.NifiCluster.Name),
-			util.MergeLabels(labelsForNifi(r.NifiCluster.Name), r.NifiCluster.Labels),
+			util.MergeLabels(LabelsForNifi(r.NifiCluster.Name), r.NifiCluster.Labels),
 			r.NifiCluster,
 		),
 		Spec: corev1.ServiceSpec{
 			Type:            corev1.ServiceTypeClusterIP,
 			SessionAffinity: corev1.ServiceAffinityNone,
-			Selector:        labelsForNifi(r.NifiCluster.Name),
+			Selector:        LabelsForNifi(r.NifiCluster.Name),
 			Ports:           usedPorts,
 			ClusterIP:       corev1.ClusterIPNone,
 		},

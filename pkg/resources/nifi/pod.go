@@ -85,7 +85,7 @@ exec bin/nifi.sh run
 		ObjectMeta: templates.ObjectMetaWithGeneratedNameAndAnnotations(
 			fmt.Sprintf(templates.NodeNameTemplate, r.NifiCluster.Name, id),
 			util.MergeLabels(
-				labelsForNifi(r.NifiCluster.Name),
+				LabelsForNifi(r.NifiCluster.Name),
 				map[string]string{"nodeId": fmt.Sprintf("%d", id)},
 			),
 			util.MergeAnnotations(
@@ -244,7 +244,7 @@ func generatePodAntiAffinity(clusterName string, hardRuleEnabled bool) *corev1.P
 			RequiredDuringSchedulingIgnoredDuringExecution: []corev1.PodAffinityTerm{
 				{
 					LabelSelector: &metav1.LabelSelector{
-						MatchLabels: labelsForNifi(clusterName),
+						MatchLabels: LabelsForNifi(clusterName),
 					},
 					TopologyKey: "kubernetes.io/hostname",
 				},
@@ -257,7 +257,7 @@ func generatePodAntiAffinity(clusterName string, hardRuleEnabled bool) *corev1.P
 					Weight: int32(100),
 					PodAffinityTerm: corev1.PodAffinityTerm{
 						LabelSelector: &metav1.LabelSelector{
-							MatchLabels: labelsForNifi(clusterName),
+							MatchLabels: LabelsForNifi(clusterName),
 						},
 						TopologyKey: "kubernetes.io/hostname",
 					},
@@ -287,13 +287,13 @@ func (r *Reconciler) generateContainerPortForInternalListeners() []corev1.Contai
 func (r *Reconciler) generateContainerPortForExternalListeners() []corev1.ContainerPort{
 	var usedPorts []corev1.ContainerPort
 
-	for _, eListener := range r.NifiCluster.Spec.ListenersConfig.ExternalListeners {
+	/*for _, eListener := range r.NifiCluster.Spec.ListenersConfig.ExternalListeners {
 		usedPorts = append(usedPorts, corev1.ContainerPort{
 			Name:       	eListener.Name,
 			Protocol:   	corev1.ProtocolTCP,
 			ContainerPort: 	eListener.ContainerPort,
 		})
-	}
+	}*/
 
 	return usedPorts
 }
