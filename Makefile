@@ -60,31 +60,9 @@ UID := $(shell id -u)
 # Commit hash from git
 COMMIT=$(shell git rev-parse HEAD)
 
-# CMDs
-UNIT_TEST_CMD := KUBERNETES_CONFIG=`pwd`/config/test-kube-config.yaml POD_NAME=test go test --cover --coverprofile=coverage.out `go list ./... | grep -v e2e` > test-report.out
-UNIT_TEST_CMD_WITH_VENDOR := KUBERNETES_CONFIG=`pwd`/config/test-kube-config.yaml POD_NAME=test go test -mod=vendor --cover --coverprofile=coverage.out `go list -mod=vendor ./... | grep -v e2e` > test-report.out
-UNIT_TEST_COVERAGE := go tool cover -html=coverage.out -o coverage.html
-GO_GENERATE_CMD := go generate `go list ./... | grep -v /vendor/`
-GO_LINT_CMD := golint `go list ./... | grep -v /vendor/`
-
 # environment dirs
 DEV_DIR := docker/circleci
 APP_DIR := build/Dockerfile
-
-OPERATOR_SDK_VERSION=v0.15.0
-# workdir
-WORKDIR := /go/nifikop
-
-UNAME_S := $(shell uname -s)
-ifeq ($(UNAME_S),Linux)
-	GOOS = linux
-endif
-ifeq ($(UNAME_S),Darwin)
-	GOOS = darwin
-endif
-
-# Some other useful make file for interacting with kubernetes
-include kube.mk
 
 # The default action of this Makefile is to build the development docker image
 default: build
@@ -144,7 +122,6 @@ define debug_telepresence
 	echo telepresence --swap-deployment $$tdep --mount=/tmp/known --env-file nifi-operator.env $1 $2 ; \
  	telepresence --swap-deployment $$tdep --mount=/tmp/known --env-file nifi-operator.env $1 $2
 endef
-
 
 debug-telepresence:
 	$(call debug_telepresence)
