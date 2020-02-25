@@ -1,5 +1,5 @@
    0.0 TEL | Telepresence 0.103 launched at Mon Feb 24 15:08:16 2020
-   0.0 TEL |   /usr/local/bin/telepresence --swap-deployment nifi-operator --mount=/tmp/known --env-file nifi-operator.env
+   0.0 TEL |   /usr/local/bin/telepresence --swap-deployment nifikop --mount=/tmp/known --env-file nifikop.env
    0.0 TEL | uname: uname_result(system='Darwin', node='MacBook-Pro-de-Alexandre.local', release='19.3.0', version='Darwin Kernel Version 19.3.0: Thu Jan  9 20:58:23 PST 2020; root:xnu-6153.81.5~1/RELEASE_X86_64', machine='x86_64', processor='i386')
    0.0 TEL | Platform: darwin
    0.0 TEL | WSL: False

@@ -2,9 +2,9 @@ package nifi
 
 import (
 	"fmt"
-	"github.com/orangeopensource/nifi-operator/pkg/resources/templates"
-	"github.com/orangeopensource/nifi-operator/pkg/util"
-	nifiutils "github.com/orangeopensource/nifi-operator/pkg/util/nifi"
+	"github.com/orangeopensource/nifikop/pkg/resources/templates"
+	"github.com/orangeopensource/nifikop/pkg/util"
+	nifiutils "github.com/orangeopensource/nifikop/pkg/util/nifi"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )

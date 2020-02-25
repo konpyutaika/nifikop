@@ -1,7 +1,7 @@
 package nifi
 
 import (
-	"github.com/orangeopensource/nifi-operator/pkg/resources/templates"
+	"github.com/orangeopensource/nifikop/pkg/resources/templates"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )

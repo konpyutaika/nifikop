@@ -75,3 +75,10 @@ tags
 .vscode/*
 .history
 # End of https://www.gitignore.io/api/go,vim,emacs,visualstudiocode
+
+.DS_Store
+.idea/
+.idea/runConfigurations/
+.vscode
+nifi-operator.env
+telepresence.log

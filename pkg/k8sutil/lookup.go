@@ -16,7 +16,7 @@ package k8sutil
 
 import (
 	"context"
-	"github.com/orangeopensource/nifi-operator/pkg/apis/nifi/v1alpha1"
+	"github.com/orangeopensource/nifikop/pkg/apis/nifi/v1alpha1"
 
 	"k8s.io/apimachinery/pkg/types"
 	runtimeClient "sigs.k8s.io/controller-runtime/pkg/client"

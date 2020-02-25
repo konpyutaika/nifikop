@@ -3,8 +3,8 @@ package config
 import (
 	"fmt"
 	"github.com/go-logr/logr"
-	"github.com/orangeopensource/nifi-operator/pkg/apis/nifi/v1alpha1"
-	templates "github.com/orangeopensource/nifi-operator/pkg/resources/templates"
+	"github.com/orangeopensource/nifikop/pkg/apis/nifi/v1alpha1"
+	templates "github.com/orangeopensource/nifikop/pkg/resources/templates"
 )
 
 var NifiPropertiesTemplate = `# Licensed to the Apache Software Foundation (ASF) under one or more

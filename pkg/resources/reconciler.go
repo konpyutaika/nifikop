@@ -2,7 +2,7 @@ package resources
 
 import (
 	"github.com/go-logr/logr"
-	"github.com/orangeopensource/nifi-operator/pkg/apis/nifi/v1alpha1"
+	"github.com/orangeopensource/nifikop/pkg/apis/nifi/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"

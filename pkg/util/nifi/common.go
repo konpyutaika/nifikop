@@ -2,7 +2,7 @@ package nifi
 
 import (
 	"fmt"
-	"github.com/orangeopensource/nifi-operator/pkg/resources/templates"
+	"github.com/orangeopensource/nifikop/pkg/resources/templates"
 	"time"
 )
 

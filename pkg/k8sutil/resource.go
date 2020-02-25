@@ -16,8 +16,8 @@ package k8sutil
 
 import (
 	"context"
-	"github.com/orangeopensource/nifi-operator/pkg/apis/nifi/v1alpha1"
-	"github.com/orangeopensource/nifi-operator/pkg/errorfactory"
+	"github.com/orangeopensource/nifikop/pkg/apis/nifi/v1alpha1"
+	"github.com/orangeopensource/nifikop/pkg/errorfactory"
 	"reflect"
 
 	"emperror.dev/errors"

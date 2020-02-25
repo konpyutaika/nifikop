@@ -12,9 +12,9 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/rest"
 
-	"github.com/orangeopensource/nifi-operator/pkg/apis"
-	"github.com/orangeopensource/nifi-operator/pkg/controller"
-	"github.com/orangeopensource/nifi-operator/version"
+	"github.com/orangeopensource/nifikop/pkg/apis"
+	"github.com/orangeopensource/nifikop/pkg/controller"
+	"github.com/orangeopensource/nifikop/version"
 
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	kubemetrics "github.com/operator-framework/operator-sdk/pkg/kube-metrics"
@@ -84,7 +84,7 @@ func main() {
 
 	ctx := context.TODO()
 	// Become the leader before proceeding
-	err = leader.Become(ctx, "nifi-operator-lock")
+	err = leader.Become(ctx, "nifikop-lock")
 	if err != nil {
 		log.Error(err, "")
 		os.Exit(1)
