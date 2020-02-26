@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "nifikop.fullname" . }}
+  labels:
+    app: {{ template "nifikop.name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    heritage: {{ .Release.Service }}
+    operator: nifi
+    release: {{ .Release.Name }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: {{ template "nifikop.name" . }}
+  template:
+    metadata:
+      labels:
+        name: {{ template "nifikop.name" . }}
+        app: {{ template "nifikop.name" . }}
+        operator: nifi
+        release: {{ .Release.Name }}
+    spec:
+{{- if .Values.image.imagePullSecrets.enabled }}
+      imagePullSecrets:
+        - name: {{ .Values.image.imagePullSecrets.name }}
+{{- end }}
+{{- if .Values.rbacEnable }}
+      serviceAccountName: {{ template "nifikop.name" . }}
+{{- end }}
+      securityContext:
+        runAsUser: 1000
+      containers:
+        - name: {{ template "nifikop.name" . }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+          command:
+            - nifikop
+          readinessProbe:
+            exec:
+              command:
+                - /health
+            initialDelaySeconds: 4
+            periodSeconds: 10
+            failureThreshold: 1
+{{ toYaml .Values.resources | indent 10 }}
+          env:
+            - name: WATCH_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: OPERATOR_NAME
+              value: "nifikop"
+{{- if .Values.debug.enable }}
+            - name: LOG_LEVEL
+              value: Debug
+        {{- end }}

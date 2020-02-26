@@ -5,6 +5,8 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"github.com/operator-framework/operator-sdk/pkg/ready"
+	"github.com/sirupsen/logrus"
 	"os"
 	"runtime"
 
@@ -89,6 +91,18 @@ func main() {
 		log.Error(err, "")
 		os.Exit(1)
 	}
+
+	// NewFileReady returns a Ready that uses the presence of a file on disk to
+	// communicate whether the operator is ready. The operator's Pod definition
+	// "stat /tmp/operator-sdk-ready".
+	logrus.Info("Writing ready file.")
+	r := ready.NewFileReady()
+	err = r.Set()
+	if err != nil {
+		logrus.Error(err)
+		os.Exit(1)
+	}
+	defer r.Unset()
 
 	// Create a new Cmd to provide shared dependencies and start components
 	mgr, err := manager.New(cfg, manager.Options{
