@@ -349,6 +349,10 @@ spec:
                     description: nodeSelector can be specified, which set the pod
                       to fit on a node
                     type: object
+                  provenanceStorage:
+                    description: provenanceStorage allow to specify the maximum amount
+                      of data provenance information to store at a time https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#write-ahead-provenance-repository-properties
+                    type: string
                   resourceRequirements:
                     description: resourceRequirements works exactly like Container
                       resources, the user can specify the limit and the requests through
@@ -384,13 +388,6 @@ spec:
                     items:
                       description: StorageConfig defines the node storage configuration
                       properties:
-                        isProvenanceStorage:
-                          description: 'IsProvenanceStorage allows to specify if this
-                            volume as to be used for provenance storage, if true,
-                            then we will use the requested memory into nifi properies
-                            configuration TODO: add mount path into the nifi.properties
-                            too.'
-                          type: boolean
                         mountPath:
                           description: Path where the volume will be mount into the
                             main nifi container inside the pod.
@@ -579,7 +576,7 @@ spec:
                 description: Node defines the nifi node basic configuration
                 properties:
                   id:
-                    description: Unique Node id which is used as nifi config nifi.id
+                    description: Unique Node id
                     format: int32
                     type: integer
                   nodeConfig:
@@ -831,6 +828,11 @@ spec:
                         description: nodeSelector can be specified, which set the
                           pod to fit on a node
                         type: object
+                      provenanceStorage:
+                        description: provenanceStorage allow to specify the maximum
+                          amount of data provenance information to store at a time
+                          https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#write-ahead-provenance-repository-properties
+                        type: string
                       resourceRequirements:
                         description: resourceRequirements works exactly like Container
                           resources, the user can specify the limit and the requests
@@ -868,13 +870,6 @@ spec:
                         items:
                           description: StorageConfig defines the node storage configuration
                           properties:
-                            isProvenanceStorage:
-                              description: 'IsProvenanceStorage allows to specify
-                                if this volume as to be used for provenance storage,
-                                if true, then we will use the requested memory into
-                                nifi properies configuration TODO: add mount path
-                                into the nifi.properties too.'
-                              type: boolean
                             mountPath:
                               description: Path where the volume will be mount into
                                 the main nifi container inside the pod.
@@ -1138,6 +1133,7 @@ spec:
                 running.
               type: boolean
             propagateLabels:
+              description: propage
               type: boolean
             readOnlyConfig:
               description: readOnlyConfig specifies the read-only type Nifi config
