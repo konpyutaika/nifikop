@@ -93,18 +93,18 @@ spec:
                           some required information such as Cluster Port, Http Port,
                           Https Port or S2S port
                         enum:
-                        - cluster
-                        - http
-                        - https
-                        - s2s
+                          - cluster
+                          - http
+                          - https
+                          - s2s
                         type: string
                     required:
-                    - containerPort
-                    - name
+                      - containerPort
+                      - name
                     type: object
                   type: array
               required:
-              - internalListeners
+                - internalListeners
               type: object
             nifiClusterTaskSpec:
               description: NifiClusterTaskSpec specifies the configuration of the
@@ -115,7 +115,7 @@ spec:
                     Operator waits for the task
                   type: integer
               required:
-              - retryDurationMinutes
+                - retryDurationMinutes
               type: object
             nodeConfigGroups:
               additionalProperties:
@@ -204,8 +204,8 @@ spec:
                                           type: string
                                         type: array
                                     required:
-                                    - key
-                                    - operator
+                                      - key
+                                      - operator
                                     type: object
                                   type: array
                                 matchFields:
@@ -240,8 +240,8 @@ spec:
                                           type: string
                                         type: array
                                     required:
-                                    - key
-                                    - operator
+                                      - key
+                                      - operator
                                     type: object
                                   type: array
                               type: object
@@ -251,8 +251,8 @@ spec:
                               format: int32
                               type: integer
                           required:
-                          - preference
-                          - weight
+                            - preference
+                            - weight
                           type: object
                         type: array
                       requiredDuringSchedulingIgnoredDuringExecution:
@@ -304,8 +304,8 @@ spec:
                                           type: string
                                         type: array
                                     required:
-                                    - key
-                                    - operator
+                                      - key
+                                      - operator
                                     type: object
                                   type: array
                                 matchFields:
@@ -340,14 +340,14 @@ spec:
                                           type: string
                                         type: array
                                     required:
-                                    - key
-                                    - operator
+                                      - key
+                                      - operator
                                     type: object
                                   type: array
                               type: object
                             type: array
                         required:
-                        - nodeSelectorTerms
+                          - nodeSelectorTerms
                         type: object
                     type: object
                   nodeSelector:
@@ -356,6 +356,10 @@ spec:
                     description: nodeSelector can be specified, which set the pod
                       to fit on a node
                     type: object
+                  provenanceStorage:
+                    description: provenanceStorage allow to specify the maximum amount
+                      of data provenance information to store at a time https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#write-ahead-provenance-repository-properties
+                    type: string
                   resourceRequirements:
                     description: resourceRequirements works exactly like Container
                       resources, the user can specify the limit and the requests through
@@ -391,13 +395,6 @@ spec:
                     items:
                       description: StorageConfig defines the node storage configuration
                       properties:
-                        isProvenanceStorage:
-                          description: 'IsProvenanceStorage allows to specify if this
-                            volume as to be used for provenance storage, if true,
-                            then we will use the requested memory into nifi properies
-                            configuration TODO: add mount path into the nifi.properties
-                            too.'
-                          type: boolean
                         mountPath:
                           description: Path where the volume will be mount into the
                             main nifi container inside the pod.
@@ -443,8 +440,8 @@ spec:
                                     referenced
                                   type: string
                               required:
-                              - kind
-                              - name
+                                - kind
+                                - name
                               type: object
                             resources:
                               description: 'Resources represents the minimum resources
@@ -498,8 +495,8 @@ spec:
                                           type: string
                                         type: array
                                     required:
-                                    - key
-                                    - operator
+                                      - key
+                                      - operator
                                     type: object
                                   type: array
                                 matchLabels:
@@ -528,9 +525,9 @@ spec:
                               type: string
                           type: object
                       required:
-                      - mountPath
-                      - name
-                      - pvcSpec
+                        - mountPath
+                        - name
+                        - pvcSpec
                       type: object
                     type: array
                   tolerations:
@@ -586,7 +583,7 @@ spec:
                 description: Node defines the nifi node basic configuration
                 properties:
                   id:
-                    description: Unique Node id which is used as nifi config nifi.id
+                    description: Unique Node id
                     format: int32
                     type: integer
                   nodeConfig:
@@ -679,8 +676,8 @@ spec:
                                               type: string
                                             type: array
                                         required:
-                                        - key
-                                        - operator
+                                          - key
+                                          - operator
                                         type: object
                                       type: array
                                     matchFields:
@@ -717,8 +714,8 @@ spec:
                                               type: string
                                             type: array
                                         required:
-                                        - key
-                                        - operator
+                                          - key
+                                          - operator
                                         type: object
                                       type: array
                                   type: object
@@ -728,8 +725,8 @@ spec:
                                   format: int32
                                   type: integer
                               required:
-                              - preference
-                              - weight
+                                - preference
+                                - weight
                               type: object
                             type: array
                           requiredDuringSchedulingIgnoredDuringExecution:
@@ -784,8 +781,8 @@ spec:
                                               type: string
                                             type: array
                                         required:
-                                        - key
-                                        - operator
+                                          - key
+                                          - operator
                                         type: object
                                       type: array
                                     matchFields:
@@ -822,14 +819,14 @@ spec:
                                               type: string
                                             type: array
                                         required:
-                                        - key
-                                        - operator
+                                          - key
+                                          - operator
                                         type: object
                                       type: array
                                   type: object
                                 type: array
                             required:
-                            - nodeSelectorTerms
+                              - nodeSelectorTerms
                             type: object
                         type: object
                       nodeSelector:
@@ -838,6 +835,11 @@ spec:
                         description: nodeSelector can be specified, which set the
                           pod to fit on a node
                         type: object
+                      provenanceStorage:
+                        description: provenanceStorage allow to specify the maximum
+                          amount of data provenance information to store at a time
+                          https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#write-ahead-provenance-repository-properties
+                        type: string
                       resourceRequirements:
                         description: resourceRequirements works exactly like Container
                           resources, the user can specify the limit and the requests
@@ -875,13 +877,6 @@ spec:
                         items:
                           description: StorageConfig defines the node storage configuration
                           properties:
-                            isProvenanceStorage:
-                              description: 'IsProvenanceStorage allows to specify
-                                if this volume as to be used for provenance storage,
-                                if true, then we will use the requested memory into
-                                nifi properies configuration TODO: add mount path
-                                into the nifi.properties too.'
-                              type: boolean
                             mountPath:
                               description: Path where the volume will be mount into
                                 the main nifi container inside the pod.
@@ -929,8 +924,8 @@ spec:
                                         referenced
                                       type: string
                                   required:
-                                  - kind
-                                  - name
+                                    - kind
+                                    - name
                                   type: object
                                 resources:
                                   description: 'Resources represents the minimum resources
@@ -989,8 +984,8 @@ spec:
                                               type: string
                                             type: array
                                         required:
-                                        - key
-                                        - operator
+                                          - key
+                                          - operator
                                         type: object
                                       type: array
                                     matchLabels:
@@ -1020,9 +1015,9 @@ spec:
                                   type: string
                               type: object
                           required:
-                          - mountPath
-                          - name
-                          - pvcSpec
+                            - mountPath
+                            - name
+                            - pvcSpec
                           type: object
                         type: array
                       tolerations:
@@ -1133,7 +1128,7 @@ spec:
                         type: object
                     type: object
                 required:
-                - id
+                  - id
                 type: object
               type: array
             oneNifiNodePerNode:
@@ -1145,6 +1140,7 @@ spec:
                 running.
               type: boolean
             propagateLabels:
+              description: propage
               type: boolean
             readOnlyConfig:
               description: readOnlyConfig specifies the read-only type Nifi config
@@ -1212,7 +1208,7 @@ spec:
                     cluster tolerate during rolling upgrade
                   type: integer
               required:
-              - failureThreshold
+                - failureThreshold
               type: object
             zkAddresse:
               description: 'zKAddresse specifies the ZooKeeper connection string in
@@ -1225,12 +1221,12 @@ spec:
                 the global ZooKeeper namespace.
               type: string
           required:
-          - headlessServiceEnabled
-          - listenersConfig
-          - nodes
-          - oneNifiNodePerNode
-          - rollingUpgradeConfig
-          - zkAddresse
+            - headlessServiceEnabled
+            - listenersConfig
+            - nodes
+            - oneNifiNodePerNode
+            - rollingUpgradeConfig
+            - zkAddresse
           type: object
         status:
           description: NifiClusterStatus defines the observed state of NifiCluster
@@ -1261,17 +1257,17 @@ spec:
                           with CC
                         type: string
                     required:
-                    - actionState
-                    - errorMessage
+                      - actionState
+                      - errorMessage
                     type: object
                   rackAwarenessState:
                     description: RackAwarenessState holds info about rack awareness
                       status
                     type: string
                 required:
-                - configurationState
-                - gracefulActionState
-                - rackAwarenessState
+                  - configurationState
+                  - gracefulActionState
+                  - rackAwarenessState
                 type: object
               description: Store the state of each nifi node
               type: object
@@ -1283,18 +1279,18 @@ spec:
                 lastSuccess:
                   type: string
               required:
-              - errorCount
-              - lastSuccess
+                - errorCount
+                - lastSuccess
               type: object
             state:
               description: ClusterState holds info about the cluster state
               type: string
           required:
-          - state
+            - state
           type: object
       type: object
   version: v1alpha1
   versions:
-  - name: v1alpha1
-    served: true
-    storage: true
+    - name: v1alpha1
+      served: true
+      storage: true

@@ -303,11 +303,11 @@ func (r *Reconciler) generateDefaultContainerPort() []corev1.ContainerPort{
 
 	usedPorts := []corev1.ContainerPort{
 		// Prometheus metrics port for monitoring
-		{
+		/*{
 			Name:          "metrics",
 			Protocol:      corev1.ProtocolTCP,
 			ContainerPort: v1alpha1.MetricsPort,
-		},
+		},*/
 	}
 
 

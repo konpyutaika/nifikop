@@ -278,8 +278,11 @@ OUTERLOOP:
 				}
 			}
 			err = k8sutil.UpdateNodeStatus(r.Client, []string{node.Labels["nodeId"]}, r.NifiCluster,
-			v1alpha1.GracefulActionState{ActionStep: v1alpha1.RemovePodStatus, State: v1alpha1.GracefulDownscaleRunning,
-				TaskStarted: r.NifiCluster.Status.NodesState[node.Labels["nodeId"]].GracefulActionState.TaskStarted }, log)
+			v1alpha1.GracefulActionState{
+				ActionStep: v1alpha1.RemovePodStatus,
+				State: v1alpha1.GracefulDownscaleRunning,
+				TaskStarted: r.NifiCluster.Status.NodesState[node.Labels["nodeId"]].GracefulActionState.TaskStarted },
+				log)
 			if err != nil {
 				return errors.WrapIfWithDetails(err, "could not update status for node(s)", "id(s)", node.Labels["nodeId"])
 			}

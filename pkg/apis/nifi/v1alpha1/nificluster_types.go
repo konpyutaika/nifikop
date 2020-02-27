@@ -13,7 +13,6 @@ const (
 	HttpsListenerType 	= "https"
 	S2sListenerType 	= "s2s"
 	MetricsPort 		= 9020
-	ProvenanceStorage   = "8 GB"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
@@ -48,7 +47,7 @@ type NifiClusterSpec struct {
 	// it will stay in pending state. If set to false the operator also tries to schedule the nifi node to a unique node
 	// but if the node number is insufficient the nifi node will be scheduled to a node where a nifi node is already running.
 	OneNifiNodePerNode 		bool 					`json:"oneNifiNodePerNode"`
-	//
+	// propage
 	PropagateLabels 		bool 					`json:"propagateLabels,omitempty"`
 	// LdapConfiguration specifies the configuration if you want to use LDAP
 	LdapConfiguration		LdapConfiguration		`json:"ldapConfiguration,omitempty"`
@@ -82,7 +81,7 @@ type RollingUpgradeConfig struct {
 
 // Node defines the nifi node basic configuration
 type Node struct {
-	// Unique Node id which is used as nifi config nifi.id
+	// Unique Node id
 	Id				int32 			`json:"id"`
 	// nodeConfigGroup can be used to ease the node configuration, if set no only the id is required
 	NodeConfigGroup	string			`json:"nodeConfigGroup,omitempty"`
@@ -138,11 +137,14 @@ type BootstrapProperties struct {
 
 // NodeConfig defines the node configuration
 type NodeConfig struct {
+	// provenanceStorage allow to specify the maximum amount of data provenance information to store at a time
+	// https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#write-ahead-provenance-repository-properties
+	ProvenanceStorage		string						  `json:"provenanceStorage,omitempty"`
 	//RunAsUser define the id of the user to run in the Nifi image
 	// +kubebuilder:validation:Minimum=1
-	RunAsUser 				*int64 							`json:"runAsUser,omitempty"`
+	RunAsUser 				*int64 						  `json:"runAsUser,omitempty"`
 	// Set this to true if the instance is a node in a cluster.
-	IsNode					*bool							`json:"isNode,omitempty"`
+	IsNode					*bool						  `json:"isNode,omitempty"`
 	// Docker image used by the operator to create the node associated
 	Image              		string                        `json:"image,omitempty"`
 	// nodeAffinity can be specified, operator populates this value if new pvc added later to node
@@ -173,11 +175,6 @@ type StorageConfig struct {
 	MountPath 			string                            	`json:"mountPath"`
 	// Kubernetes PVC spec
 	PVCSpec				*corev1.PersistentVolumeClaimSpec	`json:"pvcSpec"`
-	// IsProvenanceStorage allows to specify if this volume as to be used for
-	// provenance storage, if true, then we will use the requested memory into
-	// nifi properies configuration
-	// TODO: add mount path into the nifi.properties too.
-	IsProvenanceStorage	bool								`json:"isProvenanceStorage,omitempty"`
 }
 
 //ListenersConfig defines the Nifi listener types
@@ -366,6 +363,13 @@ func (nConfig *NodeConfig) GetIsNode() bool {
 	return true
 }
 
+func (nConfig *NodeConfig) GetProvenanceStorage() string {
+	if nConfig.ProvenanceStorage != "" {
+		return nConfig.ProvenanceStorage
+	}
+	return "8 GB"
+}
+
 // GetNifiJvmMemory returns the default "2g" NifiJvmMemory if not specified otherwise
 func (bProperties *BootstrapProperties) GetNifiJvmMemory() string {
 	if bProperties.NifiJvmMemory != "" {
@@ -373,6 +377,7 @@ func (bProperties *BootstrapProperties) GetNifiJvmMemory() string {
 	}
 	return "512m"
 }
+
 //
 func (nProperties NifiProperties) GetAuthorizer() string {
 	if nProperties.Authorizer != "" {

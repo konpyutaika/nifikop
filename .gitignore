@@ -80,5 +80,5 @@ tags
 .idea
 .idea/runConfigurations/
 .vscode
-nifi-operator.env
+nifi-operator.envgit
 telepresence.log

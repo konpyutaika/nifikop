@@ -285,13 +285,3 @@ func GenerateListenerSpecificConfig(l *v1alpha1.ListenersConfig, id int32, names
 	nifiConfig = nifiConfig + fmt.Sprintf("nifi.cluster.node.address=%s", hostListener) + "\n"
 	return nifiConfig
 }
-
-//
-func GenerateProvenanceStorageConfig(sConfig []v1alpha1.StorageConfig) string {
-	for _, storage := range sConfig {
-		if storage.IsProvenanceStorage {
-			return storage.PVCSpec.Resources.Requests.Memory().String()
-		}
-	}
-	return v1alpha1.ProvenanceStorage
-}

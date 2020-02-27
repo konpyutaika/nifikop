@@ -3,7 +3,6 @@ package nifi
 import (
 	"fmt"
 	"github.com/go-logr/logr"
-	"github.com/orangeopensource/nifikop/pkg/apis/nifi/v1alpha1"
 	"github.com/orangeopensource/nifikop/pkg/resources/templates"
 	"github.com/orangeopensource/nifikop/pkg/util"
 	corev1 "k8s.io/api/core/v1"
@@ -72,12 +71,12 @@ func (r *Reconciler) generateDefaultServicePort() []corev1.ServicePort{
 
 	usedPorts := []corev1.ServicePort{
 		// Prometheus metrics port for monitoring
-		{
+		/*{
 			Name:       "metrics",
 			Protocol:   corev1.ProtocolTCP,
 			Port:       v1alpha1.MetricsPort,
 			TargetPort: intstr.FromInt(v1alpha1.MetricsPort),
-		},
+		},*/
 	}
 
 	return usedPorts
