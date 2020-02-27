@@ -155,7 +155,7 @@ type NodeConfig struct {
 	ServiceAccountName 		string                        `json:"serviceAccountName,omitempty"`
 	// resourceRequirements works exactly like Container resources, the user can specify the limit and the requests
 	// through this property
-	ResourcesRequirements	*corev1.ResourceRequirements  `json:"resourceRequirements,omitempty"`
+	ResourcesRequirements	*corev1.ResourceRequirements  `json:"resourcesRequirements,omitempty"`
 	// imagePullSecrets specifies the secret to use when using private registry
 	ImagePullSecrets   		[]corev1.LocalObjectReference `json:"imagePullSecrets,omitempty"`
 	// nodeSelector can be specified, which set the pod to fit on a node

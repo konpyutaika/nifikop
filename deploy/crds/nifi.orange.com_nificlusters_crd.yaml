@@ -353,7 +353,7 @@ spec:
                     description: provenanceStorage allow to specify the maximum amount
                       of data provenance information to store at a time https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#write-ahead-provenance-repository-properties
                     type: string
-                  resourceRequirements:
+                  resourcesRequirements:
                     description: resourceRequirements works exactly like Container
                       resources, the user can specify the limit and the requests through
                       this property
@@ -833,7 +833,7 @@ spec:
                           amount of data provenance information to store at a time
                           https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#write-ahead-provenance-repository-properties
                         type: string
-                      resourceRequirements:
+                      resourcesRequirements:
                         description: resourceRequirements works exactly like Container
                           resources, the user can specify the limit and the requests
                           through this property

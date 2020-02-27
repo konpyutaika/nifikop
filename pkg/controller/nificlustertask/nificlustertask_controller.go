@@ -250,8 +250,8 @@ func (r *ReconcileNifiClusterTask) handlePodRunningTask(nifiCluster *v1alpha1.Ni
 
 		// If node is disconnected, performing offload
 		if nifiCluster.Status.NodesState[nodeId].GracefulActionState.ActionStep == v1alpha1.DisconnectStatus {
-			actionStep, taskStartTime, err := scale.OffloadClusterNode(nifiCluster.Spec.HeadlessServiceEnabled, nifiCluster.Spec.Nodes, nifiResources.GetServerPort(&nifiCluster.Spec.ListenersConfig), nodeId,
-				nifiCluster.Namespace, nifiCluster.Name)
+			actionStep, taskStartTime, err := scale.OffloadClusterNode(nifiCluster.Spec.HeadlessServiceEnabled, nifiCluster.Spec.Nodes,
+				nifiResources.GetServerPort(&nifiCluster.Spec.ListenersConfig), nodeId, nifiCluster.Namespace, nifiCluster.Name)
 			if err != nil {
 				log.Info(fmt.Sprintf("nifi cluster communication error during removing node id: %s", nodeId))
 				return errorfactory.New(errorfactory.NifiClusterNotReady{}, err, fmt.Sprintf("node id: %s", nodeId))

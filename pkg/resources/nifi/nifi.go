@@ -288,6 +288,14 @@ OUTERLOOP:
 			}
 		}
 	}
+
+	// TODO: Ensure usage and needing
+	err = scale.EnsureRemovedNodes(r.NifiCluster.Spec.HeadlessServiceEnabled, r.NifiCluster.Spec.Nodes, r.NifiCluster.Status.NodesState,
+		GetServerPort(&r.NifiCluster.Spec.ListenersConfig), r.NifiCluster.Namespace, r.NifiCluster.Name)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
