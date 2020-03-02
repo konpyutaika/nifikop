@@ -1,4 +1,4 @@
-<p align="center"><img src="docs/img/nifi_logo.png" width="160"></p>
+<p align="center"><img src="docs/img/nifikop.png" width="160"></p>
 
 <p align="center">
   <a href="https://hub.docker.com/r/orangeopensource/nifikop/">
@@ -134,7 +134,7 @@ kubectl create -n nifi -f config/samples/simplenificluster.yaml
 
 ## Development
 
-Checkout out the [developer docs](docs/developer.md)
+Checkout out the [developer docs](docs/dev/developer_guide.md)
 
 ## Features
 
@@ -169,6 +169,7 @@ If you find this project useful, help us:
 
 - Operator implementation based on [banzaicloud/kafka-operator](https://github.com/banzaicloud/kafka-operator)
 - NiFi kubernetes setup configuration inspired from [cetic/helm-nifi](https://github.com/cetic/helm-nifi)
+- Implementation is based on [Operator SDK](https://github.com/operator-framework/operator-sdk)
 
 ## License
 
