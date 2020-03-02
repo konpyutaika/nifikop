@@ -30,12 +30,12 @@ spec:
       # A comma separated list of allowed HTTP Host header values to consider when NiFi
       # is running securely and will be receiving requests to a different host[:port] than it is bound to.
       # https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#web-properties
-#        webProxyHost:
+      #        webProxyHost:
       # Nifi security client auth
       needClientAuth: false
       # Indicates which of the configured authorizers in the authorizers.xml file to use
       # https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#authorizer-configuration
-#        authorizer:
+    #        authorizer:
     # ZookeeperProperties configuration that will be applied to the node.
     zookeeperProperties:
       # Additionnals zookeeper.properties configuration that will override the one produced based
@@ -70,13 +70,13 @@ spec:
       isNode: true
       # Docker image used by the operator to create the node associated
       # https://hub.docker.com/r/apache/nifi/
-#        image: "apache/nifi:1.11.2"
+      #        image: "apache/nifi:1.11.2"
       # nodeAffinity can be specified, operator populates this value if new pvc added later to node
       # https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#node-affinity
-#        nodeAffinity:
+      #        nodeAffinity:
       # storageConfigs specifies the node log related configs
       storageConfigs:
-          # Name of the storage config, used to name PV to reuse into sidecars for example.
+        # Name of the storage config, used to name PV to reuse into sidecars for example.
         - name: provenance-repository
           # Path where the volume will be mount into the main nifi container inside the pod.
           mountPath: "/opt/nifi/provenance_repository"
@@ -103,22 +103,28 @@ spec:
       # resourceRequirements works exactly like Container resources, the user can specify the limit and the requests
       # through this property
       # https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
-#        resourcesRequirements:
+      resourcesRequirements:
+        limits:
+          cpu: "2"
+          memory: 3Gi
+        requests:
+          cpu: "1"
+          memory: 1Gi
       # imagePullSecrets specifies the secret to use when using private registry
       # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#localobjectreference-v1-core
-#        imagePullSecrets:
+      #        imagePullSecrets:
       # nodeSelector can be specified, which set the pod to fit on a node
       # https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#nodeselector
-#        nodeSelector:
+      #        nodeSelector:
       # tolerations can be specified, which set the pod's tolerations
       # https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/#concepts
-#        tolerations:
+      #        tolerations:
       # Additionnal annotation to attach to the pod associated
       # https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#syntax-and-character-set
-#        nodeAnnotations:
+  #        nodeAnnotations:
   # all node requires an image, unique id, and storageConfigs settings
   nodes:
-      # Unique Node id
+    # Unique Node id
     - id: 0
       # nodeConfigGroup can be used to ease the node configuration, if set no only the id is required
       nodeConfigGroup: "default_group"
@@ -129,7 +135,7 @@ spec:
           overrideConfigs: |
             nifi.ui.banner.text=NiFiKop by Orange - Node 0
       # node configuration
-#        nodeConfig:
+    #        nodeConfig:
     - id: 2
       # readOnlyConfig can be used to pass Nifi node config
       # which has type read-only these config changes will trigger rolling upgrade
@@ -138,6 +144,13 @@ spec:
           nifi.ui.banner.text=NiFiKop by Orange - Node 2
       # node configuration
       nodeConfig:
+        resourcesRequirements:
+          limits:
+            cpu: "2"
+            memory: 3Gi
+          requests:
+            cpu: "1"
+            memory: 1Gi
         storageConfigs:
           # Name of the storage config, used to name PV to reuse into sidecars for example.
           - name: provenance-repository
@@ -152,9 +165,6 @@ spec:
               resources:
                 requests:
                   storage: 8Gi
-    - id: 12
-      # nodeConfigGroup can be used to ease the node configuration, if set no only the id is required
-      nodeConfigGroup: "default_group"
   # rollingUpgradeConfig specifies the rolling upgrade config for the cluster
   rollingUpgradeConfig:
     # failureThreshold states that how many errors can the cluster tolerate during rolling upgrade
@@ -170,12 +180,12 @@ spec:
     # If set to true, we will enable ldap usage into nifi.properties configuration.
     enabled: false
     # Space-separated list of URLs of the LDAP servers (i.e. ldap://<hostname>:<port>).
-#      url:
+    #      url:
     # Base DN for searching for users (i.e. CN=Users,DC=example,DC=com).
-#    searchBase:
+    #    searchBase:
     # Filter for searching for users against the 'User Search Base'.
     # (i.e. sAMAccountName={0}). The user specified name is inserted into '{0}'.
-#      searchFilter:
+  #      searchFilter:
   # NifiClusterTaskSpec specifies the configuration of the nifi cluster Tasks
   nifiClusterTaskSpec:
     # retryDurationMinutes describes the amount of time the Operator waits for the task

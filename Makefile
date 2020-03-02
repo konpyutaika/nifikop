@@ -153,6 +153,12 @@ endif
 
 release: tag image publish
 
+# Install CRDS and Deploy controller in
+# the configured Kubernetes cluster in ~/.kube/config
+deploy: generate
+	kubectl apply -f deploy/crds/nifi.orange.com_nificlusters_crd.yaml
+	kubectl apply -f deploy/.
+
 # golint is not fully supported by modules yet - https://github.com/golang/lint/issues/409
 go-lint:
 	$(GO_LINT_CMD)
