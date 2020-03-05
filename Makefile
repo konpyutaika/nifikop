@@ -6,7 +6,8 @@ IMAGE_NAME 				?= $(SERVICE_NAME)
 BUILD_IMAGE 			?= orangeopensource/casskop-build
 
 OPERATOR_SDK_VERSION=v0.15.0-pr137
-
+# workdir
+WORKDIR := /go/nifikop
 
 # Debug variables
 TELEPRESENCE_REGISTRY ?= datawire

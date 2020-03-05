@@ -3,7 +3,7 @@ image: node:13.5.0
 pages:
   script:
     - cd website
-    - mkdir -p public
+    - mkdir -p ../public
     - yarn install
     - yarn build
     # The build directory is created based on the value set for projectName in
