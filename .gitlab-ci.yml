@@ -2,6 +2,7 @@ image: node:13.5.0
 
 pages:
   script:
+    - mkdir -p public
     - cd website
     - yarn install
     - yarn build
