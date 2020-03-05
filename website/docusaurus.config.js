@@ -2,7 +2,7 @@ module.exports = {
   title: 'NiFiKop',
   tagline: 'Open-Source, Apache NiFi operator for Kubernetes',
 //  url: 'https://erdrix.github.io',
-  url: 'https://kubernetes.pages.gitlab.si.francetelecom.fr',
+  url: 'https://aguitton.pages.gitlab.si.francetelecom.fr',
   baseUrl: '/nifikop/',
   favicon: 'img/nifikop.ico',
   organizationName: 'erdrix', // Usually your GitHub org/user name.
