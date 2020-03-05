@@ -9,14 +9,13 @@ pages:
     # The build directory is created based on the value set for projectName in
     # website/siteConfig.js. If you change it there, you need to change it here
     # as well.
-    - cp -R build/* public/
+    - cp -R build/* ../public/
   artifacts:
     paths:
-      - website/public
+      - public
   only:
     - skeleton
   when: manual
   environment:
     name: page
     url: https://kubernetes.pages.gitlab.si.francetelecom.fr/nifikop/
-

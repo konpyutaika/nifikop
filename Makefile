@@ -132,15 +132,6 @@ ifdef PUSHLATEST
 	docker tag $(REPOSITORY):$(VERSION) $(REPOSITORY):latest
 endif
 
-# Build the docker development environment
-build-ci-image: deps-development
-	docker build --cache-from $(BUILD_IMAGE):latest \
-	  --build-arg OPERATOR_SDK_VERSION=$(OPERATOR_SDK_VERSION) \
-		-t $(BUILD_IMAGE):latest \
-		-t $(BUILD_IMAGE):$(OPERATOR_SDK_VERSION) \
-		-f $(DEV_DIR)/Dockerfile \
-		.
-
 push-ci-image: deps-development
 	docker push $(BUILD_IMAGE):$(OPERATOR_SDK_VERSION)
 ifdef PUSHLATEST
