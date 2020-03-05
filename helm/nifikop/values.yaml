@@ -1,4 +1,4 @@
-## Cassandra Operator Image
+## NiFi Operator Image
 ##
 image:
   repository: orangeopensource/nifikop
