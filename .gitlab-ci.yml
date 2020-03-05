@@ -30,4 +30,4 @@ pages:
   when: manual
   environment:
     name: page
-    url: https://kubernetes.pages.gitlab.si.francetelecom.fr/nifikop/
+    url: https://aguitton.pages.gitlab.si.francetelecom.fr/nifikop/
