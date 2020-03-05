@@ -1,6 +1,17 @@
-image: node:13.5.0
+
+stages:
+#  - build
+#  - tagged
+  - website
+
+# ===============================================
+#    WEB SITE
+# ===============================================
 
 pages:
+  stage: website
+  image: node:13.5.0
+  before_script: []
   script:
     - cd website
     - mkdir -p ../public
@@ -10,6 +21,7 @@ pages:
     # website/siteConfig.js. If you change it there, you need to change it here
     # as well.
     - cp -R build/* ../public/
+    - ls ../public
   artifacts:
     paths:
       - public
