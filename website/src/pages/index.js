@@ -1,83 +1,42 @@
-/**
- * Copyright (c) 2017-present, Facebook, Inc.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
- */
-
 import React from 'react';
+import classnames from 'classnames';
+import Layout from '@theme/Layout';
 import Link from '@docusaurus/Link';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import useBaseUrl from '@docusaurus/useBaseUrl';
-
-import Layout from '@theme/Layout';
-
-import classnames from 'classnames';
-
 import styles from './styles.module.css';
 
 const features = [
   {
-    title: <>Kubernetes Operator</>,
-    imageUrl: 'img/operator-sdk.png',
+    title: <>Easy to Use</>,
+    imageUrl: 'img/undraw_docusaurus_mountain.svg',
     description: (
       <>
-        CassKop will define a new Kubernetes object named CassandraCluster which will be used to describe 
-        and instantiate a Cassandra Cluster in Kubernetes
+        Docusaurus was designed from the ground up to be easily installed and
+        used to get your website up and running quickly.
       </>
     ),
   },
   {
-    title: <>Open-Source</>,
-    imageUrl: 'img/open_source.svg',
+    title: <>Focus on What Matters</>,
+    imageUrl: 'img/undraw_docusaurus_tree.svg',
     description: (
       <>
-        Open source software released under the Apache 2.0 license.
+        Docusaurus lets you focus on your docs, and we&apos;ll do the chores. Go
+        ahead and move your docs into the <code>docs</code> directory.
       </>
     ),
   },
   {
-    title: <>Cassandra Cluster in K8S</>,
-    imageUrl: 'img/kubernetes.png',
+    title: <>Powered by React</>,
+    imageUrl: 'img/undraw_docusaurus_react.svg',
     description: (
       <>
-        CassKop is a Kubernetes custom controller which will loop over events on CassandraCluster objects and 
-        reconcile with kubernetes resources needed to create a valid Cassandra Cluster deployment.
+        Extend or customize your website layout by reusing React. Docusaurus can
+        be extended while reusing the same header and footer.
       </>
     ),
   },
-  {
-    title: <>Space Scoped</>,
-    imageUrl: 'img/namespace.png',
-    description: (
-      <>
-        CassKop is listening only in the Kubernetes namespace it is deployed in, and
-        is able to manage several Cassandra Clusters within this namespace.
-      </>
-    ),
-  },
-  {
-    title: <>Operate Cassandra Cluster</>,
-    imageUrl: 'img/cassandra.png',
-    description: (
-      <>
-        Casskop manage a list of operations, with 2 levels : 
-        Cluster operations which apply at cluster level and which have a dedicated status in each racks
-        and Pod operations which apply at pod level and can be triggered by specifics pods labels. 
-        Status of pod operations are also followed up at rack level.
-      </>
-    ),
-  },
-  {
-    title: <>Multi-Datacenter Deployment</>,
-    imageUrl: 'img/dc.png',
-    description: (
-      <>
-        For having more resilience with our Cassandra cluster, we want to be able to spread it on several regions. 
-        For doing this with Kubernetes, we need that our Cassandra to spread on top of different Kubernetes clusters, deployed independently on different regions.
-      </>
-    ),
-  }
 ];
 
 function Feature({imageUrl, title, description}) {
@@ -97,59 +56,40 @@ function Feature({imageUrl, title, description}) {
 
 function Home() {
   const context = useDocusaurusContext();
-  const {siteConfig: {customFields = {}} = {}} = context;
-
+  const {siteConfig = {}} = context;
   return (
-    <Layout permalink="/" description={customFields.description}>
-      <div className={styles.hero}>
-        <div className={styles.heroInner}>
-          <h1 className={styles.heroProjectTagline}>
-            <img
-              alt="Casskop"
-              className={styles.heroLogo}
-              src={useBaseUrl('img/casskop_alone.png')}
-            />
-            Open-Source, Apache <span className={styles.heroProjectKeywords}>Cassandra</span>{' '} 
-            operator for <span className={styles.heroProjectKeywords}>Kubernetes</span>{' '}
-          </h1>
-          <div className={styles.indexCtas}>
+    <Layout
+      title={`Hello from ${siteConfig.title}`}
+      description="Description will go into a meta tag in <head />">
+      <header className={classnames('hero hero--primary', styles.heroBanner)}>
+        <div className="container">
+          <h1 className="hero__title">{siteConfig.title}</h1>
+          <p className="hero__subtitle">{siteConfig.tagline}</p>
+          <div className={styles.buttons}>
             <Link
-              className={styles.indexCtasGetStartedButton}
-              to={useBaseUrl('docs/overview')}>
+              className={classnames(
+                'button button--outline button--secondary button--lg',
+                styles.getStarted,
+              )}
+              to={useBaseUrl('docs/doc1')}>
               Get Started
             </Link>
-            <span className={styles.indexCtasGitHubButtonWrapper}>
-              <iframe
-                className={styles.indexCtasGitHubButton}
-                src="https://ghbtns.com/github-btn.html?user=Orange-OpenSource&amp;repo=casskop&amp;type=star&amp;count=true&amp;size=large"
-                width={160}
-                height={30}
-                title="GitHub Stars"
-              />
-            </span>
           </div>
         </div>
-      </div>
-      <div className={classnames(styles.announcement, styles.announcementDark)}>
-        <div className={styles.announcementInner}>
-        The <span className={styles.heroProjectKeywords}>CassKop</span> Cassandra Kubernetes operator makes it <span className={styles.heroProjectKeywords}>easy</span> to run Apache Cassandra on Kubernetes. 
-        Apache Cassandra is a popular, free, open-source, distributed wide column store, <span className={styles.heroProjectKeywords}>NoSQL database</span> management system. 
-        The operator allows to <span className={styles.heroProjectKeywords}>easily create and manage racks and data centers</span> aware Cassandra clusters.
-        </div>
-      </div>
-      <div className={styles.section}>
+      </header>
+      <main>
         {features && features.length && (
-            <section className={styles.features}>
-              <div className="container">
-                <div className="row">
-                  {features.map((props, idx) => (
-                    <Feature key={idx} {...props} />
-                  ))}
-                </div>
+          <section className={styles.features}>
+            <div className="container">
+              <div className="row">
+                {features.map((props, idx) => (
+                  <Feature key={idx} {...props} />
+                ))}
               </div>
-            </section>
-          )}
-      </div>
+            </div>
+          </section>
+        )}
+      </main>
     </Layout>
   );
 }
