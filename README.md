@@ -20,7 +20,7 @@
 
 # NiFiKop
 
-You can access to the full documentation on [https://kubernetes.pages.gitlab.si.francetelecom.fr/nifikop](NiFiKop Documentation website)
+You can access to the full documentation on [NiFiKop Documentation website](https://kubernetes.pages.gitlab.si.francetelecom.fr/nifikop/)
 
 The Orange NiFi operator is a Kubernetes operator to automate provisioning, management, autoscaling and operations of [Apache NiFi](https://nifi.apache.org/) clusters deployed to K8s.
 
