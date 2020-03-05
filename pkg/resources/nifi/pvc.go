@@ -3,9 +3,9 @@ package nifi
 import (
 	"fmt"
 	"github.com/go-logr/logr"
-	"github.com/orangeopensource/nifikop/pkg/apis/nifi/v1alpha1"
-	"github.com/orangeopensource/nifikop/pkg/resources/templates"
-	"github.com/orangeopensource/nifikop/pkg/util"
+	"github.com/erdrix/nifikop/pkg/apis/nifi/v1alpha1"
+	"github.com/erdrix/nifikop/pkg/resources/templates"
+	"github.com/erdrix/nifikop/pkg/util"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )

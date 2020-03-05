@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"github.com/go-logr/logr"
 	"github.com/imdario/mergo"
-	"github.com/orangeopensource/nifikop/pkg/apis/nifi/v1alpha1"
-	"github.com/orangeopensource/nifikop/pkg/resources/templates"
-	"github.com/orangeopensource/nifikop/pkg/resources/templates/config"
-	"github.com/orangeopensource/nifikop/pkg/util"
+	"github.com/erdrix/nifikop/pkg/apis/nifi/v1alpha1"
+	"github.com/erdrix/nifikop/pkg/resources/templates"
+	"github.com/erdrix/nifikop/pkg/resources/templates/config"
+	"github.com/erdrix/nifikop/pkg/util"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sort"
@@ -32,7 +32,7 @@ func (r *Reconciler) configMap(id int32, nodeConfig *v1alpha1.NodeConfig, log lo
 			"state-management.xml": 				r.getStateManagementConfigString(nodeConfig, id, log),
 			"login-identity-providers.xml": 		r.getLoginIdentityProvidersConfigString(nodeConfig, id, log),
 			"logback.xml": 							r.getLogbackConfigString(nodeConfig, id, log),
-			"bootstrap.conf": 						r.getBootstrapPropertiesConfigString(nodeConfig, id, log),
+			"bootstrap.conf": 						r.generateBootstrapPropertiesNodeConfig(id, nodeConfig, log),
 			"bootstrap-notification-servces.xml": 	r.getBootstrapNotificationServicesConfigString(nodeConfig, id, log),
 			// TODO : review with OPS and secure part.
 //			"authorizers.xml": 						r.getAuthorizersConfigString(nodeConfig, id, log),

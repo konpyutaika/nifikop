@@ -17,7 +17,7 @@ package k8sutil
 import (
 	"context"
 	"fmt"
-	"github.com/orangeopensource/nifikop/pkg/apis/nifi/v1alpha1"
+	"github.com/erdrix/nifikop/pkg/apis/nifi/v1alpha1"
 	"strings"
 	"time"
 
@@ -48,8 +48,6 @@ func UpdateNodeStatus(c client.Client, nodeIds []string, cluster *v1alpha1.NifiC
 
 		if cluster.Status.NodesState == nil {
 			switch s := state.(type) {
-			case v1alpha1.RackAwarenessState:
-				cluster.Status.NodesState = map[string]v1alpha1.NodeState{nodeId: {RackAwarenessState: s}}
 			case v1alpha1.GracefulActionState:
 				cluster.Status.NodesState = map[string]v1alpha1.NodeState{nodeId: {GracefulActionState: s}}
 			case v1alpha1.ConfigurationState:
@@ -57,8 +55,6 @@ func UpdateNodeStatus(c client.Client, nodeIds []string, cluster *v1alpha1.NifiC
 			}
 		} else if val, ok := cluster.Status.NodesState[nodeId]; ok {
 			switch s := state.(type) {
-			case v1alpha1.RackAwarenessState:
-				val.RackAwarenessState = s
 			case v1alpha1.GracefulActionState:
 				val.GracefulActionState = s
 			case v1alpha1.ConfigurationState:
@@ -67,8 +63,6 @@ func UpdateNodeStatus(c client.Client, nodeIds []string, cluster *v1alpha1.NifiC
 			cluster.Status.NodesState[nodeId] = val
 		} else {
 			switch s := state.(type) {
-			case v1alpha1.RackAwarenessState:
-				cluster.Status.NodesState[nodeId] = v1alpha1.NodeState{RackAwarenessState: s}
 			case v1alpha1.GracefulActionState:
 				cluster.Status.NodesState[nodeId] = v1alpha1.NodeState{GracefulActionState: s}
 			case v1alpha1.ConfigurationState:
@@ -97,8 +91,6 @@ func UpdateNodeStatus(c client.Client, nodeIds []string, cluster *v1alpha1.NifiC
 
 			if cluster.Status.NodesState == nil {
 				switch s := state.(type) {
-				case v1alpha1.RackAwarenessState:
-					cluster.Status.NodesState = map[string]v1alpha1.NodeState{nodeId: {RackAwarenessState: s}}
 				case v1alpha1.GracefulActionState:
 					cluster.Status.NodesState = map[string]v1alpha1.NodeState{nodeId: {GracefulActionState: s}}
 				case v1alpha1.ConfigurationState:
@@ -106,8 +98,6 @@ func UpdateNodeStatus(c client.Client, nodeIds []string, cluster *v1alpha1.NifiC
 				}
 			} else if val, ok := cluster.Status.NodesState[nodeId]; ok {
 				switch s := state.(type) {
-				case v1alpha1.RackAwarenessState:
-					val.RackAwarenessState = s
 				case v1alpha1.GracefulActionState:
 					val.GracefulActionState = s
 				case v1alpha1.ConfigurationState:
@@ -117,7 +107,6 @@ func UpdateNodeStatus(c client.Client, nodeIds []string, cluster *v1alpha1.NifiC
 			} else {
 				switch s := state.(type) {
 				case v1alpha1.RackAwarenessState:
-					cluster.Status.NodesState[nodeId] = v1alpha1.NodeState{RackAwarenessState: s}
 				case v1alpha1.GracefulActionState:
 					cluster.Status.NodesState[nodeId] = v1alpha1.NodeState{GracefulActionState: s}
 				case v1alpha1.ConfigurationState:

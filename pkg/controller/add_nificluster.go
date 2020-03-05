@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"github.com/orangeopensource/nifikop/pkg/controller/nificluster"
+	"github.com/erdrix/nifikop/pkg/controller/nificluster"
 )
 
 func init() {

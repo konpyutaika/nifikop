@@ -1,4 +1,4 @@
-module github.com/orangeopensource/nifikop
+module github.com/erdrix/nifikop
 
 go 1.13
 

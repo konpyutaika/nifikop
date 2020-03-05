@@ -17,7 +17,7 @@ package common
 import (
 	"fmt"
 	"github.com/go-logr/logr"
-	"github.com/orangeopensource/nifikop/pkg/apis/nifi/v1alpha1"
+	"github.com/erdrix/nifikop/pkg/apis/nifi/v1alpha1"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 

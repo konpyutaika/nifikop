@@ -14,9 +14,9 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/rest"
 
-	"github.com/orangeopensource/nifikop/pkg/apis"
-	"github.com/orangeopensource/nifikop/pkg/controller"
-	"github.com/orangeopensource/nifikop/version"
+	"github.com/erdrix/nifikop/pkg/apis"
+	"github.com/erdrix/nifikop/pkg/controller"
+	"github.com/erdrix/nifikop/version"
 
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	kubemetrics "github.com/operator-framework/operator-sdk/pkg/kube-metrics"

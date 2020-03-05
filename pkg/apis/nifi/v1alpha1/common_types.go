@@ -66,7 +66,7 @@ const (
 
 // GracefulActionState holds information about GracefulAction State
 type GracefulActionState struct {
-	// ErrorMessage holds the information what happened with CC
+	// ErrorMessage holds the information what happened with Nifi Cluster
 	ErrorMessage string `json:"errorMessage"`
 	// ActionStep holds info about the action step ran
 	ActionStep ActionStep `json:"actionStep,omitempty"`
@@ -78,13 +78,14 @@ type GracefulActionState struct {
 
 // NifiState holds information about nifi state
 type NodeState struct {
-	// RackAwarenessState holds info about rack awareness status
-	RackAwarenessState RackAwarenessState `json:"rackAwarenessState"`
-	// GracefulActionState holds info about cc action status
+	// GracefulActionState holds info about nifi cluster action status
 	GracefulActionState GracefulActionState `json:"gracefulActionState"`
 	// ConfigurationState holds info about the config
 	ConfigurationState ConfigurationState `json:"configurationState"`
 }
+
+// RackAwarenessState holds info about rack awareness status
+//RackAwarenessState RackAwarenessState `json:"rackAwarenessState"`
 
 const (
 	// Configured states the node is running
@@ -97,7 +98,7 @@ const (
 	// GracefulUpscaleSucceeded states the node is updated gracefully
 	GracefulUpscaleSucceeded State = "GracefulUpscaleSucceeded"
 
-	// Downscale cruise control states
+	// Downscale nifi cluster states
 	// GracefulDownscaleRequired states that a node downscale is required
 	GracefulDownscaleRequired State = "GracefulDownscaleRequired"
 	// GracefulDownscaleRunning states that the node downscale is still running in
@@ -105,42 +106,36 @@ const (
 	// GracefulUpscaleSucceeded states the node is updated gracefully
 	GracefulDownscaleSucceeded State = "GracefulDownscaleSucceeded"
 
-	// GracefulUpdateRunning states the node update task is still running in Nifi cluster
-	GracefulUpdateRunning State = "GracefulUpdateRunning"
-	// GracefulUpdateFailed states the node could not be updated gracefully
-	GracefulUpdateFailed State = "GracefulUpdateFailed"
-	// GracefulUpdateRequired states the node requires an updated gracefully
-	GracefulUpdateRequired State = "GracefulUpdateRequired"
-	// GracefulUpdateNotRequired states the node is the part of the initial cluster where Nifi cluster is still in creating stage
-	GracefulUpdateNotRequired State = "GracefulUpdateNotRequired"
 	// NifiClusterReconciling states that the cluster is still in reconciling stage
 	NifiClusterReconciling ClusterState = "ClusterReconciling"
 	// NifiClusterRollingUpgrading states that the cluster is rolling upgrading
 	NifiClusterRollingUpgrading ClusterState = "ClusterRollingUpgrading"
 	// NifiClusterRunning states that the cluster is in running state
 	NifiClusterRunning ClusterState = "ClusterRunning"
+
 	// ConfigInSync states that the generated nodeConfig is in sync with the Node
 	ConfigInSync ConfigurationState = "ConfigInSync"
 	// ConfigOutOfSync states that the generated nodeConfig is out of sync with the Node
 	ConfigOutOfSync ConfigurationState = "ConfigOutOfSync"
-	//
+
+	// DisconnectNodeAction states that the NiFi node is disconnecting from NiFi Cluster
 	DisconnectNodeAction ActionStep	= "DISCONNECTING"
-	//
+	// DisconnectStatus states that the NiFi node is disconnected from NiFi Cluster
 	DisconnectStatus ActionStep = "DISCONNECTED"
-	//
+	// OffloadNodeAction states that the NiFi node is offloading data to NiFi Cluster
 	OffloadNodeAction ActionStep = "OFFLOADING"
-	//
+	// OffloadStatus states that the NiFi node offloaded data to NiFi Cluster
 	OffloadStatus ActionStep = "OFFLOADED"
-	//
+	// RemovePodAction states that the NiFi node pod and object related are removing by operator.
 	RemovePodAction ActionStep = "POD_REMOVING"
-	//
+	// RemovePodAction states that the NiFi node pod and object related have been removed by operator.
 	RemovePodStatus ActionStep = "POD_REMOVED"
-	//
+	// RemoveNodeAction states that the NiFi node is removing from NiFi Cluster
 	RemoveNodeAction ActionStep = "REMOVING"
-	//
+	// RemoveStatus states that the NiFi node is removed from NiFi Cluster
 	RemoveStatus ActionStep = "REMOVED"
-	//
+	// ConnectNodeAction states that the NiFi node is connecting to the NiFi Cluster
 	ConnectNodeAction ActionStep = "CONNECTING"
-	//
+	// ConnectStatus states that the NiFi node is connected to the NiFi Cluster
 	ConnectStatus ActionStep = "CONNECTED"
 )

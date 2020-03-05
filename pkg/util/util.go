@@ -15,7 +15,7 @@
 package util
 
 import (
-	"github.com/orangeopensource/nifikop/pkg/apis/nifi/v1alpha1"
+	"github.com/erdrix/nifikop/pkg/apis/nifi/v1alpha1"
 	"strconv"
 	"strings"
 

@@ -5,15 +5,14 @@ import (
 	"emperror.dev/errors"
 	"fmt"
 	"github.com/banzaicloud/k8s-objectmatcher/patch"
+	"github.com/erdrix/nifikop/pkg/apis/nifi/v1alpha1"
+	"github.com/erdrix/nifikop/pkg/errorfactory"
+	"github.com/erdrix/nifikop/pkg/k8sutil"
+	"github.com/erdrix/nifikop/pkg/resources"
+	"github.com/erdrix/nifikop/pkg/resources/templates"
+	"github.com/erdrix/nifikop/pkg/scale"
+	"github.com/erdrix/nifikop/pkg/util"
 	"github.com/go-logr/logr"
-	"github.com/orangeopensource/nifikop/pkg/apis/nifi/v1alpha1"
-	"github.com/orangeopensource/nifikop/pkg/errorfactory"
-	"github.com/orangeopensource/nifikop/pkg/k8sutil"
-	"github.com/orangeopensource/nifikop/pkg/resources"
-	"github.com/orangeopensource/nifikop/pkg/resources/templates"
-	"github.com/orangeopensource/nifikop/pkg/scale"
-	"github.com/orangeopensource/nifikop/pkg/util"
-	nifiutils "github.com/orangeopensource/nifikop/pkg/util/nifi"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -21,7 +20,6 @@ import (
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"strings"
-	"time"
 )
 
 const(
@@ -318,125 +316,6 @@ func generateNodeIdsFromPodSlice(pods []corev1.Pod) []string {
 		ids[i] = node.Labels["nodeId"]
 	}
 	return ids
-}
-
-//
-func (r *Reconciler) checkNCTaskState(nodeId string, nodeState v1alpha1.NodeState, state v1alpha1.State, log logr.Logger) error {
-	parsedTime, err := nifiutils.ParseTimeStampToUnixTime(nodeState.GracefulActionState.TaskStarted)
-	if err != nil {
-		return errors.WrapIf(err, "could not parse timestamp")
-	}
-	if time.Now().Sub(parsedTime).Minutes() < r.NifiCluster.Spec.NifiClusterTaskSpec.GetDurationMinutes() {
-		finished, err := scale.CheckIfNCActionStepFinished(r.NifiCluster.Spec.HeadlessServiceEnabled, r.NifiCluster.Spec.Nodes, GetServerPort(&r.NifiCluster.Spec.ListenersConfig), nodeState.GracefulActionState.ActionStep, nodeId,
-			r.NifiCluster.Namespace, r.NifiCluster.Name)
-			//nodeState.GracefulActionState.ActionStep, r.NifiCluster.Namespace, r.NifiCluster.Name)
-		if err != nil {
-			log.Info(fmt.Sprintf("Nifi cluster communication error checking running task: %s", nodeState.GracefulActionState.ActionStep))
-			return errorfactory.New(errorfactory.NifiClusterNotReady{}, err, "nifi cluster communication error")
-		}
-		if !finished {
-			err = k8sutil.UpdateNodeStatus(r.Client, []string{nodeId}, r.NifiCluster,
-				v1alpha1.GracefulActionState{TaskStarted: nodeState.GracefulActionState.TaskStarted,
-					ActionStep: nodeState.GracefulActionState.ActionStep,
-					State:  nodeState.GracefulActionState.State,
-				}, log)
-			if err != nil {
-				return errors.WrapIfWithDetails(err, "could not update status for node(s)", "id(s)", nodeId)
-			}
-			log.Info(fmt.Sprintf("Nifi cluster task: %s is still running", nodeState.GracefulActionState.ActionStep))
-			return errorfactory.New(errorfactory.NifiClusterTaskRunning{}, errors.New("nifi cluster task is still running"), fmt.Sprintf("Nifi cluster step: %s", nodeState.GracefulActionState.ActionStep))
-		}
-		err = k8sutil.UpdateNodeStatus(r.Client, []string{nodeId}, r.NifiCluster,
-			v1alpha1.GracefulActionState{State: state,
-				TaskStarted:	nodeState.GracefulActionState.TaskStarted,
-				ActionStep: 	nodeState.GracefulActionState.ActionStep,
-			}, log)
-		if err != nil {
-			return errors.WrapIfWithDetails(err, "could not update status for node(s)", "id(s)", nodeId)
-		}
-
-	} else {
-		log.Info(fmt.Sprintf("Rollback nifi cluster task: %s", nodeState.GracefulActionState.ActionStep))
-
-		actionStep, taskStartTime, err  := scale.ConnectClusterNode(r.NifiCluster.Spec.HeadlessServiceEnabled, r.NifiCluster.Spec.Nodes, GetServerPort(&r.NifiCluster.Spec.ListenersConfig),
-			nodeId, r.NifiCluster.Namespace, r.NifiCluster.Name)
-
-		err = k8sutil.UpdateNodeStatus(r.Client, []string{nodeId}, r.NifiCluster,
-			v1alpha1.GracefulActionState{State: v1alpha1.GracefulUpdateFailed,
-				ErrorMessage: "Timed out waiting for the task to complete",
-				TaskStarted:  taskStartTime,
-				ActionStep: actionStep,
-			}, log)
-		if err != nil {
-			return errorfactory.New(errorfactory.NifiClusterNotReady{}, err, "nifi cluster communication error")
-		}
-
-		if err != nil {
-			return errors.WrapIfWithDetails(err, "could not update status for node(s)", "id(s)", nodeId)
-		}
-	}
-	return nil
-}
-
-func (r *Reconciler) checkNCActionStep(nodeId string, nodeState v1alpha1.NodeState, actionStep v1alpha1.ActionStep, state *v1alpha1.State, log logr.Logger) error {
-	parsedTime, err := nifiutils.ParseTimeStampToUnixTime(nodeState.GracefulActionState.TaskStarted)
-	if err != nil {
-		return errors.WrapIf(err, "could not parse timestamp")
-	}
-	if time.Now().Sub(parsedTime).Minutes() < r.NifiCluster.Spec.NifiClusterTaskSpec.GetDurationMinutes() {
-		finished, err := scale.CheckIfNCActionStepFinished(r.NifiCluster.Spec.HeadlessServiceEnabled, r.NifiCluster.Spec.Nodes, GetServerPort(&r.NifiCluster.Spec.ListenersConfig), nodeState.GracefulActionState.ActionStep, nodeId,
-			r.NifiCluster.Namespace, r.NifiCluster.Name)
-		//nodeState.GracefulActionState.ActionStep, r.NifiCluster.Namespace, r.NifiCluster.Name)
-		if err != nil {
-			log.Info(fmt.Sprintf("Nifi cluster communication error checking running task: %s", nodeState.GracefulActionState.ActionStep))
-			return errorfactory.New(errorfactory.NifiClusterNotReady{}, err, "nifi cluster communication error")
-		}
-		if !finished {
-			err = k8sutil.UpdateNodeStatus(r.Client, []string{nodeId}, r.NifiCluster,
-				v1alpha1.GracefulActionState{TaskStarted: nodeState.GracefulActionState.TaskStarted,
-					ActionStep: nodeState.GracefulActionState.ActionStep,
-					State:  nodeState.GracefulActionState.State,
-				}, log)
-			if err != nil {
-				return errors.WrapIfWithDetails(err, "could not update status for node(s)", "id(s)", nodeId)
-			}
-			log.Info(fmt.Sprintf("Nifi cluster task: %s is still running", nodeState.GracefulActionState.ActionStep))
-			return errorfactory.New(errorfactory.NifiClusterTaskRunning{}, errors.New("nifi cluster task is still running"), fmt.Sprintf("Nifi cluster step: %s", nodeState.GracefulActionState.ActionStep))
-		}
-
-		succeedState := nodeState.GracefulActionState.State
-		if state != nil {
-			succeedState = *state
-		}
-		err = k8sutil.UpdateNodeStatus(r.Client, []string{nodeId}, r.NifiCluster,
-			v1alpha1.GracefulActionState{State:  succeedState,
-				TaskStarted:	nodeState.GracefulActionState.TaskStarted,
-				ActionStep: 	actionStep,
-			}, log)
-		if err != nil {
-			return errors.WrapIfWithDetails(err, "could not update status for node(s)", "id(s)", nodeId)
-		}
-
-	} else {
-		log.Info(fmt.Sprintf("Rollback nifi cluster task: %s", nodeState.GracefulActionState.ActionStep))
-
-		actionStep, taskStartTime, err  := scale.ConnectClusterNode(r.NifiCluster.Spec.HeadlessServiceEnabled, r.NifiCluster.Spec.Nodes, GetServerPort(&r.NifiCluster.Spec.ListenersConfig),
-			nodeId, r.NifiCluster.Namespace, r.NifiCluster.Name)
-
-		if err != nil {
-			return errorfactory.New(errorfactory.NifiClusterNotReady{}, err, "nifi cluster communication error")
-		}
-		err = k8sutil.UpdateNodeStatus(r.Client, []string{nodeId}, r.NifiCluster,
-			v1alpha1.GracefulActionState{State: v1alpha1.GracefulUpdateFailed,
-				ErrorMessage: "Timed out waiting for the task to complete",
-				TaskStarted:  taskStartTime,
-				ActionStep: actionStep,
-			}, log)
-		if err != nil {
-			return errors.WrapIfWithDetails(err, "could not update status for node(s)", "id(s)", nodeId)
-		}
-	}
-	return nil
 }
 
 func (r *Reconciler) reconcileNifiPVC(log logr.Logger, desiredPVC *corev1.PersistentVolumeClaim) error {

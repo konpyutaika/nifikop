@@ -1,8 +1,8 @@
 package templates
 
 import (
-	"github.com/orangeopensource/nifikop/pkg/apis/nifi/v1alpha1"
-	"github.com/orangeopensource/nifikop/pkg/util"
+	"github.com/erdrix/nifikop/pkg/apis/nifi/v1alpha1"
+	"github.com/erdrix/nifikop/pkg/util"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 

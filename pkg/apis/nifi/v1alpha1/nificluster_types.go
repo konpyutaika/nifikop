@@ -41,8 +41,6 @@ type NifiClusterSpec struct {
 	NodeConfigGroups   		map[string]NodeConfig	`json:"nodeConfigGroups,omitempty"`
 	// all node requires an image, unique id, and storageConfigs settings
 	Nodes 					[]Node 					`json:"nodes"`
-	// rollingUpgradeConfig specifies the rolling upgrade config for the cluster
-	RollingUpgradeConfig 	RollingUpgradeConfig 	`json:"rollingUpgradeConfig"`
 	// oneNifiNodePerNode if set to true every nifi node is started on a new node, if there is not enough node to do that
 	// it will stay in pending state. If set to false the operator also tries to schedule the nifi node to a unique node
 	// but if the node number is insufficient the nifi node will be scheduled to a node where a nifi node is already running.
@@ -54,6 +52,9 @@ type NifiClusterSpec struct {
 	// NifiClusterTaskSpec specifies the configuration of the nifi cluster Tasks
 	NifiClusterTaskSpec 	NifiClusterTaskSpec		`json:"nifiClusterTaskSpec,omitempty"`
 }
+
+// rollingUpgradeConfig specifies the rolling upgrade config for the cluster
+//RollingUpgradeConfig 	RollingUpgradeConfig 	`json:"rollingUpgradeConfig"`
 
 // NifiClusterStatus defines the observed state of NifiCluster
 type NifiClusterStatus struct {
@@ -74,10 +75,10 @@ type RollingUpgradeStatus struct {
 }
 
 // RollingUpgradeConfig defines the desired config of the RollingUpgrade
-type RollingUpgradeConfig struct {
+/*type RollingUpgradeConfig struct {
 	// failureThreshold states that how many errors can the cluster tolerate during rolling upgrade
 	FailureThreshold	int	`json:"failureThreshold"`
-}
+}*/
 
 // Node defines the nifi node basic configuration
 type Node struct {
@@ -106,16 +107,18 @@ type NifiProperties struct {
 	// Additionnals nifi.properties configuration that will override the one produced based
 	// on template and configurations.
 	OverrideConfigs 	string	`json:"overrideConfigs,omitempty"`
-	// Site to Site properties Secure mode
+	// Site to Site properties Secure mode : https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#site_to_site_properties
 	SiteToSiteSecure	bool	`json:"siteToSiteSecure,omitempty"`
-	// Cluster nodes secure mode
+	// Cluster nodes secure mode : https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#cluster_common_properties
 	ClusterSecure		bool	`json:"clusterSecure,omitempty"`
 	// A comma separated list of allowed HTTP Host header values to consider when NiFi
 	// is running securely and will be receiving requests to a different host[:port] than it is bound to.
+	// https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#web-properties
 	WebProxyHost		string	`json:"webProxyHost,omitempty"`
 	// Nifi security client auth
 	NeedClientAuth		bool	`json:"needClientAuth,omitempty"`
 	// Indicates which of the configured authorizers in the authorizers.xml file to use
+	// https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#authorizer-configuration
 	Authorizer			string	`json:"authorizer,omitempty"`
 }
 
@@ -144,25 +147,32 @@ type NodeConfig struct {
 	// +kubebuilder:validation:Minimum=1
 	RunAsUser 				*int64 						  `json:"runAsUser,omitempty"`
 	// Set this to true if the instance is a node in a cluster.
+	// https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#basic-cluster-setup
 	IsNode					*bool						  `json:"isNode,omitempty"`
-	// Docker image used by the operator to create the node associated
+	//  Docker image used by the operator to create the node associated
+	//  https://hub.docker.com/r/apache/nifi/
 	Image              		string                        `json:"image,omitempty"`
 	// nodeAffinity can be specified, operator populates this value if new pvc added later to node
 	NodeAffinity       		*corev1.NodeAffinity          `json:"nodeAffinity,omitempty"`
-	// storageConfigs specifies the node log related configs
+	// storageConfigs specifies the node related configs
 	StorageConfigs     		[]StorageConfig               `json:"storageConfigs,omitempty"`
 	// serviceAccountName specifies the serviceAccount used for this specific node
 	ServiceAccountName 		string                        `json:"serviceAccountName,omitempty"`
 	// resourceRequirements works exactly like Container resources, the user can specify the limit and the requests
 	// through this property
+	// https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
 	ResourcesRequirements	*corev1.ResourceRequirements  `json:"resourcesRequirements,omitempty"`
 	// imagePullSecrets specifies the secret to use when using private registry
+	// https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#localobjectreference-v1-core
 	ImagePullSecrets   		[]corev1.LocalObjectReference `json:"imagePullSecrets,omitempty"`
 	// nodeSelector can be specified, which set the pod to fit on a node
+	// https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#nodeselector
 	NodeSelector       		map[string]string             `json:"nodeSelector,omitempty"`
 	// tolerations can be specified, which set the pod's tolerations
+	// https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/#concepts
 	Tolerations       		[]corev1.Toleration           `json:"tolerations,omitempty"`
 	// Additionnal annotation to attach to the pod associated
+	// https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#syntax-and-character-set
 	NodeAnnotations  		map[string]string             `json:"nifiAnnotations,omitempty"`
 }
 
@@ -170,7 +180,7 @@ type NodeConfig struct {
 type StorageConfig struct {
 	// Name of the storage config, used to name PV to reuse into sidecars for example.
 	// +kubebuilder:validation:Pattern=[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*
-	Name string                            	`json:"name"`
+	Name 				string                            	`json:"name"`
 	// Path where the volume will be mount into the main nifi container inside the pod.
 	MountPath 			string                            	`json:"mountPath"`
 	// Kubernetes PVC spec
