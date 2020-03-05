@@ -3,6 +3,10 @@ SERVICE_NAME 			:= nifikop
 DOCKER_REGISTRY_BASE 	?= orangeopensource
 IMAGE_TAG 				?= $(shell git describe --tags --abbrev=0 --match '[0-9].*[0-9].*[0-9]' 2>/dev/null)
 IMAGE_NAME 				?= $(SERVICE_NAME)
+BUILD_IMAGE 			?= orangeopensource/casskop-build
+
+OPERATOR_SDK_VERSION=v0.15.0-pr137
+
 
 # Debug variables
 TELEPRESENCE_REGISTRY ?= datawire
@@ -105,6 +109,42 @@ build:
 	operator-sdk build $(REPOSITORY):$(VERSION) --image-build-args "--build-arg https_proxy=$$https_proxy --build-arg http_proxy=$$http_proxy"
 ifdef PUSHLATEST
 	docker tag $(REPOSITORY):$(VERSION) $(REPOSITORY):latest
+endif
+
+# Run a shell into the development docker image
+docker-build: ## Build the Operator and it's Docker Image
+	echo "Generate zzz-deepcopy objects"
+	docker run --rm -v $(PWD):$(WORKDIR) -v $(GOPATH)/pkg/mod:/go/pkg/mod \
+		-v $(shell go env GOCACHE):/root/.cache/go-build --env GO111MODULE=on \
+		--env https_proxy=$(https_proxy) --env http_proxy=$(http_proxy) \
+		$(BUILD_IMAGE):$(OPERATOR_SDK_VERSION) /bin/bash -c 'operator-sdk generate k8s'
+	docker run --rm -v $(PWD):$(WORKDIR) -v $(GOPATH)/pkg/mod:/go/pkg/mod \
+		-v $(shell go env GOCACHE):/root/.cache/go-build --env GO111MODULE=on \
+		--env https_proxy=$(https_proxy) --env http_proxy=$(http_proxy) \
+		$(BUILD_IMAGE):$(OPERATOR_SDK_VERSION) /bin/bash -c 'operator-sdk generate openapi'
+	echo "Build NiFi Operator. Using cache from "$(shell go env GOCACHE)
+	docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v $(PWD):$(WORKDIR) \
+	-v $(GOPATH)/pkg/mod:/go/pkg/mod -v $(shell go env GOCACHE):/root/.cache/go-build \
+	--env GO111MODULE=on --env https_proxy=$(https_proxy) --env http_proxy=$(http_proxy) \
+	$(BUILD_IMAGE):$(OPERATOR_SDK_VERSION) /bin/bash -c 'operator-sdk build $(REPOSITORY):$(VERSION) \
+	--image-build-args "--build-arg https_proxy=$$https_proxy --build-arg http_proxy=$$http_proxy"'
+ifdef PUSHLATEST
+	docker tag $(REPOSITORY):$(VERSION) $(REPOSITORY):latest
+endif
+
+# Build the docker development environment
+build-ci-image: deps-development
+	docker build --cache-from $(BUILD_IMAGE):latest \
+	  --build-arg OPERATOR_SDK_VERSION=$(OPERATOR_SDK_VERSION) \
+		-t $(BUILD_IMAGE):latest \
+		-t $(BUILD_IMAGE):$(OPERATOR_SDK_VERSION) \
+		-f $(DEV_DIR)/Dockerfile \
+		.
+
+push-ci-image: deps-development
+	docker push $(BUILD_IMAGE):$(OPERATOR_SDK_VERSION)
+ifdef PUSHLATEST
+	docker push $(BUILD_IMAGE):latest
 endif
 
 debug-port-forward:

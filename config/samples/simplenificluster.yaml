@@ -6,7 +6,7 @@ spec:
   headlessServiceEnabled: true
   zkAddresse: "zookeepercluster-client.zookeeper:2181"
   zkPath: "/simplenifi"
-  clusterImage: "apache/nifi:1.11.2"
+  clusterImage: "apache/nifi:1.11.3"
   oneNifiNodePerNode: false
   nodeConfigGroups:
     default_group:
@@ -36,8 +36,6 @@ spec:
       nodeConfigGroup: "default_group"
     - id: 2
       nodeConfigGroup: "default_group"
-  rollingUpgradeConfig:
-    failureThreshold: 10
   propagateLabels: true
   nifiClusterTaskSpec:
     retryDurationMinutes: 10

@@ -165,10 +165,6 @@ spec:
               resources:
                 requests:
                   storage: 8Gi
-  # rollingUpgradeConfig specifies the rolling upgrade config for the cluster
-  rollingUpgradeConfig:
-    # failureThreshold states that how many errors can the cluster tolerate during rolling upgrade
-    failureThreshold: 10
   # oneNifiNodePerNode if set to true every nifi node is started on a new node, if there is not enough node to do that
   # it will stay in pending state. If set to false the operator also tries to schedule the nifi node to a unique node
   # but if the node number is insufficient the nifi node will be scheduled to a node where a nifi node is already running.
