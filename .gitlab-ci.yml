@@ -12,7 +12,7 @@ pages:
     - cp -R build/* public/
   artifacts:
     paths:
-      - public
+      - website/public
   only:
     - skeleton
   when: manual
