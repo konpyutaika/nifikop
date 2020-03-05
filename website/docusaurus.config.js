@@ -1,7 +1,8 @@
 module.exports = {
   title: 'NiFiKop',
   tagline: 'Open-Source, Apache NiFi operator for Kubernetes',
-  url: 'https://erdrix.github.io',
+//  url: 'https://erdrix.github.io',
+  url: 'https://https://kubernetes.pages.gitlab.si.francetelecom.fr',
   baseUrl: '/nifikop/',
   favicon: 'img/nifikop.ico',
   organizationName: 'erdrix', // Usually your GitHub org/user name.
@@ -81,7 +82,7 @@ module.exports = {
         docs: {
           sidebarPath: require.resolve('./sidebars.js'),
           editUrl:
-              'https://erdrix.github.io/nifikop/edit/master/website/',
+              'https://github.com/erdrix/nifikop/edit/master/website/',
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
