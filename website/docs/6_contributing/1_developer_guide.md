@@ -1,25 +1,166 @@
 ---
-id: 2_reporting_bugs
-title: Reporting bugs
-sidebar_label: Reporting bugs
+id: 1_developer_guide
+title: Developer guide
+sidebar_label: Developer guide
 ---
 
-If any part of the NiFiKop project has bugs or documentation mistakes, please let us know by [opening an issue](https://github.com/erdrix/nifikop/issues/new). We treat bugs and mistakes very seriously and believe no issue is too small. Before creating a bug report, please check that an issue reporting the same problem does not already exist.
+## Operator SDK
 
-To make the bug report accurate and easy to understand, please try to create bug reports that are:
+### Prerequisites
 
-- Specific. Include as much details as possible: which version, what environment, what configuration, etc.
+NiFiKop has been validated with :
 
-- Reproducible. Include the steps to reproduce the problem. We understand some issues might be hard to reproduce, please include the steps that might lead to the problem.
+- [dep](dep_tool) version v0.5.1+.
+- [go](go_tool) version v1.13+.
+- [docker](docker_tool) version 18.09+.
+- [kubectl](kubectl_tool) version v1.13.3+.
+- [Helm](https://helm.sh/) version v2.12.2.
+- [Operator sdk](https://github.com/operator-framework/operator-sdk) version v0.15.0 
 
-- Isolated. Please try to isolate and reproduce the bug with minimum dependencies. It would significantly slow down the speed to fix a bug if too many dependencies are involved in a bug report. Debugging external systems that rely on operator-sdk is out of scope, but we are happy to provide guidance in the right direction or help with using operator-sdk itself.
+### Install the Operator SDK CLI
 
-- Unique. Do not duplicate existing bug report.
+First, checkout and install the operator-sdk CLI:
 
-- Scoped. One bug per report. Do not follow up with another bug inside one report.
+```bash
+mkdir -p $GOPATH/src/github.com/operator-framework/
+cd $GOPATH/src/github.com/operator-framework/
+make tidy
+make install
+```
 
-It may be worthwhile to read [Elika Etemad’s article on filing good bug reports][filing-good-bugs] before creating a bug report.
+### Initial setup
 
-We might ask for further information to locate a bug. A duplicated bug report will be closed.
+Checkout the project.
 
-[filing-good-bugs]: http://fantasai.inkedblade.net/style/talks/filing-good-bugs/
+```bash
+git clone https://github.com/erdrix/nifikop.git
+cd nifikop
+```
+
+### Build NiFiKop
+
+#### Local environment
+
+If you prefer working directly with your local go environment you can simply uses :
+
+```bash
+make build
+```
+
+#### Cross platform build environment
+
+Build the docker image which will be used to build CassKop docker image
+
+```bash
+make build-ci-image
+```
+
+:::tip
+If you want to change the operator-sdk version change the **OPERATOR_SDK_VERSION** in the Makefile.
+:::
+
+Then build NiFiKop (code & image)
+
+```bash
+make docker-build
+```
+
+### Run NiFiKop
+
+We can quickly run NiFiKop in development mode (on your local host), then it will use your kubectl configuration file to connect to your kubernetes cluster.
+
+There are several ways to execute your operator :
+
+- Using your IDE directly
+- Executing directly the Go binary
+- deploying using the Helm charts
+
+If you want to configure your development IDE, you need to give it environment variables so that it will uses to connect to kubernetes.
+
+```bash
+KUBECONFIG={path/to/your/kubeconfig}
+WATCH_NAMESPACE={namespace_to_watch}
+POD_NAME={name for operator pod}
+LOG_LEVEL=Debug
+OPERATOR_NAME=ide
+```
+
+#### Run the Operator Locally with the Go Binary
+
+This method can be used to run the operator locally outside of the cluster. This method may be preferred during development as it facilitates faster deployment and testing.
+
+Set the name of the operator in an environment variable
+
+```bash
+ export OPERATOR_NAME=cassandra-operator
+```
+
+Deploy the CRD.
+
+```bash
+kubectl apply -f deploy/crds/nifi.orange.com_nificlusters_crd.yaml
+```
+
+And deploy the operator.
+
+```bash
+make run
+```
+
+This will run the operator in the `default` namespace using the default Kubernetes config file at `$HOME/.kube/config`.
+
+#### Deploy using the Helm Charts
+
+This section provides an instructions for running the operator Helm charts with an image that is built from the local branch.
+
+Build the image from the current branch.
+
+```bash
+export DOCKER_REPO_BASE={your-docker-repo}
+make docker-build
+```
+
+Push the image to docker hub (or to whichever repo you want to use)
+
+```bash
+$ make push
+```
+
+:::info
+The image tag is a combination of the version as defined in `verion/version.go` and the branch name.
+:::
+
+Install the Helm chart.
+
+```bash
+helm install ./helm/nifikop \
+    --set-string image.repository=eu.gcr.io/poc-rtc/nifikop \
+    --set image.tag=0.0.1-skeleton \
+    --name skeleton
+```
+
+:::important
+The `image.repository` and `image.tag` template variables have to match the names from the image that we pushed in the previous step.
+:::
+
+:::info
+We set the chart name to the branch, but it can be anything.
+:::
+
+Lastly, verify that the operator is running.
+
+```console
+$ kubectl get pods
+NAME                                                READY   STATUS    RESTARTS   AGE
+skeleton-nifikop-8946b89dc-4cfs9   1/1     Running   0          7m45s
+```
+
+## Helm
+
+The NiFiKop operator is released in the `orange-incubator` helm repository.
+
+In order to package the chart you need to run the following command. 
+
+```bash
+make helm-package
+```

@@ -1,5 +1,5 @@
 ---
-id: 1_getting_started
-title: Getting Started
-sidebar_label: Getting Started
+id: 1_nodes_configuration
+title: Nodes configuration
+sidebar_label: Nodes configuration
 ---

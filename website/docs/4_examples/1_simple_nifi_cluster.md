@@ -1,5 +1,5 @@
 ---
-id: 1_getting_started
-title: Getting Started
-sidebar_label: Getting Started
+id: 1_simple_nifi_cluster
+title: Simple NiFi cluster
+sidebar_label: Simple NiFi cluster
 ---

@@ -1,5 +1,5 @@
 ---
-id: 1_credits
+id: 3_credits
 title: Credits
 sidebar_label: Credits
 ---

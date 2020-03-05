@@ -6,83 +6,64 @@
  */
 
 module.exports = {
-    "docs": 
-    {
-      "Overview": ["overview"],
-      "Casskop" : 
-        [
-          {
-            "type" : "category", 
-            "label": "Getting Started", 
-            "items"  : [
-              "casskop/1_getting_started/1_overview", 
-              "casskop/1_getting_started/2_Pre-requisites", 
-              "casskop/1_getting_started/3_quickstart"
-            ]
-          },
-          { 
-            "type" : "category", 
-            "label": "Deployment Configuration",
-            "items"  : [
-              "casskop/2_deployment_configuration/1_cassandra_cluster_config",
-              "casskop/2_deployment_configuration/2_cassandra_config",
-              "casskop/2_deployment_configuration/3_cassandra_storage",
-              "casskop/2_deployment_configuration/4_kubernetest_object",
-              "casskop/2_deployment_configuration/5_cpu_memory_resources",
-              "casskop/2_deployment_configuration/6_cluster_topology",
-              "casskop/2_deployment_configuration/7_implementation_architecture",
-              "casskop/2_deployment_configuration/8_advanced_configuration",
-              "casskop/2_deployment_configuration/9_cassandra_node_management",
-              "casskop/2_deployment_configuration/10_cassandracluster_status",
-              "casskop/2_deployment_configuration/11_cassandracluster_crd_definition"
-            ]
-          },
-          { 
-            "type" : "category", 
-            "label": "Operations",
-            "items"  : [
-              "casskop/3_operations/1_overview",
-              "casskop/3_operations/2_cluster_operations",
-              "casskop/3_operations/3_cassandra_pods_operations"
-            ]
-          },
-          "casskop/4_troubleshooting"
-        ],
-      "Multi-Casskop":
-        [
-          "multi-casskop/1_overview",
-          "multi-casskop/2_pre-requisite",
-          "multi-casskop/3_quickstart"
-        ],
-      "Contributing" : 
-        [
-          {
-            "type" : "category", 
-            "label": "Development", 
-            "items"  : [
-              "contributing/1_development/1_circle_ci_build_pipeline",
-              "contributing/1_development/2_operator_sdk"
-            ]
-          },
-          {
-            "type" : "category", 
-            "label": "Release the project", 
-            "items"  : [
-              "contributing/2_release_project/1_tasks",
-              "contributing/2_release_project/2_with_helm",
-              "contributing/2_release_project/3_with_olm"
-            ]
-          },
-          "contributing/3_reporting_bugs",
-          {
-            "type" : "category", 
-            "label": "How this repository was initially build", 
-            "items"  : [
-              "contributing/4_initial_build/1_boilerplate_casskop",
-              "contributing/4_initial_build/2_infos_developer"
-            ]
-          }
-        ]
-    }
-    
+    "docs":
+        {
+            "Concepts": [
+                "1_concepts/1_introduction",
+                "1_concepts/2_design_principes",
+                "1_concepts/3_features",
+                "1_concepts/4_roadmap",
+            ],
+            "Setup": [
+                "2_setup/1_getting_started",
+                {
+                    "type" : "category",
+                    "label": "Platform Setup",
+                    "items"  : [
+                        "2_setup/2_platform_setup/1_gke",
+                        "2_setup/2_platform_setup/2_minikube",
+//                    "2_setup/2_platform_setup/3_microk8s",
+                        //                   "2_setup/2_platform_setup/4_docker_desktop",
+                    ]
+                },
+                {
+                    "type" : "category",
+                    "label": "Install",
+                    "items"  : [
+                        "2_setup/3_install/1_customizable_install_with_helm",
+                    ]
+                }
+            ],
+            "Tasks": [
+                {
+                    "type" : "category",
+                    "label": "NiFi Cluster",
+                    "items"  : [
+                        "3_tasks/1_nifi_cluster/1_nodes_configuration",
+                    ]
+                },
+            ],
+            "Examples": [
+                "4_examples/1_simple_nifi_cluster"
+            ],
+            "Reference": [
+                {
+                    "type" : "category",
+                    "label": "NiFi Cluster",
+                    "items"  : [
+                        "5_references/1_nifi_cluster/1_nifi_cluster",
+                        "5_references/1_nifi_cluster/2_read_only_config",
+                        "5_references/1_nifi_cluster/3_node_config",
+                        "5_references/1_nifi_cluster/4_node",
+                        "5_references/1_nifi_cluster/5_node_state",
+                    ]
+                }
+            ],
+            "Contributing" : [
+                "6_contributing/1_developer_guide",
+                "6_contributing/2_reporting_bugs",
+                "6_contributing/3_credits",
+            ],
+        }
+
 };
