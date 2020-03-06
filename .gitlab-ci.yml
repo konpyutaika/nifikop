@@ -1,8 +1,17 @@
 
 stages:
-#  - build
+  - build
 #  - tagged
   - website
+
+build_docker:
+  image: sfy-search-registry-build.artifactory.si.francetelecom.fr/build/docker:dind
+  stage: build
+  script:
+    - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY
+    - make build
+    - make push
+  environment: internal-registry
 
 # ===============================================
 #    WEB SITE
