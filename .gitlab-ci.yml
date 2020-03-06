@@ -1,3 +1,5 @@
+variables:
+  GIT_STRATEGY: clone
 
 stages:
   - build
@@ -10,6 +12,7 @@ build_docker:
   script:
     - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY
     - make docker-build
+    - ls -la 
     - make push
   environment: internal-registry
 
