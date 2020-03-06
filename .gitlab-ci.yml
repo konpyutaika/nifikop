@@ -9,7 +9,7 @@ build_docker:
   stage: build
   script:
     - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY
-    - make build
+    - make docker-build
     - make push
   environment: internal-registry
 
