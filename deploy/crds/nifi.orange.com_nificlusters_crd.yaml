@@ -96,6 +96,48 @@ spec:
                     - name
                     type: object
                   type: array
+                sslSecrets:
+                  description: sslSecrets contains information about ssl related kubernetes
+                    secrets if one of the listener setting type set to ssl these fields
+                    must be populated to
+                  properties:
+                    create:
+                      description: create tells the installed cert manager to create
+                        the required certs keys
+                      type: boolean
+                    issuerRef:
+                      description: ObjectReference is a reference to an object with
+                        a given name, kind and group.
+                      properties:
+                        group:
+                          type: string
+                        kind:
+                          type: string
+                        name:
+                          type: string
+                      required:
+                      - name
+                      type: object
+                    jksPasswordName:
+                      description: jksPasswordName should contain a password field
+                        which contains the jks password
+                      type: string
+                    pkiBackend:
+                      description: PKIBackend represents an interface implementing
+                        the PKIManager
+                      enum:
+                      - cert-manager
+                      - vault
+                      type: string
+                    tlsSecretName:
+                      description: 'tlsSecretName should contain all ssl certs required
+                        by nifi including: caCert, caKey, clientCert, clientKey serverCert,
+                        serverKey, peerCert, peerKey'
+                      type: string
+                  required:
+                  - jksPasswordName
+                  - tlsSecretName
+                  type: object
               required:
               - internalListeners
               type: object
@@ -1193,6 +1235,23 @@ spec:
                         configurations.
                       type: string
                   type: object
+              type: object
+            vaultConfig:
+              description: VaultConfig defines the configuration for a vault PKI backend
+              properties:
+                authRole:
+                  type: string
+                issuePath:
+                  type: string
+                pkiPath:
+                  type: string
+                userStore:
+                  type: string
+              required:
+              - authRole
+              - issuePath
+              - pkiPath
+              - userStore
               type: object
             zkAddresse:
               description: 'zKAddresse specifies the ZooKeeper connection string in

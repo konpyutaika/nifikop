@@ -13,6 +13,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"sort"
 	"strings"
+	pkicommon "github.com/erdrix/nifikop/pkg/util/pki"
+
 )
 
 const(
@@ -45,6 +47,11 @@ func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev
 
 	volume 		= append(volume, dataVolume...)
 	volumeMount	= append(volumeMount, dataVolumeMount...)
+
+	if r.NifiCluster.Spec.ListenersConfig.SSLSecrets != nil {
+		volume = append(volume, generateVolumesForSSL(r.NifiCluster)...)
+		volumeMount = append(volumeMount, generateVolumeMountForSSL()...)
+	}
 
 	podVolumes   := append(volume, []corev1.Volume{
 		{
@@ -329,4 +336,40 @@ func GetServerPort(l *v1alpha1.ListenersConfig) int32 {
 		return httpsServerPort
 	}
 	return httpServerPort
+}
+
+func generateVolumesForSSL(cluster *v1alpha1.NifiCluster) []corev1.Volume {
+	return []corev1.Volume{
+		{
+			Name: serverKeystoreVolume,
+			VolumeSource: corev1.VolumeSource{
+				Secret: &corev1.SecretVolumeSource{
+					SecretName:  fmt.Sprintf(pkicommon.NodeServerCertTemplate, cluster.Name),
+					DefaultMode: util.Int32Pointer(0644),
+				},
+			},
+		},
+		{
+			Name: clientKeystoreVolume,
+			VolumeSource: corev1.VolumeSource{
+				Secret: &corev1.SecretVolumeSource{
+					SecretName:  fmt.Sprintf(pkicommon.NodeControllerTemplate, cluster.Name),
+					DefaultMode: util.Int32Pointer(0644),
+				},
+			},
+		},
+	}
+}
+
+func generateVolumeMountForSSL() []corev1.VolumeMount {
+	return []corev1.VolumeMount{
+		{
+			Name:      serverKeystoreVolume,
+			MountPath: serverKeystorePath,
+		},
+		{
+			Name:      clientKeystoreVolume,
+			MountPath: clientKeystorePath,
+		},
+	}
 }

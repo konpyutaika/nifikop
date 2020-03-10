@@ -3,6 +3,7 @@ package nificluster
 import (
 	"context"
 	"emperror.dev/errors"
+	"github.com/erdrix/nifikop/pkg/pki"
 	"github.com/go-logr/logr"
 	v1alpha1 "github.com/erdrix/nifikop/pkg/apis/nifi/v1alpha1"
 	common "github.com/erdrix/nifikop/pkg/controller/common"
@@ -14,6 +15,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	apiErrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -21,12 +23,15 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
+	"fmt"
 	"time"
 )
 
 var log = logf.Log.WithName("controller_nificluster")
 
 var clusterFinalizer =  "finalizer.nificlusters.nifi.orange.com"
+var clusterUsersFinalizer = "users.nificlusters.nifi.orange.com"
+
 
 // Add creates a new NifiCluster Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
@@ -209,6 +214,47 @@ func (r *ReconcileNifiCluster) checkFinalizers(ctx context.Context, log logr.Log
 		return common.RequeueWithError(log, "failed to get namespace list", err)
 	}
 
+	if cluster.Spec.ListenersConfig.SSLSecrets != nil {
+		// If we haven't deleted all kafkausers yet, iterate namespaces and delete all kafkausers
+		// with the matching label.
+		if util.StringSliceContains(cluster.GetFinalizers(), clusterUsersFinalizer) {
+			log.Info(fmt.Sprintf("Sending delete nifiusers request to all namespaces for cluster %s/%s", cluster.Namespace, cluster.Name))
+			for _, ns := range namespaces.Items {
+				if err := r.client.DeleteAllOf(
+					ctx,
+					&v1alpha1.NifiUser{},
+					client.InNamespace(ns.Name),
+					client.MatchingLabels{common.ClusterRefLabel: common.ClusterLabelString(cluster)},
+				); err != nil {
+					if client.IgnoreNotFound(err) != nil {
+						return common.RequeueWithError(log, "failed to send delete request for children nifiusers", err)
+					}
+					log.Info(fmt.Sprintf("No matching kafkausers in namespace: %s", ns.Name))
+				}
+			}
+			if cluster, err = r.removeFinalizer(ctx, cluster, clusterUsersFinalizer); err != nil {
+				return common.RequeueWithError(log, "failed to remove users finalizer from nificluster", err)
+			}
+		}
+
+		// Do any necessary PKI cleanup - a PKI backend should make sure any
+		// user finalizations are done before it does its final cleanup
+		log.Info("Tearing down any PKI resources for the kafkacluster")
+		if err = pki.GetPKIManager(r.client, cluster).FinalizePKI(ctx, log); err != nil {
+			switch err.(type) {
+			case errorfactory.ResourceNotReady:
+				log.Info("The PKI is not ready to be torn down")
+				return ctrl.Result{
+					Requeue:      true,
+					RequeueAfter: time.Duration(5) * time.Second,
+				}, nil
+			default:
+				return common.RequeueWithError(log, "failed to finalize PKI", err)
+			}
+		}
+
+	}
+
 	log.Info("Finalizing deletion of nificluster instance")
 	if _, err = r.removeFinalizer(ctx, cluster, clusterFinalizer); err != nil {
 		if client.IgnoreNotFound(err) == nil {
@@ -238,5 +284,15 @@ func (r *ReconcileNifiCluster) updateAndFetchLatest(ctx context.Context, cluster
 }
 
 func (r *ReconcileNifiCluster) ensureFinalizers(ctx context.Context, cluster *v1alpha1.NifiCluster) (updated *v1alpha1.NifiCluster, err error) {
+	finalizers := []string{clusterFinalizer}
+	if cluster.Spec.ListenersConfig.SSLSecrets != nil {
+		finalizers = append(finalizers, clusterUsersFinalizer)
+	}
+	for _, finalizer := range finalizers {
+		if util.StringSliceContains(cluster.GetFinalizers(), finalizer) {
+			continue
+		}
+		cluster.SetFinalizers(append(cluster.GetFinalizers(), finalizer))
+	}
 	return r.updateAndFetchLatest(ctx, cluster)
 }

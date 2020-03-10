@@ -1,6 +1,8 @@
 package v1alpha1
 
 import (
+	cmmeta "github.com/jetstack/cert-manager/pkg/apis/meta/v1"
+
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -49,6 +51,8 @@ type NifiClusterSpec struct {
 	PropagateLabels 		bool 					`json:"propagateLabels,omitempty"`
 	// LdapConfiguration specifies the configuration if you want to use LDAP
 	LdapConfiguration		LdapConfiguration		`json:"ldapConfiguration,omitempty"`
+	//
+	VaultConfig         	VaultConfig         `json:"vaultConfig,omitempty"`
 	// NifiClusterTaskSpec specifies the configuration of the nifi cluster Tasks
 	NifiClusterTaskSpec 	NifiClusterTaskSpec		`json:"nifiClusterTaskSpec,omitempty"`
 }
@@ -197,8 +201,7 @@ type ListenersConfig struct {
 
 	// sslSecrets contains information about ssl related kubernetes secrets if one of the
 	// listener setting type set to ssl these fields must be populated to
-	// TODO: enable this feature.
-	//SSLSecrets        *SSLSecrets              `json:"sslSecrets,omitempty"`
+	SSLSecrets        	*SSLSecrets              `json:"sslSecrets,omitempty"`
 }
 
 // SSLSecrets defines the Nifi SSL secrets
@@ -211,9 +214,22 @@ type SSLSecrets struct {
 	JKSPasswordName string 		`json:"jksPasswordName"`
 	// create tells the installed cert manager to create the required certs keys
 	Create          bool   		`json:"create,omitempty"`
-
-	// +kubebuilder:validation:Enum={"cert-manager"}
+	//
+	IssuerRef       *cmmeta.ObjectReference `json:"issuerRef,omitempty"`
+	// +kubebuilder:validation:Enum={"cert-manager","vault"}
 	PKIBackend		PKIBackend	`json:"pkiBackend,omitempty"`
+}
+
+// VaultConfig defines the configuration for a vault PKI backend
+type VaultConfig struct {
+	//
+	AuthRole  string `json:"authRole"`
+	//
+	PKIPath   string `json:"pkiPath"`
+	//
+	IssuePath string `json:"issuePath"`
+	//
+	UserStore string `json:"userStore"`
 }
 
 // ExternalListenerConfig defines the external listener config for Nifi

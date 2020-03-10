@@ -59,9 +59,44 @@ func (r State) Complete() State {
 	}
 }
 
+// UserState defines the state of a KafkaUser
+type UserState string
+
+// ClusterReference states a reference to a cluster for topic/user
+// provisioning
+type ClusterReference struct {
+	Name      string `json:"name"`
+	Namespace string `json:"namespace,omitempty"`
+}
+
 const (
 	// PKIBackendCertManager invokes cert-manager for user certificate management
 	PKIBackendCertManager PKIBackend = "cert-manager"
+	// PKIBackendVault invokes vault PKI for user certificate management
+	PKIBackendVault PKIBackend = "vault"
+)
+
+const (
+	// UserStateCreated describes the status of a NifiUser as created
+	UserStateCreated UserState = "created"
+	// TLSJKSKey is where a JKS is stored in a user secret when requested
+	TLSJKSKey string = "tls.jks"
+	// CoreCACertKey is where ca ceritificates are stored in user certificates
+	CoreCACertKey string = "ca.crt"
+	// CACertKey is the key where the CA certificate is stored in the operator secrets
+	CACertKey string = "caCert"
+	// CAPrivateKeyKey stores the private key for the CA
+	CAPrivateKeyKey string = "caKey"
+	// ClientCertKey stores the client certificate (cruisecontrol/operator usage)
+	ClientCertKey string = "clientCert"
+	// ClientPrivateKeyKey stores the client private key
+	ClientPrivateKeyKey string = "clientKey"
+	// PeerCertKey stores the peer certificate (broker certificates)
+	PeerCertKey string = "peerCert"
+	// PeerPrivateKeyKey stores the peer private key
+	PeerPrivateKeyKey string = "peerKey"
+	// PasswordKey stores the JKS password
+	PasswordKey string = "password"
 )
 
 // GracefulActionState holds information about GracefulAction State
