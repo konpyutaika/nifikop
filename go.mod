@@ -2,13 +2,26 @@ module github.com/erdrix/nifikop
 
 go 1.13
 
+require github.com/Azure/go-autorest v12.2.0+incompatible // indirect
+
 require (
 	emperror.dev/errors v0.4.2
+	github.com/banzaicloud/bank-vaults/pkg/sdk v0.2.0
 	github.com/banzaicloud/k8s-objectmatcher v1.0.0
 	github.com/go-logr/logr v0.1.0
+	github.com/go-openapi/spec v0.19.4
+	github.com/hashicorp/consul/api v1.2.0 // indirect
+	github.com/hashicorp/memberlist v0.1.5 // indirect
+	github.com/hashicorp/nomad/api v0.0.0-20191011173337-85153a5ecf46 // indirect
+	github.com/hashicorp/vault v1.2.3
+	github.com/hashicorp/vault-plugin-secrets-ad v0.6.0 // indirect
+	github.com/hashicorp/vault/api v1.0.5-0.20190909201928-35325e2c3262
+	github.com/hashicorp/vault/sdk v0.1.14-0.20190909201848-e0fbf9b652e2
 	github.com/imdario/mergo v0.3.8
+	github.com/jetstack/cert-manager v0.11.0
 	github.com/openshift/origin v0.0.0-20160503220234-8f127d736703
 	github.com/operator-framework/operator-sdk v0.15.0
+	github.com/pavel-v-chernykh/keystore-go v2.1.0+incompatible
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/pflag v1.0.5
 	k8s.io/api v0.0.0

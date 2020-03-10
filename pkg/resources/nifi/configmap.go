@@ -16,7 +16,7 @@ import (
 	"text/template"
 )
 
-func (r *Reconciler) configMap(id int32, nodeConfig *v1alpha1.NodeConfig, log logr.Logger) runtime.Object {
+func (r *Reconciler) configMap(id int32, nodeConfig *v1alpha1.NodeConfig, serverPass, clientPass string, superUsers []string,log logr.Logger) runtime.Object {
 	return &corev1.ConfigMap{
 		ObjectMeta: templates.ObjectMeta(
 			fmt.Sprintf(templates.NodeConfigTemplate+"-%d", r.NifiCluster.Name, id),
@@ -27,7 +27,7 @@ func (r *Reconciler) configMap(id int32, nodeConfig *v1alpha1.NodeConfig, log lo
 			r.NifiCluster,
 		),
 		Data: map[string]string{
-			"nifi.properties": 						r.generateNifiPropertiesNodeConfig(id, nodeConfig, log),
+			"nifi.properties": 						r.generateNifiPropertiesNodeConfig(id, nodeConfig, serverPass, clientPass, superUsers, log),
 			"zookeeper.properties": 				r.generateZookeeperPropertiesNodeConfig(id, nodeConfig, log),
 			"state-management.xml": 				r.getStateManagementConfigString(nodeConfig, id, log),
 			"login-identity-providers.xml": 		r.getLoginIdentityProvidersConfigString(nodeConfig, id, log),
@@ -45,7 +45,7 @@ func (r *Reconciler) configMap(id int32, nodeConfig *v1alpha1.NodeConfig, log lo
 ////////////////////////////////////
 
 //
-func (r Reconciler) generateNifiPropertiesNodeConfig(id int32, nodeConfig *v1alpha1.NodeConfig, log logr.Logger) string {
+func (r Reconciler) generateNifiPropertiesNodeConfig(id int32, nodeConfig *v1alpha1.NodeConfig, serverPass, clientPass string, superUsers []string, log logr.Logger) string {
 	var parsedReadOnlyClusterConfig map[string]string
 
 	if &r.NifiCluster.Spec.ReadOnlyConfig != nil && &r.NifiCluster.Spec.ReadOnlyConfig.NifiProperties != nil {
@@ -68,7 +68,7 @@ func (r Reconciler) generateNifiPropertiesNodeConfig(id int32, nodeConfig *v1alp
 	//Generate the Complete Configuration for the Node
 	completeConfigMap := map[string]string{}
 
-	if err := mergo.Merge(&completeConfigMap, util.ParsePropertiesFormat(r.getNifiPropertiesConfigString(nodeConfig, id, log))); err != nil {
+	if err := mergo.Merge(&completeConfigMap, util.ParsePropertiesFormat(r.getNifiPropertiesConfigString(nodeConfig, id, serverPass, clientPass, superUsers, log))); err != nil {
 		log.Error(err, "error occurred during merging operator generated configs")
 	}
 
@@ -89,7 +89,7 @@ func (r Reconciler) generateNifiPropertiesNodeConfig(id int32, nodeConfig *v1alp
 }
 
 //
-func (r *Reconciler) getNifiPropertiesConfigString(nConfig *v1alpha1.NodeConfig, id int32, log logr.Logger) string {
+func (r *Reconciler) getNifiPropertiesConfigString(nConfig *v1alpha1.NodeConfig, id int32, serverPass, clientPass string, superUsers []string, log logr.Logger) string {
 	base := r.NifiCluster.Spec.ReadOnlyConfig.NifiProperties.DeepCopy()
 	for _, node := range r.NifiCluster.Spec.Nodes {
 		if node.Id == id && node.ReadOnlyConfig != nil && &node.ReadOnlyConfig.NifiProperties != nil{
@@ -109,6 +109,13 @@ func (r *Reconciler) getNifiPropertiesConfigString(nConfig *v1alpha1.NodeConfig,
 		"WebProxyHost": 			base.WebProxyHost,
 		"NeedClientAuth": 			base.NeedClientAuth,
 		"Authorizer": 				base.GetAuthorizer(),
+		"SSLEnabledForInternalCommunication": r.NifiCluster.Spec.ListenersConfig.SSLSecrets != nil && util.IsSSLEnabledForInternalCommunication(r.NifiCluster.Spec.ListenersConfig.InternalListeners),
+		"SuperUsers":               strings.Join(generateSuperUsers(superUsers), ";"),
+		"ServerKeystorePath":                 serverKeystorePath,
+		"ClientKeystorePath":                 clientKeystorePath,
+		"KeystoreFile":                       v1alpha1.TLSJKSKey,
+		"ServerKeystorePassword":             serverPass,
+		"ClientKeystorePassword":             clientPass,
 		//
 		"LdapConfiguration": 		r.NifiCluster.Spec.LdapConfiguration,
 		"IsNode": 					nConfig.GetIsNode(),
@@ -118,6 +125,13 @@ func (r *Reconciler) getNifiPropertiesConfigString(nConfig *v1alpha1.NodeConfig,
 		log.Error(err, "error occurred during parsing the config template")
 	}
 	return out.String()
+}
+func generateSuperUsers(users []string) (suStrings []string) {
+	suStrings = make([]string, 0)
+	for _, x := range users {
+		suStrings = append(suStrings, fmt.Sprintf("User:%s", x))
+	}
+	return
 }
 
 /////////////////////////////////////////
