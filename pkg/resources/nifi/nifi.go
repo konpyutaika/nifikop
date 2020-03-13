@@ -119,7 +119,6 @@ func (r *Reconciler) Reconcile(log logr.Logger) error {
 			}
 
 		}
-		//if r.NifiCluster.Spec.RackAwareness == nil {
 		o := r.configMap(node.Id, nodeConfig, log)
 		err = k8sutil.Reconcile(log, r.Client, o, r.NifiCluster)
 		if err != nil {

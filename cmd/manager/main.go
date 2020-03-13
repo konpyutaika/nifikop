@@ -34,6 +34,7 @@ import (
 )
 
 // Change below variables to serve metrics on different host or port.
+// TODO: work on exporting metrics (check casskop work about it)
 var (
 	metricsHost               = "0.0.0.0"
 	metricsPort         int32 = 8383
@@ -42,6 +43,7 @@ var (
 var log = logf.Log.WithName("cmd")
 
 func printVersion() {
+	// TODO: Choose the most appropriate log module
 	log.Info(fmt.Sprintf("Operator Version: %s", version.Version))
 	log.Info(fmt.Sprintf("Go Version: %s", runtime.Version()))
 	log.Info(fmt.Sprintf("Go OS/Arch: %s/%s", runtime.GOOS, runtime.GOARCH))

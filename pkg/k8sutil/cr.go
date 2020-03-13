@@ -25,7 +25,7 @@ import (
 
 // AddNewNodeToCr modifies the CR and adds a new node
 func AddNewNodeToCr(node v1alpha1.Node, crName, namespace string, client runtimeClient.Client) error {
-	cr, err := GetCr(crName, namespace, client)
+	cr, err := Cr(crName, namespace, client)
 	if err != nil {
 		return err
 	}
@@ -37,7 +37,7 @@ func AddNewNodeToCr(node v1alpha1.Node, crName, namespace string, client runtime
 // RemoveNodeFromCr modifies the CR and removes the given node from the cluster
 func RemoveNodeFromCr(nodeId, crName, namespace string, client runtimeClient.Client) error {
 
-	cr, err := GetCr(crName, namespace, client)
+	cr, err := Cr(crName, namespace, client)
 	if err != nil {
 		return err
 	}
@@ -54,7 +54,7 @@ func RemoveNodeFromCr(nodeId, crName, namespace string, client runtimeClient.Cli
 
 // AddPvToSpecificNode adds a new PV to a specific node
 func AddPvToSpecificNode(nodeId, crName, namespace string, storageConfig *v1alpha1.StorageConfig, client runtimeClient.Client) error {
-	cr, err := GetCr(crName, namespace, client)
+	cr, err := Cr(crName, namespace, client)
 	if err != nil {
 		return err
 	}
@@ -70,8 +70,8 @@ func AddPvToSpecificNode(nodeId, crName, namespace string, storageConfig *v1alph
 	return updateCr(cr, client)
 }
 
-// GetCr returns the given cr object
-func GetCr(name, namespace string, client runtimeClient.Client) (*v1alpha1.NifiCluster, error) {
+// Cr returns the given cr object
+func Cr(name, namespace string, client runtimeClient.Client) (*v1alpha1.NifiCluster, error) {
 	cr := &v1alpha1.NifiCluster{}
 
 	err := client.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: namespace}, cr)
