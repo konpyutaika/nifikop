@@ -28,11 +28,3 @@ func LookupNifiCluster(client runtimeClient.Client, clusterName, clusterNamespac
 	err = client.Get(context.TODO(), types.NamespacedName{Name: clusterName, Namespace: clusterNamespace}, cluster)
 	return
 }
-
-// This could be used if we get rid of the "intermediate" certificate we create for now during cluster creation
-// func LookupControllerSecret(client runtimeClient.Client, clusterName, clusterNamespace, controllerTempl string) (secret *corev1.Secret, err error) {
-// 	secret = &corev1.Secret{}
-// 	secretName := fmt.Sprintf(controllerTempl, clusterName)
-// 	err = client.Get(context.TODO(), types.NamespacedName{Name: secretName, Namespace: clusterNamespace}, secret)
-// 	return
-// }

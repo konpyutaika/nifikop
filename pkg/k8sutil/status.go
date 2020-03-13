@@ -115,10 +115,7 @@ func UpdateNodeStatus(c client.Client, nodeIds []string, cluster *v1alpha1.NifiC
 			}
 		}
 
-		err = c.Status().Update(context.Background(), cluster)
-		if apierrors.IsNotFound(err) {
-			err = c.Update(context.Background(), cluster)
-		}
+		err = updateClusterStatus(c, cluster)
 		if err != nil {
 			return errors.WrapIff(err, "could not update Nifi clusters node(s) %s state", strings.Join(nodeIds, ","))
 		}
@@ -159,10 +156,7 @@ func DeleteStatus(c client.Client, nodeId string, cluster *v1alpha1.NifiCluster,
 		delete(nodeStatus, nodeId)
 
 		cluster.Status.NodesState = nodeStatus
-		err = c.Status().Update(context.Background(), cluster)
-		if apierrors.IsNotFound(err) {
-			err = c.Update(context.Background(), cluster)
-		}
+		err = updateClusterStatus(c, cluster)
 		if err != nil {
 			return errors.WrapIff(err, "could not delete Nifi clusters node %s state ", nodeId)
 		}
@@ -203,10 +197,7 @@ func UpdateCRStatus(c client.Client, cluster *v1alpha1.NifiCluster, state interf
 			cluster.Status.State = s
 		}
 
-		err = c.Status().Update(context.Background(), cluster)
-		if apierrors.IsNotFound(err) {
-			err = c.Update(context.Background(), cluster)
-		}
+		err = updateClusterStatus(c, cluster)
 		if err != nil {
 			return errors.WrapIf(err, "could not update CR state")
 		}
@@ -253,5 +244,13 @@ func UpdateRollingUpgradeState(c client.Client, cluster *v1alpha1.NifiCluster, t
 	// update loses the typeMeta of the config that's used later when setting ownerrefs
 	cluster.TypeMeta = typeMeta
 	logger.Info("Rolling upgrade status updated", "status", timeStamp)
+	return nil
+}
+
+func updateClusterStatus(c client.Client, cluster *v1alpha1.NifiCluster) error {
+	err := c.Status().Update(context.Background(), cluster)
+	if apierrors.IsNotFound(err) {
+		return c.Update(context.Background(), cluster)
+	}
 	return nil
 }

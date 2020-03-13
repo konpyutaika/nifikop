@@ -1,9 +1,9 @@
 # Image URL to use all building/pushing image targets
-SERVICE_NAME 			:= nifikop
+SERVICE_NAME			:= nifikop
 DOCKER_REGISTRY_BASE 	?= orangeopensource
-IMAGE_TAG 				?= $(shell git describe --tags --abbrev=0 --match '[0-9].*[0-9].*[0-9]' 2>/dev/null)
+IMAGE_TAG				?= $(shell git describe --tags --abbrev=0 --match '[0-9].*[0-9].*[0-9]' 2>/dev/null)
 IMAGE_NAME 				?= $(SERVICE_NAME)
-BUILD_IMAGE 			?= orangeopensource/casskop-build
+BUILD_IMAGE				?= orangeopensource/casskop-build
 
 OPERATOR_SDK_VERSION=v0.15.0-pr137
 # workdir
