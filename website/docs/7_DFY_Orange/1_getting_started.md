@@ -38,6 +38,8 @@ helm repo add banzaicloud-stable https://kubernetes-charts.banzaicloud.com/
 # You have to create the namespace before executing following command
 helm install zookeeper-operator \
     --namespace=zookeeper \
+    --set image.repository=registry.gitlab.si.francetelecom.fr/dfyarchicloud/dfyarchicloud-registry/pravega/zookeeper-operator \
+    --set image.tag=0.2.5 \
     banzaicloud-stable/zookeeper-operator
 ```
 
@@ -47,6 +49,8 @@ helm install zookeeper-operator \
 ```bash
 helm install --name zookeeper-operator \
     --namespace=zookeeper \
+    --set image.repository=registry.gitlab.si.francetelecom.fr/dfyarchicloud/dfyarchicloud-registry/pravega/zookeeper-operator \
+    --set image.tag=0.2.5 \
     banzaicloud-stable/zookeeper-operator
 ```
 </TabItem>
@@ -62,7 +66,17 @@ metadata:
   name: zookeepercluster
   namespace: zookeeper
 spec:
+  image: 
+    repository: registry.gitlab.si.francetelecom.fr/dfyarchicloud/dfyarchicloud-registry/pravega/zookeeper
   replicas: 3
+  persistence:
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 20Gi
+      storageClassName: local-storage
 EOF
 ```
 
@@ -118,14 +132,22 @@ helm repo add orange-incubator https://orange-kubernetes-charts-incubator.storag
 ```bash
 # You have to create the namespace before executing following command
 kubectl apply -f https://raw.githubusercontent.com/erdrix/nifikop/master/deploy/crds/nifi.orange.com_nificlusters_crd.yaml
-helm install nifikop --namespace=nifi orange-incubator/nifikop
+helm install nifikop \
+    --namespace=nifi \
+    orange-incubator/nifikop \
+    --set image.tag=v0.0.1 \
+    --set image.repository=registry.gitlab.si.francetelecom.fr/dfyarchicloud/dfyarchicloud-registry/nifikop
 ```
 
 </TabItem>
 <TabItem value="helm">
 
 ```bash
-helm install --name=nifikop --namespace=nifi orange-incubator/nifikop
+helm install --name=nifikop \
+    --namespace=nifi \
+    orange-incubator/nifikop \
+    --set image.tag=v0.0.1 \
+    --set image.repository=registry.gitlab.si.francetelecom.fr/dfyarchicloud/dfyarchicloud-registry/nifikop
 ```
 </TabItem>
 </Tabs>
@@ -134,5 +156,5 @@ And after you can deploy a simple NiFi cluster.
 
 ```bash
 # Add your zookeeper svc name to the configuration
-kubectl create -n nifi -f config/samples/simplenificluster.yaml
+kubectl create -n nifi -f config/samples/orange/simplenificluster.yaml
 ```

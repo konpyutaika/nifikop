@@ -1,5 +1,7 @@
 <p align="center"><img src="docs/img/nifikop.png" width="160"></p>
 
+[![Quality Gate Status](http://sonar.pic.s1.p.fti.net/api/project_badges/measure?project=&metric=alert_status)](https://sonarcloud.io/dashboard?id=Orange-OpenSource_cassandra-k8s-operator)
+
 <p align="center">
   <a href="https://hub.docker.com/r/orangeopensource/nifikop/">
     <img src="https://img.shields.io/docker/cloud/automated/orangeopensource/nifikop.svg" alt="Docker Automated build">
@@ -66,7 +68,7 @@ As a pre-requisite it needs a Kubernetes cluster. Also, NiFi requires Zookeeper 
 
 ### Install Zookeeper
 
-To install Zookeeper we recommend using the [Pravega's Zookeeper Operator](https://github.com/pravega/zookeeper-operator).
+To install Zookeeper we recommend using the [Pravega's Zookeeper Operator](https://github.com/pravega/zookeeper-operator/tree/master/charts/zookeeper-operator).
 You can deploy Zookeeper by using the Helm chart.
 
 ```bash
@@ -115,7 +117,8 @@ kubectl create -n nifi -f config/samples/simplenificluster.yaml
 
 ### Easy way: installing with Helm
 
-Alternatively, if you are using Helm, you can deploy the operator using a Helm chart [Helm chart](https://github.com/erdrix/nifikop/tree/master/helm):
+Alternatively, if you are using Helm, you can deploy the operator using a [Helm chart](helm/)
+<!-- [Helm chart](https://github.com/erdrix/nifikop/tree/master/helm) -->
 
 > To install the an other version of the operator use `helm install --name=nifikop --namespace=nifi --set operator.image.tag=x.y.z orange-incubator/nifikop`
 
@@ -136,17 +139,17 @@ kubectl create -n nifi -f config/samples/simplenificluster.yaml
 
 ## Development
 
-Checkout out the [developer docs](docs/dev/developer_guide.md)
+Checkout out the [developer docs](https://kubernetes.pages.gitlab.si.francetelecom.fr/nifikop/docs/6_contributing/1_developer_guide)
 
 ## Features
 
-Check out the [supported features](docs/features.md)
+Check out the [supported features](https://kubernetes.pages.gitlab.si.francetelecom.fr/nifikop/docs/1_concepts/3_features)
 
 ## Issues, feature requests and roadmap
 
 Please note that the NiFi operator is constantly under development and new releases might introduce breaking changes. We are striving to keep backward compatibility as much as possible while adding new features at a fast pace. Issues, new features or bugs are tracked on the projects [GitHub page](https://github.com/erdrix/nifikop/issues) - please feel free to add yours!
 
-To track some of the significant features and future items from the roadmap please visit the [roadmap doc](docs/roadmap.md).
+To track some of the significant features and future items from the roadmap please visit the [roadmap doc](https://kubernetes.pages.gitlab.si.francetelecom.fr/nifikop/docs/1_concepts/4_roadmap).
 
 ## Contributing 
 
@@ -163,7 +166,7 @@ If you have any questions about the NiFi operator, and would like to talk to us 
 If you find this project useful, help us:
 
 - Support the development of this project and star this repo! :star:
-- If you use the Nifi operator in a production environment, add yourself to the list of production [adopters](https://github.com/erdrix/nifikop/blob/master/ADOPTERS.md). :metal: <br>
+- If you use the Nifi operator in a production environment, add yourself to the list of production [adopters](ADOPTERS.md). :metal: <br>
 - Help new users with issues they may encounter :muscle:
 - Send a pull request with your new features and bug fixes :rocket:
 
