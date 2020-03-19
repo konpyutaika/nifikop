@@ -3,7 +3,7 @@ SERVICE_NAME			:= nifikop
 DOCKER_REGISTRY_BASE 	?= orangeopensource
 IMAGE_TAG				?= $(shell git describe --tags --abbrev=0 --match '[0-9].*[0-9].*[0-9]' 2>/dev/null)
 IMAGE_NAME 				?= $(SERVICE_NAME)
-BUILD_IMAGE				?= orangeopensource/casskop-build
+BUILD_IMAGE				?= orangeopensource/nifikop-build
 
 OPERATOR_SDK_VERSION=v0.15.0-pr137
 # workdir
@@ -21,12 +21,16 @@ else
 endif
 
 # Branch is used for the docker image version
-ifdef CIRCLE_BRANCH
-	#removing / for fork which lead to docker error
-	BRANCH := $(subst /,-,$(CIRCLE_BRANCH))
+#ifdef CIRCLE_BRANCH
+#	removing / for fork which lead to docker error
+#	BRANCH := $(subst /,-,$(CIRCLE_BRANCH))
+ifdef CI_COMMIT_REF_NAME
+	BRANCH := $(subst /,-,$(CI_COMMIT_REF_NAME))
 else
-	ifdef CIRCLE_TAG
-		BRANCH := $(CIRCLE_TAG)
+#	ifdef CIRCLE_TAG
+#		BRANCH := $(CIRCLE_TAG)
+	ifdef CI_COMMIT_TAG
+		BRANCH := $($CI_COMMIT_TAG)
 	else
 		BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
 	endif
@@ -36,7 +40,8 @@ endif
 # BaseVersion is for dev docker image tag
 BASEVERSION := $(shell awk -F\" '/Version =/ { print $$2}' version/version.go)
 
-ifdef CIRCLE_TAG
+#ifdef CIRCLE_TAG
+ifdef CI_COMMIT_TAG
 	VERSION := ${BRANCH}
 else
 	VERSION := $(BASEVERSION)-${BRANCH}
@@ -46,7 +51,8 @@ HELM_VERSION    := $(shell cat helm/nifikop/Chart.yaml| grep version | awk -F"ve
 HELM_TARGET_DIR ?= docs/helm
 
 #si branche master, on pousse le tag latest
-ifeq ($(CIRCLE_BRANCH),master)
+#ifeq ($(CIRCLE_BRANCH),master)
+ifeq ($(CI_BUILD_REF_NAME),master)
 	PUSHLATEST := true
 endif
 
@@ -65,8 +71,15 @@ UID := $(shell id -u)
 # Commit hash from git
 COMMIT=$(shell git rev-parse HEAD)
 
+# CMDs
+UNIT_TEST_CMD := KUBERNETES_CONFIG=`pwd`/config/test-kube-config.yaml POD_NAME=test go test --cover --coverprofile=coverage.out `go list ./... | grep -v e2e` > test-report.out
+UNIT_TEST_CMD_WITH_VENDOR := KUBERNETES_CONFIG=`pwd`/config/test-kube-config.yaml POD_NAME=test go test -mod=vendor --cover --coverprofile=coverage.out `go list -mod=vendor ./... | grep -v e2e` > test-report.out
+UNIT_TEST_COVERAGE := go tool cover -html=coverage.out -o coverage.html
+GO_GENERATE_CMD := go generate `go list ./... | grep -v /vendor/`
+GO_LINT_CMD := golint `go list ./... | grep -v /vendor/`
+
 # environment dirs
-DEV_DIR := docker/circleci
+DEV_DIR := docker/gitlab
 APP_DIR := build/Dockerfile
 
 # The default action of this Makefile is to build the development docker image
@@ -133,6 +146,15 @@ ifdef PUSHLATEST
 	docker tag $(REPOSITORY):$(VERSION) $(REPOSITORY):latest
 endif
 
+# Build the docker development environment
+build-ci-image: deps-development
+	docker build --cache-from $(BUILD_IMAGE):latest \
+	  --build-arg OPERATOR_SDK_VERSION=$(OPERATOR_SDK_VERSION) \
+		-t $(BUILD_IMAGE):latest \
+		-t $(BUILD_IMAGE):$(OPERATOR_SDK_VERSION) \
+		-f $(DEV_DIR)/Dockerfile \
+		.
+
 push-ci-image: deps-development
 	docker push $(BUILD_IMAGE):$(OPERATOR_SDK_VERSION)
 ifdef PUSHLATEST
@@ -190,6 +212,23 @@ release: tag image publish
 deploy: generate
 	kubectl apply -f deploy/crds/nifi.orange.com_nificlusters_crd.yaml
 	kubectl apply -f deploy/.
+
+# Test stuff in dev
+docker-unit-test:
+	docker run --env GO111MODULE=on --rm -v $(PWD):$(WORKDIR) -v $(GOPATH)/pkg/mod:/go/pkg/mod -v $(shell go env GOCACHE):/root/.cache/go-build $(BUILD_IMAGE):$(OPERATOR_SDK_VERSION) /bin/bash -c '$(UNIT_TEST_CMD); cat test-report.out; $(UNIT_TEST_COVERAGE)'
+
+docker-unit-test-with-vendor:
+	docker run --env GO111MODULE=on --rm -v $(PWD):$(WORKDIR) -v $(GOPATH)/pkg/mod:/go/pkg/mod -v $(shell go env GOCACHE):/root/.cache/go-build $(BUILD_IMAGE):$(OPERATOR_SDK_VERSION) /bin/bash -c '$(UNIT_TEST_CMD_WITH_VENDOR); cat test-report.out; $(UNIT_TEST_COVERAGE)'
+
+unit-test:
+	$(UNIT_TEST_CMD) && echo "success!" || { echo "failure!"; cat test-report.out; exit 1; }
+	cat test-report.out
+	$(UNIT_TEST_COVERAGE)
+
+unit-test-with-vendor:
+	$(UNIT_TEST_CMD_WITH_VENDOR) && echo "success!" || { echo "failure!"; cat test-report.out; exit 1; }
+	cat test-report.out
+	$(UNIT_TEST_COVERAGE)
 
 # golint is not fully supported by modules yet - https://github.com/golang/lint/issues/409
 go-lint:
