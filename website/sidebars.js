@@ -23,7 +23,7 @@ module.exports = {
                         "2_setup/2_platform_setup/1_gke",
                         "2_setup/2_platform_setup/2_minikube",
 //                    "2_setup/2_platform_setup/3_microk8s",
-                        //                   "2_setup/2_platform_setup/4_docker_desktop",
+//                   "2_setup/2_platform_setup/4_docker_desktop",
                     ]
                 },
                 {
@@ -64,6 +64,16 @@ module.exports = {
                 "6_contributing/2_reporting_bugs",
                 "6_contributing/3_credits",
             ],
+            "DFY Orange": [
+                "7_dfy_orange/1_getting_started",
+                {
+                    "type" : "category",
+                    "label": "Platform Setup",
+                    "items"  : [
+                        "7_dfy_orange/2_platform_setup/1_pic",
+                        "7_dfy_orange/2_platform_setup/2_rickaastley",
+                    ]
+                },
+            ]
         }
-
 };

@@ -109,8 +109,7 @@ exec bin/nifi.sh run
 			InitContainers: append(initContainers, []corev1.Container{
 				{
 					Name: 		"zookeeper",
-					// @TODO: replace with dynamic value
-					Image:		"busybox",
+					Image:		r.NifiCluster.Spec.GetInitContainerImage(),
 					Command: 	[]string{"sh", "-c",fmt.Sprintf(`
 						echo trying to contact %s
 						until nc -vzw 1 %s %s; do

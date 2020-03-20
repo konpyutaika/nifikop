@@ -40,6 +40,10 @@ spec:
                 use headlessService for Nifi or individual services using service
                 per nodes may come an handy case of service mesh.
               type: boolean
+            initContainerImage:
+              description: initContainerImage can override the default image used
+                into the init container to check if ZoooKeeper server is reachable.
+              type: string
             ldapConfiguration:
               description: LdapConfiguration specifies the configuration if you want
                 to use LDAP

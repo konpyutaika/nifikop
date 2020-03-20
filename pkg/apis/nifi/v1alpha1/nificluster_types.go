@@ -34,6 +34,9 @@ type NifiClusterSpec struct {
 	// zKPath specifies the Zookeeper chroot path as part
 	// of its Zookeeper connection string which puts its data under same path in the global ZooKeeper namespace.
 	ZKPath 					string 					`json:"zkPath,omitempty"`
+	// initContainerImage can override the default image used into the init container to check if
+	// ZoooKeeper server is reachable.
+	InitContainerImage		string					`json:"initContainerImage,omitempty"`
 	// clusterImage can specify the whole nificluster image in one place
 	ClusterImage			string					`json:"clusterImage,omitempty"`
 	// readOnlyConfig specifies the read-only type Nifi config cluster wide, all theses
@@ -316,6 +319,14 @@ func (nSpec *NifiClusterSpec) GetZkPath() string {
 	} else {
 		return nSpec.ZKPath
 	}
+}
+
+func (nSpec *NifiClusterSpec) GetInitContainerImage() string {
+
+	if nSpec.InitContainerImage == "" {
+		return "busybox"
+	}
+	return nSpec.InitContainerImage
 }
 
 func (nTaskSpec *NifiClusterTaskSpec) GetDurationMinutes() float64 {

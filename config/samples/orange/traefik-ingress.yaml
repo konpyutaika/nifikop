@@ -1,0 +1,14 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: simplenifi-ingress
+  namespace: nifikop
+spec:
+  rules:
+    - host: simplenifi.dev.k8s.m1.orangeportails.net
+      http:
+        paths:
+          - backend:
+              serviceName: simplenifi
+              servicePort: 8080
+            path: /
