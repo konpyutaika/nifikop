@@ -1,0 +1,4 @@
+tdep=$(kubectl get deployment nifikop -o jsonpath='{..metadata.name}') ; \
+echo kubectl get deployment -l name=nifikop -o jsonpath='{..metadata.name}' ; \
+echo telepresence --swap-deployment $tdep --mount=/tmp/known --env-file nifikop.env $1 $2 ; \
+telepresence --swap-deployment $tdep --mount=/tmp/known --env-file nifikop.env $1 $2

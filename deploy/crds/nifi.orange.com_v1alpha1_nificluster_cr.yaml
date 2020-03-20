@@ -1,0 +1,150 @@
+apiVersion: nifi.orange.com/v1alpha1
+kind: NifiCluster
+metadata:
+  name: nifi
+spec:
+  nifiClusterTaskSpec:
+    retryDurationMinutes: 10
+  # Specify if the cluster should use headlessService for Nifi or individual services
+  # using service/node may come in handy in case of service mesh
+  headlessServiceEnabled: true
+  # Specify the zookeeper addresses where the Nifi should store it's metadata
+  zkAddresse: "zookeepercluster-client.zookeeper:2181"
+  # Specify the zookeeper path where the Nifi related metadatas should be placed
+  # By default it is bound to "/" and can be left blank
+  zkPath: "/nifi-cluster"
+  ldapConfiguration:
+    enabled: false
+    url: "http:toto.com"
+    searchBase: "base"
+    searchFilter: "filter"
+  # oneNifiNodePerNode if set to true every nifi node is started on a new node, if there is not enough node to do that
+  # it will stay in pending state. If set to false the operator also tries to schedule the nifi node to a unique node
+  # but if the node number is insufficient the nifi nodes will be scheduled to a node where a nifi node is already running.
+  oneNifiNodePerNode: false
+  # Specify the Nifi Node related settings
+  # clusterImage can specify the whole nificluster image in one place
+  clusterImage: "apache/nifi:1.11.1"
+  # readOnlyConfig specifies the read-only type nifi config cluster wide, all these will be merged with node specified
+  # readOnly configurations, so it can be overwritten per node.
+  readOnlyConfig:
+    nifiProperties:
+      overrideConfigs: |
+        # nifi.web.http.network.interface.lo=lo
+        plop=toto
+    zookeeperProperties:
+      overrideConfigs: |
+        pop=toto
+  # rollingUpgradeConfig specifies the rolling upgrade config for the cluster
+  rollingUpgradeConfig:
+    # failureThreshold states that how many errors can the cluster tolerate during rolling upgrade
+    failureThreshold: 5
+  # nodeConfigGroups specifies multiple node configs with unique name
+  nodeConfigGroups:
+    # Specify desired group name (eg., 'default_group')
+    default_group:
+      # all the brokerConfig settings are available here
+      storageConfigs:
+        - mountPath: "/opt/nifi/nifi-current/logs"
+          name: logs
+          isProvenanceStorage: false
+          pvcSpec:
+            accessModes:
+              - ReadWriteOnce
+            storageClassName: "standard"
+            resources:
+              requests:
+                storage: 10Gi
+        - mountPath: "/opt/nifi/provenance_repository"
+          name: provenance-repository
+          isProvenanceStorage: false
+          pvcSpec:
+            accessModes:
+              - ReadWriteOnce
+            storageClassName: "standard"
+            resources:
+              requests:
+                storage: 10Gi
+  # All Node requires an image, unique id, and storageConfigs settings
+  nodes:
+    # Unique node id
+    - id: 0
+      # nodeConfigGroup can be used to ease the node configuration, if set no only the id is required
+      nodeConfigGroup: "default_group"
+      # readOnlyConfig can be used to pass Kafka config https://kafka.apache.org/documentation/#brokerconfigs
+      # which has type read-only these config changes will trigger rolling upgrade
+      readOnlyConfig:
+        nifiProperties:
+          overrideConfigs: |
+            plop=tata
+          siteToSiteSecure: false
+        zookeeperProperties:
+          overrideConfigs: |
+            pop=tata
+        bootstrapProperties:
+          nifiJvmMemory: "256m"
+          overrideConfigs: |
+            plop=tata
+      #nodeConfig:
+        # Docker image used by the operator to create the Node with id 0
+        #image: "apache/nifi:1.11.0"
+        # resourceRequirements works exactly like Container resources, the user can specify the limit and the requests
+        # through this property
+        #resourceRequirements:
+        #  limits:
+        #    memory: "300Mi"
+        #    cpu: "200m"
+        #  requests:
+        #    memory: "300Mi"
+        #    cpu: "200m"
+        # nodeAffinity can be specified, operator populates this value if new pvc added later to nodes
+        # nodeAffinity:
+        # nodeSelector can be specified, which set the pod to fit on a node
+        # nodeSelector:
+        # tolerations can be specified, which set the pod's tolerations
+        # tolerations:
+        # serviceAccountName specifies the serviceAccount used for this specific node
+        #serviceAccountName: "nifi"
+        # imagePullSecrets specifies the secret to use when using private registry
+        #imagePullSecrets: "k8ssecret"
+        # kafkaHeapOpts specifies the jvm heap size for the broker
+        #kafkaHeapOpts: "-Xmx4G -Xms4G"
+        # kafkaJvmPerfOpts specifies the jvm performance configs for the broker
+        #kafkaJvmPerfOpts: "-server -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:InitiatingHeapOccupancyPercent=35 -XX:+ExplicitGCInvokesConcurrent -Djava.awt.headless=true -Dsun.net.inetaddr.ttl=60"
+    # listenersConfig specifies kafka's listener specific configs
+  listenersConfig:
+    # externalListeners specifies settings required to access nifi externally
+    externalListeners:
+      # type defines the used security type ssl, plaintext are the two supported ones
+      - type: "ssl"
+        # Kafka enables to name your listeners
+        name: "external"
+        # Operator uses a single LoadBalancer and an Envoy proxy to enable external access
+        # to differentiate between brokers we are using ports, with externalStartingPort
+        # the user can specify the starting port where the first broker will be available
+        externalStartingPort: 19090
+        # containerPort describes what port should be used by the broker to handle the communication
+        # originates from outside of the cluster
+        containerPort: 8090
+    # internalListeners specifies settings required to access kafka externally
+    internalListeners:
+      # type defines the used security type ssl, plaintext are the two supported ones
+      - type: "http"
+        # Kafka enables to name your listeners because of a bug only ssl and plaintext can be used
+        name: "http"
+        # containerPort describes what port should be used by the broker to handle the communication
+        # originates from inside of the cluster
+        containerPort: 8080
+      # type defines the used security type ssl, plaintext are the two supported ones
+      - type: "cluster"
+        # Kafka enables to name your listeners because of a bug only ssl and plaintext can be used
+        name: "cluster"
+        # containerPort describes what port should be used by the broker to handle the communication
+        # originates from inside of the cluster
+        containerPort: 6007
+      - type: "s2s"
+        # Kafka enables to name your listeners because of a bug only ssl and plaintext can be used
+        name: "s2s"
+        # containerPort describes what port should be used by the broker to handle the communication
+        # originates from inside of the cluster
+        containerPort: 10000

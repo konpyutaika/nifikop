@@ -1,0 +1,52 @@
+apiVersion: nifi.orange.com/v1alpha1
+kind: NifiCluster
+metadata:
+  name: simplenifi
+spec:
+  headlessServiceEnabled: true
+  zkAddresse: "zookeepercluster-client.zookeeper:2181"
+  zkPath: "/simplenifi"
+  clusterImage: "apache/nifi:1.11.3"
+  oneNifiNodePerNode: false
+  nodeConfigGroups:
+    default_group:
+      isNode: true
+      storageConfigs:
+        - mountPath: "/opt/nifi/nifi-current/logs"
+          name: logs
+          pvcSpec:
+            accessModes:
+              - ReadWriteOnce
+            storageClassName: "standard"
+            resources:
+              requests:
+                storage: 10Gi
+      serviceAccountName: "default"
+      resourcesRequirements:
+        limits:
+          cpu: "2"
+          memory: 3Gi
+        requests:
+          cpu: "1"
+          memory: 1Gi
+  nodes:
+    - id: 0
+      nodeConfigGroup: "default_group"
+    - id: 1
+      nodeConfigGroup: "default_group"
+    - id: 2
+      nodeConfigGroup: "default_group"
+  propagateLabels: true
+  nifiClusterTaskSpec:
+    retryDurationMinutes: 10
+  listenersConfig:
+    internalListeners:
+      - type: "http"
+        name: "http"
+        containerPort: 8080
+      - type: "cluster"
+        name: "cluster"
+        containerPort: 6007
+      - type: "s2s"
+        name: "s2s"
+        containerPort: 10000
