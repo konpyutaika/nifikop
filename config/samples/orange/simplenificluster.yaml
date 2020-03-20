@@ -7,7 +7,7 @@ spec:
   zkAddresse: "zookeepercluster-client.zookeeper:2181"
   zkPath: "/simplenifi"
   clusterImage: registry.gitlab.si.francetelecom.fr/dfyarchicloud/dfyarchicloud-registry/apache/nifi:1.11.3
-  initContainerImage:
+  initContainerImage: registry.gitlab.si.francetelecom.fr/dfyarchicloud/dfyarchicloud-registry/busybox:latest
   oneNifiNodePerNode: false
   nodeConfigGroups:
     default_group:
