@@ -35,13 +35,13 @@ var clusterUsersFinalizer = "users.nificlusters.nifi.orange.com"
 
 // Add creates a new NifiCluster Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
-func Add(mgr manager.Manager) error {
-	return add(mgr, newReconciler(mgr))
+func Add(mgr manager.Manager, namespaces []string) error {
+	return add(mgr, newReconciler(mgr, namespaces))
 }
 
 // newReconciler returns a new reconcile.Reconciler
-func newReconciler(mgr manager.Manager) reconcile.Reconciler {
-	return &ReconcileNifiCluster{client: mgr.GetClient(), scheme: mgr.GetScheme()}
+func newReconciler(mgr manager.Manager, namespaces []string) reconcile.Reconciler {
+	return &ReconcileNifiCluster{client: mgr.GetClient(), scheme: mgr.GetScheme(), DirectClient: mgr.GetAPIReader(), Namespaces: namespaces}
 }
 
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
@@ -96,8 +96,10 @@ var _ reconcile.Reconciler = &ReconcileNifiCluster{}
 type ReconcileNifiCluster struct {
 	// This client, initialized using mgr.Client() above, is a split client
 	// that reads objects from the cache and writes to the apiserver
-	client client.Client
-	scheme *runtime.Scheme
+	client 			client.Client
+	DirectClient 	client.Reader
+	scheme 			*runtime.Scheme
+	Namespaces		[]string
 }
 
 // Reconcile reads that state of the cluster for a NifiCluster object and makes changes based on the state read
@@ -137,7 +139,7 @@ func (r *ReconcileNifiCluster) Reconcile(request reconcile.Request) (reconcile.R
 	}
 
 	reconcilers := []resources.ComponentReconciler{
-		nifi.New(r.client, r.scheme, instance),
+		nifi.New(r.client, r.DirectClient, r.scheme, instance),
 	}
 
 	for _, rec := range reconcilers {
@@ -208,10 +210,20 @@ func (r *ReconcileNifiCluster) checkFinalizers(ctx context.Context, log logr.Log
 
 	var err error
 
-	// Fetch a list of all namespaces for DeleteAllOf requests
-	var namespaces corev1.NamespaceList
-	if err := r.client.List(ctx, &namespaces); err != nil {
-		return common.RequeueWithError(log, "failed to get namespace list", err)
+	var namespaces []string
+	if r.Namespaces == nil {
+		// Fetch a list of all namespaces for DeleteAllOf requests
+		namespaces = make([]string, 0)
+		var namespaceList corev1.NamespaceList
+		if err := r.client.List(ctx, &namespaceList); err != nil {
+			return common.RequeueWithError(log, "failed to get namespace list", err)
+		}
+		for _, ns := range namespaceList.Items {
+			namespaces = append(namespaces, ns.Name)
+		}
+	} else {
+		// use configured namespaces
+		namespaces = r.Namespaces
 	}
 
 	if cluster.Spec.ListenersConfig.SSLSecrets != nil {
@@ -219,17 +231,17 @@ func (r *ReconcileNifiCluster) checkFinalizers(ctx context.Context, log logr.Log
 		// with the matching label.
 		if util.StringSliceContains(cluster.GetFinalizers(), clusterUsersFinalizer) {
 			log.Info(fmt.Sprintf("Sending delete nifiusers request to all namespaces for cluster %s/%s", cluster.Namespace, cluster.Name))
-			for _, ns := range namespaces.Items {
+			for _, ns := range namespaces {
 				if err := r.client.DeleteAllOf(
 					ctx,
 					&v1alpha1.NifiUser{},
-					client.InNamespace(ns.Name),
+					client.InNamespace(ns),
 					client.MatchingLabels{common.ClusterRefLabel: common.ClusterLabelString(cluster)},
 				); err != nil {
 					if client.IgnoreNotFound(err) != nil {
 						return common.RequeueWithError(log, "failed to send delete request for children nifiusers", err)
 					}
-					log.Info(fmt.Sprintf("No matching kafkausers in namespace: %s", ns.Name))
+					log.Info(fmt.Sprintf("No matching kafkausers in namespace: %s", ns))
 				}
 			}
 			if cluster, err = r.removeFinalizer(ctx, cluster, clusterUsersFinalizer); err != nil {
@@ -239,7 +251,7 @@ func (r *ReconcileNifiCluster) checkFinalizers(ctx context.Context, log logr.Log
 
 		// Do any necessary PKI cleanup - a PKI backend should make sure any
 		// user finalizations are done before it does its final cleanup
-		log.Info("Tearing down any PKI resources for the kafkacluster")
+		log.Info("Tearing down any PKI resources for the nificluster")
 		if err = pki.GetPKIManager(r.client, cluster).FinalizePKI(ctx, log); err != nil {
 			switch err.(type) {
 			case errorfactory.ResourceNotReady:

@@ -262,6 +262,40 @@ var EmptyAuthorizersTemplate = `<?xml version="1.0" encoding="UTF-8" standalone=
 
 var AuthorizersTemplate = `{{- $nodeList := .NodeList }}
 {{- $clusterName := .ClusterName }}
+{{- $namespace := .Namespace }}<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<authorizers>
+    <userGroupProvider>
+        <identifier>file-user-group-provider</identifier>
+        <class>org.apache.nifi.authorization.FileUserGroupProvider</class>
+        <property name="Users File">./conf/users.xml</property>
+        <property name="Legacy Authorized Users File"></property>
+        <property name="Initial User Identity admin">aguitton.ext@orange.com</property>
+{{- range $i, $host := .NodeList }}
+        <property name="Initial User Identity {{ $i }}">{{ $host }}</property>
+{{- end }}
+    </userGroupProvider>
+    <accessPolicyProvider>
+        <identifier>file-access-policy-provider</identifier>
+        <class>org.apache.nifi.authorization.FileAccessPolicyProvider</class>
+        <property name="User Group Provider">file-user-group-provider</property>
+        <property name="Authorizations File">./conf/authorizations.xml</property>
+        <property name="Initial Admin Identity">aguitton.ext@orange.com</property>
+        <property name="Legacy Authorized Users File"></property>
+{{- range $i, $host := .NodeList }}
+        <property name="Initial User Identity {{ $i }}">{{ $host }}</property>
+{{- end }}
+    </accessPolicyProvider>
+    <authorizer>
+        <identifier>managed-authorizer</identifier>
+        <class>org.apache.nifi.authorization.StandardManagedAuthorizer</class>
+        <property name="Access Policy Provider">file-access-policy-provider</property>
+    </authorizer>
+</authorizers>
+`
+
+/*
+{{- $nodeList := .NodeList }}
+{{- $clusterName := .ClusterName }}
 {{- $namespace := .Namespace }}
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!--
@@ -307,11 +341,16 @@ var AuthorizersTemplate = `{{- $nodeList := .NodeList }}
         <class>org.apache.nifi.authorization.FileUserGroupProvider</class>
         <property name="Users File">./conf/users.xml</property>
         <property name="Legacy Authorized Users File"></property>
+<!--
 {{- range $i, $host := .NodeList }}
         <property name="Initial User Identity {{ $i }}">CN={{ $host }}, OU=NIFI</property>
 {{- end }}
+-->
+{{- range $i, $host := .NodeList }}
+        <property name="Initial User Identity {{ $i }}">{{ $host }}</property>
+{{- end }}
 
-        <property name="Initial User Identity admin">CN=admin, OU=NIFI</property>
+        <property name="Initial User Identity admin">aguitton.ext@orange.com</property>
     </userGroupProvider>
     <!--
         The LdapUserGroupProvider will retrieve users and groups from an LDAP server. The users and groups
@@ -478,11 +517,16 @@ var AuthorizersTemplate = `{{- $nodeList := .NodeList }}
         <class>org.apache.nifi.authorization.FileAccessPolicyProvider</class>
         <property name="User Group Provider">file-user-group-provider</property>
         <property name="Authorizations File">./conf/authorizations.xml</property>
-        <property name="Initial Admin Identity">CN=admin, OU=NIFI</property>
+        <property name="Initial Admin Identity">aguitton.ext@orange.com</property>
         <property name="Legacy Authorized Users File"></property>
-{{- range $node := $nodeList }}
+<!--{{- range $node := $nodeList }}
         <property name="Node Identity {{ $node }}">CN={{ $nodeList }}.{{ $clusterName }}-headless.{{ $namespace }}.svc.cluster.local, OU=NIFI</property>
 {{- end }}
+-->
+{{- range $i, $host := .NodeList }}
+        <property name="Initial User Identity {{ $i }}">{{ $host }}</property>
+{{- end }}
+
     </accessPolicyProvider>
      <!--
         The StandardManagedAuthorizer. This authorizer implementation must be configured with the
@@ -530,4 +574,4 @@ var AuthorizersTemplate = `{{- $nodeList := .NodeList }}
     </authorizer>
     -->
 </authorizers>
-`
+ */

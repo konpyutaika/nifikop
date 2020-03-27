@@ -32,7 +32,7 @@ var log = logf.Log.WithName("controller_nificlustertask")
 
 // Add creates a new NifiCluster Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
-func Add(mgr manager.Manager) error {
+func Add(mgr manager.Manager, namespaces []string) error {
 	return add(mgr, newReconciler(mgr))
 }
 

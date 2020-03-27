@@ -28,6 +28,12 @@ spec:
 {{- if .Values.rbacEnable }}
       serviceAccountName: {{ template "nifikop.name" . }}
 {{- end }}
+      {{- if .Values.vaultSecret }}
+      volumes:
+        - name: {{ .Values.vaultSecret }}
+          secret:
+            secretName: {{ .Values.vaultSecret }}
+      {{- end }}
       securityContext:
         runAsUser: 1000
       containers:
@@ -36,6 +42,11 @@ spec:
           imagePullPolicy: "{{ .Values.image.pullPolicy }}"
           command:
             - nifikop
+          args:
+            - --cert-manager-namespace={{ .Values.certManager.namespace }}
+            {{- if .Values.namespaces }}
+            - --namespaces={{ .Values.namespaces }}
+            {{- end }}
           readinessProbe:
             exec:
               command:
@@ -55,7 +66,21 @@ spec:
                   fieldPath: metadata.name
             - name: OPERATOR_NAME
               value: "nifikop"
-{{- if .Values.debug.enable }}
+            {{- if .Values.vaultAddress }}
+            - name: VAULT_ADDR
+              value: {{ .Values.vaultAddress }}
+            {{- end }}
+            {{- if .Values.vaultSecret }}
+            - name: VAULT_CACERT
+              value: /etc/vault/certs/ca.crt
+            {{- end }}
+            {{- if .Values.debug.enable }}
             - name: LOG_LEVEL
               value: Debug
-        {{- end }}
+            {{- end }}
+          volumeMounts:
+            {{- if .Values.vaultSecret }}
+            - mountPath: /etc/vault/certs
+              name: {{ .Values.vaultSecret }}
+              readOnly: true
+            {{- end }}

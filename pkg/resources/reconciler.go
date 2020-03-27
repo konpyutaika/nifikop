@@ -11,6 +11,7 @@ import (
 // Reconciler holds CR for Nifi
 type Reconciler struct {
 	client.Client
+	DirectClient client.Reader
 	NifiCluster *v1alpha1.NifiCluster
 }
 

@@ -3,18 +3,20 @@ package nificluster
 import (
 	"context"
 	"reflect"
+	"time"
 
 	"emperror.dev/errors"
-	"github.com/erdrix/nifikop/pkg/pki"
-	pkicommon "github.com/erdrix/nifikop/pkg/util/pki"
-	"github.com/go-logr/logr"
+	certv1 "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha2"
+
 	v1alpha1 "github.com/erdrix/nifikop/pkg/apis/nifi/v1alpha1"
 	common "github.com/erdrix/nifikop/pkg/controller/common"
 	"github.com/erdrix/nifikop/pkg/errorfactory"
 	"github.com/erdrix/nifikop/pkg/k8sutil"
+	"github.com/erdrix/nifikop/pkg/pki"
+	pkicommon "github.com/erdrix/nifikop/pkg/util/pki"
+	"github.com/go-logr/logr"
 
 	"github.com/erdrix/nifikop/pkg/util"
-	certv1 "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha2"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -26,7 +28,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
-	"time"
 )
 
 var log = logf.Log.WithName("controller_nifiuser")
@@ -36,7 +37,7 @@ var userFinalizer =  "finalizer.nifiusers.nifi.orange.com"
 
 // Add creates a new NifiCluster Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
-func Add(mgr manager.Manager) error {
+func Add(mgr manager.Manager, namespaces []string) error {
 	return add(mgr, newReconciler(mgr))
 }
 
@@ -83,6 +84,12 @@ type ReconcileNifiUser struct {
 	client client.Client
 	scheme *runtime.Scheme
 }
+
+// +kubebuilder:rbac:groups=nifi.orange.com,resources=nifiusers,verbs=get;list;watch;create;update;patch;delete;deletecollection
+// +kubebuilder:rbac:groups=nifi.orange.com,resources=nifiusers/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=cert-manager.io,resources=certificates,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=cert-manager.io,resources=issuers,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=cert-manager.io,resources=clusterissuers,verbs=get;list;watch;create;update;patch;delete
 
 // Reconcile reads that state of the cluster for a NifiUser object and makes changes based on the state read
 // and what is in the NifiUser.Spec

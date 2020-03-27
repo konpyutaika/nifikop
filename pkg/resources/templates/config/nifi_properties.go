@@ -149,20 +149,22 @@ nifi.sensitive.props.algorithm=PBEWITHMD5AND256BITAES-CBC-OPENSSL
 nifi.sensitive.props.provider=BC
 nifi.sensitive.props.additional.keys=
 
-nifi.security.keystore=
-nifi.security.keystoreType=jks
-nifi.security.keystorePasswd=
+{{ if .NifiCluster.Spec.ListenersConfig.SSLSecrets }}
+nifi.security.keystore={{ .ServerKeystorePath }}/{{ .KeystoreFile }}
+nifi.security.keystoreType=JKS
+nifi.security.keystorePasswd={{ .ServerKeystorePassword }}
 nifi.security.keyPasswd=
-nifi.security.truststore=
-nifi.security.truststoreType=jks
-nifi.security.truststorePasswd=
-nifi.security.needClientAuth={{.NeedClientAuth}}
-nifi.security.user.authorizer={{.Authorizer}}
-    {{if .LdapConfiguration.Enabled}}
+nifi.security.truststore=/home/nifi/truststore.jks
+nifi.security.truststoreType=JKS
+nifi.security.truststorePasswd={{ .ServerKeystorePassword }}
+{{ end }}
+nifi.security.needClientAuth={{ .NeedClientAuth }}
+nifi.security.user.authorizer={{ .Authorizer }}
+{{if .LdapConfiguration.Enabled}}
 nifi.security.user.login.identity.provider=ldap-provider
-    {{else}}
+{{else}}
 nifi.security.user.login.identity.provider=
-    {{end}}
+{{end}}
 nifi.security.ocsp.responder.url=
 nifi.security.ocsp.responder.certificate=
 
@@ -192,7 +194,7 @@ nifi.security.user.knox.audiences=
 
 # cluster common properties (all nodes must have same values) #
 nifi.cluster.protocol.heartbeat.interval=5 sec
-nifi.cluster.protocol.is.secure={{.ClusterSecure}}
+nifi.cluster.protocol.is.secure={{ .ClusterSecure }}
 
 # cluster node properties (only configure for cluster nodes) #
 

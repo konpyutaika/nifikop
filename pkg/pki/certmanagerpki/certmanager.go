@@ -22,10 +22,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-var namespaceCertManager string
+var NamespaceCertManager string
 
 func init() {
-	flag.StringVar(&namespaceCertManager, "cert-manager-namespace", "cert-manager", "The namespace where cert-manager is running")
+	flag.StringVar(&NamespaceCertManager, "cert-manager-namespace", "cert-manager", "The namespace where cert-manager is running")
 }
 
 type CertManager interface {

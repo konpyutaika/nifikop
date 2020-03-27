@@ -15,7 +15,7 @@ The following tables lists the configurable parameters of the NiFi Operator Helm
 | Parameter                        | Description                                      | Default                                   |
 |----------------------------------|--------------------------------------------------|-------------------------------------------|
 | `image.repository`               | Image                                            | `orangeopensource/nifikop`                |
-| `image.tag`                      | Image tag                                        | `v0.0.1-release`                            |
+| `image.tag`                      | Image tag                                        | `v0.0.1-release`                          |
 | `image.pullPolicy`               | Image pull policy                                | `Always`                                  |
 | `image.imagePullSecrets.enabled` | Enable tue use of secret for docker image        | `false`                                   |
 | `image.imagePullSecrets.name`    | Name of the secret to connect to docker registry | -                                         |
@@ -23,7 +23,7 @@ The following tables lists the configurable parameters of the NiFi Operator Helm
 | `resources`                      | Pod resource requests & limits                   | `{}`                                      |
 | `metricService`                  | deploy service for metrics                       | `false`                                   |
 | `debug.enabled`                  | activate DEBUG log level                         | `false`                                   |
-
+| `namespaces`                     | List of namespaces where Operator watches for custom resources. Make sure the operator ServiceAccount is granted `get` permissions on this `Node` resource when using limited RBACs.| `""` i.e. all namespaces |
 
 Specify each parameter using the `--set key=value[,key=value]` argument to `helm install`. For example,
 

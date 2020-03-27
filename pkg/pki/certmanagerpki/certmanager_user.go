@@ -164,12 +164,15 @@ func (c *certManager) clusterCertificateForUser(user *v1alpha1.NifiUser, scheme 
 
 // getCA returns the CA name/kind for the NifiCluster
 func (c *certManager) getCA() (caName, caKind string) {
+	caKind = certv1.IssuerKind
 	issuerRef := c.cluster.Spec.ListenersConfig.SSLSecrets.IssuerRef
 	if issuerRef != nil {
 		caName = issuerRef.Name
 		caKind = issuerRef.Kind
 	} else {
-		caKind = certv1.ClusterIssuerKind
+		if c.cluster.Spec.ListenersConfig.SSLSecrets.ClusterScoped {
+			caKind = certv1.ClusterIssuerKind
+		}
 		caName = fmt.Sprintf(pkicommon.NodeIssuerTemplate, c.cluster.Name)
 	}
 	// TODO: Do we need to ensure this Issuer is exist?

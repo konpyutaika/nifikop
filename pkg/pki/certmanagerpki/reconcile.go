@@ -32,6 +32,9 @@ import (
 // reconcile ensures the given kubernetes object
 func reconcile(ctx context.Context, log logr.Logger, client client.Client, object runtime.Object, cluster *v1alpha1.NifiCluster) (err error) {
 	switch object.(type) {
+	case *certv1.Issuer:
+		issuer, _ := object.(*certv1.Issuer)
+		return reconcileIssuer(ctx, log, client, issuer, cluster)
 	case *certv1.ClusterIssuer:
 		issuer, _ := object.(*certv1.ClusterIssuer)
 		return reconcileClusterIssuer(ctx, log, client, issuer, cluster)
@@ -52,6 +55,19 @@ func reconcile(ctx context.Context, log logr.Logger, client client.Client, objec
 // reconcileClusterIssuer ensures a cert-manager ClusterIssuer
 func reconcileClusterIssuer(ctx context.Context, log logr.Logger, client client.Client, issuer *certv1.ClusterIssuer, cluster *v1alpha1.NifiCluster) error {
 	obj := &certv1.ClusterIssuer{}
+	var err error
+	if err = client.Get(ctx, types.NamespacedName{Name: issuer.Name, Namespace: issuer.Namespace}, obj); err != nil {
+		if !apierrors.IsNotFound(err) {
+			return err
+		}
+		return client.Create(ctx, issuer)
+	}
+	return nil
+}
+
+// reconcileIssuer ensures a cert-manager Issuer
+func reconcileIssuer(ctx context.Context, log logr.Logger, client client.Client, issuer *certv1.Issuer, cluster *v1alpha1.NifiCluster) error {
+	obj := &certv1.Issuer{}
 	var err error
 	if err = client.Get(ctx, types.NamespacedName{Name: issuer.Name, Namespace: issuer.Namespace}, obj); err != nil {
 		if !apierrors.IsNotFound(err) {

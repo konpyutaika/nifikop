@@ -3,21 +3,23 @@ package nifi
 import (
 	"bytes"
 	"fmt"
-	"github.com/go-logr/logr"
-	"github.com/imdario/mergo"
+	"sort"
+	"strings"
+	"text/template"
+
 	"github.com/erdrix/nifikop/pkg/apis/nifi/v1alpha1"
 	"github.com/erdrix/nifikop/pkg/resources/templates"
 	"github.com/erdrix/nifikop/pkg/resources/templates/config"
 	"github.com/erdrix/nifikop/pkg/util"
+	"github.com/erdrix/nifikop/pkg/util/pki"
+	"github.com/go-logr/logr"
+	"github.com/imdario/mergo"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"sort"
-	"strings"
-	"text/template"
 )
 
 func (r *Reconciler) configMap(id int32, nodeConfig *v1alpha1.NodeConfig, serverPass, clientPass string, superUsers []string,log logr.Logger) runtime.Object {
-	return &corev1.ConfigMap{
+	 configMap := &corev1.ConfigMap{
 		ObjectMeta: templates.ObjectMeta(
 			fmt.Sprintf(templates.NodeConfigTemplate+"-%d", r.NifiCluster.Name, id),
 			util.MergeLabels(
@@ -34,10 +36,13 @@ func (r *Reconciler) configMap(id int32, nodeConfig *v1alpha1.NodeConfig, server
 			"logback.xml": 							r.getLogbackConfigString(nodeConfig, id, log),
 			"bootstrap.conf": 						r.generateBootstrapPropertiesNodeConfig(id, nodeConfig, log),
 			"bootstrap-notification-servces.xml": 	r.getBootstrapNotificationServicesConfigString(nodeConfig, id, log),
-			// TODO : review with OPS and secure part.
-//			"authorizers.xml": 						r.getAuthorizersConfigString(nodeConfig, id, log),
 		},
 	}
+
+	if r.NifiCluster.Spec.ListenersConfig.SSLSecrets != nil && r.NifiCluster.Spec.ClusterSecure && r.NifiCluster.Spec.SiteToSiteSecure {
+		configMap.Data["authorizers.xml"] = r.getAuthorizersConfigString(nodeConfig, id, log)
+	}
+	return configMap
 }
 
 ////////////////////////////////////
@@ -104,8 +109,8 @@ func (r *Reconciler) getNifiPropertiesConfigString(nConfig *v1alpha1.NodeConfig,
 		"Id": 						id,
 		"ListenerConfig":			config.GenerateListenerSpecificConfig(&r.NifiCluster.Spec.ListenersConfig, id, r.NifiCluster.Namespace, r.NifiCluster.Name, r.NifiCluster.Spec.HeadlessServiceEnabled, log),
 		"ProvenanceStorage":		nConfig.GetProvenanceStorage(),
-		"SiteToSiteSecure": 		base.SiteToSiteSecure,
-		"ClusterSecure":			base.ClusterSecure,
+		"SiteToSiteSecure": 		r.NifiCluster.Spec.SiteToSiteSecure,
+		"ClusterSecure":			r.NifiCluster.Spec.ClusterSecure,
 		"WebProxyHost": 			base.WebProxyHost,
 		"NeedClientAuth": 			base.NeedClientAuth,
 		"Authorizer": 				base.GetAuthorizer(),
@@ -287,11 +292,13 @@ func (r *Reconciler) getAuthorizersConfigString(nConfig *v1alpha1.NodeConfig, id
 	nodeList = make(map[int32]string)
 
 	for _, node := range r.NifiCluster.Spec.Nodes {
-		if r.NifiCluster.Spec.HeadlessServiceEnabled {
+		/*if r.NifiCluster.Spec.HeadlessServiceEnabled {
 			nodeList[node.Id] = fmt.Sprintf("%s.%s-headless.%s.svc.cluster.local", fmt.Sprintf(templates.NodeNameTemplate,r.NifiCluster.Name, node.Id), r.NifiCluster.Name, r.NifiCluster.Namespace)
 		} else {
 			nodeList[node.Id]  = fmt.Sprintf("%s.%s.svc.cluster.local", fmt.Sprintf(templates.NodeNameTemplate,r.NifiCluster.Name, node.Id), r.NifiCluster.Namespace)
-		}
+		}*/
+
+		nodeList[node.Id] = pki.GetNodeUserName(r.NifiCluster, node.Id)
 	}
 
 	//sort.Strings(nodeList)

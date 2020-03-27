@@ -2,28 +2,29 @@ package nifi
 
 import (
 	"context"
-	"emperror.dev/errors"
 	"fmt"
+	"reflect"
+	"strings"
+
+	"emperror.dev/errors"
 	"github.com/banzaicloud/k8s-objectmatcher/patch"
 	"github.com/erdrix/nifikop/pkg/apis/nifi/v1alpha1"
 	"github.com/erdrix/nifikop/pkg/errorfactory"
 	"github.com/erdrix/nifikop/pkg/k8sutil"
+	"github.com/erdrix/nifikop/pkg/pki"
 	"github.com/erdrix/nifikop/pkg/resources"
 	"github.com/erdrix/nifikop/pkg/resources/templates"
 	"github.com/erdrix/nifikop/pkg/scale"
 	"github.com/erdrix/nifikop/pkg/util"
 	certutil "github.com/erdrix/nifikop/pkg/util/cert"
+	pkicommon "github.com/erdrix/nifikop/pkg/util/pki"
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"reflect"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"strings"
-	pkicommon "github.com/erdrix/nifikop/pkg/util/pki"
-
 )
 
 const(
@@ -51,12 +52,13 @@ func LabelsForNifi(name string) map[string]string {
 }
 
 // New creates a new reconciler for Nifi
-func New(client client.Client, scheme *runtime.Scheme, cluster *v1alpha1.NifiCluster) *Reconciler {
+func New(client client.Client, directClient client.Reader, scheme *runtime.Scheme, cluster *v1alpha1.NifiCluster) *Reconciler {
 	return &Reconciler{
 		Scheme: scheme,
 		Reconciler: resources.Reconciler{
-			Client:       client,
-			NifiCluster: cluster,
+			Client:       	client,
+			DirectClient: 	directClient,
+			NifiCluster:	cluster,
 		},
 	}
 }
@@ -110,22 +112,24 @@ func (r *Reconciler) Reconcile(log logr.Logger) error {
 		return errors.WrapIf(err, "failed to reconcile resource")
 	}
 
+	// TODO : manage external LB
+	lbIPs := make([]string, 0)
 	// Setup the PKI if using SSL
-	/*if r.NifiCluster.Spec.ListenersConfig.SSLSecrets != nil {
+	if r.NifiCluster.Spec.ListenersConfig.SSLSecrets != nil {
 		// reconcile the PKI
 		if err := pki.GetPKIManager(r.Client, r.NifiCluster).ReconcilePKI(context.TODO(), log, r.Scheme, lbIPs); err != nil {
 			return err
 		}
-	}*/
-
-	// We need to grab names for servers and client in case user is enabling ACLs
-	// That way we can continue to manage dataflows and users
-	serverPass, clientPass, superUsers, err := r.getServerAndClientDetails()
-	if err != nil {
-		return err
 	}
 
 	for _, node := range r.NifiCluster.Spec.Nodes {
+		// We need to grab names for servers and client in case user is enabling ACLs
+		// That way we can continue to manage dataflows and users
+		serverPass, clientPass, superUsers, err := r.getServerAndClientDetails(node.Id)
+		if err != nil {
+			return err
+		}
+
 		nodeConfig, err := util.GetNodeConfig(node, r.NifiCluster.Spec)
 		if err != nil {
 			return errors.WrapIf(err, "failed to reconcile resource")
@@ -283,6 +287,7 @@ OUTERLOOP:
 					}
 				}
 			}
+
 			err = k8sutil.UpdateNodeStatus(r.Client, []string{node.Labels["nodeId"]}, r.NifiCluster,
 			v1alpha1.GracefulActionState{
 				ActionStep: v1alpha1.RemovePodStatus,
@@ -317,11 +322,11 @@ func arePodsAlreadyDeleted(pods []corev1.Pod, log logr.Logger) bool {
 	return true
 }
 
-func (r *Reconciler) getServerAndClientDetails() (string, string, []string, error) {
+func (r *Reconciler) getServerAndClientDetails(nodeId int32) (string, string, []string, error) {
 	if r.NifiCluster.Spec.ListenersConfig.SSLSecrets == nil {
 		return "", "", []string{}, nil
 	}
-	serverName := types.NamespacedName{Name: fmt.Sprintf(pkicommon.NodeServerCertTemplate, r.NifiCluster.Name), Namespace: r.NifiCluster.Namespace}
+	serverName := types.NamespacedName{Name: fmt.Sprintf(pkicommon.NodeServerCertTemplate, r.NifiCluster.Name, nodeId), Namespace: r.NifiCluster.Namespace}
 	serverSecret := &corev1.Secret{}
 	if err := r.Client.Get(context.TODO(), serverName, serverSecret); err != nil {
 		if apierrors.IsNotFound(err) {
