@@ -59,6 +59,9 @@ func (r State) Complete() State {
 	}
 }
 
+// NifiAccessType hold info about Nifi ACL
+type NifiAccessType string
+
 // UserState defines the state of a KafkaUser
 type UserState string
 

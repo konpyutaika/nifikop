@@ -16,6 +16,7 @@ package common
 
 import (
 	"fmt"
+	"github.com/erdrix/nifikop/pkg/nificlient"
 	"github.com/go-logr/logr"
 	"github.com/erdrix/nifikop/pkg/apis/nifi/v1alpha1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -24,11 +25,12 @@ import (
 
 // clusterRefLabel is the label key used for referencing NifiUsers/NifiDataflow
 // to a NifiCluster
+
 var ClusterRefLabel = "nifiCluster"
 
 // newNifiFromCluster points to the function for retrieving nifi clients,
 // use as var so it can be overwritten from unit tests
-var newNifiFromCluster = kafkaclient.NewFromCluster
+var newNifiFromCluster = nificlient.NewFromCluster
 
 
 // requeueWithError is a convenience wrapper around logging an error message
@@ -54,7 +56,7 @@ func ClusterLabelString(cluster *v1alpha1.NifiCluster) string {
 
 // newNodeConnection is a convenience wrapper for creating a node connection
 // and creating a safer close function
-func NewNodeConnection(log logr.Logger, client client.Client, cluster *v1alpha1.NifiCluster) (node kafkaclient.KafkaClient, close func(), err error) {
+func NewNodeConnection(log logr.Logger, client client.Client, cluster *v1alpha1.NifiCluster) (node nificlient.NifiClient, close func(), err error) {
 
 	// Get a kafka connection
 	log.Info(fmt.Sprintf("Retrieving Kafka client for %s/%s", cluster.Namespace, cluster.Name))

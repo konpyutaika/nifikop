@@ -5,10 +5,14 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"github.com/operator-framework/operator-sdk/pkg/ready"
-	"github.com/sirupsen/logrus"
 	"os"
 	"runtime"
+	"strings"
+
+	certv1 "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha2"
+	"github.com/operator-framework/operator-sdk/pkg/ready"
+	"github.com/sirupsen/logrus"
+	"sigs.k8s.io/controller-runtime/pkg/cache"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
@@ -16,6 +20,7 @@ import (
 
 	"github.com/erdrix/nifikop/pkg/apis"
 	"github.com/erdrix/nifikop/pkg/controller"
+	certmanagerpki "github.com/erdrix/nifikop/pkg/pki/certmanagerpki"
 	"github.com/erdrix/nifikop/version"
 
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
@@ -51,6 +56,10 @@ func printVersion() {
 }
 
 func main() {
+	var namespaces string
+
+	flag.StringVar(&namespaces, "namespaces", "", "Comma separated list of namespaces where operator listens for resources")
+	flag.Parse()
 
 	// Add the zap logger flag set to the CLI. The flag set must
 	// be added before calling pflag.Parse().
@@ -74,10 +83,25 @@ func main() {
 
 	printVersion()
 
-	namespace, err := k8sutil.GetWatchNamespace()
-	if err != nil {
-		log.Error(err, "Failed to get watch namespace")
-		os.Exit(1)
+	managerWatchCache := (cache.NewCacheFunc)(nil)
+	var namespaceList []string
+	if namespaces == "" || namespaces != "*" {
+		namespaceList = append(namespaceList, certmanagerpki.NamespaceCertManager)
+	}
+	if namespaces == "" {
+		namespace, err := k8sutil.GetWatchNamespace()
+		if err != nil {
+			logrus.Error(err, "failed to get watch namespace")
+			os.Exit(1)
+		}
+		namespaceList = append(namespaceList, namespace)
+		managerWatchCache = cache.MultiNamespacedCacheBuilder(namespaceList)
+	} else if namespaces != "*" {
+		namespaceList = strings.Split(namespaces, ",")
+		for i := range namespaceList {
+			namespaceList[i] = strings.TrimSpace(namespaceList[i])
+		}
+		managerWatchCache = cache.MultiNamespacedCacheBuilder(namespaceList)
 	}
 
 	// Get a config to talk to the apiserver
@@ -109,7 +133,8 @@ func main() {
 
 	// Create a new Cmd to provide shared dependencies and start components
 	mgr, err := manager.New(cfg, manager.Options{
-		Namespace:          namespace,
+		//Namespace:          namespace,
+		NewCache: 			managerWatchCache,
 		MetricsBindAddress: fmt.Sprintf("%s:%d", metricsHost, metricsPort),
 	})
 	if err != nil {
@@ -118,21 +143,25 @@ func main() {
 	}
 
 	log.Info("Registering Components.")
-
 	// Setup Scheme for all resources
 	if err := apis.AddToScheme(mgr.GetScheme()); err != nil {
 		log.Error(err, "")
 		os.Exit(1)
 	}
 
+	if err := certv1.AddToScheme(mgr.GetScheme()); err != nil {
+		log.Error(err, "")
+		os.Exit(1)
+	}
+
 	// Setup all Controllers
-	if err := controller.AddToManager(mgr); err != nil {
+	if err := controller.AddToManager(mgr, namespaceList); err != nil {
 		log.Error(err, "")
 		os.Exit(1)
 	}
 
 	// Add the Metrics Service
-	addMetrics(ctx, cfg, namespace)
+	//addMetrics(ctx, cfg, namespace)
 
 	log.Info("Starting manager.")
 

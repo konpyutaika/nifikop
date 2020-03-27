@@ -58,6 +58,12 @@ type NifiClusterSpec struct {
 	VaultConfig         	VaultConfig         `json:"vaultConfig,omitempty"`
 	// NifiClusterTaskSpec specifies the configuration of the nifi cluster Tasks
 	NifiClusterTaskSpec 	NifiClusterTaskSpec		`json:"nifiClusterTaskSpec,omitempty"`
+	// Cluster nodes secure mode : https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#cluster_common_properties
+	// TODO : rework to define into internalListener ! (Note: if ssl enabled need Cluster & SiteToSite & Https port)
+	ClusterSecure		bool	`json:"clusterSecure,omitempty"`
+	// Site to Site properties Secure mode : https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#site_to_site_properties
+	// TODO : rework to define into internalListener !
+	SiteToSiteSecure	bool	`json:"siteToSiteSecure,omitempty"`
 }
 
 // rollingUpgradeConfig specifies the rolling upgrade config for the cluster
@@ -114,10 +120,6 @@ type NifiProperties struct {
 	// Additionnals nifi.properties configuration that will override the one produced based
 	// on template and configurations.
 	OverrideConfigs 	string	`json:"overrideConfigs,omitempty"`
-	// Site to Site properties Secure mode : https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#site_to_site_properties
-	SiteToSiteSecure	bool	`json:"siteToSiteSecure,omitempty"`
-	// Cluster nodes secure mode : https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#cluster_common_properties
-	ClusterSecure		bool	`json:"clusterSecure,omitempty"`
 	// A comma separated list of allowed HTTP Host header values to consider when NiFi
 	// is running securely and will be receiving requests to a different host[:port] than it is bound to.
 	// https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#web-properties
@@ -217,6 +219,9 @@ type SSLSecrets struct {
 	JKSPasswordName string 		`json:"jksPasswordName"`
 	// create tells the installed cert manager to create the required certs keys
 	Create          bool   		`json:"create,omitempty"`
+	// clusterScoped defines if the Issuer created is cluster or namespace scoped
+	ClusterScoped	bool		`json:"clusterScoped,omitempty"`
+	//
 	//
 	IssuerRef       *cmmeta.ObjectReference `json:"issuerRef,omitempty"`
 	// +kubebuilder:validation:Enum={"cert-manager","vault"}

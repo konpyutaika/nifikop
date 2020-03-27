@@ -49,7 +49,7 @@ func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev
 	volumeMount	= append(volumeMount, dataVolumeMount...)
 
 	if r.NifiCluster.Spec.ListenersConfig.SSLSecrets != nil {
-		volume = append(volume, generateVolumesForSSL(r.NifiCluster)...)
+		volume = append(volume, generateVolumesForSSL(r.NifiCluster, id)...)
 		volumeMount = append(volumeMount, generateVolumeMountForSSL()...)
 	}
 
@@ -86,7 +86,8 @@ cp ${NIFI_HOME}/tmp/* ${NIFI_HOME}/conf/
 exec bin/nifi.sh run
 `}
 
-
+// curl -kv --cert /var/run/secrets/java.io/keystores/client/tls.crt --key /var/run/secrets/java.io/keystores/client/tls.key https://nifi.trycatchlearn.fr:8433/nifi
+// keytool -import -noprompt -keystore /home/nifi/truststore.jks -file /var/run/secrets/java.io/keystores/server/ca.crt -storepass $(cat /var/run/secrets/java.io/keystores/server/password) -alias test1
 	pod := &corev1.Pod{
 		//ObjectMeta: templates.ObjectMetaWithAnnotations(
 		ObjectMeta: templates.ObjectMetaWithGeneratedNameAndAnnotations(
@@ -337,13 +338,13 @@ func GetServerPort(l *v1alpha1.ListenersConfig) int32 {
 	return httpServerPort
 }
 
-func generateVolumesForSSL(cluster *v1alpha1.NifiCluster) []corev1.Volume {
+func generateVolumesForSSL(cluster *v1alpha1.NifiCluster, nodeId int32) []corev1.Volume {
 	return []corev1.Volume{
 		{
 			Name: serverKeystoreVolume,
 			VolumeSource: corev1.VolumeSource{
 				Secret: &corev1.SecretVolumeSource{
-					SecretName:  fmt.Sprintf(pkicommon.NodeServerCertTemplate, cluster.Name),
+					SecretName:  fmt.Sprintf(pkicommon.NodeServerCertTemplate, cluster.Name, nodeId),
 					DefaultMode: util.Int32Pointer(0644),
 				},
 			},

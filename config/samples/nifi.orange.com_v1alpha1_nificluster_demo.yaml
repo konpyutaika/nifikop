@@ -14,6 +14,8 @@ spec:
   zkPath: "/myNiFi"
   # clusterImage can specify the whole nificluster image in one place
   clusterImage: "apache/nifi:1.11.2"
+  # Cluster nodes secure mode : https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#cluster_common_properties
+  clusterSecure: false
   # readOnlyConfig specifies the read-only type Nifi config cluster wide, all theses
   # will be merged with node specified readOnly configurations, so it can be overwritten per node.
   readOnlyConfig:
@@ -25,8 +27,6 @@ spec:
         nifi.ui.banner.text=NiFiKop by Orange
       # Site to Site properties Secure mode : https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#site_to_site_properties
       siteToSiteSecure: false
-      # Cluster nodes secure mode : https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#cluster_common_properties
-      clusterSecure: false
       # A comma separated list of allowed HTTP Host header values to consider when NiFi
       # is running securely and will be receiving requests to a different host[:port] than it is bound to.
       # https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#web-properties

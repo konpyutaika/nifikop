@@ -19,9 +19,9 @@ import (
 	"crypto/tls"
 	"fmt"
 
-	certutil "github.com/erdrix/nifikop/pkg/util/cert"
 	"github.com/erdrix/nifikop/pkg/apis/nifi/v1alpha1"
 	"github.com/erdrix/nifikop/pkg/resources/templates"
+	certutil "github.com/erdrix/nifikop/pkg/util/cert"
 	"github.com/erdrix/nifikop/pkg/util/nifi"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -31,9 +31,10 @@ const (
 	// NodeSelfSignerTemplate is the template used for self-signer resources
 	NodeSelfSignerTemplate = "%s-self-signer"
 	// NodeCACertTemplate is the template used for CA certificate resources
+
 	NodeCACertTemplate = "%s-ca-certificate"
 	// NodeServerCertTemplate is the template used for node certificate resources
-	NodeServerCertTemplate = "%s-server-certificate"
+	NodeServerCertTemplate = "%s-%d-server-certificate"
 	// NodeIssuerTemplate is the template used for node issuer resources
 	NodeIssuerTemplate = "%s-issuer"
 	// NodeControllerTemplate is the template used for operator certificate resources
@@ -49,9 +50,9 @@ const (
 
 // Manager is the main interface for objects performing PKI operations
 type Manager interface {
-	// ReconcilePKI ensures a PKI for a kafka cluster - should be idempotent.
+	// ReconcilePKI ensures a PKI for a nifi cluster - should be idempotent.
 	// This method should at least setup any issuer needed for user certificates
-	// as well as broker/cruise-control secrets
+	// as well as node secrets
 	ReconcilePKI(ctx context.Context, logger logr.Logger, scheme *runtime.Scheme, externalHostnames []string) error
 
 	// FinalizePKI performs any cleanup steps necessary for a PKI backend
@@ -89,14 +90,14 @@ func (u *UserCertificate) DN() string {
 	return cert.Subject.String()
 }
 
-// GetInternalDNSNames returns all potential DNS names for a kafka cluster - including brokers
-func GetInternalDNSNames(cluster *v1alpha1.NifiCluster) (dnsNames []string) {
+// GetInternalDNSNames returns all potential DNS names for a nifi cluster - including nodes
+func GetInternalDNSNames(cluster *v1alpha1.NifiCluster, nodeId int32) (dnsNames []string) {
 	dnsNames = make([]string, 0)
-	dnsNames = append(dnsNames, clusterDNSNames(cluster)...)
+	dnsNames = append(dnsNames, clusterDNSNames(cluster, nodeId)...)
 	return
 }
 
-// GetCommonName returns the full FQDN for the internal Kafka listener
+// GetCommonName returns the full FQDN for the internal NiFi listener
 func GetCommonName(cluster *v1alpha1.NifiCluster) string {
 	if cluster.Spec.HeadlessServiceEnabled {
 		return fmt.Sprintf("%s.%s.svc.cluster.local", fmt.Sprintf(nifi.HeadlessServiceTemplate, cluster.Name), cluster.Namespace)
@@ -104,49 +105,62 @@ func GetCommonName(cluster *v1alpha1.NifiCluster) string {
 	return fmt.Sprintf("%s.%s.svc.cluster.local", fmt.Sprintf(nifi.AllNodeServiceTemplate, cluster.Name), cluster.Namespace)
 }
 
-// clusterDNSNames returns all the possible DNS Names for a Kafka Cluster
-func clusterDNSNames(cluster *v1alpha1.NifiCluster) (names []string) {
+func GetNodeUserName(cluster *v1alpha1.NifiCluster, nodeId int32) string{
+	if cluster.Spec.HeadlessServiceEnabled {
+		return fmt.Sprintf("%s.%s.%s", fmt.Sprintf(templates.NodeNameTemplate, cluster.Name, nodeId), fmt.Sprintf(nifi.HeadlessServiceTemplate, cluster.Name), cluster.Namespace)
+	}
+	return fmt.Sprintf("%s.%s.%s", fmt.Sprintf(templates.NodeNameTemplate, cluster.Name, nodeId), fmt.Sprintf(nifi.AllNodeServiceTemplate, cluster.Name), cluster.Namespace)
+}
+
+// clusterDNSNames returns all the possible DNS Names for a NiFi Cluster
+func clusterDNSNames(cluster *v1alpha1.NifiCluster, nodeId int32) (names []string) {
 	names = make([]string, 0)
 	if cluster.Spec.HeadlessServiceEnabled {
 		// FQDN
-		names = append(names, fmt.Sprintf("*.%s", GetCommonName(cluster)))
-		names = append(names, GetCommonName(cluster))
+		//names = append(names, fmt.Sprintf("*.%s", GetCommonName(cluster)))
+		names = append(names, fmt.Sprintf("%s.%s", fmt.Sprintf(templates.NodeNameTemplate, cluster.Name, nodeId), GetCommonName(cluster)))
+		//names = append(names, GetCommonName(cluster))
 
 		// SVC notation
 		names = append(names,
-			fmt.Sprintf("*.%s.%s.svc", fmt.Sprintf(nifi.HeadlessServiceTemplate, cluster.Name), cluster.Namespace),
-			fmt.Sprintf("%s.%s.svc", fmt.Sprintf(nifi.HeadlessServiceTemplate, cluster.Name), cluster.Namespace),
+			//fmt.Sprintf("*.%s.%s.svc", fmt.Sprintf(nifi.HeadlessServiceTemplate, cluster.Name), cluster.Namespace),
+			fmt.Sprintf("%s.%s.%s.svc", fmt.Sprintf(templates.NodeNameTemplate, cluster.Name, nodeId), fmt.Sprintf(nifi.HeadlessServiceTemplate, cluster.Name), cluster.Namespace),
+			//fmt.Sprintf("%s.%s.svc", fmt.Sprintf(nifi.HeadlessServiceTemplate, cluster.Name), cluster.Namespace),
 		)
 
 		// Namespace notation
 		names = append(names,
-			fmt.Sprintf("*.%s.%s", fmt.Sprintf(nifi.HeadlessServiceTemplate, cluster.Name), cluster.Namespace),
-			fmt.Sprintf("%s.%s", fmt.Sprintf(nifi.HeadlessServiceTemplate, cluster.Name), cluster.Namespace),
+			//fmt.Sprintf("*.%s.%s", fmt.Sprintf(nifi.HeadlessServiceTemplate, cluster.Name), cluster.Namespace),
+			fmt.Sprintf("%s.%s.%s", fmt.Sprintf(templates.NodeNameTemplate, cluster.Name, nodeId), fmt.Sprintf(nifi.HeadlessServiceTemplate, cluster.Name), cluster.Namespace),
+			//fmt.Sprintf("%s.%s", fmt.Sprintf(nifi.HeadlessServiceTemplate, cluster.Name), cluster.Namespace),
 		)
 
 		// service name only
-		names = append(names,
-			fmt.Sprintf(nifi.HeadlessServiceTemplate, cluster.Name))
+		//names = append(names,
+		//	fmt.Sprintf(nifi.HeadlessServiceTemplate, cluster.Name))
 	} else {
 		// FQDN
-		names = append(names, fmt.Sprintf("*.%s", GetCommonName(cluster)))
-		names = append(names, GetCommonName(cluster))
+		//names = append(names, fmt.Sprintf("*.%s", GetCommonName(cluster)))
+		names = append(names, fmt.Sprintf("%s.%s", fmt.Sprintf(templates.NodeNameTemplate, cluster.Name, nodeId), GetCommonName(cluster)))
+		// = append(names, GetCommonName(cluster))
 
 		// SVC notation
 		names = append(names,
-			fmt.Sprintf("*.%s.%s.svc", fmt.Sprintf(nifi.AllNodeServiceTemplate, cluster.Name), cluster.Namespace),
-			fmt.Sprintf("%s.%s.svc", fmt.Sprintf(nifi.AllNodeServiceTemplate, cluster.Name), cluster.Namespace),
+			//fmt.Sprintf("*.%s.%s.svc", fmt.Sprintf(nifi.AllNodeServiceTemplate, cluster.Name), cluster.Namespace),
+			fmt.Sprintf("%s.%s.%s.svc", fmt.Sprintf(templates.NodeNameTemplate, cluster.Name, nodeId), fmt.Sprintf(nifi.AllNodeServiceTemplate, cluster.Name), cluster.Namespace),
+			//fmt.Sprintf("%s.%s.svc", fmt.Sprintf(nifi.AllNodeServiceTemplate, cluster.Name), cluster.Namespace),
 		)
 
 		// Namespace notation
 		names = append(names,
-			fmt.Sprintf("*.%s.%s", fmt.Sprintf(nifi.AllNodeServiceTemplate, cluster.Name), cluster.Namespace),
-			fmt.Sprintf("%s.%s", fmt.Sprintf(nifi.AllNodeServiceTemplate, cluster.Name), cluster.Namespace),
+			//fmt.Sprintf("*.%s.%s", fmt.Sprintf(nifi.AllNodeServiceTemplate, cluster.Name), cluster.Namespace),
+			fmt.Sprintf("%s.%s.%s", fmt.Sprintf(templates.NodeNameTemplate, cluster.Name, nodeId),fmt.Sprintf(nifi.AllNodeServiceTemplate, cluster.Name), cluster.Namespace),
+			//fmt.Sprintf("%s.%s", fmt.Sprintf(nifi.AllNodeServiceTemplate, cluster.Name), cluster.Namespace),
 		)
 
 		// service name only
-		names = append(names,
-			fmt.Sprintf(nifi.AllNodeServiceTemplate, cluster.Name))
+		//names = append(names,
+		//	fmt.Sprintf(nifi.AllNodeServiceTemplate, cluster.Name))
 	}
 	return
 }
@@ -156,13 +170,27 @@ func LabelsForNifiPKI(name string) map[string]string {
 	return map[string]string{"app": "kafka", "kafka_issuer": fmt.Sprintf(NodeIssuerTemplate, name)}
 }
 
-// NodeUserForCluster returns a NifiUser CR for the node certificates in a NifiCluster
-func NodeUserForCluster(cluster *v1alpha1.NifiCluster, additionalHostnames []string) *v1alpha1.NifiUser {
+// NodeUsersForCluster returns a NifiUser CR for the node certificates in a NifiCluster
+func NodeUsersForCluster(cluster *v1alpha1.NifiCluster, additionalHostnames []string) []*v1alpha1.NifiUser {
+	additionalHostnames = append(additionalHostnames, "nifi.trycatchlearn.fr")
+
+	var nodeUsers []*v1alpha1.NifiUser
+
+	for _, node := range cluster.Spec.Nodes {
+		nodeUsers = append(nodeUsers, nodeUserForClusterNode(cluster, node.Id, additionalHostnames))
+	}
+
+	return nodeUsers
+}
+
+// NodeUserForClusterNode returns a NifiUser CR for the node certificates in a NifiCluster
+func nodeUserForClusterNode(cluster *v1alpha1.NifiCluster, nodeId int32, additionalHostnames []string) *v1alpha1.NifiUser {
+	additionalHostnames = append(additionalHostnames, "nifi.trycatchlearn.fr")
 	return &v1alpha1.NifiUser{
-		ObjectMeta: templates.ObjectMeta(GetCommonName(cluster), LabelsForNifiPKI(cluster.Name), cluster),
+		ObjectMeta: templates.ObjectMeta(GetNodeUserName(cluster, nodeId), LabelsForNifiPKI(cluster.Name), cluster),
 		Spec: v1alpha1.NifiUserSpec{
-			SecretName: fmt.Sprintf(NodeServerCertTemplate, cluster.Name),
-			DNSNames:   append(GetInternalDNSNames(cluster), additionalHostnames...),
+			SecretName: fmt.Sprintf(NodeServerCertTemplate, cluster.Name, nodeId),
+			DNSNames:   append(GetInternalDNSNames(cluster, nodeId), additionalHostnames...),
 			IncludeJKS: true,
 			ClusterRef: v1alpha1.ClusterReference{
 				Name:      cluster.Name,

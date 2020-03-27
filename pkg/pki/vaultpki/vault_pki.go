@@ -150,7 +150,8 @@ func (v *vaultPKI) reconcileBootstrapSecrets(ctx context.Context, scheme *runtim
 }
 
 func (v *vaultPKI) reconcileBrokerCert(ctx context.Context, vault *vaultapi.Client, externalHostnames []string) (*pkicommon.UserCertificate, error) {
-	return v.reconcileStartupUser(ctx, vault, pkicommon.NodeUserForCluster(v.cluster, externalHostnames))
+	// TODO : go to one certificate per node
+	return v.reconcileStartupUser(ctx, vault, nil/*pkicommon.NodeUserForCluster(v.cluster, externalHostnames)*/)
 }
 
 func (v *vaultPKI) reconcileControllerCert(ctx context.Context, vault *vaultapi.Client) (*pkicommon.UserCertificate, error) {
