@@ -95,7 +95,8 @@ func (c *certManager) FinalizePKI(ctx context.Context, logger logr.Logger) error
 func (c *certManager) ReconcilePKI(ctx context.Context, logger logr.Logger, scheme *runtime.Scheme, externalHostnames []string) (err error) {
 	logger.Info("Reconciling cert-manager PKI")
 
-	resources, err := c.nifipki(ctx, scheme, externalHostnames)
+	resources, err := c.
+		nifipki(ctx, scheme, externalHostnames)
 	if err != nil {
 		return err
 	}
