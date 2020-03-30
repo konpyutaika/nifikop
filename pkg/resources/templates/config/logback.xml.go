@@ -104,7 +104,7 @@ var LogbackTemplate = `<?xml version="1.0" encoding="UTF-8"?>
     <logger name="org.apache.curator.ConnectionState" level="OFF" />
     
     <!-- Logger for managing logging statements for nifi clusters. -->
-    <logger name="org.apache.nifi.cluster" level="INFO"/>
+    <logger name="org.apache.nifi.cluster" level="DEBUG"/>
 
     <!-- Logger for logging HTTP requests received by the web server. -->
     <logger name="org.apache.nifi.server.JettyServer" level="INFO"/>

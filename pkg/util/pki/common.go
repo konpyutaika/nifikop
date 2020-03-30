@@ -136,8 +136,9 @@ func clusterDNSNames(cluster *v1alpha1.NifiCluster, nodeId int32) (names []strin
 		)
 
 		// service name only
-		//names = append(names,
-		//	fmt.Sprintf(nifi.HeadlessServiceTemplate, cluster.Name))
+		names = append(names,
+			fmt.Sprintf("%s.%s", fmt.Sprintf(templates.NodeNameTemplate, cluster.Name, nodeId), fmt.Sprintf(nifi.HeadlessServiceTemplate, cluster.Name)))
+
 	} else {
 		// FQDN
 		//names = append(names, fmt.Sprintf("*.%s", GetCommonName(cluster)))
@@ -159,9 +160,13 @@ func clusterDNSNames(cluster *v1alpha1.NifiCluster, nodeId int32) (names []strin
 		)
 
 		// service name only
-		//names = append(names,
-		//	fmt.Sprintf(nifi.AllNodeServiceTemplate, cluster.Name))
+		names = append(names,
+			fmt.Sprintf("%s.%s", fmt.Sprintf(templates.NodeNameTemplate, cluster.Name, nodeId),fmt.Sprintf(nifi.AllNodeServiceTemplate, cluster.Name)))
 	}
+	// pod name only
+	names = append(names,
+		fmt.Sprintf(fmt.Sprintf(templates.NodeNameTemplate, cluster.Name, nodeId)))
+
 	return
 }
 
@@ -172,7 +177,7 @@ func LabelsForNifiPKI(name string) map[string]string {
 
 // NodeUsersForCluster returns a NifiUser CR for the node certificates in a NifiCluster
 func NodeUsersForCluster(cluster *v1alpha1.NifiCluster, additionalHostnames []string) []*v1alpha1.NifiUser {
-	additionalHostnames = append(additionalHostnames, "nifi.trycatchlearn.fr")
+	additionalHostnames = append(additionalHostnames) // , "nifi.trycatchlearn.fr"
 
 	var nodeUsers []*v1alpha1.NifiUser
 
@@ -185,7 +190,7 @@ func NodeUsersForCluster(cluster *v1alpha1.NifiCluster, additionalHostnames []st
 
 // NodeUserForClusterNode returns a NifiUser CR for the node certificates in a NifiCluster
 func nodeUserForClusterNode(cluster *v1alpha1.NifiCluster, nodeId int32, additionalHostnames []string) *v1alpha1.NifiUser {
-	additionalHostnames = append(additionalHostnames, "nifi.trycatchlearn.fr")
+	additionalHostnames = append(additionalHostnames)
 	return &v1alpha1.NifiUser{
 		ObjectMeta: templates.ObjectMeta(GetNodeUserName(cluster, nodeId), LabelsForNifiPKI(cluster.Name), cluster),
 		Spec: v1alpha1.NifiUserSpec{

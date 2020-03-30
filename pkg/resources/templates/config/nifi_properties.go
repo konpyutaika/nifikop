@@ -153,8 +153,8 @@ nifi.sensitive.props.additional.keys=
 nifi.security.keystore={{ .ServerKeystorePath }}/{{ .KeystoreFile }}
 nifi.security.keystoreType=JKS
 nifi.security.keystorePasswd={{ .ServerKeystorePassword }}
-nifi.security.keyPasswd=
-nifi.security.truststore=/home/nifi/truststore.jks
+nifi.security.keyPasswd={{ .ServerKeystorePassword }}
+nifi.security.truststore={{ .ServerKeystorePath }}/{{ .KeystoreFile }}
 nifi.security.truststoreType=JKS
 nifi.security.truststorePasswd={{ .ServerKeystorePassword }}
 {{ end }}
