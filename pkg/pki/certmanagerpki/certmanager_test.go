@@ -44,6 +44,12 @@ func newMockCluster() *v1alpha1.NifiCluster {
 		PKIBackend:      v1alpha1.PKIBackendCertManager,
 		Create:          true,
 	}
+
+	cluster.Spec.Nodes = []v1alpha1.Node{
+		{Id: 0},
+		{Id: 1},
+		{Id: 2},
+	}
 	return cluster
 }
 

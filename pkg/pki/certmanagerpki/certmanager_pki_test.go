@@ -31,9 +31,9 @@ import (
 
 var log = ctrl.Log.WithName("testing")
 
-func newServerSecret() *corev1.Secret {
+func newNodeServerSecret(nodeId int32) *corev1.Secret {
 	secret := &corev1.Secret{}
-	secret.Name = fmt.Sprintf(pkicommon.NodeServerCertTemplate, "test")
+	secret.Name = fmt.Sprintf(pkicommon.NodeServerCertTemplate, "test", nodeId)
 	secret.Namespace = "test-namespace"
 	cert, key, _, _ := certutil.GenerateTestCert()
 	secret.Data = map[string][]byte{
@@ -95,10 +95,12 @@ func TestReconcilePKI(t *testing.T) {
 	manager := newMock(cluster)
 	ctx := context.Background()
 
-	manager.client.Create(ctx, newServerSecret())
-	if err := manager.ReconcilePKI(ctx, log, scheme.Scheme, []string{}); err != nil {
-		if reflect.TypeOf(err) != reflect.TypeOf(errorfactory.ResourceNotReady{}) {
-			t.Error("Expected not ready error, got:", reflect.TypeOf(err))
+	for _, node := range cluster.Spec.Nodes {
+		manager.client.Create(ctx, newNodeServerSecret(node.Id))
+		if err := manager.ReconcilePKI(ctx, log, scheme.Scheme, []string{}); err != nil {
+			if reflect.TypeOf(err) != reflect.TypeOf(errorfactory.ResourceNotReady{}) {
+				t.Error("Expected not ready error, got:", reflect.TypeOf(err))
+			}
 		}
 	}
 

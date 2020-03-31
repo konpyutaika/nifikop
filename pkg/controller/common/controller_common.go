@@ -16,9 +16,14 @@ package common
 
 import (
 	"fmt"
+	"time"
+
+	"emperror.dev/errors"
+	"github.com/erdrix/nifikop/pkg/errorfactory"
 	"github.com/erdrix/nifikop/pkg/nificlient"
 	"github.com/go-logr/logr"
 	"github.com/erdrix/nifikop/pkg/apis/nifi/v1alpha1"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
@@ -58,20 +63,45 @@ func ClusterLabelString(cluster *v1alpha1.NifiCluster) string {
 // and creating a safer close function
 func NewNodeConnection(log logr.Logger, client client.Client, cluster *v1alpha1.NifiCluster) (node nificlient.NifiClient, close func(), err error) {
 
-	// Get a kafka connection
-	log.Info(fmt.Sprintf("Retrieving Kafka client for %s/%s", cluster.Namespace, cluster.Name))
+	// Get a nifi connection
+	log.Info(fmt.Sprintf("Retrieving Nifi client for %s/%s", cluster.Namespace, cluster.Name))
 	node, err = newNifiFromCluster(client, cluster)
 	if err != nil {
 		return
 	}
 	close = func() {
 		if err := node.Close(); err != nil {
-			log.Error(err, "Error closing Kafka client")
+			log.Error(err, "Error closing Nifi client")
 		} else {
-			log.Info("Kafka client closed cleanly")
+			log.Info("Nifi client closed cleanly")
 		}
 	}
 	return
+}
+
+// checkNodeConnectionError is a convenience wrapper for returning from common
+// node connection errors
+func CheckNodeConnectionError(logger logr.Logger, err error) (ctrl.Result, error) {
+	switch errors.Cause(err).(type) {
+	case errorfactory.NodesUnreachable:
+		return ctrl.Result{
+			Requeue:      true,
+			RequeueAfter: time.Duration(15) * time.Second,
+		}, nil
+	case errorfactory.NodesNotReady:
+		return ctrl.Result{
+			Requeue:      true,
+			RequeueAfter: time.Duration(15) * time.Second,
+		}, nil
+	case errorfactory.ResourceNotReady:
+		logger.Info("Needed resource for broker connection not found, may not be ready")
+		return ctrl.Result{
+			Requeue:      true,
+			RequeueAfter: time.Duration(5) * time.Second,
+		}, nil
+	default:
+		return RequeueWithError(logger, err.Error(), err)
+	}
 }
 
 // applyClusterRefLabel ensures a map of labels contains a reference to a parent nifi cluster
