@@ -81,7 +81,7 @@ tags
 .idea
 .idea/runConfigurations/
 .vscode
-nifi-operator.envgit
+nifi-operator.env
 telepresence.log
 
 # Dependencies
