@@ -40,6 +40,7 @@ module.exports = {
                     "label": "NiFi Cluster",
                     "items"  : [
                         "3_tasks/1_nifi_cluster/1_nodes_configuration",
+                        "3_tasks/1_nifi_cluster/2_cluster_scaling",
                     ]
                 },
             ],

@@ -10,11 +10,41 @@ spec:
   initContainerImage: registry.gitlab.si.francetelecom.fr/dfyarchicloud/dfyarchicloud-registry/busybox:latest
   oneNifiNodePerNode: false
   nodeConfigGroups:
-    default_group:
+    empty_group:
       isNode: true
       storageConfigs:
         - mountPath: "/opt/nifi/nifi-current/logs"
           name: logs
+          pvcSpec:
+            accessModes:
+              - ReadWriteOnce
+            storageClassName: "local-storage"
+            resources:
+              requests:
+                storage: 10Gi
+    default_group:
+      isNode: true
+      storageConfigs:
+        - mountPath: "/opt/nifi/flowfile_repository"
+          name: flowfile-repository
+          pvcSpec:
+            accessModes:
+              - ReadWriteOnce
+            storageClassName: "local-storage"
+            resources:
+              requests:
+                storage: 10Gi
+        - mountPath: "/opt/nifi/content_repository"
+          name: content-repository
+          pvcSpec:
+            accessModes:
+              - ReadWriteOnce
+            storageClassName: "local-storage"
+            resources:
+              requests:
+                storage: 10Gi
+        - mountPath: "/opt/nifi/provenance_repository"
+          name: provenance-repository
           pvcSpec:
             accessModes:
               - ReadWriteOnce
@@ -31,11 +61,7 @@ spec:
           cpu: "1"
           memory: 1Gi
   nodes:
-    - id: 0
-      nodeConfigGroup: "default_group"
     - id: 1
-      nodeConfigGroup: "default_group"
-    - id: 2
       nodeConfigGroup: "default_group"
   propagateLabels: true
   nifiClusterTaskSpec:
