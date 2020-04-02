@@ -62,7 +62,7 @@ func (r State) Complete() State {
 // NifiAccessType hold info about Nifi ACL
 type NifiAccessType string
 
-// UserState defines the state of a KafkaUser
+// UserState defines the state of a NifiUser
 type UserState string
 
 // ClusterReference states a reference to a cluster for topic/user
@@ -75,13 +75,18 @@ type ClusterReference struct {
 const (
 	// PKIBackendCertManager invokes cert-manager for user certificate management
 	PKIBackendCertManager PKIBackend = "cert-manager"
-	// PKIBackendVault invokes vault PKI for user certificate management
-	PKIBackendVault PKIBackend = "vault"
+	// TODO : Add vault
+	//PKIBackendVault invokes vault PKI for user certificate management
+	//PKIBackendVault PKIBackend = "vault"
 )
 
 const (
 	// UserStateCreated describes the status of a NifiUser as created
 	UserStateCreated UserState = "created"
+	// TLSCert is where a cert is stored in a user secret when requested
+	TLSCert string = "tls.crt"
+	// TLSCert is where a private key is stored in a user secret when requested
+	TLSKey string = "tls.key"
 	// TLSJKSKey is where a JKS is stored in a user secret when requested
 	TLSJKSKey string = "tls.jks"
 	// CoreCACertKey is where ca ceritificates are stored in user certificates
@@ -94,7 +99,7 @@ const (
 	ClientCertKey string = "clientCert"
 	// ClientPrivateKeyKey stores the client private key
 	ClientPrivateKeyKey string = "clientKey"
-	// PeerCertKey stores the peer certificate (broker certificates)
+	// PeerCertKey stores the peer certificate (node certificates)
 	PeerCertKey string = "peerCert"
 	// PeerPrivateKeyKey stores the peer private key
 	PeerPrivateKeyKey string = "peerKey"

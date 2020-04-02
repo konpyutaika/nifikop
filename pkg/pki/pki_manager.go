@@ -20,7 +20,6 @@ import (
 
 	"github.com/erdrix/nifikop/pkg/apis/nifi/v1alpha1"
 	"github.com/erdrix/nifikop/pkg/pki/certmanagerpki"
-	"github.com/erdrix/nifikop/pkg/pki/vaultpki"
 	"github.com/erdrix/nifikop/pkg/util/pki"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -38,9 +37,10 @@ func GetPKIManager(client client.Client, cluster *v1alpha1.NifiCluster) pki.Mana
 	case v1alpha1.PKIBackendCertManager:
 		return certmanagerpki.New(client, cluster)
 
+	// TODO : Add vault
 	// Use vault for pki backend
-	case v1alpha1.PKIBackendVault:
-		return vaultpki.New(client, cluster)
+	/*case v1alpha1.PKIBackendVault:
+		return vaultpki.New(client, cluster)*/
 
 	// Return mock backend for testing - cannot be triggered by CR due to enum in api schema
 	case MockBackend:

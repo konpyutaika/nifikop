@@ -18,7 +18,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// NifiUserSpec defines the desired state of KafkaUser
+// NifiUserSpec defines the desired state of NifiUser
 // +k8s:openapi-gen=true
 type NifiUserSpec struct {
 	//
@@ -64,7 +64,7 @@ type NifiUser struct {
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// NifiUserList contains a list of KafkaUser
+// NifiUserList contains a list of NifiUser
 type NifiUserList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`

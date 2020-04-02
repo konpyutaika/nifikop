@@ -29,7 +29,7 @@ spec:
         metadata:
           type: object
         spec:
-          description: NifiUserSpec defines the desired state of KafkaUser
+          description: NifiUserSpec defines the desired state of NifiUser
           properties:
             clusterRef:
               description: ClusterReference states a reference to a cluster for topic/user
@@ -63,7 +63,7 @@ spec:
                 type: string
               type: array
             state:
-              description: UserState defines the state of a KafkaUser
+              description: UserState defines the state of a NifiUser
               type: string
           required:
           - state

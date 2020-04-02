@@ -65,7 +65,7 @@ func schema_pkg_apis_nifi_v1alpha1_NifiUserSpec(ref common.ReferenceCallback) co
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "NifiUserSpec defines the desired state of KafkaUser",
+				Description: "NifiUserSpec defines the desired state of NifiUser",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"secretName": {

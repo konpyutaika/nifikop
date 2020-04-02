@@ -64,7 +64,7 @@ type Manager interface {
 	// FinalizeUserCertificate removes/revokes a user certificate
 	FinalizeUserCertificate(ctx context.Context, user *v1alpha1.NifiUser) error
 
-	// GetControllerTLSConfig retrieves a TLS configuration for a controller kafka client
+	// GetControllerTLSConfig retrieves a TLS configuration for a controller nifi client
 	GetControllerTLSConfig() (*tls.Config, error)
 }
 
@@ -75,12 +75,15 @@ type UserCertificate struct {
 	Certificate []byte
 	Key         []byte
 
+	// TODO : Add Vault
 	// Serial is used by vault backend for certificate revocations
-	Serial string
+	// Serial string
+
+	// TODO : Add Vault
 	// jks and password are used by vault backend for passing jks info between itself
 	// the cert-manager backend passes it through the k8s secret
-	JKS      []byte
-	Password []byte
+	//JKS      []byte
+	//Password []byte
 }
 
 // DN returns the Distinguished Name of a TLS certificate
@@ -118,21 +121,21 @@ func clusterDNSNames(cluster *v1alpha1.NifiCluster, nodeId int32) (names []strin
 	if cluster.Spec.HeadlessServiceEnabled {
 		// FQDN
 		//names = append(names, fmt.Sprintf("*.%s", GetCommonName(cluster)))
-		names = append(names, fmt.Sprintf("%s.%s", fmt.Sprintf(templates.NodeNameTemplate, cluster.Name, nodeId), GetCommonName(cluster)))
 		//names = append(names, GetCommonName(cluster))
+		names = append(names, fmt.Sprintf("%s.%s", fmt.Sprintf(templates.NodeNameTemplate, cluster.Name, nodeId), GetCommonName(cluster)))
 
 		// SVC notation
 		names = append(names,
 			//fmt.Sprintf("*.%s.%s.svc", fmt.Sprintf(nifi.HeadlessServiceTemplate, cluster.Name), cluster.Namespace),
-			fmt.Sprintf("%s.%s.%s.svc", fmt.Sprintf(templates.NodeNameTemplate, cluster.Name, nodeId), fmt.Sprintf(nifi.HeadlessServiceTemplate, cluster.Name), cluster.Namespace),
 			//fmt.Sprintf("%s.%s.svc", fmt.Sprintf(nifi.HeadlessServiceTemplate, cluster.Name), cluster.Namespace),
+			fmt.Sprintf("%s.%s.%s.svc", fmt.Sprintf(templates.NodeNameTemplate, cluster.Name, nodeId), fmt.Sprintf(nifi.HeadlessServiceTemplate, cluster.Name), cluster.Namespace),
 		)
 
 		// Namespace notation
 		names = append(names,
 			//fmt.Sprintf("*.%s.%s", fmt.Sprintf(nifi.HeadlessServiceTemplate, cluster.Name), cluster.Namespace),
-			fmt.Sprintf("%s.%s.%s", fmt.Sprintf(templates.NodeNameTemplate, cluster.Name, nodeId), fmt.Sprintf(nifi.HeadlessServiceTemplate, cluster.Name), cluster.Namespace),
 			//fmt.Sprintf("%s.%s", fmt.Sprintf(nifi.HeadlessServiceTemplate, cluster.Name), cluster.Namespace),
+			fmt.Sprintf("%s.%s.%s", fmt.Sprintf(templates.NodeNameTemplate, cluster.Name, nodeId), fmt.Sprintf(nifi.HeadlessServiceTemplate, cluster.Name), cluster.Namespace),
 		)
 
 		// service name only
@@ -142,21 +145,21 @@ func clusterDNSNames(cluster *v1alpha1.NifiCluster, nodeId int32) (names []strin
 	} else {
 		// FQDN
 		//names = append(names, fmt.Sprintf("*.%s", GetCommonName(cluster)))
+		//names = append(names, GetCommonName(cluster))
 		names = append(names, fmt.Sprintf("%s.%s", fmt.Sprintf(templates.NodeNameTemplate, cluster.Name, nodeId), GetCommonName(cluster)))
-		// = append(names, GetCommonName(cluster))
 
 		// SVC notation
 		names = append(names,
 			//fmt.Sprintf("*.%s.%s.svc", fmt.Sprintf(nifi.AllNodeServiceTemplate, cluster.Name), cluster.Namespace),
-			fmt.Sprintf("%s.%s.%s.svc", fmt.Sprintf(templates.NodeNameTemplate, cluster.Name, nodeId), fmt.Sprintf(nifi.AllNodeServiceTemplate, cluster.Name), cluster.Namespace),
 			//fmt.Sprintf("%s.%s.svc", fmt.Sprintf(nifi.AllNodeServiceTemplate, cluster.Name), cluster.Namespace),
+			fmt.Sprintf("%s.%s.%s.svc", fmt.Sprintf(templates.NodeNameTemplate, cluster.Name, nodeId), fmt.Sprintf(nifi.AllNodeServiceTemplate, cluster.Name), cluster.Namespace),
 		)
 
 		// Namespace notation
 		names = append(names,
 			//fmt.Sprintf("*.%s.%s", fmt.Sprintf(nifi.AllNodeServiceTemplate, cluster.Name), cluster.Namespace),
-			fmt.Sprintf("%s.%s.%s", fmt.Sprintf(templates.NodeNameTemplate, cluster.Name, nodeId),fmt.Sprintf(nifi.AllNodeServiceTemplate, cluster.Name), cluster.Namespace),
 			//fmt.Sprintf("%s.%s", fmt.Sprintf(nifi.AllNodeServiceTemplate, cluster.Name), cluster.Namespace),
+			fmt.Sprintf("%s.%s.%s", fmt.Sprintf(templates.NodeNameTemplate, cluster.Name, nodeId),fmt.Sprintf(nifi.AllNodeServiceTemplate, cluster.Name), cluster.Namespace),
 		)
 
 		// service name only
@@ -166,18 +169,17 @@ func clusterDNSNames(cluster *v1alpha1.NifiCluster, nodeId int32) (names []strin
 	// pod name only
 	names = append(names,
 		fmt.Sprintf(fmt.Sprintf(templates.NodeNameTemplate, cluster.Name, nodeId)))
-
 	return
 }
 
 // LabelsForNifiPKI returns kubernetes labels for a PKI object
 func LabelsForNifiPKI(name string) map[string]string {
-	return map[string]string{"app": "kafka", "kafka_issuer": fmt.Sprintf(NodeIssuerTemplate, name)}
+	return map[string]string{"app": "nifi", "nifi_issuer": fmt.Sprintf(NodeIssuerTemplate, name)}
 }
 
 // NodeUsersForCluster returns a NifiUser CR for the node certificates in a NifiCluster
 func NodeUsersForCluster(cluster *v1alpha1.NifiCluster, additionalHostnames []string) []*v1alpha1.NifiUser {
-	additionalHostnames = append(additionalHostnames) // , "nifi.trycatchlearn.fr"
+	additionalHostnames = append(additionalHostnames)
 
 	var nodeUsers []*v1alpha1.NifiUser
 

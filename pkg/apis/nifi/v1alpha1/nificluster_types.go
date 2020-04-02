@@ -54,8 +54,6 @@ type NifiClusterSpec struct {
 	PropagateLabels 		bool 					`json:"propagateLabels,omitempty"`
 	// LdapConfiguration specifies the configuration if you want to use LDAP
 	LdapConfiguration		LdapConfiguration		`json:"ldapConfiguration,omitempty"`
-	//
-	VaultConfig         	VaultConfig         `json:"vaultConfig,omitempty"`
 	// NifiClusterTaskSpec specifies the configuration of the nifi cluster Tasks
 	NifiClusterTaskSpec 	NifiClusterTaskSpec		`json:"nifiClusterTaskSpec,omitempty"`
 	// Cluster nodes secure mode : https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#cluster_common_properties
@@ -64,7 +62,11 @@ type NifiClusterSpec struct {
 	// Site to Site properties Secure mode : https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#site_to_site_properties
 	// TODO : rework to define into internalListener !
 	SiteToSiteSecure	bool	`json:"siteToSiteSecure,omitempty"`
+
+	// TODO : add vault
+	//VaultConfig         	VaultConfig         `json:"vaultConfig,omitempty"`
 }
+
 
 // rollingUpgradeConfig specifies the rolling upgrade config for the cluster
 //RollingUpgradeConfig 	RollingUpgradeConfig 	`json:"rollingUpgradeConfig"`
@@ -210,26 +212,25 @@ type ListenersConfig struct {
 }
 
 // SSLSecrets defines the Nifi SSL secrets
-// TODO: implement SSL management
 type SSLSecrets struct {
 	// tlsSecretName should contain all ssl certs required by nifi including: caCert, caKey, clientCert, clientKey
 	// serverCert, serverKey, peerCert, peerKey
 	TLSSecretName   string		`json:"tlsSecretName"`
-	// jksPasswordName should contain a password field which contains the jks password
-	JKSPasswordName string 		`json:"jksPasswordName"`
 	// create tells the installed cert manager to create the required certs keys
 	Create          bool   		`json:"create,omitempty"`
 	// clusterScoped defines if the Issuer created is cluster or namespace scoped
 	ClusterScoped	bool		`json:"clusterScoped,omitempty"`
 	//
-	//
 	IssuerRef       *cmmeta.ObjectReference `json:"issuerRef,omitempty"`
+	// TODO : add vault
 	// +kubebuilder:validation:Enum={"cert-manager","vault"}
 	PKIBackend		PKIBackend	`json:"pkiBackend,omitempty"`
+	//,"vault"
 }
 
+// TODO : Add vault
 // VaultConfig defines the configuration for a vault PKI backend
-type VaultConfig struct {
+/*type VaultConfig struct {
 	//
 	AuthRole  string `json:"authRole"`
 	//
@@ -238,12 +239,12 @@ type VaultConfig struct {
 	IssuePath string `json:"issuePath"`
 	//
 	UserStore string `json:"userStore"`
-}
+}*/
 
 // ExternalListenerConfig defines the external listener config for Nifi
 // TODO: enable configuration of ingress or something like this.
 type ExternalListenerConfig struct {
-	// TODO: remove type field # specific to Kafka
+	// TODO: remove type field # specific to Nifi ?
 	//
 	Type                 string	`json:"type"`
 	//

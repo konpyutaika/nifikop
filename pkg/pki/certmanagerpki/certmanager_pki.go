@@ -172,22 +172,23 @@ func fullPKI(cluster *v1alpha1.NifiCluster, scheme *runtime.Scheme, externalHost
 }
 
 func userProvidedPKI(ctx context.Context, client client.Client, cluster *v1alpha1.NifiCluster, scheme *runtime.Scheme, externalHostnames []string) ([]runtime.Object, error) {
+
 	// If we aren't creating the secrets we need a cluster issuer made from the provided secret
 	caSecret, err := caSecretForProvidedCert(ctx, client, cluster, scheme)
 	if err != nil {
 		return nil, err
 	}
+
 	objects := []runtime.Object{
 		caSecret,
-		mainIssuerForCluster(cluster, scheme),
-		// The client/peer certificates in the secret will still work, however are not actually used.
-		// This will also make sure that if the peerCert/clientCert provided are invalid
-		// a valid one will still be used with the provided CA.
-		//
-		// TODO: (tinyzimmer) - Would it be better to allow the KafkaUser to take a user-provided cert/key combination?
-		// It would have to be validated first as signed by whatever the CA is - probably via a webhook.
-		pkicommon.ControllerUserForCluster(cluster),
 	}
+	if cluster.Spec.ListenersConfig.SSLSecrets.ClusterScoped {
+		objects = append(objects,mainIssuerForCluster(cluster, scheme))
+	} else {
+		objects = append(objects,mainIssuerForNamespace(cluster, scheme))
+	}
+
+	objects = append(objects, pkicommon.ControllerUserForCluster(cluster))
 
 	// Node "users"
 	for _, user := range pkicommon.NodeUsersForCluster(cluster, externalHostnames) {

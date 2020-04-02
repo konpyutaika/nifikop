@@ -1,0 +1,81 @@
+apiVersion: nifi.orange.com/v1alpha1
+kind: NifiCluster
+metadata:
+  name: sslnifi
+spec:
+  headlessServiceEnabled: true
+  zkAddresse: "zookeepercluster-client.zookeeper:2181"
+  zkPath: "/ssllnifi"
+  clusterImage: "apache/nifi:1.11.3"
+  clusterSecure: true
+  siteToSiteSecure: true
+  oneNifiNodePerNode: false
+  readOnlyConfig:
+    # NifiProperties configuration that will be applied to the node.
+    nifiProperties:
+      # Additionnals nifi.properties configuration that will override the one produced based
+      # on template and configurations.
+      overrideConfigs: |
+        nifi.web.proxy.host=nifi.trycatchlearn.fr:8443
+        nifi.web.https.host=nifi.trycatchlearn.fr
+        nifi.security.user.oidc.discovery.url=https://accounts.google.com/.well-known/openid-configuration
+        nifi.security.user.oidc.client.id=930711295780-vlcu2npu9575ppo1k0i99m48o831ejtg.apps.googleusercontent.com
+        nifi.security.user.oidc.client.secret=IfYjX5Jpv-h4XVAH5blH82A7
+        nifi.security.identity.mapping.pattern.dn=CN=(.*), (?:O|OU)=.*
+        nifi.security.identity.mapping.value.dn=$1
+        nifi.security.identity.mapping.transform.dn=NONE
+  nodeConfigGroups:
+    default_group:
+      isNode: true
+      storageConfigs:
+        - mountPath: "/opt/nifi/nifi-current/logs"
+          name: logs
+          pvcSpec:
+            accessModes:
+              - ReadWriteOnce
+            storageClassName: "standard"
+            resources:
+              requests:
+                storage: 10Gi
+        - mountPath: "/home/nifi"
+          name: nifi-home
+          pvcSpec:
+            accessModes:
+              - ReadWriteOnce
+            storageClassName: "standard"
+            resources:
+              requests:
+                storage: 10Gi
+      serviceAccountName: "default"
+      resourcesRequirements:
+        limits:
+          cpu: "2"
+          memory: 3Gi
+        requests:
+          cpu: "1"
+          memory: 1Gi
+  nodes:
+    - id: 0
+      nodeConfigGroup: "default_group"
+    - id: 1
+      nodeConfigGroup: "default_group"
+    - id: 2
+      nodeConfigGroup: "default_group"
+  propagateLabels: true
+  nifiClusterTaskSpec:
+    retryDurationMinutes: 10
+  listenersConfig:
+    internalListeners:
+      - type: "https"
+        name: "https"
+        containerPort: 8443
+      - type: "cluster"
+        name: "cluster"
+        containerPort: 6007
+      - type: "s2s"
+        name: "s2s"
+        containerPort: 10000
+    sslSecrets:
+      tlsSecretName: "test-nifikop"
+      jksPasswordName: "test-nifikop-pass"
+      create: true

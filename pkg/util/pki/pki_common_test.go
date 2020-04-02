@@ -18,19 +18,24 @@ import (
 	"fmt"
 	"reflect"
 	"testing"
-
-	"github.com/banzaicloud/kafka-operator/api/v1alpha1"
-	"github.com/banzaicloud/kafka-operator/api/v1beta1"
-	"github.com/banzaicloud/kafka-operator/pkg/resources/templates"
-	certutil "github.com/banzaicloud/kafka-operator/pkg/util/cert"
+	"github.com/erdrix/nifikop/pkg/apis/nifi/v1alpha1"
+	"github.com/erdrix/nifikop/pkg/resources/templates"
+	"github.com/erdrix/nifikop/pkg/util"
+	certutil "github.com/erdrix/nifikop/pkg/util/cert"
 )
 
-func testCluster(t *testing.T) *v1beta1.KafkaCluster {
+func testCluster(t *testing.T) *v1alpha1.NifiCluster {
 	t.Helper()
-	cluster := &v1beta1.KafkaCluster{}
+	cluster := &v1alpha1.NifiCluster{}
 	cluster.Name = "test-cluster"
 	cluster.Namespace = "test-namespace"
-	cluster.Spec = v1beta1.KafkaClusterSpec{}
+	cluster.Spec = v1alpha1.NifiClusterSpec{}
+
+	cluster.Spec.Nodes = []v1alpha1.Node{
+		{Id: 0},
+		{Id: 1},
+		{Id: 2},
+	}
 	return cluster
 }
 
@@ -49,31 +54,31 @@ func TestDN(t *testing.T) {
 }
 
 func TestGetCommonName(t *testing.T) {
-	cluster := &v1beta1.KafkaCluster{}
+	cluster := &v1alpha1.NifiCluster{}
 	cluster.Name = "test-cluster"
 	cluster.Namespace = "test-namespace"
 
-	cluster.Spec = v1beta1.KafkaClusterSpec{HeadlessServiceEnabled: true}
+	cluster.Spec = v1alpha1.NifiClusterSpec{HeadlessServiceEnabled: true}
 	headlessCN := GetCommonName(cluster)
 	expected := "test-cluster-headless.test-namespace.svc.cluster.local"
 	if headlessCN != expected {
 		t.Error("Expected:", expected, "Got:", headlessCN)
 	}
 
-	cluster.Spec = v1beta1.KafkaClusterSpec{HeadlessServiceEnabled: false}
-	allBrokerCN := GetCommonName(cluster)
-	expected = "test-cluster-all-broker.test-namespace.svc.cluster.local"
-	if allBrokerCN != expected {
-		t.Error("Expected:", expected, "Got:", allBrokerCN)
+	cluster.Spec = v1alpha1.NifiClusterSpec{HeadlessServiceEnabled: false}
+	allNodeCN := GetCommonName(cluster)
+	expected = "test-cluster-all-node.test-namespace.svc.cluster.local"
+	if allNodeCN != expected {
+		t.Error("Expected:", expected, "Got:", allNodeCN)
 	}
 }
 
-func TestLabelsForKafkaPKI(t *testing.T) {
+func TestLabelsForNifiPKI(t *testing.T) {
 	expected := map[string]string{
-		"app":          "kafka",
-		"kafka_issuer": fmt.Sprintf(BrokerIssuerTemplate, "test"),
+		"app":          "nifi",
+		"nifi_issuer": fmt.Sprintf(NodeIssuerTemplate, "test"),
 	}
-	got := LabelsForKafkaPKI("test")
+	got := LabelsForNifiPKI("test")
 	if !reflect.DeepEqual(got, expected) {
 		t.Error("Expected:", expected, "got:", got)
 	}
@@ -82,56 +87,56 @@ func TestLabelsForKafkaPKI(t *testing.T) {
 func TestGetInternalDNSNames(t *testing.T) {
 	cluster := testCluster(t)
 
-	cluster.Spec.HeadlessServiceEnabled = true
-	headlessNames := GetInternalDNSNames(cluster)
-	expected := []string{
-		"*.test-cluster-headless.test-namespace.svc.cluster.local",
-		"test-cluster-headless.test-namespace.svc.cluster.local",
-		"*.test-cluster-headless.test-namespace.svc",
-		"test-cluster-headless.test-namespace.svc",
-		"*.test-cluster-headless.test-namespace",
-		"test-cluster-headless.test-namespace",
-		"test-cluster-headless",
-	}
-	if !reflect.DeepEqual(expected, headlessNames) {
-		t.Error("Expected:", expected, "got:", headlessNames)
-	}
+	for _, node := range cluster.Spec.Nodes {
+		cluster.Spec.HeadlessServiceEnabled = true
+		headlessNames := GetInternalDNSNames(cluster, node.Id)
+		expected := []string{
+			fmt.Sprintf("test-cluster-%d-node.test-cluster-headless.test-namespace.svc.cluster.local", node.Id),
+			fmt.Sprintf("test-cluster-%d-node.test-cluster-headless.test-namespace.svc", node.Id),
+			fmt.Sprintf("test-cluster-%d-node.test-cluster-headless.test-namespace", node.Id),
+			fmt.Sprintf("test-cluster-%d-node.test-cluster-headless", node.Id),
+			fmt.Sprintf(templates.NodeNameTemplate, cluster.Name, node.Id),
+		}
+		if !reflect.DeepEqual(expected, headlessNames) {
+			t.Error("Expected:", expected, "got:", headlessNames)
+		}
 
-	cluster.Spec.HeadlessServiceEnabled = false
-	allBrokerNames := GetInternalDNSNames(cluster)
-	expected = []string{
-		"*.test-cluster-all-broker.test-namespace.svc.cluster.local",
-		"test-cluster-all-broker.test-namespace.svc.cluster.local",
-		"*.test-cluster-all-broker.test-namespace.svc",
-		"test-cluster-all-broker.test-namespace.svc",
-		"*.test-cluster-all-broker.test-namespace",
-		"test-cluster-all-broker.test-namespace",
-		"test-cluster-all-broker",
-	}
-	if !reflect.DeepEqual(expected, allBrokerNames) {
-		t.Error("Expected:", expected, "got:", allBrokerNames)
+		cluster.Spec.HeadlessServiceEnabled = false
+		allNodeNames := GetInternalDNSNames(cluster, node.Id)
+		expected = []string{
+			fmt.Sprintf("test-cluster-%d-node.test-cluster-all-node.test-namespace.svc.cluster.local", node.Id),
+			fmt.Sprintf("test-cluster-%d-node.test-cluster-all-node.test-namespace.svc", node.Id),
+			fmt.Sprintf("test-cluster-%d-node.test-cluster-all-node.test-namespace", node.Id),
+			fmt.Sprintf("test-cluster-%d-node.test-cluster-all-node", node.Id),
+			fmt.Sprintf(templates.NodeNameTemplate, cluster.Name, node.Id),
+
+		}
+		if !reflect.DeepEqual(expected, allNodeNames) {
+			t.Error("Expected:", expected, "got:", allNodeNames)
+		}
 	}
 }
 
-func TestBrokerUserForCluster(t *testing.T) {
+func TestNodeUsersForCluster(t *testing.T) {
 	cluster := testCluster(t)
-	user := BrokerUserForCluster(cluster, []string{})
+	users := NodeUsersForCluster(cluster, []string{})
 
-	expected := &v1alpha1.KafkaUser{
-		ObjectMeta: templates.ObjectMeta(GetCommonName(cluster), LabelsForKafkaPKI(cluster.Name), cluster),
-		Spec: v1alpha1.KafkaUserSpec{
-			SecretName: fmt.Sprintf(BrokerServerCertTemplate, cluster.Name),
-			DNSNames:   GetInternalDNSNames(cluster),
-			IncludeJKS: true,
-			ClusterRef: v1alpha1.ClusterReference{
-				Name:      cluster.Name,
-				Namespace: cluster.Namespace,
+	for _, node := range cluster.Spec.Nodes {
+		expected := &v1alpha1.NifiUser{
+			ObjectMeta: templates.ObjectMeta(GetNodeUserName(cluster, node.Id), LabelsForNifiPKI(cluster.Name), cluster),
+			Spec: v1alpha1.NifiUserSpec{
+				SecretName: fmt.Sprintf(NodeServerCertTemplate, cluster.Name, node.Id),
+				DNSNames:   GetInternalDNSNames(cluster, node.Id),
+				IncludeJKS: true,
+				ClusterRef: v1alpha1.ClusterReference{
+					Name:      cluster.Name,
+					Namespace: cluster.Namespace,
+				},
 			},
-		},
-	}
-
-	if !reflect.DeepEqual(user, expected) {
-		t.Errorf("Expected %+v\nGot %+v", expected, user)
+		}
+		if !util.NifiUserSliceContains(users, expected) {
+			t.Errorf("Expected %+v\ninto %+v", expected, users)
+		}
 	}
 }
 
@@ -139,13 +144,13 @@ func TestControllerUserForCluster(t *testing.T) {
 	cluster := testCluster(t)
 	user := ControllerUserForCluster(cluster)
 
-	expected := &v1alpha1.KafkaUser{
+	expected := &v1alpha1.NifiUser{
 		ObjectMeta: templates.ObjectMeta(
-			fmt.Sprintf(BrokerControllerFQDNTemplate, fmt.Sprintf(BrokerControllerTemplate, cluster.Name), cluster.Namespace),
-			LabelsForKafkaPKI(cluster.Name), cluster,
+			fmt.Sprintf(NodeControllerFQDNTemplate, fmt.Sprintf(NodeControllerTemplate, cluster.Name), cluster.Namespace),
+			LabelsForNifiPKI(cluster.Name), cluster,
 		),
-		Spec: v1alpha1.KafkaUserSpec{
-			SecretName: fmt.Sprintf(BrokerControllerTemplate, cluster.Name),
+		Spec: v1alpha1.NifiUserSpec{
+			SecretName: fmt.Sprintf(NodeControllerTemplate, cluster.Name),
 			IncludeJKS: true,
 			ClusterRef: v1alpha1.ClusterReference{
 				Name:      cluster.Name,

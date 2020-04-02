@@ -40,7 +40,6 @@ func newMockCluster() *v1alpha1.NifiCluster {
 	}
 	cluster.Spec.ListenersConfig.SSLSecrets = &v1alpha1.SSLSecrets{
 		TLSSecretName:   "test-controller",
-		JKSPasswordName: "test-password",
 		PKIBackend:      v1alpha1.PKIBackendCertManager,
 		Create:          true,
 	}
