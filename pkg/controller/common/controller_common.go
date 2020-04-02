@@ -94,7 +94,7 @@ func CheckNodeConnectionError(logger logr.Logger, err error) (ctrl.Result, error
 			RequeueAfter: time.Duration(15) * time.Second,
 		}, nil
 	case errorfactory.ResourceNotReady:
-		logger.Info("Needed resource for broker connection not found, may not be ready")
+		logger.Info("Needed resource for node connection not found, may not be ready")
 		return ctrl.Result{
 			Requeue:      true,
 			RequeueAfter: time.Duration(5) * time.Second,

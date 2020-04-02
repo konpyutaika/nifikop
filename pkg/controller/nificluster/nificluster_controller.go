@@ -183,7 +183,7 @@ func (r *ReconcileNifiCluster) Reconcile(request reconcile.Request) (reconcile.R
 
 	reqLogger.Info("ensuring finalizers on nificluster")
 	if instance, err = r.ensureFinalizers(ctx, instance); err != nil {
-		return common.RequeueWithError(log, "failed to ensure finalizers on kafkacluster instance", err)
+		return common.RequeueWithError(log, "failed to ensure finalizers on nificluster instance", err)
 	}
 
 	//Update rolling upgrade last successful state
@@ -227,7 +227,7 @@ func (r *ReconcileNifiCluster) checkFinalizers(ctx context.Context, log logr.Log
 	}
 
 	if cluster.Spec.ListenersConfig.SSLSecrets != nil {
-		// If we haven't deleted all kafkausers yet, iterate namespaces and delete all kafkausers
+		// If we haven't deleted all nifiusers yet, iterate namespaces and delete all nifiusers
 		// with the matching label.
 		if util.StringSliceContains(cluster.GetFinalizers(), clusterUsersFinalizer) {
 			log.Info(fmt.Sprintf("Sending delete nifiusers request to all namespaces for cluster %s/%s", cluster.Namespace, cluster.Name))
@@ -241,7 +241,7 @@ func (r *ReconcileNifiCluster) checkFinalizers(ctx context.Context, log logr.Log
 					if client.IgnoreNotFound(err) != nil {
 						return common.RequeueWithError(log, "failed to send delete request for children nifiusers", err)
 					}
-					log.Info(fmt.Sprintf("No matching kafkausers in namespace: %s", ns))
+					log.Info(fmt.Sprintf("No matching nifiusers in namespace: %s", ns))
 				}
 			}
 			if cluster, err = r.removeFinalizer(ctx, cluster, clusterUsersFinalizer); err != nil {

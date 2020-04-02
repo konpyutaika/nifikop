@@ -130,7 +130,7 @@ func (r *ReconcileNifiUser) Reconcile(request reconcile.Request) (reconcile.Resu
 		return common.RequeueWithError(reqLogger, "failed to lookup referenced cluster", err)
 	}
 	// Avoid panic if the user wants to create a nifi user but the cluster is in plaintext mode
-	// TODO: refactor this and use webhook to validate if the cluster is eligible to create a kafka user
+	// TODO: refactor this and use webhook to validate if the cluster is eligible to create a nifi user
 	if cluster.Spec.ListenersConfig.SSLSecrets == nil {
 		return common.RequeueWithError(reqLogger, "could not create Nifi user since cluster does not use ssl", errors.New("failed to create Nifi user"))
 	}
@@ -217,9 +217,6 @@ func (r *ReconcileNifiUser) Reconcile(request reconcile.Request) (reconcile.Resu
 	instance.Status = v1alpha1.NifiUserStatus{
 		State: v1alpha1.UserStateCreated,
 	}
-	/*if len(instance.Spec.TopicGrants) > 0 {
-		instance.Status.ACLs = kafkautil.GrantsToACLStrings(user.DN(), instance.Spec.TopicGrants)
-	}*/
 	if err := r.client.Status().Update(ctx, instance); err != nil {
 		return common.RequeueWithError(reqLogger, "failed to update NifiUser status", err)
 	}
@@ -275,7 +272,7 @@ func (r *ReconcileNifiUser) finalizeNifiUserACLs(reqLogger logr.Logger, cluster 
 		return nil
 	}
 	var err error
-	reqLogger.Info("Deleting user ACLs from kafka")
+	reqLogger.Info("Deleting user ACLs from nifi")
 	node, close, err := common.NewNodeConnection(reqLogger, r.client, cluster)
 	if err != nil {
 		return err

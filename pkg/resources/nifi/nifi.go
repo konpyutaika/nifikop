@@ -264,7 +264,7 @@ OUTERLOOP:
 				err = r.Client.Delete(context.TODO(), &corev1.Service{ObjectMeta: templates.ObjectMeta(fmt.Sprintf("%s-%s", r.NifiCluster.Name, node.Labels["nodeId"]), LabelsForNifi(r.NifiCluster.Name), r.NifiCluster)})
 				if err != nil {
 					if apierrors.IsNotFound(err) {
-						// can happen when broker was not fully initialized and now is deleted
+						// can happen when node was not fully initialized and now is deleted
 						log.Info(fmt.Sprintf("Service for Node %s not found. Continue", node.Labels["nodeId"]))
 					}
 					return errors.WrapIfWithDetails(err, "could not delete service for node", "id", node.Labels["nodeId"])
@@ -279,7 +279,7 @@ OUTERLOOP:
 					}})
 					if err != nil {
 						if apierrors.IsNotFound(err) {
-							// can happen when broker was not fully initialized and now is deleted
+							// can happen when node was not fully initialized and now is deleted
 							log.Info(fmt.Sprintf("PVC for Node %s not found. Continue", node.Labels["nodeId"]))
 						}
 

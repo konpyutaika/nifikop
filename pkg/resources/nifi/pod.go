@@ -2,19 +2,19 @@ package nifi
 
 import (
 	"fmt"
-	"github.com/go-logr/logr"
+	"sort"
+	"strings"
+
 	"github.com/erdrix/nifikop/pkg/apis/nifi/v1alpha1"
 	"github.com/erdrix/nifikop/pkg/resources/templates"
 	"github.com/erdrix/nifikop/pkg/util"
 	nifiutils "github.com/erdrix/nifikop/pkg/util/nifi"
+	pkicommon "github.com/erdrix/nifikop/pkg/util/pki"
 	zk "github.com/erdrix/nifikop/pkg/util/zookeeper"
+	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"sort"
-	"strings"
-	pkicommon "github.com/erdrix/nifikop/pkg/util/pki"
-
 )
 
 const(
@@ -33,6 +33,7 @@ func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev
 	zkHostname := zk.GetHostnameAddress(zkAddresse)
 	zkPort := zk.GetPortAddress(zkAddresse)
 
+
 	// ContainersPorts initialization
 	nifiNodeContainersPorts := r.generateContainerPortForInternalListeners()
 
@@ -48,9 +49,19 @@ func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev
 	volume 		= append(volume, dataVolume...)
 	volumeMount	= append(volumeMount, dataVolumeMount...)
 
+	readinessCommand := fmt.Sprintf(`curl -kv http://$(hostname -f):%d/nifi-api`,
+		GetServerPort(&r.NifiCluster.Spec.ListenersConfig))
+
 	if r.NifiCluster.Spec.ListenersConfig.SSLSecrets != nil {
 		volume = append(volume, generateVolumesForSSL(r.NifiCluster, id)...)
 		volumeMount = append(volumeMount, generateVolumeMountForSSL()...)
+
+		readinessCommand = fmt.Sprintf(`curl -kv --cert  %s/%s --key %s/%s https://$(hostname -f):%d/nifi`,
+			serverKeystorePath,
+			v1alpha1.TLSCert,
+			serverKeystorePath,
+			v1alpha1.TLSKey,
+			GetServerPort(&r.NifiCluster.Spec.ListenersConfig))
 	}
 
 	podVolumes   := append(volume, []corev1.Volume{
@@ -153,21 +164,17 @@ exec bin/nifi.sh run
 						TimeoutSeconds:      readinessHealthCheckTimeout,
 						PeriodSeconds:       readinessHealthCheckPeriod,
 						Handler: corev1.Handler{
+							/*HTTPGet: &corev1.HTTPGetAction{
+								Path: "/nifi-api",
+								Port: intstr.FromInt(int(GetServerPort(&r.NifiCluster.Spec.ListenersConfig))),
+								Scheme: corev1.URISchemeHTTPS,
+								//Host: nodeHostname,
+							},*/
 							Exec: &corev1.ExecAction{
 								Command: []string{
 									"bash",
 									"-c",
-/*									fmt.Sprintf(`curl -kv \
-http://$(hostname -f):%d/nifi-api/controller/cluster > $NIFI_BASE_DIR/data/cluster.state
-STATUS=$(jq -r ".cluster.nodes[] | select((.address==\"$(hostname -f)\") or .address==\"localhost\") | .status" $NIFI_BASE_DIR/data/cluster.state)
-if [[ ! $STATUS = "CONNECTED" ]]; then
-	echo "Node not found with CONNECTED state. Full cluster state:"
-	jq . $NIFI_BASE_DIR/data/cluster.state
-	exit 1
-fi`,*/
-										fmt.Sprintf(`curl -kv http://$(hostname -f):%d/nifi-api`,
-
-										GetServerPort(&r.NifiCluster.Spec.ListenersConfig)),
+									readinessCommand,
 								},
 							},
 						},

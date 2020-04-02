@@ -8,7 +8,6 @@ require (
 	emperror.dev/errors v0.4.2
 	github.com/banzaicloud/bank-vaults/pkg/sdk v0.2.0
 	github.com/banzaicloud/k8s-objectmatcher v1.0.0
-	github.com/banzaicloud/kafka-operator v0.0.0-20200319093627-0c7b8153d8d8
 	github.com/go-logr/logr v0.1.0
 	github.com/go-openapi/spec v0.19.4
 	github.com/hashicorp/vault v1.2.3

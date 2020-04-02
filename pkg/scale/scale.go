@@ -180,7 +180,7 @@ func GetNifiClusterNodeStatus(headlessServiceEnabled bool, nodeId, serverPort in
 	return response, nil
 }
 
-// UpScaleCluster upscales Kafka cluster
+// UpScaleCluster upscales Nifi cluster
 func UpScaleCluster(nodeId, namespace, clusterName string) (v1alpha1.ActionStep, string, error) {
 	actionStep := v1alpha1.ConnectNodeAction
 	currentTime := time.Now()

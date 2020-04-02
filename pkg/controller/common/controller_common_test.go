@@ -101,7 +101,7 @@ func TestClusterLabelString(t *testing.T) {
 func TestCheckNodeConnectionError(t *testing.T) {
 	var err error
 
-	// Test brokers unreachable
+	// Test nodes unreachable
 	err = errorfactory.New(errorfactory.NodesUnreachable{}, errors.New("test error"), "test message")
 	if res, err := CheckNodeConnectionError(log, err); err != nil {
 		t.Error("Expected no error in result, got:", err)
@@ -114,7 +114,7 @@ func TestCheckNodeConnectionError(t *testing.T) {
 		}
 	}
 
-	// Test brokers not ready
+	// Test nodes not ready
 	err = errorfactory.New(errorfactory.NodesNotReady{}, errors.New("test error"), "test message")
 	if res, err := CheckNodeConnectionError(log, err); err != nil {
 		t.Error("Expected no error in result, got:", err)
@@ -149,12 +149,12 @@ func TestCheckNodeConnectionError(t *testing.T) {
 
 func TestApplyClusterRefLabel(t *testing.T) {
 	cluster := &v1alpha1.NifiCluster{}
-	cluster.Name = "test-kafka"
+	cluster.Name = "test-nifi"
 	cluster.Namespace = "test-namespace"
 
 	// nil labels input
 	var labels map[string]string
-	expected := map[string]string{ClusterRefLabel: "test-kafka.test-namespace"}
+	expected := map[string]string{ClusterRefLabel: "test-nifi.test-namespace"}
 	newLabels := ApplyClusterRefLabel(cluster, labels)
 	if !reflect.DeepEqual(newLabels, expected) {
 		t.Error("Expected:", expected, "Got:", newLabels)
@@ -163,7 +163,7 @@ func TestApplyClusterRefLabel(t *testing.T) {
 	// existing label but no conflicts
 	labels = map[string]string{"otherLabel": "otherValue"}
 	expected = map[string]string{
-		ClusterRefLabel: "test-kafka.test-namespace",
+		ClusterRefLabel: "test-nifi.test-namespace",
 		"otherLabel":    "otherValue",
 	}
 	newLabels = ApplyClusterRefLabel(cluster, labels)
@@ -173,11 +173,11 @@ func TestApplyClusterRefLabel(t *testing.T) {
 
 	// existing label with wrong value
 	labels = map[string]string{
-		ClusterRefLabel: "test-kafka.wrong-namespace",
+		ClusterRefLabel: "test-nifi.wrong-namespace",
 		"otherLabel":    "otherValue",
 	}
 	expected = map[string]string{
-		ClusterRefLabel: "test-kafka.test-namespace",
+		ClusterRefLabel: "test-nifi.test-namespace",
 		"otherLabel":    "otherValue",
 	}
 	newLabels = ApplyClusterRefLabel(cluster, labels)
@@ -187,7 +187,7 @@ func TestApplyClusterRefLabel(t *testing.T) {
 
 	// existing labels with correct value - should come back untainted
 	labels = map[string]string{
-		ClusterRefLabel: "test-kafka.test-namespace",
+		ClusterRefLabel: "test-nifi.test-namespace",
 		"otherLabel":    "otherValue",
 	}
 	newLabels = ApplyClusterRefLabel(cluster, labels)
