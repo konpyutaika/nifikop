@@ -1,44 +1,37 @@
-package nifi
+package zookeeper
 
 import (
-	"fmt"
 	"reflect"
 	"testing"
-
-	"github.com/erdrix/nifikop/pkg/apis/nifi/v1alpha1"
-	"github.com/erdrix/nifikop/pkg/resources/templates"
 )
 
-func testCluster(t *testing.T) *v1alpha1.NifiCluster {
-	t.Helper()
-	cluster := &v1alpha1.NifiCluster{}
-	cluster.Name = "test-cluster"
-	cluster.Namespace = "test-namespace"
-	cluster.Spec = v1alpha1.NifiClusterSpec{}
+func TestPrepareConnectionAddress(t *testing.T) {
+	zkAddresse := "zkhostname.subdomain.com:8081"
+	zkPath := "/zkpath"
+	expectedZkConnectionAddress := "zkhostname.subdomain.com:8081/zkpath"
+	zkConnectionAddress := PrepareConnectionAddress(zkAddresse, zkPath)
 
-	cluster.Spec.Nodes = []v1alpha1.Node{
-		{Id: 0},
-		{Id: 1},
-		{Id: 2},
+	if !reflect.DeepEqual(zkConnectionAddress, expectedZkConnectionAddress) {
+		t.Errorf("Expected %+v\nGot %+v", expectedZkConnectionAddress, zkConnectionAddress)
 	}
-	return cluster
 }
 
+func TestGetHostnameAddress(t *testing.T) {
+	zkAddresse := "zkhostname.subdomain.com:8081"
+	expectedZkHostname := "zkhostname.subdomain.com"
+	zkHostname := GetHostnameAddress(zkAddresse)
 
-func TestComputeHostname(t *testing.T) {
-	cluster := testCluster(t)
+	if !reflect.DeepEqual(zkHostname, expectedZkHostname) {
+		t.Errorf("Expected %+v\nGot %+v", expectedZkHostname, zkHostname)
+	}
+}
 
-	for _, node := range cluster.Spec.Nodes {
-		headlessAddress := ComputeHostname(true, node.Id, cluster.Name, cluster.Namespace)
-		expectedAddress := fmt.Sprintf("%s.test-cluster-headless.test-namespace.svc.cluster.local", fmt.Sprintf(templates.NodeNameTemplate, "test-cluster", node.Id))
-		if !reflect.DeepEqual(headlessAddress, expectedAddress) {
-			t.Errorf("Expected %+v\nGot %+v", expectedAddress, headlessAddress)
-		}
+func TestGetHostnamePort(t *testing.T) {
+	zkAddresse := "zkhostname.subdomain.com:8081"
+	expectedZkPort := "8081"
+	zkPort := GetPortAddress(zkAddresse)
 
-		allNodeAddress := ComputeHostname(false, node.Id, cluster.Name, cluster.Namespace)
-		expectedAddress = fmt.Sprintf("%s.test-namespace.svc.cluster.local", fmt.Sprintf(templates.NodeNameTemplate, "test-cluster", node.Id))
-		if !reflect.DeepEqual(allNodeAddress, expectedAddress) {
-			t.Errorf("Expected %+v\nGot %+v", expectedAddress, allNodeAddress)
-		}
+	if !reflect.DeepEqual(zkPort, expectedZkPort) {
+		t.Errorf("Expected %+v\nGot %+v", expectedZkPort, zkPort)
 	}
 }

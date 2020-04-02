@@ -27,6 +27,6 @@ func ComputeHostname(headlessServiceEnabled bool, nodeId int32, clusterName, nam
 	if headlessServiceEnabled {
 		return fmt.Sprintf("%s.%s-headless.%s.svc.cluster.local", fmt.Sprintf(templates.NodeNameTemplate,clusterName, nodeId), clusterName, namespace)
 	} else {
-		return fmt.Sprintf("%s.%s.svc.cluster.local", fmt.Sprintf(templates.NodeNameTemplate,clusterName, nodeId), namespace)
+		return fmt.Sprintf("%s.%s.svc.cluster.local", fmt.Sprintf(templates.NodeNameTemplate, clusterName, nodeId), namespace)
 	}
 }
