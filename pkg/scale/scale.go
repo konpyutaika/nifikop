@@ -18,16 +18,15 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/openshift/origin/Godeps/_workspace/src/k8s.io/kubernetes/pkg/util/json"
+	"io/ioutil"
+	"net/http"
+	//	"strconv"
+	"time"
+
 	"github.com/erdrix/nifikop/pkg/apis/nifi/v1alpha1"
 	"github.com/erdrix/nifikop/pkg/util"
 	nifiutil "github.com/erdrix/nifikop/pkg/util/nifi"
-	"io/ioutil"
-	"net/http"
-	"strconv"
-
-	//	"strconv"
-	"time"
+	"github.com/openshift/origin/Godeps/_workspace/src/k8s.io/kubernetes/pkg/util/json"
 
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
@@ -209,21 +208,65 @@ func getNifiNodeIdFromAddress(headlessServiceEnabled bool, nodeId, serverPort in
 	return targetNodeId, nil
 }
 
-func getNifiClusterCoordinatorNode(headlessServiceEnabled bool, availableNodeIds []int32, serverPort int32, namespace, clusterName string) (*int32, error) {
+func nifiClusterNodeToRequest(headlessServiceEnabled bool, availableNodeIds []int32, serverPort int32, namespace, clusterName string, nodeTargetActionId *int32) (*int32, error) {
 	var err error
+
+	availableNodeAddressMap := make(map[string]int32)
+	nodesRoles := make(map[string][]interface{})
+	coordinatorAddress := ""
+
+	// For each available node (defined in NifiCluster),
+	// we add a match between searched address and node Id.
 	for _, nodeId := range availableNodeIds {
+		availableNodeAddressMap[nifiutil.ComputeHostname(headlessServiceEnabled, nodeId, clusterName, namespace)] = nodeId
+	}
+
+	// For each available node (defined in NifiCluster)
+	for _, nodeId := range availableNodeIds {
+		// Request the node to have the Nifi cluster status
 		clusterStatus, err := GetNifiClusterNodesStatus(headlessServiceEnabled, nodeId, serverPort, namespace, clusterName)
-		searchedAddress := nifiutil.ComputeHostname(headlessServiceEnabled, nodeId, clusterName, namespace)
+
+		// Initialize map
+		nodesRoles = make(map[string][]interface{})
+
 		if err == nil {
 			for _, node := range clusterStatus["cluster"].(map[string]interface{})["nodes"].([]interface{}){
 				roles := node.(map[string]interface{})["roles"].([]interface{})
 				address := node.(map[string]interface{})["address"].(string)
-				if address == searchedAddress && len(roles) >= 2 && (roles[0].(string) == clusterCoordinator || roles[1].(string) == clusterCoordinator) {
+				nodesRoles[address] = roles
+			}
+			break
+		}
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	// For each adresse returned by Nifi cluster
+	for address, roles := range nodesRoles {
+		// If the the node associated is the coordinator
+		if len(roles) >= 2 && (roles[0].(string) == clusterCoordinator || roles[1].(string) == clusterCoordinator) {
+			coordinatorAddress = address
+			// If the coordinator isn't the targeted node
+			if nodeTargetActionId == nil || nifiutil.ComputeHostname(headlessServiceEnabled, *nodeTargetActionId, clusterName, namespace) != coordinatorAddress {
+				if nodeId, ok := availableNodeAddressMap[coordinatorAddress]; ok {
 					return &nodeId, nil
 				}
+				break
 			}
 		}
 	}
+	if coordinatorAddress != "" {
+		delete(nodesRoles, coordinatorAddress)
+	}
+
+	for address,_ := range nodesRoles {
+		if nodeId, ok := availableNodeAddressMap[address]; ok {
+			return &nodeId, nil
+		}
+	}
+
 	return nil, err
 }
 
@@ -232,9 +275,11 @@ func DisconnectClusterNode(headlessServiceEnabled bool, availableNodes []v1alpha
 	var err error
 	var rsp map[string]interface{}
 
+	// Extract nifi node Id, from nifi node address.
+	int32NodeId, _ := nifiutil.ParseStringToInt32(nodeId)
 
 	// Look for available nifi node.
-	coordinatorNodeId, err := getNifiClusterCoordinatorNode(headlessServiceEnabled, generateNodeIdSlice(availableNodes), serverPort, namespace, clusterName)
+	coordinatorNodeId, err := nifiClusterNodeToRequest(headlessServiceEnabled, generateNodeIdSlice(availableNodes), serverPort, namespace, clusterName, &int32NodeId)
 
 	if coordinatorNodeId == nil {
 		return "", "", err
@@ -242,9 +287,6 @@ func DisconnectClusterNode(headlessServiceEnabled bool, availableNodes []v1alpha
 
 	var dResp *http.Response
 
-	// Extract nifi node Id, from nifi node address.
-	intNodeId, err := strconv.ParseInt(nodeId,10, 32)
-	int32NodeId := int32(intNodeId)
 	searchedAddress := nifiutil.ComputeHostname(headlessServiceEnabled, int32NodeId, clusterName, namespace)
 
 	targetNodeId, err := getNifiNodeIdFromAddress(headlessServiceEnabled, *coordinatorNodeId, serverPort, namespace, clusterName, searchedAddress)
@@ -288,8 +330,11 @@ func DisconnectClusterNode(headlessServiceEnabled bool, availableNodes []v1alpha
 func OffloadClusterNode(headlessServiceEnabled bool, availableNodes []v1alpha1.Node, serverPort int32, nodeId, namespace, clusterName string) (v1alpha1.ActionStep, string, error) {
 	var err error
 
+	// Extract nifi node Id, from nifi node address.
+	int32NodeId, _ := nifiutil.ParseStringToInt32(nodeId)
+
 	// Look for available nifi node.
-	coordinatorNodeId, err := getNifiClusterCoordinatorNode(headlessServiceEnabled, generateNodeIdSlice(availableNodes), serverPort, namespace, clusterName)
+	coordinatorNodeId, err := nifiClusterNodeToRequest(headlessServiceEnabled, generateNodeIdSlice(availableNodes), serverPort, namespace, clusterName, &int32NodeId)
 
 	if coordinatorNodeId == nil {
 		return "", "", err
@@ -297,9 +342,6 @@ func OffloadClusterNode(headlessServiceEnabled bool, availableNodes []v1alpha1.N
 
 	var dResp *http.Response
 
-	// Extract nifi node Id, from nifi node address.
-	intNodeId, err := strconv.ParseInt(nodeId,10, 32)
-	int32NodeId := int32(intNodeId)
 	searchedAddress := nifiutil.ComputeHostname(headlessServiceEnabled, int32NodeId, clusterName, namespace)
 
 	targetNodeId, err := getNifiNodeIdFromAddress(headlessServiceEnabled, *coordinatorNodeId, serverPort, namespace, clusterName, searchedAddress)
@@ -327,8 +369,11 @@ func OffloadClusterNode(headlessServiceEnabled bool, availableNodes []v1alpha1.N
 func RemoveClusterNode(headlessServiceEnabled bool, availableNodes []v1alpha1.Node, serverPort int32, nodeId, namespace, clusterName string) (v1alpha1.ActionStep, string, error) {
 	var err error
 
+	// Extract nifi node Id, from nifi node address.
+	int32NodeId, _ := nifiutil.ParseStringToInt32(nodeId)
+
 	// Look for available nifi node.
-	coordinatorNodeId, err := getNifiClusterCoordinatorNode(headlessServiceEnabled, generateNodeIdSlice(availableNodes), serverPort, namespace, clusterName)
+	coordinatorNodeId, err := nifiClusterNodeToRequest(headlessServiceEnabled, generateNodeIdSlice(availableNodes), serverPort, namespace, clusterName, &int32NodeId)
 
 	if coordinatorNodeId == nil {
 		return "", "", err
@@ -336,10 +381,6 @@ func RemoveClusterNode(headlessServiceEnabled bool, availableNodes []v1alpha1.No
 
 	var dResp *http.Response
 
-
-	// Extract nifi node Id, from nifi node address.
-	intNodeId, err := strconv.ParseInt(nodeId,10, 32)
-	int32NodeId := int32(intNodeId)
 	searchedAddress := nifiutil.ComputeHostname(headlessServiceEnabled, int32NodeId, clusterName, namespace)
 
 	targetNodeId, err := getNifiNodeIdFromAddress(headlessServiceEnabled, *coordinatorNodeId, serverPort, namespace, clusterName, searchedAddress)
@@ -371,8 +412,9 @@ func RemoveClusterNode(headlessServiceEnabled bool, availableNodes []v1alpha1.No
 }
 
 func EnsureRemovedNodes(headlessServiceEnabled bool, availableNodes []v1alpha1.Node, availableNodesState map[string]v1alpha1.NodeState, serverPort int32, namespace, clusterName string)  (error) {
+
 	// Look for available nifi node.
-	coordinatorNodeId, err := getNifiClusterCoordinatorNode(headlessServiceEnabled, generateNodeIdSlice(availableNodes), serverPort, namespace, clusterName)
+	coordinatorNodeId, err := nifiClusterNodeToRequest(headlessServiceEnabled, generateNodeIdSlice(availableNodes), serverPort, namespace, clusterName, nil)
 
 	if coordinatorNodeId == nil {
 		return err
@@ -412,8 +454,11 @@ func EnsureRemovedNodes(headlessServiceEnabled bool, availableNodes []v1alpha1.N
 func ConnectClusterNode(headlessServiceEnabled bool, availableNodes []v1alpha1.Node, serverPort int32, nodeId, namespace, clusterName string) (v1alpha1.ActionStep, string, error) {
 	var err error
 
+	// Extract nifi node Id, from nifi node address.
+	int32NodeId, _ := nifiutil.ParseStringToInt32(nodeId)
+
 	// Look for available nifi node.
-	coordinatorNodeId, err := getNifiClusterCoordinatorNode(headlessServiceEnabled, generateNodeIdSlice(availableNodes), serverPort, namespace, clusterName)
+	coordinatorNodeId, err := nifiClusterNodeToRequest(headlessServiceEnabled, generateNodeIdSlice(availableNodes), serverPort, namespace, clusterName, &int32NodeId)
 
 	if coordinatorNodeId == nil {
 		return "", "", err
@@ -421,9 +466,6 @@ func ConnectClusterNode(headlessServiceEnabled bool, availableNodes []v1alpha1.N
 
 	var dResp *http.Response
 
-	// Extract nifi node Id, from nifi node address.
-	intNodeId, err := strconv.ParseInt(nodeId,10, 32)
-	int32NodeId := int32(intNodeId)
 	searchedAddress := nifiutil.ComputeHostname(headlessServiceEnabled, int32NodeId, clusterName, namespace)
 
 	targetNodeId, err := getNifiNodeIdFromAddress(headlessServiceEnabled, *coordinatorNodeId, serverPort, namespace, clusterName, searchedAddress)
@@ -453,8 +495,11 @@ func ConnectClusterNode(headlessServiceEnabled bool, availableNodes []v1alpha1.N
 func CheckIfNCActionStepFinished(headlessServiceEnabled bool, availableNodes []v1alpha1.Node, serverPort int32, actionStep v1alpha1.ActionStep, nodeId, namespace, clusterName string) (bool, error) {
 	var err error
 
+	// Extract nifi node Id, from nifi node address.
+	int32NodeId, _ := nifiutil.ParseStringToInt32(nodeId)
+
 	// Look for available nifi node.
-	coordinatorNodeId, err := getNifiClusterCoordinatorNode(headlessServiceEnabled, generateNodeIdSlice(availableNodes), serverPort, namespace, clusterName)
+	coordinatorNodeId, err := nifiClusterNodeToRequest(headlessServiceEnabled, generateNodeIdSlice(availableNodes), serverPort, namespace, clusterName, &int32NodeId)
 
 	if coordinatorNodeId == nil {
 		return false, err
@@ -462,9 +507,6 @@ func CheckIfNCActionStepFinished(headlessServiceEnabled bool, availableNodes []v
 
 	var dResp map[string]interface{}
 
-	// Extract nifi node Id, from nifi node address.
-	intNodeId, err := strconv.ParseInt(nodeId,10, 32)
-	int32NodeId := int32(intNodeId)
 	searchedAddress := nifiutil.ComputeHostname(headlessServiceEnabled, int32NodeId, clusterName, namespace)
 
 	targetNodeId, err := getNifiNodeIdFromAddress(headlessServiceEnabled, *coordinatorNodeId, serverPort, namespace, clusterName, searchedAddress)
@@ -515,9 +557,7 @@ func generateNodeStateIdSlice(nodesState map[string]v1alpha1.NodeState) []int32 
 	var nodeIdsSlice []int32
 
 	for nodeId, _ := range nodesState {
-		intNodeId, _ := strconv.ParseInt(nodeId,10, 32)
-		int32NodeId := int32(intNodeId)
-
+		int32NodeId, _ := nifiutil.ParseStringToInt32(nodeId)
 		nodeIdsSlice = append(nodeIdsSlice, int32NodeId)
 	}
 	return nodeIdsSlice

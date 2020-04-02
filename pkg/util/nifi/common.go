@@ -3,6 +3,7 @@ package nifi
 import (
 	"fmt"
 	"github.com/erdrix/nifikop/pkg/resources/templates"
+	"strconv"
 	"time"
 )
 
@@ -29,4 +30,11 @@ func ComputeHostname(headlessServiceEnabled bool, nodeId int32, clusterName, nam
 	} else {
 		return fmt.Sprintf("%s.%s.svc.cluster.local", fmt.Sprintf(templates.NodeNameTemplate, clusterName, nodeId), namespace)
 	}
+}
+
+func ParseStringToInt32(nodeId string) (int32, error) {
+	intNodeId, err := strconv.ParseInt(nodeId, 10, 32)
+	int32NodeId := int32(intNodeId)
+
+	return int32NodeId, err
 }
