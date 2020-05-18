@@ -12,6 +12,7 @@ import (
 	"github.com/erdrix/nifikop/pkg/resources/templates/config"
 	"github.com/erdrix/nifikop/pkg/util"
 	"github.com/erdrix/nifikop/pkg/util/pki"
+	utilpki "github.com/erdrix/nifikop/pkg/util/pki"
 	"github.com/go-logr/logr"
 	"github.com/imdario/mergo"
 	corev1 "k8s.io/api/core/v1"
@@ -102,6 +103,16 @@ func (r *Reconciler) getNifiPropertiesConfigString(nConfig *v1alpha1.NodeConfig,
 		}
 	}
 
+	var dnsNames []string
+	for _, dnsName := range utilpki.ClusterDNSNames(r.NifiCluster, id) {
+		dnsNames = append(dnsNames, fmt.Sprintf("%s:%d", dnsName, GetServerPort(&r.NifiCluster.Spec.ListenersConfig)))
+	}
+	webProxyHost := strings.Join(dnsNames, ",")
+	if base.WebProxyHost != "" {
+		webProxyHost = strings.Join(append(dnsNames, base.WebProxyHost), ",")
+	}
+
+
 	var out bytes.Buffer
 	t := template.Must(template.New("nConfig-config").Parse(config.NifiPropertiesTemplate))
 	if err := t.Execute(&out, map[string]interface{}{
@@ -111,7 +122,7 @@ func (r *Reconciler) getNifiPropertiesConfigString(nConfig *v1alpha1.NodeConfig,
 		"ProvenanceStorage":		nConfig.GetProvenanceStorage(),
 		"SiteToSiteSecure": 		r.NifiCluster.Spec.SiteToSiteSecure,
 		"ClusterSecure":			r.NifiCluster.Spec.ClusterSecure,
-		"WebProxyHost": 			base.WebProxyHost,
+		"WebProxyHost": 			webProxyHost,
 		"NeedClientAuth": 			base.NeedClientAuth,
 		"Authorizer": 				base.GetAuthorizer(),
 		"SSLEnabledForInternalCommunication": r.NifiCluster.Spec.ListenersConfig.SSLSecrets != nil && util.IsSSLEnabledForInternalCommunication(r.NifiCluster.Spec.ListenersConfig.InternalListeners),
@@ -306,11 +317,12 @@ func (r *Reconciler) getAuthorizersConfigString(nConfig *v1alpha1.NodeConfig, id
 	var out bytes.Buffer
 	t := template.Must(template.New("nConfig-config").Parse(config.AuthorizersTemplate))
 	if err := t.Execute(&out, map[string]interface{}{
-		"NifiCluster":	r.NifiCluster,
-		"Id": 			id,
-		"ClusterName":	r.NifiCluster.Name,
-		"Namespace":	r.NifiCluster.Namespace,
-		"NodeList":		nodeList,
+		"NifiCluster":		r.NifiCluster,
+		"Id": 				id,
+		"ClusterName":		r.NifiCluster.Name,
+		"Namespace":		r.NifiCluster.Namespace,
+		"NodeList":			nodeList,
+		"InitialAdminUser":	r.NifiCluster.Spec.InitialAdminUser,
 	}); err != nil {
 		log.Error(err, "error occurred during parsing the config template")
 	}

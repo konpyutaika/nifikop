@@ -61,20 +61,13 @@ func ClusterLabelString(cluster *v1alpha1.NifiCluster) string {
 
 // newNodeConnection is a convenience wrapper for creating a node connection
 // and creating a safer close function
-func NewNodeConnection(log logr.Logger, client client.Client, cluster *v1alpha1.NifiCluster) (node nificlient.NifiClient, close func(), err error) {
+func NewNodeConnection(log logr.Logger, client client.Client, cluster *v1alpha1.NifiCluster) (node nificlient.NifiClient, err error) {
 
 	// Get a nifi connection
 	log.Info(fmt.Sprintf("Retrieving Nifi client for %s/%s", cluster.Namespace, cluster.Name))
 	node, err = newNifiFromCluster(client, cluster)
 	if err != nil {
 		return
-	}
-	close = func() {
-		if err := node.Close(); err != nil {
-			log.Error(err, "Error closing Nifi client")
-		} else {
-			log.Info("Nifi client closed cleanly")
-		}
 	}
 	return
 }

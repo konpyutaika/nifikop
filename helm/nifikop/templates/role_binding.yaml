@@ -12,7 +12,6 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: {{ template "nifikop.name" . }}
-
 roleRef:
   kind: Role
   name: {{ template "nifikop.name" . }}
@@ -34,7 +33,6 @@ subjects:
   - kind: ServiceAccount
     name: {{ template "nifikop.name" . }}
     namespace: {{ .Release.Namespace }}
-
 roleRef:
   kind: Role
   name: {{ template "nifikop.name" . }}

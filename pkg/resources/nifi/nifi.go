@@ -106,12 +106,6 @@ func (r *Reconciler) Reconcile(log logr.Logger) error {
 		return errors.WrapIfWithDetails(err, "failed to reconcile resource", "resource", o.GetObjectKind().GroupVersionKind())
 	}
 
-	// Handle Pod delete
-	err = r.reconcileNifiPodDelete(log)
-	if err != nil {
-		return errors.WrapIf(err, "failed to reconcile resource")
-	}
-
 	// TODO : manage external LB
 	lbIPs := make([]string, 0)
 	// Setup the PKI if using SSL
@@ -168,6 +162,17 @@ func (r *Reconciler) Reconcile(log logr.Logger) error {
 		}
 	}
 
+	// Handle Pod delete
+	err = r.reconcileNifiPodDelete(log)
+	if err != nil {
+		return errors.WrapIf(err, "failed to reconcile resource")
+	}
+
+	// TODO: Ensure usage and needing
+	err = scale.EnsureRemovedNodes(r.Client, r.NifiCluster)
+	if err != nil && len(r.NifiCluster.Status.NodesState) > 0{
+		return err
+	}
 
 	log.V(1).Info("Reconciled")
 
@@ -184,7 +189,6 @@ func (r *Reconciler) reconcileNifiPodDelete(log logr.Logger) error {
 	if err != nil {
 		return errors.WrapIf(err, "failed to reconcile resource")
 	}
-
 
 	deletedNodes := make([]corev1.Pod, 0)
 OUTERLOOP:
@@ -298,13 +302,6 @@ OUTERLOOP:
 				return errors.WrapIfWithDetails(err, "could not update status for node(s)", "id(s)", node.Labels["nodeId"])
 			}
 		}
-	}
-
-	// TODO: Ensure usage and needing
-	err = scale.EnsureRemovedNodes(r.NifiCluster.Spec.HeadlessServiceEnabled, r.NifiCluster.Spec.Nodes, r.NifiCluster.Status.NodesState,
-		GetServerPort(&r.NifiCluster.Spec.ListenersConfig), r.NifiCluster.Namespace, r.NifiCluster.Name)
-	if err != nil {
-		return err
 	}
 
 	return nil
@@ -535,7 +532,7 @@ func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) e
 			}
 
 			if r.NifiCluster.Status.State == v1alpha1.NifiClusterRollingUpgrading {
-				// Check if any nifi pod is in terminating or pending state
+				// Check if any nifi pod is in terminating, pending or not ready state
 				podList := &corev1.PodList{}
 				matchingLabels := client.MatchingLabels(LabelsForNifi(r.NifiCluster.Name))
 				err := r.Client.List(context.TODO(), podList, client.ListOption(client.InNamespace(r.NifiCluster.Namespace)), client.ListOption(matchingLabels))
@@ -548,6 +545,10 @@ func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) e
 					}
 					if k8sutil.IsPodContainsPendingContainer(&pod) {
 						return errorfactory.New(errorfactory.ReconcileRollingUpgrade{}, errors.New("pod is still creating"), "rolling upgrade in progress")
+					}
+
+					if !k8sutil.IsPodContainsNotReadyMainContainer(&pod) {
+						return errorfactory.New(errorfactory.ReconcileRollingUpgrade{}, errors.New("pod is still not ready"), "rolling upgrade in progress")
 					}
 				}
 			}

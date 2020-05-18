@@ -214,6 +214,13 @@ func (in *NifiClusterSpec) DeepCopyInto(out *NifiClusterSpec) {
 	}
 	out.LdapConfiguration = in.LdapConfiguration
 	out.NifiClusterTaskSpec = in.NifiClusterTaskSpec
+	if in.InitContainers != nil {
+		in, out := &in.InitContainers, &out.InitContainers
+		*out = make([]v1.Container, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
+	}
 	return
 }
 

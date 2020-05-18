@@ -1,4 +1,4 @@
-package nificluster
+package nifiuser
 
 import (
 	"context"
@@ -273,11 +273,10 @@ func (r *ReconcileNifiUser) finalizeNifiUserACLs(reqLogger logr.Logger, cluster 
 	}
 	var err error
 	reqLogger.Info("Deleting user ACLs from nifi")
-	node, close, err := common.NewNodeConnection(reqLogger, r.client, cluster)
+	node, err := common.NewNodeConnection(reqLogger, r.client, cluster)
 	if err != nil {
 		return err
 	}
-	defer close()
 	if err = node.DeleteUserACLs(user.DN()); err != nil {
 		return err
 	}

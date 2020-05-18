@@ -25,6 +25,8 @@ const(
 	readinessInitialDelaySeconds int32 = 60
 	readinessHealthCheckTimeout  int32 = 10
 	readinessHealthCheckPeriod   int32 = 20
+
+	ContainerName string = "nifi"
 )
 
 func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev1.PersistentVolumeClaim, log logr.Logger) runtime.Object {
@@ -44,7 +46,8 @@ func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev
 
 	volume 			:= []corev1.Volume{}
 	volumeMount 	:= []corev1.VolumeMount{}
-	initContainers 	:= []corev1.Container{}
+	//initContainers 	:= []corev1.Container{}
+	initContainers 	:= append([]corev1.Container{}, r.NifiCluster.Spec.InitContainers...)
 
 	volume 		= append(volume, dataVolume...)
 	volumeMount	= append(volumeMount, dataVolumeMount...)
@@ -90,6 +93,10 @@ func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev
 
 	sort.Slice(podVolumeMounts, func(i, j int) bool {
 		return podVolumeMounts[i].Name < podVolumeMounts[j].Name
+	})
+
+	sort.Slice(initContainers, func(i, j int) bool {
+		return initContainers[i].Name < initContainers[j].Name
 	})
 
 	command := []string{"bash", "-ce", `
@@ -147,7 +154,7 @@ exec bin/nifi.sh run
 						},
 					},*/
 				{
-					Name:	"nifi",
+					Name:	ContainerName,
 					Image: 	util.GetNodeImage(nodeConfig, r.NifiCluster.Spec.ClusterImage),
 					Lifecycle: &corev1.Lifecycle{
 						PreStop: &corev1.Handler{
@@ -155,8 +162,6 @@ exec bin/nifi.sh run
 								Command: []string{"bash", "-c", "$NIFI_HOME/bin/nifi.sh stop"},
 							},
 						},
-						// TODO: add dynamic PostStart for additional lib https://github.com/cetic/helm-nifi/blob/master/values.yaml#L58
-
 					},
 					// TODO : Manage https setup use cases https://github.com/cetic/helm-nifi/blob/master/templates/statefulset.yaml#L165
 					ReadinessProbe: &corev1.Probe{
@@ -336,10 +341,10 @@ func GetServerPort(l *v1alpha1.ListenersConfig) int32 {
 		if iListener.Type == v1alpha1.HttpsListenerType {
 			httpsServerPort = iListener.ContainerPort
 		} else if iListener.Type == v1alpha1.HttpListenerType {
-			httpsServerPort = iListener.ContainerPort
+			httpServerPort = iListener.ContainerPort
 		}
 	}
-	if &httpsServerPort != nil {
+	if httpsServerPort != 0 {
 		return httpsServerPort
 	}
 	return httpServerPort
