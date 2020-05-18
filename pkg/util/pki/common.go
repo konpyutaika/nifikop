@@ -120,20 +120,17 @@ func ClusterDNSNames(cluster *v1alpha1.NifiCluster, nodeId int32) (names []strin
 	names = make([]string, 0)
 	if cluster.Spec.HeadlessServiceEnabled {
 		// FQDN
-		//names = append(names, fmt.Sprintf("*.%s", GetCommonName(cluster)))
 		names = append(names, GetCommonName(cluster))
 		names = append(names, fmt.Sprintf("%s.%s", fmt.Sprintf(templates.NodeNameTemplate, cluster.Name, nodeId), GetCommonName(cluster)))
 
 		// SVC notation
 		names = append(names,
-			//fmt.Sprintf("*.%s.%s.svc", fmt.Sprintf(nifi.HeadlessServiceTemplate, cluster.Name), cluster.Namespace),
 			fmt.Sprintf("%s.%s.svc", fmt.Sprintf(nifi.HeadlessServiceTemplate, cluster.Name), cluster.Namespace),
 			fmt.Sprintf("%s.%s.%s.svc", fmt.Sprintf(templates.NodeNameTemplate, cluster.Name, nodeId), fmt.Sprintf(nifi.HeadlessServiceTemplate, cluster.Name), cluster.Namespace),
 		)
 
 		// Namespace notation
 		names = append(names,
-			//fmt.Sprintf("*.%s.%s", fmt.Sprintf(nifi.HeadlessServiceTemplate, cluster.Name), cluster.Namespace),
 			fmt.Sprintf("%s.%s", fmt.Sprintf(nifi.HeadlessServiceTemplate, cluster.Name), cluster.Namespace),
 			fmt.Sprintf("%s.%s.%s", fmt.Sprintf(templates.NodeNameTemplate, cluster.Name, nodeId), fmt.Sprintf(nifi.HeadlessServiceTemplate, cluster.Name), cluster.Namespace),
 		)
@@ -145,20 +142,17 @@ func ClusterDNSNames(cluster *v1alpha1.NifiCluster, nodeId int32) (names []strin
 
 	} else {
 		// FQDN
-		//names = append(names, fmt.Sprintf("*.%s", GetCommonName(cluster)))
 		names = append(names, GetCommonName(cluster))
 		names = append(names, fmt.Sprintf("%s.%s", fmt.Sprintf(templates.NodeNameTemplate, cluster.Name, nodeId), GetCommonName(cluster)))
 
 		// SVC notation
 		names = append(names,
-			//fmt.Sprintf("*.%s.%s.svc", fmt.Sprintf(nifi.AllNodeServiceTemplate, cluster.Name), cluster.Namespace),
 			fmt.Sprintf("%s.%s.svc", fmt.Sprintf(nifi.AllNodeServiceTemplate, cluster.Name), cluster.Namespace),
 			fmt.Sprintf("%s.%s.%s.svc", fmt.Sprintf(templates.NodeNameTemplate, cluster.Name, nodeId), fmt.Sprintf(nifi.AllNodeServiceTemplate, cluster.Name), cluster.Namespace),
 		)
 
 		// Namespace notation
 		names = append(names,
-			//fmt.Sprintf("*.%s.%s", fmt.Sprintf(nifi.AllNodeServiceTemplate, cluster.Name), cluster.Namespace),
 			fmt.Sprintf("%s.%s", fmt.Sprintf(nifi.AllNodeServiceTemplate, cluster.Name), cluster.Namespace),
 			fmt.Sprintf("%s.%s.%s", fmt.Sprintf(templates.NodeNameTemplate, cluster.Name, nodeId),fmt.Sprintf(nifi.AllNodeServiceTemplate, cluster.Name), cluster.Namespace),
 		)
