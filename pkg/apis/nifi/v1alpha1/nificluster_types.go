@@ -130,7 +130,7 @@ type NifiProperties struct {
 	// A comma separated list of allowed HTTP Host header values to consider when NiFi
 	// is running securely and will be receiving requests to a different host[:port] than it is bound to.
 	// https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#web-properties
-	WebProxyHost		string	`json:"webProxyHost,omitempty"`
+	WebProxyHosts		[]string	`json:"webProxyHosts,omitempty"`
 	// Nifi security client auth
 	NeedClientAuth		bool	`json:"needClientAuth,omitempty"`
 	// Indicates which of the configured authorizers in the authorizers.xml file to use

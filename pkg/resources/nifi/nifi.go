@@ -107,11 +107,25 @@ func (r *Reconciler) Reconcile(log logr.Logger) error {
 	}
 
 	// TODO : manage external LB
-	lbIPs := make([]string, 0)
+	uniqueHostnamesMap := make(map[string]struct{})
+
+	// TODO: review design
+
+	for _, node := range r.NifiCluster.Spec.Nodes {
+		for _, webProxyHost := range r.GetNifiPropertiesBase(node.Id).WebProxyHosts {
+			uniqueHostnamesMap[strings.Split(webProxyHost, ":")[0]] = struct{}{}
+		}
+	}
+
+	uniqueHostnames := make([]string, 0)
+	for k := range uniqueHostnamesMap {
+		uniqueHostnames = append(uniqueHostnames, k)
+	}
+
 	// Setup the PKI if using SSL
 	if r.NifiCluster.Spec.ListenersConfig.SSLSecrets != nil {
 		// reconcile the PKI
-		if err := pki.GetPKIManager(r.Client, r.NifiCluster).ReconcilePKI(context.TODO(), log, r.Scheme, lbIPs); err != nil {
+		if err := pki.GetPKIManager(r.Client, r.NifiCluster).ReconcilePKI(context.TODO(), log, r.Scheme, uniqueHostnames); err != nil {
 			return err
 		}
 	}

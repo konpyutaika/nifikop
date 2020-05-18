@@ -96,22 +96,17 @@ func (r Reconciler) generateNifiPropertiesNodeConfig(id int32, nodeConfig *v1alp
 
 //
 func (r *Reconciler) getNifiPropertiesConfigString(nConfig *v1alpha1.NodeConfig, id int32, serverPass, clientPass string, superUsers []string, log logr.Logger) string {
-	base := r.NifiCluster.Spec.ReadOnlyConfig.NifiProperties.DeepCopy()
-	for _, node := range r.NifiCluster.Spec.Nodes {
-		if node.Id == id && node.ReadOnlyConfig != nil && &node.ReadOnlyConfig.NifiProperties != nil{
-			mergo.Merge(base, node.ReadOnlyConfig.NifiProperties, mergo.WithOverride)
-		}
-	}
 
+	base := r.GetNifiPropertiesBase(id)
 	var dnsNames []string
 	for _, dnsName := range utilpki.ClusterDNSNames(r.NifiCluster, id) {
 		dnsNames = append(dnsNames, fmt.Sprintf("%s:%d", dnsName, GetServerPort(&r.NifiCluster.Spec.ListenersConfig)))
 	}
-	webProxyHost := strings.Join(dnsNames, ",")
-	if base.WebProxyHost != "" {
-		webProxyHost = strings.Join(append(dnsNames, base.WebProxyHost), ",")
-	}
 
+	webProxyHosts := strings.Join(dnsNames, ",")
+	if len(base.WebProxyHosts) > 0 {
+		webProxyHosts = strings.Join(append(dnsNames, base.WebProxyHosts...), ",")
+	}
 
 	var out bytes.Buffer
 	t := template.Must(template.New("nConfig-config").Parse(config.NifiPropertiesTemplate))
@@ -122,7 +117,7 @@ func (r *Reconciler) getNifiPropertiesConfigString(nConfig *v1alpha1.NodeConfig,
 		"ProvenanceStorage":		nConfig.GetProvenanceStorage(),
 		"SiteToSiteSecure": 		r.NifiCluster.Spec.SiteToSiteSecure,
 		"ClusterSecure":			r.NifiCluster.Spec.ClusterSecure,
-		"WebProxyHost": 			webProxyHost,
+		"WebProxyHosts": 			webProxyHosts,
 		"NeedClientAuth": 			base.NeedClientAuth,
 		"Authorizer": 				base.GetAuthorizer(),
 		"SSLEnabledForInternalCommunication": r.NifiCluster.Spec.ListenersConfig.SSLSecrets != nil && util.IsSSLEnabledForInternalCommunication(r.NifiCluster.Spec.ListenersConfig.InternalListeners),
@@ -396,4 +391,15 @@ func (r *Reconciler) getBootstrapPropertiesConfigString(nConfig *v1alpha1.NodeCo
 		log.Error(err, "error occurred during parsing the config template")
 	}
 	return out.String()
+}
+
+func (r *Reconciler) GetNifiPropertiesBase(id int32) *v1alpha1.NifiProperties{
+	base := r.NifiCluster.Spec.ReadOnlyConfig.NifiProperties.DeepCopy()
+	for _, node := range r.NifiCluster.Spec.Nodes {
+		if node.Id == id && node.ReadOnlyConfig != nil && &node.ReadOnlyConfig.NifiProperties != nil{
+			mergo.Merge(base, node.ReadOnlyConfig.NifiProperties, mergo.WithOverride)
+		}
+	}
+
+	return base
 }

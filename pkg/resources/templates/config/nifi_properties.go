@@ -134,7 +134,7 @@ nifi.remote.input.http.transaction.ttl=30 sec
 
 # web properties #
 nifi.web.war.directory=./lib
-nifi.web.proxy.host={{.WebProxyHost}}
+nifi.web.proxy.host={{ .WebProxyHosts }}
 {{ .ListenerConfig }}
 
 nifi.web.http.network.interface.default=
