@@ -33,15 +33,6 @@ type NifiUserSpec struct {
 	IncludeJKS  bool             `json:"includeJKS,omitempty"`
 }
 
-// UserTopicGrant is the desired permissions for the NifiUser
-/*type UserTopicGrant struct {
-	TopicName string `json:"topicName"`
-	// +kubebuilder:validation:Enum={"read","write"}
-	AccessType KafkaAccessType `json:"accessType"`
-	// +kubebuilder:validation:Enum={"literal","match","prefixed","any"}
-	PatternType KafkaPatternType `json:"patternType,omitempty"`
-}*/
-
 // NifiUserStatus defines the observed state of NifiUser
 // +k8s:openapi-gen=true
 type NifiUserStatus struct {

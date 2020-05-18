@@ -47,7 +47,7 @@ spec:
                 namespace:
                   type: string
               required:
-              - name
+                - name
               type: object
             dnsNames:
               items:
@@ -59,8 +59,8 @@ spec:
             secretName:
               type: string
           required:
-          - clusterRef
-          - secretName
+            - clusterRef
+            - secretName
           type: object
         status:
           description: NifiUserStatus defines the observed state of NifiUser
@@ -73,11 +73,11 @@ spec:
               description: UserState defines the state of a NifiUser
               type: string
           required:
-          - state
+            - state
           type: object
       type: object
   version: v1alpha1
   versions:
-  - name: v1alpha1
-    served: true
-    storage: true
+    - name: v1alpha1
+      served: true
+      storage: true
