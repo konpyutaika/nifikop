@@ -11,6 +11,9 @@ spec:
   siteToSiteSecure: true
   oneNifiNodePerNode: false
   initialAdminUser: aguitton.ext@orange.com
+  propagateLabels: true
+  nifiClusterTaskSpec:
+    retryDurationMinutes: 10
   readOnlyConfig:
     # NifiProperties configuration that will be applied to the node.
     nifiProperties:
@@ -98,9 +101,6 @@ spec:
       nodeConfigGroup: "default_group"
     - id: 2
       nodeConfigGroup: "default_group"
-  propagateLabels: true
-  nifiClusterTaskSpec:
-    retryDurationMinutes: 10
   listenersConfig:
     internalListeners:
       - type: "https"

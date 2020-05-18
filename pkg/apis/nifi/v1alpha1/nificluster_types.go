@@ -25,8 +25,6 @@ type NifiClusterSpec struct {
 	// headlessServiceEnabled specifies if the cluster should use headlessService for Nifi or individual services
 	// using service per nodes may come an handy case of service mesh.
 	HeadlessServiceEnabled	bool					`json:"headlessServiceEnabled"`
-	// listenerConfig specifies nifi's listener specifig configs
-	ListenersConfig			ListenersConfig			`json:"listenersConfig"`
 	// zKAddresse specifies the ZooKeeper connection string
 	// in the form hostname:port where host and port are those of a Zookeeper server.
 	// TODO: rework for nice zookeeper connect string =
@@ -37,8 +35,24 @@ type NifiClusterSpec struct {
 	// initContainerImage can override the default image used into the init container to check if
 	// ZoooKeeper server is reachable.
 	InitContainerImage		string					`json:"initContainerImage,omitempty"`
+	// InitContainers defines additional initContainers configurations
+	InitContainers []corev1.Container `json:"initContainers,omitempty" patchStrategy:"merge" patchMergeKey:"name" protobuf:"bytes,2,rep,name=containers"`
 	// clusterImage can specify the whole nificluster image in one place
 	ClusterImage			string					`json:"clusterImage,omitempty"`
+	// Cluster nodes secure mode : https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#cluster_common_properties
+	// TODO : rework to define into internalListener ! (Note: if ssl enabled need Cluster & SiteToSite & Https port)
+	ClusterSecure		bool	`json:"clusterSecure,omitempty"`
+	// Site to Site properties Secure mode : https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#site_to_site_properties
+	// TODO : rework to define into internalListener !
+	SiteToSiteSecure	bool	`json:"siteToSiteSecure,omitempty"`
+	// oneNifiNodePerNode if set to true every nifi node is started on a new node, if there is not enough node to do that
+	// it will stay in pending state. If set to false the operator also tries to schedule the nifi node to a unique node
+	// but if the node number is insufficient the nifi node will be scheduled to a node where a nifi node is already running.
+	OneNifiNodePerNode 		bool 					`json:"oneNifiNodePerNode"`
+	// propage
+	PropagateLabels 		bool 					`json:"propagateLabels,omitempty"`
+	// TODO : remove once the user management is implemented into the operator
+	InitialAdminUser	string	`json:"initialAdminUser,omitempty""`
 	// readOnlyConfig specifies the read-only type Nifi config cluster wide, all theses
 	// will be merged with node specified readOnly configurations, so it can be overwritten per node.
 	ReadOnlyConfig			ReadOnlyConfig			`json:"readOnlyConfig,omitempty"`
@@ -46,30 +60,16 @@ type NifiClusterSpec struct {
 	NodeConfigGroups   		map[string]NodeConfig	`json:"nodeConfigGroups,omitempty"`
 	// all node requires an image, unique id, and storageConfigs settings
 	Nodes 					[]Node 					`json:"nodes"`
-	// oneNifiNodePerNode if set to true every nifi node is started on a new node, if there is not enough node to do that
-	// it will stay in pending state. If set to false the operator also tries to schedule the nifi node to a unique node
-	// but if the node number is insufficient the nifi node will be scheduled to a node where a nifi node is already running.
-	OneNifiNodePerNode 		bool 					`json:"oneNifiNodePerNode"`
-	// propage
-	PropagateLabels 		bool 					`json:"propagateLabels,omitempty"`
+
 	// LdapConfiguration specifies the configuration if you want to use LDAP
 	LdapConfiguration		LdapConfiguration		`json:"ldapConfiguration,omitempty"`
 	// NifiClusterTaskSpec specifies the configuration of the nifi cluster Tasks
 	NifiClusterTaskSpec 	NifiClusterTaskSpec		`json:"nifiClusterTaskSpec,omitempty"`
-	// Cluster nodes secure mode : https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#cluster_common_properties
-	// TODO : rework to define into internalListener ! (Note: if ssl enabled need Cluster & SiteToSite & Https port)
-	ClusterSecure		bool	`json:"clusterSecure,omitempty"`
-	// Site to Site properties Secure mode : https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#site_to_site_properties
-	// TODO : rework to define into internalListener !
-	SiteToSiteSecure	bool	`json:"siteToSiteSecure,omitempty"`
 	// TODO : add vault
 	//VaultConfig         	VaultConfig         `json:"vaultConfig,omitempty"`
 
-	// TODO : remove once the user management is implemented into the operator
-	//
-	InitialAdminUser	string	`json:"initialAdminUser,omitempty""`
-	// InitContainers defines additional initContainers configurations
-	InitContainers []corev1.Container `json:"initContainers,omitempty" patchStrategy:"merge" patchMergeKey:"name" protobuf:"bytes,2,rep,name=containers"`
+	// listenerConfig specifies nifi's listener specifig configs
+	ListenersConfig			ListenersConfig			`json:"listenersConfig"`
 }
 
 
