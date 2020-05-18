@@ -6,7 +6,7 @@ import (
 
 // CreateUserACLs creates Nifi ACLs for the given access type and user
 // `literal` patternType will be used if patternType == ""
-func (k *nifiClient) CreateUserACLs(accessType v1alpha1.NifiAccessType, dn string, topic string) (err error) {
+func (n *nifiClient) CreateUserACLs(accessType v1alpha1.NifiAccessType, dn string, topic string) (err error) {
 	//csuserName := fmt.Sprintf("User:%s", dn)
 
 	/*switch accessType {
@@ -21,7 +21,7 @@ func (k *nifiClient) CreateUserACLs(accessType v1alpha1.NifiAccessType, dn strin
 }
 
 // DeleteUserACLs removes all ACLs for a given user
-func (k *nifiClient) DeleteUserACLs(dn string) (err error) {
+func (n *nifiClient) DeleteUserACLs(dn string) (err error) {
 	/*matches, err := k.admin.DeleteACL(sarama.AclFilter{
 		Principal: &dn,
 	}, false)

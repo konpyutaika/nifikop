@@ -1,12 +1,12 @@
 package v1alpha1
 
 import (
-	cmmeta "github.com/jetstack/cert-manager/pkg/apis/meta/v1"
+	"strings"
 
+	cmmeta "github.com/jetstack/cert-manager/pkg/apis/meta/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"strings"
 )
 
 const (
@@ -62,9 +62,14 @@ type NifiClusterSpec struct {
 	// Site to Site properties Secure mode : https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#site_to_site_properties
 	// TODO : rework to define into internalListener !
 	SiteToSiteSecure	bool	`json:"siteToSiteSecure,omitempty"`
-
 	// TODO : add vault
 	//VaultConfig         	VaultConfig         `json:"vaultConfig,omitempty"`
+
+	// TODO : remove once the user management is implemented into the operator
+	//
+	InitialAdminUser	string	`json:"initialAdminUser,omitempty""`
+	// InitContainers defines additional initContainers configurations
+	InitContainers []corev1.Container `json:"initContainers,omitempty" patchStrategy:"merge" patchMergeKey:"name" protobuf:"bytes,2,rep,name=containers"`
 }
 
 

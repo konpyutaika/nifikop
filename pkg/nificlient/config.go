@@ -20,17 +20,24 @@ import (
 
 	"github.com/erdrix/nifikop/pkg/apis/nifi/v1alpha1"
 	"github.com/erdrix/nifikop/pkg/pki"
+	"github.com/erdrix/nifikop/pkg/resources/templates"
+	"github.com/erdrix/nifikop/pkg/util"
 	"github.com/erdrix/nifikop/pkg/util/nifi"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-const nifiDefaultTimeout = int64(5)
+const (
+	nifiDefaultTimeout = int64(5)
+	serviceHostnameTemplate = "%s.%s.svc.cluster.local:%d"
+)
 
 // NifiConfig are the options to creating a new ClusterAdmin client
 type NifiConfig struct {
-	NifiURI string
-	UseSSL    bool
-	TLSConfig *tls.Config
+	nodeURITemplate string
+	NodesURI 		map[int32]string
+	NifiURI 		string
+	UseSSL    		bool
+	TLSConfig 		*tls.Config
 
 	OperationTimeout int64
 }
@@ -38,6 +45,8 @@ type NifiConfig struct {
 // ClusterConfig creates connection options from a NifiCluster CR
 func ClusterConfig(client client.Client, cluster *v1alpha1.NifiCluster) (*NifiConfig, error) {
 	conf := &NifiConfig{}
+	conf.nodeURITemplate = generateNodesURITemplate(cluster)
+	conf.NodesURI = generateNodesAddress(cluster)
 	conf.NifiURI = generateNifiAddress(cluster)
 	conf.OperationTimeout = nifiDefaultTimeout
 	if cluster.Spec.ListenersConfig.SSLSecrets != nil && useSSL(cluster) {
@@ -56,26 +65,59 @@ func useSSL(cluster *v1alpha1.NifiCluster) bool {
 	return cluster.Spec.ClusterSecure
 }
 
-func determineInternalListenerForInnerCom(internalListeners []v1alpha1.InternalListenerConfig) int {
-	for id, val := range internalListeners {
-		if val.Type == v1alpha1.ClusterListenerType {
-			return id
+func determineInternalListenerForComm(internalListeners []v1alpha1.InternalListenerConfig) int {
+	var httpsServerPortId int
+	var httpServerPortId int
+	for id, iListener := range internalListeners {
+		if iListener.Type == v1alpha1.HttpsListenerType {
+			httpsServerPortId = id
+		} else if iListener.Type == v1alpha1.HttpListenerType {
+			httpServerPortId = id
 		}
 	}
-	return 0
+	if &httpsServerPortId != nil {
+		return httpsServerPortId
+	}
+	return httpServerPortId
+}
+
+func generateNodesAddress(cluster *v1alpha1.NifiCluster) map[int32]string {
+	addresses := make(map[int32]string)
+
+	for nId, state := range cluster.Status.NodesState {
+		if !(state.GracefulActionState.State.IsRunningState() || state.GracefulActionState.State.IsRequiredState()) && state.GracefulActionState.ActionStep != v1alpha1.RemoveStatus   {
+			addresses[util.ConvertStringToInt32(nId)] = GenerateNodeAddress(cluster, util.ConvertStringToInt32(nId))
+		}
+	}
+	return addresses
+}
+
+func GenerateNodeAddress(cluster *v1alpha1.NifiCluster, nodeId int32) string {
+		return fmt.Sprintf(generateNodesURITemplate(cluster), nodeId)
+}
+
+func generateNodesURITemplate(cluster *v1alpha1.NifiCluster) string {
+
+	nodeNameTemplate := fmt.Sprintf(templates.PrefixNodeNameTemplate, cluster.Name) + templates.RootNodeNameTemplate + templates.SuffixNodeNameTemplate
+
+	return nodeNameTemplate + fmt.Sprintf(".%s",
+		generateNifiAddress(cluster),
+	)
 }
 
 func generateNifiAddress(cluster *v1alpha1.NifiCluster) string {
+
 	if cluster.Spec.HeadlessServiceEnabled {
-		return fmt.Sprintf("%s.%s.svc.cluster.local:%d",
+		return fmt.Sprintf(serviceHostnameTemplate,
 			fmt.Sprintf(nifi.HeadlessServiceTemplate, cluster.Name),
 			cluster.Namespace,
-			cluster.Spec.ListenersConfig.InternalListeners[determineInternalListenerForInnerCom(cluster.Spec.ListenersConfig.InternalListeners)].ContainerPort,
-		)
+			cluster.Spec.ListenersConfig.InternalListeners[determineInternalListenerForComm(cluster.Spec.ListenersConfig.InternalListeners)].ContainerPort,
+			)
 	}
-	return fmt.Sprintf("%s.%s.svc.cluster.local:%d",
+
+	return fmt.Sprintf(serviceHostnameTemplate,
 		fmt.Sprintf(nifi.AllNodeServiceTemplate, cluster.Name),
 		cluster.Namespace,
-		cluster.Spec.ListenersConfig.InternalListeners[determineInternalListenerForInnerCom(cluster.Spec.ListenersConfig.InternalListeners)].ContainerPort,
-	)
+		cluster.Spec.ListenersConfig.InternalListeners[determineInternalListenerForComm(cluster.Spec.ListenersConfig.InternalListeners)].ContainerPort,
+		)
 }

@@ -30,8 +30,6 @@ spec:
           cpu: "1"
           memory: 1Gi
   nodes:
-    - id: 0
-      nodeConfigGroup: "default_group"
     - id: 1
       nodeConfigGroup: "default_group"
     - id: 2

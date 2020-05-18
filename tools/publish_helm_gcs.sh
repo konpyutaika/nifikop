@@ -20,8 +20,8 @@ set -o pipefail
 
 HELM_TARGET_DIR=$(pwd)/tmp/incubator
 readonly HELM_URL=https://storage.googleapis.com/kubernetes-helm
-readonly HELM_TARBALL=helm-v2.9.1-linux-amd64.tar.gz
-#readonly HELM_TARBALL=helm-v2.9.1-darwin-amd64.tar.gz
+#readonly HELM_TARBALL=helm-v2.9.1-linux-amd64.tar.gz
+readonly HELM_TARBALL=helm-v2.9.1-darwin-amd64.tar.gz
 #readonly STABLE_REPO_URL=https://orange-kubernetes-charts.storage.googleapis.com/
 readonly INCUBATOR_REPO_URL=https://orange-kubernetes-charts-incubator.storage.googleapis.com/
 #readonly GCS_BUCKET_STABLE=gs://orange-kubernetes-charts
@@ -46,8 +46,8 @@ setup_helm_client() {
     curl --user-agent curl-ci-sync -sSL -o "$HELM_TARBALL" "$HELM_URL/$HELM_TARBALL"
     tar xzfv "$HELM_TARBALL" -C tmp
 
-#    PATH="$(pwd)/tmp/darwin-amd64/:$PATH"
-    PATH="$(pwd)/tmp/linux-amd64/:$PATH"
+    PATH="$(pwd)/tmp/darwin-amd64/:$PATH"
+#    PATH="$(pwd)/tmp/linux-amd64/:$PATH"
 
     helm init --client-only
     helm repo add incubator-orange "$INCUBATOR_REPO_URL"
@@ -84,10 +84,10 @@ sync_repo() {
         # Move updated index.yaml to index folder so we don't push the old one again
         mv -f "$target_dir/index.yaml" "$index_dir/index.yaml"
 
-        gsutil cp "$target_dir/*" "$bucket"
+        gsutil -h "Cache-Control:no-cache,max-age=0" cp "$target_dir/*" "$bucket"
 
         # Make sure index.yaml is synced last
-        gsutil cp "$index_dir/index.yaml" "$bucket"
+        gsutil  -h "Cache-Control:no-cache,max-age=0" cp "$index_dir/index.yaml" "$bucket"
     else
         log_error "Exiting because unable to update index. Not safe to push update."
         exit 1

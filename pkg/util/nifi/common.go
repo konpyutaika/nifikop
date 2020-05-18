@@ -12,12 +12,14 @@ const (
 	AllNodeServiceTemplate = "%s-all-node"
 	// HeadlessServiceTemplate template for Nifi headless service
 	HeadlessServiceTemplate = "%s-headless"
+	//
+	TimeStampLayout = "Mon, 2 Jan 2006 15:04:05 GMT"
 )
 
 // ParseTimeStampToUnixTime parses the given CC timeStamp to time format
 func ParseTimeStampToUnixTime(timestamp string) (time.Time, error) {
-	timeStampLayout := "Mon, 2 Jan 2006 15:04:05 GMT"
-	t, err := time.Parse(timeStampLayout, timestamp)
+
+	t, err := time.Parse(TimeStampLayout, timestamp)
 	if err != nil {
 		return time.Time{}, err
 	}

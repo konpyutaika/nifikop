@@ -1,522 +1,179 @@
-// Copyright © 2019 Banzai Cloud
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 package scale
 
 import (
-	"bytes"
-	"errors"
 	"fmt"
-	"io/ioutil"
-	"net/http"
-	//	"strconv"
 	"time"
 
 	"github.com/erdrix/nifikop/pkg/apis/nifi/v1alpha1"
-	"github.com/erdrix/nifikop/pkg/util"
+	"github.com/erdrix/nifikop/pkg/controller/common"
+	"github.com/erdrix/nifikop/pkg/nificlient"
 	nifiutil "github.com/erdrix/nifikop/pkg/util/nifi"
-	"github.com/openshift/origin/Godeps/_workspace/src/k8s.io/kubernetes/pkg/util/json"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
 
-const (
-	primaryNode     	= "Primary Node"
-	clusterCoordinator 	= "Cluster Coordinator"
-	basePath			= "nifi-api"
-	endpointCluster		= "controller/cluster"
-	endpointNode		= "controller/cluster/nodes/%s"
-)
+var log = logf.Log.WithName("scale-methods")
 
-var errNodeNotConnected = errors.New("The targeted node id disconnected")
-var errNifiClusterNotReturned200 = errors.New("non 200 response from nifi cluster")
-var errNifiClusterReturned404 = errors.New("404 response from nifi cluster")
-
-var log = logf.Log.WithName("cruise-control-methods")
-
-func generateUrlForNN(headlessServiceEnabled bool, nodeId , serverPort int32, endpoint, namespace string, clusterName string) string {
-	var baseUrl string
-	baseUrl = nifiutil.ComputeHostname(headlessServiceEnabled, nodeId, clusterName, namespace)
-	return "http://" + fmt.Sprintf("%s:%d/%s/%s", baseUrl, serverPort, basePath, endpoint)
-}
-
-func putNifiNode(headlessServiceEnabled bool, nodeId, serverPort int32, endpoint, namespace, clusterName, action, nifiNodeId string) (*http.Response, error) {
-
-	requestURl := generateUrlForNN(headlessServiceEnabled, nodeId, serverPort, endpoint, namespace, clusterName)
-
-	var bodyStr = []byte(fmt.Sprintf(`{"node":{"nodeId": "%s", "status": "%s"}}`, nifiNodeId, action))
-
-	req, err := http.NewRequest(http.MethodPut, requestURl, bytes.NewBuffer(bodyStr))
-	req.Header.Set("Content-Type", "application/json")
-
-	client := &http.Client{}
-	rsp, err := client.Do(req)
-	if err != nil {
-		log.Error(err, "error during talking to nifi node")
-		return nil, err
-	}
-	if rsp.StatusCode != 200 && rsp.StatusCode != 202 {
-		log.Error(errors.New("Non 200 response from nifi node: "+rsp.Status), "error during talking to nifi node")
-		return nil, errNifiClusterNotReturned200
-	}
-
-	return rsp, nil
-}
-
-func getNifiNode(headlessServiceEnabled bool, nodeId, serverPort int32, endpoint, namespace, clusterName string) (*http.Response, error) {
-
-	requestURl := generateUrlForNN(headlessServiceEnabled, nodeId, serverPort, endpoint, namespace, clusterName)
-	rsp, err := http.Get(requestURl)
-	if err != nil {
-		log.Error(err, "error during talking to nifi node")
-		return nil, err
-	}
-	if rsp.StatusCode == 404 {
-		log.Error(errors.New("404 response from nifi node: "+rsp.Status), "error during talking to nifi node")
-		return rsp, errNifiClusterReturned404
-	}
-
-	if rsp.StatusCode != 200 {
-		log.Error(errors.New("Non 200 response from nifi node: "+rsp.Status), "error during talking to nifi node")
-		return nil, errors.New("Non 200 response from nifi node: " + rsp.Status)
-	}
-
-	return rsp, nil
-}
-
-func deleteNifiNode(headlessServiceEnabled bool, nodeId, serverPort int32, endpoint, namespace, clusterName string) (*http.Response, error) {
-
-	requestURl := generateUrlForNN(headlessServiceEnabled, nodeId, serverPort, endpoint, namespace, clusterName)
-	req, err := http.NewRequest(http.MethodDelete, requestURl, nil)
-	req.Header.Set("Content-Type", "application/json")
-
-	client := &http.Client{}
-	rsp, err := client.Do(req)
-
-	if rsp.StatusCode == 404 {
-		log.Error(errors.New("404 response from nifi node: "+rsp.Status), "error during talking to nifi node")
-		return rsp, errNifiClusterReturned404
-	}
-
-	if err != nil {
-		log.Error(err, "error during talking to nifi node")
-		return nil, err
-	}
-	if rsp.StatusCode != 200 {
-		log.Error(errors.New("Non 200 response from nifi node: "+rsp.Status), "error during talking to nifi node")
-		return nil, errors.New("Non 200 response from nifi node: " + rsp.Status)
-	}
-
-	return rsp, nil
-}
-
-func GetNifiClusterNodesStatus(headlessServiceEnabled bool, nodeId, serverPort int32, namespace, clusterName string) (map[string]interface{}, error) {
-
-	rsp, err := getNifiNode(headlessServiceEnabled, nodeId, serverPort, endpointCluster, namespace, clusterName)
-
-	if err != nil {
-		log.Error(err, "can't work with nifi node because it is not ready")
-		return nil, err
-	}
-
-	body, err := ioutil.ReadAll(rsp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	err = rsp.Body.Close()
-	if err != nil {
-		return nil, err
-	}
-
-	var response map[string]interface{}
-
-	err = json.Unmarshal(body, &response)
-	if err != nil {
-		return nil, err
-	}
-
-	return response, nil
-}
-
-func GetNifiClusterNodeStatus(headlessServiceEnabled bool, nodeId, serverPort int32, namespace, clusterName, targetNodeId string) (map[string]interface{}, error) {
-
-	rsp, err := getNifiNode(headlessServiceEnabled, nodeId, serverPort, fmt.Sprintf(endpointNode, targetNodeId), namespace, clusterName)
-
-	if err != nil {
-		log.Error(err, "can't work with nifi node because it is not ready")
-		return nil, err
-	}
-
-	body, err := ioutil.ReadAll(rsp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	err = rsp.Body.Close()
-	if err != nil {
-		return nil, err
-	}
-
-	var response map[string]interface{}
-
-	err = json.Unmarshal(body, &response)
-	if err != nil {
-		return nil, err
-	}
-
-	return response, nil
-}
-
+// TODO : rework upscale to check that the node is connected before ending operation.
 // UpScaleCluster upscales Nifi cluster
 func UpScaleCluster(nodeId, namespace, clusterName string) (v1alpha1.ActionStep, string, error) {
 	actionStep := v1alpha1.ConnectNodeAction
 	currentTime := time.Now()
-	startTimeStamp := currentTime.Format("Mon, 2 Jan 2006 15:04:05 GMT")
+	startTimeStamp := currentTime.Format(nifiutil.TimeStampLayout)
 	return actionStep, startTimeStamp, nil
 }
 
-func getNifiNodeIdFromAddress(headlessServiceEnabled bool, nodeId, serverPort int32, namespace, clusterName, searchedAddress string) (string, error) {
-	var clusterStatus map[string]interface{}
+// DisconnectClusterNode, perform a node disconnection
+func DisconnectClusterNode(client client.Client, cluster *v1alpha1.NifiCluster, nodeId string) (v1alpha1.ActionStep, string, error) {
 	var err error
-
-	clusterStatus, err = GetNifiClusterNodesStatus(headlessServiceEnabled, nodeId, serverPort, namespace, clusterName)
-	if err != nil {
-		return "", err
-	}
-
-	var targetNodeId string
-
-	for _, node := range clusterStatus["cluster"].(map[string]interface{})["nodes"].([]interface{}){
-		address := node.(map[string]interface{})["address"].(string)
-		if address == searchedAddress {
-			targetNodeId = node.(map[string]interface{})["nodeId"].(string)
-		}
-	}
-
-	return targetNodeId, nil
-}
-
-func nifiClusterNodeToRequest(headlessServiceEnabled bool, availableNodeIds []int32, serverPort int32, namespace, clusterName string, nodeTargetActionId *int32) (*int32, error) {
-	var err error
-
-	availableNodeAddressMap := make(map[string]int32)
-	nodesRoles := make(map[string][]interface{})
-	coordinatorAddress := ""
-
-	// For each available node (defined in NifiCluster),
-	// we add a match between searched address and node Id.
-	for _, nodeId := range availableNodeIds {
-		availableNodeAddressMap[nifiutil.ComputeHostname(headlessServiceEnabled, nodeId, clusterName, namespace)] = nodeId
-	}
-
-	// For each available node (defined in NifiCluster)
-	for _, nodeId := range availableNodeIds {
-		// Request the node to have the Nifi cluster status
-		clusterStatus, err := GetNifiClusterNodesStatus(headlessServiceEnabled, nodeId, serverPort, namespace, clusterName)
-
-		// Initialize map
-		nodesRoles = make(map[string][]interface{})
-
-		if err == nil {
-			for _, node := range clusterStatus["cluster"].(map[string]interface{})["nodes"].([]interface{}){
-				roles := node.(map[string]interface{})["roles"].([]interface{})
-				address := node.(map[string]interface{})["address"].(string)
-				nodesRoles[address] = roles
-			}
-			break
-		}
-	}
-
-	if err != nil {
-		return nil, err
-	}
-
-	// For each adresse returned by Nifi cluster
-	for address, roles := range nodesRoles {
-		// If the the node associated is the coordinator
-		if len(roles) >= 2 && (roles[0].(string) == clusterCoordinator || roles[1].(string) == clusterCoordinator) {
-			coordinatorAddress = address
-			// If the coordinator isn't the targeted node
-			if nodeTargetActionId == nil || nifiutil.ComputeHostname(headlessServiceEnabled, *nodeTargetActionId, clusterName, namespace) != coordinatorAddress {
-				if nodeId, ok := availableNodeAddressMap[coordinatorAddress]; ok {
-					return &nodeId, nil
-				}
-				break
-			}
-		}
-	}
-	if coordinatorAddress != "" {
-		delete(nodesRoles, coordinatorAddress)
-	}
-
-	for address,_ := range nodesRoles {
-		if nodeId, ok := availableNodeAddressMap[address]; ok {
-			return &nodeId, nil
-		}
-	}
-
-	return nil, err
-}
-
-// DownsizeCluster downscales Nifi cluster
-func DisconnectClusterNode(headlessServiceEnabled bool, availableNodes []v1alpha1.Node, serverPort int32, nodeId, namespace, clusterName string) (v1alpha1.ActionStep, string, error) {
-	var err error
-	var rsp map[string]interface{}
 
 	// Extract nifi node Id, from nifi node address.
 	int32NodeId, _ := nifiutil.ParseStringToInt32(nodeId)
-
-	// Look for available nifi node.
-	coordinatorNodeId, err := nifiClusterNodeToRequest(headlessServiceEnabled, generateNodeIdSlice(availableNodes), serverPort, namespace, clusterName, &int32NodeId)
-
-	if coordinatorNodeId == nil {
-		return "", "", err
-	}
-
-	var dResp *http.Response
-
-	searchedAddress := nifiutil.ComputeHostname(headlessServiceEnabled, int32NodeId, clusterName, namespace)
-
-	targetNodeId, err := getNifiNodeIdFromAddress(headlessServiceEnabled, *coordinatorNodeId, serverPort, namespace, clusterName, searchedAddress)
 	if err != nil {
 		return "", "", err
 	}
 
-	rsp, err = GetNifiClusterNodeStatus(headlessServiceEnabled, *coordinatorNodeId, serverPort, namespace, clusterName, targetNodeId)
-
+	nClient, err := common.NewNodeConnection(log, client, cluster)
 	if err != nil {
 		return "", "", err
 	}
 
-	if rsp["node"].(map[string]interface{})["status"].(string) == string(v1alpha1.DisconnectNodeAction) ||
-		rsp["node"].(map[string]interface{})["status"].(string) == string(v1alpha1.DisconnectStatus){
-		currentTime := time.Now()
-		return  v1alpha1.DisconnectNodeAction, currentTime.Format("Mon, 2 Jan 2006 15:04:05 GMT"), nil
-	}
-
-	if rsp["node"].(map[string]interface{})["status"].(string) != string(v1alpha1.ConnectStatus) {
-		return "", "", errNodeNotConnected
-	}
-
-	// Disconnect node
-	dResp, err = putNifiNode(headlessServiceEnabled, *coordinatorNodeId, serverPort, fmt.Sprintf(endpointNode, targetNodeId), namespace, clusterName, string(v1alpha1.DisconnectNodeAction), targetNodeId)
-	if err != nil && err != errNifiClusterNotReturned200 {
-		log.Error(err, "Disconnect cluster gracefully failed since Nifi node returned non 200")
-		return "", "", err
-	}
-	if err == errNifiClusterNotReturned200 {
+	_, err = nClient.DisconnectClusterNode(int32NodeId)
+	if err != nil && err != nificlient.ErrNifiClusterNotReturned200 {
 		log.Error(err, "could not communicate with nifi node")
+		return "", "", err
+	}
+	if err == nificlient.ErrNifiClusterNotReturned200 {
+		log.Error(err, "Disconnect cluster gracefully failed since Nifi node returned non 200")
 		return "", "", err
 	}
 
 	log.Info("Disconnect in nifi node")
-	startTimeStamp := dResp.Header.Get("Date")
+	startTimeStamp := time.Now().Format(nifiutil.TimeStampLayout)
 	actionStep :=  v1alpha1.DisconnectNodeAction
 	return actionStep, startTimeStamp, nil
 }
 
-func OffloadClusterNode(headlessServiceEnabled bool, availableNodes []v1alpha1.Node, serverPort int32, nodeId, namespace, clusterName string) (v1alpha1.ActionStep, string, error) {
+// OffloadCluster, perform offload data from a node.
+func OffloadClusterNode(client client.Client, cluster *v1alpha1.NifiCluster, nodeId string) (v1alpha1.ActionStep, string, error) {
 	var err error
 
 	// Extract nifi node Id, from nifi node address.
 	int32NodeId, _ := nifiutil.ParseStringToInt32(nodeId)
-
-	// Look for available nifi node.
-	coordinatorNodeId, err := nifiClusterNodeToRequest(headlessServiceEnabled, generateNodeIdSlice(availableNodes), serverPort, namespace, clusterName, &int32NodeId)
-
-	if coordinatorNodeId == nil {
-		return "", "", err
-	}
-
-	var dResp *http.Response
-
-	searchedAddress := nifiutil.ComputeHostname(headlessServiceEnabled, int32NodeId, clusterName, namespace)
-
-	targetNodeId, err := getNifiNodeIdFromAddress(headlessServiceEnabled, *coordinatorNodeId, serverPort, namespace, clusterName, searchedAddress)
 	if err != nil {
 		return "", "", err
 	}
 
-	// Offload node
-	dResp, err = putNifiNode(headlessServiceEnabled, *coordinatorNodeId, serverPort, fmt.Sprintf(endpointNode, targetNodeId), namespace, clusterName, string(v1alpha1.OffloadNodeAction), targetNodeId)
-	if err != nil && err != errNifiClusterNotReturned200 {
-		log.Error(err, "Offload node gracefully failed since Nifi node returned non 200")
+	nClient, err := common.NewNodeConnection(log, client, cluster)
+	if err != nil {
 		return "", "", err
 	}
-	if err == errNifiClusterNotReturned200 {
+
+	_, err = nClient.OffloadClusterNode(int32NodeId)
+	if err != nil && err != nificlient.ErrNifiClusterNotReturned200 {
 		log.Error(err, "could not communicate with nifi node")
+		return "", "", err
+	}
+
+	if err == nificlient.ErrNifiClusterNotReturned200 {
+		log.Error(err, "Offload node gracefully failed since Nifi node returned non 200")
 		return "", "", err
 	}
 
 	log.Info("Offload in nifi node")
-	startTimeStamp := dResp.Header.Get("Date")
+	startTimeStamp := time.Now().Format(nifiutil.TimeStampLayout)
 	actionStep :=  v1alpha1.OffloadNodeAction
 	return actionStep, startTimeStamp, nil
 }
 
-func RemoveClusterNode(headlessServiceEnabled bool, availableNodes []v1alpha1.Node, serverPort int32, nodeId, namespace, clusterName string) (v1alpha1.ActionStep, string, error) {
+// ConnectClusterNode, perform node connection.
+func ConnectClusterNode(client client.Client, cluster *v1alpha1.NifiCluster, nodeId string) (v1alpha1.ActionStep, string, error) {
 	var err error
 
 	// Extract nifi node Id, from nifi node address.
 	int32NodeId, _ := nifiutil.ParseStringToInt32(nodeId)
-
-	// Look for available nifi node.
-	coordinatorNodeId, err := nifiClusterNodeToRequest(headlessServiceEnabled, generateNodeIdSlice(availableNodes), serverPort, namespace, clusterName, &int32NodeId)
-
-	if coordinatorNodeId == nil {
-		return "", "", err
-	}
-
-	var dResp *http.Response
-
-	searchedAddress := nifiutil.ComputeHostname(headlessServiceEnabled, int32NodeId, clusterName, namespace)
-
-	targetNodeId, err := getNifiNodeIdFromAddress(headlessServiceEnabled, *coordinatorNodeId, serverPort, namespace, clusterName, searchedAddress)
 	if err != nil {
 		return "", "", err
 	}
 
-	// Remove node
-	dResp, err = deleteNifiNode(headlessServiceEnabled, *coordinatorNodeId, serverPort, fmt.Sprintf(endpointNode, targetNodeId), namespace, clusterName)
-	if err == errNifiClusterReturned404 {
-		currentTime := time.Now()
-		return  v1alpha1.RemoveNodeAction, currentTime.Format("Mon, 2 Jan 2006 15:04:05 GMT"), nil
-
-	}
-
-	if err != nil && err != errNifiClusterNotReturned200 {
-		log.Error(err, "Remove node gracefully failed since Nifi node returned non 200")
+	nClient, err := common.NewNodeConnection(log, client, cluster)
+	if err != nil {
 		return "", "", err
 	}
-	if err == errNifiClusterNotReturned200 {
+
+	_, err = nClient.ConnectClusterNode(int32NodeId)
+	if err != nil && err != nificlient.ErrNifiClusterNotReturned200 {
 		log.Error(err, "could not communicate with nifi node")
 		return "", "", err
 	}
 
-	log.Info("Remove in nifi node")
-	startTimeStamp := dResp.Header.Get("Date")
-	actionStep :=  v1alpha1.RemoveNodeAction
-	return actionStep, startTimeStamp, nil
-}
-
-func EnsureRemovedNodes(headlessServiceEnabled bool, availableNodes []v1alpha1.Node, availableNodesState map[string]v1alpha1.NodeState, serverPort int32, namespace, clusterName string)  (error) {
-
-	// Look for available nifi node.
-	coordinatorNodeId, err := nifiClusterNodeToRequest(headlessServiceEnabled, generateNodeIdSlice(availableNodes), serverPort, namespace, clusterName, nil)
-
-	if coordinatorNodeId == nil {
-		return err
-	}
-
-	clusterStatus, err := GetNifiClusterNodesStatus(headlessServiceEnabled, *coordinatorNodeId, serverPort, namespace, clusterName)
-
-	var availableAdresses []string
-	for _, nodeId := range generateNodeStateIdSlice(availableNodesState) {
-		availableAdresses = append(availableAdresses, nifiutil.ComputeHostname(headlessServiceEnabled, nodeId, clusterName, namespace))
-	}
-
-	for _, node := range clusterStatus["cluster"].(map[string]interface{})["nodes"].([]interface{}){
-		address := node.(map[string]interface{})["address"].(string)
-		if !util.StringSliceContains(availableAdresses, address) {
-			targetNodeId := node.(map[string]interface{})["nodeId"].(string)
-
-			_, err := deleteNifiNode(headlessServiceEnabled, *coordinatorNodeId, serverPort, fmt.Sprintf(endpointNode, targetNodeId), namespace, clusterName)
-			if err == errNifiClusterReturned404 {
-				return  nil
-			}
-
-			if err != nil && err != errNifiClusterNotReturned200 {
-				log.Error(err, "Remove node from cluster failed")
-				return err
-			}
-			if err == errNifiClusterNotReturned200 {
-				log.Error(err, "could not communicate with nifi node")
-				return  err
-			}
-		}
-	}
-	return nil
-}
-
-//
-func ConnectClusterNode(headlessServiceEnabled bool, availableNodes []v1alpha1.Node, serverPort int32, nodeId, namespace, clusterName string) (v1alpha1.ActionStep, string, error) {
-	var err error
-
-	// Extract nifi node Id, from nifi node address.
-	int32NodeId, _ := nifiutil.ParseStringToInt32(nodeId)
-
-	// Look for available nifi node.
-	coordinatorNodeId, err := nifiClusterNodeToRequest(headlessServiceEnabled, generateNodeIdSlice(availableNodes), serverPort, namespace, clusterName, &int32NodeId)
-
-	if coordinatorNodeId == nil {
-		return "", "", err
-	}
-
-	var dResp *http.Response
-
-	searchedAddress := nifiutil.ComputeHostname(headlessServiceEnabled, int32NodeId, clusterName, namespace)
-
-	targetNodeId, err := getNifiNodeIdFromAddress(headlessServiceEnabled, *coordinatorNodeId, serverPort, namespace, clusterName, searchedAddress)
-	if err != nil {
-		return "", "", err
-	}
-
-	// Connect node
-	dResp, err = putNifiNode(headlessServiceEnabled, *coordinatorNodeId, serverPort, fmt.Sprintf(endpointNode, targetNodeId), namespace, clusterName, string(v1alpha1.ConnectNodeAction), targetNodeId)
-	if err != nil && err != errNifiClusterNotReturned200 {
+	if err == nificlient.ErrNifiClusterNotReturned200 {
 		log.Error(err, "Connect node gracefully failed since Nifi node returned non 200")
-		return "", "", err
-	}
-	if err == errNifiClusterNotReturned200 {
-		log.Error(err, "could not communicate with nifi node")
 		return "", "", err
 	}
 
 	log.Info("Connect in nifi node")
-	startTimeStamp := dResp.Header.Get("Date")
-	actionStep :=  v1alpha1.ConnectNodeAction
+	startTimeStamp := time.Now().Format(nifiutil.TimeStampLayout)
+	actionStep :=  v1alpha1.OffloadNodeAction
 	return actionStep, startTimeStamp, nil
 }
 
+// RemoveClusterNode, perform node connection.
+func RemoveClusterNode(client client.Client, cluster *v1alpha1.NifiCluster, nodeId string) (v1alpha1.ActionStep, string, error) {
+	var err error
+
+	// Extract NiFi node Id, from NiFi node address.
+	int32NodeId, _ := nifiutil.ParseStringToInt32(nodeId)
+	if err != nil {
+		return "", "", err
+	}
+
+	nClient, err := common.NewNodeConnection(log, client, cluster)
+	if err != nil {
+		return "", "", err
+	}
+
+	err = nClient.RemoveClusterNode(int32NodeId)
+	if err == nificlient.ErrNifiClusterNodeNotFound {
+		currentTime := time.Now()
+		return  v1alpha1.RemoveNodeAction, currentTime.Format(nifiutil.TimeStampLayout), nil
+	}
+	if err != nil && err != nificlient.ErrNifiClusterNotReturned200 {
+		log.Error(err, "could not communicate with nifi node")
+		return "", "", err
+	}
+
+	if err == nificlient.ErrNifiClusterNotReturned200 {
+		log.Error(err, "Disconnect node gracefully failed since Nifi node returned non 200 or 404")
+		return "", "", err
+	}
+
+	log.Info("Remove nifi node")
+	startTimeStamp := time.Now().Format(nifiutil.TimeStampLayout)
+	actionStep :=  v1alpha1.RemoveNodeAction
+	return actionStep, startTimeStamp, nil
+}
+
+// TODO : rework to check if state is consistent (If waiting removing but disconnected ...
 // CheckIfCCTaskFinished checks whether the given CC Task ID finished or not
 // headlessServiceEnabled bool, availableNodes []v1alpha1.Node, serverPort int32, nodeId, namespace, clusterName string
-func CheckIfNCActionStepFinished(headlessServiceEnabled bool, availableNodes []v1alpha1.Node, serverPort int32, actionStep v1alpha1.ActionStep, nodeId, namespace, clusterName string) (bool, error) {
+func CheckIfNCActionStepFinished(actionStep v1alpha1.ActionStep, client client.Client, cluster *v1alpha1.NifiCluster, nodeId string) (bool, error) {
 	var err error
 
 	// Extract nifi node Id, from nifi node address.
-	int32NodeId, _ := nifiutil.ParseStringToInt32(nodeId)
-
-	// Look for available nifi node.
-	coordinatorNodeId, err := nifiClusterNodeToRequest(headlessServiceEnabled, generateNodeIdSlice(availableNodes), serverPort, namespace, clusterName, &int32NodeId)
-
-	if coordinatorNodeId == nil {
-		return false, err
-	}
-
-	var dResp map[string]interface{}
-
-	searchedAddress := nifiutil.ComputeHostname(headlessServiceEnabled, int32NodeId, clusterName, namespace)
-
-	targetNodeId, err := getNifiNodeIdFromAddress(headlessServiceEnabled, *coordinatorNodeId, serverPort, namespace, clusterName, searchedAddress)
+	int32NodeId, err := nifiutil.ParseStringToInt32(nodeId)
 	if err != nil {
 		return false, err
 	}
 
-	dResp, err = GetNifiClusterNodeStatus(headlessServiceEnabled, *coordinatorNodeId, serverPort, namespace, clusterName, targetNodeId)
+	nClient, err := common.NewNodeConnection(log, client, cluster)
+	if err != nil {
+		return false, err
+	}
 
-	if err == errNifiClusterReturned404 && actionStep == v1alpha1.RemoveNodeAction {
+	nodeEntity, err :=  nClient.GetClusterNode(int32NodeId)
+	if ( err == nificlient.ErrNifiClusterNodeNotFound || err == nificlient.ErrNifiClusterReturned404) && actionStep == v1alpha1.RemoveNodeAction {
 		return true, nil
 	}
 
@@ -524,33 +181,68 @@ func CheckIfNCActionStepFinished(headlessServiceEnabled bool, availableNodes []v
 		return false, nil
 	}
 
-	currentStatus := dResp["node"].(map[string]interface{})["status"].(string)
+	nodeStatus := nodeEntity.Node.Status
 	switch actionStep {
 
-		case v1alpha1.DisconnectNodeAction:
-			if currentStatus == string(v1alpha1.DisconnectStatus) {
-				return true, nil
-			}
-		case v1alpha1.OffloadNodeAction:
-			if currentStatus == string(v1alpha1.OffloadStatus) {
-				return true, nil
-			}
-		case v1alpha1.ConnectNodeAction:
-			if currentStatus == string(v1alpha1.ConnectStatus) {
-				return true, nil
-			}
+	case v1alpha1.DisconnectNodeAction:
+		if nodeStatus == string(v1alpha1.DisconnectStatus) {
+			return true, nil
+		}
+	case v1alpha1.OffloadNodeAction:
+		if nodeStatus == string(v1alpha1.OffloadStatus) {
+			return true, nil
+		}
+	case v1alpha1.ConnectNodeAction:
+		if nodeStatus == string(v1alpha1.ConnectStatus) {
+			return true, nil
+		}
+	case v1alpha1.RemoveNodeAction:
+		if nodeStatus == string(v1alpha1.DisconnectStatus) {
+			return true, nil
+		}
 	}
 	return false, nil
 }
 
+func EnsureRemovedNodes(client client.Client, cluster *v1alpha1.NifiCluster) error {
+	var err error
 
-func generateNodeIdSlice(nodes []v1alpha1.Node) []int32 {
-	var nodeIdsSlice []int32
-
-	for _, node := range nodes {
-		nodeIdsSlice = append(nodeIdsSlice, node.Id)
+	nClient, err := common.NewNodeConnection(log, client, cluster)
+	if err != nil {
+		return  err
 	}
-	return nodeIdsSlice
+
+	clusterEntity, err := nClient.DescribeCluster()
+	if err != nil {
+		return  err
+	}
+	// GenerateNodeAddress
+	stateAdresses := make(map[string]int32)
+
+	for _, nodeId := range generateNodeStateIdSlice(cluster.Status.NodesState) {
+		stateAdresses[nificlient.GenerateNodeAddress(cluster, nodeId)] =  nodeId
+	}
+	for _, nodeDto := range clusterEntity.Cluster.Nodes {
+
+		if _, ok := stateAdresses[fmt.Sprintf("%s:%d", nodeDto.Address, nodeDto.ApiPort)]; !ok {
+
+			err = nClient.RemoveClusterNodeFromClusterNodeId(nodeDto.NodeId)
+			if err == nificlient.ErrNifiClusterNodeNotFound {
+				return nil
+			}
+			if err != nil && err != nificlient.ErrNifiClusterNotReturned200 {
+				log.Error(err, "could not communicate with nifi node")
+				return err
+			}
+
+			if err == nificlient.ErrNifiClusterNotReturned200 {
+				log.Error(err, "Disconnect node gracefully failed since Nifi node returned non 200 or 404")
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 func generateNodeStateIdSlice(nodesState map[string]v1alpha1.NodeState) []int32 {

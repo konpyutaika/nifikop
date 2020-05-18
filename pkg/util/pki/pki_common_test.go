@@ -91,9 +91,13 @@ func TestGetInternalDNSNames(t *testing.T) {
 		cluster.Spec.HeadlessServiceEnabled = true
 		headlessNames := GetInternalDNSNames(cluster, node.Id)
 		expected := []string{
+			"test-cluster-headless.test-namespace.svc.cluster.local",
 			fmt.Sprintf("test-cluster-%d-node.test-cluster-headless.test-namespace.svc.cluster.local", node.Id),
+			"test-cluster-headless.test-namespace.svc",
 			fmt.Sprintf("test-cluster-%d-node.test-cluster-headless.test-namespace.svc", node.Id),
+			"test-cluster-headless.test-namespace",
 			fmt.Sprintf("test-cluster-%d-node.test-cluster-headless.test-namespace", node.Id),
+			"test-cluster-headless",
 			fmt.Sprintf("test-cluster-%d-node.test-cluster-headless", node.Id),
 			fmt.Sprintf(templates.NodeNameTemplate, cluster.Name, node.Id),
 		}
@@ -104,12 +108,15 @@ func TestGetInternalDNSNames(t *testing.T) {
 		cluster.Spec.HeadlessServiceEnabled = false
 		allNodeNames := GetInternalDNSNames(cluster, node.Id)
 		expected = []string{
+			"test-cluster-all-node.test-namespace.svc.cluster.local",
 			fmt.Sprintf("test-cluster-%d-node.test-cluster-all-node.test-namespace.svc.cluster.local", node.Id),
+			"test-cluster-all-node.test-namespace.svc",
 			fmt.Sprintf("test-cluster-%d-node.test-cluster-all-node.test-namespace.svc", node.Id),
+			"test-cluster-all-node.test-namespace",
 			fmt.Sprintf("test-cluster-%d-node.test-cluster-all-node.test-namespace", node.Id),
+			"test-cluster-all-node",
 			fmt.Sprintf("test-cluster-%d-node.test-cluster-all-node", node.Id),
 			fmt.Sprintf(templates.NodeNameTemplate, cluster.Name, node.Id),
-
 		}
 		if !reflect.DeepEqual(expected, allNodeNames) {
 			t.Error("Expected:", expected, "got:", allNodeNames)
