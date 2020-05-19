@@ -30,8 +30,6 @@ type NifiClient interface {
 	GetClusterNode(nId int32)(*nigoapi.NodeEntity, error)
 	RemoveClusterNodeFromClusterNodeId(nId string) error
 
-	CreateUserACLs(accessType v1alpha1.NifiAccessType, dn string, topic string) (err error)
-	DeleteUserACLs(dn string) (err error)
 	Build() error
 }
 

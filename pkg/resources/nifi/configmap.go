@@ -298,12 +298,6 @@ func (r *Reconciler) getAuthorizersConfigString(nConfig *v1alpha1.NodeConfig, id
 	nodeList = make(map[int32]string)
 
 	for _, node := range r.NifiCluster.Spec.Nodes {
-		/*if r.NifiCluster.Spec.HeadlessServiceEnabled {
-			nodeList[node.Id] = fmt.Sprintf("%s.%s-headless.%s.svc.cluster.local", fmt.Sprintf(templates.NodeNameTemplate,r.NifiCluster.Name, node.Id), r.NifiCluster.Name, r.NifiCluster.Namespace)
-		} else {
-			nodeList[node.Id]  = fmt.Sprintf("%s.%s.svc.cluster.local", fmt.Sprintf(templates.NodeNameTemplate,r.NifiCluster.Name, node.Id), r.NifiCluster.Namespace)
-		}*/
-
 		nodeList[node.Id] = pki.GetNodeUserName(r.NifiCluster, node.Id)
 	}
 

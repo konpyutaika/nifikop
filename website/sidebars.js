@@ -57,6 +57,14 @@ module.exports = {
                         "5_references/1_nifi_cluster/3_node_config",
                         "5_references/1_nifi_cluster/4_node",
                         "5_references/1_nifi_cluster/5_node_state",
+                        "5_references/1_nifi_cluster/6_listeners_config",
+                    ]
+                },
+                {
+                    "type" : "category",
+                    "label": "NiFi User",
+                    "items"  : [
+                        "5_references/2_nifi_user/1_nifi_user",
                     ]
                 }
             ],

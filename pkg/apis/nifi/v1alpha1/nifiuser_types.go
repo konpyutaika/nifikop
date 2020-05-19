@@ -21,15 +21,16 @@ import (
 // NifiUserSpec defines the desired state of NifiUser
 // +k8s:openapi-gen=true
 type NifiUserSpec struct {
-	//
+	// Name of the secret where all cert resources will be stored
 	SecretName  string           `json:"secretName"`
-	//
+	// contains the reference to the NifiCluster with the one the user is linked
 	ClusterRef  ClusterReference `json:"clusterRef"`
-	//
+	// List of DNSNames that the user will used to request the NifiCluster (allowing to create the right certificates associated)
 	DNSNames    []string         `json:"dnsNames,omitempty"`
 	//
 	//TopicGrants []UserTopicGrant `json:"topicGrants,omitempty"`
-	//
+
+	// Whether or not the the operator also include a Java keystore format (JKS) with you secret
 	IncludeJKS  bool             `json:"includeJKS,omitempty"`
 }
 
@@ -37,7 +38,7 @@ type NifiUserSpec struct {
 // +k8s:openapi-gen=true
 type NifiUserStatus struct {
 	State UserState `json:"state"`
-	ACLs  []string  `json:"acls,omitempty"`
+//	ACLs  []string  `json:"acls,omitempty"`
 }
 
 // Nifi User is the Schema for the nifi users API
