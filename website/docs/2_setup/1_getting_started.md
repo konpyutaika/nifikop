@@ -16,6 +16,8 @@ As a pre-requisite it needs a Kubernetes cluster. Also, NiFi requires Zookeeper 
 
 > We believe in the `separation of concerns` principle, thus the NiFi operator does not install nor manage Zookeeper.
 
+## Prerequisites 
+
 ### Install Zookeeper
 
 To install Zookeeper we recommend using the [Pravega's Zookeeper Operator](https://github.com/pravega/zookeeper-operator).
@@ -65,6 +67,65 @@ spec:
   replicas: 3
 EOF
 ```
+
+### Install cert-manager
+
+The NiFiKop operator uses `cert-manager` for issuing certificates to users and and nodes, so you'll need to have it setup in case you want to deploy a secured cluster with authentication enabled.
+
+
+<Tabs
+  defaultValue="directly"
+  values={[
+    { label: 'Directly', value: 'directly', },
+    { label: 'helm 3', value: 'helm3', },
+    { label: 'helm previous', value: 'helm', },
+  ]
+}>
+<TabItem value="directly">
+
+```bash
+# Install the CustomResourceDefinitions and cert-manager itself
+kubectl apply -f \
+    https://github.com/jetstack/cert-manager/releases/download/v0.11.0/cert-manager.yaml
+```
+</TabItem>
+<TabItem value="helm3">
+
+```bash
+# Install CustomResourceDefinitions first
+kubectl apply --validate=false -f \
+    https://raw.githubusercontent.com/jetstack/cert-manager/release-0.11/deploy/manifests/00-crds.yaml
+
+# Add the jetstack helm repo
+helm repo add jetstack https://charts.jetstack.io
+helm repo update
+
+# You have to create the namespace before executing following command
+helm install cert-manager \
+    --namespace cert-manager \
+    --version v0.11.0 jetstack/cert-manager
+```
+
+</TabItem>
+<TabItem value="helm">
+
+```bash
+# Install CustomResourceDefinitions first
+kubectl apply --validate=false -f \
+    https://raw.githubusercontent.com/jetstack/cert-manager/release-0.11/deploy/manifests/00-crds.yaml
+
+# Add the jetstack helm repo
+helm repo add jetstack https://charts.jetstack.io
+helm repo update
+
+# Using previous versions of helm
+helm install --name cert-manager \
+    --namespace cert-manager \
+    --version v0.11.0 \
+    jetstack/cert-manager
+```
+</TabItem>
+</Tabs>
 
 ## Installation
 
