@@ -32,8 +32,8 @@ spec:
           description: NifiUserSpec defines the desired state of NifiUser
           properties:
             clusterRef:
-              description: ClusterReference states a reference to a cluster for topic/user
-                provisioning
+              description: contains the reference to the NifiCluster with the one
+                the user is linked
               properties:
                 name:
                   type: string
@@ -43,13 +43,17 @@ spec:
               - name
               type: object
             dnsNames:
+              description: List of DNSNames that the user will used to request the
+                NifiCluster (allowing to create the right certificates associated)
               items:
                 type: string
               type: array
             includeJKS:
-              description: TopicGrants []UserTopicGrant `json:"topicGrants,omitempty"`
+              description: Whether or not the the operator also include a Java keystore
+                format (JKS) with you secret
               type: boolean
             secretName:
+              description: Name of the secret where all cert resources will be stored
               type: string
           required:
           - clusterRef
@@ -58,10 +62,6 @@ spec:
         status:
           description: NifiUserStatus defines the observed state of NifiUser
           properties:
-            acls:
-              items:
-                type: string
-              type: array
             state:
               description: UserState defines the state of a NifiUser
               type: string

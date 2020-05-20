@@ -95,7 +95,7 @@ const (
 	CACertKey string = "caCert"
 	// CAPrivateKeyKey stores the private key for the CA
 	CAPrivateKeyKey string = "caKey"
-	// ClientCertKey stores the client certificate (cruisecontrol/operator usage)
+	// ClientCertKey stores the client certificate (operator usage)
 	ClientCertKey string = "clientCert"
 	// ClientPrivateKeyKey stores the client private key
 	ClientPrivateKeyKey string = "clientKey"

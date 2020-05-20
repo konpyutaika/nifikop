@@ -70,18 +70,21 @@ func schema_pkg_apis_nifi_v1alpha1_NifiUserSpec(ref common.ReferenceCallback) co
 				Properties: map[string]spec.Schema{
 					"secretName": {
 						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
+							Description: "Name of the secret where all cert resources will be stored",
+							Type:        []string{"string"},
+							Format:      "",
 						},
 					},
 					"clusterRef": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("./pkg/apis/nifi/v1alpha1.ClusterReference"),
+							Description: "contains the reference to the NifiCluster with the one the user is linked",
+							Ref:         ref("./pkg/apis/nifi/v1alpha1.ClusterReference"),
 						},
 					},
 					"dnsNames": {
 						SchemaProps: spec.SchemaProps{
-							Type: []string{"array"},
+							Description: "List of DNSNames that the user will used to request the NifiCluster (allowing to create the right certificates associated)",
+							Type:        []string{"array"},
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
@@ -94,7 +97,7 @@ func schema_pkg_apis_nifi_v1alpha1_NifiUserSpec(ref common.ReferenceCallback) co
 					},
 					"includeJKS": {
 						SchemaProps: spec.SchemaProps{
-							Description: "TopicGrants []UserTopicGrant `json:\"topicGrants,omitempty\"`",
+							Description: "Whether or not the the operator also include a Java keystore format (JKS) with you secret",
 							Type:        []string{"boolean"},
 							Format:      "",
 						},
@@ -119,19 +122,6 @@ func schema_pkg_apis_nifi_v1alpha1_NifiUserStatus(ref common.ReferenceCallback) 
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
 							Format: "",
-						},
-					},
-					"acls": {
-						SchemaProps: spec.SchemaProps{
-							Type: []string{"array"},
-							Items: &spec.SchemaOrArray{
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Type:   []string{"string"},
-										Format: "",
-									},
-								},
-							},
 						},
 					},
 				},
