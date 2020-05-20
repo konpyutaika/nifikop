@@ -271,15 +271,7 @@ func (r *ReconcileNifiUser) finalizeNifiUserACLs(reqLogger logr.Logger, cluster 
 		reqLogger.Info("Cluster is being deleted, skipping ACL deletion")
 		return nil
 	}
-	var err error
-	reqLogger.Info("Deleting user ACLs from nifi")
-	node, err := common.NewNodeConnection(reqLogger, r.client, cluster)
-	if err != nil {
-		return err
-	}
-	if err = node.DeleteUserACLs(user.DN()); err != nil {
-		return err
-	}
+
 	return nil
 }
 
