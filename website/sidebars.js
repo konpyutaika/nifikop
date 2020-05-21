@@ -43,6 +43,20 @@ module.exports = {
                         "3_tasks/1_nifi_cluster/2_cluster_scaling",
                     ]
                 },
+                {
+                    "type" : "category",
+                    "label": "Security",
+                    "items"  : [
+                        "3_tasks/2_security/1_ssl",
+                        {
+                            "type" : "category",
+                            "label": "Authentication",
+                            "items"  : [
+                                "3_tasks/2_security/2_authentication/1_oidc",
+                            ]
+                        },
+                    ]
+                },
             ],
             "Examples": [
                 "4_examples/1_simple_nifi_cluster"

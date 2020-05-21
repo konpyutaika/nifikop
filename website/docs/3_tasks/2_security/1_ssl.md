@@ -104,4 +104,44 @@ The operator can also include a Java keystore format (JKS) with your user secret
 ### Operator access policies
 
 For the current version of the operator, the access policies are still not managed (refer to the [Roadmap page](/nifikop/docs/1_concepts/4_roadmap#authentification-management)).
-That's why when you deploy a cluster in a secure mode, you have to define an `Initial admin`, which is a user account, that you will use to access to the cluster and add the `view` and `read` access policies to 
+That's why when you deploy a cluster in a secure mode, you have to define an `Initial admin`, which is a user account, that you will use to access to the cluster and add the `view` and `modify` access to the `access the controller` policy.
+
+If you check the controller log you should have the following error : 
+
+```json
+{
+  "level":"error",
+  "ts":1589974514.048613,
+  "logger":"nifi_client",
+  "msg":"Error during talking to nifi node",
+  "error":"403 Forbidden",
+  "stacktrace":"github.com/go-logr/zapr.(*zapLogger).Error\n\t/go/pkg/mod/github.com/go-logr/zapr@v0.1.1/zapr.go:128\ngithub.com/erdrix/nifikop/pkg/nificlient.(*nifiClient).DescribeCluster\n\tnifikop/pkg/nificlient/system.go:22\ngithub.com/erdrix/nifikop/pkg/nificlient.(*nifiClient).Build\n\tnifikop/pkg/nificlient/client.go:70\ngithub.com/erdrix/nifikop/pkg/nificlient.NewFromCluster\n\tnifikop/pkg/nificlient/client.go:92\ngithub.com/erdrix/nifikop/pkg/controller/common.NewNodeConnection\n\tnifikop/pkg/controller/common/controller_common.go:68\ngithub.com/erdrix/nifikop/pkg/scale.EnsureRemovedNodes\n\tnifikop/pkg/scale/scale.go:210\ngithub.com/erdrix/nifikop/pkg/resources/nifi.(*Reconciler).Reconcile\n\tnifikop/pkg/resources/nifi/nifi.go:186\ngithub.com/erdrix/nifikop/pkg/controller/nificluster.(*ReconcileNifiCluster).Reconcile\n\tnifikop/pkg/controller/nificluster/nificluster_controller.go:146\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).reconcileHandler\n\t/go/pkg/mod/sigs.k8s.io/controller-runtime@v0.4.0/pkg/internal/controller/controller.go:256\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).processNextWorkItem\n\t/go/pkg/mod/sigs.k8s.io/controller-runtime@v0.4.0/pkg/internal/controller/controller.go:232\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).worker\n\t/go/pkg/mod/sigs.k8s.io/controller-runtime@v0.4.0/pkg/internal/controller/controller.go:211\nk8s.io/apimachinery/pkg/util/wait.JitterUntil.func1\n\t/go/pkg/mod/k8s.io/apimachinery@v0.0.0-20191004115801-a2eda9f80ab8/pkg/util/wait/wait.go:152\nk8s.io/apimachinery/pkg/util/wait.JitterUntil\n\t/go/pkg/mod/k8s.io/apimachinery@v0.0.0-20191004115801-a2eda9f80ab8/pkg/util/wait/wait.go:153\nk8s.io/apimachinery/pkg/util/wait.Until\n\t/go/pkg/mod/k8s.io/apimachinery@v0.0.0-20191004115801-a2eda9f80ab8/pkg/util/wait/wait.go:88"
+}
+```
+
+1. To do this, you have to connect on your cluster and go into the users page : 
+
+![users page](/nifikop/img/3_tasks/2_security/1_ssl/users.png)
+
+2. Create a new user entry with `<NifiCluster's name>-controller.<NifiCluster's namespace>.mgt.cluster.local` name, this the name of the `NifiUser` associated to the operator : 
+For example for the the `NifiCluster` **sslnifi** deployed into the namespace **nifi** we have the following configuration : 
+
+![add controller's user](/nifikop/img/3_tasks/2_security/1_ssl/add_user_controller.png)
+
+3. Now we will add the required policies, so go to the `Access Policies` page : 
+
+![Access policies page](/nifikop/img/3_tasks/2_security/1_ssl/access_policies_page.png)
+
+4. And add the operator's user the right to `view` and `modify` to the `access the controller` policy.
+
+![Access Controller view](/nifikop/img/3_tasks/2_security/1_ssl/access_conrtoller_view.png)
+
+![Access Controller modify](/nifikop/img/3_tasks/2_security/1_ssl/access_conrtoller_modify.png)
+
+If you check once again the logs, you no longer have the error.
+
+### Scale out of the initial node's scope
+
+For now the operator is unable to add a node with an id out of the ones defined at the initial cluster setup. We are working on a fix, please follow the issue related [Issue #5](https://gitlab.si.francetelecom.fr/kubernetes/nifikop/issues/5)
+
+In the meantime you can setup a large cluster with more node than necessary, and scale within the range of the large pool id.

@@ -14,7 +14,7 @@
   --ifm-color-primary-lighter: #fca966;
   --ifm-color-primary-lightest: #fcb57c;
   --ifm-color-feedback-background: #fff;
-  --ifm-code-background: #d9b295;
+  --ifm-code-background: #d9b295ad;
 }
 
 html[data-theme='dark'] {
