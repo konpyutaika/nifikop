@@ -6,9 +6,10 @@
 - Add NifiUser custom resource for TLS users (nodes and operator)
 - Implement NifiUser and TLS reconciliation, with secrets injection
 - Add Initial Admin definition into NifCluster
-- Add NioApi dependency
+- Add NigoApi dependency
 - Implement HTTP Client wrapper for Operator
 - Implement multi-namespace watch logic
+- Documentation & tutorial on OpenId Connect configuration
 
 ### Changed
 
@@ -16,6 +17,7 @@
 - Improve cluster task events filter
 - Improve Helm publication removing the cache
 - Move secure cluster configuration level (at Spec level)
+- Move repo reference to the GitLab one
 
 ### Deprecated
 
