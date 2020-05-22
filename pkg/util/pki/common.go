@@ -19,10 +19,10 @@ import (
 	"crypto/tls"
 	"fmt"
 
-	"github.com/erdrix/nifikop/pkg/apis/nifi/v1alpha1"
-	"github.com/erdrix/nifikop/pkg/resources/templates"
-	certutil "github.com/erdrix/nifikop/pkg/util/cert"
-	"github.com/erdrix/nifikop/pkg/util/nifi"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/apis/nifi/v1alpha1"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/resources/templates"
+	certutil "gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/util/cert"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/util/nifi"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
 )

@@ -1,7 +1,7 @@
 package apis
 
 import (
-	"github.com/erdrix/nifikop/pkg/apis/nifi/v1alpha1"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/apis/nifi/v1alpha1"
 )
 
 func init() {

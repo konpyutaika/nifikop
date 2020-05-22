@@ -5,8 +5,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/erdrix/nifikop/pkg/apis/nifi/v1alpha1"
-	"github.com/erdrix/nifikop/pkg/resources/templates"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/apis/nifi/v1alpha1"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/resources/templates"
 )
 
 func testCluster(t *testing.T) *v1alpha1.NifiCluster {

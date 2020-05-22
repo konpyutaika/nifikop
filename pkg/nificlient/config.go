@@ -18,11 +18,11 @@ import (
 	"crypto/tls"
 	"fmt"
 
-	"github.com/erdrix/nifikop/pkg/apis/nifi/v1alpha1"
-	"github.com/erdrix/nifikop/pkg/pki"
-	"github.com/erdrix/nifikop/pkg/resources/templates"
-	"github.com/erdrix/nifikop/pkg/util"
-	"github.com/erdrix/nifikop/pkg/util/nifi"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/apis/nifi/v1alpha1"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/pki"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/resources/templates"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/util"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/util/nifi"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 

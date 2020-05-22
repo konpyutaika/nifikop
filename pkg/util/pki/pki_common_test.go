@@ -18,10 +18,10 @@ import (
 	"fmt"
 	"reflect"
 	"testing"
-	"github.com/erdrix/nifikop/pkg/apis/nifi/v1alpha1"
-	"github.com/erdrix/nifikop/pkg/resources/templates"
-	"github.com/erdrix/nifikop/pkg/util"
-	certutil "github.com/erdrix/nifikop/pkg/util/cert"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/apis/nifi/v1alpha1"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/resources/templates"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/util"
+	certutil "gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/util/cert"
 )
 
 func testCluster(t *testing.T) *v1alpha1.NifiCluster {

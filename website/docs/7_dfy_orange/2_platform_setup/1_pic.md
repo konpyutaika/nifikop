@@ -59,5 +59,5 @@ spec:
     ```
 
     :::tip
-    You can find some examples in the [config/samples/orange folder](https://github.com/erdrix/nifikop/tree/master/config/samples/orange)
+    You can find some examples in the [config/samples/orange folder](https://gitlab.si.francetelecom.fr/kubernetes/nifikop/tree/master/config/samples/orange)
     :::

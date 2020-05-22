@@ -17,8 +17,8 @@ package certmanagerpki
 import (
 	"flag"
 
-	"github.com/erdrix/nifikop/pkg/apis/nifi/v1alpha1"
-	"github.com/erdrix/nifikop/pkg/util/pki"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/apis/nifi/v1alpha1"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/util/pki"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 

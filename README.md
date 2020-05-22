@@ -11,11 +11,11 @@
     <img src="https://circleci.com/gh/orangeopensource/nifikopr/tree/master.svg?style=shield" alt="CircleCI">
   </a>
 
-  <a href="https://goreportcard.com/report/github.com/erdrix/nifikop">
-    <img src="https://goreportcard.com/badge/github.com/erdrix/nifikop" alt="Go Report Card">
+  <a href="https://goreportcard.com/report/gitlab.si.francetelecom.fr/kubernetes/nifikop">
+    <img src="https://goreportcard.com/badge/gitlab.si.francetelecom.fr/kubernetes/nifikop" alt="Go Report Card">
   </a>
 
-  <a href="https://github.com/erdrix/nifikop/">
+  <a href="https://gitlab.si.francetelecom.fr/kubernetes/nifikop/">
     <img src="https://img.shields.io/badge/license-Apache%20v2-orange.svg" alt="license">
   </a>
 </p>
@@ -46,7 +46,7 @@ Some of the roadmap features :
 
 ## Motivation
 
-At [Orange](https://opensource.orange.com/fr/accueil/) we are building some [Kubernetes operator](https://github.com/erdrix?utf8=%E2%9C%93&q=operator&type=&language=), that operate NiFi and Cassandra clusters (among other types) for our business cases.
+At [Orange](https://opensource.orange.com/fr/accueil/) we are building some [Kubernetes operator](https://https://gitlab.si.francetelecom.fr/kubernetes/nifikop?utf8=%E2%9C%93&q=operator&type=&language=), that operate NiFi and Cassandra clusters (among other types) for our business cases.
 
 There are already some approaches to operating NiFi on Kubernetes, however, we did not find them appropriate for use in a highly dynamic environment, nor capable of meeting our needs.
 
@@ -118,7 +118,7 @@ kubectl create -n nifi -f config/samples/simplenificluster.yaml
 ### Easy way: installing with Helm
 
 Alternatively, if you are using Helm, you can deploy the operator using a [Helm chart](helm/)
-<!-- [Helm chart](https://github.com/erdrix/nifikop/tree/master/helm) -->
+<!-- [Helm chart](https://gitlab.si.francetelecom.fr/kubernetes/nifikop/tree/master/helm) -->
 
 > To install the an other version of the operator use `helm install --name=nifikop --namespace=nifi --set operator.image.tag=x.y.z orange-incubator/nifikop`
 
@@ -147,7 +147,7 @@ Check out the [supported features](https://kubernetes.pages.gitlab.si.francetele
 
 ## Issues, feature requests and roadmap
 
-Please note that the NiFi operator is constantly under development and new releases might introduce breaking changes. We are striving to keep backward compatibility as much as possible while adding new features at a fast pace. Issues, new features or bugs are tracked on the projects [GitHub page](https://github.com/erdrix/nifikop/issues) - please feel free to add yours!
+Please note that the NiFi operator is constantly under development and new releases might introduce breaking changes. We are striving to keep backward compatibility as much as possible while adding new features at a fast pace. Issues, new features or bugs are tracked on the projects [GitHub page](https://gitlab.si.francetelecom.fr/kubernetes/nifikop/issues) - please feel free to add yours!
 
 To track some of the significant features and future items from the roadmap please visit the [roadmap doc](https://kubernetes.pages.gitlab.si.francetelecom.fr/nifikop/docs/1_concepts/4_roadmap).
 

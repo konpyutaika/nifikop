@@ -68,4 +68,4 @@ If the contribution changes the existing APIs or user interface it must include 
 
 
 [nifikop]: 
-[changelog]: https://github.com/erdrix/nifikop/blob/master/CHANGELOG.md
+[changelog]: https://gitlab.si.francetelecom.fr/kubernetes/nifikop/blob/master/CHANGELOG.md

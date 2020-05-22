@@ -1,4 +1,4 @@
-module github.com/erdrix/nifikop
+module gitlab.si.francetelecom.fr/kubernetes/nifikop
 
 go 1.13
 

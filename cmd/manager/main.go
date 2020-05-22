@@ -18,10 +18,10 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/rest"
 
-	"github.com/erdrix/nifikop/pkg/apis"
-	"github.com/erdrix/nifikop/pkg/controller"
-	certmanagerpki "github.com/erdrix/nifikop/pkg/pki/certmanagerpki"
-	"github.com/erdrix/nifikop/version"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/apis"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/controller"
+	certmanagerpki "gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/pki/certmanagerpki"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/version"
 
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	kubemetrics "github.com/operator-framework/operator-sdk/pkg/kube-metrics"

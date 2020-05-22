@@ -78,7 +78,7 @@ RUN curl -L https://storage.googleapis.com/kubernetes-helm/helm-v2.12.2-linux-am
 # Install Operator SDK
 ARG OPERATOR_SDK_VERSION
 RUN mkdir -p $GOPATH/src/github.com/operator-framework \
-    && mkdir -p $GOPATH/src/github.com/erdrix \
+    && mkdir -p $GOPATH/src/gitlab.si.francetelecom.fr/kubernetes/nifikop \
 ##    && go get -u github.com/operator-framework/operator-sdk || true \
     && go get -d github.com/erdrix/operator-sdk || true \
     && mv $GOPATH/src/github.com/erdrix/operator-sdk $GOPATH/src/github.com/operator-framework/operator-sdk \

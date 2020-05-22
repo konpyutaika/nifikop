@@ -18,8 +18,8 @@ module.exports = {
         {to: 'docs/1_concepts/1_introduction', label: 'Docs', position: 'right'},
         {to: 'blog', label: 'Blog', position: 'right'},
         {
-          href: 'https://github.com/erdrix/nifikop',
-          label: 'GitHub',
+          href: 'https://gitlab.si.francetelecom.fr/kubernetes/nifikop',
+          label: 'GitLab',
           position: 'right',
         },
       ],
@@ -35,8 +35,8 @@ module.exports = {
               to: 'docs/1_concepts/1_introduction',
             },
             {
-              label: 'GitHub',
-              href: 'https://github.com/erdrix/nifikop',
+              label: 'Gitlab',
+              href: 'https://gitlab.si.francetelecom.fr/kubernetes/nifikop',
             },
           ],
         },
@@ -66,7 +66,7 @@ module.exports = {
             },
             {
               label: 'Feature request',
-              href: 'https://github.com/erdrix/nifikop/issues',
+              href: 'https://gitlab.si.francetelecom.fr/kubernetes/nifikop/issues',
             },
           ],
         },
@@ -82,7 +82,7 @@ module.exports = {
         docs: {
           sidebarPath: require.resolve('./sidebars.js'),
           editUrl:
-              'https://github.com/erdrix/nifikop/edit/master/website/',
+              'https://gitlab.si.francetelecom.fr/kubernetes/nifikop/edit/master/website/',
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),

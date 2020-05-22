@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"github.com/erdrix/nifikop/pkg/controller/nificlustertask"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/controller/nificlustertask"
 )
 
 func init() {

@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/erdrix/nifikop/pkg/apis/nifi/v1alpha1"
-	"github.com/erdrix/nifikop/pkg/controller/common"
-	"github.com/erdrix/nifikop/pkg/nificlient"
-	nifiutil "github.com/erdrix/nifikop/pkg/util/nifi"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/apis/nifi/v1alpha1"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/controller/common"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/nificlient"
+	nifiutil "gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/util/nifi"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"

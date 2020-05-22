@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"github.com/erdrix/nifikop/pkg/controller/nifiuser"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/controller/nifiuser"
 )
 
 func init() {

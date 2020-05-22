@@ -1,9 +1,9 @@
 apiVersion: v1
 description: A Helm chart for NiFiKop - the Orange NiFi Kubernetes operator
 name: nifikop
-home: https://github.com/erdrix/nifikop
+home: https://gitlab.si.francetelecom.fr/kubernetes/nifikop
 sources:
-  - https://github.com/erdrix/nifikop
+  - https://gitlab.si.francetelecom.fr/kubernetes/nifikop
 version: 0.0.1
 appVersion: 0.0.1-release
 icon:

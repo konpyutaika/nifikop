@@ -20,8 +20,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/erdrix/nifikop/pkg/apis/nifi/v1alpha1"
-	"github.com/erdrix/nifikop/pkg/errorfactory"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/apis/nifi/v1alpha1"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/errorfactory"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
 

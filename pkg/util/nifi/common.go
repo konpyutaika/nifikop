@@ -2,7 +2,7 @@ package nifi
 
 import (
 	"fmt"
-	"github.com/erdrix/nifikop/pkg/resources/templates"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/resources/templates"
 	"strconv"
 	"time"
 )

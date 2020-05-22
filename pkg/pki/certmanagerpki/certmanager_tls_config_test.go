@@ -19,9 +19,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/erdrix/nifikop/pkg/apis/nifi/v1alpha1"
-	"github.com/erdrix/nifikop/pkg/errorfactory"
-	certutil "github.com/erdrix/nifikop/pkg/util/cert"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/apis/nifi/v1alpha1"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/errorfactory"
+	certutil "gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/util/cert"
 	corev1 "k8s.io/api/core/v1"
 )
 
