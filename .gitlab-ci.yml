@@ -73,8 +73,8 @@ report:sonar:
     - sonar-scanner -X -Dproject.settings=.sonar.properties -Dsonar.projectVersion=$BUILD_VERSION
     - ls -la
   only:
-    - branches
-#    - master
+#    - branches
+    - master
   dependencies:
     - test:unit
   artifacts:
