@@ -1,0 +1,154 @@
+================================================================================
+Apache 2.0
+================================================================================
+
+Component: api
+License Text URL: https://github.com/kubernetes/api/blob/master/LICENSE
+Source Code: https://github.com/kubernetes/api
+
+Component: apiextensions-apiserver
+License Text URL: https://github.com/kubernetes/apiextensions-apiserver/blob/master/LICENSE
+Source Code: https://github.com/kubernetes/apiextensions-apiserver
+
+Component: apimachinery
+License Text URL: https://github.com/kubernetes/apimachinery/blob/master/LICENSE
+Source Code: https://github.com/kubernetes/apimachinery
+
+Component: apiserver
+License Text URL: https://github.com/kubernetes/apiserver/blob/master/LICENSE
+Source Code: https://github.com/kubernetes/apiserver
+
+Component: cli-runtime
+License Text URL: https://github.com/kubernetes/cli-runtime/blob/master/LICENSE
+Source Code: https://github.com/kubernetes/cli-runtime
+
+Component: client-go
+License Text URL: https://github.com/kubernetes/client-go/blob/master/LICENSE
+Source Code: https://github.com/kubernetes/client-go
+
+Component: cloud-provider
+License Text URL: https://github.com/kubernetes/cloud-provider/blob/master/LICENSE
+Source Code: https://github.com/kubernetes/cloud-provider
+
+Component: cluster-bootstrap
+License Text URL: https://github.com/kubernetes/cluster-bootstrap/blob/master/LICENSE
+Source Code: https://github.com/kubernetes/cluster-bootstrap
+
+Component: code-generator
+License Text URL:https://github.com/kubernetes/code-generator/blob/master/LICENSE
+Source Code: https://github.com/kubernetes/code-generator
+
+Component: component-base
+License Text URL: https://github.com/kubernetes/component-base/blob/master/LICENSE
+Source Code: https://github.com/kubernetes/component-base
+
+Component: controller-runtime
+License Text URL: https://github.com/kubernetes-sigs/controller-runtime/blob/master/LICENSE
+Source Code: https://github.com/kubernetes-sigs/controller-runtime
+
+Component: cri-api
+License Text URL: https://github.com/kubernetes/kubernetes/blob/master/staging/src/k8s.io/cri-api/LICENSE
+Source Code: https://github.com/kubernetes/kubernetes/tree/master/staging/src/k8s.io/cri-api
+
+Component: csi-translation-lib
+License Text URL: https://github.com/kubernetes/csi-translation-lib/blob/master/LICENSE
+Source Code: k8s.io/csi-translation-lib
+
+Component: docker
+Source Code: https://github.com/docker
+
+Component: helm
+License Text URL: https://github.com/helm/helm/blob/master/LICENSE
+Source Code: https://github.com/helm/helm
+
+Component: k8s-objectmatcher
+License Text URL: https://github.com/banzaicloud/k8s-objectmatcher/blob/master/LICENSE
+Source Code: https://github.com/banzaicloud/k8s-objectmatcher
+
+Component: kube-aggregator
+License Text URL: https://github.com/kubernetes/kube-aggregator/blob/master/LICENSE
+Source Code: https://github.com/kubernetes/kube-aggregator
+
+Component: kube-controller-manager
+License Text URL: https://github.com/kubernetes/kube-controller-manager/blob/master/LICENSE
+Source Code: https://github.com/kubernetes/kube-controller-manager
+
+Component: kube-openapi
+License Text URL: https://github.com/kubernetes/kube-openapi/blob/master/LICENSE
+Source Code: https://github.com/kubernetes/kube-openapi
+
+Component: kube-proxy
+License Text URL: https://github.com/kubernetes/kube-proxy/blob/master/LICENSE
+Source Code: https://github.com/kubernetes/kube-proxy
+
+Component: kube-scheduler
+License Text URL: https://github.com/kubernetes/kube-scheduler/blob/master/LICENSE
+Source Code: https://github.com/kubernetes/kube-scheduler
+
+Component: kubectl
+License Text URL: https://github.com/kubernetes/kubectl/blob/master/LICENSE
+Source Code: https://github.com/kubernetes/kubectl
+
+Component: kubelet
+License Text URL: https://github.com/kubernetes/kubelet/blob/master/LICENSE
+Source Code: https://github.com/kubernetes/kubelet
+
+Component: logr
+License Text URL: https://github.com/go-logr/logr/blob/master/LICENSE
+Source Code: https://github.com/go-logr/logr
+
+Component: operator-sdk
+License Text URL: https://github.com/operator-framework/operator-sdk/blob/master/LICENSE
+Source Code: https://github.com/operator-framework/operator-sdk
+
+Component: origin
+License Text URL: https://github.com/openshift/origin/blob/master/LICENSE
+Source Code: https://github.com/openshift/origin
+
+Component: legacy-cloud-providers
+License Text URL: https://github.com/kubernetes/legacy-cloud-providers/blob/master/LICENSE
+Source Code: https://github.com/kubernetes/legacy-cloud-providers
+
+Component: metrics
+License Text URL: https://github.com/kubernetes/metrics/blob/master/LICENSE
+Source Code: https://github.com/kubernetes/metrics
+
+Component: moby
+License Text URL: https://github.com/moby/moby/blob/master/LICENSE
+Source Code: https://github.com/moby/moby
+
+Component: sample-apiserver
+License Text URL: https://github.com/kubernetes/sample-apiserver/blob/master/LICENSE
+Source Code: https://github.com/kubernetes/sample-apiserver
+
+================================================================================
+BSD 3-Clause
+================================================================================
+
+Component: mergo
+License Text URL: https://github.com/imdario/mergo/blob/master/LICENSE
+Source Code: https://github.com/imdario/mergo
+
+Component: pflag
+License Text URL: https://github.com/spf13/pflag/blob/master/LICENSE
+Source Code: https://github.com/spf13/pflag
+
+================================================================================
+MIT
+================================================================================
+
+Component: docuraurus
+License Text URL: https://github.com/facebook/docusaurus/blob/master/LICENSE
+Source Code: https://github.com/facebook/docusaurus/
+
+Component: errors
+License Text URL: https://github.com/emperror/errors/blob/master/LICENSE
+Source Code: https://github.com/emperror/errors
+
+Component: jq
+License Text URL: https://github.com/stedolan/jq/blob/master/COPYING
+Source Code: https://github.com/stedolan/jq
+
+Component: logrus
+License Text URL: https://github.com/sirupsen/logrus/blob/master/LICENSE
+Source Code: https://github.com/sirupsen/logrus
