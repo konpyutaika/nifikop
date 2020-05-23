@@ -2,6 +2,18 @@
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Bug Fixes
+
+## v0.1.0-release
+
+### Added
+
 - [MR #10](https://gitlab.si.francetelecom.fr/kubernetes/nifikop/-/merge_requests/10) - Implement TLS certificates creation with Cert-Manager
 - [MR #10](https://gitlab.si.francetelecom.fr/kubernetes/nifikop/-/merge_requests/10) - Add NifiUser custom resource for TLS users (nodes and operator)
 - [MR #10](https://gitlab.si.francetelecom.fr/kubernetes/nifikop/-/merge_requests/10) - Implement NifiUser and TLS reconciliation, with secrets injection

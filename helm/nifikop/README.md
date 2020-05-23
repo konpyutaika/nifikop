@@ -1,4 +1,3 @@
-
 # NiFiKop - Nifi Kubernetes operator Helm chart
 
 This Helm chart install NiFiKop the Orange's Nifi Kubernetes operator to create/configure/manage NiFi 
@@ -15,7 +14,7 @@ The following tables lists the configurable parameters of the NiFi Operator Helm
 | Parameter                        | Description                                      | Default                                   |
 |----------------------------------|--------------------------------------------------|-------------------------------------------|
 | `image.repository`               | Image                                            | `orangeopensource/nifikop`                |
-| `image.tag`                      | Image tag                                        | `v0.0.1-release`                          |
+| `image.tag`                      | Image tag                                        | `v0.1.0-release`                          |
 | `image.pullPolicy`               | Image pull policy                                | `Always`                                  |
 | `image.imagePullSecrets.enabled` | Enable tue use of secret for docker image        | `false`                                   |
 | `image.imagePullSecrets.name`    | Name of the secret to connect to docker registry | -                                         |

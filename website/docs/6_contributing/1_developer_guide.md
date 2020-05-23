@@ -135,7 +135,7 @@ Install the Helm chart.
 ```bash
 helm install ./helm/nifikop \
     --set-string image.repository=eu.gcr.io/poc-rtc/nifikop \
-    --set image.tag=0.0.1-skeleton \
+    --set image.tag=v0.0.1-release \
     --name skeleton
 ```
 
