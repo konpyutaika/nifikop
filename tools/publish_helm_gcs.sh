@@ -20,8 +20,8 @@ set -o pipefail
 
 HELM_TARGET_DIR=$(pwd)/tmp/incubator
 readonly HELM_URL=https://storage.googleapis.com/kubernetes-helm
-#readonly HELM_TARBALL=helm-v2.9.1-linux-amd64.tar.gz
-readonly HELM_TARBALL=helm-v2.9.1-darwin-amd64.tar.gz
+readonly HELM_TARBALL=helm-v2.9.1-linux-amd64.tar.gz
+#readonly HELM_TARBALL=helm-v2.9.1-darwin-amd64.tar.gz
 #readonly STABLE_REPO_URL=https://orange-kubernetes-charts.storage.googleapis.com/
 readonly INCUBATOR_REPO_URL=https://orange-kubernetes-charts-incubator.storage.googleapis.com/
 #readonly GCS_BUCKET_STABLE=gs://orange-kubernetes-charts
@@ -46,8 +46,8 @@ setup_helm_client() {
     curl --user-agent curl-ci-sync -sSL -o "$HELM_TARBALL" "$HELM_URL/$HELM_TARBALL"
     tar xzfv "$HELM_TARBALL" -C tmp
 
-    PATH="$(pwd)/tmp/darwin-amd64/:$PATH"
-#    PATH="$(pwd)/tmp/linux-amd64/:$PATH"
+#    PATH="$(pwd)/tmp/darwin-amd64/:$PATH"
+    PATH="$(pwd)/tmp/linux-amd64/:$PATH"
 
     helm init --client-only
     helm repo add incubator-orange "$INCUBATOR_REPO_URL"
