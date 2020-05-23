@@ -16,9 +16,11 @@ package k8sutil
 
 import (
 	"context"
-	"github.com/erdrix/nifikop/pkg/apis/nifi/v1alpha1"
-	"github.com/erdrix/nifikop/pkg/errorfactory"
 	"reflect"
+
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/apis/nifi/v1alpha1"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/errorfactory"
+	v1 "k8s.io/api/core/v1"
 
 	"emperror.dev/errors"
 	"github.com/banzaicloud/k8s-objectmatcher/patch"
@@ -138,6 +140,18 @@ func IsPodContainsPendingContainer(pod *corev1.Pod) bool {
 	for _, containerState := range pod.Status.ContainerStatuses {
 		if containerState.State.Waiting != nil {
 			return true
+		}
+	}
+	return false
+}
+
+func IsPodContainsNotReadyMainContainer(pod *corev1.Pod) bool {
+	if &pod.Status != nil && len(pod.Status.Conditions) > 0 {
+		for _, condition := range pod.Status.Conditions {
+			if condition.Type == v1.PodReady &&
+				condition.Status == v1.ConditionTrue {
+				return true
+			}
 		}
 	}
 	return false

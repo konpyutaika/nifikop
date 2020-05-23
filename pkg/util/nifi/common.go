@@ -2,7 +2,7 @@ package nifi
 
 import (
 	"fmt"
-	"github.com/erdrix/nifikop/pkg/resources/templates"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/resources/templates"
 	"strconv"
 	"time"
 )
@@ -12,12 +12,14 @@ const (
 	AllNodeServiceTemplate = "%s-all-node"
 	// HeadlessServiceTemplate template for Nifi headless service
 	HeadlessServiceTemplate = "%s-headless"
+	//
+	TimeStampLayout = "Mon, 2 Jan 2006 15:04:05 GMT"
 )
 
 // ParseTimeStampToUnixTime parses the given CC timeStamp to time format
 func ParseTimeStampToUnixTime(timestamp string) (time.Time, error) {
-	timeStampLayout := "Mon, 2 Jan 2006 15:04:05 GMT"
-	t, err := time.Parse(timeStampLayout, timestamp)
+
+	t, err := time.Parse(TimeStampLayout, timestamp)
 	if err != nil {
 		return time.Time{}, err
 	}
@@ -28,7 +30,7 @@ func ComputeHostname(headlessServiceEnabled bool, nodeId int32, clusterName, nam
 	if headlessServiceEnabled {
 		return fmt.Sprintf("%s.%s-headless.%s.svc.cluster.local", fmt.Sprintf(templates.NodeNameTemplate,clusterName, nodeId), clusterName, namespace)
 	} else {
-		return fmt.Sprintf("%s.%s.svc.cluster.local", fmt.Sprintf(templates.NodeNameTemplate,clusterName, nodeId), namespace)
+		return fmt.Sprintf("%s.%s.svc.cluster.local", fmt.Sprintf(templates.NodeNameTemplate, clusterName, nodeId), namespace)
 	}
 }
 

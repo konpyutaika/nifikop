@@ -17,7 +17,7 @@ package k8sutil
 import (
 	"context"
 	"fmt"
-	"github.com/erdrix/nifikop/pkg/apis/nifi/v1alpha1"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/apis/nifi/v1alpha1"
 	"strings"
 	"time"
 

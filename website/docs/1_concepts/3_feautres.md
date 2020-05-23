@@ -8,7 +8,7 @@ To highligt some of the features we needed and were not possible with the operat
 
 ## Fine Grained Node Config Support
 
-We needed to be able to react to events in a fine-grained way for each Node - and not in the limited way StatefulSet does (which, for example, removes the most recently created Nodes). Some of the available solutions try to overcome these deficits by placing scripts inside the container to generate configs at runtime (a good example is our [Cassandra Operator](https://github.com/erdrix/casskop)), whereas the Orange NiFi operator's configurations are deterministically placed in specific Configmaps.
+We needed to be able to react to events in a fine-grained way for each Node - and not in the limited way StatefulSet does (which, for example, removes the most recently created Nodes). Some of the available solutions try to overcome these deficits by placing scripts inside the container to generate configs at runtime (a good example is our [Cassandra Operator](https://github.com/Orange-OpenSource/casskop)), whereas the Orange NiFi operator's configurations are deterministically placed in specific Configmaps.
 
 ### Graceful NiFi Cluster Scaling
 

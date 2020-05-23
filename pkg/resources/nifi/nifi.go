@@ -2,24 +2,29 @@ package nifi
 
 import (
 	"context"
-	"emperror.dev/errors"
 	"fmt"
+	"reflect"
+	"strings"
+
+	"emperror.dev/errors"
 	"github.com/banzaicloud/k8s-objectmatcher/patch"
-	"github.com/erdrix/nifikop/pkg/apis/nifi/v1alpha1"
-	"github.com/erdrix/nifikop/pkg/errorfactory"
-	"github.com/erdrix/nifikop/pkg/k8sutil"
-	"github.com/erdrix/nifikop/pkg/resources"
-	"github.com/erdrix/nifikop/pkg/resources/templates"
-	"github.com/erdrix/nifikop/pkg/scale"
-	"github.com/erdrix/nifikop/pkg/util"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/apis/nifi/v1alpha1"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/errorfactory"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/k8sutil"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/pki"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/resources"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/resources/templates"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/scale"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/util"
+	certutil "gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/util/cert"
+	pkicommon "gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/util/pki"
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"reflect"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"strings"
 )
 
 const(
@@ -47,12 +52,13 @@ func LabelsForNifi(name string) map[string]string {
 }
 
 // New creates a new reconciler for Nifi
-func New(client client.Client, scheme *runtime.Scheme, cluster *v1alpha1.NifiCluster) *Reconciler {
+func New(client client.Client, directClient client.Reader, scheme *runtime.Scheme, cluster *v1alpha1.NifiCluster) *Reconciler {
 	return &Reconciler{
 		Scheme: scheme,
 		Reconciler: resources.Reconciler{
-			Client:       client,
-			NifiCluster: cluster,
+			Client:       	client,
+			DirectClient: 	directClient,
+			NifiCluster:	cluster,
 		},
 	}
 }
@@ -100,13 +106,38 @@ func (r *Reconciler) Reconcile(log logr.Logger) error {
 		return errors.WrapIfWithDetails(err, "failed to reconcile resource", "resource", o.GetObjectKind().GroupVersionKind())
 	}
 
-	// Handle Pod delete
-	err = r.reconcileNifiPodDelete(log)
-	if err != nil {
-		return errors.WrapIf(err, "failed to reconcile resource")
+	// TODO : manage external LB
+	uniqueHostnamesMap := make(map[string]struct{})
+
+	// TODO: review design
+
+	for _, node := range r.NifiCluster.Spec.Nodes {
+		for _, webProxyHost := range r.GetNifiPropertiesBase(node.Id).WebProxyHosts {
+			uniqueHostnamesMap[strings.Split(webProxyHost, ":")[0]] = struct{}{}
+		}
+	}
+
+	uniqueHostnames := make([]string, 0)
+	for k := range uniqueHostnamesMap {
+		uniqueHostnames = append(uniqueHostnames, k)
+	}
+
+	// Setup the PKI if using SSL
+	if r.NifiCluster.Spec.ListenersConfig.SSLSecrets != nil {
+		// reconcile the PKI
+		if err := pki.GetPKIManager(r.Client, r.NifiCluster).ReconcilePKI(context.TODO(), log, r.Scheme, uniqueHostnames); err != nil {
+			return err
+		}
 	}
 
 	for _, node := range r.NifiCluster.Spec.Nodes {
+		// We need to grab names for servers and client in case user is enabling ACLs
+		// That way we can continue to manage dataflows and users
+		serverPass, clientPass, superUsers, err := r.getServerAndClientDetails(node.Id)
+		if err != nil {
+			return err
+		}
+
 		nodeConfig, err := util.GetNodeConfig(node, r.NifiCluster.Spec)
 		if err != nil {
 			return errors.WrapIf(err, "failed to reconcile resource")
@@ -119,22 +150,12 @@ func (r *Reconciler) Reconcile(log logr.Logger) error {
 			}
 
 		}
-		o := r.configMap(node.Id, nodeConfig, log)
+
+		o := r.configMap(node.Id, nodeConfig, serverPass, clientPass, superUsers,log)
 		err = k8sutil.Reconcile(log, r.Client, o, r.NifiCluster)
 		if err != nil {
 				return errors.WrapIfWithDetails(err, "failed to reconcile resource", "resource", o.GetObjectKind().GroupVersionKind())
 			}
-		/*} else {
-			if nodeState, ok := r.NifiCluster.Status.NodesState[strconv.Itoa(int(node.Id))]; ok {
-				if nodeState.RackAwarenessState == v1alpha1.Configured {
-					o := r.configMap(node.Id, nodeConfig, log)
-					err := k8sutil.Reconcile(log, r.Client, o, r.NifiCluster)
-					if err != nil {
-						return errors.WrapIfWithDetails(err, "failed to reconcile resource", "resource", o.GetObjectKind().GroupVersionKind())
-					}
-				}
-			}
-		}*/
 
 		pvcs, err := getCreatedPVCForNode(r.Client, node.Id, r.NifiCluster.Namespace, r.NifiCluster.Name)
 		if err != nil {
@@ -155,6 +176,17 @@ func (r *Reconciler) Reconcile(log logr.Logger) error {
 		}
 	}
 
+	// Handle Pod delete
+	err = r.reconcileNifiPodDelete(log)
+	if err != nil {
+		return errors.WrapIf(err, "failed to reconcile resource")
+	}
+
+	// TODO: Ensure usage and needing
+	err = scale.EnsureRemovedNodes(r.Client, r.NifiCluster)
+	if err != nil && len(r.NifiCluster.Status.NodesState) > 0{
+		return err
+	}
 
 	log.V(1).Info("Reconciled")
 
@@ -171,7 +203,6 @@ func (r *Reconciler) reconcileNifiPodDelete(log logr.Logger) error {
 	if err != nil {
 		return errors.WrapIf(err, "failed to reconcile resource")
 	}
-
 
 	deletedNodes := make([]corev1.Pod, 0)
 OUTERLOOP:
@@ -251,7 +282,7 @@ OUTERLOOP:
 				err = r.Client.Delete(context.TODO(), &corev1.Service{ObjectMeta: templates.ObjectMeta(fmt.Sprintf("%s-%s", r.NifiCluster.Name, node.Labels["nodeId"]), LabelsForNifi(r.NifiCluster.Name), r.NifiCluster)})
 				if err != nil {
 					if apierrors.IsNotFound(err) {
-						// can happen when broker was not fully initialized and now is deleted
+						// can happen when node was not fully initialized and now is deleted
 						log.Info(fmt.Sprintf("Service for Node %s not found. Continue", node.Labels["nodeId"]))
 					}
 					return errors.WrapIfWithDetails(err, "could not delete service for node", "id", node.Labels["nodeId"])
@@ -266,7 +297,7 @@ OUTERLOOP:
 					}})
 					if err != nil {
 						if apierrors.IsNotFound(err) {
-							// can happen when broker was not fully initialized and now is deleted
+							// can happen when node was not fully initialized and now is deleted
 							log.Info(fmt.Sprintf("PVC for Node %s not found. Continue", node.Labels["nodeId"]))
 						}
 
@@ -274,6 +305,7 @@ OUTERLOOP:
 					}
 				}
 			}
+
 			err = k8sutil.UpdateNodeStatus(r.Client, []string{node.Labels["nodeId"]}, r.NifiCluster,
 			v1alpha1.GracefulActionState{
 				ActionStep: v1alpha1.RemovePodStatus,
@@ -284,13 +316,6 @@ OUTERLOOP:
 				return errors.WrapIfWithDetails(err, "could not update status for node(s)", "id(s)", node.Labels["nodeId"])
 			}
 		}
-	}
-
-	// TODO: Ensure usage and needing
-	err = scale.EnsureRemovedNodes(r.NifiCluster.Spec.HeadlessServiceEnabled, r.NifiCluster.Spec.Nodes, r.NifiCluster.Status.NodesState,
-		GetServerPort(&r.NifiCluster.Spec.ListenersConfig), r.NifiCluster.Namespace, r.NifiCluster.Name)
-	if err != nil {
-		return err
 	}
 
 	return nil
@@ -306,6 +331,42 @@ func arePodsAlreadyDeleted(pods []corev1.Pod, log logr.Logger) bool {
 		log.Info(fmt.Sprintf("Node %s is already on terminating state", node.Labels["nodeId"]))
 	}
 	return true
+}
+
+func (r *Reconciler) getServerAndClientDetails(nodeId int32) (string, string, []string, error) {
+	if r.NifiCluster.Spec.ListenersConfig.SSLSecrets == nil {
+		return "", "", []string{}, nil
+	}
+	serverName := types.NamespacedName{Name: fmt.Sprintf(pkicommon.NodeServerCertTemplate, r.NifiCluster.Name, nodeId), Namespace: r.NifiCluster.Namespace}
+	serverSecret := &corev1.Secret{}
+	if err := r.Client.Get(context.TODO(), serverName, serverSecret); err != nil {
+		if apierrors.IsNotFound(err) {
+			return "", "", nil, errorfactory.New(errorfactory.ResourceNotReady{}, err, "server secret not ready")
+		}
+		return "", "", nil, errors.WrapIfWithDetails(err, "failed to get server secret")
+	}
+	serverPass := string(serverSecret.Data[v1alpha1.PasswordKey])
+
+	clientName := types.NamespacedName{Name: fmt.Sprintf(pkicommon.NodeControllerTemplate, r.NifiCluster.Name), Namespace: r.NifiCluster.Namespace}
+	clientSecret := &corev1.Secret{}
+	if err := r.Client.Get(context.TODO(), clientName, clientSecret); err != nil {
+		if apierrors.IsNotFound(err) {
+			return "", "", nil, errorfactory.New(errorfactory.ResourceNotReady{}, err, "client secret not ready")
+		}
+		return "", "", nil, errors.WrapIfWithDetails(err, "failed to get client secret")
+	}
+	clientPass := string(clientSecret.Data[v1alpha1.PasswordKey])
+
+	superUsers := make([]string, 0)
+	for _, secret := range []*corev1.Secret{serverSecret, clientSecret} {
+		cert, err := certutil.DecodeCertificate(secret.Data[corev1.TLSCertKey])
+		if err != nil {
+			return "", "", nil, errors.WrapIfWithDetails(err, "failed to decode certificate")
+		}
+		superUsers = append(superUsers, cert.Subject.String())
+	}
+
+	return serverPass, clientPass, superUsers, nil
 }
 
 //
@@ -485,7 +546,7 @@ func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) e
 			}
 
 			if r.NifiCluster.Status.State == v1alpha1.NifiClusterRollingUpgrading {
-				// Check if any nifi pod is in terminating or pending state
+				// Check if any nifi pod is in terminating, pending or not ready state
 				podList := &corev1.PodList{}
 				matchingLabels := client.MatchingLabels(LabelsForNifi(r.NifiCluster.Name))
 				err := r.Client.List(context.TODO(), podList, client.ListOption(client.InNamespace(r.NifiCluster.Namespace)), client.ListOption(matchingLabels))
@@ -498,6 +559,10 @@ func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) e
 					}
 					if k8sutil.IsPodContainsPendingContainer(&pod) {
 						return errorfactory.New(errorfactory.ReconcileRollingUpgrade{}, errors.New("pod is still creating"), "rolling upgrade in progress")
+					}
+
+					if !k8sutil.IsPodContainsNotReadyMainContainer(&pod) {
+						return errorfactory.New(errorfactory.ReconcileRollingUpgrade{}, errors.New("pod is still not ready"), "rolling upgrade in progress")
 					}
 				}
 			}

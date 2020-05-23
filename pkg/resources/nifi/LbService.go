@@ -1,7 +1,7 @@
 package nifi
 
 import (
-	"github.com/erdrix/nifikop/pkg/resources/templates"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/resources/templates"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -18,7 +18,7 @@ func (r *Reconciler) lbService() runtime.Object {
 		ObjectMeta: templates.ObjectMeta(r.NifiCluster.Name, LabelsForNifi(r.NifiCluster.Name), r.NifiCluster),
 		Spec: corev1.ServiceSpec{
 			Type:            corev1.ServiceTypeLoadBalancer,
-			SessionAffinity: corev1.ServiceAffinityNone,
+			SessionAffinity: corev1.ServiceAffinityClientIP,
 			Selector:        LabelsForNifi(r.NifiCluster.Name),
 			Ports:           usedPorts,
 		},

@@ -12,8 +12,33 @@ spec:
   # zKPath specifies the Zookeeper chroot path as part
   # of its Zookeeper connection string which puts its data under same path in the global ZooKeeper namespace.
   zkPath: "/myNiFi"
+  # initContainerImage can override the default image used into the init container to check if
+  #	ZoooKeeper server is reachable.
+#  initContainerImage: busybox
+  # initContainers defines additional initContainers configurations
+#  initContainers:
+#    - image: eu.gcr.io/poc-rtc/nifi-proxydata-bundle:1.11.4-1.0.0
+#      name: nifi-proxydata-lib
+#      imagePullPolicy: IfNotPresent
+#      command: ["sh", "-c", "cp -vr /nifi_lib/* /nifi_lib_volume/"]
+#      volumeMounts:
+#        - name: extensions-repository
+#          mountPath: /nifi_lib_volume
+#        - name: logs
+#          mountPath: /logs
   # clusterImage can specify the whole nificluster image in one place
   clusterImage: "apache/nifi:1.11.2"
+  # Cluster nodes secure mode : https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#cluster_common_properties
+  clusterSecure: false
+  # Site to Site properties Secure mode : https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#site_to_site_properties
+  siteToSiteSecure: false
+  # oneNifiNodePerNode if set to true every nifi node is started on a new node, if there is not enough node to do that
+  # it will stay in pending state. If set to false the operator also tries to schedule the nifi node to a unique node
+  # but if the node number is insufficient the nifi node will be scheduled to a node where a nifi node is already running.
+  oneNifiNodePerNode: false
+  #
+  propagateLabels: true
+#  initialAdminUser:
   # readOnlyConfig specifies the read-only type Nifi config cluster wide, all theses
   # will be merged with node specified readOnly configurations, so it can be overwritten per node.
   readOnlyConfig:
@@ -25,12 +50,10 @@ spec:
         nifi.ui.banner.text=NiFiKop by Orange
       # Site to Site properties Secure mode : https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#site_to_site_properties
       siteToSiteSecure: false
-      # Cluster nodes secure mode : https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#cluster_common_properties
-      clusterSecure: false
       # A comma separated list of allowed HTTP Host header values to consider when NiFi
       # is running securely and will be receiving requests to a different host[:port] than it is bound to.
       # https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#web-properties
-#      webProxyHost:
+#      webProxyHosts:
       # Nifi security client auth
       needClientAuth: false
       # Indicates which of the configured authorizers in the authorizers.xml file to use
@@ -165,12 +188,6 @@ spec:
               resources:
                 requests:
                   storage: 8Gi
-  # oneNifiNodePerNode if set to true every nifi node is started on a new node, if there is not enough node to do that
-  # it will stay in pending state. If set to false the operator also tries to schedule the nifi node to a unique node
-  # but if the node number is insufficient the nifi node will be scheduled to a node where a nifi node is already running.
-  oneNifiNodePerNode: false
-  #
-  propagateLabels: true
   # LdapConfiguration specifies the configuration if you want to use LDAP
   ldapConfiguration:
     # If set to true, we will enable ldap usage into nifi.properties configuration.

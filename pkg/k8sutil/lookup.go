@@ -16,13 +16,13 @@ package k8sutil
 
 import (
 	"context"
-	"github.com/erdrix/nifikop/pkg/apis/nifi/v1alpha1"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/apis/nifi/v1alpha1"
 
 	"k8s.io/apimachinery/pkg/types"
 	runtimeClient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-// LookupKafkaCluster returns the running cluster instance based on its name and namespace
+// LookupNifiCluster returns the running cluster instance based on its name and namespace
 func LookupNifiCluster(client runtimeClient.Client, clusterName, clusterNamespace string) (cluster *v1alpha1.NifiCluster, err error) {
 	cluster = &v1alpha1.NifiCluster{}
 	err = client.Get(context.TODO(), types.NamespacedName{Name: clusterName, Namespace: clusterNamespace}, cluster)

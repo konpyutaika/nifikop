@@ -1,0 +1,118 @@
+apiVersion: nifi.orange.com/v1alpha1
+kind: NifiCluster
+metadata:
+  name: sslnifi
+spec:
+  headlessServiceEnabled: true
+  zkAddresse: "zookeepercluster-client.zookeeper:2181"
+  zkPath: "/ssllnifi"
+  clusterImage: "apache/nifi:1.11.4"
+  clusterSecure: true
+  siteToSiteSecure: true
+  oneNifiNodePerNode: false
+  initialAdminUser: aguitton.ext@orange.com
+  propagateLabels: true
+  nifiClusterTaskSpec:
+    retryDurationMinutes: 10
+  readOnlyConfig:
+    # NifiProperties configuration that will be applied to the node.
+    nifiProperties:
+      webProxyHosts:
+        - nifistandard2.trycatchlearn.fr:8443
+      # Additionnals nifi.properties configuration that will override the one produced based
+      # on template and configurations.
+      overrideConfigs: |
+        nifi.security.user.oidc.discovery.url=https://accounts.google.com/.well-known/openid-configuration
+        nifi.security.user.oidc.client.id=930711295780-i72an91pqj7rib88r23qfv5q7mth8hgv.apps.googleusercontent.com
+        nifi.security.user.oidc.client.secret=BvmEyr81P0YXZtIt1FIfGsRs
+        nifi.security.identity.mapping.patter n.dn=CN=(.*), (?:O|OU)=.*
+        nifi.security.identity.mapping.value.dn=$1
+        nifi.security.identity.mapping.transform.dn=NONE
+  nodeConfigGroups:
+    default_group:
+      isNode: true
+      storageConfigs:
+        - mountPath: "/opt/nifi/nifi-current/logs"
+          name: logs
+          pvcSpec:
+            accessModes:
+              - ReadWriteOnce
+            storageClassName: "standard"
+            resources:
+              requests:
+                storage: 10Gi
+        - mountPath: "/opt/nifi/data"
+          name: data
+          pvcSpec:
+            accessModes:
+              - ReadWriteOnce
+            storageClassName: "standard"
+            resources:
+              requests:
+                storage: 10Gi
+        - mountPath: "/opt/nifi/flowfile_repository"
+          name: flowfile-repository
+          pvcSpec:
+            accessModes:
+              - ReadWriteOnce
+            storageClassName: "standard"
+            resources:
+              requests:
+                storage: 10Gi
+        - mountPath: "/opt/nifi/nifi-current/conf"
+          name: conf
+          pvcSpec:
+            accessModes:
+              - ReadWriteOnce
+            storageClassName: "standard"
+            resources:
+              requests:
+                storage: 10Gi
+        - mountPath: "/opt/nifi/content_repository"
+          name: content-repository
+          pvcSpec:
+            accessModes:
+              - ReadWriteOnce
+            storageClassName: "standard"
+            resources:
+              requests:
+                storage: 10Gi
+        - mountPath: "/opt/nifi/provenance_repository"
+          name: provenance-repository
+          pvcSpec:
+            accessModes:
+              - ReadWriteOnce
+            storageClassName: "standard"
+            resources:
+              requests:
+                storage: 10Gi
+      serviceAccountName: "default"
+      resourcesRequirements:
+        limits:
+          cpu: "2"
+          memory: 3Gi
+        requests:
+          cpu: "1"
+          memory: 1Gi
+  nodes:
+    - id: 0
+      nodeConfigGroup: "default_group"
+    - id: 1
+      nodeConfigGroup: "default_group"
+    - id: 2
+      nodeConfigGroup: "default_group"
+  listenersConfig:
+    internalListeners:
+      - type: "https"
+        name: "https"
+        containerPort: 8443
+      - type: "cluster"
+        name: "cluster"
+        containerPort: 6007
+      - type: "s2s"
+        name: "s2s"
+        containerPort: 10000
+    sslSecrets:
+      tlsSecretName: "test-nifikop"
+      jksPasswordName: "test-nifikop-pass"
+      create: true

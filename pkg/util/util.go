@@ -15,7 +15,8 @@
 package util
 
 import (
-	"github.com/erdrix/nifikop/pkg/apis/nifi/v1alpha1"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/apis/nifi/v1alpha1"
+	"reflect"
 	"strconv"
 	"strings"
 
@@ -190,4 +191,15 @@ func GetNodeImage(nodeConfig *v1alpha1.NodeConfig, clusterImage string) string {
 		return nodeConfig.Image
 	}
 	return clusterImage
+}
+
+
+// NifiUserSliceContains returns true if list contains s
+func NifiUserSliceContains(list []*v1alpha1.NifiUser, u *v1alpha1.NifiUser) bool {
+	for _, v := range list {
+		if reflect.DeepEqual(&v, &u) {
+			return true
+		}
+	}
+	return false
 }

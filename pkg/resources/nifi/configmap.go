@@ -3,21 +3,24 @@ package nifi
 import (
 	"bytes"
 	"fmt"
-	"github.com/go-logr/logr"
-	"github.com/imdario/mergo"
-	"github.com/erdrix/nifikop/pkg/apis/nifi/v1alpha1"
-	"github.com/erdrix/nifikop/pkg/resources/templates"
-	"github.com/erdrix/nifikop/pkg/resources/templates/config"
-	"github.com/erdrix/nifikop/pkg/util"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"sort"
 	"strings"
 	"text/template"
+
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/apis/nifi/v1alpha1"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/resources/templates"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/resources/templates/config"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/util"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/util/pki"
+	utilpki "gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/util/pki"
+	"github.com/go-logr/logr"
+	"github.com/imdario/mergo"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 )
 
-func (r *Reconciler) configMap(id int32, nodeConfig *v1alpha1.NodeConfig, log logr.Logger) runtime.Object {
-	return &corev1.ConfigMap{
+func (r *Reconciler) configMap(id int32, nodeConfig *v1alpha1.NodeConfig, serverPass, clientPass string, superUsers []string,log logr.Logger) runtime.Object {
+	 configMap := &corev1.ConfigMap{
 		ObjectMeta: templates.ObjectMeta(
 			fmt.Sprintf(templates.NodeConfigTemplate+"-%d", r.NifiCluster.Name, id),
 			util.MergeLabels(
@@ -27,17 +30,20 @@ func (r *Reconciler) configMap(id int32, nodeConfig *v1alpha1.NodeConfig, log lo
 			r.NifiCluster,
 		),
 		Data: map[string]string{
-			"nifi.properties": 						r.generateNifiPropertiesNodeConfig(id, nodeConfig, log),
+			"nifi.properties": 						r.generateNifiPropertiesNodeConfig(id, nodeConfig, serverPass, clientPass, superUsers, log),
 			"zookeeper.properties": 				r.generateZookeeperPropertiesNodeConfig(id, nodeConfig, log),
 			"state-management.xml": 				r.getStateManagementConfigString(nodeConfig, id, log),
 			"login-identity-providers.xml": 		r.getLoginIdentityProvidersConfigString(nodeConfig, id, log),
 			"logback.xml": 							r.getLogbackConfigString(nodeConfig, id, log),
 			"bootstrap.conf": 						r.generateBootstrapPropertiesNodeConfig(id, nodeConfig, log),
 			"bootstrap-notification-servces.xml": 	r.getBootstrapNotificationServicesConfigString(nodeConfig, id, log),
-			// TODO : review with OPS and secure part.
-//			"authorizers.xml": 						r.getAuthorizersConfigString(nodeConfig, id, log),
 		},
 	}
+
+	if r.NifiCluster.Spec.ListenersConfig.SSLSecrets != nil && r.NifiCluster.Spec.ClusterSecure && r.NifiCluster.Spec.SiteToSiteSecure {
+		configMap.Data["authorizers.xml"] = r.getAuthorizersConfigString(nodeConfig, id, log)
+	}
+	return configMap
 }
 
 ////////////////////////////////////
@@ -45,7 +51,7 @@ func (r *Reconciler) configMap(id int32, nodeConfig *v1alpha1.NodeConfig, log lo
 ////////////////////////////////////
 
 //
-func (r Reconciler) generateNifiPropertiesNodeConfig(id int32, nodeConfig *v1alpha1.NodeConfig, log logr.Logger) string {
+func (r Reconciler) generateNifiPropertiesNodeConfig(id int32, nodeConfig *v1alpha1.NodeConfig, serverPass, clientPass string, superUsers []string, log logr.Logger) string {
 	var parsedReadOnlyClusterConfig map[string]string
 
 	if &r.NifiCluster.Spec.ReadOnlyConfig != nil && &r.NifiCluster.Spec.ReadOnlyConfig.NifiProperties != nil {
@@ -68,7 +74,7 @@ func (r Reconciler) generateNifiPropertiesNodeConfig(id int32, nodeConfig *v1alp
 	//Generate the Complete Configuration for the Node
 	completeConfigMap := map[string]string{}
 
-	if err := mergo.Merge(&completeConfigMap, util.ParsePropertiesFormat(r.getNifiPropertiesConfigString(nodeConfig, id, log))); err != nil {
+	if err := mergo.Merge(&completeConfigMap, util.ParsePropertiesFormat(r.getNifiPropertiesConfigString(nodeConfig, id, serverPass, clientPass, superUsers, log))); err != nil {
 		log.Error(err, "error occurred during merging operator generated configs")
 	}
 
@@ -89,12 +95,17 @@ func (r Reconciler) generateNifiPropertiesNodeConfig(id int32, nodeConfig *v1alp
 }
 
 //
-func (r *Reconciler) getNifiPropertiesConfigString(nConfig *v1alpha1.NodeConfig, id int32, log logr.Logger) string {
-	base := r.NifiCluster.Spec.ReadOnlyConfig.NifiProperties.DeepCopy()
-	for _, node := range r.NifiCluster.Spec.Nodes {
-		if node.Id == id && node.ReadOnlyConfig != nil && &node.ReadOnlyConfig.NifiProperties != nil{
-			mergo.Merge(base, node.ReadOnlyConfig.NifiProperties, mergo.WithOverride)
-		}
+func (r *Reconciler) getNifiPropertiesConfigString(nConfig *v1alpha1.NodeConfig, id int32, serverPass, clientPass string, superUsers []string, log logr.Logger) string {
+
+	base := r.GetNifiPropertiesBase(id)
+	var dnsNames []string
+	for _, dnsName := range utilpki.ClusterDNSNames(r.NifiCluster, id) {
+		dnsNames = append(dnsNames, fmt.Sprintf("%s:%d", dnsName, GetServerPort(&r.NifiCluster.Spec.ListenersConfig)))
+	}
+
+	webProxyHosts := strings.Join(dnsNames, ",")
+	if len(base.WebProxyHosts) > 0 {
+		webProxyHosts = strings.Join(append(dnsNames, base.WebProxyHosts...), ",")
 	}
 
 	var out bytes.Buffer
@@ -104,11 +115,18 @@ func (r *Reconciler) getNifiPropertiesConfigString(nConfig *v1alpha1.NodeConfig,
 		"Id": 						id,
 		"ListenerConfig":			config.GenerateListenerSpecificConfig(&r.NifiCluster.Spec.ListenersConfig, id, r.NifiCluster.Namespace, r.NifiCluster.Name, r.NifiCluster.Spec.HeadlessServiceEnabled, log),
 		"ProvenanceStorage":		nConfig.GetProvenanceStorage(),
-		"SiteToSiteSecure": 		base.SiteToSiteSecure,
-		"ClusterSecure":			base.ClusterSecure,
-		"WebProxyHost": 			base.WebProxyHost,
+		"SiteToSiteSecure": 		r.NifiCluster.Spec.SiteToSiteSecure,
+		"ClusterSecure":			r.NifiCluster.Spec.ClusterSecure,
+		"WebProxyHosts": 			webProxyHosts,
 		"NeedClientAuth": 			base.NeedClientAuth,
 		"Authorizer": 				base.GetAuthorizer(),
+		"SSLEnabledForInternalCommunication": r.NifiCluster.Spec.ListenersConfig.SSLSecrets != nil && util.IsSSLEnabledForInternalCommunication(r.NifiCluster.Spec.ListenersConfig.InternalListeners),
+		"SuperUsers":               strings.Join(generateSuperUsers(superUsers), ";"),
+		"ServerKeystorePath":                 serverKeystorePath,
+		"ClientKeystorePath":                 clientKeystorePath,
+		"KeystoreFile":                       v1alpha1.TLSJKSKey,
+		"ServerKeystorePassword":             serverPass,
+		"ClientKeystorePassword":             clientPass,
 		//
 		"LdapConfiguration": 		r.NifiCluster.Spec.LdapConfiguration,
 		"IsNode": 					nConfig.GetIsNode(),
@@ -118,6 +136,13 @@ func (r *Reconciler) getNifiPropertiesConfigString(nConfig *v1alpha1.NodeConfig,
 		log.Error(err, "error occurred during parsing the config template")
 	}
 	return out.String()
+}
+func generateSuperUsers(users []string) (suStrings []string) {
+	suStrings = make([]string, 0)
+	for _, x := range users {
+		suStrings = append(suStrings, fmt.Sprintf("User:%s", x))
+	}
+	return
 }
 
 /////////////////////////////////////////
@@ -273,11 +298,7 @@ func (r *Reconciler) getAuthorizersConfigString(nConfig *v1alpha1.NodeConfig, id
 	nodeList = make(map[int32]string)
 
 	for _, node := range r.NifiCluster.Spec.Nodes {
-		if r.NifiCluster.Spec.HeadlessServiceEnabled {
-			nodeList[node.Id] = fmt.Sprintf("%s.%s-headless.%s.svc.cluster.local", fmt.Sprintf(templates.NodeNameTemplate,r.NifiCluster.Name, node.Id), r.NifiCluster.Name, r.NifiCluster.Namespace)
-		} else {
-			nodeList[node.Id]  = fmt.Sprintf("%s.%s.svc.cluster.local", fmt.Sprintf(templates.NodeNameTemplate,r.NifiCluster.Name, node.Id), r.NifiCluster.Namespace)
-		}
+		nodeList[node.Id] = pki.GetNodeUserName(r.NifiCluster, node.Id)
 	}
 
 	//sort.Strings(nodeList)
@@ -285,11 +306,12 @@ func (r *Reconciler) getAuthorizersConfigString(nConfig *v1alpha1.NodeConfig, id
 	var out bytes.Buffer
 	t := template.Must(template.New("nConfig-config").Parse(config.AuthorizersTemplate))
 	if err := t.Execute(&out, map[string]interface{}{
-		"NifiCluster":	r.NifiCluster,
-		"Id": 			id,
-		"ClusterName":	r.NifiCluster.Name,
-		"Namespace":	r.NifiCluster.Namespace,
-		"NodeList":		nodeList,
+		"NifiCluster":		r.NifiCluster,
+		"Id": 				id,
+		"ClusterName":		r.NifiCluster.Name,
+		"Namespace":		r.NifiCluster.Namespace,
+		"NodeList":			nodeList,
+		"InitialAdminUser":	r.NifiCluster.Spec.InitialAdminUser,
 	}); err != nil {
 		log.Error(err, "error occurred during parsing the config template")
 	}
@@ -363,4 +385,15 @@ func (r *Reconciler) getBootstrapPropertiesConfigString(nConfig *v1alpha1.NodeCo
 		log.Error(err, "error occurred during parsing the config template")
 	}
 	return out.String()
+}
+
+func (r *Reconciler) GetNifiPropertiesBase(id int32) *v1alpha1.NifiProperties{
+	base := r.NifiCluster.Spec.ReadOnlyConfig.NifiProperties.DeepCopy()
+	for _, node := range r.NifiCluster.Spec.Nodes {
+		if node.Id == id && node.ReadOnlyConfig != nil && &node.ReadOnlyConfig.NifiProperties != nil{
+			mergo.Merge(base, node.ReadOnlyConfig.NifiProperties, mergo.WithOverride)
+		}
+	}
+
+	return base
 }

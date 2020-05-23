@@ -3,8 +3,8 @@ package config
 import (
 	"fmt"
 	"github.com/go-logr/logr"
-	"github.com/erdrix/nifikop/pkg/apis/nifi/v1alpha1"
-	templates "github.com/erdrix/nifikop/pkg/resources/templates"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/apis/nifi/v1alpha1"
+	templates "gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/resources/templates"
 )
 
 var NifiPropertiesTemplate = `# Licensed to the Apache Software Foundation (ASF) under one or more
@@ -134,7 +134,7 @@ nifi.remote.input.http.transaction.ttl=30 sec
 
 # web properties #
 nifi.web.war.directory=./lib
-nifi.web.proxy.host={{.WebProxyHost}}
+nifi.web.proxy.host={{ .WebProxyHosts }}
 {{ .ListenerConfig }}
 
 nifi.web.http.network.interface.default=
@@ -149,20 +149,22 @@ nifi.sensitive.props.algorithm=PBEWITHMD5AND256BITAES-CBC-OPENSSL
 nifi.sensitive.props.provider=BC
 nifi.sensitive.props.additional.keys=
 
-nifi.security.keystore=
-nifi.security.keystoreType=jks
-nifi.security.keystorePasswd=
-nifi.security.keyPasswd=
-nifi.security.truststore=
-nifi.security.truststoreType=jks
-nifi.security.truststorePasswd=
-nifi.security.needClientAuth={{.NeedClientAuth}}
-nifi.security.user.authorizer={{.Authorizer}}
-    {{if .LdapConfiguration.Enabled}}
+{{ if .NifiCluster.Spec.ListenersConfig.SSLSecrets }}
+nifi.security.keystore={{ .ServerKeystorePath }}/{{ .KeystoreFile }}
+nifi.security.keystoreType=JKS
+nifi.security.keystorePasswd={{ .ServerKeystorePassword }}
+nifi.security.keyPasswd={{ .ServerKeystorePassword }}
+nifi.security.truststore={{ .ServerKeystorePath }}/{{ .KeystoreFile }}
+nifi.security.truststoreType=JKS
+nifi.security.truststorePasswd={{ .ServerKeystorePassword }}
+{{ end }}
+nifi.security.needClientAuth={{ .NeedClientAuth }}
+nifi.security.user.authorizer={{ .Authorizer }}
+{{if .LdapConfiguration.Enabled}}
 nifi.security.user.login.identity.provider=ldap-provider
-    {{else}}
+{{else}}
 nifi.security.user.login.identity.provider=
-    {{end}}
+{{end}}
 nifi.security.ocsp.responder.url=
 nifi.security.ocsp.responder.certificate=
 
@@ -192,7 +194,7 @@ nifi.security.user.knox.audiences=
 
 # cluster common properties (all nodes must have same values) #
 nifi.cluster.protocol.heartbeat.interval=5 sec
-nifi.cluster.protocol.is.secure={{.ClusterSecure}}
+nifi.cluster.protocol.is.secure={{ .ClusterSecure }}
 
 # cluster node properties (only configure for cluster nodes) #
 

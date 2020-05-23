@@ -2,19 +2,20 @@ package nificlustertask
 
 import (
 	"context"
-	"emperror.dev/errors"
 	"fmt"
+	"reflect"
+	"time"
+
+	"emperror.dev/errors"
+	v1alpha1 "gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/apis/nifi/v1alpha1"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/controller/common"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/errorfactory"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/k8sutil"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/scale"
+	nifiutil "gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/util/nifi"
 	"github.com/go-logr/logr"
-	v1alpha1 "github.com/erdrix/nifikop/pkg/apis/nifi/v1alpha1"
-	"github.com/erdrix/nifikop/pkg/controller/common"
-	"github.com/erdrix/nifikop/pkg/errorfactory"
-	"github.com/erdrix/nifikop/pkg/k8sutil"
-	nifiResources "github.com/erdrix/nifikop/pkg/resources/nifi"
-	"github.com/erdrix/nifikop/pkg/scale"
-	nifiutils "github.com/erdrix/nifikop/pkg/util/nifi"
 	apiErrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
-	"reflect"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
@@ -24,7 +25,6 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"time"
 )
 
 var log = logf.Log.WithName("controller_nificlustertask")
@@ -32,7 +32,7 @@ var log = logf.Log.WithName("controller_nificlustertask")
 
 // Add creates a new NifiCluster Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
-func Add(mgr manager.Manager) error {
+func Add(mgr manager.Manager, namespaces []string) error {
 	return add(mgr, newReconciler(mgr))
 }
 
@@ -45,16 +45,26 @@ func newReconciler(mgr manager.Manager) reconcile.Reconciler {
 func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	// Create a new controller
 	builder := ctrl.NewControllerManagedBy(mgr).For(&v1alpha1.NifiCluster{}).Named("nificlustertask-controller")
+
+	// TODO : review event filter
 	err := builder.WithEventFilter(
 		predicate.Funcs{
 			UpdateFunc: func(e event.UpdateEvent) bool {
 				object, err := meta.Accessor(e.ObjectNew)
 				if err != nil {
-				return false
-			}
+					return false
+				}
 				if _, ok := object.(*v1alpha1.NifiCluster); ok {
 					old := e.ObjectOld.(*v1alpha1.NifiCluster)
 					new := e.ObjectNew.(*v1alpha1.NifiCluster)
+					for _, nodeState := range new.Status.NodesState {
+						if nodeState.GracefulActionState.State.IsRequiredState() || nodeState.GracefulActionState.State.IsRequiredState() {
+							return true
+						}
+					}
+					if reflect.DeepEqual(old.Status.NodesState, new.Status.NodesState) {
+						return true
+					}
 					if !reflect.DeepEqual(old.Status.NodesState, new.Status.NodesState) ||
 						old.GetDeletionTimestamp() != new.GetDeletionTimestamp() ||
 						old.GetGeneration() != new.GetGeneration() {
@@ -219,8 +229,7 @@ func (r *ReconcileNifiClusterTask) handlePodDeleteNCTask(nifiCluster *v1alpha1.N
 			}
 		}
 
-		actionStep, taskStartTime, err := scale.DisconnectClusterNode(nifiCluster.Spec.HeadlessServiceEnabled, nifiCluster.Spec.Nodes,
-			nifiResources.GetServerPort(&nifiCluster.Spec.ListenersConfig), nodeId, nifiCluster.Namespace, nifiCluster.Name)
+		actionStep, taskStartTime, err := scale.DisconnectClusterNode(r.Client, nifiCluster, nodeId)
 		if err != nil {
 			log.Info(fmt.Sprintf("nifi cluster communication error during downscaling node(s) id(s): %s",nodeId))
 			return errorfactory.New(errorfactory.NifiClusterNotReady{}, err, fmt.Sprintf("node(s) id(s): %s", nodeId))
@@ -250,8 +259,7 @@ func (r *ReconcileNifiClusterTask) handlePodRunningTask(nifiCluster *v1alpha1.Ni
 
 		// If node is disconnected, performing offload
 		if nifiCluster.Status.NodesState[nodeId].GracefulActionState.ActionStep == v1alpha1.DisconnectStatus {
-			actionStep, taskStartTime, err := scale.OffloadClusterNode(nifiCluster.Spec.HeadlessServiceEnabled, nifiCluster.Spec.Nodes,
-				nifiResources.GetServerPort(&nifiCluster.Spec.ListenersConfig), nodeId, nifiCluster.Namespace, nifiCluster.Name)
+			actionStep, taskStartTime, err := scale.OffloadClusterNode(r.Client, nifiCluster, nodeId)
 			if err != nil {
 				log.Info(fmt.Sprintf("nifi cluster communication error during removing node id: %s", nodeId))
 				return errorfactory.New(errorfactory.NifiClusterNotReady{}, err, fmt.Sprintf("node id: %s", nodeId))
@@ -277,9 +285,9 @@ func (r *ReconcileNifiClusterTask) handlePodRunningTask(nifiCluster *v1alpha1.Ni
 		// changed from null to NodeConnectionStatus[nodeId=nifi-12-node.nifi-headless.nifi-demo.svc.cluster.local:8080, state=DISCONNECTED, Disconnect Code=Node was Shutdown,
 		// Disconnect Reason=Node was Shutdown, updateId=33]
 		// If pod finished deletion
-		if nifiCluster.Status.NodesState[nodeId].GracefulActionState.ActionStep == v1alpha1.RemovePodStatus {
-			actionStep, taskStartTime, err := scale.RemoveClusterNode(nifiCluster.Spec.HeadlessServiceEnabled, nifiCluster.Spec.Nodes, nifiResources.GetServerPort(&nifiCluster.Spec.ListenersConfig), nodeId,
-				nifiCluster.Namespace, nifiCluster.Name)
+		// TODO : work here to manage node Status and state (If disconnected && Removing)
+		if nifiCluster.Status.NodesState[nodeId].GracefulActionState.ActionStep == v1alpha1.RemovePodStatus  {
+			actionStep, taskStartTime, err := scale.RemoveClusterNode(r.Client, nifiCluster, nodeId)
 			if err != nil {
 				log.Info(fmt.Sprintf("nifi cluster communication error during removing node id: %s", nodeId))
 				return errorfactory.New(errorfactory.NifiClusterNotReady{}, err, fmt.Sprintf("node id: %s", nodeId))
@@ -308,9 +316,7 @@ func (r *ReconcileNifiClusterTask) checkNCActionStep(nodeId string, nifiCluster 
 	nodeState := nifiCluster.Status.NodesState[nodeId]
 
 	// Check Nifi cluster action status
-
-	finished, err := scale.CheckIfNCActionStepFinished(nifiCluster.Spec.HeadlessServiceEnabled, nifiCluster.Spec.Nodes, nifiResources.GetServerPort(&nifiCluster.Spec.ListenersConfig),
-		nodeState.GracefulActionState.ActionStep, nodeId, nifiCluster.Namespace, nifiCluster.Name)
+	finished, err := scale.CheckIfNCActionStepFinished(nodeState.GracefulActionState.ActionStep, r.Client, nifiCluster, nodeId)
 	if err != nil {
 		log.Info(fmt.Sprintf("Nifi cluster communication error checking running task: %s", nodeState.GracefulActionState.ActionStep))
 		return errorfactory.New(errorfactory.NifiClusterNotReady{}, err, "nifi cluster communication error")
@@ -332,12 +338,17 @@ func (r *ReconcileNifiClusterTask) checkNCActionStep(nodeId string, nifiCluster 
 	}
 
 	if nodeState.GracefulActionState.State.IsRunningState() {
-		parsedTime, err := nifiutils.ParseTimeStampToUnixTime(nodeState.GracefulActionState.TaskStarted)
+		parsedTime, err := nifiutil.ParseTimeStampToUnixTime(nodeState.GracefulActionState.TaskStarted)
 		if err != nil {
 			return errors.WrapIf(err, "could not parse timestamp")
 		}
 
-		if time.Now().Sub(parsedTime).Minutes() > nifiCluster.Spec.NifiClusterTaskSpec.GetDurationMinutes() {
+		now, err := nifiutil.ParseTimeStampToUnixTime(time.Now().Format(nifiutil.TimeStampLayout))
+		if err != nil {
+			return errors.WrapIf(err, "could not parse timestamp")
+		}
+
+		if now.Sub(parsedTime).Minutes() > nifiCluster.Spec.NifiClusterTaskSpec.GetDurationMinutes() {
 			requiredNCState, err := r.getCorrectRequiredNCState(nodeState.GracefulActionState.State)
 			if err != nil {
 				return err
@@ -345,8 +356,7 @@ func (r *ReconcileNifiClusterTask) checkNCActionStep(nodeId string, nifiCluster 
 
 			log.Info(fmt.Sprintf("Rollback nifi cluster task: %s", nodeState.GracefulActionState.ActionStep))
 
-			actionStep, taskStartTime, err  := scale.ConnectClusterNode(nifiCluster.Spec.HeadlessServiceEnabled, nifiCluster.Spec.Nodes, nifiResources.GetServerPort(&nifiCluster.Spec.ListenersConfig),
-				nodeId, nifiCluster.Namespace, nifiCluster.Name)
+			actionStep, taskStartTime, err  := scale.ConnectClusterNode(r.Client, nifiCluster, nodeId)
 
 			timedOutNodeNCState := v1alpha1.GracefulActionState{
 				State:  		requiredNCState,

@@ -1,10 +1,12 @@
 package v1alpha1
 
 import (
+	"strings"
+
+	cmmeta "github.com/jetstack/cert-manager/pkg/apis/meta/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"strings"
 )
 
 const (
@@ -23,8 +25,6 @@ type NifiClusterSpec struct {
 	// headlessServiceEnabled specifies if the cluster should use headlessService for Nifi or individual services
 	// using service per nodes may come an handy case of service mesh.
 	HeadlessServiceEnabled	bool					`json:"headlessServiceEnabled"`
-	// listenerConfig specifies nifi's listener specifig configs
-	ListenersConfig			ListenersConfig			`json:"listenersConfig"`
 	// zKAddresse specifies the ZooKeeper connection string
 	// in the form hostname:port where host and port are those of a Zookeeper server.
 	// TODO: rework for nice zookeeper connect string =
@@ -35,8 +35,24 @@ type NifiClusterSpec struct {
 	// initContainerImage can override the default image used into the init container to check if
 	// ZoooKeeper server is reachable.
 	InitContainerImage		string					`json:"initContainerImage,omitempty"`
+	// InitContainers defines additional initContainers configurations
+	InitContainers []corev1.Container `json:"initContainers,omitempty" patchStrategy:"merge" patchMergeKey:"name" protobuf:"bytes,2,rep,name=containers"`
 	// clusterImage can specify the whole nificluster image in one place
 	ClusterImage			string					`json:"clusterImage,omitempty"`
+	// Cluster nodes secure mode : https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#cluster_common_properties
+	// TODO : rework to define into internalListener ! (Note: if ssl enabled need Cluster & SiteToSite & Https port)
+	ClusterSecure		bool	`json:"clusterSecure,omitempty"`
+	// Site to Site properties Secure mode : https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#site_to_site_properties
+	// TODO : rework to define into internalListener !
+	SiteToSiteSecure	bool	`json:"siteToSiteSecure,omitempty"`
+	// oneNifiNodePerNode if set to true every nifi node is started on a new node, if there is not enough node to do that
+	// it will stay in pending state. If set to false the operator also tries to schedule the nifi node to a unique node
+	// but if the node number is insufficient the nifi node will be scheduled to a node where a nifi node is already running.
+	OneNifiNodePerNode 		bool 					`json:"oneNifiNodePerNode"`
+	// propage
+	PropagateLabels 		bool 					`json:"propagateLabels,omitempty"`
+	// TODO : remove once the user management is implemented into the operator
+	InitialAdminUser	string	`json:"initialAdminUser,omitempty""`
 	// readOnlyConfig specifies the read-only type Nifi config cluster wide, all theses
 	// will be merged with node specified readOnly configurations, so it can be overwritten per node.
 	ReadOnlyConfig			ReadOnlyConfig			`json:"readOnlyConfig,omitempty"`
@@ -44,17 +60,18 @@ type NifiClusterSpec struct {
 	NodeConfigGroups   		map[string]NodeConfig	`json:"nodeConfigGroups,omitempty"`
 	// all node requires an image, unique id, and storageConfigs settings
 	Nodes 					[]Node 					`json:"nodes"`
-	// oneNifiNodePerNode if set to true every nifi node is started on a new node, if there is not enough node to do that
-	// it will stay in pending state. If set to false the operator also tries to schedule the nifi node to a unique node
-	// but if the node number is insufficient the nifi node will be scheduled to a node where a nifi node is already running.
-	OneNifiNodePerNode 		bool 					`json:"oneNifiNodePerNode"`
-	// propage
-	PropagateLabels 		bool 					`json:"propagateLabels,omitempty"`
+
 	// LdapConfiguration specifies the configuration if you want to use LDAP
 	LdapConfiguration		LdapConfiguration		`json:"ldapConfiguration,omitempty"`
 	// NifiClusterTaskSpec specifies the configuration of the nifi cluster Tasks
 	NifiClusterTaskSpec 	NifiClusterTaskSpec		`json:"nifiClusterTaskSpec,omitempty"`
+	// TODO : add vault
+	//VaultConfig         	VaultConfig         `json:"vaultConfig,omitempty"`
+
+	// listenerConfig specifies nifi's listener specifig configs
+	ListenersConfig			ListenersConfig			`json:"listenersConfig"`
 }
+
 
 // rollingUpgradeConfig specifies the rolling upgrade config for the cluster
 //RollingUpgradeConfig 	RollingUpgradeConfig 	`json:"rollingUpgradeConfig"`
@@ -110,14 +127,10 @@ type NifiProperties struct {
 	// Additionnals nifi.properties configuration that will override the one produced based
 	// on template and configurations.
 	OverrideConfigs 	string	`json:"overrideConfigs,omitempty"`
-	// Site to Site properties Secure mode : https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#site_to_site_properties
-	SiteToSiteSecure	bool	`json:"siteToSiteSecure,omitempty"`
-	// Cluster nodes secure mode : https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#cluster_common_properties
-	ClusterSecure		bool	`json:"clusterSecure,omitempty"`
 	// A comma separated list of allowed HTTP Host header values to consider when NiFi
 	// is running securely and will be receiving requests to a different host[:port] than it is bound to.
 	// https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#web-properties
-	WebProxyHost		string	`json:"webProxyHost,omitempty"`
+	WebProxyHosts		[]string	`json:"webProxyHosts,omitempty"`
 	// Nifi security client auth
 	NeedClientAuth		bool	`json:"needClientAuth,omitempty"`
 	// Indicates which of the configured authorizers in the authorizers.xml file to use
@@ -200,29 +213,43 @@ type ListenersConfig struct {
 
 	// sslSecrets contains information about ssl related kubernetes secrets if one of the
 	// listener setting type set to ssl these fields must be populated to
-	// TODO: enable this feature.
-	//SSLSecrets        *SSLSecrets              `json:"sslSecrets,omitempty"`
+	SSLSecrets        	*SSLSecrets              `json:"sslSecrets,omitempty"`
 }
 
 // SSLSecrets defines the Nifi SSL secrets
-// TODO: implement SSL management
 type SSLSecrets struct {
 	// tlsSecretName should contain all ssl certs required by nifi including: caCert, caKey, clientCert, clientKey
 	// serverCert, serverKey, peerCert, peerKey
 	TLSSecretName   string		`json:"tlsSecretName"`
-	// jksPasswordName should contain a password field which contains the jks password
-	JKSPasswordName string 		`json:"jksPasswordName"`
 	// create tells the installed cert manager to create the required certs keys
 	Create          bool   		`json:"create,omitempty"`
-
-	// +kubebuilder:validation:Enum={"cert-manager"}
+	// clusterScoped defines if the Issuer created is cluster or namespace scoped
+	ClusterScoped	bool		`json:"clusterScoped,omitempty"`
+	//
+	IssuerRef       *cmmeta.ObjectReference `json:"issuerRef,omitempty"`
+	// TODO : add vault
+	// +kubebuilder:validation:Enum={"cert-manager","vault"}
 	PKIBackend		PKIBackend	`json:"pkiBackend,omitempty"`
+	//,"vault"
 }
+
+// TODO : Add vault
+// VaultConfig defines the configuration for a vault PKI backend
+/*type VaultConfig struct {
+	//
+	AuthRole  string `json:"authRole"`
+	//
+	PKIPath   string `json:"pkiPath"`
+	//
+	IssuePath string `json:"issuePath"`
+	//
+	UserStore string `json:"userStore"`
+}*/
 
 // ExternalListenerConfig defines the external listener config for Nifi
 // TODO: enable configuration of ingress or something like this.
 type ExternalListenerConfig struct {
-	// TODO: remove type field # specific to Kafka
+	// TODO: remove type field # specific to Nifi ?
 	//
 	Type                 string	`json:"type"`
 	//

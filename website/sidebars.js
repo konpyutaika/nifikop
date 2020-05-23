@@ -43,6 +43,20 @@ module.exports = {
                         "3_tasks/1_nifi_cluster/2_cluster_scaling",
                     ]
                 },
+                {
+                    "type" : "category",
+                    "label": "Security",
+                    "items"  : [
+                        "3_tasks/2_security/1_ssl",
+                        {
+                            "type" : "category",
+                            "label": "Authentication",
+                            "items"  : [
+                                "3_tasks/2_security/2_authentication/1_oidc",
+                            ]
+                        },
+                    ]
+                },
             ],
             "Examples": [
                 "4_examples/1_simple_nifi_cluster"
@@ -57,6 +71,14 @@ module.exports = {
                         "5_references/1_nifi_cluster/3_node_config",
                         "5_references/1_nifi_cluster/4_node",
                         "5_references/1_nifi_cluster/5_node_state",
+                        "5_references/1_nifi_cluster/6_listeners_config",
+                    ]
+                },
+                {
+                    "type" : "category",
+                    "label": "NiFi User",
+                    "items"  : [
+                        "5_references/2_nifi_user/1_nifi_user",
                     ]
                 }
             ],

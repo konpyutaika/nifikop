@@ -4,7 +4,9 @@ title: Roadmap
 sidebar_label: Roadmap
 ---
 
-## NiFi cluster installation
+## Available
+
+### NiFi cluster installation
 
 |                       |           |
 | --------------------- | --------- |
@@ -12,7 +14,7 @@ sidebar_label: Roadmap
 | Priority              | High      |
 | Targeted Start date   | Jan 2020  |
 
-## Graceful NiFi Cluster Scaling
+### Graceful NiFi Cluster Scaling
 
 |                       |           |
 | --------------------- | --------- |
@@ -22,28 +24,32 @@ sidebar_label: Roadmap
 
 Apache NiFi is a good candidate to create an operator, because everything is made to orchestrate it through REST Api calls. With this comes automation of actions such as scaling, following all required steps : https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#decommission-nodes.
 
-## Authentification management
+### Communication via SSL
 
-|                       |       |
-| --------------------- | ----- |
-| Status                | To Do |
-| Priority              | High  |
-| Targeted Start date   | -     |
-
-
-## Communication via SSL
-
-|                       |       |
-| --------------------- | ----- |
-| Status                | To Do |
-| Priority              | High  |
-| Targeted Start date   | -     |
+|                       |          |
+| --------------------- | -------- |
+| Status                | Done     |
+| Priority              | High     |
+| Targeted Start date   | May 2020 |
 
 
 The operator fully automates NiFi's SSL support.
 The operator can provision the required secrets and certificates for you, or you can provide your own.
 
-## Monitoring via Prometheus
+## Backlog
+
+### Authentification management
+
+|                       |       |
+| --------------------- | ----- |
+| Status                | To Do |
+| Priority              | High  |
+| Targeted Start date   | -     |
+
+
+
+
+### Monitoring via Prometheus
 
 |                       |       |
 | --------------------- | ----- |
@@ -53,7 +59,7 @@ The operator can provision the required secrets and certificates for you, or you
 
 The NiFi operator exposes NiFi JMX metrics to Prometheus.
 
-## Dataflow management via CRD
+### Dataflow management via CRD
 
 |                       |           |
 | --------------------- | --------- |
@@ -61,7 +67,7 @@ The NiFi operator exposes NiFi JMX metrics to Prometheus.
 | Priority              | Medium    |
 | Targeted Start date   | -         |
 
-## Reacting on Alerts
+### Reacting on Alerts
 
 |                       |       |
 | --------------------- | ----- |
@@ -76,7 +82,7 @@ Currently, there are three actions expected :
 - downscale cluster (remove a Node)
 - add additional disk to a Node
 
-## Seamless Istio mesh support
+### Seamless Istio mesh support
 
 |                       |       |
 | --------------------- | ----- |

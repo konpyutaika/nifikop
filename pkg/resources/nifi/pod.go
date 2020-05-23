@@ -2,17 +2,19 @@ package nifi
 
 import (
 	"fmt"
+	"sort"
+	"strings"
+
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/apis/nifi/v1alpha1"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/resources/templates"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/util"
+	nifiutils "gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/util/nifi"
+	pkicommon "gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/util/pki"
+	zk "gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/util/zookeeper"
 	"github.com/go-logr/logr"
-	"github.com/erdrix/nifikop/pkg/apis/nifi/v1alpha1"
-	"github.com/erdrix/nifikop/pkg/resources/templates"
-	"github.com/erdrix/nifikop/pkg/util"
-	nifiutils "github.com/erdrix/nifikop/pkg/util/nifi"
-	zk "github.com/erdrix/nifikop/pkg/util/zookeeper"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"sort"
-	"strings"
 )
 
 const(
@@ -23,6 +25,8 @@ const(
 	readinessInitialDelaySeconds int32 = 60
 	readinessHealthCheckTimeout  int32 = 10
 	readinessHealthCheckPeriod   int32 = 20
+
+	ContainerName string = "nifi"
 )
 
 func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev1.PersistentVolumeClaim, log logr.Logger) runtime.Object {
@@ -30,6 +34,7 @@ func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev
 	zkAddresse := r.NifiCluster.Spec.ZKAddresse
 	zkHostname := zk.GetHostnameAddress(zkAddresse)
 	zkPort := zk.GetPortAddress(zkAddresse)
+
 
 	// ContainersPorts initialization
 	nifiNodeContainersPorts := r.generateContainerPortForInternalListeners()
@@ -41,10 +46,26 @@ func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev
 
 	volume 			:= []corev1.Volume{}
 	volumeMount 	:= []corev1.VolumeMount{}
-	initContainers 	:= []corev1.Container{}
+	//initContainers 	:= []corev1.Container{}
+	initContainers 	:= append([]corev1.Container{}, r.NifiCluster.Spec.InitContainers...)
 
 	volume 		= append(volume, dataVolume...)
 	volumeMount	= append(volumeMount, dataVolumeMount...)
+
+	readinessCommand := fmt.Sprintf(`curl -kv http://$(hostname -f):%d/nifi-api`,
+		GetServerPort(&r.NifiCluster.Spec.ListenersConfig))
+
+	if r.NifiCluster.Spec.ListenersConfig.SSLSecrets != nil {
+		volume = append(volume, generateVolumesForSSL(r.NifiCluster, id)...)
+		volumeMount = append(volumeMount, generateVolumeMountForSSL()...)
+
+		readinessCommand = fmt.Sprintf(`curl -kv --cert  %s/%s --key %s/%s https://$(hostname -f):%d/nifi`,
+			serverKeystorePath,
+			v1alpha1.TLSCert,
+			serverKeystorePath,
+			v1alpha1.TLSKey,
+			GetServerPort(&r.NifiCluster.Spec.ListenersConfig))
+	}
 
 	podVolumes   := append(volume, []corev1.Volume{
 		{
@@ -74,12 +95,17 @@ func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev
 		return podVolumeMounts[i].Name < podVolumeMounts[j].Name
 	})
 
+	sort.Slice(initContainers, func(i, j int) bool {
+		return initContainers[i].Name < initContainers[j].Name
+	})
+
 	command := []string{"bash", "-ce", `
 cp ${NIFI_HOME}/tmp/* ${NIFI_HOME}/conf/
 exec bin/nifi.sh run
 `}
 
-
+// curl -kv --cert /var/run/secrets/java.io/keystores/client/tls.crt --key /var/run/secrets/java.io/keystores/client/tls.key https://nifi.trycatchlearn.fr:8433/nifi
+// keytool -import -noprompt -keystore /home/nifi/truststore.jks -file /var/run/secrets/java.io/keystores/server/ca.crt -storepass $(cat /var/run/secrets/java.io/keystores/server/password) -alias test1
 	pod := &corev1.Pod{
 		//ObjectMeta: templates.ObjectMetaWithAnnotations(
 		ObjectMeta: templates.ObjectMetaWithGeneratedNameAndAnnotations(
@@ -128,7 +154,7 @@ exec bin/nifi.sh run
 						},
 					},*/
 				{
-					Name:	"nifi",
+					Name:	ContainerName,
 					Image: 	util.GetNodeImage(nodeConfig, r.NifiCluster.Spec.ClusterImage),
 					Lifecycle: &corev1.Lifecycle{
 						PreStop: &corev1.Handler{
@@ -136,8 +162,6 @@ exec bin/nifi.sh run
 								Command: []string{"bash", "-c", "$NIFI_HOME/bin/nifi.sh stop"},
 							},
 						},
-						// TODO: add dynamic PostStart for additional lib https://github.com/cetic/helm-nifi/blob/master/values.yaml#L58
-
 					},
 					// TODO : Manage https setup use cases https://github.com/cetic/helm-nifi/blob/master/templates/statefulset.yaml#L165
 					ReadinessProbe: &corev1.Probe{
@@ -145,21 +169,17 @@ exec bin/nifi.sh run
 						TimeoutSeconds:      readinessHealthCheckTimeout,
 						PeriodSeconds:       readinessHealthCheckPeriod,
 						Handler: corev1.Handler{
+							/*HTTPGet: &corev1.HTTPGetAction{
+								Path: "/nifi-api",
+								Port: intstr.FromInt(int(GetServerPort(&r.NifiCluster.Spec.ListenersConfig))),
+								Scheme: corev1.URISchemeHTTPS,
+								//Host: nodeHostname,
+							},*/
 							Exec: &corev1.ExecAction{
 								Command: []string{
 									"bash",
 									"-c",
-/*									fmt.Sprintf(`curl -kv \
-http://$(hostname -f):%d/nifi-api/controller/cluster > $NIFI_BASE_DIR/data/cluster.state
-STATUS=$(jq -r ".cluster.nodes[] | select((.address==\"$(hostname -f)\") or .address==\"localhost\") | .status" $NIFI_BASE_DIR/data/cluster.state)
-if [[ ! $STATUS = "CONNECTED" ]]; then
-	echo "Node not found with CONNECTED state. Full cluster state:"
-	jq . $NIFI_BASE_DIR/data/cluster.state
-	exit 1
-fi`,*/
-										fmt.Sprintf(`curl -kv http://$(hostname -f):%d/nifi-api`,
-
-										GetServerPort(&r.NifiCluster.Spec.ListenersConfig)),
+									readinessCommand,
 								},
 							},
 						},
@@ -321,11 +341,47 @@ func GetServerPort(l *v1alpha1.ListenersConfig) int32 {
 		if iListener.Type == v1alpha1.HttpsListenerType {
 			httpsServerPort = iListener.ContainerPort
 		} else if iListener.Type == v1alpha1.HttpListenerType {
-			httpsServerPort = iListener.ContainerPort
+			httpServerPort = iListener.ContainerPort
 		}
 	}
-	if &httpsServerPort != nil {
+	if httpsServerPort != 0 {
 		return httpsServerPort
 	}
 	return httpServerPort
+}
+
+func generateVolumesForSSL(cluster *v1alpha1.NifiCluster, nodeId int32) []corev1.Volume {
+	return []corev1.Volume{
+		{
+			Name: serverKeystoreVolume,
+			VolumeSource: corev1.VolumeSource{
+				Secret: &corev1.SecretVolumeSource{
+					SecretName:  fmt.Sprintf(pkicommon.NodeServerCertTemplate, cluster.Name, nodeId),
+					DefaultMode: util.Int32Pointer(0644),
+				},
+			},
+		},
+		{
+			Name: clientKeystoreVolume,
+			VolumeSource: corev1.VolumeSource{
+				Secret: &corev1.SecretVolumeSource{
+					SecretName:  fmt.Sprintf(pkicommon.NodeControllerTemplate, cluster.Name),
+					DefaultMode: util.Int32Pointer(0644),
+				},
+			},
+		},
+	}
+}
+
+func generateVolumeMountForSSL() []corev1.VolumeMount {
+	return []corev1.VolumeMount{
+		{
+			Name:      serverKeystoreVolume,
+			MountPath: serverKeystorePath,
+		},
+		{
+			Name:      clientKeystoreVolume,
+			MountPath: clientKeystorePath,
+		},
+	}
 }
