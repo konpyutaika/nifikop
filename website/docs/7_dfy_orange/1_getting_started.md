@@ -135,7 +135,7 @@ kubectl apply -f https://raw.githubusercontent.com/erdrix/nifikop/master/deploy/
 helm install nifikop \
     --namespace=nifi \
     orange-incubator/nifikop \
-    --set image.tag=v0.0.1 \
+    --set image.tag=v0.1.0-release \
     --set image.repository=registry.gitlab.si.francetelecom.fr/dfyarchicloud/dfyarchicloud-registry/nifikop
 ```
 
@@ -146,7 +146,7 @@ helm install nifikop \
 helm install --name=nifikop \
     --namespace=nifi \
     orange-incubator/nifikop \
-    --set image.tag=v0.0.1-release \
+    --set image.tag=v0.1.0-release \
     --set image.repository=registry.gitlab.si.francetelecom.fr/dfyarchicloud/dfyarchicloud-registry/nifikop
 ```
 </TabItem>

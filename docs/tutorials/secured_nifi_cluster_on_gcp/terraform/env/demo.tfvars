@@ -17,5 +17,5 @@ preemptible = false
 # NiFiKop configuration
 ## Image
 nifikop_image_repo = "eu.gcr.io/poc-rtc/nifikop"
-nifikop_image_tag  = "0.0.1-feature_tls_certmanager"
-nifikop_chart_version = "0.0.1-feature-http-client"
+nifikop_image_tag  = "v0.1.0-release"
+nifikop_chart_version = "0.1.0"
