@@ -34,7 +34,7 @@ Thanks for contributing!
 
 The coding style suggested by the Golang community is used in NiFiKop. See the [style doc](https://github.com/golang/go/wiki/CodeReviewComments) for details.
 
-Please follow this style to make operator-sdk easy to review, maintain and develop.
+Please follow this style to make NifiKop easy to review, maintain and develop.
 
 ### Format of the commit message
 
@@ -61,6 +61,57 @@ The format can be described more formally as follows:
 ```
 
 The first line is the subject and should be no longer than 70 characters, the second line is always blank, and other lines should be wrapped at 80 characters. This allows the message to be easier to read on GitHub as well as in various git tools.
+
+### Developer Certificate of Origin
+
+Every commit must be signed using the -s switch in git commit.
+
+Non signed commit will not be accepted/merged.
+
+By signing each commit the developper agrees to the followinf standard DCO:
+
+```text
+Developer Certificate of Origin
+Version 1.1
+
+Copyright (C) 2004, 2006 The Linux Foundation and its contributors.
+1 Letterman Drive
+Suite D4700
+San Francisco, CA, 94129
+
+Everyone is permitted to copy and distribute verbatim copies of this
+license document, but changing it is not allowed.
+
+
+Developer's Certificate of Origin 1.1
+
+By making a contribution to this project, I certify that:
+
+(a) The contribution was created in whole or in part by me and I
+    have the right to submit it under the open source license
+    indicated in the file; or
+
+(b) The contribution is based upon previous work that, to the best
+    of my knowledge, is covered under an appropriate open source
+    license and I have the right under that license to submit that
+    work with modifications, whether created in whole or in part
+    by me, under the same open source license (unless I am
+    permitted to submit under a different license), as indicated
+    in the file; or
+
+(c) The contribution was provided directly to me by some other
+    person who certified (a), (b) or (c) and I have not modified
+    it.
+
+(d) I understand and agree that this project and the contribution
+    are public and that a record of the contribution (including all
+    personal information I submit with it, including my sign-off) is
+    maintained indefinitely and may be redistributed consistent with
+    this project or the open source license(s) involved.
+```
+
+Source: https://developercertificate.org/
+
 
 ## Documentation
 
