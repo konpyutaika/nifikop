@@ -145,7 +145,7 @@ func IsPodContainsPendingContainer(pod *corev1.Pod) bool {
 	return false
 }
 
-func IsPodContainsNotReadyMainContainer(pod *corev1.Pod) bool {
+func PodReady(pod *corev1.Pod) bool {
 	if &pod.Status != nil && len(pod.Status.Conditions) > 0 {
 		for _, condition := range pod.Status.Conditions {
 			if condition.Type == v1.PodReady &&

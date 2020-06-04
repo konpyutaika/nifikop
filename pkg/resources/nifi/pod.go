@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/apis/nifi/v1alpha1"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/nificlient"
 	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/resources/templates"
 	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/util"
 	nifiutils "gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/util/nifi"
@@ -46,7 +47,6 @@ func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev
 
 	volume 			:= []corev1.Volume{}
 	volumeMount 	:= []corev1.VolumeMount{}
-	//initContainers 	:= []corev1.Container{}
 	initContainers 	:= append([]corev1.Container{}, r.NifiCluster.Spec.InitContainers...)
 
 	volume 		= append(volume, dataVolume...)
@@ -95,16 +95,58 @@ func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev
 		return podVolumeMounts[i].Name < podVolumeMounts[j].Name
 	})
 
+
 	sort.Slice(initContainers, func(i, j int) bool {
 		return initContainers[i].Name < initContainers[j].Name
 	})
 
-	command := []string{"bash", "-ce", `
-cp ${NIFI_HOME}/tmp/* ${NIFI_HOME}/conf/
-exec bin/nifi.sh run
-`}
+	failCondition := ""
+
+	if val, ok := r.NifiCluster.Status.NodesState[fmt.Sprint(id)]; !ok || (
+		val.InitClusterNode != v1alpha1.IsInitClusterNode &&
+		(val.GracefulActionState.State == v1alpha1.GracefulUpscaleRequired ||
+		val.GracefulActionState.State == v1alpha1.GracefulUpscaleRunning)) {
+		failCondition = `else
+	echo fail to request cluster
+	exit 1
+`
+	}
+
+	requestClusterStatus :=  fmt.Sprintf("curl --fail -v http://%s/nifi-api/controller/cluster > $NIFI_BASE_DIR/cluster.state",
+		nificlient.GenerateNifiAddress(r.NifiCluster))
+
+	if r.NifiCluster.Spec.ListenersConfig.SSLSecrets != nil &&
+		r.NifiCluster.Spec.ClusterSecure &&
+		r.NifiCluster.Spec.SiteToSiteSecure {
+		requestClusterStatus = fmt.Sprintf(
+			"curl --fail -kv --cert /var/run/secrets/java.io/keystores/client/tls.crt --key /var/run/secrets/java.io/keystores/client/tls.key https://%s/nifi-api/controller/cluster > $NIFI_BASE_DIR/cluster.state",
+			nificlient.GenerateNifiAddress(r.NifiCluster))
+	}
+
+	removesFileAction := fmt.Sprintf(`if %s; then
+	echo "Successfully query NiFi cluster"
+	%s
+	echo "state $STATUS"
+	if [[ -z "$STATUS" ]]; then 
+		echo "Removing previous exec setup"
+		rm -f
+
+$NIFI_BASE_DIR/data/users.xml $NIFI_BASE_DIR/data/authorizations.xml $NIFI_BASE_DIR/data/flow.xml.gz
+	fi
+%s
+fi
+rm -f $NIFI_BASE_DIR/cluster.state `,
+	requestClusterStatus,
+	"STATUS=$(jq -r \".cluster.nodes[] | select(.address==\\\"$(hostname -f)\\\") | .status\" $NIFI_BASE_DIR/cluster.state)",
+	failCondition)
+
+
+	command := []string{"bash", "-ce", fmt.Sprintf(`cp ${NIFI_HOME}/tmp/* ${NIFI_HOME}/conf/
+%s
+exec bin/nifi.sh run`, removesFileAction)}
 
 // curl -kv --cert /var/run/secrets/java.io/keystores/client/tls.crt --key /var/run/secrets/java.io/keystores/client/tls.key https://nifi.trycatchlearn.fr:8433/nifi
+// curl -kv --cert /var/run/secrets/java.io/keystores/client/tls.crt --key /var/run/secrets/java.io/keystores/client/tls.key https://securednificluster-headless.nifi.svc.cluster.local:8443/nifi-api/controller/cluster
 // keytool -import -noprompt -keystore /home/nifi/truststore.jks -file /var/run/secrets/java.io/keystores/server/ca.crt -storepass $(cat /var/run/secrets/java.io/keystores/server/password) -alias test1
 	pod := &corev1.Pod{
 		//ObjectMeta: templates.ObjectMetaWithAnnotations(
@@ -129,6 +171,7 @@ exec bin/nifi.sh run
 				{
 					Name: 		"zookeeper",
 					Image:		r.NifiCluster.Spec.GetInitContainerImage(),
+					ImagePullPolicy: nodeConfig.GetImagePullPolicy(),
 					Command: 	[]string{"sh", "-c",fmt.Sprintf(`
 						echo trying to contact %s
 						until nc -vzw 1 %s %s; do
@@ -156,6 +199,7 @@ exec bin/nifi.sh run
 				{
 					Name:	ContainerName,
 					Image: 	util.GetNodeImage(nodeConfig, r.NifiCluster.Spec.ClusterImage),
+					ImagePullPolicy: nodeConfig.GetImagePullPolicy(),
 					Lifecycle: &corev1.Lifecycle{
 						PreStop: &corev1.Handler{
 							Exec: &corev1.ExecAction{
@@ -232,7 +276,6 @@ exec bin/nifi.sh run
 
 //
 func generateDataVolumeAndVolumeMount(pvcs []corev1.PersistentVolumeClaim) (volume []corev1.Volume, volumeMount []corev1.VolumeMount) {
-	//for i, pvc := range pvcs {
 
 	for _, pvc := range pvcs {
 		volume = append(volume, corev1.Volume{

@@ -23,6 +23,8 @@ NodeConfig defines the node configuration
       # nodeAffinity can be specified, operator populates this value if new pvc added later to node
       # https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#node-affinity
 #      nodeAffinity:
+      # imagePullPolicy define the pull policy for NiFi cluster docker image
+      imagePullPolicy: IfNotPresent
       # storageConfigs specifies the node related configs
       storageConfigs:
         # Name of the storage config, used to name PV to reuse into sidecars for example.
@@ -57,6 +59,7 @@ NodeConfig defines the node configuration
 |runAsUser|int64|define the id of the user to run in the Nifi image|No|1000|
 |isNode|boolean|Set this to true if the instance is a node in a cluster: [basic-cluster-setup](https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#basic-cluster-setup)|No|true|
 |image|string| Docker image used by the operator to create the node associated. [Nifi docker registry](https://hub.docker.com/r/apache/nifi/)|No|""|
+|imagePullPolicy|[PullPolicy](https://godoc.org/k8s.io/api/core/v1#PullPolicy)| define the pull policy for NiFi cluster docker image.)|No|""|
 |nodeAffinity|string| operator populates this value if new pvc added later to node [node-affinity](https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#node-affinity)|No|nil|
 |storageConfigs|\[  \][StorageConfig](#storageconfig)|specifies the node related configs.|No|nil|
 |serviceAccountName|string|specifies the serviceAccount used for this specific node.|No|"default"|

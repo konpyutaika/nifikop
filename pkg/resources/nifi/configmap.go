@@ -7,14 +7,13 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/go-logr/logr"
+	"github.com/imdario/mergo"
 	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/apis/nifi/v1alpha1"
 	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/resources/templates"
 	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/resources/templates/config"
 	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/util"
-	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/util/pki"
 	utilpki "gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/util/pki"
-	"github.com/go-logr/logr"
-	"github.com/imdario/mergo"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -294,17 +293,21 @@ func (r *Reconciler) getBootstrapNotificationServicesConfigString(nConfig *v1alp
 // TODO: Check if cases where is it necessary before using it (seems to be used for secured use cases)
 func (r *Reconciler) getAuthorizersConfigString(nConfig *v1alpha1.NodeConfig, id int32, log logr.Logger) string {
 
-	var nodeList map[int32]string
-	nodeList = make(map[int32]string)
+	nodeList := make(map[string]string)
 
-	for _, node := range r.NifiCluster.Spec.Nodes {
-		nodeList[node.Id] = pki.GetNodeUserName(r.NifiCluster, node.Id)
+	authorizersTemplate := config.EmptyAuthorizersTemplate
+	if r.NifiCluster.Status.NodesState[fmt.Sprint(id)].InitClusterNode {
+		authorizersTemplate = config.AuthorizersTemplate
+		for nId, nodeState := range r.NifiCluster.Status.NodesState {
+			if nodeState.InitClusterNode {
+				nodeList[nId] =  utilpki.GetNodeUserName(r.NifiCluster, util.ConvertStringToInt32(nId))
+			}
+		}
 	}
 
-	//sort.Strings(nodeList)
-
 	var out bytes.Buffer
-	t := template.Must(template.New("nConfig-config").Parse(config.AuthorizersTemplate))
+	t := template.Must(template.New("nConfig-config").Parse(authorizersTemplate))
+
 	if err := t.Execute(&out, map[string]interface{}{
 		"NifiCluster":		r.NifiCluster,
 		"Id": 				id,
@@ -315,6 +318,7 @@ func (r *Reconciler) getAuthorizersConfigString(nConfig *v1alpha1.NodeConfig, id
 	}); err != nil {
 		log.Error(err, "error occurred during parsing the config template")
 	}
+
 	return out.String()
 }
 

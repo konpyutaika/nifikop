@@ -115,6 +115,20 @@ spec:
 
 |Name|Value|Description|
 |-----|----|------------|
+|NifiClusterInitializing|ClusterInitializing|states that the cluster is still in initializing stage|
+|NifiClusterInitialized|ClusterInitialized|states that the cluster is 
+
+
+
+
+
+
+
+
+
+
+
+initialized|
 |NifiClusterReconciling|ClusterReconciling|states that the cluster is still in reconciling stage|
 |NifiClusterRollingUpgrading|ClusterRollingUpgrading|states that the cluster is rolling upgrading|
 |NifiClusterRunning|ClusterRunning|states that the cluster is in running state|

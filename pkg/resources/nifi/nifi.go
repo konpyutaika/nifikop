@@ -8,6 +8,7 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/banzaicloud/k8s-objectmatcher/patch"
+	"github.com/go-logr/logr"
 	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/apis/nifi/v1alpha1"
 	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/errorfactory"
 	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/k8sutil"
@@ -18,7 +19,6 @@ import (
 	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/util"
 	certutil "gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/util/cert"
 	pkicommon "gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/util/pki"
-	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -110,7 +110,6 @@ func (r *Reconciler) Reconcile(log logr.Logger) error {
 	uniqueHostnamesMap := make(map[string]struct{})
 
 	// TODO: review design
-
 	for _, node := range r.NifiCluster.Spec.Nodes {
 		for _, webProxyHost := range r.GetNifiPropertiesBase(node.Id).WebProxyHosts {
 			uniqueHostnamesMap[strings.Split(webProxyHost, ":")[0]] = struct{}{}
@@ -154,8 +153,8 @@ func (r *Reconciler) Reconcile(log logr.Logger) error {
 		o := r.configMap(node.Id, nodeConfig, serverPass, clientPass, superUsers,log)
 		err = k8sutil.Reconcile(log, r.Client, o, r.NifiCluster)
 		if err != nil {
-				return errors.WrapIfWithDetails(err, "failed to reconcile resource", "resource", o.GetObjectKind().GroupVersionKind())
-			}
+			return errors.WrapIfWithDetails(err, "failed to reconcile resource", "resource", o.GetObjectKind().GroupVersionKind())
+		}
 
 		pvcs, err := getCreatedPVCForNode(r.Client, node.Id, r.NifiCluster.Namespace, r.NifiCluster.Name)
 		if err != nil {
@@ -460,6 +459,7 @@ func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) e
 	if err != nil && len(podList.Items) == 0 {
 		return errorfactory.New(errorfactory.APIFailure{}, err, "getting resource failed", "kind", desiredType)
 	}
+
 	if len(podList.Items) == 0 {
 		if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(desiredPod); err != nil {
 			return errors.WrapIf(err, "could not apply last state to annotation")
@@ -471,17 +471,21 @@ func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) e
 
 		// Update status to Config InSync because node is configured to go
 		statusErr := k8sutil.UpdateNodeStatus(r.Client, []string{desiredPod.Labels["nodeId"]}, r.NifiCluster, v1alpha1.ConfigInSync, log)
-
 		if statusErr != nil {
-			return errorfactory.New(errorfactory.StatusUpdateError{}, err, "updating status for resource failed", "kind", desiredType)
+			return errorfactory.New(errorfactory.StatusUpdateError{}, statusErr, "updating status for resource failed", "kind", desiredType)
 		}
 
-		if val, ok := r.NifiCluster.Status.NodesState[desiredPod.Labels["nodeId"]]; ok && val.GracefulActionState.State != v1alpha1.GracefulUpscaleSucceeded {
+		if val, ok := r.NifiCluster.Status.NodesState[desiredPod.Labels["nodeId"]]; ok &&
+			val.GracefulActionState.State != v1alpha1.GracefulUpscaleSucceeded {
 			gracefulActionState := v1alpha1.GracefulActionState{ErrorMessage: "", State: v1alpha1.GracefulUpscaleSucceeded}
+
+			if !k8sutil.PodReady(currentPod) {
+				gracefulActionState = v1alpha1.GracefulActionState{ErrorMessage: "", State: v1alpha1.GracefulUpscaleRequired}
+			}
 
 			statusErr = k8sutil.UpdateNodeStatus(r.Client, []string{desiredPod.Labels["nodeId"]}, r.NifiCluster, gracefulActionState, log)
 			if statusErr != nil {
-				return errorfactory.New(errorfactory.StatusUpdateError{}, err, "could not update node graceful action state")
+				return errorfactory.New(errorfactory.StatusUpdateError{}, statusErr, "could not update node graceful action state")
 			}
 		}
 		log.Info("resource created")
@@ -502,7 +506,8 @@ func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) e
 
 	// TODO check if this err == nil check necessary (baluchicken)
 	if err == nil {
-		//Since toleration does not support patchStrategy:"merge,retainKeys", we need to add all toleration from the current pod if the toleration is set in the CR
+
+		// Since toleration does not support patchStrategy:"merge,retainKeys", we need to add all toleration from the current pod if the toleration is set in the CR
 		if len(desiredPod.Spec.Tolerations) > 0 {
 			desiredPod.Spec.Tolerations = append(desiredPod.Spec.Tolerations, currentPod.Spec.Tolerations...)
 			uniqueTolerations := []corev1.Toleration{}
@@ -520,8 +525,17 @@ func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) e
 		if err != nil {
 			log.Error(err, "could not match objects", "kind", desiredType)
 		} else if patchResult.IsEmpty() {
-			//if isPodHealthy(currentPod) && r.NifiCluster.Status.NodesState[currentPod.Labels["nodeId"]].ConfigurationState == v1alpha1.ConfigInSync {
 			if !k8sutil.IsPodContainsTerminatedContainer(currentPod) && r.NifiCluster.Status.NodesState[currentPod.Labels["nodeId"]].ConfigurationState == v1alpha1.ConfigInSync {
+				if val, found := r.NifiCluster.Status.NodesState[desiredPod.Labels["nodeId"]]; found &&
+					val.GracefulActionState.State == v1alpha1.GracefulUpscaleRunning &&
+					val.GracefulActionState.ActionStep == v1alpha1.ConnectStatus &&
+					k8sutil.PodReady(currentPod) {
+
+					if err := k8sutil.UpdateNodeStatus(r.Client, []string{desiredPod.Labels["nodeId"]}, r.NifiCluster,
+						v1alpha1.GracefulActionState{ErrorMessage: "", State: v1alpha1.GracefulUpscaleSucceeded}, log); err != nil {
+						return errorfactory.New(errorfactory.StatusUpdateError{}, err, "could not update node graceful action state")
+					}
+				}
 				log.V(1).Info("resource is in sync")
 				return nil
 			}
@@ -561,7 +575,7 @@ func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) e
 						return errorfactory.New(errorfactory.ReconcileRollingUpgrade{}, errors.New("pod is still creating"), "rolling upgrade in progress")
 					}
 
-					if !k8sutil.IsPodContainsNotReadyMainContainer(&pod) {
+					if !k8sutil.PodReady(&pod) {
 						return errorfactory.New(errorfactory.ReconcileRollingUpgrade{}, errors.New("pod is still not ready"), "rolling upgrade in progress")
 					}
 				}
@@ -573,6 +587,7 @@ func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) e
 			return errorfactory.New(errorfactory.APIFailure{}, err, "deleting resource failed", "kind", desiredType)
 		}
 	}
+
 	return nil
 }
 

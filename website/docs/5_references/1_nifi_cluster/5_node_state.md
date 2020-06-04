@@ -12,6 +12,8 @@ Holds information about nifi state
 |-----|----|-----------|--------|--------|
 |gracefulActionState|[GracefulActionState](#gracefulactionstate)| holds info about nifi cluster action status.| - | - |
 |configurationState|[ConfigurationState](#configurationstate)| holds info about the config.| - | - |
+|initClusterNode|[InitClusterNode](#initclusternode)| contains if this nodes was part of the initial cluster.| - | - |
+
 
 ## GracefulActionState 
 
@@ -28,6 +30,13 @@ Holds information about nifi state
 |-----|----|------------|
 |ConfigInSync|ConfigInSync|states that the generated nodeConfig is in sync with the Node|
 |ConfigOutOfSync|ConfigOutOfSync|states that the generated nodeConfig is out of sync with the Node|
+
+## InitClusterNode
+
+|Name|Value|Description|
+|-----|----|------------|
+|IsInitClusterNode|true|states the node is part of initial cluster setup|
+|NotInitClusterNode|false|states the node is not part of initial cluster setup|
 
 ## State
 

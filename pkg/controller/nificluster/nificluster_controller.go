@@ -2,13 +2,16 @@ package nificluster
 
 import (
 	"context"
+	"fmt"
+	"time"
+
 	"emperror.dev/errors"
-	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/pki"
 	"github.com/go-logr/logr"
 	v1alpha1 "gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/apis/nifi/v1alpha1"
 	common "gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/controller/common"
 	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/errorfactory"
 	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/k8sutil"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/pki"
 	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/resources"
 	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/resources/nifi"
 	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/util"
@@ -23,8 +26,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
-	"fmt"
-	"time"
 )
 
 var log = logf.Log.WithName("controller_nificluster")
@@ -130,6 +131,21 @@ func (r *ReconcileNifiCluster) Reconcile(request reconcile.Request) (reconcile.R
 	// Check if marked for deletion and run finalizers
 	if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {
 		return r.checkFinalizers(ctx, reqLogger, instance)
+	}
+
+	//
+	if len(instance.Status.State) == 0 || instance.Status.State == v1alpha1.NifiClusterInitializing {
+		if err := k8sutil.UpdateCRStatus(r.client, instance, v1alpha1.NifiClusterInitializing, reqLogger); err != nil {
+			return common.RequeueWithError(log, err.Error(), err)
+		}
+		for nId := range instance.Spec.Nodes {
+			if err := k8sutil.UpdateNodeStatus(r.client, []string{fmt.Sprint(instance.Spec.Nodes[nId].Id)}, instance, v1alpha1.IsInitClusterNode, log); err != nil {
+				return common.RequeueWithError(log, err.Error(), err)
+			}
+		}
+		if err := k8sutil.UpdateCRStatus(r.client, instance, v1alpha1.NifiClusterInitialized, reqLogger); err != nil {
+			return common.RequeueWithError(log, err.Error(), err)
+		}
 	}
 
 	if instance.Status.State != v1alpha1.NifiClusterRollingUpgrading {

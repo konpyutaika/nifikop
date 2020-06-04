@@ -32,7 +32,7 @@ spec:
           description: NifiClusterSpec defines the desired state of NifiCluster
           properties:
             clusterImage:
-              description: clusterImage can specify the whole nificluster image in
+              description: clusterImage can specify the whole NiFi cluster image in
                 one place
               type: string
             clusterSecure:
@@ -50,7 +50,7 @@ spec:
                 into the init container to check if ZoooKeeper server is reachable.
               type: string
             initContainers:
-              description: InitContainers defines additional initContainers configurations
+              description: initContainers defines additional initContainers configurations
               items:
                 description: A single application container that you want to run within
                   a pod.
@@ -1206,6 +1206,10 @@ spec:
                     description: ' Docker image used by the operator to create the
                       node associated  https://hub.docker.com/r/apache/nifi/'
                     type: string
+                  imagePullPolicy:
+                    description: imagePullPolicy define the pull policy for NiFi cluster
+                      docker image
+                    type: string
                   imagePullSecrets:
                     description: imagePullSecrets specifies the secret to use when
                       using private registry https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#localobjectreference-v1-core
@@ -1675,6 +1679,10 @@ spec:
                       image:
                         description: ' Docker image used by the operator to create
                           the node associated  https://hub.docker.com/r/apache/nifi/'
+                        type: string
+                      imagePullPolicy:
+                        description: imagePullPolicy define the pull policy for NiFi
+                          cluster docker image
                         type: string
                       imagePullSecrets:
                         description: imagePullSecrets specifies the secret to use
@@ -2328,9 +2336,14 @@ spec:
                     - actionState
                     - errorMessage
                     type: object
+                  initClusterNode:
+                    description: InitClusterNode contains if this nodes was part of
+                      the initial cluster
+                    type: boolean
                 required:
                 - configurationState
                 - gracefulActionState
+                - initClusterNode
                 type: object
               description: Store the state of each nifi node
               type: object

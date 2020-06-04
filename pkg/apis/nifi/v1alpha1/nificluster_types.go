@@ -35,9 +35,9 @@ type NifiClusterSpec struct {
 	// initContainerImage can override the default image used into the init container to check if
 	// ZoooKeeper server is reachable.
 	InitContainerImage		string					`json:"initContainerImage,omitempty"`
-	// InitContainers defines additional initContainers configurations
+	// initContainers defines additional initContainers configurations
 	InitContainers []corev1.Container `json:"initContainers,omitempty" patchStrategy:"merge" patchMergeKey:"name" protobuf:"bytes,2,rep,name=containers"`
-	// clusterImage can specify the whole nificluster image in one place
+	// clusterImage can specify the whole NiFi cluster image in one place
 	ClusterImage			string					`json:"clusterImage,omitempty"`
 	// Cluster nodes secure mode : https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#cluster_common_properties
 	// TODO : rework to define into internalListener ! (Note: if ssl enabled need Cluster & SiteToSite & Https port)
@@ -168,6 +168,8 @@ type NodeConfig struct {
 	//  Docker image used by the operator to create the node associated
 	//  https://hub.docker.com/r/apache/nifi/
 	Image              		string                        `json:"image,omitempty"`
+	// imagePullPolicy define the pull policy for NiFi cluster docker image
+	ImagePullPolicy  corev1.PullPolicy            `json:"imagePullPolicy,omitempty"`
 	// nodeAffinity can be specified, operator populates this value if new pvc added later to node
 	NodeAffinity       		*corev1.NodeAffinity          `json:"nodeAffinity,omitempty"`
 	// storageConfigs specifies the node related configs
@@ -334,7 +336,7 @@ func (nSpec *NifiClusterSpec) GetZkPath() string {
 
 func (nSpec *NifiClusterSpec) GetInitContainerImage() string {
 
-	if nSpec.InitContainerImage == "" {
+	if nSpec.InitContainerImage == ""   {
 		return "busybox"
 	}
 	return nSpec.InitContainerImage
@@ -369,6 +371,11 @@ func (nConfig *NodeConfig) GetNodeSelector() map[string]string {
 //GetImagePullSecrets returns the list of Secrets needed to pull Containers images from private repositories
 func (nConfig *NodeConfig) GetImagePullSecrets() []corev1.LocalObjectReference {
 	return nConfig.ImagePullSecrets
+}
+
+//GetImagePullPolicy returns the image pull policy to pull containers images
+func (nConfig *NodeConfig) GetImagePullPolicy() corev1.PullPolicy {
+	return nConfig.ImagePullPolicy
 }
 
 //

@@ -47,7 +47,7 @@ func ClusterConfig(client client.Client, cluster *v1alpha1.NifiCluster) (*NifiCo
 	conf := &NifiConfig{}
 	conf.nodeURITemplate = generateNodesURITemplate(cluster)
 	conf.NodesURI = generateNodesAddress(cluster)
-	conf.NifiURI = generateNifiAddress(cluster)
+	conf.NifiURI = GenerateNifiAddress(cluster)
 	conf.OperationTimeout = nifiDefaultTimeout
 	if cluster.Spec.ListenersConfig.SSLSecrets != nil && useSSL(cluster) {
 		tlsConfig, err := pki.GetPKIManager(client, cluster).GetControllerTLSConfig()
@@ -101,11 +101,11 @@ func generateNodesURITemplate(cluster *v1alpha1.NifiCluster) string {
 	nodeNameTemplate := fmt.Sprintf(templates.PrefixNodeNameTemplate, cluster.Name) + templates.RootNodeNameTemplate + templates.SuffixNodeNameTemplate
 
 	return nodeNameTemplate + fmt.Sprintf(".%s",
-		generateNifiAddress(cluster),
+		GenerateNifiAddress(cluster),
 	)
 }
 
-func generateNifiAddress(cluster *v1alpha1.NifiCluster) string {
+func GenerateNifiAddress(cluster *v1alpha1.NifiCluster) string {
 
 	if cluster.Spec.HeadlessServiceEnabled {
 		return fmt.Sprintf(serviceHostnameTemplate,

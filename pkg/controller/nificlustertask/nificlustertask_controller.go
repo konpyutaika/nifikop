@@ -7,13 +7,13 @@ import (
 	"time"
 
 	"emperror.dev/errors"
+	"github.com/go-logr/logr"
 	v1alpha1 "gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/apis/nifi/v1alpha1"
 	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/controller/common"
 	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/errorfactory"
 	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/k8sutil"
 	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/scale"
 	nifiutil "gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/util/nifi"
-	"github.com/go-logr/logr"
 	apiErrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -249,6 +249,14 @@ func (r *ReconcileNifiClusterTask) handlePodDeleteNCTask(nifiCluster *v1alpha1.N
 func (r *ReconcileNifiClusterTask) handlePodRunningTask(nifiCluster *v1alpha1.NifiCluster, nodeIds []string, log logr.Logger) error {
 
 	for _, nodeId := range nodeIds {
+		// Check if node finished to connect
+		if nifiCluster.Status.NodesState[nodeId].GracefulActionState.ActionStep == v1alpha1.ConnectNodeAction {
+			err := r.checkNCActionStep(nodeId, nifiCluster, v1alpha1.ConnectStatus, nil, log)
+			if err != nil {
+				return err
+			}
+		}
+
 		// Check if node finished to disconnect
 		if nifiCluster.Status.NodesState[nodeId].GracefulActionState.ActionStep == v1alpha1.DisconnectNodeAction {
 			err := r.checkNCActionStep(nodeId, nifiCluster, v1alpha1.DisconnectStatus, nil, log)

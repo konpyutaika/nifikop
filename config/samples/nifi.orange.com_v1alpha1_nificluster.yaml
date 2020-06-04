@@ -97,6 +97,8 @@ spec:
       # nodeAffinity can be specified, operator populates this value if new pvc added later to node
       # https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#node-affinity
 #      nodeAffinity:
+      # imagePullPolicy define the pull policy for NiFi cluster docker image
+      imagePullPolicy: IfNotPresent
       # storageConfigs specifies the node related configs
       storageConfigs:
         # Name of the storage config, used to name PV to reuse into sidecars for example.

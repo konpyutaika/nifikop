@@ -6,7 +6,7 @@ var AuthorizersTemplate = `{{- $nodeList := .NodeList }}
     <userGroupProvider>
         <identifier>file-user-group-provider</identifier>
         <class>org.apache.nifi.authorization.FileUserGroupProvider</class>
-        <property name="Users File">./conf/users.xml</property>
+        <property name="Users File">../data/users.xml</property>
         <property name="Legacy Authorized Users File"></property>
         <property name="Initial User Identity admin">{{ .InitialAdminUser }}</property>
 {{- range $i, $host := .NodeList }}
@@ -17,13 +17,35 @@ var AuthorizersTemplate = `{{- $nodeList := .NodeList }}
         <identifier>file-access-policy-provider</identifier>
         <class>org.apache.nifi.authorization.FileAccessPolicyProvider</class>
         <property name="User Group Provider">file-user-group-provider</property>
-        <property name="Authorizations File">./conf/authorizations.xml</property>
+        <property name="Authorizations File">../data/authorizations.xml</property>
         <property name="Initial Admin Identity">{{ .InitialAdminUser }}</property>
         <property name="Legacy Authorized Users File"></property>
 {{- range $i, $host := .NodeList }}
         <property name="Node Identity {{ $i }}">{{ $host }}</property>
 {{- end }}
 		<property name="Node Group"></property>
+    </accessPolicyProvider>
+    <authorizer>
+        <identifier>managed-authorizer</identifier>
+        <class>org.apache.nifi.authorization.StandardManagedAuthorizer</class>
+        <property name="Access Policy Provider">file-access-policy-provider</property>
+    </authorizer>
+</authorizers>
+`
+
+var EmptyAuthorizersTemplate = `<authorizers>
+    <userGroupProvider>
+        <identifier>file-user-group-provider</identifier>
+        <class>org.apache.nifi.authorization.FileUserGroupProvider</class>
+        <property name="Users File">../data/users.xml</property>
+        <property name="Legacy Authorized Users File"></property>
+    </userGroupProvider>
+
+    <accessPolicyProvider>
+        <identifier>file-access-policy-provider</identifier>
+        <class>org.apache.nifi.authorization.FileAccessPolicyProvider</class>
+        <property name="User Group Provider">file-user-group-provider</property>
+        <property name="Authorizations File">../data/authorizations.xml</property>
     </accessPolicyProvider>
     <authorizer>
         <identifier>managed-authorizer</identifier>
