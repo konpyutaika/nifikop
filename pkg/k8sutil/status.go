@@ -52,6 +52,9 @@ func UpdateNodeStatus(c client.Client, nodeIds []string, cluster *v1alpha1.NifiC
 				cluster.Status.NodesState = map[string]v1alpha1.NodeState{nodeId: {GracefulActionState: s}}
 			case v1alpha1.ConfigurationState:
 				cluster.Status.NodesState = map[string]v1alpha1.NodeState{nodeId: {ConfigurationState: s}}
+			case v1alpha1.InitClusterNode:
+				cluster.Status.NodesState = map[string]v1alpha1.NodeState{nodeId: {InitClusterNode: s}}
+
 			}
 		} else if val, ok := cluster.Status.NodesState[nodeId]; ok {
 			switch s := state.(type) {
@@ -59,6 +62,8 @@ func UpdateNodeStatus(c client.Client, nodeIds []string, cluster *v1alpha1.NifiC
 				val.GracefulActionState = s
 			case v1alpha1.ConfigurationState:
 				val.ConfigurationState = s
+			case v1alpha1.InitClusterNode:
+				val.InitClusterNode = s
 			}
 			cluster.Status.NodesState[nodeId] = val
 		} else {
@@ -67,6 +72,8 @@ func UpdateNodeStatus(c client.Client, nodeIds []string, cluster *v1alpha1.NifiC
 				cluster.Status.NodesState[nodeId] = v1alpha1.NodeState{GracefulActionState: s}
 			case v1alpha1.ConfigurationState:
 				cluster.Status.NodesState[nodeId] = v1alpha1.NodeState{ConfigurationState: s}
+			case v1alpha1.InitClusterNode:
+				cluster.Status.NodesState[nodeId] = v1alpha1.NodeState{InitClusterNode: s}
 			}
 		}
 	}
@@ -95,6 +102,8 @@ func UpdateNodeStatus(c client.Client, nodeIds []string, cluster *v1alpha1.NifiC
 					cluster.Status.NodesState = map[string]v1alpha1.NodeState{nodeId: {GracefulActionState: s}}
 				case v1alpha1.ConfigurationState:
 					cluster.Status.NodesState = map[string]v1alpha1.NodeState{nodeId: {ConfigurationState: s}}
+				case v1alpha1.InitClusterNode:
+					cluster.Status.NodesState = map[string]v1alpha1.NodeState{nodeId: {InitClusterNode: s}}
 				}
 			} else if val, ok := cluster.Status.NodesState[nodeId]; ok {
 				switch s := state.(type) {
@@ -102,15 +111,18 @@ func UpdateNodeStatus(c client.Client, nodeIds []string, cluster *v1alpha1.NifiC
 					val.GracefulActionState = s
 				case v1alpha1.ConfigurationState:
 					val.ConfigurationState = s
+				case v1alpha1.InitClusterNode:
+					val.InitClusterNode = s
 				}
 				cluster.Status.NodesState[nodeId] = val
 			} else {
 				switch s := state.(type) {
-				case v1alpha1.RackAwarenessState:
 				case v1alpha1.GracefulActionState:
 					cluster.Status.NodesState[nodeId] = v1alpha1.NodeState{GracefulActionState: s}
 				case v1alpha1.ConfigurationState:
 					cluster.Status.NodesState[nodeId] = v1alpha1.NodeState{ConfigurationState: s}
+				case v1alpha1.InitClusterNode:
+					cluster.Status.NodesState[nodeId] = v1alpha1.NodeState{InitClusterNode: s}
 				}
 			}
 		}

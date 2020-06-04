@@ -29,6 +29,9 @@ type ClusterState string
 // ConfigurationState holds info about the configuration state
 type ConfigurationState string
 
+//  InitClusterNode holds info about if the node was part of the init cluster setup
+type InitClusterNode bool
+
 // PKIBackend represents an interface implementing the PKIManager
 type PKIBackend string
 
@@ -125,6 +128,8 @@ type NodeState struct {
 	GracefulActionState GracefulActionState `json:"gracefulActionState"`
 	// ConfigurationState holds info about the config
 	ConfigurationState ConfigurationState `json:"configurationState"`
+	// InitClusterNode contains if this nodes was part of the initial cluster
+	InitClusterNode InitClusterNode `json:"initClusterNode"`
 }
 
 // RackAwarenessState holds info about rack awareness status
@@ -149,6 +154,10 @@ const (
 	// GracefulUpscaleSucceeded states the node is updated gracefully
 	GracefulDownscaleSucceeded State = "GracefulDownscaleSucceeded"
 
+	// NifiClusterInitializing states that the cluster is still in initializing stage
+	NifiClusterInitializing ClusterState = "ClusterInitializing"
+	// NifiClusterInitialized states that the cluster is initialized
+	NifiClusterInitialized ClusterState = "ClusterInitialized"
 	// NifiClusterReconciling states that the cluster is still in reconciling stage
 	NifiClusterReconciling ClusterState = "ClusterReconciling"
 	// NifiClusterRollingUpgrading states that the cluster is rolling upgrading
@@ -181,4 +190,9 @@ const (
 	ConnectNodeAction ActionStep = "CONNECTING"
 	// ConnectStatus states that the NiFi node is connected to the NiFi Cluster
 	ConnectStatus ActionStep = "CONNECTED"
+
+	// IsInitClusterNode states the node is part of initial cluster setup
+	IsInitClusterNode InitClusterNode = true
+	// NotInitClusterNode states the node is not part of initial cluster setup
+	NotInitClusterNode InitClusterNode = false
 )

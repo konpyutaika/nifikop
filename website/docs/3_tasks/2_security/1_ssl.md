@@ -140,8 +140,23 @@ For example for the the `NifiCluster` **sslnifi** deployed into the namespace **
 
 If you check once again the logs, you no longer have the error.
 
-### Scale out of the initial node's scope
+### Scale up - Node declaration
 
-For now the operator is unable to add a node with an id out of the ones defined at the initial cluster setup. We are working on a fix, please follow the issue related [Issue #5](https://gitlab.si.francetelecom.fr/kubernetes/nifikop/issues/5)
+For the moment the operator is not able to add a new user inside NiFi cluster. So when you scale up the cluster, the node will join the cluster but will not create the user and associated policies.
+This will be covered by the [issue #9](https://gitlab.si.francetelecom.fr/kubernetes/nifikop/issues/9), while waiting for this feature, you have to :
 
-In the meantime you can setup a large cluster with more node than necessary, and scale within the range of the large pool id.
+1. Go on users page : 
+
+![users page](/nifikop/img/3_tasks/2_security/1_ssl/users.png)
+
+2. Create a new user entry with `<NifiCluster's name>-<NiFi node id>-node.<NifiCluster's name>-headless.<NifiCluster's namespace>` name if you setup **Headless**, else use `<NifiCluster's name>-<NiFi node id>-node.<NifiCluster's namespace>` as name : 
+
+![add node's user](/nifikop/img/3_tasks/2_security/1_ssl/add_node_user.png)
+
+3. The node require `proxy user requests` access policy, so go to the `Access Policies` page : 
+
+![Access policies page](/nifikop/img/3_tasks/2_security/1_ssl/access_policies_page.png)
+
+4. Add the node user to this policy : 
+
+![Access policy Node](/nifikop/img/3_tasks/2_security/1_ssl/access_policy_node.png)

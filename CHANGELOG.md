@@ -10,6 +10,8 @@
 
 ### Bug Fixes
 
+- [MR #13](https://gitlab.si.francetelecom.fr/kubernetes/nifikop/-/merge_requests/13) - Fix scale out init scope in TLS cluster.
+
 ## v0.1.0-release
 
 ### Added

@@ -5,6 +5,7 @@ go 1.13
 require (
 	cloud.google.com/go v0.39.0 // indirect
 	emperror.dev/errors v0.4.2
+	github.com/antchfx/xmlquery v1.2.4
 	github.com/antihax/optional v1.0.0
 	github.com/banzaicloud/k8s-objectmatcher v1.0.0
 	github.com/erdrix/nigoapi v0.0.0-20200411153314-2e93a7ff4095
