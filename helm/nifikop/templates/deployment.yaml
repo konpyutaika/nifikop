@@ -54,7 +54,8 @@ spec:
             initialDelaySeconds: 4
             periodSeconds: 10
             failureThreshold: 1
-{{ toYaml .Values.resources | indent 10 }}
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
           env:
             - name: WATCH_NAMESPACE
               valueFrom:
