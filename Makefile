@@ -5,7 +5,7 @@ IMAGE_TAG				?= $(shell git describe --tags --abbrev=0 --match '[0-9].*[0-9].*[0
 IMAGE_NAME 				?= $(SERVICE_NAME)
 BUILD_IMAGE				?= orangeopensource/nifikop-build
 
-OPERATOR_SDK_VERSION=v0.15.0-pr137
+OPERATOR_SDK_VERSION=v0.18.0-forked-pr317
 # workdir
 WORKDIR := /go/casskop
 
@@ -110,7 +110,7 @@ generate:
 	echo "Generate zzz-deepcopy objects"
 	operator-sdk version
 	operator-sdk generate k8s
-	operator-sdk generate openapi
+	operator-sdk generate crds
 
 # Build nifikop executable file in local go env
 .PHONY: build
@@ -118,7 +118,7 @@ build:
 	echo "Generate zzz-deepcopy objects"
 	operator-sdk version
 	operator-sdk generate k8s
-	operator-sdk generate openapi
+	operator-sdk generate crds
 	echo "Build Nifi Operator"
 	operator-sdk build $(REPOSITORY):$(VERSION) --image-build-args "--build-arg https_proxy=$$https_proxy --build-arg http_proxy=$$http_proxy"
 ifdef PUSHLATEST
@@ -135,7 +135,7 @@ docker-build: ## Build the Operator and it's Docker Image
 	docker run --rm -v $(PWD):$(WORKDIR) -v $(GOPATH)/pkg/mod:/go/pkg/mod \
 		-v $(shell go env GOCACHE):/root/.cache/go-build --env GO111MODULE=on \
 		--env https_proxy=$(https_proxy) --env http_proxy=$(http_proxy) \
-		$(BUILD_IMAGE):$(OPERATOR_SDK_VERSION) /bin/bash -c 'operator-sdk generate openapi'
+		$(BUILD_IMAGE):$(OPERATOR_SDK_VERSION) /bin/bash -c 'operator-sdk generate crds'
 	echo "Build NiFi Operator. Using cache from "$(shell go env GOCACHE)
 	docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v $(PWD):$(WORKDIR) \
 	-v $(GOPATH)/pkg/mod:/go/pkg/mod -v $(shell go env GOCACHE):/root/.cache/go-build \

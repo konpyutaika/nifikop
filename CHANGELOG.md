@@ -4,6 +4,8 @@
 
 ### Changed
 
+- [MR #17](https://gitlab.si.francetelecom.fr/kubernetes/nifikop/-/merge_requests/17) - Upgrade dependencies
+
 ### Deprecated
 
 ### Removed
