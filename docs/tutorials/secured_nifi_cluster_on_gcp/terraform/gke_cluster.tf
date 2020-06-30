@@ -4,7 +4,7 @@
 ## - VPA          : disabled                     ##
 ###################################################
 // Define GKE cluster
-resource "google_container_cluster" "source-squidflow-cluster" {
+resource "google_container_cluster" "nifi-cluster" {
   provider = google-beta
   name = "nifi-cluster"
   location =var.zone
@@ -58,7 +58,8 @@ resource "google_container_cluster" "source-squidflow-cluster" {
   monitoring_service = "monitoring.googleapis.com/kubernetes"
 
   # The minimum version of the master
-  min_master_version = "1.15.9-gke.24"
+  min_master_version = "1.16.9-gke.6"
+
 
   # The name or self_link of the Google Compute Engine network to which the cluster is connected. For Shared VPC, set this to the self link of the shared network
   network = "projects/poc-rtc/global/networks/default"
@@ -80,17 +81,17 @@ resource "google_container_cluster" "source-squidflow-cluster" {
 data "google_client_config" "current" {}
 
 output "cluster_name" {
-  value = "gke_${google_container_cluster.source-squidflow-cluster.project}_${google_container_cluster.source-squidflow-cluster.location}_${google_container_cluster.source-squidflow-cluster.name}"
+  value = "gke_${google_container_cluster.nifi-cluster.project}_${google_container_cluster.nifi-cluster.location}_${google_container_cluster.nifi-cluster.name}"
 }
 
 output "cluster_ca" {
-  value = "${base64decode(google_container_cluster.source-squidflow-cluster.master_auth.0.cluster_ca_certificate)}"
+  value = base64decode(google_container_cluster.nifi-cluster.master_auth.0.cluster_ca_certificate)
 }
 
 output "cluster_zone" {
-  value = google_container_cluster.source-squidflow-cluster.location
+  value = google_container_cluster.nifi-cluster.location
 }
 
 output "cluster_server" {
-  value = "https://${google_container_cluster.source-squidflow-cluster.endpoint}"
+  value = "https://${google_container_cluster.nifi-cluster.endpoint}"
 }

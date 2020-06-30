@@ -19,6 +19,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"strings"
 
 	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/apis/nifi/v1alpha1"
 	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/errorfactory"
@@ -49,6 +50,16 @@ func (c *certManager) GetControllerTLSConfig() (config *tls.Config, err error) {
 	clientCert := tlsKeys.Data[corev1.TLSCertKey]
 	clientKey := tlsKeys.Data[corev1.TLSPrivateKeyKey]
 	caCert := tlsKeys.Data[v1alpha1.CoreCACertKey]
+
+	if len(caCert) == 0 {
+		certs := strings.SplitAfter(string(clientCert),"-----END CERTIFICATE-----")
+		clientCert = []byte(certs[0])
+		caCert   = []byte(certs[len(certs)-1])
+		if len(certs) == 3 {
+			caCert   = []byte(certs[len(certs)-2])
+		}
+	}
+
 	x509ClientCert, err := tls.X509KeyPair(clientCert, clientKey)
 	if err != nil {
 		err = errorfactory.New(errorfactory.InternalError{}, err, "could not decode controller certificate")

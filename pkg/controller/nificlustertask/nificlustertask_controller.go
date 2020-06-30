@@ -58,7 +58,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 					old := e.ObjectOld.(*v1alpha1.NifiCluster)
 					new := e.ObjectNew.(*v1alpha1.NifiCluster)
 					for _, nodeState := range new.Status.NodesState {
-						if nodeState.GracefulActionState.State.IsRequiredState() || nodeState.GracefulActionState.State.IsRequiredState() {
+						if nodeState.GracefulActionState.State.IsRequiredState() || nodeState.GracefulActionState.State.IsRunningState() {
 							return true
 						}
 					}

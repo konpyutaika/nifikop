@@ -22,56 +22,67 @@ const (
 
 // NifiClusterSpec defines the desired state of NifiCluster
 type NifiClusterSpec struct {
-	// headlessServiceEnabled specifies if the cluster should use headlessService for Nifi or individual services
-	// using service per nodes may come an handy case of service mesh.
-	HeadlessServiceEnabled	bool					`json:"headlessServiceEnabled"`
+	// Service defines the policy for services owned by NiFiKop operator.
+	Service                 ServicePolicy            `json:"service,omitempty"`
+	// Pod defines the policy for  pods owned by NiFiKop operator.
+	Pod                     PodPolicy                `json:"pod,omitempty"`
 	// zKAddresse specifies the ZooKeeper connection string
 	// in the form hostname:port where host and port are those of a Zookeeper server.
 	// TODO: rework for nice zookeeper connect string =
-	ZKAddresse				string					`json:"zkAddresse"`
+	ZKAddresse              string                    `json:"zkAddresse"`
 	// zKPath specifies the Zookeeper chroot path as part
 	// of its Zookeeper connection string which puts its data under same path in the global ZooKeeper namespace.
-	ZKPath 					string 					`json:"zkPath,omitempty"`
+	ZKPath                  string                   `json:"zkPath,omitempty"`
 	// initContainerImage can override the default image used into the init container to check if
 	// ZoooKeeper server is reachable.
-	InitContainerImage		string					`json:"initContainerImage,omitempty"`
+	InitContainerImage      string                   `json:"initContainerImage,omitempty"`
 	// initContainers defines additional initContainers configurations
-	InitContainers []corev1.Container `json:"initContainers,omitempty" patchStrategy:"merge" patchMergeKey:"name" protobuf:"bytes,2,rep,name=containers"`
+	InitContainers          []corev1.Container       `json:"initContainers,omitempty" patchStrategy:"merge" patchMergeKey:"name" protobuf:"bytes,2,rep,name=containers"`
 	// clusterImage can specify the whole NiFi cluster image in one place
-	ClusterImage			string					`json:"clusterImage,omitempty"`
+	ClusterImage            string                   `json:"clusterImage,omitempty"`
 	// Cluster nodes secure mode : https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#cluster_common_properties
 	// TODO : rework to define into internalListener ! (Note: if ssl enabled need Cluster & SiteToSite & Https port)
-	ClusterSecure		bool	`json:"clusterSecure,omitempty"`
+	ClusterSecure            bool                    `json:"clusterSecure,omitempty"`
 	// Site to Site properties Secure mode : https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#site_to_site_properties
 	// TODO : rework to define into internalListener !
-	SiteToSiteSecure	bool	`json:"siteToSiteSecure,omitempty"`
+	SiteToSiteSecure         bool	                 `json:"siteToSiteSecure,omitempty"`
 	// oneNifiNodePerNode if set to true every nifi node is started on a new node, if there is not enough node to do that
 	// it will stay in pending state. If set to false the operator also tries to schedule the nifi node to a unique node
 	// but if the node number is insufficient the nifi node will be scheduled to a node where a nifi node is already running.
-	OneNifiNodePerNode 		bool 					`json:"oneNifiNodePerNode"`
+	OneNifiNodePerNode       bool                   `json:"oneNifiNodePerNode"`
 	// propage
-	PropagateLabels 		bool 					`json:"propagateLabels,omitempty"`
+	PropagateLabels          bool                   `json:"propagateLabels,omitempty"`
 	// TODO : remove once the user management is implemented into the operator
-	InitialAdminUser	string	`json:"initialAdminUser,omitempty""`
+	InitialAdminUser         string	`json:"initialAdminUser,omitempty""`
 	// readOnlyConfig specifies the read-only type Nifi config cluster wide, all theses
 	// will be merged with node specified readOnly configurations, so it can be overwritten per node.
-	ReadOnlyConfig			ReadOnlyConfig			`json:"readOnlyConfig,omitempty"`
+	ReadOnlyConfig           ReadOnlyConfig        `json:"readOnlyConfig,omitempty"`
 	// nodeConfigGroups specifies multiple node configs with unique name
-	NodeConfigGroups   		map[string]NodeConfig	`json:"nodeConfigGroups,omitempty"`
+	NodeConfigGroups         map[string]NodeConfig `json:"nodeConfigGroups,omitempty"`
 	// all node requires an image, unique id, and storageConfigs settings
-	Nodes 					[]Node 					`json:"nodes"`
-
+	Nodes                    []Node                `json:"nodes"`
 	// LdapConfiguration specifies the configuration if you want to use LDAP
-	LdapConfiguration		LdapConfiguration		`json:"ldapConfiguration,omitempty"`
+	LdapConfiguration        LdapConfiguration     `json:"ldapConfiguration,omitempty"`
 	// NifiClusterTaskSpec specifies the configuration of the nifi cluster Tasks
-	NifiClusterTaskSpec 	NifiClusterTaskSpec		`json:"nifiClusterTaskSpec,omitempty"`
+	NifiClusterTaskSpec      NifiClusterTaskSpec   `json:"nifiClusterTaskSpec,omitempty"`
 	// TODO : add vault
 	//VaultConfig         	VaultConfig         `json:"vaultConfig,omitempty"`
-
 	// listenerConfig specifies nifi's listener specifig configs
-	ListenersConfig			ListenersConfig			`json:"listenersConfig"`
+	ListenersConfig          ListenersConfig       `json:"listenersConfig"`
 }
 
+type ServicePolicy struct {
+	// HeadlessEnabled specifies if the cluster should use headlessService for Nifi or individual services
+	// using service per nodes may come an handy case of service mesh.
+	HeadlessEnabled  bool `json:"headlessEnabled"`
+	// Annotations specifies the annotations to attach to services the operator creates
+	Annotations map[string]string `json:"annotations,omitempty"`
+}
+
+type PodPolicy struct {
+	// Annotations specifies the annotations to attach to pods the operator creates
+	Annotations map[string]string `json:"annotations,omitempty"`
+}
 
 // rollingUpgradeConfig specifies the rolling upgrade config for the cluster
 //RollingUpgradeConfig 	RollingUpgradeConfig 	`json:"rollingUpgradeConfig"`
@@ -211,11 +222,15 @@ type ListenersConfig struct {
 	// TODO: enable externalListener configuration
 	//ExternalListeners []ExternalListenerConfig `json:"externalListeners,omitempty"`
 	// internalListeners specifies settings required to access nifi internally
-	InternalListeners	[]InternalListenerConfig	`json:"internalListeners"`
-
+	InternalListeners []InternalListenerConfig `json:"internalListeners"`
 	// sslSecrets contains information about ssl related kubernetes secrets if one of the
 	// listener setting type set to ssl these fields must be populated to
-	SSLSecrets        	*SSLSecrets              `json:"sslSecrets,omitempty"`
+	SSLSecrets         *SSLSecrets             `json:"sslSecrets,omitempty"`
+	// clusterDomain allow to override the default cluster domain which is "cluster.local"
+	ClusterDomain      string                  `json:"clusterDomain,omitempty"`
+	// useExternalDNS allow to manage externalDNS usage by limiting the DNS names associated
+	// to each nodes and load balancer : <cluster-name>-node-<node Id>.<cluster-name>.<service name>.<cluster domain>
+	UseExternalDNS     bool                    `json:"useExternalDNS,omitempty"`
 }
 
 // SSLSecrets defines the Nifi SSL secrets
@@ -227,7 +242,8 @@ type SSLSecrets struct {
 	Create          bool   		`json:"create,omitempty"`
 	// clusterScoped defines if the Issuer created is cluster or namespace scoped
 	ClusterScoped	bool		`json:"clusterScoped,omitempty"`
-	//
+	// issuerRef allow to use an existing issuer to act as CA :
+	// https://cert-manager.io/docs/concepts/issuer/
 	IssuerRef       *cmmeta.ObjectReference `json:"issuerRef,omitempty"`
 	// TODO : add vault
 	// +kubebuilder:validation:Enum={"cert-manager","vault"}
@@ -270,11 +286,11 @@ type InternalListenerConfig struct {
 	// (Optional field) Type allow to specify if we are in a specific nifi listener
 	// it's allowing to define some required information such as Cluster Port,
 	// Http Port, Https Port or S2S port
-	Type  			string	`json:"type,omitempty"`
+	Type            string `json:"type,omitempty"`
 	// An identifier for the port which will be configured.
-	Name			string `json:"name"`
+	Name            string `json:"name"`
 	// The container port.
-	ContainerPort	int32  `json:"containerPort"`
+	ContainerPort   int32  `json:"containerPort"`
 }
 
 // LdapConfiguration specifies the configuration if you want to use LDAP
@@ -340,6 +356,14 @@ func (nSpec *NifiClusterSpec) GetInitContainerImage() string {
 		return "busybox"
 	}
 	return nSpec.InitContainerImage
+}
+
+func (lConfig *ListenersConfig) GetClusterDomain() string {
+	if len(lConfig.ClusterDomain) == 0 {
+		return "cluster.local"
+	}
+
+	return lConfig.ClusterDomain
 }
 
 func (nTaskSpec *NifiClusterTaskSpec) GetDurationMinutes() float64 {

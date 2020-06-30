@@ -131,5 +131,4 @@ spec:
         containerPort: 10000
     sslSecrets:
       tlsSecretName: "test-nifikop"
-      jksPasswordName: "test-nifikop-pass"
       create: true

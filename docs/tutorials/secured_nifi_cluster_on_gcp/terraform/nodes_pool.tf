@@ -5,9 +5,9 @@
 resource "google_container_node_pool" "nodes" {
   provider = google-beta
 
-  name_prefix = "tracking-ptf"
+  name_prefix = "nifi-nodes"
   location    = var.zone
-  cluster     = google_container_cluster.source-squidflow-cluster.name
+  cluster     = google_container_cluster.nifi-cluster.name
 
   initial_node_count = var.initial_node_count
 
@@ -82,13 +82,13 @@ resource "google_container_node_pool" "nodes" {
     service_account = "default"
 
     # The list of instance tags applied to all nodes. Tags are used to identify valid sources or targets for network firewalls.
-    tags = ["tracking-ptf"]
+    tags = ["nifi-nodes"]
   }
 }
 
 resource "null_resource" "get-credentials" {
   depends_on = [google_container_node_pool.nodes]
   provisioner "local-exec" {
-    command = "gcloud container clusters get-credentials ${google_container_cluster.source-squidflow-cluster.name}  --zone ${var.zone} --project ${var.project}"
+    command = "gcloud container clusters get-credentials ${google_container_cluster.nifi-cluster.name}  --zone ${var.zone} --project ${var.project}"
   }
 }

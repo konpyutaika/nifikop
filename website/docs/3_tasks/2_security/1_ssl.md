@@ -38,7 +38,6 @@ spec:
         containerPort: 10000
     sslSecrets:
       tlsSecretName: "test-nifikop"
-      jksPasswordName: "test-nifikop-pass"
       create: true
 ```
 
@@ -55,6 +54,68 @@ If `listenersConfig.sslSecrets.create` is set to `false`, the operator will look
 | caKey | The CA private key |
 | clientCert | A client certificate (this will be used by operator for NiFI operations) |
 | clientKey | The private key for clientCert |
+
+## Using an existing Issuer
+
+As described in the [Reference section](/nifikop/docs/5_references/1_nifi_cluster/6_listeners_config#sslsecrets), instead of using a self-signed certificate as CA, you can use an existing one.
+In order to do so, you only have to refer it into your `Spec.ListenerConfig.SslSecrets.IssuerRef` field. 
+
+### Example : Let's encrypt 
+
+Let's say you have an existing DNS server, with [external dns](https://github.com/kubernetes-sigs/external-dns) deployed into your cluster's namespace.
+You can easily use Let's encrypt as authority for your certificate. 
+
+To do this, you have to : 
+
+1. Create an issuer : 
+
+```yaml
+apiVersion: cert-manager.io/v1alpha2
+kind: Issuer
+metadata:
+  name: letsencrypt-staging
+spec:
+  acme:
+    # You must replace this email address with your own.
+    # Let's Encrypt will use this to contact you about expiring
+    # certificates, and issues related to your account.
+    email: <your email address>
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+      # Secret resource used to store the account's private key.
+      name: example-issuer-account-key
+    # Add a single challenge solver, HTTP01 using nginx
+    solvers:
+      - http01:
+          ingress:
+            ingressTemplate:
+              metadata:
+                annotations:
+                  "external-dns.alpha.kubernetes.io/ttl": "5"
+```
+
+2. Setup External dns and correctly create your issuer into your cluster configuration : 
+
+```yaml 
+apiVersion: nifi.orange.com/v1alpha1
+kind: NifiCluster
+...
+spec:
+  ...
+  clusterSecure: true
+  siteToSiteSecure: true
+  ...
+  listenersConfig:
+    clusterDomain: <DNS zone name>
+    useExternalDNS: true
+    ...
+    sslSecrets:
+      tlsSecretName: "test-nifikop"
+      create: true
+      issuerRef:
+        name: letsencrypt-staging
+        kind: Issuer
+```
 
 ## Create SSL credentials
 

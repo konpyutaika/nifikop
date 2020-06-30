@@ -3,9 +3,15 @@ kind: NifiCluster
 metadata:
   name: mynifi
 spec:
-  # headlessServiceEnabled specifies if the cluster should use headlessService for Nifi or individual services
-  # using service per nodes may come an handy case of service mesh.
-  headlessServiceEnabled: true
+  service:
+    # headlessEnabled specifies if the cluster should use headlessService for Nifi or individual services
+    # using service per nodes may come an handy case of service mesh.
+    headlessEnabled: true
+    # Annotations specifies the annotations to attach to services the operator creates
+#    annotations:
+#  pod:
+    # Annotations specifies the annotations to attach to pods the operator creates
+#    annotations:
   # zKAddresse specifies the ZooKeeper connection string
   # in the form hostname:port where host and port are those of a Zookeeper server.
   zkAddresse: "zookeepercluster-client.zookeeper:2181"
@@ -228,3 +234,18 @@ spec:
         containerPort: 9020
       - name: "rsyslog"
         containerPort: 10001
+    # sslSecrets contains information about ssl related kubernetes secrets if one of the
+    # listener setting type set to ssl these fields must be populated to
+#    sslSecrets:
+      # tlsSecretName should contain all ssl certs required by nifi including: caCert, caKey, clientCert, clientKey
+      #	serverCert, serverKey, peerCert, peerKey
+#      tlsSecretName: "test-nifikop"
+      # create tells the installed cert manager to create the required certs keys
+#      create: true
+      # clusterScoped defines if the Issuer created is cluster or namespace scoped
+#      clusterScoped: false
+      # issuerRef allow to use an existing issuer to act as CA :
+      #	https://cert-manager.io/docs/concepts/issuer/
+#      issuerRef:
+#        name: letsencrypt-staging
+#        kind: Issuer

@@ -1,0 +1,31 @@
+txtOwnerId: "nifi-rec-sph"  # set different ownerid for each Namespaces
+policy: sync
+rfc2136:
+  host: admin.infra.multis.p.fti.net
+  port: 53
+  zone: pns.svc.rickaastley.p.fti.net
+  tsigSecret: "rCbQSU4Fhja7YhXX0hcsYBqdSJ2QugPU+bMCr07fmndxmSza38xf5NHjzyTfS6JHFSf8wXC56vW8X1tFYb77QA=="
+  tsigSecretAlg: hmac-sha512
+  tsigKeyname: pns.svc.rickaastley.p.fti.net
+  tsigAxfr: true
+podAnnotations:
+  cni.projectcalico.org/ipv4pools: '["casskop-default"]'
+networkPolicy:
+  create: true
+  rfc2136_hosts_cidr:
+    - 10.234.50.226/32
+    - 10.234.70.10/32
+rbac:
+  create: true
+resources:
+  limits:
+    memory: 400Mi
+    cpu: 400m
+  requests:
+    memory: 400Mi
+    cpu: 400m
+
+#extraArgs:
+#  fqdn-template: "{{.Name}}.nifi.pns.svc.rickaastley.p.fti.net"
+
+logLevel: debug

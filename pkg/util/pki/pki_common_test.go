@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"reflect"
 	"testing"
+	"github.com/stretchr/testify/assert"
 	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/apis/nifi/v1alpha1"
 	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/resources/templates"
 	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/util"
@@ -58,18 +59,29 @@ func TestGetCommonName(t *testing.T) {
 	cluster.Name = "test-cluster"
 	cluster.Namespace = "test-namespace"
 
-	cluster.Spec = v1alpha1.NifiClusterSpec{HeadlessServiceEnabled: true}
+	cluster.Spec = v1alpha1.NifiClusterSpec{Service: v1alpha1.ServicePolicy{HeadlessEnabled: true}}
 	headlessCN := GetCommonName(cluster)
 	expected := "test-cluster-headless.test-namespace.svc.cluster.local"
 	if headlessCN != expected {
 		t.Error("Expected:", expected, "Got:", headlessCN)
 	}
 
-	cluster.Spec = v1alpha1.NifiClusterSpec{HeadlessServiceEnabled: false}
+	cluster.Spec = v1alpha1.NifiClusterSpec{Service: v1alpha1.ServicePolicy{HeadlessEnabled: false}}
 	allNodeCN := GetCommonName(cluster)
 	expected = "test-cluster-all-node.test-namespace.svc.cluster.local"
 	if allNodeCN != expected {
 		t.Error("Expected:", expected, "Got:", allNodeCN)
+	}
+
+	cluster.Spec = v1alpha1.NifiClusterSpec{Service: v1alpha1.ServicePolicy{HeadlessEnabled: true},
+		ListenersConfig: v1alpha1.ListenersConfig{
+			ClusterDomain: "foo.bar",
+		},
+	}
+	kubernetesClusterDomainCN := GetCommonName(cluster)
+	expected = "test-cluster-headless.test-namespace.svc.foo.bar"
+	if kubernetesClusterDomainCN != expected {
+		t.Error("Expected:", expected, "Got:", kubernetesClusterDomainCN)
 	}
 }
 
@@ -85,10 +97,11 @@ func TestLabelsForNifiPKI(t *testing.T) {
 }
 
 func TestGetInternalDNSNames(t *testing.T) {
+	assert := assert.New(t)
 	cluster := testCluster(t)
 
 	for _, node := range cluster.Spec.Nodes {
-		cluster.Spec.HeadlessServiceEnabled = true
+		cluster.Spec.Service.HeadlessEnabled = true
 		headlessNames := GetInternalDNSNames(cluster, node.Id)
 		expected := []string{
 			"test-cluster-headless.test-namespace.svc.cluster.local",
@@ -99,13 +112,13 @@ func TestGetInternalDNSNames(t *testing.T) {
 			fmt.Sprintf("test-cluster-%d-node.test-cluster-headless.test-namespace", node.Id),
 			"test-cluster-headless",
 			fmt.Sprintf("test-cluster-%d-node.test-cluster-headless", node.Id),
-			fmt.Sprintf(templates.NodeNameTemplate, cluster.Name, node.Id),
+			fmt.Sprintf("test-cluster-%d-node", node.Id),
 		}
 		if !reflect.DeepEqual(expected, headlessNames) {
 			t.Error("Expected:", expected, "got:", headlessNames)
 		}
 
-		cluster.Spec.HeadlessServiceEnabled = false
+		cluster.Spec.Service.HeadlessEnabled = false
 		allNodeNames := GetInternalDNSNames(cluster, node.Id)
 		expected = []string{
 			"test-cluster-all-node.test-namespace.svc.cluster.local",
@@ -116,11 +129,23 @@ func TestGetInternalDNSNames(t *testing.T) {
 			fmt.Sprintf("test-cluster-%d-node.test-cluster-all-node.test-namespace", node.Id),
 			"test-cluster-all-node",
 			fmt.Sprintf("test-cluster-%d-node.test-cluster-all-node", node.Id),
-			fmt.Sprintf(templates.NodeNameTemplate, cluster.Name, node.Id),
+			fmt.Sprintf("test-cluster-%d-node", node.Id),
 		}
 		if !reflect.DeepEqual(expected, allNodeNames) {
 			t.Error("Expected:", expected, "got:", allNodeNames)
 		}
+	}
+
+	cluster.Spec.ListenersConfig.UseExternalDNS = true
+	for _, node := range cluster.Spec.Nodes {
+		names := GetInternalDNSNames(cluster, node.Id)
+		assert.Equal(2, len(names))
+		expected := []string{
+			"test-cluster-all-node.cluster.local",
+			fmt.Sprintf("test-cluster-%d-node.test-cluster-all-node.cluster.local", node.Id),
+		}
+
+		assert.Equal(expected, names)
 	}
 }
 
@@ -150,13 +175,18 @@ func TestNodeUsersForCluster(t *testing.T) {
 func TestControllerUserForCluster(t *testing.T) {
 	cluster := testCluster(t)
 	user := ControllerUserForCluster(cluster)
+	nodeControllerName := fmt.Sprintf(NodeControllerFQDNTemplate,
+		fmt.Sprintf(NodeControllerTemplate, cluster.Name),
+		cluster.Namespace,
+		cluster.Spec.ListenersConfig.GetClusterDomain())
 
 	expected := &v1alpha1.NifiUser{
 		ObjectMeta: templates.ObjectMeta(
-			fmt.Sprintf(NodeControllerFQDNTemplate, fmt.Sprintf(NodeControllerTemplate, cluster.Name), cluster.Namespace),
+			nodeControllerName,
 			LabelsForNifiPKI(cluster.Name), cluster,
 		),
 		Spec: v1alpha1.NifiUserSpec{
+			DNSNames: []string{nodeControllerName},
 			SecretName: fmt.Sprintf(NodeControllerTemplate, cluster.Name),
 			IncludeJKS: true,
 			ClusterRef: v1alpha1.ClusterReference{

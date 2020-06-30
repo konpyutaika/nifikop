@@ -40,11 +40,6 @@ spec:
                   TODO : rework to define into internalListener ! (Note: if ssl enabled
                   need Cluster & SiteToSite & Https port)'
                 type: boolean
-              headlessServiceEnabled:
-                description: headlessServiceEnabled specifies if the cluster should
-                  use headlessService for Nifi or individual services using service
-                  per nodes may come an handy case of service mesh.
-                type: boolean
               initContainerImage:
                 description: initContainerImage can override the default image used
                   into the init container to check if ZoooKeeper server is reachable.
@@ -1135,8 +1130,13 @@ spec:
                     type: string
                 type: object
               listenersConfig:
-                description: listenerConfig specifies nifi's listener specifig configs
+                description: "TODO : add vault VaultConfig         \tVaultConfig         `json:\"vaultConfig,omitempty\"`
+                  listenerConfig specifies nifi's listener specifig configs"
                 properties:
+                  clusterDomain:
+                    description: clusterDomain allow to override the default cluster
+                      domain which is "cluster.local"
+                    type: string
                   internalListeners:
                     description: 'externalListeners specifies settings required to
                       access nifi externally TODO: enable externalListener configuration
@@ -1184,8 +1184,8 @@ spec:
                           the required certs keys
                         type: boolean
                       issuerRef:
-                        description: ObjectReference is a reference to an object with
-                          a given name, kind and group.
+                        description: 'issuerRef allow to use an existing issuer to
+                          act as CA : https://cert-manager.io/docs/concepts/issuer/'
                         properties:
                           group:
                             type: string
@@ -1210,6 +1210,12 @@ spec:
                     required:
                     - tlsSecretName
                     type: object
+                  useExternalDNS:
+                    description: 'useExternalDNS allow to manage externalDNS usage
+                      by limiting the DNS names associated to each nodes and load
+                      balancer : <cluster-name>-node-<node Id>.<cluster-name>.<service
+                      name>.<cluster domain>'
+                    type: boolean
                 required:
                 - internalListeners
                 type: object
@@ -2307,6 +2313,16 @@ spec:
                   is insufficient the nifi node will be scheduled to a node where
                   a nifi node is already running.
                 type: boolean
+              pod:
+                description: Pod defines the policy for  pods owned by NiFiKop operator.
+                properties:
+                  annotations:
+                    additionalProperties:
+                      type: string
+                    description: Annotations specifies the annotations to attach to
+                      pods the operator creates
+                    type: object
+                type: object
               propagateLabels:
                 description: propage
                 type: boolean
@@ -2363,6 +2379,24 @@ spec:
                         type: string
                     type: object
                 type: object
+              service:
+                description: Service defines the policy for services owned by NiFiKop
+                  operator.
+                properties:
+                  annotations:
+                    additionalProperties:
+                      type: string
+                    description: Annotations specifies the annotations to attach to
+                      services the operator creates
+                    type: object
+                  headlessEnabled:
+                    description: HeadlessEnabled specifies if the cluster should use
+                      headlessService for Nifi or individual services using service
+                      per nodes may come an handy case of service mesh.
+                    type: boolean
+                required:
+                - headlessEnabled
+                type: object
               siteToSiteSecure:
                 description: 'Site to Site properties Secure mode : https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#site_to_site_properties
                   TODO : rework to define into internalListener !'
@@ -2378,7 +2412,6 @@ spec:
                   in the global ZooKeeper namespace.
                 type: string
             required:
-            - headlessServiceEnabled
             - listenersConfig
             - nodes
             - oneNifiNodePerNode

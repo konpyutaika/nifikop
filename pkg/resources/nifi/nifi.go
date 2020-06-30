@@ -86,26 +86,6 @@ func (r *Reconciler) Reconcile(log logr.Logger) error {
 
 	log.V(1).Info("Reconciling")
 
-	if r.NifiCluster.Spec.HeadlessServiceEnabled {
-		o := r.headlessService()
-		err := k8sutil.Reconcile(log, r.Client, o, r.NifiCluster)
-		if err != nil {
-			return errors.WrapIfWithDetails(err, "failed to reconcile resource", "resource", o.GetObjectKind().GroupVersionKind())
-		}
-	} else {
-		o := r.allNodeService()
-		err := k8sutil.Reconcile(log, r.Client, o, r.NifiCluster)
-		if err != nil {
-			return errors.WrapIfWithDetails(err, "failed to reconcile resource", "resource", o.GetObjectKind().GroupVersionKind())
-		}
-	}
-
-	o := r.lbService()
-	err := k8sutil.Reconcile(log, r.Client, o, r.NifiCluster)
-	if err != nil {
-		return errors.WrapIfWithDetails(err, "failed to reconcile resource", "resource", o.GetObjectKind().GroupVersionKind())
-	}
-
 	// TODO : manage external LB
 	uniqueHostnamesMap := make(map[string]struct{})
 
@@ -126,6 +106,20 @@ func (r *Reconciler) Reconcile(log logr.Logger) error {
 		// reconcile the PKI
 		if err := pki.GetPKIManager(r.Client, r.NifiCluster).ReconcilePKI(context.TODO(), log, r.Scheme, uniqueHostnames); err != nil {
 			return err
+		}
+	}
+
+	if r.NifiCluster.Spec.Service.HeadlessEnabled {
+		o := r.headlessService()
+		err := k8sutil.Reconcile(log, r.Client, o, r.NifiCluster)
+		if err != nil {
+			return errors.WrapIfWithDetails(err, "failed to reconcile resource", "resource", o.GetObjectKind().GroupVersionKind())
+		}
+	} else {
+		o := r.allNodeService()
+		err := k8sutil.Reconcile(log, r.Client, o, r.NifiCluster)
+		if err != nil {
+			return errors.WrapIfWithDetails(err, "failed to reconcile resource", "resource", o.GetObjectKind().GroupVersionKind())
 		}
 	}
 
@@ -161,7 +155,7 @@ func (r *Reconciler) Reconcile(log logr.Logger) error {
 			return errors.WrapIfWithDetails(err, "failed to list PVC's")
 		}
 
-		if !r.NifiCluster.Spec.HeadlessServiceEnabled {
+		if !r.NifiCluster.Spec.Service.HeadlessEnabled {
 			o := r.service(node.Id, log)
 			err := k8sutil.Reconcile(log, r.Client, o, r.NifiCluster)
 			if err != nil {
@@ -173,6 +167,12 @@ func (r *Reconciler) Reconcile(log logr.Logger) error {
 		if err != nil {
 			return err
 		}
+	}
+
+	o := r.lbService()
+	err := k8sutil.Reconcile(log, r.Client, o, r.NifiCluster)
+	if err != nil {
+		return errors.WrapIfWithDetails(err, "failed to reconcile resource", "resource", o.GetObjectKind().GroupVersionKind())
 	}
 
 	// Handle Pod delete
@@ -277,7 +277,7 @@ OUTERLOOP:
 				return errors.WrapIfWithDetails(err, "could not delete configmap for node", "id", node.Labels["nodeId"])
 			}
 
-			if !r.NifiCluster.Spec.HeadlessServiceEnabled {
+			if !r.NifiCluster.Spec.Service.HeadlessEnabled {
 				err = r.Client.Delete(context.TODO(), &corev1.Service{ObjectMeta: templates.ObjectMeta(fmt.Sprintf("%s-%s", r.NifiCluster.Name, node.Labels["nodeId"]), LabelsForNifi(r.NifiCluster.Name), r.NifiCluster)})
 				if err != nil {
 					if apierrors.IsNotFound(err) {

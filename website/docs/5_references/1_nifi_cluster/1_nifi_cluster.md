@@ -12,7 +12,8 @@ kind: NifiCluster
 metadata:
   name: simplenifi
 spec:
-  headlessServiceEnabled: true
+  service:
+    headlessEnabled: true
   zkAddresse: "zookeepercluster-client.zookeeper:2181"
   zkPath: "/simplenifi"
   clusterImage: "apache/nifi:1.11.3"
@@ -71,7 +72,8 @@ spec:
 
 |Field|Type|Description|Required|Default|
 |-----|----|-----------|--------|--------|
-|headlessServiceEnabled|boolean| specifies if the cluster should use headlessService for Nifi or individual services using service per nodes may come an handy case of service mesh.|Yes|false|
+|service|[ServicePolicy](#servicepolicy)| defines the policy for services owned by NiFiKop operator. |No| - |
+|pod|[PodPolicy](#podpolicy)| defines the policy for pod owned by NiFiKop operator. |No| - |
 |zkAddresse|string| specifies the ZooKeeper connection string in the form hostname:port where host and port are those of a Zookeeper server.|Yes|""|
 |zkPath|string| specifies the Zookeeper chroot path as part of its Zookeeper connection string which puts its data under same path in the global ZooKeeper namespace.|Yes|"/"|
 |initContainerImage|string|  can override the default image used into the init container to check if ZoooKeeper server is reachable.. |Yes|"busybox"|
@@ -95,6 +97,20 @@ spec:
 |-----|----|-----------|--------|--------|
 |nodesState|map\[string\][NodeState](/nifikop/docs/5_references/1_nifi_cluster/5_node_state)|Store the state of each nifi node.|No| - |
 |State|[ClusterState](#clusterstate)|Store the state of each nifi node.|Yes| - |
+
+## ServicePolicy
+
+|Field|Type|Description|Required|Default|
+|-----|----|-----------|--------|--------|
+|headlessEnabled|boolean| specifies if the cluster should use headlessService for Nifi or individual services using service per nodes may come an handy case of service mesh.|Yes|false|
+|annotations|map\[string\]string|Annotations specifies the annotations to attach to services the NiFiKop operator creates|No|-|
+
+## PodPolicy
+
+|Field|Type|Description|Required|Default|
+|-----|----|-----------|--------|--------|
+|annotations|map\[string\]string|Annotations specifies the annotations to attach to pods the NiFiKop operator creates|No|-|
+
 
 ## LdapConfiguration
 

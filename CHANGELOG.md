@@ -2,11 +2,25 @@
 
 ### Added
 
+- [MR #16](https://gitlab.si.francetelecom.fr/kubernetes/nifikop/-/merge_requests/16) - Allow to override cluster domain
+- [MR #16](https://gitlab.si.francetelecom.fr/kubernetes/nifikop/-/merge_requests/16) - Support external DNS
+- [MR #16](https://gitlab.si.francetelecom.fr/kubernetes/nifikop/-/merge_requests/16) - Add `Spec.Service` field, allowing to add service's annotations.
+- [MR #16](https://gitlab.si.francetelecom.fr/kubernetes/nifikop/-/merge_requests/16) - Add `Spec.Pod` field, allowing to add pod's annotations.
+- [MR #16](https://gitlab.si.francetelecom.fr/kubernetes/nifikop/-/merge_requests/16) - Documentation & blog article about external dns and Let's encrypt usage.
+- [MR #16](https://gitlab.si.francetelecom.fr/kubernetes/nifikop/-/merge_requests/16) - Documentation on RicKaaStley deployment.
+- [MR #16](https://gitlab.si.francetelecom.fr/kubernetes/nifikop/-/merge_requests/16) - Improve test unit coverage.
+
 ### Changed
 
 - [MR #17](https://gitlab.si.francetelecom.fr/kubernetes/nifikop/-/merge_requests/17) - Upgrade dependencies
+- [MR #17](https://gitlab.si.francetelecom.fr/kubernetes/nifikop/-/merge_requests/17) - CRD generated under `apiextensions.k8s.io/v1`
+- [MR #16](https://gitlab.si.francetelecom.fr/kubernetes/nifikop/-/merge_requests/16) - Set binami zookeeper helm chart as recommended solution for 
+ZooKeeper.
+- [MR #16](https://gitlab.si.francetelecom.fr/kubernetes/nifikop/-/merge_requests/16) - Improve terraform setup for articles.
 
 ### Deprecated
+
+- [MR #16](https://gitlab.si.francetelecom.fr/kubernetes/nifikop/-/merge_requests/16) - Change `Spec.HeadlessServiceEnabled` to`Spec.Service.HeadlessEnabled`
 
 ### Removed
 

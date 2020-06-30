@@ -39,8 +39,10 @@ module.exports = {
                     "type" : "category",
                     "label": "NiFi Cluster",
                     "items"  : [
-                        "3_tasks/1_nifi_cluster/1_nodes_configuration",
+//                        "3_tasks/1_nifi_cluster/1_nodes_configuration",
                         "3_tasks/1_nifi_cluster/2_cluster_scaling",
+//                        "3_tasks/1_nifi_cluster/3_external_dns",
+
                     ]
                 },
                 {

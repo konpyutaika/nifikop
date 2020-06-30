@@ -30,7 +30,7 @@ spec:
       # Additionnals nifi.properties configuration that will override the one produced based
       # on template and configurations.
       overrideConfigs: |
-        nifi.security.user.oidc.discovery.url=https://accounts.google.com/.well-known/openid-configuration
+        nifi.security.user.oidc.discovery.url=<oidc server discovery url>
         nifi.security.user.oidc.client.id=<oidc client's id>
         nifi.security.user.oidc.client.secret=<oidc client's secret>
         nifi.security.identity.mapping.patter n.dn=CN=(.*), (?:O|OU)=.*

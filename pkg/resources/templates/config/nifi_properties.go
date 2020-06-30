@@ -2,9 +2,10 @@ package config
 
 import (
 	"fmt"
+
 	"github.com/go-logr/logr"
 	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/apis/nifi/v1alpha1"
-	templates "gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/resources/templates"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/util/nifi"
 )
 
 var NifiPropertiesTemplate = `# Licensed to the Apache Software Foundation (ASF) under one or more
@@ -243,47 +244,50 @@ nifi.variable.registry.properties=
 `
 
 //
-func GenerateListenerSpecificConfig(l *v1alpha1.ListenersConfig, id int32, namespace, crName string, headlessServiceEnabled bool, log logr.Logger) string {
-	var nifiConfig string
+func GenerateListenerSpecificConfig(
+	l *v1alpha1.ListenersConfig,
+	nodeId int32,
+	namespace,
+	crName string,
+	headlessServiceEnabled bool,
+	clusterDomain string,
+	useExternalDNS bool,
+	log logr.Logger) string {
 
-	var hostListener string
+		var nifiConfig string
 
-	if headlessServiceEnabled {
-		hostListener = fmt.Sprintf("%s.%s-headless.%s.svc.cluster.local", fmt.Sprintf(templates.NodeNameTemplate,crName, id), crName, namespace)
-	} else {
-		hostListener = fmt.Sprintf("%s.%s.svc.cluster.local", fmt.Sprintf(templates.NodeNameTemplate,crName, id), namespace)
-	}
+		hostListener := nifi.ComputeNodeHostname(nodeId, crName, namespace, headlessServiceEnabled, clusterDomain, useExternalDNS)
 
-	clusterPortConfig 	:= "nifi.cluster.node.protocol.port=\n"
-	httpPortConfig 		:= "nifi.web.http.port=\n"
-	httpHostConfig 		:= "nifi.web.http.host=\n"
-	httpsPortConfig 	:= "nifi.web.https.port=\n"
-	httpsHostConfig 	:= "nifi.web.https.host=\n"
-	s2sPortConfig 		:= "nifi.remote.input.socket.port=\n"
+		clusterPortConfig 	:= "nifi.cluster.node.protocol.port=\n"
+		httpPortConfig 		:= "nifi.web.http.port=\n"
+		httpHostConfig 		:= "nifi.web.http.host=\n"
+		httpsPortConfig 	:= "nifi.web.https.port=\n"
+		httpsHostConfig 	:= "nifi.web.https.host=\n"
+		s2sPortConfig 		:= "nifi.remote.input.socket.port=\n"
 
-	for _, iListener := range l.InternalListeners {
-		switch iListener.Type {
-		case v1alpha1.ClusterListenerType:
-			clusterPortConfig = fmt.Sprintf("nifi.cluster.node.protocol.port=%d", iListener.ContainerPort) + "\n"
-		case v1alpha1.HttpListenerType:
-			httpPortConfig = fmt.Sprintf("nifi.web.http.port=%d", iListener.ContainerPort) + "\n"
-			httpHostConfig = fmt.Sprintf("nifi.web.http.host=%s", hostListener) + "\n"
-		case v1alpha1.HttpsListenerType:
-			httpsPortConfig = fmt.Sprintf("nifi.web.https.port=%d", iListener.ContainerPort) + "\n"
-			httpsHostConfig = fmt.Sprintf("nifi.web.https.host=%s", hostListener) + "\n"
-		case v1alpha1.S2sListenerType:
-			s2sPortConfig = fmt.Sprintf("nifi.remote.input.socket.port=%d", iListener.ContainerPort) + "\n"
+		for _, iListener := range l.InternalListeners {
+			switch iListener.Type {
+			case v1alpha1.ClusterListenerType:
+				clusterPortConfig = fmt.Sprintf("nifi.cluster.node.protocol.port=%d", iListener.ContainerPort) + "\n"
+			case v1alpha1.HttpListenerType:
+				httpPortConfig = fmt.Sprintf("nifi.web.http.port=%d", iListener.ContainerPort) + "\n"
+				httpHostConfig = fmt.Sprintf("nifi.web.http.host=%s", hostListener) + "\n"
+			case v1alpha1.HttpsListenerType:
+				httpsPortConfig = fmt.Sprintf("nifi.web.https.port=%d", iListener.ContainerPort) + "\n"
+				httpsHostConfig = fmt.Sprintf("nifi.web.https.host=%s", hostListener) + "\n"
+			case v1alpha1.S2sListenerType:
+				s2sPortConfig = fmt.Sprintf("nifi.remote.input.socket.port=%d", iListener.ContainerPort) + "\n"
+			}
 		}
-	}
-	nifiConfig = nifiConfig +
-		clusterPortConfig +
-		httpPortConfig +
-		httpHostConfig +
-		httpsPortConfig +
-		httpsHostConfig +
-		s2sPortConfig
+		nifiConfig = nifiConfig +
+			clusterPortConfig +
+			httpPortConfig +
+			httpHostConfig +
+			httpsPortConfig +
+			httpsHostConfig +
+			s2sPortConfig
 
-	nifiConfig = nifiConfig + fmt.Sprintf("nifi.remote.input.host=%s", hostListener) + "\n"
-	nifiConfig = nifiConfig + fmt.Sprintf("nifi.cluster.node.address=%s", hostListener) + "\n"
-	return nifiConfig
+		nifiConfig = nifiConfig + fmt.Sprintf("nifi.remote.input.host=%s", hostListener) + "\n"
+		nifiConfig = nifiConfig + fmt.Sprintf("nifi.cluster.node.address=%s", hostListener) + "\n"
+		return nifiConfig
 }

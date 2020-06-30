@@ -113,6 +113,15 @@ func EnsureSecretJKS(secret *corev1.Secret) (injected *corev1.Secret, err error)
 // GenerateJKS creates a JKS with a random password from a client cert/key combination
 func GenerateJKS(clientCert, clientKey, clientCA []byte) (out, passw []byte, err error) {
 
+	if len(clientCA) == 0 {
+		certs := strings.SplitAfter(string(clientCert),"-----END CERTIFICATE-----")
+		clientCert = []byte(certs[0])
+		clientCA   = []byte(certs[len(certs)-1])
+		if len(certs) == 3 {
+			clientCA   = []byte(certs[len(certs)-2])
+		}
+	}
+
 	cert, err := DecodeCertificate(clientCert)
 	if err != nil {
 		return
@@ -143,6 +152,7 @@ func GenerateJKS(clientCert, clientKey, clientCA []byte) (out, passw []byte, err
 		},
 	}
 
+
 	jks["trusted_ca"] = &keystore.TrustedCertificateEntry{
 		Entry: keystore.Entry{
 			CreationDate: time.Now(),
@@ -152,6 +162,7 @@ func GenerateJKS(clientCert, clientKey, clientCA []byte) (out, passw []byte, err
 			Content: ca.Raw,
 		},
 	}
+
 
 	var outBuf bytes.Buffer
 	passw = GeneratePass(16)

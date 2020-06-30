@@ -18,9 +18,10 @@ func (r *Reconciler) headlessService() runtime.Object {
 	usedPorts = append(usedPorts, r.generateDefaultServicePort()...)
 
 	return &corev1.Service{
-		ObjectMeta: templates.ObjectMeta(
+		ObjectMeta: templates.ObjectMetaWithAnnotations(
 			fmt.Sprintf(nifiutils.HeadlessServiceTemplate, r.NifiCluster.Name),
 			util.MergeLabels(LabelsForNifi(r.NifiCluster.Name), r.NifiCluster.Labels),
+			r.NifiCluster.Spec.Service.Annotations,
 			r.NifiCluster,
 		),
 		Spec: corev1.ServiceSpec{
