@@ -22,7 +22,7 @@
 
 # NiFiKop
 
-You can access to the full documentation on the [NiFiKop Documentation website](https://kubernetes.pages.gitlab.si.francetelecom.fr/nifikop/)
+You can access to the full documentation on the [NiFiKop Documentation](https://kubernetes.pages.gitlab.si.francetelecom.fr/nifikop/)
 
 The Orange NiFi operator is a Kubernetes operator to automate provisioning, management, autoscaling and operations of [Apache NiFi](https://nifi.apache.org/) clusters deployed to K8s.
 
@@ -55,95 +55,17 @@ There are already some approaches to operating NiFi on Kubernetes, however, we d
 
 Finally, our motivation is to build an open source solution and a community which drives the innovation and features of this operator.
 
-
 ## Installation
 
-The operator installs the 1.11.2 version of Apache NiFi, and can run on Minikube v0.33.1+ and Kubernetes 1.12.0+.
-
-> The operator supports NiFi 1.11.0+
-
-As a pre-requisite it needs a Kubernetes cluster. Also, NiFi requires Zookeeper so you need to first have a Zookeeper cluster if you don't already have one.
-
-> We believe in the `separation of concerns` principle, thus the NiFi operator does not install nor manage Zookeeper.
-
-### Install Zookeeper
-
-To install Zookeeper we recommend using the [Pravega's Zookeeper Operator](https://github.com/pravega/zookeeper-operator/tree/master/charts/zookeeper-operator).
-You can deploy Zookeeper by using the Helm chart.
-
-```bash
-helm repo add banzaicloud-stable https://kubernetes-charts.banzaicloud.com/
-# Using helm3
-# You have to create the namespace before executing following command
-helm install zookeeper-operator --namespace=zookeeper banzaicloud-stable/zookeeper-operator
-# Using previous versions of helm
-helm install --name zookeeper-operator --namespace=zookeeper banzaicloud-stable/zookeeper-operator
-kubectl create --namespace zookeeper -f - <<EOF
-apiVersion: zookeeper.pravega.io/v1beta1
-kind: ZookeeperCluster
-metadata:
-  name: zookeepercluster
-  namespace: zookeeper
-spec:
-  replicas: 3
-EOF
-```
-
-### Installation
-
-We recommend to use a **custom StorageClass** to leverage the volume binding mode `WaitForFirstConsumer`
-
-```bash
-apiVersion: storage.k8s.io/v1
-kind: StorageClass
-metadata:
-  name: exampleStorageclass
-parameters:
-  type: pd-standard
-provisioner: kubernetes.io/gce-pd
-reclaimPolicy: Delete
-volumeBindingMode: WaitForFirstConsumer
-```
-> Remember to set your NiFiCluster CR properly to use the newly created StorageClass.
-
-1. Set `KUBECONFIG` pointing towards your cluster
-2. Run `make deploy` (deploys the operator in the current namespace into the cluster)
-3. Set your NiFi configurations in a Kubernetes custom resource (sample: `config/samples/simplenificluster.yaml`) and run this command to deploy the NiFi components:
-
-```bash
-# Add your zookeeper svc name to the configuration
-kubectl create -n nifi -f config/samples/simplenificluster.yaml
-```
-
-### Easy way: installing with Helm
-
-Alternatively, if you are using Helm, you can deploy the operator using a [Helm chart](helm/)
-<!-- [Helm chart](https://gitlab.si.francetelecom.fr/kubernetes/nifikop/tree/master/helm) -->
-
-> To install the an other version of the operator use `helm install --name=nifikop --namespace=nifi --set operator.image.tag=x.y.z orange-incubator/nifikop`
-
-```bash
-helm repo add orange-incubator https://orange-kubernetes-charts-incubator.storage.googleapis.com/
-
-# Using helm3
-# You have to create the namespace before executing following command
-helm install nifikop --namespace=nifi orange-incubator/nifikop
-# Using previous versions of helm
-helm install --name=nifikop --namespace=nifi orange-incubator/nifikop
-
-# Add your zookeeper svc name to the configuration
-kubectl create -n nifi -f config/samples/simplenificluster.yaml
-```
-
-## Test Your Deployment
+To get up and running quickly, check our [Getting Started page](https://kubernetes.pages.gitlab.si.francetelecom.fr/nifikop/docs/2_setup/1_getting_started)
 
 ## Development
 
-Checkout out the [developer docs](https://kubernetes.pages.gitlab.si.francetelecom.fr/nifikop/docs/6_contributing/1_developer_guide)
+Checkout out the [Developer page](https://kubernetes.pages.gitlab.si.francetelecom.fr/nifikop/docs/6_contributing/1_developer_guide)
 
 ## Features
 
-Check out the [supported features](https://kubernetes.pages.gitlab.si.francetelecom.fr/nifikop/docs/1_concepts/3_features)
+Check out the [Supported Features Page](https://kubernetes.pages.gitlab.si.francetelecom.fr/nifikop/docs/1_concepts/3_features)
 
 ## Issues, feature requests and roadmap
 
@@ -178,7 +100,7 @@ If you find this project useful, help us:
 
 ## License
 
-Copyright (c) 2019 [Orange, Inc.](https://opensource.orange.com)
+Copyright (c) 2020 [Orange, Inc.](https://opensource.orange.com)
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

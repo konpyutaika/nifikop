@@ -1,4 +1,19 @@
+# Copyright 2020 Orange SA
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.package apis
+
 #https://github.com/CircleCI-Public/circleci-dockerfiles/blob/master/golang/images/1.12.4/Dockerfile
+# FROM golang:1.14
 FROM registry.gitlab.si.francetelecom.fr/aguitton/go-build:1.14
 
 # Make Apt non-interactive
@@ -79,8 +94,8 @@ RUN curl -L https://storage.googleapis.com/kubernetes-helm/helm-v2.12.2-linux-am
 ARG OPERATOR_SDK_VERSION
 RUN mkdir -p $GOPATH/src/github.com/operator-framework \
     && mkdir -p $GOPATH/src/gitlab.si.francetelecom.fr/kubernetes/nifikop \
-##    && go get -u github.com/operator-framework/operator-sdk || true \
-    && go get -d github.com/erdrix/operator-sdk || true \
+    && go get -u github.com/operator-framework/operator-sdk || true \
+##    && go get -d github.com/erdrix/operator-sdk || true \
     && mv $GOPATH/src/github.com/erdrix/operator-sdk $GOPATH/src/github.com/operator-framework/operator-sdk \
     && cd $GOPATH/src/github.com/operator-framework/operator-sdk \
     && git checkout $OPERATOR_SDK_VERSION \
