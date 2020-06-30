@@ -3,14 +3,15 @@ kind: NifiCluster
 metadata:
   name: sslnifi
 spec:
-  headlessServiceEnabled: true
-  zkAddresse: "zookeepercluster-client.zookeeper:2181"
+  service:
+    headlessEnabled: true
+  zkAddresse: "zookeeper.zookeeper:2181"
   zkPath: "/ssllnifi"
   clusterImage: "apache/nifi:1.11.4"
   clusterSecure: true
   siteToSiteSecure: true
   oneNifiNodePerNode: false
-  initialAdminUser: aguitton.ext@orange.com
+  initialAdminUser: alexandre.guitton@orange.com
   propagateLabels: true
   nifiClusterTaskSpec:
     retryDurationMinutes: 10
@@ -114,5 +115,4 @@ spec:
         containerPort: 10000
     sslSecrets:
       tlsSecretName: "test-nifikop"
-      jksPasswordName: "test-nifikop-pass"
       create: true

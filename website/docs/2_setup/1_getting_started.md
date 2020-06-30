@@ -6,7 +6,7 @@ sidebar_label: Getting Started
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-The operator installs the 1.11.2 version of Apache NiFi, and can run on Minikube v0.33.1+ and Kubernetes 1.12.0+.
+The operator installs the 1.11.4 version of Apache NiFi, and can run on Minikube v0.33.1+ and Kubernetes 1.12.0+.
 
 :::info
 The operator supports NiFi 1.11.0+
@@ -20,58 +20,27 @@ As a pre-requisite it needs a Kubernetes cluster. Also, NiFi requires Zookeeper 
 
 ### Install Zookeeper
 
-To install Zookeeper we recommend using the [Pravega's Zookeeper Operator](https://github.com/pravega/zookeeper-operator).
-You can deploy Zookeeper by using the Helm chart.
+To install Zookeeper we recommend using the [Bitnami's Zookeeper chart](https://github.com/bitnami/charts/tree/master/bitnami/zookeeper).
 
 ```bash
-helm repo add banzaicloud-stable https://kubernetes-charts.banzaicloud.com/
+helm repo add bitnami https://charts.bitnami.com/bitnami
 ```
-
-<Tabs
-  defaultValue="helm3"
-  values={[
-    { label: 'helm 3', value: 'helm3', },
-    { label: 'helm previous', value: 'helm', },
-  ]
-}>
-<TabItem value="helm3">
 
 ```bash
 # You have to create the namespace before executing following command
-helm install zookeeper-operator \
-    --namespace=zookeeper \
-    banzaicloud-stable/zookeeper-operator
-```
-
-</TabItem>
-<TabItem value="helm">
-
-```bash
-helm install --name zookeeper-operator \
-    --namespace=zookeeper \
-    banzaicloud-stable/zookeeper-operator
-```
-</TabItem>
-</Tabs>
-
-And after you can deploy a simple cluster, for example with three nodes.
-
-```bash
-kubectl create --namespace zookeeper -f - <<EOF
-apiVersion: zookeeper.pravega.io/v1beta1
-kind: ZookeeperCluster
-metadata:
-  name: zookeepercluster
-  namespace: zookeeper
-spec:
-  replicas: 3
-EOF
+helm install nifikop-zk bitnami/zookeeper \
+    --set resources.requests.memory=256Mi \
+    --set resources.requests.cpu=250m \
+    --set resources.limits.memory=256Mi \
+    --set resources.limits.cpu=250m \
+    --set global.storageClass=local-storage \
+    --set networkPolicy.enabled=true \
+    --set replicaCount=3 
 ```
 
 ### Install cert-manager
 
 The NiFiKop operator uses `cert-manager` for issuing certificates to users and and nodes, so you'll need to have it setup in case you want to deploy a secured cluster with authentication enabled.
-
 
 <Tabs
   defaultValue="directly"
@@ -86,7 +55,7 @@ The NiFiKop operator uses `cert-manager` for issuing certificates to users and a
 ```bash
 # Install the CustomResourceDefinitions and cert-manager itself
 kubectl apply -f \
-    https://github.com/jetstack/cert-manager/releases/download/v0.11.0/cert-manager.yaml
+    https://github.com/jetstack/cert-manager/releases/download/v0.15.1/cert-manager.yaml
 ```
 </TabItem>
 <TabItem value="helm3">
@@ -94,7 +63,7 @@ kubectl apply -f \
 ```bash
 # Install CustomResourceDefinitions first
 kubectl apply --validate=false -f \
-    https://raw.githubusercontent.com/jetstack/cert-manager/release-0.11/deploy/manifests/00-crds.yaml
+   https://github.com/jetstack/cert-manager/releases/download/v0.15.1/cert-manager.crds.yaml
 
 # Add the jetstack helm repo
 helm repo add jetstack https://charts.jetstack.io
@@ -103,7 +72,7 @@ helm repo update
 # You have to create the namespace before executing following command
 helm install cert-manager \
     --namespace cert-manager \
-    --version v0.11.0 jetstack/cert-manager
+    --version v0.15.1 jetstack/cert-manager
 ```
 
 </TabItem>
@@ -112,7 +81,7 @@ helm install cert-manager \
 ```bash
 # Install CustomResourceDefinitions first
 kubectl apply --validate=false -f \
-    https://raw.githubusercontent.com/jetstack/cert-manager/release-0.11/deploy/manifests/00-crds.yaml
+    https://github.com/jetstack/cert-manager/releases/download/v0.15.1/cert-manager.crds.yaml
 
 # Add the jetstack helm repo
 helm repo add jetstack https://charts.jetstack.io
@@ -121,7 +90,7 @@ helm repo update
 # Using previous versions of helm
 helm install --name cert-manager \
     --namespace cert-manager \
-    --version v0.11.0 \
+    --version v0.15.1 \
     jetstack/cert-manager
 ```
 </TabItem>
@@ -179,6 +148,7 @@ helm repo add orange-incubator https://orange-kubernetes-charts-incubator.storag
 ```bash
 # You have to create the namespace before executing following command
 kubectl apply -f https://raw.githubusercontent.com/erdrix/nifikop/master/deploy/crds/nifi.orange.com_nificlusters_crd.yaml
+kubectl apply -f https://raw.githubusercontent.com/erdrix/nifikop/master/deploy/crds/nifi.orange.com_nifiusers_crd.yaml
 helm install nifikop --namespace=nifi orange-incubator/nifikop
 ```
 

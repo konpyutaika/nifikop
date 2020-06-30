@@ -78,7 +78,7 @@ func (n *nifiClient) Build() error {
 	return nil
 }
 
-// NewFromCluster is a convinience wrapper around New() and ClusterConfig()
+// NewFromCluster is a convenient wrapper around New() and ClusterConfig()
 func NewFromCluster(k8sclient client.Client, cluster *v1alpha1.NifiCluster) (NifiClient, error) {
 	var client NifiClient
 	var err error

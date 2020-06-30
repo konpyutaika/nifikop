@@ -3,6 +3,7 @@ module gitlab.si.francetelecom.fr/kubernetes/nifikop
 go 1.14
 
 require (
+	github.com/jarcoal/httpmock v1.0.4
 	emperror.dev/errors v0.4.2
 	github.com/antchfx/xmlquery v1.2.4
 	github.com/antihax/optional v1.0.0
@@ -11,12 +12,13 @@ require (
 	github.com/go-logr/logr v0.1.0
 	github.com/go-openapi/spec v0.19.4
 	github.com/imdario/mergo v0.3.8
-	github.com/jetstack/cert-manager v0.11.0
+	github.com/jetstack/cert-manager v0.15.1
 	github.com/openshift/origin v0.0.0-20160503220234-8f127d736703
 	github.com/operator-framework/operator-sdk v0.18.1
 	github.com/pavel-v-chernykh/keystore-go v2.1.0+incompatible
 	github.com/sirupsen/logrus v1.5.0
 	github.com/spf13/pflag v1.0.5
+	github.com/stretchr/testify v1.5.1
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	k8s.io/api v0.18.2
 	k8s.io/apimachinery v0.18.2
@@ -26,7 +28,7 @@ require (
 	sigs.k8s.io/testing_frameworks v0.1.2 // indirect
 )
 
-// Pinned to kubernetes-1.16.2
+
 replace (
 	github.com/Azure/go-autorest => github.com/Azure/go-autorest v13.3.2+incompatible // Required by OLM
 	k8s.io/api => k8s.io/api v0.18.2

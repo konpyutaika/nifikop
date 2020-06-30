@@ -112,7 +112,15 @@ func (r *Reconciler) getNifiPropertiesConfigString(nConfig *v1alpha1.NodeConfig,
 	if err := t.Execute(&out, map[string]interface{}{
 		"NifiCluster":				r.NifiCluster,
 		"Id": 						id,
-		"ListenerConfig":			config.GenerateListenerSpecificConfig(&r.NifiCluster.Spec.ListenersConfig, id, r.NifiCluster.Namespace, r.NifiCluster.Name, r.NifiCluster.Spec.HeadlessServiceEnabled, log),
+		"ListenerConfig":			config.GenerateListenerSpecificConfig(
+			&r.NifiCluster.Spec.ListenersConfig,
+			id,
+			r.NifiCluster.Namespace,
+			r.NifiCluster.Name,
+			r.NifiCluster.Spec.Service.HeadlessEnabled,
+			r.NifiCluster.Spec.ListenersConfig.GetClusterDomain(),
+			r.NifiCluster.Spec.ListenersConfig.UseExternalDNS,
+			log),
 		"ProvenanceStorage":		nConfig.GetProvenanceStorage(),
 		"SiteToSiteSecure": 		r.NifiCluster.Spec.SiteToSiteSecure,
 		"ClusterSecure":			r.NifiCluster.Spec.ClusterSecure,
@@ -300,7 +308,7 @@ func (r *Reconciler) getAuthorizersConfigString(nConfig *v1alpha1.NodeConfig, id
 		authorizersTemplate = config.AuthorizersTemplate
 		for nId, nodeState := range r.NifiCluster.Status.NodesState {
 			if nodeState.InitClusterNode {
-				nodeList[nId] =  utilpki.GetNodeUserName(r.NifiCluster, util.ConvertStringToInt32(nId))
+				nodeList[nId] = utilpki.GetNodeUserName(r.NifiCluster, util.ConvertStringToInt32(nId))
 			}
 		}
 	}

@@ -18,19 +18,21 @@ func (n *nifiClient) DescribeCluster() (*nigoapi.ClusterEntity, error) {
 	}
 
 	clusterEntry, rsp, err := client.ControllerApi.GetCluster(nil)
-	if err != nil {
-		log.Error(err, "Error during talking to nifi node")
-		return nil, err
-	}
-	if rsp.StatusCode == 404 {
+	if rsp != nil && rsp.StatusCode == 404 {
 		log.Error(errors.New("404 response from nifi node: "+rsp.Status), "Error during talking to nifi node")
 		return nil, ErrNifiClusterReturned404
 	}
 
-	if rsp.StatusCode != 200 {
+	if rsp != nil && rsp.StatusCode != 200 {
 		log.Error(errors.New("Non 200 response from nifi node: "+rsp.Status), "Error during talking to nifi node")
 		return nil, errors.New("Non 200 response from nifi node: " + rsp.Status)
 	}
+
+	if err != nil || rsp == nil  {
+		log.Error(err, "Error during talking to nifi node")
+		return nil, err
+	}
+
 
 	return &clusterEntry, nil
 }
@@ -52,14 +54,15 @@ func (n *nifiClient) GetClusterNode(nId int32)(*nigoapi.NodeEntity, error) {
 
 	// Request on Nifi Rest API to get the node information
 	nodeEntity, rsp, err := client.ControllerApi.GetNode(nil, targetedNode.NodeId)
-	if err != nil {
-		log.Error(err, "Error during talking to nifi node")
-		return nil, err
-	}
 
-	if rsp.StatusCode != 200 {
+	if rsp != nil && rsp.StatusCode != 200 {
 		log.Error(errors.New("Non 200 response from nifi node: "+rsp.Status), "Error during talking to nifi node")
 		return nil, ErrNifiClusterNotReturned200
+	}
+
+	if err != nil || rsp == nil {
+		log.Error(err, "Error during talking to nifi node")
+		return nil, err
 	}
 
 	return &nodeEntity, nil
@@ -130,6 +133,7 @@ func (n *nifiClient) setClusterNodeStatus(nId int32, status, expectedActionStatu
 	}
 
 	// Check if the targeted node is still in expected status
+	// TODO : ensure it may not leads to inconsistent situations
 	if targetedNode.Status == string(expectedActionStatus) ||
 		targetedNode.Status == string(status) {
 
@@ -149,14 +153,15 @@ func (n *nifiClient) setClusterNodeStatus(nId int32, status, expectedActionStatu
 
 	// Request on Nifi Rest API to update the node status
 	nodeEntity, rsp, err := client.ControllerApi.UpdateNode(nil, targetedNode.NodeId, nigoapi.NodeEntity{Node: targetedNode})
+
+	if rsp != nil && rsp.StatusCode != 200 && rsp.StatusCode != 202 {
+		log.Error(err, fmt.Sprintf("%s cluster gracefully failed since Nifi node returned non 200", string(status)))
+		return nil, ErrNifiClusterNotReturned200
+	}
+
 	if err != nil || rsp == nil {
 		log.Error(err, "Could not communicate with nifi node")
 		return nil , err
-	}
-
-	if rsp.StatusCode != 200 && rsp.StatusCode != 202 {
-		log.Error(err, fmt.Sprintf("%s cluster gracefully failed since Nifi node returned non 200", string(status)))
-		return nil, ErrNifiClusterNotReturned200
 	}
 
 	n.setNodeFromNodes(nodeEntity.Node)
@@ -168,6 +173,7 @@ func setClusterNodeStatusReturn(nodeEntity *nigoapi.NodeEntity, err error, messa
 		log.Error(err, messageError)
 		return nil , err
 	}
+
 	if err == ErrNifiClusterNotReturned200 {
 		log.Error(err, "Could not communicate with nifi node")
 		return nil, err
@@ -177,19 +183,20 @@ func setClusterNodeStatusReturn(nodeEntity *nigoapi.NodeEntity, err error, messa
 }
 
 func removeClusterNodeStatusReturn( rsp *http.Response, err error) error {
+
 	if rsp != nil && rsp.StatusCode == 404 {
 		log.Error(errors.New("404 response from nifi node: "+rsp.Status), "No node to remove found")
 		return nil
 	}
 
+	if rsp != nil && rsp.StatusCode != 200 {
+		log.Error(errors.New("Non 200 response from nifi node: "+rsp.Status), "Error during talking to nifi node")
+		return ErrNifiClusterNotReturned200
+	}
+
 	if err != nil || rsp == nil {
 		log.Error(err, "Error during talking to nifi node")
 		return err
-	}
-
-	if rsp.StatusCode != 200 {
-		log.Error(errors.New("Non 200 response from nifi node: "+rsp.Status), "Error during talking to nifi node")
-		return ErrNifiClusterNotReturned200
 	}
 
 	return nil

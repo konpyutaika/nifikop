@@ -5,27 +5,35 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/go-logr/logr"
 	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/apis/nifi/v1alpha1"
-	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/nificlient"
 	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/resources/templates"
 	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/util"
-	nifiutils "gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/util/nifi"
+	nifiutil "gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/util/nifi"
 	pkicommon "gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/util/pki"
 	zk "gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/util/zookeeper"
-	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
 const(
-	livenessInitialDelaySeconds int32 = 90
-	livenessHealthCheckTimeout  int32 = 20
-	livenessHealthCheckPeriod   int32 = 60
+	livenessInitialDelaySeconds    int32 = 90
+	livenessHealthCheckTimeout     int32 = 20
+	livenessHealthCheckPeriod      int32 = 60
+	livenessHealthCheckThreshold   int32 = 5
 
-	readinessInitialDelaySeconds int32 = 60
-	readinessHealthCheckTimeout  int32 = 10
-	readinessHealthCheckPeriod   int32 = 20
+	readinessInitialDelaySeconds  int32 = 60
+	readinessHealthCheckTimeout   int32 = 10
+	readinessHealthCheckPeriod    int32 = 20
+	readinessHealthCheckThreshold int32 = 5
+
+	// InitContainer resources
+	defaultInitContainerLimitsCPU       = "0.5"
+	defaultInitContainerLimitsMemory    = "0.5Gi"
+	defaultInitContainerRequestsCPU     = "0.5"
+	defaultInitContainerRequestsMemory  = "0.5Gi"
 
 	ContainerName string = "nifi"
 )
@@ -113,14 +121,14 @@ func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev
 	}
 
 	requestClusterStatus :=  fmt.Sprintf("curl --fail -v http://%s/nifi-api/controller/cluster > $NIFI_BASE_DIR/cluster.state",
-		nificlient.GenerateNifiAddress(r.NifiCluster))
+		nifiutil.GenerateNiFiAddressFromCluster(r.NifiCluster))
 
 	if r.NifiCluster.Spec.ListenersConfig.SSLSecrets != nil &&
 		r.NifiCluster.Spec.ClusterSecure &&
 		r.NifiCluster.Spec.SiteToSiteSecure {
 		requestClusterStatus = fmt.Sprintf(
 			"curl --fail -kv --cert /var/run/secrets/java.io/keystores/client/tls.crt --key /var/run/secrets/java.io/keystores/client/tls.key https://%s/nifi-api/controller/cluster > $NIFI_BASE_DIR/cluster.state",
-			nificlient.GenerateNifiAddress(r.NifiCluster))
+			nifiutil.GenerateNiFiAddressFromCluster(r.NifiCluster))
 	}
 
 	removesFileAction := fmt.Sprintf(`if %s; then
@@ -129,9 +137,9 @@ func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev
 	echo "state $STATUS"
 	if [[ -z "$STATUS" ]]; then 
 		echo "Removing previous exec setup"
-		rm -f
-
-$NIFI_BASE_DIR/data/users.xml $NIFI_BASE_DIR/data/authorizations.xml $NIFI_BASE_DIR/data/flow.xml.gz
+		if [ -f "$NIFI_BASE_DIR/data/users.xml" ]; then rm -f $NIFI_BASE_DIR/data/users.xml; fi
+		if [ -f "$NIFI_BASE_DIR/data/authorizations.xml" ]; then rm -f  $NIFI_BASE_DIR/data/authorizations.xml; fi
+		if [ -f " $NIFI_BASE_DIR/data/flow.xml.gz" ]; then rm -f  $NIFI_BASE_DIR/data/flow.xml.gz; fi
 	fi
 %s
 fi
@@ -140,18 +148,38 @@ rm -f $NIFI_BASE_DIR/cluster.state `,
 	"STATUS=$(jq -r \".cluster.nodes[] | select(.address==\\\"$(hostname -f)\\\") | .status\" $NIFI_BASE_DIR/cluster.state)",
 	failCondition)
 
+	nodeAddress := nifiutil.ComputeNodeAddress(
+		id, r.NifiCluster.Name, r.NifiCluster.Namespace, r.NifiCluster.Spec.Service.HeadlessEnabled,
+		r.NifiCluster.Spec.ListenersConfig.GetClusterDomain(), r.NifiCluster.Spec.ListenersConfig.UseExternalDNS,
+		r.NifiCluster.Spec.ListenersConfig.InternalListeners)
 
 	command := []string{"bash", "-ce", fmt.Sprintf(`cp ${NIFI_HOME}/tmp/* ${NIFI_HOME}/conf/
+echo "Waiting for host to be reachable"
+notMatchedIp=true
+while $notMatchedIp
+do
+	echo "failed to reach %s"
+	echo "Found: $ipResolved, expecting: $POD_IP"
+    sleep 5
+
+	ipResolved=$(wget --tries=1 -T 1 -O /dev/null %s  2>&1 | sed -n 3p| awk '{split($0,a,"|"); print a[2] }')
+	echo "Found : $ipResolved"
+    if [[ "$ipResolved" == "$POD_IP" ]]; then
+		echo Ip match for $POD_IP
+		notMatchedIp=false
+	fi
+done
+echo "Hostname is successfully binded withy IP adress"
 %s
-exec bin/nifi.sh run`, removesFileAction)}
+exec bin/nifi.sh run`, nodeAddress, nodeAddress, removesFileAction)}
 
 // curl -kv --cert /var/run/secrets/java.io/keystores/client/tls.crt --key /var/run/secrets/java.io/keystores/client/tls.key https://nifi.trycatchlearn.fr:8433/nifi
-// curl -kv --cert /var/run/secrets/java.io/keystores/client/tls.crt --key /var/run/secrets/java.io/keystores/client/tls.key https://securednificluster-headless.nifi.svc.cluster.local:8443/nifi-api/controller/cluster
+// curl -kv --cert /var/run/secrets/java.io/keystores/client/tls.crt --key /var/run/secrets/java.io/keystores/client/tls.key https://securenc-headless.external-dns-test.gcp.trycatchlearn.fr:8443/nifi-api/controller/cluster
 // keytool -import -noprompt -keystore /home/nifi/truststore.jks -file /var/run/secrets/java.io/keystores/server/ca.crt -storepass $(cat /var/run/secrets/java.io/keystores/server/password) -alias test1
 	pod := &corev1.Pod{
 		//ObjectMeta: templates.ObjectMetaWithAnnotations(
 		ObjectMeta: templates.ObjectMetaWithGeneratedNameAndAnnotations(
-			fmt.Sprintf(templates.NodeNameTemplate, r.NifiCluster.Name, id),
+			nifiutil.ComputeNodeName(id, r.NifiCluster.Name),
 			util.MergeLabels(
 				LabelsForNifi(r.NifiCluster.Name),
 				map[string]string{"nodeId": fmt.Sprintf("%d", id)},
@@ -159,6 +187,7 @@ exec bin/nifi.sh run`, removesFileAction)}
 			util.MergeAnnotations(
 				nodeConfig.GetNodeAnnotations(),
 				util.MonitoringAnnotations(v1alpha1.MetricsPort),
+				r.NifiCluster.Spec.Pod.Annotations,
 			), r.NifiCluster,
 		),
 		Spec: corev1.PodSpec{
@@ -169,15 +198,17 @@ exec bin/nifi.sh run`, removesFileAction)}
 			},
 			InitContainers: append(initContainers, []corev1.Container{
 				{
-					Name: 		"zookeeper",
-					Image:		r.NifiCluster.Spec.GetInitContainerImage(),
+					Name: 		     "zookeeper",
+					Image:		     r.NifiCluster.Spec.GetInitContainerImage(),
 					ImagePullPolicy: nodeConfig.GetImagePullPolicy(),
-					Command: 	[]string{"sh", "-c",fmt.Sprintf(`
-						echo trying to contact %s
-						until nc -vzw 1 %s %s; do
-						echo "waiting for zookeeper..."
-						sleep 2
-						done`, zkAddresse, zkHostname, zkPort)},
+					Command: 	     []string{"sh", "-c",fmt.Sprintf(`
+echo trying to contact Zookeeper: %s
+until nc -vzw 1 %s %s; do
+	echo "waiting for zookeeper..."
+	sleep 2
+done`,
+						zkAddresse, zkHostname, zkPort)},
+					Resources:       generateInitContainerResources(),
 				},
 			}...),
 			Affinity: &corev1.Affinity{
@@ -212,6 +243,7 @@ exec bin/nifi.sh run`, removesFileAction)}
 						InitialDelaySeconds: readinessInitialDelaySeconds,
 						TimeoutSeconds:      readinessHealthCheckTimeout,
 						PeriodSeconds:       readinessHealthCheckPeriod,
+						FailureThreshold:    readinessHealthCheckThreshold,
 						Handler: corev1.Handler{
 							/*HTTPGet: &corev1.HTTPGetAction{
 								Path: "/nifi-api",
@@ -232,6 +264,7 @@ exec bin/nifi.sh run`, removesFileAction)}
 						InitialDelaySeconds: livenessInitialDelaySeconds,
 						TimeoutSeconds:      livenessHealthCheckTimeout,
 						PeriodSeconds:       livenessHealthCheckPeriod,
+						FailureThreshold:    livenessHealthCheckThreshold,
 						Handler: corev1.Handler{
 							TCPSocket: &corev1.TCPSocketAction{
 								Port: *util.IntstrPointer(int(GetServerPort(&r.NifiCluster.Spec.ListenersConfig))),
@@ -242,6 +275,15 @@ exec bin/nifi.sh run`, removesFileAction)}
 						{
 							Name: "NIFI_ZOOKEEPER_CONNECT_STRING",
 							Value: zkAddresse,
+						},
+						{
+							Name: "POD_IP",
+							ValueFrom: &corev1.EnvVarSource{
+								FieldRef: &corev1.ObjectFieldSelector{
+									APIVersion: "v1",
+									FieldPath:  "status.podIP",
+								},
+							},
 						},
 					},
 					Command: command,
@@ -263,9 +305,9 @@ exec bin/nifi.sh run`, removesFileAction)}
 		},
 	}
 
-	if r.NifiCluster.Spec.HeadlessServiceEnabled {
-		pod.Spec.Hostname	= fmt.Sprintf(templates.NodeNameTemplate, r.NifiCluster.Name, id)
-		pod.Spec.Subdomain	= fmt.Sprintf(nifiutils.HeadlessServiceTemplate, r.NifiCluster.Name)
+	if r.NifiCluster.Spec.Service.HeadlessEnabled {
+		pod.Spec.Hostname	= nifiutil.ComputeNodeName(id, r.NifiCluster.Name)
+		pod.Spec.Subdomain	= nifiutil.ComputeServiceName(r.NifiCluster.Name, r.NifiCluster.Spec.Service.HeadlessEnabled)
 	}
 
 	if nodeConfig.NodeAffinity != nil {
@@ -426,5 +468,22 @@ func generateVolumeMountForSSL() []corev1.VolumeMount {
 			Name:      clientKeystoreVolume,
 			MountPath: clientKeystorePath,
 		},
+	}
+}
+
+
+func generateInitContainerResources() corev1.ResourceRequirements {
+
+	resourcesLimits := corev1.ResourceList{}
+	resourcesLimits[corev1.ResourceCPU], _ = resource.ParseQuantity(defaultInitContainerLimitsCPU)
+	resourcesLimits[corev1.ResourceMemory], _ = resource.ParseQuantity(defaultInitContainerLimitsMemory)
+
+	resourcesReqs := corev1.ResourceList{}
+	resourcesReqs[corev1.ResourceCPU], _ = resource.ParseQuantity(defaultInitContainerRequestsCPU)
+	resourcesReqs[corev1.ResourceMemory], _ = resource.ParseQuantity(defaultInitContainerRequestsMemory)
+
+	return corev1.ResourceRequirements{
+		Limits: resourcesLimits,
+		Requests: resourcesReqs,
 	}
 }

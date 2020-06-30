@@ -68,7 +68,7 @@ Every commit must be signed using the -s switch in git commit.
 
 Non signed commit will not be accepted/merged.
 
-By signing each commit the developper agrees to the followinf standard DCO:
+By signing each commit the developper agrees to the following standard DCO:
 
 ```text
 Developer Certificate of Origin
@@ -112,11 +112,9 @@ By making a contribution to this project, I certify that:
 
 Source: https://developercertificate.org/
 
-
 ## Documentation
 
 If the contribution changes the existing APIs or user interface it must include sufficient documentation to explain the use of the new or updated feature. Likewise the [CHANGELOG][changelog] should be updated with a summary of the change and link to the pull request.
-
 
 [nifikop]: 
 [changelog]: https://gitlab.si.francetelecom.fr/kubernetes/nifikop/blob/master/CHANGELOG.md

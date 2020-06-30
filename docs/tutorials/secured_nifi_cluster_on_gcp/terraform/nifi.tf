@@ -14,17 +14,10 @@ resource "kubernetes_storage_class" "nifi-ssd" {
   }
   depends_on = [google_container_node_pool.nodes]
 }
-
-// Define prod namespace, for tracking pods deployment in production
 resource "kubernetes_namespace" "nifi" {
   metadata {
     annotations = {
       name = var.nifi_namespace
-    }
-    # Enable istio sidecar injection, into pods instantiate into this namespace.
-    labels = {
-      istio-injection = "enabled"
-      istio-operator-managed-injection = "enabled"
     }
     name = var.nifi_namespace
   }
@@ -34,7 +27,7 @@ resource "kubernetes_namespace" "nifi" {
 // helm release
 resource "helm_release" "nifikop" {
   name             = "nifikop"
-  repository       = data.helm_repository.orange-incubator.metadata[0].name
+  repository       = "https://orange-kubernetes-charts-incubator.storage.googleapis.com"
   chart            = "nifikop"
   version          = var.nifikop_chart_version
   namespace        = kubernetes_namespace.nifi.metadata[0].name
@@ -50,6 +43,4 @@ resource "helm_release" "nifikop" {
     name  = "image.tag"
     value = var.nifikop_image_tag
   }
-
-  depends_on = [kubernetes_cluster_role_binding.tiller-admin-binding, /*helm_release.istio-operator,*/ helm_release.cert-manager]
 }

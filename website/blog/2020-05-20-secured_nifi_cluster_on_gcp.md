@@ -8,6 +8,10 @@ author_image_url: https://avatars0.githubusercontent.com/u/10503351?s=460&u=ea08
 tags: [gke, nifikop, secured, oidc, google cloud platform, google cloud, gcp, kubernetes]
 ---
 
+## Credits
+
+Before starting, I wanted to mention the fact that this post is an adaptation of the [Pierre Villard](https://twitter.com/pvillard31)'s one : [Secured NiFi cluster with Terraform on the Google Cloud Platform](https://pierrevillard.com/2019/11/22/secured-nifi-cluster-with-terraform-on-the-google-cloud-platform/)
+
 ## Objectives
 
 In this article, we'll use **NiFiKop** and **Terraform** to quickly : 
@@ -58,7 +62,7 @@ Open your Google Cloud Console in your GCP project and run :
 
 ```sh
 git clone https://gitlab.si.francetelecom.fr/kubernetes/nifikop/nifikop.git
-cd nifikop/docs/tutorials/wsecured_nifi_cluster_on_gcp
+cd nifikop/docs/tutorials/secured_nifi_cluster_on_gcp
 ```
 
 ### Deploy GKE cluster with Terraform
@@ -242,3 +246,4 @@ To destroy all resources you created, you just need to run :
 ```consol
 ./destroy.sh <service account key's path>
 ```
+

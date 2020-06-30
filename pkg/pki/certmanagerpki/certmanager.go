@@ -15,18 +15,12 @@
 package certmanagerpki
 
 import (
-	"flag"
-
 	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/apis/nifi/v1alpha1"
 	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/util/pki"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 var NamespaceCertManager string
-
-func init() {
-	flag.StringVar(&NamespaceCertManager, "cert-manager-namespace", "cert-manager", "The namespace where cert-manager is running")
-}
 
 type CertManager interface {
 	pki.Manager

@@ -15,7 +15,8 @@ func (r *Reconciler) lbService() runtime.Object {
 	usedPorts = append(usedPorts, r.generateDefaultServicePort()...)
 
 	return &corev1.Service{
-		ObjectMeta: templates.ObjectMeta(r.NifiCluster.Name, LabelsForNifi(r.NifiCluster.Name), r.NifiCluster),
+		ObjectMeta: templates.ObjectMetaWithAnnotations(r.NifiCluster.Name, LabelsForNifi(r.NifiCluster.Name),
+			r.NifiCluster.Spec.Service.Annotations, r.NifiCluster),
 		Spec: corev1.ServiceSpec{
 			Type:            corev1.ServiceTypeLoadBalancer,
 			SessionAffinity: corev1.ServiceAffinityClientIP,

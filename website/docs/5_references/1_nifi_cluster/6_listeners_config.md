@@ -20,7 +20,6 @@ ListenersConfig defines the Nifi listener types :
         containerPort: 10000
     sslSecrets:
       tlsSecretName: "test-nifikop"
-      jksPasswordName: "test-nifikop-pass"
       create: true
 ```
 
@@ -30,6 +29,8 @@ ListenersConfig defines the Nifi listener types :
 |-----|----|-----------|--------|--------|
 |internalListeners|\[ \][InternalListener](#internallistener)| specifies settings required to access nifi internally.| Yes | - |
 |sslSecrets|[SSLSecrets](#sslsecrets)| contains information about ssl related kubernetes secrets if one of the listener setting type set to ssl these fields must be populated to.| Yes | nil |
+|clusterDomain|string|  allow to override the default cluster domain which is "cluster.local".| Yes | `cluster.local` |
+|useExternalDNS|string|  allow to manage externalDNS usage by limiting the DNS names associated to each nodes and load balancer: `<cluster-name>-node-<node Id>.<cluster-name>.<service name>.<cluster domain>`| Yes | false |
 
 ## InternalListener
 
@@ -45,8 +46,8 @@ Field|Type|Description|Required|Default|
 Field|Type|Description|Required|Default|
 |-----|----|-----------|--------|--------|
 |tlsSecretName|string| should contain all ssl certs required by nifi including: caCert, caKey, clientCert, clientKey serverCert, serverKey, peerCert, peerKey. | Yes | - |
-|create|boolean| create tells the installed cert manager to create the required certs keys. | Yes | - |
-|clusterScoped|boolean| cdefines if the Issuer created is cluster or namespace scoped. | Yes | - |
-|issuerRef|[ObjectReference](https://docs.cert-manager.io/en/release-0.9/reference/api-docs/index.html#objectreference-v1alpha1)| cdefines if the Issuer created is cluster or namespace scoped. | Yes | - |
+|create|boolean| tells the installed cert manager to create the required certs keys. | Yes | - |
+|clusterScoped|boolean| defines if the Issuer created is cluster or namespace scoped. | Yes | - |
+|issuerRef|[ObjectReference](https://docs.cert-manager.io/en/release-0.9/reference/api-docs/index.html#objectreference-v1alpha1)| cIssuerRef allow to use an existing issuer to act as CA: https://cert-manager.io/docs/concepts/issuer/ | No | - |
 |pkiBackend|enum{"cert-manager"}| | Yes | - |
 

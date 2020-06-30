@@ -43,7 +43,6 @@ spec:
           command:
             - nifikop
           args:
-            - --cert-manager-namespace={{ .Values.certManager.namespace }}
             {{- if .Values.namespaces }}
             - --namespaces={{ .Values.namespaces }}
             {{- end }}

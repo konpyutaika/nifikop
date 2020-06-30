@@ -19,10 +19,10 @@ import (
 	"time"
 
 	"emperror.dev/errors"
-	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/errorfactory"
-	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/nificlient"
 	"github.com/go-logr/logr"
 	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/apis/nifi/v1alpha1"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/errorfactory"
+	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/nificlient"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"

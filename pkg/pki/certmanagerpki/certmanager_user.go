@@ -76,8 +76,8 @@ func (c *certManager) ReconcileUserCertificate(ctx context.Context, user *v1alph
 	}
 
 	// Ensure that the secret is populated with the required values.
-	for _, v := range secret.Data {
-		if len(v) == 0 {
+	for k, v := range secret.Data {
+		if len(v) == 0 && k != v1alpha1.CoreCACertKey {
 			return nil, errorfactory.New(errorfactory.APIFailure{}, errors.New("not all secret value populated"), "secret is not ready")
 		}
 	}

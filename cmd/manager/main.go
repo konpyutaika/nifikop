@@ -20,7 +20,6 @@ import (
 
 	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/apis"
 	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/controller"
-	certmanagerpki "gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/pki/certmanagerpki"
 	"gitlab.si.francetelecom.fr/kubernetes/nifikop/version"
 
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
@@ -85,9 +84,6 @@ func main() {
 
 	managerWatchCache := (cache.NewCacheFunc)(nil)
 	var namespaceList []string
-	if namespaces == "" || namespaces != "*" {
-		namespaceList = append(namespaceList, certmanagerpki.NamespaceCertManager)
-	}
 	if namespaces == "" {
 		namespace, err := k8sutil.GetWatchNamespace()
 		if err != nil {

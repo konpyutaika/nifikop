@@ -252,7 +252,8 @@ func caCertForCluster(cluster *v1alpha1.NifiCluster, scheme *runtime.Scheme) *ce
 		},
 		Spec: certv1.CertificateSpec{
 			SecretName: fmt.Sprintf(pkicommon.NodeCACertTemplate, cluster.Name),
-			CommonName: fmt.Sprintf(pkicommon.CAFQDNTemplate, cluster.Name, cluster.Namespace),
+			CommonName: fmt.Sprintf(pkicommon.CAFQDNTemplate,
+				cluster.Name, cluster.Namespace, cluster.Spec.ListenersConfig.GetClusterDomain()),
 			IsCA:       true,
 			IssuerRef: certmeta.ObjectReference{
 				Name: fmt.Sprintf(pkicommon.NodeSelfSignerTemplate, cluster.Name),
@@ -304,7 +305,8 @@ func caCertForNamespace(cluster *v1alpha1.NifiCluster, scheme *runtime.Scheme) *
 		},
 		Spec: certv1.CertificateSpec{
 			SecretName: fmt.Sprintf(pkicommon.NodeCACertTemplate, cluster.Name),
-			CommonName: fmt.Sprintf(pkicommon.CAFQDNTemplate, cluster.Name, cluster.Namespace),
+			CommonName: fmt.Sprintf(pkicommon.CAFQDNTemplate,
+				cluster.Name, cluster.Namespace, cluster.Spec.ListenersConfig.GetClusterDomain()),
 			IsCA:       true,
 			IssuerRef: certmeta.ObjectReference{
 				Name: fmt.Sprintf(pkicommon.NodeSelfSignerTemplate, cluster.Name),
