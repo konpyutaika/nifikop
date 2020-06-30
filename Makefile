@@ -79,7 +79,7 @@ GO_GENERATE_CMD := go generate `go list ./... | grep -v /vendor/`
 GO_LINT_CMD := golint `go list ./... | grep -v /vendor/`
 
 # environment dirs
-DEV_DIR := docker/gitlab
+DEV_DIR := docker/build-image
 APP_DIR := build/Dockerfile
 
 # The default action of this Makefile is to build the development docker image
