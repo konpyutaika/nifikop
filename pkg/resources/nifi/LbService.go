@@ -15,7 +15,7 @@
 package nifi
 
 import (
-	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/resources/templates"
+	"github.com/Orange-OpenSource/nifikop/pkg/resources/templates"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )

@@ -19,8 +19,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/apis/nifi/v1alpha1"
-	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/pki"
+	"github.com/Orange-OpenSource/nifikop/pkg/apis/nifi/v1alpha1"
+	"github.com/Orange-OpenSource/nifikop/pkg/pki"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 

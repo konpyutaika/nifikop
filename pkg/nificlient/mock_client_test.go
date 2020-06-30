@@ -19,8 +19,8 @@ import (
 
 	nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
 	"github.com/jarcoal/httpmock"
-	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/apis/nifi/v1alpha1"
-	nifiutil "gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/util/nifi"
+	"github.com/Orange-OpenSource/nifikop/pkg/apis/nifi/v1alpha1"
+	nifiutil "github.com/Orange-OpenSource/nifikop/pkg/util/nifi"
 )
 
 var(

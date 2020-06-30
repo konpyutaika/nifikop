@@ -2,7 +2,7 @@ module.exports = {
   title: 'NiFiKop',
   tagline: 'Open-Source, Apache NiFi operator for Kubernetes',
 //  url: 'https://erdrix.github.io',
-  url: 'https://kubernetes.pages.gitlab.si.francetelecom.fr',
+  url: 'https://orange-opensource.github.io',
   baseUrl: '/nifikop/',
   favicon: 'img/nifikop.ico',
   organizationName: 'erdrix', // Usually your GitHub org/user name.
@@ -18,8 +18,8 @@ module.exports = {
         {to: 'docs/1_concepts/1_introduction', label: 'Docs', position: 'right'},
         {to: 'blog', label: 'Blog', position: 'right'},
         {
-          href: 'https://gitlab.si.francetelecom.fr/kubernetes/nifikop',
-          label: 'GitLab',
+          href: 'https://github.com/Orange-OpenSource/nifikop',
+          label: 'GitHub',
           position: 'right',
         },
       ],
@@ -35,8 +35,8 @@ module.exports = {
               to: 'docs/1_concepts/1_introduction',
             },
             {
-              label: 'Gitlab',
-              href: 'https://gitlab.si.francetelecom.fr/kubernetes/nifikop',
+              label: 'GitHub',
+              href: 'https://github.com/Orange-OpenSource/nifikop',
             },
           ],
         },
@@ -66,7 +66,7 @@ module.exports = {
             },
             {
               label: 'Feature request',
-              href: 'https://gitlab.si.francetelecom.fr/kubernetes/nifikop/issues',
+              href: 'https://github.com/Orange-OpenSource/nifikop/issues',
             },
           ],
         },
@@ -82,7 +82,7 @@ module.exports = {
         docs: {
           sidebarPath: require.resolve('./sidebars.js'),
           editUrl:
-              'https://gitlab.si.francetelecom.fr/kubernetes/nifikop/edit/master/website/',
+              'https://github.com/Orange-OpenSource/nifikop/edit/master/website/',
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),

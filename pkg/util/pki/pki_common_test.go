@@ -19,10 +19,10 @@ import (
 	"reflect"
 	"testing"
 	"github.com/stretchr/testify/assert"
-	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/apis/nifi/v1alpha1"
-	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/resources/templates"
-	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/util"
-	certutil "gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/util/cert"
+	"github.com/Orange-OpenSource/nifikop/pkg/apis/nifi/v1alpha1"
+	"github.com/Orange-OpenSource/nifikop/pkg/resources/templates"
+	"github.com/Orange-OpenSource/nifikop/pkg/util"
+	certutil "github.com/Orange-OpenSource/nifikop/pkg/util/cert"
 )
 
 func testCluster(t *testing.T) *v1alpha1.NifiCluster {

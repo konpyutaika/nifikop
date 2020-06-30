@@ -11,7 +11,7 @@ stages:
   - website
 
 generate:
-  image: registry.gitlab.si.francetelecom.fr/kubernetes/nifikop/nifikop-build:v0.15.0-pr137
+  image: registry.github.com/Orange-OpenSource/nifikop/nifikop-build:v0.15.0-pr137
   stage: compile
   script:
     - if [ ! -d vendor ]; then go mod download; fi
@@ -24,7 +24,7 @@ generate:
       - vendor
 
 test:unit:
-  image: registry.gitlab.si.francetelecom.fr/kubernetes/nifikop/nifikop-build:v0.15.0-pr137
+  image: registry.github.com/Orange-OpenSource/nifikop/nifikop-build:v0.15.0-pr137
   stage: unit-test
   script:
     - make unit-test-with-vendor
@@ -48,7 +48,7 @@ build:ci:
   when: manual
 
 build:docker:
-  image: registry.gitlab.si.francetelecom.fr/kubernetes/nifikop/nifikop-build:v0.15.0-pr137
+  image: registry.github.com/Orange-OpenSource/nifikop/nifikop-build:v0.15.0-pr137
   stage: build
   script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
@@ -82,7 +82,7 @@ report:sonar:
       - reports
 
 release:operator:dfyarchicloud:
-  image: registry.gitlab.si.francetelecom.fr/kubernetes/nifikop/nifikop-build:v0.15.0-pr137
+  image: registry.github.com/Orange-OpenSource/nifikop/nifikop-build:v0.15.0-pr137
   stage: release
   script:
     - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY
@@ -133,4 +133,4 @@ pages:
   when: manual
   environment:
     name: page
-    url: https://kubernetes.pages.gitlab.si.francetelecom.fr/nifikop/
+    url: https://orange-opensource.github.io/nifikop/

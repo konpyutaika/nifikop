@@ -19,7 +19,7 @@ import (
 	"strconv"
 	"time"
 
-	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/apis/nifi/v1alpha1"
+	"github.com/Orange-OpenSource/nifikop/pkg/apis/nifi/v1alpha1"
 )
 
 const (

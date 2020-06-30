@@ -11,18 +11,18 @@
     <img src="https://circleci.com/gh/orangeopensource/nifikopr/tree/master.svg?style=shield" alt="CircleCI">
   </a>
 
-  <a href="https://goreportcard.com/report/gitlab.si.francetelecom.fr/kubernetes/nifikop">
-    <img src="https://goreportcard.com/badge/gitlab.si.francetelecom.fr/kubernetes/nifikop" alt="Go Report Card">
+  <a href="https://goreportcard.com/report/github.com/Orange-OpenSource/nifikop">
+    <img src="https://goreportcard.com/badge/github.com/Orange-OpenSource/nifikop" alt="Go Report Card">
   </a>
 
-  <a href="https://gitlab.si.francetelecom.fr/kubernetes/nifikop/">
+  <a href="https://github.com/Orange-OpenSource/nifikop/">
     <img src="https://img.shields.io/badge/license-Apache%20v2-orange.svg" alt="license">
   </a>
 </p>
 
 # NiFiKop
 
-You can access to the full documentation on the [NiFiKop Documentation](https://kubernetes.pages.gitlab.si.francetelecom.fr/nifikop/)
+You can access to the full documentation on the [NiFiKop Documentation](https://orange-opensource.github.io/nifikop/)
 
 The Orange NiFi operator is a Kubernetes operator to automate provisioning, management, autoscaling and operations of [Apache NiFi](https://nifi.apache.org/) clusters deployed to K8s.
 
@@ -46,7 +46,7 @@ Some of the roadmap features :
 
 ## Motivation
 
-At [Orange](https://opensource.orange.com/fr/accueil/) we are building some [Kubernetes operator](https://https://gitlab.si.francetelecom.fr/kubernetes/nifikop?utf8=%E2%9C%93&q=operator&type=&language=), that operate NiFi and Cassandra clusters (among other types) for our business cases.
+At [Orange](https://opensource.orange.com/fr/accueil/) we are building some [Kubernetes operator](https://https://github.com/Orange-OpenSource/nifikop?utf8=%E2%9C%93&q=operator&type=&language=), that operate NiFi and Cassandra clusters (among other types) for our business cases.
 
 There are already some approaches to operating NiFi on Kubernetes, however, we did not find them appropriate for use in a highly dynamic environment, nor capable of meeting our needs.
 
@@ -57,21 +57,21 @@ Finally, our motivation is to build an open source solution and a community whic
 
 ## Installation
 
-To get up and running quickly, check our [Getting Started page](https://kubernetes.pages.gitlab.si.francetelecom.fr/nifikop/docs/2_setup/1_getting_started)
+To get up and running quickly, check our [Getting Started page](https://orange-opensource.github.io/nifikop/docs/2_setup/1_getting_started)
 
 ## Development
 
-Checkout out the [Developer page](https://kubernetes.pages.gitlab.si.francetelecom.fr/nifikop/docs/6_contributing/1_developer_guide)
+Checkout out the [Developer page](https://orange-opensource.github.io/nifikop/docs/6_contributing/1_developer_guide)
 
 ## Features
 
-Check out the [Supported Features Page](https://kubernetes.pages.gitlab.si.francetelecom.fr/nifikop/docs/1_concepts/3_features)
+Check out the [Supported Features Page](https://orange-opensource.github.io/nifikop/docs/1_concepts/3_features)
 
 ## Issues, feature requests and roadmap
 
-Please note that the NiFi operator is constantly under development and new releases might introduce breaking changes. We are striving to keep backward compatibility as much as possible while adding new features at a fast pace. Issues, new features or bugs are tracked on the projects [GitHub page](https://gitlab.si.francetelecom.fr/kubernetes/nifikop/issues) - please feel free to add yours!
+Please note that the NiFi operator is constantly under development and new releases might introduce breaking changes. We are striving to keep backward compatibility as much as possible while adding new features at a fast pace. Issues, new features or bugs are tracked on the projects [GitHub page](https://github.com/Orange-OpenSource/nifikop/issues) - please feel free to add yours!
 
-To track some of the significant features and future items from the roadmap please visit the [roadmap doc](https://kubernetes.pages.gitlab.si.francetelecom.fr/nifikop/docs/1_concepts/4_roadmap).
+To track some of the significant features and future items from the roadmap please visit the [roadmap doc](https://orange-opensource.github.io/nifikop/docs/1_concepts/4_roadmap).
 
 ## Contributing 
 

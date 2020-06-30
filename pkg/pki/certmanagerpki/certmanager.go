@@ -15,8 +15,8 @@
 package certmanagerpki
 
 import (
-	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/apis/nifi/v1alpha1"
-	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/util/pki"
+	"github.com/Orange-OpenSource/nifikop/pkg/apis/nifi/v1alpha1"
+	"github.com/Orange-OpenSource/nifikop/pkg/util/pki"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 

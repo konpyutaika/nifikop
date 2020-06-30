@@ -32,9 +32,9 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/rest"
 
-	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/apis"
-	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/controller"
-	"gitlab.si.francetelecom.fr/kubernetes/nifikop/version"
+	"github.com/Orange-OpenSource/nifikop/pkg/apis"
+	"github.com/Orange-OpenSource/nifikop/pkg/controller"
+	"github.com/Orange-OpenSource/nifikop/version"
 
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	kubemetrics "github.com/operator-framework/operator-sdk/pkg/kube-metrics"

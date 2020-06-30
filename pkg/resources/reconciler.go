@@ -16,7 +16,7 @@ package resources
 
 import (
 	"github.com/go-logr/logr"
-	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/apis/nifi/v1alpha1"
+	"github.com/Orange-OpenSource/nifikop/pkg/apis/nifi/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
