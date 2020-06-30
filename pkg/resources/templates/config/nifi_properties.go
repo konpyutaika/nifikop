@@ -18,8 +18,8 @@ import (
 	"fmt"
 
 	"github.com/go-logr/logr"
-	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/apis/nifi/v1alpha1"
-	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/util/nifi"
+	"github.com/Orange-OpenSource/nifikop/pkg/apis/nifi/v1alpha1"
+	"github.com/Orange-OpenSource/nifikop/pkg/util/nifi"
 )
 
 var NifiPropertiesTemplate = `# Licensed to the Apache Software Foundation (ASF) under one or more

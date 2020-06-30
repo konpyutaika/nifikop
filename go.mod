@@ -1,4 +1,4 @@
-module gitlab.si.francetelecom.fr/kubernetes/nifikop
+module github.com/Orange-OpenSource/nifikop
 
 go 1.14
 

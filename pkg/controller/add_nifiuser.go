@@ -15,7 +15,7 @@
 package controller
 
 import (
-	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/controller/nifiuser"
+	"github.com/Orange-OpenSource/nifikop/pkg/controller/nifiuser"
 )
 
 func init() {

@@ -117,4 +117,4 @@ Source: https://developercertificate.org/
 If the contribution changes the existing APIs or user interface it must include sufficient documentation to explain the use of the new or updated feature. Likewise the [CHANGELOG][changelog] should be updated with a summary of the change and link to the pull request.
 
 [nifikop]: 
-[changelog]: https://gitlab.si.francetelecom.fr/kubernetes/nifikop/blob/master/CHANGELOG.md
+[changelog]: https://github.com/Orange-OpenSource/nifikop/blob/master/CHANGELOG.md

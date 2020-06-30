@@ -23,11 +23,11 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/imdario/mergo"
-	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/apis/nifi/v1alpha1"
-	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/resources/templates"
-	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/resources/templates/config"
-	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/util"
-	utilpki "gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/util/pki"
+	"github.com/Orange-OpenSource/nifikop/pkg/apis/nifi/v1alpha1"
+	"github.com/Orange-OpenSource/nifikop/pkg/resources/templates"
+	"github.com/Orange-OpenSource/nifikop/pkg/resources/templates/config"
+	"github.com/Orange-OpenSource/nifikop/pkg/util"
+	utilpki "github.com/Orange-OpenSource/nifikop/pkg/util/pki"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )

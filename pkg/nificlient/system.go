@@ -19,7 +19,7 @@ import (
 	"net/http"
 
 	"emperror.dev/errors"
-	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/apis/nifi/v1alpha1"
+	"github.com/Orange-OpenSource/nifikop/pkg/apis/nifi/v1alpha1"
 	nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
 )
 

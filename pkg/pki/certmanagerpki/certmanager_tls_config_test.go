@@ -19,9 +19,9 @@ import (
 	"reflect"
 	"testing"
 
-	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/apis/nifi/v1alpha1"
-	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/errorfactory"
-	certutil "gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/util/cert"
+	"github.com/Orange-OpenSource/nifikop/pkg/apis/nifi/v1alpha1"
+	"github.com/Orange-OpenSource/nifikop/pkg/errorfactory"
+	certutil "github.com/Orange-OpenSource/nifikop/pkg/util/cert"
 	corev1 "k8s.io/api/core/v1"
 )
 

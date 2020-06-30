@@ -22,9 +22,9 @@ import (
 	nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
-	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/apis/nifi/v1alpha1"
-	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/errorfactory"
-	nifiutil "gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/util/nifi"
+	"github.com/Orange-OpenSource/nifikop/pkg/apis/nifi/v1alpha1"
+	"github.com/Orange-OpenSource/nifikop/pkg/errorfactory"
+	nifiutil "github.com/Orange-OpenSource/nifikop/pkg/util/nifi"
 )
 
 var (

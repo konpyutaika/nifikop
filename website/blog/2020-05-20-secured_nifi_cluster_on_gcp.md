@@ -61,7 +61,7 @@ Once you have completed the above prerequisites, deploying you NiFi cluster will
 Open your Google Cloud Console in your GCP project and run : 
 
 ```sh
-git clone https://gitlab.si.francetelecom.fr/kubernetes/nifikop/nifikop.git
+git clone https://github.com/Orange-OpenSource/nifikop/nifikop.git
 cd nifikop/docs/tutorials/secured_nifi_cluster_on_gcp
 ```
 

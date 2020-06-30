@@ -18,9 +18,9 @@ import (
 	"context"
 	"crypto/tls"
 
-	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/apis/nifi/v1alpha1"
-	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/pki/certmanagerpki"
-	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/util/pki"
+	"github.com/Orange-OpenSource/nifikop/pkg/apis/nifi/v1alpha1"
+	"github.com/Orange-OpenSource/nifikop/pkg/pki/certmanagerpki"
+	"github.com/Orange-OpenSource/nifikop/pkg/util/pki"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"

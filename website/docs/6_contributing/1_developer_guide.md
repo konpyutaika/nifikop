@@ -33,7 +33,7 @@ make install
 Checkout the project.
 
 ```bash
-git clone https://gitlab.si.francetelecom.fr/kubernetes/nifikop.git
+git clone https://github.com/Orange-OpenSource/nifikop.git
 cd nifikop
 ```
 
