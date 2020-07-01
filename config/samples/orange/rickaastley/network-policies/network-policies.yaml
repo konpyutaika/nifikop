@@ -46,7 +46,27 @@ spec:
           protocol: TCP
         - port: 5556
           protocol: TCP
-
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: traefik-to-nifi
+spec:
+  podSelector:
+    matchLabels: &labels_selector
+      app: nifi
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: "traefik"
+      ports:
+        - port: 6007
+          protocol: TCP
+        - port: 8443
+          protocol: TCP
+  egress:
+    - {}
 #---
 #apiVersion: crd.projectcalico.org/v1
 #kind: NetworkPolicy
@@ -65,25 +85,48 @@ spec:
 #        ports:
 #          - 2181
 #---
-#apiVersion: crd.projectcalico.org/v1
-#kind: NetworkPolicy
-#metadata:
-#  name: allow-all-ingress
-#spec:
-#  ingress:
-#    - action: allow
-#      source:
-#        selector: app == 'nifi' && nifi_cr == 'nifisec'
-#---
-#apiVersion: crd.projectcalico.org/v1
-#kind: NetworkPolicy
-#metadata:
-#  name: allow-all-egress
-#spec:
-#  egress:
-#    - action: allow
-#      source:
-#        selector: app == 'nifi' && nifi_cr == 'nifisec'
+---
+apiVersion: crd.projectcalico.org/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-all-ingress
+spec:
+  ingress:
+    - action: allow
+      source:
+        selector: app == 'nifi'
+---
+apiVersion: crd.projectcalico.org/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-all-egress
+spec:
+  egress:
+    - action: allow
+      source:
+        selector: app == 'nifi'
+
+---
+apiVersion: crd.projectcalico.org/v1
+kind: NetworkPolicy
+metadata:
+  name: nifikop-allow-all-ingress
+spec:
+  ingress:
+    - action: allow
+      source:
+        selector: app == 'nifikop'
+---
+apiVersion: crd.projectcalico.org/v1
+kind: NetworkPolicy
+metadata:
+  name: nifikop-allow-all-egress
+spec:
+  egress:
+    - action: allow
+      source:
+        selector: app == 'nifikop'
+
 
 # apiVersion: crd.projectcalico.org/v1
   #kind: NetworkPolicy

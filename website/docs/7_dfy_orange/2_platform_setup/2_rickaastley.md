@@ -36,21 +36,21 @@ helm install nifi-dns-rec-sph rickaastley/external-dns \
 
 ### Traefik
 
-Once the `external-dns` is setup, we are able to instanciate our ingress-controller on routable ip pool :
+Once the `external-dns` is setup, we are able to instantiate our ingress-controller on routable ip pool :
 
 ```bash
 helm repo add dfyarchicloud https://artifactory.packages.install-os.multis.p.fti.net/virt-sdfy-dfyarchicloud-helm
 ```
 
 ```bash
+kubectl apply -f config/samples/orange/rickaastley/ingress/network-policies.yaml
 helm install traefik \
        -f config/samples/orange/rickaastley/ingress/values.yaml \
        dfyarchicloud/traefik
-kubectl apply -f config/samples/orange/rickaastley/ingress/network-policies.yaml
 ```
 
 :::note
-To adapt your setup with your own configuration, let's have a look on the [full documentation's page](https://dfyarchicloud.app.cf.sph.hbx.geo.francetelecom.fr/kubernetes/ingress/traefik-rickaaley/)
+To adapt your setup with your own configuration, let's have a look on the [full documentation's page](https://dfyarchicloud.app.cf.sph.hbx.geo.francetelecom.fr/kubernetes/ingress/traefik-metal-lb/#deploiement-de-traefik)
 :::
 
 ## Zookeeper
@@ -84,7 +84,8 @@ helm repo add dfy-cda-shared https://artifactory.packages.install-os.multis.p.ft
 ```
 
 ```bash
-helm install cert-manager dfy-cda-shared/cert-manager-rickaastley-compliant \
+#helm install cert-manager dfy-cda-shared/cert-manager-rickaastley-compliant \
+helm install cert-manager https://artifactory.packages.install-os.multis.p.fti.net:443/dfy-cda-shared-helm/cert-manager-rickaastley-compliant-v0.1.0.tgz \
     --set global.clusterScoped=false \
     --set cainjector.enabled=false \
     --set webhook.enabled=false \
@@ -105,12 +106,13 @@ helm repo add stable https://artifactory.si.francetelecom.fr/virt_helm_pfs-noh
 ```
 
 ```bash
+kubectl create -f config/samples/orange/rickaastley/dex/network-policies.yaml
 helm install dex \
     stable/dex \
     --set crd.present=true \
     --set image=ext-quayio.artifactory.packages.install-os.multis.p.fti.net/dexidp/dex \
     --set certs.image=ext-gcrio.artifactory.packages.install-os.multis.p.fti.net/google_containers/kubernetes-dashboard-init-amd64 \
-    --set config.issuer=http://dex.nifi.pns.svc.rickaastley.p.fti.net:32000 \
+    --set config.issuer=http://dex.nifi.pns.svc.rickaastley.p.fti.net \
     -f config/samples/orange/rickaastley/dex/values.yaml
 ```
 
@@ -139,7 +141,6 @@ helm install nifikop \
 As all communications are denied by default, we have to declare the required ones by our NiFiCluster: 
 
 ```bash
-kubectl apply -f config/samples/orange/rickaastley/dex/network-policies.yaml
 kubectl apply -f config/samples/orange/rickaastley/network-policies/network-policies.yaml
 ```
 
@@ -149,4 +150,5 @@ Afterwards, you can deploy your NiFi cluster.
 
 ```bash
 kubectl apply -f config/samples/orange/rickaastley/secured_nifi_cluster_dex.yaml
+kubectl apply -f config/samples/orange/rickaastley/traefik-ingress.yaml
 ```
