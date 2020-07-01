@@ -1,0 +1,343 @@
+version: 2.1
+
+experimental:
+  notify:
+    branches:
+      only:
+        - master
+
+# Define shareable packages of configuration
+# elements used into the worflow (= Orbs)
+orbs:
+  operator:
+    # Parameters anchor
+    .params_operator: &params_operator
+      parameters:
+        operatorDir:
+          type: string
+          description: relative path where the build must be run
+          default: nifikop
+        operatorName:
+          type: string
+          description: operator's name
+          default: NiFiKop
+      working_directory: /home/circleci/<< parameters.operatorDir >>
+      executor: operator-build
+    # Job anchor
+    .job_operator: &job_operator
+      working_directory: /home/circleci/<< parameters.operatorDir >>
+      executor: operator-build
+    # Setting up docker executor using casskop-build image.
+    executors:
+      operator-build:
+        docker:
+          - image: orangeopensource/nifikop-build:v0.18.0
+    # Define jobs list
+    jobs:
+      # Build job, which build operator docker image (with operator-sdk build)
+      generate:
+        <<: *params_operator
+        <<: *job_operator
+        steps:
+          - checkout:
+              path: /home/circleci/nifikop
+          - setup_remote_docker # Creates a separate environment for each build for security.
+          - restore_cache: # If exist, restore dependencies libs download cache, from previous pipeline execution.
+              keys: # Use checksum of go.sum to version cache.
+                - << parameters.operatorName >>-generate-{{ .Branch }}-{{ checksum "go.sum" }}
+          - attach_workspace:  # Attach artifact from workdir
+              at: /home/circleci
+          # Build steps
+          - run:
+              name: Download dependencies
+              command: if [ ! -d vendor ]; then go mod download; fi
+          - run:
+              name: Vendor dependencies
+              command: if [ ! -d vendor ]; then go mod vendor; fi
+          - run:
+              name: Generate k8s
+              command: |
+                make generate
+                [ "$(git ls-files -m | grep -c zz_generated)" -eq 0 ]
+          - persist_to_workspace: # Create artifacts
+              root: /home/circleci
+              paths:
+                - << parameters.operatorDir >>/build/_output
+                - << parameters.operatorDir >>/vendor
+          - save_cache:
+              name: Save build artifacts in cache
+              key: << parameters.operatorName >>-generate-{{ .Branch }}-{{ checksum "go.sum" }}
+              paths:
+                - build/_output
+                - vendor
+
+      # Build job, which build operator docker image (with operator-sdk build)
+      build:ci:
+        <<: *params_operator
+        <<: *job_operator
+        steps:
+          - checkout:
+              path: /home/circleci/nifikop
+          - setup_remote_docker # Creates a separate environment for each build for security.
+          - restore_cache: # If exist, restore dependencies libs download cache, from previous pipeline execution.
+              keys: # Use checksum of go.sum to version cache.
+                - << parameters.operatorName >>-build-ci-{{ .Branch }}-{{ checksum "go.sum" }}
+          - attach_workspace:  # Attach artifact from workdir
+              at: /home/circleci
+          - run:
+              name: Build Operator
+              command: make build-ci-image
+          - persist_to_workspace: # Create artifacts
+              root: /home/circleci
+              paths:
+                - << parameters.operatorDir >>/build/_output
+          - deploy:
+              name: Push image to Docker Hub
+              command: |
+                if [[ $(echo "$CIRCLE_BRANCH" | grep -c "pull") -gt 0 ]]; then
+                  echo "This is a PR, we don't push to Hub."
+                else
+                  docker login --username $DOCKERHUB_USER --password $DOCKERHUB_PASSWORD
+                  make push-ci-image
+                fi
+          - save_cache:
+              name: Save build artifacts in cache
+              key: << parameters.operatorName >>-build-ci-{{ .Branch }}-{{ checksum "go.sum" }}
+              paths:
+                - build/_output
+
+
+      # Build job, which build operator docker image (with operator-sdk build)
+      build:operator:
+        <<: *params_operator
+        <<: *job_operator
+        steps:
+          - checkout:
+              path: /home/circleci/nifikop
+          - setup_remote_docker # Creates a separate environment for each build for security.
+          - restore_cache: # If exist, restore dependencies libs download cache, from previous pipeline execution.
+              keys: # Use checksum of go.sum to version cache.
+                - << parameters.operatorName >>-build-{{ .Branch }}-{{ checksum "go.sum" }}
+          - attach_workspace:  # Attach artifact from workdir
+              at: /home/circleci
+          - run:
+              name: Build Operator
+              command: make build
+          - persist_to_workspace: # Create artifacts
+              root: /home/circleci
+              paths:
+                - << parameters.operatorDir >>/build/_output
+                - << parameters.operatorDir >>/vendor
+          - deploy:
+              name: Push image to Docker Hub
+              command: |
+                if [[ $(echo "$CIRCLE_BRANCH" | grep -c "pull") -gt 0 ]]; then
+                  echo "This is a PR, we don't push to Hub."
+                else
+                  docker login --username $DOCKERHUB_USER --password $DOCKERHUB_PASSWORD
+                  make push
+                fi
+          - save_cache:
+              name: Save build artifacts in cache
+              key: << parameters.operatorName >>-build-{{ .Branch }}-{{ checksum "go.sum" }}
+              paths:
+                - build/_output
+                - vendor
+
+      # Unit test job, will execute makefile 'unit-test-with-vendor' step
+      test:unit:
+        <<: *params_operator
+        <<: *job_operator
+        steps:
+          - checkout:
+              path: /home/circleci/nifikop
+          - attach_workspace:  # Attach artifact from workdir
+              at: /home/circleci
+          # Unit tests steps
+          - run:
+              name: Unit Tests
+              command: make unit-test-with-vendor
+          # Artifacts definitions
+          - store_artifacts: # Store unit test coverage reports
+              path: coverage.html
+          - persist_to_workspace:
+              root: /home/circleci
+              paths:
+                - << parameters.operatorDir >>/coverage.out
+                - << parameters.operatorDir >>/test-report.out
+
+      # Reporting step, will run sonar report from scan.
+      report:sonar:
+        <<: *params_operator
+        <<: *job_operator
+        steps:
+          - checkout:
+              path: /home/circleci/nifikop
+          - attach_workspace:
+              at: /home/circleci
+          - restore_cache: # If exist, restore dependencies libs download cache, from previous pipeline execution.
+              name: Restore SonarQube Scanner
+              keys:
+                - sonar-scanner-3.3.0.1492-linux
+          # Sonar steps
+          - run:
+              name: Download SonarQube Scanner
+              command: |
+                chmod +x /home/circleci/casskop/.circleci/install_sonar-scanner.sh
+                /home/circleci/casskop/.circleci/install_sonar-scanner.sh
+          - save_cache: # Cache sonar download
+              name: Cache SonarQube Scanner
+              key: sonar-scanner-3.3.0.1492-linux
+              paths:
+                - sonar-scanner-3.3.0.1492-linux
+                - /home/circleci/<< parameters.operatorDir >>/.sonar
+          - run: # Run sonar scan
+              name: Sonarcloud Scan
+              command: |
+                ./sonar-scanner-3.3.0.1492-linux/bin/sonar-scanner -X \
+                -Dsonar.projectName=<< parameters.operatorName >> \
+                -Dsonar.projectKey=${SONAR_PROJECT} \
+                -Dsonar.login=${SONAR_TOKEN} \
+                -Dsonar.branch.name=${CIRCLE_BRANCH} \
+                -Dsonar.organization=${SONAR_ORGANISATION} \
+                -Dsonar.host.url=https://sonarcloud.io \
+                -Dsonar.projectBaseDir=/home/circleci/<< parameters.operatorDir >> \
+                -Dsonar.sources=. \
+                -Dsonar.sources.inclusions="**/**.go" \
+                -Dsonar.exclusions="**/*_test.go,**/vendor/**,**/sonar-scanner-3.3.0.1492-linux/**,**docs/**" \
+                -Dsonar.coverage.exclusions="**/vendor/**,**/test/**,**docs/**" \
+                -Dsonar.tests=. \
+                -Dsonar.language=go \
+                -Dsonar.sourceEncoding=UTF-8 \
+                -Dsonar.test.inclusions="**/**_test.go" \
+                -Dsonar.test.exclusions="**/vendor/**" \
+                -Dsonar.go.coverage.reportPaths=coverage.out \
+                -Dsonar.go.tests.reportPaths=test-report.out \
+                -Dsonar.coverage.dtdVerification=false \
+                -Dsonar.log.level=INFO
+                cat -n .scannerwork/report-task.txt
+          # Artifacts definitions
+          - store_test_results: # Store sonar scan reports
+              path: reports
+
+      release:helm:
+        <<: *params_operator
+        working_directory: /home/circleci/<< parameters.operatorDir >>
+        docker:
+          - image: google/cloud-sdk
+        steps:
+          - checkout:
+              path: /home/circleci/nifikop
+          - run:
+              name: publish-helm
+              command: |
+                if [[ $(echo "$CIRCLE_BRANCH" | grep -c "pull") -gt 0 ]]; then
+                  echo "This is a PR, we don't publish to helm repo."
+                else
+                  GCP_SA_CREDS=${GCP_POC_RTC_SA_KEY} /home/circleci/casskop/tools/publish_helm_gcs.sh
+                fi
+jobs:
+  deploy:website:
+    working_directory: /home/circleci/nifikop/website
+    docker: # run the steps with Docker
+      - image: node:13.5.0
+    steps:
+      - checkout:
+          path: /home/circleci/casskop
+      - run:
+          name: deploy
+          command: |
+            echo $(pwd)
+            ls -la
+            git config --global user.name "${GH_NAME}"
+            git config --global user.email "${GH_EMAIL}"
+            echo "machine github.com login ${GH_NAME} password ${GH_TOKEN}" > ~/.netrc
+            yarn install
+            yarn build
+            GIT_USER="${GH_NAME}" yarn deploy
+
+# Anchors
+## Filters anchors
+.everytime_filter : &everytime_filter
+  filters:
+    tags:
+      only: /.*/
+    branches:
+      ignore: gh-pages
+
+.canonical_repo_filter : &canonical_repo_filter
+  filters:
+    tags:
+      only: /.*/
+    branches:
+      # report sonar only from canonical repository
+      only: /^(?!pull\/).*$/ # https://stackoverflow.com/a/5334825/358804
+      ignore: gh-pages
+
+
+.only_on_release_tag: &only_on_release_tag
+  filters:
+    # ignore any commit on any branch by default
+    branches:
+      ignore: /.*/
+    # only act on version tags
+    tags:
+      only: /v[0-9]+(\.[0-9]+)*-release/
+
+.website_publish: &website_publish
+  filters:
+    # ignore any commit on any branch by default
+    branches:
+      only: master
+
+## Parameters anchors
+.params_multicasskop: &params_multicasskop
+  operatorDir: casskop/multi-casskop
+  operatorName: MultiCassKop
+
+# Workflow definition
+workflows:
+  version: 2
+  ## NiFiKop operator workflow.
+  ci-nifikop-operator:
+    jobs:
+      - operator/generate:
+          name: generate-nifikop
+          <<: *everytime_filter
+
+      - operator/test:unit:
+          name: unit-test-nifikop
+          requires:
+            - generate-nifikop
+          <<: *everytime_filter
+
+      - operator/build:operator:
+          name: build-nifikop
+          requires:
+            - unit-test-nifikop
+          <<: *everytime_filter
+
+      - operator/build:ci:
+          type: approval
+          name: build-ci
+          requires:
+            - unit-test-nifikop
+          <<: *everytime_filter
+
+      - operator/report:sonar:
+          name: report-nifikop
+          requires:
+            - unit-test-nifikop
+          <<: *canonical_repo_filter
+
+      - operator/release:helm:
+          name: release-helm-orange-incubator-nifikop
+          requires:
+            - report-nifikop
+          <<: *only_on_release_tag
+
+      - deploy:website:
+          name: deploy-website
+          requires:
+            - report-nifikop
+          <<: *website_publish

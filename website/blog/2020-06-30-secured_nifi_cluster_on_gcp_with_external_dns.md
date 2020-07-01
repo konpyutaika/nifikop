@@ -12,17 +12,17 @@ import TabItem from '@theme/TabItem';
 
 ## Objectives
 
-This article is pretty similar to [Secured NiFi cluster with NiFiKop on the Google Cloud Platform](/nifikop/blog/secured_nifi_cluster_on_gcp) one.
+This article is pretty similar to the [Secured NiFi cluster with NiFiKop on the Google Cloud Platform](/nifikop/blog/secured_nifi_cluster_on_gcp) one.
 
-This time we will in addition to use **NiFiKop** and **Terraform** to quickly : 
+This time, we will also use **NiFiKop** and **Terraform** to quickly : 
                                  
 - deploy **a GKE cluster** to host our NiFi cluster,
 - deploy **a `cert-manager` issuer** as a convenient way to generate TLS certificates,
 - deploy **a zookeeper instance** to manage cluster coordination and state across the cluster, 
 - deploy **X secured NiFi instances in cluster mode**
 - configure **NiFi to use OpenId connect** for authentication
-- configure **HTTPS loadbalancer with Client Ip affinity** to access to the NiFi cluster
-- re-size the cluster dynamically
+- configure **HTTPS loadbalancer with Client Ip affinity** to access the NiFi cluster
+- dynamically re-size the cluster
 
 We will  :
 
@@ -31,11 +31,11 @@ We will  :
 
 ## Pre-requisites
 
-- You have your own domain ([you can create on with Google](https://domains.google/)) : it will be used to map a domain to the NiFi's web interface. In this post, we will use : `trycatchlearn.fr`. 
+- You have your own domain ([you can create one with Google](https://domains.google/)) : it will be used to map a domain on the NiFi's web interface. In this post, we will use : `trycatchlearn.fr`. 
 
 ### Disclaimer
 
-This article can get you started for a production deployment, but should not used as so. There is still some steps needed such as Zookeeper, GKE configuration etc.
+This article can get you started for a production deployment, but should not used as so. There are still some steps needed such as Zookeeper, GKE configuration etc.
 
 ### Create OAuth Credentials
 
@@ -44,7 +44,7 @@ First step is to create the OAuth Credential :
 - Go to your GCP project, and in the left bar : **APIs & Services > Credentials**
 - Click on `CREATE CREDENTIALS : OAuth client ID`
 - Select `Web Application`
-- Give a name like `SecuredNifi`. 
+- Give a name such as `SecuredNifi`. 
 - For `Authorised JavaScript origins`, use your own domain. I'm using : `https://nifisecured.trycatchlearn.fr:8443`
 - For `Authorised redirect URIs` it's your previous URI + `/nifi-api/access/oidc/callback`, for me : `https://nifisecured.trycatchlearn.fr:8443/nifi-api/access/oidc/callback`
 
@@ -74,7 +74,7 @@ cd nifikop/docs/tutorials/secured_nifi_cluster_on_gcp_with_external_dns
 
 #### Deployment 
 
-You can configure variable before running the deployment in the file `terraform/env/demo.tfvars` : 
+You can configure variables before running the deployment in the file `terraform/env/demo.tfvars` : 
 
 - **project** : GCP project ID
 - **region** : GCP region
@@ -129,7 +129,7 @@ In the `cert-manager` namespace we deployed a `cert-manager` stack in a cluster-
 
 :::note
 in this post, we will let `let's encrypt` act as certificate authority. 
-For more information check [documentation page](/nifikop/docs/3_tasks/2_security/1_ssl#using-an-existing-issuer)
+For more informations check [documentation page](/nifikop/docs/3_tasks/2_security/1_ssl#using-an-existing-issuer)
 :::
 
 ```console
@@ -150,7 +150,7 @@ zookeeper-1   1/1     Running   0          74m
 zookeeper-2   1/1     Running   0          74m
 ```
 
-And finally it deploy the `NiFiKop` operator which is ready to create NiFi clusters : 
+And finally it deploys the `NiFiKop` operator which is ready to create NiFi clusters : 
 
 
 ```console
@@ -233,7 +233,7 @@ spec:
                   "external-dns.alpha.kubernetes.io/ttl": "5"
 ```
 
-You juste have to change the `Spec.Acme.Email` fied with your own email.
+You just have to change the `Spec.Acme.Email` field with your own email.
 You can also change the acme server to prod one `https://acme-v02.api.letsencrypt.org/directory`
 
 Once the configuration is ok, you can deploy the `Issuer` : 
@@ -281,7 +281,7 @@ spec:
         kind: Issuer
 ```
 
-- **Spec.InitialAdminUser** : Your GCP account email (this will give you the admin role into the NiFi cluster), in my case `alexandre.guittont@orange.com`
+- **Spec.InitialAdminUser** : Your GCP account email (this will give you the admin role into the NiFi cluster), in my case `alexandre.guitton@orange.com`
 - **Spec.ReadOnlyConfig.NifiProperties.WebProxyHosts\[0\]** : The web hostname configured in the Oauth section, in my case `nifi.orange.trycatchlearn.fr`
 - **Spec.ReadOnlyConfig.NifiProperties.OverrideConfigs** : you have to set the following properties : 
     - *nifi.security.user.oidc.client.id* : OAuth Client ID
@@ -295,7 +295,7 @@ Once the configuration is ok, you can deploy the `NifiCluster` :
 kubectl create -f kubernetes/nifi/secured_nifi_cluster.yaml
 ```
 
-The first can take some times, the `cert-manager` and `Let's encrypt` will check that you are able to manage the dns zone, so if you check the pods :  
+The first time can take some time, the `cert-manager` and `Let's encrypt` will check that you are able to manage the dns zone, so if you check the pods :  
 
 ```console
 kubectl get pods -n nifikop
@@ -339,9 +339,9 @@ nifikop-56cb587d96-p8vdf        1/1     Running   0          40m
 
 ### Access to your secured NiFi Cluster
 
-You can now access the NiFi cluster using the loadbalancer service hostname `<nifi's cluster name>.<DNS name>`, in my case it's[https://nifi.orange.trycatchlearn.fr:8443/nifi](https://nifi.orange.trycatchlearn.fr:8443/nifi) and authenticate on the cluster using the admin account email address configured in the `NifiCluster` resource.
+You can now access the NiFi cluster using the loadbalancer service hostname `<nifi's cluster name>.<DNS name>`, in my case it's [https://nifi.orange.trycatchlearn.fr:8443/nifi](https://nifi.orange.trycatchlearn.fr:8443/nifi) and authenticate on the cluster using the admin account email address configured in the `NifiCluster` resource.
 
-Here is my 5-nodes secured NiFi cluster up and running : 
+Here is my 3-nodes secured NiFi cluster up and running : 
 
 ![3 nodes cluster](/nifikop/img/blog/2020-06-30-secured_nifi_cluster_on_gcp_with_external_dns/3_nodes_cluster.png)
 

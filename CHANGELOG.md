@@ -24,7 +24,7 @@ ZooKeeper.
 
 ### Removed
 
-### Bug Fixes
+### Fixed Bugs
 
 - [MR #13](https://github.com/Orange-OpenSource/nifikop/-/merge_requests/13) - Fix scale out init scope in TLS cluster.
 
@@ -53,7 +53,7 @@ ZooKeeper.
 
 ### Removed
 
-### Bug Fixes
+### Fixed Bugs
 
 - [MR #7](https://github.com/Orange-OpenSource/nifikop/-/merge_requests/7) - Decommission lifecycle on Coordinator node
 - [MR #10](https://github.com/Orange-OpenSource/nifikop/-/merge_requests/10) - HTTPS port selection
@@ -67,7 +67,7 @@ ZooKeeper.
 - Implement Graceful upscale pod lifecycle management
 - Implement configuration lifecycle management for : nifi.properties, zookeeper.properties, state-management.xml, login-identity-providers.xml, logback.xml, bootstrap.conf, bootstrap-notification-servces.xml
 - Initiate documentations
-- Implementation basic makefile for some action (debug, build, deploy, run, push, unit-test)
+- Implementation basic makefile for some actions (debug, build, deploy, run, push, unit-test)
 - Create helm chart for operator
 - Add Documentation for internal deployment
 - Add Gitlab CI Pipeline
@@ -78,4 +78,4 @@ ZooKeeper.
 
 ### Removed
 
-### Bug Fixes
+### Fixed Bugs
