@@ -5,7 +5,7 @@ IMAGE_TAG				?= $(shell git describe --tags --abbrev=0 --match '[0-9].*[0-9].*[0
 IMAGE_NAME 				?= $(SERVICE_NAME)
 BUILD_IMAGE				?= orangeopensource/nifikop-build
 
-OPERATOR_SDK_VERSION=v0.18.0-forked-pr317
+OPERATOR_SDK_VERSION=v0.18.0
 # workdir
 WORKDIR := /go/casskop
 
@@ -21,16 +21,16 @@ else
 endif
 
 # Branch is used for the docker image version
-#ifdef CIRCLE_BRANCH
+ifdef CIRCLE_BRANCH
 #	removing / for fork which lead to docker error
-#	BRANCH := $(subst /,-,$(CIRCLE_BRANCH))
-ifdef CI_COMMIT_REF_NAME
-	BRANCH := $(subst /,-,$(CI_COMMIT_REF_NAME))
+	BRANCH := $(subst /,-,$(CIRCLE_BRANCH))
+#ifdef CI_COMMIT_REF_NAME
+#	BRANCH := $(subst /,-,$(CI_COMMIT_REF_NAME))
 else
-#	ifdef CIRCLE_TAG
-#		BRANCH := $(CIRCLE_TAG)
-	ifdef CI_COMMIT_TAG
-		BRANCH := $($CI_COMMIT_TAG)
+	ifdef CIRCLE_TAG
+		BRANCH := $(CIRCLE_TAG)
+#	ifdef CI_COMMIT_TAG
+#		BRANCH := $($CI_COMMIT_TAG)
 	else
 		BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
 	endif
@@ -40,8 +40,8 @@ endif
 # BaseVersion is for dev docker image tag
 BASEVERSION := $(shell awk -F\" '/Version =/ { print $$2}' version/version.go)
 
-#ifdef CIRCLE_TAG
-ifdef CI_COMMIT_TAG
+ifdef CIRCLE_TAG
+#ifdef CI_COMMIT_TAG
 	VERSION := ${BRANCH}
 else
 	VERSION := $(BASEVERSION)-${BRANCH}
@@ -50,9 +50,9 @@ endif
 HELM_VERSION    := $(shell cat helm/nifikop/Chart.yaml| grep version | awk -F"version: " '{print $$2}')
 HELM_TARGET_DIR ?= docs/helm
 
-#si branche master, on pousse le tag latest
-#ifeq ($(CIRCLE_BRANCH),master)
-ifeq ($(CI_BUILD_REF_NAME),master)
+# if branch master tag latest
+ifeq ($(CIRCLE_BRANCH),master)
+#ifeq ($(CI_BUILD_REF_NAME),master)
 	PUSHLATEST := true
 endif
 
