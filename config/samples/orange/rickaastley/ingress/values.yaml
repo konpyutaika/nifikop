@@ -15,16 +15,16 @@ testFramework:
   tag: "0.4.0"
 
 ## can switch the service type to NodePort if required
-#serviceType: LoadBalancer
-serviceType: ClusterIP
-# loadBalancerIP: ""
+serviceType: LoadBalancer
+## Set your LB IP
+loadBalancerIP: "10.218.153.2"
 # loadBalancerSourceRanges: []
 whiteListSourceRange: []
 externalTrafficPolicy: ""
 #externalTrafficPolicy: Cluster
 #externalTrafficPolicy: Local
 #externalTrafficPolicy: NodePort
-clusterIP: None
+clusterIP: ""
 
 
 replicas: 1
@@ -63,7 +63,7 @@ ressouces:
 #  memoryLimit: 50Mi
 
 debug:
-  enabled: false
+  enabled: true
 
 # logLevel: error
 
@@ -75,7 +75,7 @@ deploymentStrategy: {}
   #   maxUnavailable: 0
 # type: RollingUpdate
 
-securityContext:
+podSecurityContext:
   runAsUser: 100
 
 useNonPriviledgedPorts: true
@@ -94,7 +94,7 @@ tolerations: []
 kubernetes:
   # endpoint:
   namespaces:
-    - casskop-cassandra-demo
+    - proxydata-proxydata
   # labelSelector:
   # ingressClass:
   # ingressEndpoint:
@@ -146,13 +146,13 @@ secretFiles: {}
 #   filecontents...
 
 ssl:
-  enabled: false
-  enforced: true
+  enabled: true
+  enforced: false
   permanentRedirect: false
   upstream: false
-  insecureSkipVerify: false
-  generateTLS: false
-    # defaultCN: "example.com"
+  insecureSkipVerify: true
+  generateTLS: true
+  defaultCN: "*.metallikaas.archicloud.orangeportails.net"
   # or *.example.com
   defaultSANList: []
     # - example.com
@@ -164,8 +164,8 @@ ssl:
   # tlsMinVersion: VersionTLS12
   # https://docs.traefik.io/configuration/entrypoints/#strict-sni-checking
   # sniStrict: false
-  defaultCert: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUh6VENDQmJXZ0Cg==.....
-  defaultKey: LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUpRZ0lCQURBTkJna3Foa2lHOXcw0tLQo=....
+  #defaultCert: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUh6VENDQmJXZ0F3SUxxxx
+  #defaultKey: LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUpRZ0lCQURBTkJna3Foaxxxx
 
   # Basic auth to protect all the routes. Can use htpasswd to generate passwords
   # > htpasswd -n -b testuser testpass
@@ -376,7 +376,7 @@ acme:
 dashboard:
   enabled: true
   domain: traefikt-dashboard.nifi.pns.svc.rickaastley.p.fti.net
-  serviceType: ClusterIP
+  #serviceType: ClusterIP
   service: {}
     # annotations:
   #   key: value
@@ -401,7 +401,6 @@ dashboard:
 service:
   annotations:
     external-dns.alpha.kubernetes.io/hostname: traefikt.nifi.pns.svc.rickaastley.p.fti.net
-    cni.projectcalico.org/ipv4pools: '["casskop-routable"]'
   # labels:
   #   key: value
   ## Further config for service of type NodePort
@@ -468,8 +467,8 @@ deployment:
   # annotations:
   #   key: value
   # labels to add to the pod container metadata
-  # podLabels:
-  #   key: value
+#  podLabels:
+#    app: proxydata-ingress
   # podAnnotations:
   #   key: value
   hostPort:
