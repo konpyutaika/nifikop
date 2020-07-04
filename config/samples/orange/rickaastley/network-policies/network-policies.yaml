@@ -127,7 +127,6 @@ spec:
       source:
         selector: app == 'nifikop'
 
-
 # apiVersion: crd.projectcalico.org/v1
   #kind: NetworkPolicy
   #metadata:
