@@ -10,6 +10,7 @@ spec:
     headlessEnabled: true
     annotations:
       external-dns.alpha.kubernetes.io/ttl: "5"
+      traefik.ingress.kubernetes.io/affinity: "true"
   zkAddresse: "zookeeper.proxydata-proxydata:2181"
   zkPath: "/sec"
   clusterImage: registry.gitlab.si.francetelecom.fr/dfyarchicloud/dfyarchicloud-registry/apache/nifi:1.11.4
@@ -105,8 +106,6 @@ spec:
     - id: 0
       nodeConfigGroup: "default_group"
     - id: 1
-      nodeConfigGroup: "default_group"
-    - id: 2
       nodeConfigGroup: "default_group"
   listenersConfig:
     clusterDomain: "kaas-rec-sph.local"

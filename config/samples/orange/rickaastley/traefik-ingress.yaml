@@ -2,8 +2,8 @@ apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   name: sec-ingress
-  annotations:
-    external-dns.alpha.kubernetes.io/target: traefikt.nifi.pns.svc.rickaastley.p.fti.net
+#  annotations:
+#    external-dns.alpha.kubernetes.io/target: traefikt.nifi.pns.svc.rickaastley.p.fti.net
 spec:
   rules:
     - host: sec.nifi.pns.svc.rickaastley.p.fti.net
