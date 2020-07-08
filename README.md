@@ -7,8 +7,8 @@
     <img src="https://img.shields.io/docker/v/orangeopensource/nifikop.svg" alt="Docker Automated build">
   </a>
 
-  <a href="https://circleci.com/gh/orangeopensource/nifikop">
-    <img src="https://circleci.com/gh/orangeopensource/nifikopr/tree/master.svg?style=shield" alt="CircleCI">
+  <a href="https://circleci.com/gh/Orange-OpenSource/nifikop">
+    <img src="https://circleci.com/gh/Orange-OpenSource/nifikop/tree/master.svg?style=shield" alt="CircleCI">
   </a>
 
   <a href="https://goreportcard.com/report/github.com/Orange-OpenSource/nifikop">
