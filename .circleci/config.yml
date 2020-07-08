@@ -222,15 +222,12 @@ orbs:
 #          # Artifacts definitions
 #          - store_test_results: # Store sonar scan reports
 #              path: reports
-        report-sonar:
-          docker:
-            - image: 'node:latest'
-          steps:
-            - checkout
-            - sonarcloud/scan
-
-
-
+      report-sonar:
+        docker:
+          - image: 'node:latest'
+        steps:
+          - checkout
+          - sonarcloud/scan
       release-helm:
         <<: *params_operator
         working_directory: /home/circleci/<< parameters.operatorDir >>
