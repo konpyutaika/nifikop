@@ -1,3 +1,17 @@
+// Copyright 2020 Orange SA
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.package apis
+
 package nifiuser
 
 import (
@@ -8,15 +22,15 @@ import (
 	"emperror.dev/errors"
 	certv1 "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha2"
 
-	v1alpha1 "gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/apis/nifi/v1alpha1"
-	common "gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/controller/common"
-	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/errorfactory"
-	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/k8sutil"
-	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/pki"
-	pkicommon "gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/util/pki"
+	v1alpha1 "github.com/Orange-OpenSource/nifikop/pkg/apis/nifi/v1alpha1"
+	common "github.com/Orange-OpenSource/nifikop/pkg/controller/common"
+	"github.com/Orange-OpenSource/nifikop/pkg/errorfactory"
+	"github.com/Orange-OpenSource/nifikop/pkg/k8sutil"
+	"github.com/Orange-OpenSource/nifikop/pkg/pki"
+	pkicommon "github.com/Orange-OpenSource/nifikop/pkg/util/pki"
 	"github.com/go-logr/logr"
 
-	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/util"
+	"github.com/Orange-OpenSource/nifikop/pkg/util"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"

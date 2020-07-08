@@ -4,7 +4,7 @@ title: Kubernetes@Pic
 sidebar_label: Kubernetes@Pic
 ---
 
-1. Follow the instructions of the [documentation](https://kubernetes.pages.gitlab.si.francetelecom.fr/deploy-k8s-rke-pic/) to access to Pic Kubernetes clusters.
+1. Follow the instructions of the [documentation](https://orange-opensource.github.io/deploy-k8s-rke-pic/) to access to Pic Kubernetes clusters.
 
 2. Once logged on one of Pic's cluster, you can follow the [Getting started guide](/nifikop/docs/7_dfy_orange/1_getting_started).
 
@@ -59,5 +59,5 @@ spec:
     ```
 
     :::tip
-    You can find some examples in the [config/samples/orange folder](https://gitlab.si.francetelecom.fr/kubernetes/nifikop/tree/master/config/samples/orange)
+    You can find some examples in the [config/samples/orange folder](https://github.com/Orange-OpenSource/nifikop/tree/master/config/samples/orange)
     :::

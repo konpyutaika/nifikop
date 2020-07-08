@@ -74,7 +74,8 @@ rules:
 - apiGroups:
   - nifi.orange.com
   resources:
-  - '*'
+  - "nifiusers"
+  - "nificlusters"
   verbs:
   - create
   - delete
@@ -88,7 +89,9 @@ rules:
   - cert-manager.io
   resources:
   - issuers
+  {{-  if.Values.certManager.clusterScoped }}
   - clusterissuers
+  {{- end }}
   - certificates
   verbs:
   - create
@@ -98,5 +101,14 @@ rules:
   - patch
   - update
   - watch
+- apiGroups:
+  - nifi.orange.com
+  resources:
+  - nifiusers/status
+  - nificlusters/status
+  verbs:
+  - get
+  - update
+  - patch
 ---
 {{- end}}

@@ -99,13 +99,14 @@ service:
   annotations: {}
 
 ingress:
-  enabled: false
+  enabled: true
   annotations: {}
-    # kubernetes.io/ingress.class: nginx
+    kubernetes.io/ingress.class: traefik
+    external-dns.alpha.kubernetes.io/target: traefikt.nifi.pns.svc.rickaastley.p.fti.net
   # kubernetes.io/tls-acme: "true"
   path: /
   hosts:
-    - dex.example.com
+    - dex.nifi.pns.svc.rickaastley.p.fti.net
   tls: []
   #  - secretName: dex-example-tls
   #    hosts:
