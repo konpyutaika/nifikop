@@ -186,7 +186,6 @@ kubectl apply -f \
 helm install nifikop \
     --namespace=nifikop \
     --set image.tag=0.1.0-ft_override-cluster-domain \
-    --set image.repository=eu.gcr.io/poc-rtc/nifikop \
     orange-incubator/nifikop
 ```
 
@@ -197,7 +196,6 @@ helm install nifikop \
 helm install --name=nifikop \
     --namespace=nifikop \
     --set image.tag=0.1.0-ft_override-cluster-domain \
-    --set image.repository=eu.gcr.io/poc-rtc/nifikop \
     orange-incubator/nifikop
 ```
 </TabItem>

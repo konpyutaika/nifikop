@@ -4,33 +4,36 @@ kind: NetworkPolicy
 metadata:
   name: nifi-intra-nodes
 spec:
-  podSelector:
-    matchLabels: &labels_selector
+  podSelector: &labels_selector
+    matchLabels:
       app: nifi
   ingress:
     - from:
-      - namespaceSelector:
-          matchLabels: *labels_selector
+        - podSelector: *labels_selector
       ports: &intranodes_ports
         - port: 6007
           protocol: TCP
         - port: 8443
           protocol: TCP
+    - from:
+        - podSelector:
+            matchLabels:
+              operator: "nifi"
+      ports:
+        - port: 8443
+          protocol: TCP
   egress:
-    - ports: *intranodes_ports
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: nifi-to-zookeeper
-spec:
-  podSelector:
-    matchLabels: &labels_selector
-      app: nifi
-  egress:
-    - ports:
-      - port: 2181
-        protocol: TCP
+    - to:
+        - podSelector: *labels_selector
+      ports: *intranodes_ports
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/instance: zookeeper
+              app.kubernetes.io/name: zookeeper
+      ports:
+        - port: 2181
+          protocol: TCP
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -42,9 +45,7 @@ spec:
       app: nifi
   egress:
     - ports:
-        - port: 32000
-          protocol: TCP
-        - port: 5556
+        - port: 6080
           protocol: TCP
 ---
 apiVersion: networking.k8s.io/v1
@@ -53,7 +54,7 @@ metadata:
   name: traefik-to-nifi
 spec:
   podSelector:
-    matchLabels: &labels_selector
+    matchLabels:
       app: nifi
   ingress:
     - from:
@@ -61,80 +62,77 @@ spec:
             matchLabels:
               app: "traefik"
       ports:
-        - port: 6007
-          protocol: TCP
         - port: 8443
           protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: nifikop-to-nifi
+spec:
+  podSelector:
+    matchLabels:
+      operator: nifi
   egress:
-    - {}
-#---
+    - to:
+        - podSelector:
+            matchLabels:
+              app: "nifi"
+      ports:
+        - port: 8443
+          protocol: TCP
+---
 #apiVersion: crd.projectcalico.org/v1
 #kind: NetworkPolicy
 #metadata:
-#  name: nifi-to-zookeeper
+#  name: nifi-to-dex
 #spec:
-#  selector: app == 'nifi' && nifi_cr == 'nifisec'
+#  selector: app == 'nifi'
 #  types:
 #    - Egress
 #  egress:
 #    - action: Allow
 #      protocol: TCP
 #      source:
-#        selector: app == 'nifi' && nifi_cr == 'nifisec'
+#        selector: app == 'nifi'
 #      destination:
-#        ports:
-#          - 2181
+#        ports: ["6080"]
 #---
----
-apiVersion: crd.projectcalico.org/v1
-kind: NetworkPolicy
-metadata:
-  name: allow-all-ingress
-spec:
-  ingress:
-    - action: allow
-      source:
-        selector: app == 'nifi'
----
-apiVersion: crd.projectcalico.org/v1
-kind: NetworkPolicy
-metadata:
-  name: allow-all-egress
-spec:
-  egress:
-    - action: allow
-      source:
-        selector: app == 'nifi'
-
----
-apiVersion: crd.projectcalico.org/v1
-kind: NetworkPolicy
-metadata:
-  name: nifikop-allow-all-ingress
-spec:
-  ingress:
-    - action: allow
-      source:
-        selector: app == 'nifikop'
----
-apiVersion: crd.projectcalico.org/v1
-kind: NetworkPolicy
-metadata:
-  name: nifikop-allow-all-egress
-spec:
-  egress:
-    - action: allow
-      source:
-        selector: app == 'nifikop'
-
+#---
+#apiVersion: networking.k8s.io/v1
+#kind: NetworkPolicy
+#metadata:
+#  name: allow-all-nifi
+#spec:
+#  podSelector:
+#    matchLabels: &labels_selector
+#      app: nifi
+#  ingress:
+#    - {}
+#  egress:
+#    - {}
+#---
+#apiVersion: networking.k8s.io/v1
+#kind: NetworkPolicy
+#metadata:
+#  name: allow-all-nifikop
+#spec:
+#  podSelector:
+#    matchLabels: &labels_selector
+#      app: nifikop
+#  ingress:
+#    - {}
+#  egress:
+#    - {}
+#---
 # apiVersion: crd.projectcalico.org/v1
-  #kind: NetworkPolicy
-  #metadata:
-  #  name: allow-icmp
-  #spec:
-  #  selector: app == 'nifi'
-  #  ingress:
-  #    - action: Allow
-  #      protocol: ICMP
-  #      source:
-  #        selector: app == 'nifi'
+#  kind: NetworkPolicy
+#  metadata:
+#    name: allow-icmp
+#  spec:
+#    selector: app == 'nifi'
+#    ingress:
+#      - action: Allow
+#        protocol: ICMP
+#        source:
+#          selector: app == 'nifi'

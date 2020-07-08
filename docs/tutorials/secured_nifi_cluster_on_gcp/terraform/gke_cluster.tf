@@ -62,7 +62,7 @@ resource "google_container_cluster" "nifi-cluster" {
 
 
   # The name or self_link of the Google Compute Engine network to which the cluster is connected. For Shared VPC, set this to the self link of the shared network
-  network = "projects/poc-rtc/global/networks/default"
+  network = "projects/${var.project}/global/networks/default"
 
   # Configuration options for the NetworkPolicy feature
   network_policy {
