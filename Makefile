@@ -24,13 +24,9 @@ endif
 ifdef CIRCLE_BRANCH
 #	removing / for fork which lead to docker error
 	BRANCH := $(subst /,-,$(CIRCLE_BRANCH))
-#ifdef CI_COMMIT_REF_NAME
-#	BRANCH := $(subst /,-,$(CI_COMMIT_REF_NAME))
 else
 	ifdef CIRCLE_TAG
 		BRANCH := $(CIRCLE_TAG)
-#	ifdef CI_COMMIT_TAG
-#		BRANCH := $($CI_COMMIT_TAG)
 	else
 		BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
 	endif
@@ -41,7 +37,6 @@ endif
 BASEVERSION := $(shell awk -F\" '/Version =/ { print $$2}' version/version.go)
 
 ifdef CIRCLE_TAG
-#ifdef CI_COMMIT_TAG
 	VERSION := ${BRANCH}
 else
 	VERSION := $(BASEVERSION)-${BRANCH}
@@ -52,7 +47,6 @@ HELM_TARGET_DIR ?= docs/helm
 
 # if branch master tag latest
 ifeq ($(CIRCLE_BRANCH),master)
-#ifeq ($(CI_BUILD_REF_NAME),master)
 	PUSHLATEST := true
 endif
 
