@@ -207,7 +207,29 @@ orbs:
                 chmod +x $SCANNER_DIRECTORY/sonar-scanner-$VERSION-$OS/bin/sonar-scanner
                 chmod +x $SCANNER_DIRECTORY/sonar-scanner-$VERSION-$OS/jre/bin/java
 
-                $SCANNER_DIRECTORY/sonar-scanner-$VERSION-$OS/bin/sonar-scanner
+                $SCANNER_DIRECTORY/sonar-scanner-$VERSION-$OS/bin/sonar-scanner -X \
+                -Dsonar.projectName=<< parameters.operatorName >> \
+                -Dsonar.projectKey=${SONAR_PROJECT} \
+                -Dsonar.login=${SONAR_TOKEN} \
+                -Dsonar.branch.name=${CIRCLE_BRANCH} \
+                -Dsonar.organization=${SONAR_ORGANISATION} \
+                -Dsonar.host.url=https://sonarcloud.io \
+                -Dsonar.projectBaseDir=/home/circleci/<< parameters.operatorDir >> \
+                -Dsonar.sources=. \
+                -Dsonar.sources.inclusions="**/**.go" \
+                -Dsonar.exclusions="**/*_test.go,**/vendor/**,**/sonar-scanner-3.3.0.1492-linux/**,**docs/**" \
+                -Dsonar.coverage.exclusions="**/vendor/**,**/test/**,**docs/**" \
+                -Dsonar.tests=. \
+                -Dsonar.language=go \
+                -Dsonar.sourceEncoding=UTF-8 \
+                -Dsonar.test.inclusions="**/**_test.go" \
+                -Dsonar.test.exclusions="**/vendor/**" \
+                -Dsonar.go.coverage.reportPaths=coverage.out \
+                -Dsonar.go.tests.reportPaths=test-report.out \
+                -Dsonar.coverage.dtdVerification=false \
+                -Dsonar.log.level=INFO
+                
+                cat -n .scannerwork/report-task.txt
               environment:
                 SONARQUBE_SCANNER_PARAMS: '{"sonar.host.url":"https://sonarcloud.io"}'
           - save_cache:
