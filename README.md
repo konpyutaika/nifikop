@@ -1,7 +1,5 @@
 <p align="center"><img src="docs/img/nifikop.png" width="160"></p>
 
-[![Quality Gate Status](http://sonar.pic.s1.p.fti.net/api/project_badges/measure?project=&metric=alert_status)](https://sonarcloud.io/dashboard?id=Orange-OpenSource_cassandra-k8s-operator)
-
 <p align="center">
   <a href="https://hub.docker.com/r/orangeopensource/nifikop/">
     <img src="https://img.shields.io/docker/v/orangeopensource/nifikop.svg" alt="Docker Automated build">
