@@ -147,8 +147,8 @@ helm repo add orange-incubator https://orange-kubernetes-charts-incubator.storag
 
 ```bash
 # You have to create the namespace before executing following command
-kubectl apply -f https://raw.githubusercontent.com/erdrix/nifikop/master/deploy/crds/nifi.orange.com_nificlusters_crd.yaml
-kubectl apply -f https://raw.githubusercontent.com/erdrix/nifikop/master/deploy/crds/nifi.orange.com_nifiusers_crd.yaml
+kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/nifi.orange.com_nificlusters_crd.yaml
+kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/nifi.orange.com_nifiusers_crd.yaml
 helm install nifikop --namespace=nifi orange-incubator/nifikop
 ```
 

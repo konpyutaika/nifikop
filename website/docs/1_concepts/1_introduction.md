@@ -26,7 +26,7 @@ Some of the roadmap features :
 
 ## Motivation
 
-At [Orange](https://opensource.orange.com/fr/accueil/) we are building some [Kubernetes operator](https://github.com/erdrix?utf8=%E2%9C%93&q=operator&type=&language=), that operate NiFi and Cassandra clusters (among other types) for our business cases.
+At [Orange](https://opensource.orange.com/fr/accueil/) we are building some [Kubernetes operator](https://github.com/Orange-OpenSource?utf8=%E2%9C%93&q=operator&type=&language=), that operate NiFi and Cassandra clusters (among other types) for our business cases.
 
 There are already some approaches to operating NiFi on Kubernetes, however, we did not find them appropriate for use in a highly dynamic environment, nor capable of meeting our needs.
 
