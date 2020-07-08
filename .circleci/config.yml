@@ -27,7 +27,7 @@ orbs:
     .job_operator: &job_operator
       working_directory: /home/circleci/<< parameters.operatorDir >>
       executor: operator-build
-    # Setting up docker executor using casskop-build image.
+    # Setting up docker executor using nifikop-build image.
     executors:
       operator-build:
         docker:
@@ -183,8 +183,8 @@ orbs:
           - run:
               name: Download SonarQube Scanner
               command: |
-                chmod +x /home/circleci/casskop/.circleci/install_sonar-scanner.sh
-                /home/circleci/casskop/.circleci/install_sonar-scanner.sh
+                chmod +x /home/circleci/nifikop/.circleci/install_sonar-scanner.sh
+                /home/circleci/nifikop/.circleci/install_sonar-scanner.sh
           - save_cache: # Cache sonar download
               name: Cache SonarQube Scanner
               key: sonar-scanner-3.3.0.1492-linux
@@ -234,7 +234,7 @@ orbs:
                 if [[ $(echo "$CIRCLE_BRANCH" | grep -c "pull") -gt 0 ]]; then
                   echo "This is a PR, we don't publish to helm repo."
                 else
-                  GCP_SA_CREDS=${GCP_POC_RTC_SA_KEY} /home/circleci/casskop/tools/publish_helm_gcs.sh
+                  GCP_SA_CREDS=${GCP_POC_RTC_SA_KEY} /home/circleci/nifikop/tools/publish_helm_gcs.sh
                 fi
 jobs:
   deploy-website:
@@ -243,7 +243,7 @@ jobs:
       - image: node:13.5.0
     steps:
       - checkout:
-          path: /home/circleci/casskop
+          path: /home/circleci/nifikop
       - run:
           name: deploy
           command: |
@@ -289,11 +289,6 @@ jobs:
     # ignore any commit on any branch by default
     branches:
       only: master
-
-## Parameters anchors
-.params_multicasskop: &params_multicasskop
-  operatorDir: casskop/multi-casskop
-  operatorName: MultiCassKop
 
 # Workflow definition
 workflows:
