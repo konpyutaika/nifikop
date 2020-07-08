@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="https://hub.docker.com/r/orangeopensource/nifikop/">
-    <img src="https://img.shields.io/docker/v/orangeopensource/nifikop.svg" alt="Docker Automated build">
+    <img src="https://img.shields.io/docker/v/orangeopensource/nifikop.svg?sort=date" alt="Docker Automated build">
   </a>
 
   <a href="https://circleci.com/gh/Orange-OpenSource/nifikop">
