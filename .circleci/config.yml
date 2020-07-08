@@ -269,7 +269,7 @@ jobs:
             echo "machine github.com login ${GH_NAME} password ${GH_TOKEN}" > ~/.netrc
             yarn install
             yarn build
-            GIT_USER="${GH_NAME}" yarn deploy
+            CUSTOM_COMMIT_MESSAGE="[skip ci]" GIT_USER="${GH_NAME}" yarn deploy
 
 # Anchors
 ## Filters anchors
@@ -277,8 +277,6 @@ jobs:
   filters:
     tags:
       only: /.*/
-    branches:
-      ignore: gh-pages
 
 .canonical_repo_filter : &canonical_repo_filter
   filters:
@@ -287,7 +285,6 @@ jobs:
     branches:
       # report sonar only from canonical repository
       only: /^(?!pull\/).*$/ # https://stackoverflow.com/a/5334825/358804
-      ignore: gh-pages
 
 
 .only_on_release_tag: &only_on_release_tag

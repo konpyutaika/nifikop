@@ -50,19 +50,11 @@ module.exports = {
               label: 'Blog',
               to: 'blog',
             },
-            {
-              label: 'Twitter',
-              href: 'https://twitter.com',
-            },
           ],
         },
         {
           title: 'Contact',
           items: [
-            {
-              label: 'Email',
-              href: 'mailto:prj.nifikop.support@list.orangeportails.net',
-            },
             {
               label: 'Feature request',
               href: 'https://github.com/Orange-OpenSource/nifikop/issues',
