@@ -17,6 +17,8 @@
 - [MR #16](https://github.com/Orange-OpenSource/nifikop/-/merge_requests/16) - Set binami zookeeper helm chart as recommended solution for 
 ZooKeeper.
 - [MR #16](https://github.com/Orange-OpenSource/nifikop/-/merge_requests/16) - Improve terraform setup for articles.
+- [MR #18](https://gitlab.si.francetelecom.fr/kubernetes/nifikop/-/merge_requests/18) - Add ability to define if cert-manager is cluster scoped or not.
+- [MR #18](https://gitlab.si.francetelecom.fr/kubernetes/nifikop/-/merge_requests/18) - Open source changes
 
 ### Deprecated
 
