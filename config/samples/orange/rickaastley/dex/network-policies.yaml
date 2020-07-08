@@ -19,8 +19,6 @@ spec:
               app.kubernetes.io/instance: dex
               app.kubernetes.io/name: dex
       ports:
-        - port: 32000
-          protocol: TCP
         - port: 5556
           protocol: TCP
 ---
@@ -40,7 +38,5 @@ spec:
             matchLabels:
               app: "traefik"
       ports:
-        - port: 32000
-          protocol: TCP
         - port: 5556
           protocol: TCP

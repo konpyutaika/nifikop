@@ -110,12 +110,13 @@ kubectl create -f config/samples/orange/rickaastley/dex/network-policies.yaml
 helm install dex \
     stable/dex \
     --set crd.present=true \
+    --set rbac.create=false \
     --set image=ext-quayio.artifactory.packages.install-os.multis.p.fti.net/dexidp/dex \
     --set certs.image=ext-gcrio.artifactory.packages.install-os.multis.p.fti.net/google_containers/kubernetes-dashboard-init-amd64 \
     --set config.issuer=http://dex.nifi.pns.svc.rickaastley.p.fti.net \
     -f config/samples/orange/rickaastley/dex/values.yaml
+kubectl create -f config/samples/orange/rickaastley/dex/role.yaml
 ```
-
 
 ## NiFi Cluster
 
