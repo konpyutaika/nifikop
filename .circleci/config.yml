@@ -329,7 +329,7 @@ workflows:
           name: build-ci
           requires:
             - unit-test-nifikop
-          <<: *everytime_filter
+          <<: *website_publish
 
 #      - operator/report-sonar:
 #          name: report-nifikop
