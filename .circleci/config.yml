@@ -72,7 +72,7 @@ orbs:
                 - vendor
 
       # Build job, which build operator docker image (with operator-sdk build)
-      build:ci:
+      build-ci:
         <<: *params_operator
         <<: *job_operator
         steps:
@@ -108,7 +108,7 @@ orbs:
 
 
       # Build job, which build operator docker image (with operator-sdk build)
-      build:operator:
+      build-operator:
         <<: *params_operator
         <<: *job_operator
         steps:
@@ -145,7 +145,7 @@ orbs:
                 - vendor
 
       # Unit test job, will execute makefile 'unit-test-with-vendor' step
-      test:unit:
+      test-unit:
         <<: *params_operator
         <<: *job_operator
         steps:
@@ -167,7 +167,7 @@ orbs:
                 - << parameters.operatorDir >>/test-report.out
 
       # Reporting step, will run sonar report from scan.
-      report:sonar:
+      report-sonar:
         <<: *params_operator
         <<: *job_operator
         steps:
@@ -220,7 +220,7 @@ orbs:
           - store_test_results: # Store sonar scan reports
               path: reports
 
-      release:helm:
+      release-helm:
         <<: *params_operator
         working_directory: /home/circleci/<< parameters.operatorDir >>
         docker:
@@ -237,7 +237,7 @@ orbs:
                   GCP_SA_CREDS=${GCP_POC_RTC_SA_KEY} /home/circleci/casskop/tools/publish_helm_gcs.sh
                 fi
 jobs:
-  deploy:website:
+  deploy-website:
     working_directory: /home/circleci/nifikop/website
     docker: # run the steps with Docker
       - image: node:13.5.0
@@ -305,38 +305,38 @@ workflows:
           name: generate-nifikop
           <<: *everytime_filter
 
-      - operator/test:unit:
+      - operator/test-unit:
           name: unit-test-nifikop
           requires:
             - generate-nifikop
           <<: *everytime_filter
 
-      - operator/build:operator:
+      - operator/build-operator:
           name: build-nifikop
           requires:
             - unit-test-nifikop
           <<: *everytime_filter
 
-      - operator/build:ci:
+      - operator/build-ci:
           type: approval
           name: build-ci
           requires:
             - unit-test-nifikop
           <<: *everytime_filter
 
-      - operator/report:sonar:
+      - operator/report-sonar:
           name: report-nifikop
           requires:
             - unit-test-nifikop
           <<: *canonical_repo_filter
 
-      - operator/release:helm:
+      - operator/release-helm:
           name: release-helm-orange-incubator-nifikop
           requires:
             - report-nifikop
           <<: *only_on_release_tag
 
-      - deploy:website:
+      - deploy-website:
           name: deploy-website
           requires:
             - report-nifikop
