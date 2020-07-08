@@ -36,3 +36,6 @@ metricService: false
 
 debug:
   enabled: false
+
+certManager:
+  clusterScoped: false

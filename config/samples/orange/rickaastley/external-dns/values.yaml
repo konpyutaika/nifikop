@@ -9,7 +9,7 @@ rfc2136:
   tsigKeyname: pns.svc.rickaastley.p.fti.net
   tsigAxfr: true
 podAnnotations:
-  cni.projectcalico.org/ipv4pools: '["casskop-default"]'
+  cni.projectcalico.org/ipv4pools: '["proxydata-default"]'
 networkPolicy:
   create: true
   rfc2136_hosts_cidr:

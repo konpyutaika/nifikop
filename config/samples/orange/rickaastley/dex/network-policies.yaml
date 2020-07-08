@@ -19,8 +19,24 @@ spec:
               app.kubernetes.io/instance: dex
               app.kubernetes.io/name: dex
       ports:
-        - port: 32000
-          protocol: TCP
         - port: 5556
           protocol: TCP
 ---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: traefik-to-dex
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: dex
+      app.kubernetes.io/instance: dex
+      app.kubernetes.io/name: dex
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: "traefik"
+      ports:
+        - port: 5556
+          protocol: TCP

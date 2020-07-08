@@ -1,4 +1,4 @@
-FROM golang:1.13 as build
+FROM golang:1.14 as build
 
 ENV GO111MODULE=on
 
@@ -10,16 +10,16 @@ RUN mkdir -p /tmp && chown nifikop /tmp
 
 FROM registry.access.redhat.com/ubi8/ubi-minimal:latest
 
-LABEL org.opencontainers.image.documentation="https://gitlab.si.francetelecom.fr/kubernetes/nifikop/blob/master/README.md"
+LABEL org.opencontainers.image.documentation="https://github.com/Orange-OpenSource/nifikop/blob/master/README.md"
 LABEL org.opencontainers.image.authors="Alexandre Guitton <aguitton.ext@orange.com>"
-LABEL org.opencontainers.image.source="https://gitlab.si.francetelecom.fr/kubernetes/nifikop"
+LABEL org.opencontainers.image.source="https://github.com/Orange-OpenSource/nifikop"
 LABEL org.opencontainers.image.vendor="Orange France - Digital Factory"
 LABEL org.opencontainers.image.version="0.1"
 LABEL org.opencontainers.image.description="Operateur des Gestion de Clusters Nifi"
-LABEL org.opencontainers.image.url="https://gitlab.si.francetelecom.fr/kubernetes/nifikop"
+LABEL org.opencontainers.image.url="https://github.com/Orange-OpenSource/nifikop"
 LABEL org.opencontainers.image.title="Operateur NiFi"
 
-LABEL org.label-schema.usage="https://gitlab.si.francetelecom.fr/kubernetes/nifikop/blob/master/README.md"
+LABEL org.label-schema.usage="https://github.com/Orange-OpenSource/nifikop/blob/master/README.md"
 LABEL org.label-schema.docker.cmd="/usr/local/bin/nifikop"
 LABEL org.label-schema.docker.cmd.devel="N/A"
 LABEL org.label-schema.docker.cmd.test="N/A"

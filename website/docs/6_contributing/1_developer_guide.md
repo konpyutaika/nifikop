@@ -33,7 +33,7 @@ make install
 Checkout the project.
 
 ```bash
-git clone https://gitlab.si.francetelecom.fr/kubernetes/nifikop.git
+git clone https://github.com/Orange-OpenSource/nifikop.git
 cd nifikop
 ```
 
@@ -134,7 +134,6 @@ Install the Helm chart.
 
 ```bash
 helm install ./helm/nifikop \
-    --set-string image.repository=eu.gcr.io/poc-rtc/nifikop \
     --set image.tag=v0.0.1-release \
     --name skeleton
 ```

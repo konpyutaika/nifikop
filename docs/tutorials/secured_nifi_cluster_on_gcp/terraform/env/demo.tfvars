@@ -16,6 +16,6 @@ preemptible = false
 
 # NiFiKop configuration
 ## Image
-nifikop_image_repo = "eu.gcr.io/poc-rtc/nifikop"
+nifikop_image_repo = "orangeopensource/nifikop"
 nifikop_image_tag  = "v0.1.0-release"
 nifikop_chart_version = "0.1.0"

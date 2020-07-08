@@ -10,10 +10,8 @@ spec:
     headlessEnabled: true
     annotations:
       external-dns.alpha.kubernetes.io/ttl: "5"
-  pod:
-    annotations:
-      cni.projectcalico.org/ipv4pools: '["casskop-routable"]'
-  zkAddresse: "zookeeper.casskop-cassandra-demo:2181"
+      traefik.ingress.kubernetes.io/affinity: "true"
+  zkAddresse: "zookeeper.proxydata-proxydata:2181"
   zkPath: "/sec"
   clusterImage: registry.gitlab.si.francetelecom.fr/dfyarchicloud/dfyarchicloud-registry/apache/nifi:1.11.4
   initContainerImage: ext-dockerio.artifactory.si.francetelecom.fr/library/busybox:latest
@@ -28,11 +26,11 @@ spec:
     # NifiProperties configuration that will be applied to the node.
     nifiProperties:
       webProxyHosts:
-        - sec.nifi.pns.svc.rickaastley.p.fti.net:8443
+        - sec.nifi.pns.svc.rickaastley.p.fti.net:443
       # Additionnals nifi.properties configuration that will override the one produced based
       # on template and configurations.
       overrideConfigs: |
-        nifi.security.user.oidc.discovery.url=http://dex.nifi.pns.svc.rickaastley.p.fti.net:32000/.well-known/openid-configuration
+        nifi.security.user.oidc.discovery.url=http://dex.nifi.pns.svc.rickaastley.p.fti.net/.well-known/openid-configuration
         nifi.security.user.oidc.client.id=nifisec
         nifi.security.user.oidc.client.secret=BvmEyr81P0YXZtIt1FIfGsRs
         nifi.security.identity.mapping.pattern.dn=CN=(.*)(?:, (?:O|OU)=.*)*
@@ -100,16 +98,17 @@ spec:
       resourcesRequirements:
         limits:
           cpu: "2"
-          memory: 3Gi
+          memory: 2Gi
         requests:
           cpu: "1"
-          memory: 1Gi
+          memory: 2Gi
   nodes:
     - id: 0
       nodeConfigGroup: "default_group"
+    - id: 1
+      nodeConfigGroup: "default_group"
   listenersConfig:
-    useExternalDNS: true
-    clusterDomain: "nifi.pns.svc.rickaastley.p.fti.net"
+    clusterDomain: "kaas-rec-sph.local"
     internalListeners:
       - type: "https"
         name: "https"

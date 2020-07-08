@@ -33,7 +33,7 @@ The following tables lists the configurable parameters of the NiFi Operator Helm
 | `resources`                      | Pod resource requests & limits                   | `{}`                                      |
 | `metricService`                  | deploy service for metrics                       | `false`                                   |
 | `debug.enabled`                  | activate DEBUG log level                         | `false`                                   |
-| `certManager.namespace`          | cert manager namespace loaction                  | `cert-manager`                            |
+| `certManager.clusterScoped`      | If true setup cluster scoped resources           | `false`                            |
 | `namespaces`                     | List of namespaces where Operator watches for custom resources. Make sure the operator ServiceAccount is granted `get` permissions on this `Node` resource when using limited RBACs.| `""` i.e. all namespaces |
 
 Specify each parameter using the `--set key=value[,key=value]` argument to `helm install`. For example,

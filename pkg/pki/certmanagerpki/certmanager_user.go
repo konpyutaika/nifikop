@@ -1,4 +1,4 @@
-// Copyright © 2019 Banzai Cloud
+// Copyright 2020 Orange SA
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -10,7 +10,7 @@
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
-// limitations under the License.
+// limitations under the License.package apis
 
 package certmanagerpki
 
@@ -19,11 +19,11 @@ import (
 	"errors"
 	"fmt"
 
-	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/apis/nifi/v1alpha1"
-	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/errorfactory"
-	"gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/k8sutil"
-	certutil "gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/util/cert"
-	pkicommon "gitlab.si.francetelecom.fr/kubernetes/nifikop/pkg/util/pki"
+	"github.com/Orange-OpenSource/nifikop/pkg/apis/nifi/v1alpha1"
+	"github.com/Orange-OpenSource/nifikop/pkg/errorfactory"
+	"github.com/Orange-OpenSource/nifikop/pkg/k8sutil"
+	certutil "github.com/Orange-OpenSource/nifikop/pkg/util/cert"
+	pkicommon "github.com/Orange-OpenSource/nifikop/pkg/util/pki"
 	certv1 "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha2"
 	certmeta "github.com/jetstack/cert-manager/pkg/apis/meta/v1"
 	corev1 "k8s.io/api/core/v1"
