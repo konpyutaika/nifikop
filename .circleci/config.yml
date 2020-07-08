@@ -6,9 +6,12 @@ experimental:
       only:
         - master
 
+
+
 # Define shareable packages of configuration
 # elements used into the worflow (= Orbs)
 orbs:
+  sonarcloud: sonarsource/sonarcloud@1.0.0
   operator:
     # Parameters anchor
     .params_operator: &params_operator
@@ -167,58 +170,66 @@ orbs:
                 - << parameters.operatorDir >>/test-report.out
 
       # Reporting step, will run sonar report from scan.
-      report-sonar:
-        <<: *params_operator
-        <<: *job_operator
-        steps:
-          - checkout:
-              path: /home/circleci/nifikop
-          - attach_workspace:
-              at: /home/circleci
-          - restore_cache: # If exist, restore dependencies libs download cache, from previous pipeline execution.
-              name: Restore SonarQube Scanner
-              keys:
-                - sonar-scanner-3.3.0.1492-linux
-          # Sonar steps
-          - run:
-              name: Download SonarQube Scanner
-              command: |
-                chmod +x /home/circleci/nifikop/.circleci/install_sonar-scanner.sh
-                /home/circleci/nifikop/.circleci/install_sonar-scanner.sh
-          - save_cache: # Cache sonar download
-              name: Cache SonarQube Scanner
-              key: sonar-scanner-3.3.0.1492-linux
-              paths:
-                - sonar-scanner-3.3.0.1492-linux
-                - /home/circleci/<< parameters.operatorDir >>/.sonar
-          - run: # Run sonar scan
-              name: Sonarcloud Scan
-              command: |
-                ./sonar-scanner-3.3.0.1492-linux/bin/sonar-scanner -X \
-                -Dsonar.projectName=<< parameters.operatorName >> \
-                -Dsonar.projectKey=${SONAR_PROJECT} \
-                -Dsonar.login=${SONAR_TOKEN} \
-                -Dsonar.branch.name=${CIRCLE_BRANCH} \
-                -Dsonar.organization=${SONAR_ORGANISATION} \
-                -Dsonar.host.url=https://sonarcloud.io \
-                -Dsonar.projectBaseDir=/home/circleci/<< parameters.operatorDir >> \
-                -Dsonar.sources=. \
-                -Dsonar.sources.inclusions="**/**.go" \
-                -Dsonar.exclusions="**/*_test.go,**/vendor/**,**/sonar-scanner-3.3.0.1492-linux/**,**docs/**" \
-                -Dsonar.coverage.exclusions="**/vendor/**,**/test/**,**docs/**" \
-                -Dsonar.tests=. \
-                -Dsonar.language=go \
-                -Dsonar.sourceEncoding=UTF-8 \
-                -Dsonar.test.inclusions="**/**_test.go" \
-                -Dsonar.test.exclusions="**/vendor/**" \
-                -Dsonar.go.coverage.reportPaths=coverage.out \
-                -Dsonar.go.tests.reportPaths=test-report.out \
-                -Dsonar.coverage.dtdVerification=false \
-                -Dsonar.log.level=INFO
-                cat -n .scannerwork/report-task.txt
-          # Artifacts definitions
-          - store_test_results: # Store sonar scan reports
-              path: reports
+#      report-sonar:
+#        <<: *params_operator
+#        <<: *job_operator
+#        steps:
+#          - checkout:
+#              path: /home/circleci/nifikop
+#          - attach_workspace:
+#              at: /home/circleci
+#          - restore_cache: # If exist, restore dependencies libs download cache, from previous pipeline execution.
+#              name: Restore SonarQube Scanner
+#              keys:
+#                - sonar-scanner-3.3.0.1492-linux
+#          # Sonar steps
+#          - run:
+#              name: Download SonarQube Scanner
+#              command: |
+#                chmod +x /home/circleci/nifikop/.circleci/install_sonar-scanner.sh
+#                /home/circleci/nifikop/.circleci/install_sonar-scanner.sh
+#          - save_cache: # Cache sonar download
+#              name: Cache SonarQube Scanner
+#              key: sonar-scanner-3.3.0.1492-linux
+#              paths:
+#                - sonar-scanner-3.3.0.1492-linux
+#                - /home/circleci/<< parameters.operatorDir >>/.sonar
+#          - run: # Run sonar scan
+#              name: Sonarcloud Scan
+#              command: |
+#                ./sonar-scanner-3.3.0.1492-linux/bin/sonar-scanner -X \
+#                -Dsonar.projectName=<< parameters.operatorName >> \
+#                -Dsonar.projectKey=${SONAR_PROJECT} \
+#                -Dsonar.login=${SONAR_TOKEN} \
+#                -Dsonar.branch.name=${CIRCLE_BRANCH} \
+#                -Dsonar.organization=${SONAR_ORGANISATION} \
+#                -Dsonar.host.url=https://sonarcloud.io \
+#                -Dsonar.projectBaseDir=/home/circleci/<< parameters.operatorDir >> \
+#                -Dsonar.sources=. \
+#                -Dsonar.sources.inclusions="**/**.go" \
+#                -Dsonar.exclusions="**/*_test.go,**/vendor/**,**/sonar-scanner-3.3.0.1492-linux/**,**docs/**" \
+#                -Dsonar.coverage.exclusions="**/vendor/**,**/test/**,**docs/**" \
+#                -Dsonar.tests=. \
+#                -Dsonar.language=go \
+#                -Dsonar.sourceEncoding=UTF-8 \
+#                -Dsonar.test.inclusions="**/**_test.go" \
+#                -Dsonar.test.exclusions="**/vendor/**" \
+#                -Dsonar.go.coverage.reportPaths=coverage.out \
+#                -Dsonar.go.tests.reportPaths=test-report.out \
+#                -Dsonar.coverage.dtdVerification=false \
+#                -Dsonar.log.level=INFO
+#                cat -n .scannerwork/report-task.txt
+#          # Artifacts definitions
+#          - store_test_results: # Store sonar scan reports
+#              path: reports
+        report-sonar:
+          docker:
+            - image: 'node:latest'
+          steps:
+            - checkout
+            - sonarcloud/scan
+
+
 
       release-helm:
         <<: *params_operator
@@ -319,8 +330,15 @@ workflows:
             - unit-test-nifikop
           <<: *everytime_filter
 
+#      - operator/report-sonar:
+#          name: report-nifikop
+#          requires:
+#            - unit-test-nifikop
+#          <<: *canonical_repo_filter
+
       - operator/report-sonar:
           name: report-nifikop
+          context: sonarcloud
           requires:
             - unit-test-nifikop
           <<: *canonical_repo_filter
