@@ -178,7 +178,10 @@ orbs:
             description: increment this value if the cache is corrupted and you want to start with a clean cache
             default: 1
             type: integer
+        docker:
+          - image: 'node:latest'
         steps:
+          - checkout
           - run:
               name: Create cache directory if it doesn't exist
               command: mkdir -p /tmp/cache/scanner
