@@ -89,16 +89,5 @@ module.exports = {
                 "6_contributing/2_reporting_bugs",
                 "6_contributing/3_credits",
             ],
-            "DFY Orange": [
-                "7_dfy_orange/1_getting_started",
-                {
-                    "type" : "category",
-                    "label": "Platform Setup",
-                    "items"  : [
-                        "7_dfy_orange/2_platform_setup/1_pic",
-                        "7_dfy_orange/2_platform_setup/2_rickaastley",
-                    ]
-                },
-            ]
         }
 };

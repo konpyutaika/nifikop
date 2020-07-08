@@ -1,11 +1,10 @@
 module.exports = {
   title: 'NiFiKop',
   tagline: 'Open-Source, Apache NiFi operator for Kubernetes',
-//  url: 'https://erdrix.github.io',
   url: 'https://orange-opensource.github.io',
   baseUrl: '/nifikop/',
   favicon: 'img/nifikop.ico',
-  organizationName: 'erdrix', // Usually your GitHub org/user name.
+  organizationName: 'Orange-OpenSource', // Usually your GitHub org/user name.
   projectName: 'nifikop', // Usually your repo name.
   themeConfig: {
     navbar: {
