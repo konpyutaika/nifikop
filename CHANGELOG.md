@@ -2,6 +2,18 @@
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed Bugs
+
+## v0.2.0-release
+
+### Added
+
 - [MR #16](https://github.com/Orange-OpenSource/nifikop/-/merge_requests/16) - Allow to override cluster domain
 - [MR #16](https://github.com/Orange-OpenSource/nifikop/-/merge_requests/16) - Support external DNS
 - [MR #16](https://github.com/Orange-OpenSource/nifikop/-/merge_requests/16) - Add `Spec.Service` field, allowing to add service's annotations.

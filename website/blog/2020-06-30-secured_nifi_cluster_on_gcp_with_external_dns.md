@@ -185,7 +185,7 @@ kubectl apply -f \
 
 helm install nifikop \
     --namespace=nifikop \
-    --set image.tag=0.1.0-master \
+    --set image.tag=v0.2.0-release \
     orange-incubator/nifikop
 ```
 
@@ -195,7 +195,7 @@ helm install nifikop \
 ```bash
 helm install --name=nifikop \
     --namespace=nifikop \
-    --set image.tag=0.1.0-master \
+    --set image.tag=v0.2.0-release \
     orange-incubator/nifikop
 ```
 </TabItem>
