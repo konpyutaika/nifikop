@@ -167,73 +167,73 @@ orbs:
               paths:
                 - << parameters.operatorDir >>/coverage.out
                 - << parameters.operatorDir >>/test-report.out
-      report-sonar:
-        description: Detect bugs and vulnerabilities
-        parameters:
-          sonar_token_variable_name:
-            description: the name of the environment variable where the SonarCloud API token is stored
-            default: SONAR_TOKEN
-            type: env_var_name
-          cache_version:
-            description: increment this value if the cache is corrupted and you want to start with a clean cache
-            default: 1
-            type: integer
-        docker:
-          - image: 'node:latest'
-        steps:
-          - checkout
-          - run:
-              name: Create cache directory if it doesn't exist
-              command: mkdir -p /tmp/cache/scanner
-          - restore_cache:
-              keys:
-                - v<<parameters.cache_version>>-sonarcloud-scanner-4.1.0.1829
-          - run:
-              name: SonarCloud
-              command: |
-                set -e
-                VERSION=4.1.0.1829
-                SONAR_TOKEN=$<<parameters.sonar_token_variable_name>>
-                SCANNER_DIRECTORY=/tmp/cache/scanner
-                export SONAR_USER_HOME=$SCANNER_DIRECTORY/.sonar
-                OS="linux"
-                echo $SONAR_USER_HOME
-
-                if [[ ! -x "$SCANNER_DIRECTORY/sonar-scanner-$VERSION-$OS/bin/sonar-scanner" ]]; then
-                  curl -Ol https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-$VERSION-$OS.zip
-                  unzip -qq -o sonar-scanner-cli-$VERSION-$OS.zip -d $SCANNER_DIRECTORY
-                fi
-
-                chmod +x $SCANNER_DIRECTORY/sonar-scanner-$VERSION-$OS/bin/sonar-scanner
-                chmod +x $SCANNER_DIRECTORY/sonar-scanner-$VERSION-$OS/jre/bin/java
-
-                $SCANNER_DIRECTORY/sonar-scanner-$VERSION-$OS/bin/sonar-scanner -X \
-                -Dsonar.projectName=nifikop \
-                -Dsonar.projectKey=${SONAR_PROJECT} \
-                -Dsonar.login=${SONAR_TOKEN} \
-                -Dsonar.branch.name=${CIRCLE_BRANCH} \
-                -Dsonar.organization=${SONAR_ORGANISATION} \
-                -Dsonar.host.url=https://sonarcloud.io \
-                -Dsonar.sources=. \
-                -Dsonar.sources.inclusions="**/**.go" \
-                -Dsonar.exclusions="**/*_test.go,**/vendor/**,**/sonar-scanner-3.3.0.1492-linux/**,**docs/**" \
-                -Dsonar.coverage.exclusions="**/vendor/**,**/test/**,**docs/**" \
-                -Dsonar.tests=. \
-                -Dsonar.language=go \
-                -Dsonar.sourceEncoding=UTF-8 \
-                -Dsonar.test.inclusions="**/**_test.go" \
-                -Dsonar.test.exclusions="**/vendor/**" \
-                -Dsonar.go.coverage.reportPaths=coverage.out \
-                -Dsonar.go.tests.reportPaths=test-report.out \
-                -Dsonar.coverage.dtdVerification=false \
-                -Dsonar.log.level=INFO
-
-                cat -n .scannerwork/report-task.txt
-              environment:
-                SONARQUBE_SCANNER_PARAMS: '{"sonar.host.url":"https://sonarcloud.io"}'
-          - save_cache:
-              key: v<<parameters.cache_version>>-sonarcloud-scanner-4.1.0.1829
-              paths: /tmp/cache/scanner
+#      report-sonar:
+#        description: Detect bugs and vulnerabilities
+#        parameters:
+#          sonar_token_variable_name:
+#            description: the name of the environment variable where the SonarCloud API token is stored
+#            default: SONAR_TOKEN
+#            type: env_var_name
+#          cache_version:
+#            description: increment this value if the cache is corrupted and you want to start with a clean cache
+#            default: 1
+#            type: integer
+#        docker:
+#          - image: 'node:latest'
+#        steps:
+#          - checkout
+#          - run:
+#              name: Create cache directory if it doesn't exist
+#              command: mkdir -p /tmp/cache/scanner
+#          - restore_cache:
+#              keys:
+#                - v<<parameters.cache_version>>-sonarcloud-scanner-4.1.0.1829
+#          - run:
+#              name: SonarCloud
+#              command: |
+#                set -e
+#                VERSION=4.1.0.1829
+#                SONAR_TOKEN=$<<parameters.sonar_token_variable_name>>
+#                SCANNER_DIRECTORY=/tmp/cache/scanner
+#                export SONAR_USER_HOME=$SCANNER_DIRECTORY/.sonar
+#                OS="linux"
+#                echo $SONAR_USER_HOME
+#
+#                if [[ ! -x "$SCANNER_DIRECTORY/sonar-scanner-$VERSION-$OS/bin/sonar-scanner" ]]; then
+#                  curl -Ol https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-$VERSION-$OS.zip
+#                  unzip -qq -o sonar-scanner-cli-$VERSION-$OS.zip -d $SCANNER_DIRECTORY
+#                fi
+#
+#                chmod +x $SCANNER_DIRECTORY/sonar-scanner-$VERSION-$OS/bin/sonar-scanner
+#                chmod +x $SCANNER_DIRECTORY/sonar-scanner-$VERSION-$OS/jre/bin/java
+#
+#                $SCANNER_DIRECTORY/sonar-scanner-$VERSION-$OS/bin/sonar-scanner -X \
+#                -Dsonar.projectName=nifikop \
+#                -Dsonar.projectKey=${SONAR_PROJECT} \
+#                -Dsonar.login=${SONAR_TOKEN} \
+#                -Dsonar.branch.name=${CIRCLE_BRANCH} \
+#                -Dsonar.organization=${SONAR_ORGANISATION} \
+#                -Dsonar.host.url=https://sonarcloud.io \
+#                -Dsonar.sources=. \
+#                -Dsonar.sources.inclusions="**/**.go" \
+#                -Dsonar.exclusions="**/*_test.go,**/vendor/**,**/sonar-scanner-3.3.0.1492-linux/**,**docs/**" \
+#                -Dsonar.coverage.exclusions="**/vendor/**,**/test/**,**docs/**" \
+#                -Dsonar.tests=. \
+#                -Dsonar.language=go \
+#                -Dsonar.sourceEncoding=UTF-8 \
+#                -Dsonar.test.inclusions="**/**_test.go" \
+#                -Dsonar.test.exclusions="**/vendor/**" \
+#                -Dsonar.go.coverage.reportPaths=coverage.out \
+#                -Dsonar.go.tests.reportPaths=test-report.out \
+#                -Dsonar.coverage.dtdVerification=false \
+#                -Dsonar.log.level=INFO
+#
+#                cat -n .scannerwork/report-task.txt
+#              environment:
+#                SONARQUBE_SCANNER_PARAMS: '{"sonar.host.url":"https://sonarcloud.io"}'
+#          - save_cache:
+#              key: v<<parameters.cache_version>>-sonarcloud-scanner-4.1.0.1829
+#              paths: /tmp/cache/scanner
 
       release-helm:
         <<: *params_operator
@@ -340,20 +340,14 @@ workflows:
 #            - unit-test-nifikop
 #          <<: *canonical_repo_filter
 
-      - operator/report-sonar:
-          name: report-nifikop
-          requires:
-            - unit-test-nifikop
-          <<: *canonical_repo_filter
-
       - operator/release-helm:
           name: release-helm-orange-incubator-nifikop
           requires:
-            - report-nifikop
+            - build-nifikop
           <<: *only_on_release_tag
 
       - deploy-website:
           name: deploy-website
           requires:
-            - report-nifikop
+            - build-nifikop
           <<: *website_publish
