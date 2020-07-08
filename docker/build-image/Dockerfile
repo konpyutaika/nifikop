@@ -13,8 +13,7 @@
 # limitations under the License.package apis
 
 #https://github.com/CircleCI-Public/circleci-dockerfiles/blob/master/golang/images/1.12.4/Dockerfile
-# FROM golang:1.14
-FROM registry.gitlab.si.francetelecom.fr/aguitton/go-build:1.14
+FROM golang:1.14
 
 # Make Apt non-interactive
 RUN echo 'APT::Get::Assume-Yes "true";' > /etc/apt/apt.conf.d/90circleci \
@@ -95,8 +94,8 @@ ARG OPERATOR_SDK_VERSION
 RUN mkdir -p $GOPATH/src/github.com/operator-framework \
     && mkdir -p $GOPATH/src/github.com/Orange-OpenSource/nifikop \
     && go get -u github.com/operator-framework/operator-sdk || true \
-##    && go get -d github.com/erdrix/operator-sdk || true \
-    && mv $GOPATH/src/github.com/erdrix/operator-sdk $GOPATH/src/github.com/operator-framework/operator-sdk \
+#    && go get -d github.com/erdrix/operator-sdk || true \
+#    && mv $GOPATH/src/github.com/erdrix/operator-sdk $GOPATH/src/github.com/operator-framework/operator-sdk \
     && cd $GOPATH/src/github.com/operator-framework/operator-sdk \
     && git checkout $OPERATOR_SDK_VERSION \
     && make tidy \
