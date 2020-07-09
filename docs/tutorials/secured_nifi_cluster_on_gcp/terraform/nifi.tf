@@ -24,6 +24,13 @@ resource "kubernetes_namespace" "nifi" {
   depends_on = [google_container_node_pool.nodes]
 }
 
+resource "null_resource" "deploy-nifikop-crds" {
+  depends_on = [kubernetes_namespace.nifi]
+  provisioner "local-exec" {
+    command = "gcloud container clusters get-credentials ${google_container_cluster.nifi-cluster.name}  --zone ${var.zone} --project ${var.project} && kubectl apply -f ../kubernetes/nifikop"
+  }
+}
+
 // helm release
 resource "helm_release" "nifikop" {
   name             = "nifikop"
