@@ -244,6 +244,9 @@ Just have a look on [documentation's page](/nifikop/docs/3_tasks/2_security/1_ss
 To destroy all resources you created, you just need to run : 
 
 ```consol
+kubectl delete nificlusters.nifi.orange.com securednificluster -n nifi
+kubectl delete crds nificlusters.nifi.orange.com
+kubectl delete crds nifiusers.nifi.orange.com
 ./destroy.sh <service account key's path>
 ```
 

@@ -1,0 +1,75 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: nifiusers.nifi.orange.com
+spec:
+  group: nifi.orange.com
+  names:
+    kind: NifiUser
+    listKind: NifiUserList
+    plural: nifiusers
+    singular: nifiuser
+  scope: Namespaced
+  versions:
+    - name: v1alpha1
+      schema:
+        openAPIV3Schema:
+          description: Nifi User is the Schema for the nifi users API
+          properties:
+            apiVersion:
+              description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+              type: string
+            kind:
+              description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+              type: string
+            metadata:
+              type: object
+            spec:
+              description: NifiUserSpec defines the desired state of NifiUser
+              properties:
+                clusterRef:
+                  description: contains the reference to the NifiCluster with the one
+                    the user is linked
+                  properties:
+                    name:
+                      type: string
+                    namespace:
+                      type: string
+                  required:
+                    - name
+                  type: object
+                dnsNames:
+                  description: List of DNSNames that the user will used to request the
+                    NifiCluster (allowing to create the right certificates associated)
+                  items:
+                    type: string
+                  type: array
+                includeJKS:
+                  description: Whether or not the the operator also include a Java keystore
+                    format (JKS) with you secret
+                  type: boolean
+                secretName:
+                  description: Name of the secret where all cert resources will be stored
+                  type: string
+              required:
+                - clusterRef
+                - secretName
+              type: object
+            status:
+              description: NifiUserStatus defines the observed state of NifiUser
+              properties:
+                state:
+                  description: UserState defines the state of a NifiUser
+                  type: string
+              required:
+                - state
+              type: object
+          type: object
+      served: true
+      storage: true
+      subresources:
+        status: {}

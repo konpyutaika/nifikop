@@ -45,8 +45,8 @@ First step is to create the OAuth Credential :
 - Click on `CREATE CREDENTIALS : OAuth client ID`
 - Select `Web Application`
 - Give a name such as `SecuredNifi`. 
-- For `Authorised JavaScript origins`, use your own domain. I'm using : `https://nifisecured.trycatchlearn.fr:8443`
-- For `Authorised redirect URIs` it's your previous URI + `/nifi-api/access/oidc/callback`, for me : `https://nifisecured.trycatchlearn.fr:8443/nifi-api/access/oidc/callback`
+- For `Authorised JavaScript origins`, use your own domain. I'm using : `https://nifi.orange.trycatchlearn.fr:8443`
+- For `Authorised redirect URIs` it's your previous URI + `/nifi-api/access/oidc/callback`, for me : `https://nifi.orange.trycatchlearn.fr:8443/nifi-api/access/oidc/callback`
 
 
 ![OAuth credentials](/nifikop/img/blog/2020-06-30-secured_nifi_cluster_on_gcp_with_external_dns/oauth_credentials.png)
@@ -165,6 +165,7 @@ Now we have to deploy the `NiFiKop` operator :
 
 ```bash
 helm repo add orange-incubator https://orange-kubernetes-charts-incubator.storage.googleapis.com/
+helm repo update
 ```
 
 <Tabs
@@ -237,6 +238,7 @@ You can also change the acme server to prod one `https://acme-v02.api.letsencryp
 Once the configuration is ok, you can deploy the `Issuer` : 
 
 ```console
+cd ..
 kubectl create -f kubernetes/nifi/letsencryptissuer.yaml
 ```
 
@@ -343,9 +345,9 @@ Here is my 3-nodes secured NiFi cluster up and running :
 
 ![3 nodes cluster](/nifikop/img/blog/2020-06-30-secured_nifi_cluster_on_gcp_with_external_dns/3_nodes_cluster.png)
 
-5-nodes secured NiFi cluster : 
+3-nodes secured NiFi cluster : 
 
-![5 nodes](/nifikop/img/blog/2020-06-30-secured_nifi_cluster_on_gcp_with_external_dns/3_nodes.png)
+![3 nodes](/nifikop/img/blog/2020-06-30-secured_nifi_cluster_on_gcp_with_external_dns/3_nodes.png)
 
 You can now update the authorizations and add additional users/groups.
 

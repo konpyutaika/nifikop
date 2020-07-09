@@ -14,7 +14,7 @@ spec:
   clusterSecure: true
   siteToSiteSecure: true
   oneNifiNodePerNode: false
-  initialAdminUser: alexandre.guitton@orange.com
+  initialAdminUser: <your google account email>
   propagateLabels: true
   nifiClusterTaskSpec:
     retryDurationMinutes: 10
@@ -22,13 +22,13 @@ spec:
     # NifiProperties configuration that will be applied to the node.
     nifiProperties:
       webProxyHosts:
-        - nifi.orange.trycatchlearn.fr:8443
+        - <nifi's hostname>:8443
       # Additionnals nifi.properties configuration that will override the one produced based
       # on template and configurations.
       overrideConfigs: |
         nifi.security.user.oidc.discovery.url=https://accounts.google.com/.well-known/openid-configuration
-        nifi.security.user.oidc.client.id=930711295780-m4ruikt5ung1pu6ria2q2qjekcebn2sc.apps.googleusercontent.com
-        nifi.security.user.oidc.client.secret=jmHduX0gH8WeM7Zks1dyA3ab
+        nifi.security.user.oidc.client.id=<oidc client's id>
+        nifi.security.user.oidc.client.secret=<oidc client's secret>
         nifi.security.identity.mapping.pattern.dn=CN=(.*)(?:, (?:O|OU)=.*)*
         nifi.security.identity.mapping.value.dn=$1
         nifi.security.identity.mapping.transform.dn=NONE
@@ -107,7 +107,7 @@ spec:
       nodeConfigGroup: "default_group"
   listenersConfig:
     useExternalDNS: true
-    clusterDomain: "orange.trycatchlearn.fr"
+    clusterDomain: <nifi's domain name>
     internalListeners:
       - type: "https"
         name: "https"
