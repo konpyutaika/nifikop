@@ -86,7 +86,7 @@ spec:
 |initialAdminUser|string| name of the user account which will be configured as initial admin into NiFi cluster : https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#initial-admin-identity. |No|""|
 |readOnlyConfig|[ReadOnlyConfig](/nifikop/docs/5_references/1_nifi_cluster/2_read_only_config)| specifies the read-only type Nifi config cluster wide, all theses will be merged with node specified readOnly configurations, so it can be overwritten per node.|No| nil |
 |nodeConfigGroups|map\[string\][NodeConfig](/nifikop/docs/5_references/1_nifi_cluster/3_node_config)| specifies multiple node configs with unique name|No| nil |
-|nodes|\[  \][Node](/nifikop/docs/5_references/1_nifi_cluster/4_node_config)| specifies the list of cluster nodes, all node requires an image, unique id, and storageConfigs settings|Yes| nil 
+|nodes|\[  \][Node](/nifikop/docs/5_references/1_nifi_cluster/3_node_config)| specifies the list of cluster nodes, all node requires an image, unique id, and storageConfigs settings|Yes| nil 
 |ldapConfiguration|[LdapConfiguration](#ldapconfiguration)| specifies the configuration if you want to use LDAP.|No| nil |
 |nifiClusterTaskSpec|[NifiClusterTaskSpec](#nificlustertaskspec)| specifies the configuration of the nifi cluster Tasks.|No| nil |
 |listenersConfig|[ListenersConfig](/nifikop/docs/5_references/1_nifi_cluster/6_listeners_config)| listenersConfig specifies nifi's listener specifig configs.|Yes| - |

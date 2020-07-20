@@ -2244,7 +2244,7 @@ spec:
                       type: object
                     nodeConfigGroup:
                       description: nodeConfigGroup can be used to ease the node configuration,
-                        if set no only the id is required
+                        if set only the id is required
                       type: string
                     readOnlyConfig:
                       description: readOnlyConfig can be used to pass Nifi node config

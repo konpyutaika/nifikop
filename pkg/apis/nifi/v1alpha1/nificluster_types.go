@@ -129,7 +129,7 @@ type RollingUpgradeStatus struct {
 type Node struct {
 	// Unique Node id
 	Id				int32 			`json:"id"`
-	// nodeConfigGroup can be used to ease the node configuration, if set no only the id is required
+	// nodeConfigGroup can be used to ease the node configuration, if set only the id is required
 	NodeConfigGroup	string			`json:"nodeConfigGroup,omitempty"`
 	// readOnlyConfig can be used to pass Nifi node config https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html
 	// which has type read-only these config changes will trigger rolling upgrade
