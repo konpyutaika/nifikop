@@ -157,7 +157,7 @@ spec:
   nodes:
     # Unique Node id
     - id: 0
-      # nodeConfigGroup can be used to ease the node configuration, if set no only the id is required
+      # nodeConfigGroup can be used to ease the node configuration, if set only the id is required
       nodeConfigGroup: "default_group"
       # readOnlyConfig can be used to pass Nifi node config
       # which has type read-only these config changes will trigger rolling upgrade

@@ -35,13 +35,12 @@ $ helm install --name nifikop orange-incubator/nifikop -f values.yaml
 
 ### Installing the Chart
 
-> Helm 3 users
->
-> You need to manually install the crds beforehand
->
-> ```console
-> kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/nifi.orange.com_nificlusters_crd.yaml
-> ```
+You need to manually install the crds beforehand
+
+```console
+kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/nifi.orange.com_nificlusters_crd.yaml
+kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/nifi.orange.com_nifiusers_crd.yaml
+```
 
 You can make a dry run of the chart before deploying :
 

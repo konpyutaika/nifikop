@@ -2,11 +2,15 @@
 
 ### Added
 
+- [PR #18](https://github.com/Orange-OpenSource/nifikop/pull/18) - [Operator] NiFiKop CRDs in version `v1beta1` of CustomResourceDefinition object.
+
 ### Changed
 
 ### Deprecated
 
 ### Removed
+
+- [PR #18](https://github.com/Orange-OpenSource/nifikop/pull/18) - [Helm Chart] Remove CRDs deployment and append documentation.
 
 ### Fixed Bugs
 

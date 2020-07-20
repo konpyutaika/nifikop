@@ -163,6 +163,32 @@ external-dns-5d588c6cd6-dw44f   1/1     Running   0          2m58s
 
 Now we have to deploy the `NiFiKop` operator : 
 
+Deploy the NiFiKop crds : 
+
+<Tabs
+  defaultValue="k8s16+"
+  values={[
+    { label: 'k8s version 1.16+', value: 'k8s16+', },
+    { label: 'k8s previous versions', value: 'k8sprev', },
+  ]
+}>
+<TabItem value="k8s16+">
+
+```bash
+kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/nifi.orange.com_nificlusters_crd.yaml
+kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/nifi.orange.com_nifiusers_crd.yaml
+```
+
+</TabItem>
+<TabItem value="k8sprev">
+
+```bash
+kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/v1beta1/nifi.orange.com_nificlusters_crd.yaml
+kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/v1beta1/nifi.orange.com_nifiusers_crd.yaml
+```
+</TabItem>
+</Tabs>
+
 ```bash
 helm repo add orange-incubator https://orange-kubernetes-charts-incubator.storage.googleapis.com/
 helm repo update
@@ -179,11 +205,6 @@ helm repo update
 
 ```bash
 # You have to create the namespace before executing following command
-kubectl apply -f \
-    https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/nifi.orange.com_nificlusters_crd.yaml
-kubectl apply -f \
-    https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/nifi.orange.com_nifiusers_crd.yaml
-
 helm install nifikop \
     --namespace=nifikop \
     --set image.tag=v0.2.0-release \

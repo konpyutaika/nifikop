@@ -8,7 +8,7 @@ Node defines the nifi node basic configuration
 
 ```yaml
     - id: 0
-      # nodeConfigGroup can be used to ease the node configuration, if set no only the id is required
+      # nodeConfigGroup can be used to ease the node configuration, if set only the id is required
       nodeConfigGroup: "default_group"
       # readOnlyConfig can be used to pass Nifi node config
       # which has type read-only these config changes will trigger rolling upgrade
@@ -54,7 +54,7 @@ Node defines the nifi node basic configuration
 |Field|Type|Description|Required|Default|
 |-----|----|-----------|--------|--------|
 |id|int32| unique Node id. |Yes| - |
-|nodeConfigGroup|string|  can be used to ease the node configuration, if set no only the id is required |No| "" |
+|nodeConfigGroup|string|  can be used to ease the node configuration, if set only the id is required |No| "" |
 |readOnlyConfig|[ReadOnlyConfig](/nifikop/docs/5_references/1_nifi_cluster/2_read_only_config)| readOnlyConfig can be used to pass Nifi node config which has type read-only these config changes will trigger rolling upgrade.| No | nil |
 |nodeConfig|[NodeConfig](/nifikop/docs/5_references/1_nifi_cluster/3_node_config)| node configuration. |No| nil |
 

@@ -132,6 +132,34 @@ Alternatively, if you are using Helm, you can deploy the operator using a Helm c
 
 > To install the an other version of the operator use `helm install --name=nifikop --namespace=nifi --set operator.image.tag=x.y.z orange-incubator/nifikop`
 
+Deploy the NiFiKop crds : 
+
+<Tabs
+  defaultValue="k8s16+"
+  values={[
+    { label: 'k8s version 1.16+', value: 'k8s16+', },
+    { label: 'k8s previous versions', value: 'k8sprev', },
+  ]
+}>
+<TabItem value="k8s16+">
+
+```bash
+kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/nifi.orange.com_nificlusters_crd.yaml
+kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/nifi.orange.com_nifiusers_crd.yaml
+```
+
+</TabItem>
+<TabItem value="k8sprev">
+
+```bash
+kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/v1beta1/nifi.orange.com_nificlusters_crd.yaml
+kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/v1beta1/nifi.orange.com_nifiusers_crd.yaml
+```
+</TabItem>
+</Tabs>
+
+Now deploy the helm chart :
+
 ```bash
 helm repo add orange-incubator https://orange-kubernetes-charts-incubator.storage.googleapis.com/
 ```
@@ -147,8 +175,6 @@ helm repo add orange-incubator https://orange-kubernetes-charts-incubator.storag
 
 ```bash
 # You have to create the namespace before executing following command
-kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/nifi.orange.com_nificlusters_crd.yaml
-kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/nifi.orange.com_nifiusers_crd.yaml
 helm install nifikop --namespace=nifi orange-incubator/nifikop
 ```
 
