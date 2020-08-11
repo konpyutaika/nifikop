@@ -7,7 +7,7 @@ BUILD_IMAGE				?= orangeopensource/nifikop-build
 
 OPERATOR_SDK_VERSION=v0.18.0
 # workdir
-WORKDIR := /go/casskop
+WORKDIR := /go/nifikop
 
 # Debug variables
 TELEPRESENCE_REGISTRY ?= datawire

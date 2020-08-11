@@ -14,6 +14,8 @@
 
 ### Fixed Bugs
 
+- [PR #24](https://github.com/Orange-OpenSource/nifikop/pull/24) - [Documentation] Correct patterns & versions.
+
 ## v0.2.0-release
 
 ### Added

@@ -26,7 +26,7 @@ spec:
         nifi.security.user.oidc.discovery.url=https://accounts.google.com/.well-known/openid-configuration
         nifi.security.user.oidc.client.id=930711295780-i72an91pqj7rib88r23qfv5q7mth8hgv.apps.googleusercontent.com
         nifi.security.user.oidc.client.secret=BvmEyr81P0YXZtIt1FIfGsRs
-        nifi.security.identity.mapping.pattern.dn=CN=(.*)(?:, (?:O|OU)=.*)?
+        nifi.security.identity.mapping.pattern.dn=CN=([^,]*)(?:, (?:O|OU)=.*)?
         nifi.security.identity.mapping.value.dn=$1
         nifi.security.identity.mapping.transform.dn=NONE
   nodeConfigGroups:

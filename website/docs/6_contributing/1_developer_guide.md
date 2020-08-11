@@ -15,7 +15,7 @@ NiFiKop has been validated with :
 - [docker](docker_tool) version 18.09+.
 - [kubectl](kubectl_tool) version v1.13.3+.
 - [Helm](https://helm.sh/) version v2.12.2.
-- [Operator sdk](https://github.com/operator-framework/operator-sdk) version v0.15.0 
+- [Operator sdk](https://github.com/operator-framework/operator-sdk) version v0.18.2 
 
 ### Install the Operator SDK CLI
 
@@ -24,6 +24,9 @@ First, checkout and install the operator-sdk CLI:
 ```bash
 mkdir -p $GOPATH/src/github.com/operator-framework/
 cd $GOPATH/src/github.com/operator-framework/
+git clone https://github.com/operator-framework/operator-sdk.git
+cd operator-sdk
+git checkout v1.18.0
 make tidy
 make install
 ```
