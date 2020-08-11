@@ -9,7 +9,7 @@ To enable authentication via OpenId Connect refering to [NiFi Administration gui
 In addition and to ensure multiple identity provider support, we recommended to add the following configuration to your `nifi.properties` : 
 
 ```sh
-nifi.security.identity.mapping.pattern.dn=CN=(.*)(?:, (?:O|OU)=.*)?
+nifi.security.identity.mapping.pattern.dn=CN=([^,]*)(?:, (?:O|OU)=.*)?
 nifi.security.identity.mapping.value.dn=$1
 nifi.security.identity.mapping.transform.dn=NONE
 ```
@@ -33,7 +33,7 @@ spec:
         nifi.security.user.oidc.discovery.url=<oidc server discovery url>
         nifi.security.user.oidc.client.id=<oidc client's id>
         nifi.security.user.oidc.client.secret=<oidc client's secret>
-        nifi.security.identity.mapping.pattern.dn=CN=(.*)(?:, (?:O|OU)=.*)?
+        nifi.security.identity.mapping.pattern.dn=CN=([^,]*)(?:, (?:O|OU)=.*)?
         nifi.security.identity.mapping.value.dn=$1
         nifi.security.identity.mapping.transform.dn=NONE
       ...

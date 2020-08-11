@@ -4,7 +4,7 @@ metadata:
   name: simplenifi
 spec:
   service:
-    headlesseEnabled: true
+    headlessEnabled: true
   zkAddresse: "zookeepercluster-client.zookeeper:2181"
   zkPath: "/simplenifi"
   clusterImage: "apache/nifi:1.11.3"
