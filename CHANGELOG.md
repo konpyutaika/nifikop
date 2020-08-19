@@ -2,6 +2,8 @@
 
 ### Added
 
+- [PR #25](https://github.com/Orange-OpenSource/nifikop/pull/25) -  [Helm Chart] Add support for iterating over namespaces
+
 - [PR #18](https://github.com/Orange-OpenSource/nifikop/pull/18) - [Operator] NiFiKop CRDs in version `v1beta1` of CustomResourceDefinition object.
 
 ### Changed
