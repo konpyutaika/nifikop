@@ -44,7 +44,7 @@ spec:
             - nifikop
           args:
             {{- if .Values.namespaces }}
-            - --namespaces={{ .Values.namespaces }}
+            - --namespaces={{ join "," .Values.namespaces }}
             {{- end }}
           readinessProbe:
             exec:
