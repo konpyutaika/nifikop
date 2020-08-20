@@ -16,7 +16,7 @@ spec:
       containers:
         - name: nifikop
           # Replace this with the built image name
-          image: orangeopensource/nifikop:0.2.0
+          image: orangeopensource/nifikop:0.2.1
           command:
           - nifikop
           imagePullPolicy: Always
