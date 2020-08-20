@@ -17,6 +17,7 @@
 ### Fixed Bugs
 
 - [PR #24](https://github.com/Orange-OpenSource/nifikop/pull/24) - [Documentation] Correct patterns & versions.
+- [PR #28](https://github.com/Orange-OpenSource/nifikop/pull/28) - [Operator] PKI finalize bad namespace for ca cert.
 
 ## v0.2.0-release
 
