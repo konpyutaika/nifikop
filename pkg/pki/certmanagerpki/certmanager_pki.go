@@ -55,7 +55,7 @@ func (c *certManager) FinalizePKI(ctx context.Context, logger logr.Logger) error
 		if c.cluster.Spec.ListenersConfig.SSLSecrets.IssuerRef == nil {
 			objNames = append(
 				objNames,
-				types.NamespacedName{Name: fmt.Sprintf(pkicommon.NodeCACertTemplate, c.cluster.Name), Namespace: NamespaceCertManager})
+				types.NamespacedName{Name: fmt.Sprintf(pkicommon.NodeCACertTemplate, c.cluster.Name), Namespace: c.cluster.Namespace})
 
 		}
 		for _, obj := range objNames {
@@ -216,7 +216,7 @@ func caSecretForProvidedCert(ctx context.Context, client client.Client, cluster 
 	caSecret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf(pkicommon.NodeCACertTemplate, cluster.Name),
-			Namespace: NamespaceCertManager,
+			Namespace: cluster.Namespace,
 			Labels:    pkicommon.LabelsForNifiPKI(cluster.Name),
 		},
 		Data: map[string][]byte{
@@ -247,7 +247,7 @@ func caCertForCluster(cluster *v1alpha1.NifiCluster, scheme *runtime.Scheme) *ce
 	return &certv1.Certificate{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf(pkicommon.NodeCACertTemplate, cluster.Name),
-			Namespace:  NamespaceCertManager,
+			Namespace:  cluster.Namespace,
 			Labels:    pkicommon.LabelsForNifiPKI(cluster.Name),
 		},
 		Spec: certv1.CertificateSpec{
