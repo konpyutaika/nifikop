@@ -207,7 +207,7 @@ helm repo update
 # You have to create the namespace before executing following command
 helm install nifikop \
     --namespace=nifikop \
-    --set image.tag=v0.2.0-release \
+    --set image.tag=v0.2.1-release \
     orange-incubator/nifikop
 ```
 
@@ -217,7 +217,7 @@ helm install nifikop \
 ```bash
 helm install --name=nifikop \
     --namespace=nifikop \
-    --set image.tag=v0.2.0-release \
+    --set image.tag=v0.2.1-release \
     orange-incubator/nifikop
 ```
 </TabItem>
