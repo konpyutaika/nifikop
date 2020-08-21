@@ -10,6 +10,8 @@
 
 ### Fixed Bugs
 
+- [PR #30](https://github.com/Orange-OpenSource/nifikop/pull/30) - [Documentation] Fix slack link
+
 ## v0.2.1-release
 
 ### Added
