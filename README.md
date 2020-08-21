@@ -81,7 +81,7 @@ If you find this project useful here's how you can help:
 
 ## Community
 
-If you have any questions about the NiFi operator, and would like to talk to us and the other members of the community, please join our [Slack](https://slack.nifikop.io/).
+If you have any questions about the NiFi operator, and would like to talk to us and the other members of the community, please join our [Slack](https://nifikop.slack.com/).
 
 If you find this project useful, help us:
 
