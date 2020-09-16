@@ -21,18 +21,18 @@ import (
 	"strings"
 
 	"emperror.dev/errors"
-	"github.com/banzaicloud/k8s-objectmatcher/patch"
-	"github.com/go-logr/logr"
 	"github.com/Orange-OpenSource/nifikop/pkg/apis/nifi/v1alpha1"
+	"github.com/Orange-OpenSource/nifikop/pkg/clientwrappers/scale"
 	"github.com/Orange-OpenSource/nifikop/pkg/errorfactory"
 	"github.com/Orange-OpenSource/nifikop/pkg/k8sutil"
 	"github.com/Orange-OpenSource/nifikop/pkg/pki"
 	"github.com/Orange-OpenSource/nifikop/pkg/resources"
 	"github.com/Orange-OpenSource/nifikop/pkg/resources/templates"
-	"github.com/Orange-OpenSource/nifikop/pkg/scale"
 	"github.com/Orange-OpenSource/nifikop/pkg/util"
 	certutil "github.com/Orange-OpenSource/nifikop/pkg/util/cert"
 	pkicommon "github.com/Orange-OpenSource/nifikop/pkg/util/pki"
+	"github.com/banzaicloud/k8s-objectmatcher/patch"
+	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -41,16 +41,16 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-const(
-	componentName		= "nifi"
+const (
+	componentName = "nifi"
 
-	nodeConfigMapVolumeMount	= "node-config"
-	nifiDataVolumeMount			= "nifi-data"
+	nodeConfigMapVolumeMount = "node-config"
+	nifiDataVolumeMount      = "nifi-data"
 
-	serverKeystoreVolume	= "server-ks-files"
-	serverKeystorePath		= "/var/run/secrets/java.io/keystores/server"
-	clientKeystoreVolume	= "client-ks-files"
-	clientKeystorePath		= "/var/run/secrets/java.io/keystores/client"
+	serverKeystoreVolume = "server-ks-files"
+	serverKeystorePath   = "/var/run/secrets/java.io/keystores/server"
+	clientKeystoreVolume = "client-ks-files"
+	clientKeystorePath   = "/var/run/secrets/java.io/keystores/client"
 )
 
 // Reconciler implements the Component Reconciler
@@ -70,9 +70,9 @@ func New(client client.Client, directClient client.Reader, scheme *runtime.Schem
 	return &Reconciler{
 		Scheme: scheme,
 		Reconciler: resources.Reconciler{
-			Client:       	client,
-			DirectClient: 	directClient,
-			NifiCluster:	cluster,
+			Client:       client,
+			DirectClient: directClient,
+			NifiCluster:  cluster,
 		},
 	}
 }
@@ -82,7 +82,7 @@ func getCreatedPVCForNode(c client.Client, nodeID int32, namespace, crName strin
 	foundPVCList := &corev1.PersistentVolumeClaimList{}
 	matchingLabels := client.MatchingLabels{
 		"nifi_cr": crName,
-		"nodeId": fmt.Sprintf("%d", nodeID),
+		"nodeId":  fmt.Sprintf("%d", nodeID),
 	}
 	err := c.List(context.TODO(), foundPVCList, client.ListOption(client.InNamespace(namespace)), client.ListOption(matchingLabels))
 	if err != nil {
@@ -158,7 +158,7 @@ func (r *Reconciler) Reconcile(log logr.Logger) error {
 
 		}
 
-		o := r.configMap(node.Id, nodeConfig, serverPass, clientPass, superUsers,log)
+		o := r.configMap(node.Id, nodeConfig, serverPass, clientPass, superUsers, log)
 		err = k8sutil.Reconcile(log, r.Client, o, r.NifiCluster)
 		if err != nil {
 			return errors.WrapIfWithDetails(err, "failed to reconcile resource", "resource", o.GetObjectKind().GroupVersionKind())
@@ -197,7 +197,7 @@ func (r *Reconciler) Reconcile(log logr.Logger) error {
 
 	// TODO: Ensure usage and needing
 	err = scale.EnsureRemovedNodes(r.Client, r.NifiCluster)
-	if err != nil && len(r.NifiCluster.Status.NodesState) > 0{
+	if err != nil && len(r.NifiCluster.Status.NodesState) > 0 {
 		return err
 	}
 
@@ -264,8 +264,8 @@ OUTERLOOP:
 				continue
 			}
 
-			if nodeState, ok :=  r.NifiCluster.Status.NodesState[node.Labels["nodeId"]]; ok &&
-				nodeState.GracefulActionState.ActionStep != v1alpha1.OffloadStatus && nodeState.GracefulActionState.ActionStep != v1alpha1.RemovePodAction  {
+			if nodeState, ok := r.NifiCluster.Status.NodesState[node.Labels["nodeId"]]; ok &&
+				nodeState.GracefulActionState.ActionStep != v1alpha1.OffloadStatus && nodeState.GracefulActionState.ActionStep != v1alpha1.RemovePodAction {
 
 				if nodeState.GracefulActionState.State == v1alpha1.GracefulDownscaleRunning {
 					log.Info("Nifi task is still running for node", "nodeId", node.Labels["nodeId"], "ActionStep", nodeState.GracefulActionState.ActionStep)
@@ -275,7 +275,7 @@ OUTERLOOP:
 
 			err = k8sutil.UpdateNodeStatus(r.Client, []string{node.Labels["nodeId"]}, r.NifiCluster,
 				v1alpha1.GracefulActionState{ActionStep: v1alpha1.RemovePodAction, State: v1alpha1.GracefulDownscaleRunning,
-					TaskStarted: r.NifiCluster.Status.NodesState[node.Labels["nodeId"]].GracefulActionState.TaskStarted }, log)
+					TaskStarted: r.NifiCluster.Status.NodesState[node.Labels["nodeId"]].GracefulActionState.TaskStarted}, log)
 
 			if err != nil {
 				return errors.WrapIfWithDetails(err, "could not update status for node(s)", "id(s)", node.Labels["nodeId"])
@@ -320,10 +320,10 @@ OUTERLOOP:
 			}
 
 			err = k8sutil.UpdateNodeStatus(r.Client, []string{node.Labels["nodeId"]}, r.NifiCluster,
-			v1alpha1.GracefulActionState{
-				ActionStep: v1alpha1.RemovePodStatus,
-				State: v1alpha1.GracefulDownscaleRunning,
-				TaskStarted: r.NifiCluster.Status.NodesState[node.Labels["nodeId"]].GracefulActionState.TaskStarted },
+				v1alpha1.GracefulActionState{
+					ActionStep:  v1alpha1.RemovePodStatus,
+					State:       v1alpha1.GracefulDownscaleRunning,
+					TaskStarted: r.NifiCluster.Status.NodesState[node.Labels["nodeId"]].GracefulActionState.TaskStarted},
 				log)
 			if err != nil {
 				return errors.WrapIfWithDetails(err, "could not update status for node(s)", "id(s)", node.Labels["nodeId"])
@@ -333,7 +333,6 @@ OUTERLOOP:
 
 	return nil
 }
-
 
 //
 func arePodsAlreadyDeleted(pods []corev1.Pod, log logr.Logger) bool {
@@ -400,7 +399,7 @@ func (r *Reconciler) reconcileNifiPVC(log logr.Logger, desiredPVC *corev1.Persis
 	pvcList := &corev1.PersistentVolumeClaimList{}
 	matchingLabels := client.MatchingLabels{
 		"nifi_cr": r.NifiCluster.Name,
-		"nodeId": desiredPVC.Labels["nodeId"],
+		"nodeId":  desiredPVC.Labels["nodeId"],
 	}
 	err := r.Client.List(context.TODO(), pvcList,
 		client.InNamespace(currentPVC.Namespace), matchingLabels)
@@ -456,7 +455,6 @@ func (r *Reconciler) reconcileNifiPVC(log logr.Logger, desiredPVC *corev1.Persis
 	return nil
 }
 
-
 func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) error {
 	currentPod := desiredPod.DeepCopy()
 	desiredType := reflect.TypeOf(desiredPod)
@@ -467,7 +465,7 @@ func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) e
 	podList := &corev1.PodList{}
 	matchingLabels := client.MatchingLabels{
 		"nifi_cr": r.NifiCluster.Name,
-		"nodeId": desiredPod.Labels["nodeId"],
+		"nodeId":  desiredPod.Labels["nodeId"],
 	}
 	err := r.Client.List(context.TODO(), podList, client.InNamespace(currentPod.Namespace), matchingLabels)
 	if err != nil && len(podList.Items) == 0 {
@@ -604,4 +602,3 @@ func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) e
 
 	return nil
 }
-

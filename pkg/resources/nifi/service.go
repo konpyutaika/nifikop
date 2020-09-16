@@ -49,15 +49,15 @@ func (r *Reconciler) service(id int32, log logr.Logger) runtime.Object {
 }
 
 //
-func (r *Reconciler) generateServicePortForInternalListeners() []corev1.ServicePort{
+func (r *Reconciler) generateServicePortForInternalListeners() []corev1.ServicePort {
 	var usedPorts []corev1.ServicePort
 
 	for _, iListeners := range r.NifiCluster.Spec.ListenersConfig.InternalListeners {
 		usedPorts = append(usedPorts, corev1.ServicePort{
-			Name: 		strings.ReplaceAll(iListeners.Name, "_", ""),
-			Port: 		iListeners.ContainerPort,
-			TargetPort:	intstr.FromInt(int(iListeners.ContainerPort)),
-			Protocol: 	corev1.ProtocolTCP,
+			Name:       strings.ReplaceAll(iListeners.Name, "_", ""),
+			Port:       iListeners.ContainerPort,
+			TargetPort: intstr.FromInt(int(iListeners.ContainerPort)),
+			Protocol:   corev1.ProtocolTCP,
 		})
 	}
 
@@ -65,7 +65,7 @@ func (r *Reconciler) generateServicePortForInternalListeners() []corev1.ServiceP
 }
 
 //
-func (r *Reconciler) generateServicePortForExternalListeners() []corev1.ServicePort{
+func (r *Reconciler) generateServicePortForExternalListeners() []corev1.ServicePort {
 	var usedPorts []corev1.ServicePort
 
 	/*for _, eListener := range r.NifiCluster.Spec.ListenersConfig.ExternalListeners {
@@ -81,7 +81,7 @@ func (r *Reconciler) generateServicePortForExternalListeners() []corev1.ServiceP
 }
 
 //
-func (r *Reconciler) generateDefaultServicePort() []corev1.ServicePort{
+func (r *Reconciler) generateDefaultServicePort() []corev1.ServicePort {
 
 	usedPorts := []corev1.ServicePort{
 		// Prometheus metrics port for monitoring

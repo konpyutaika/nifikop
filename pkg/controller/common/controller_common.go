@@ -37,7 +37,6 @@ var ClusterRefLabel = "nifiCluster"
 // use as var so it can be overwritten from unit tests
 var newNifiFromCluster = nificlient.NewFromCluster
 
-
 // requeueWithError is a convenience wrapper around logging an error message
 // separate from the stacktrace and then passing the error through to the controller
 // manager
@@ -47,12 +46,19 @@ func RequeueWithError(logger logr.Logger, msg string, err error) (reconcile.Resu
 	return reconcile.Result{}, err
 }
 
+func Requeue() (reconcile.Result, error) {
+	return reconcile.Result{Requeue: true}, nil
+}
+
+func RequeueAfter(time time.Duration) (reconcile.Result, error) {
+	return reconcile.Result{Requeue: true, RequeueAfter: time}, nil
+}
+
 // reconciled returns an empty result with nil error to signal a successful reconcile
 // to the controller manager
 func Reconciled() (reconcile.Result, error) {
 	return reconcile.Result{}, nil
 }
-
 
 // clusterLabelString returns the label value for a cluster reference
 func ClusterLabelString(cluster *v1alpha1.NifiCluster) string {
@@ -122,4 +128,37 @@ func GetClusterRefNamespace(ns string, ref v1alpha1.ClusterReference) string {
 		return ns
 	}
 	return clusterNamespace
+}
+
+// GetRegistryClientRefNamespace returns the expected namespace for a Nifi registry client
+// referenced by a dataflow CR. It takes the namespace of the CR as the first
+// argument and the reference itself as the second.
+func GetRegistryClientRefNamespace(ns string, ref v1alpha1.RegistryClientReference) string {
+	registryClientNamespace := ref.Namespace
+	if registryClientNamespace == "" {
+		return ns
+	}
+	return registryClientNamespace
+}
+
+// GetParameterContextRefNamespace returns the expected namespace for a Nifi parameter context
+// referenced by a dataflow CR. It takes the namespace of the CR as the first
+// argument and the reference itself as the second.
+func GetParameterContextRefNamespace(ns string, ref v1alpha1.ParameterContextReference) string {
+	parameterContextNamespace := ref.Namespace
+	if parameterContextNamespace == "" {
+		return ns
+	}
+	return parameterContextNamespace
+}
+
+// GetSecretRefNamespace returns the expected namespace for a Nifi secret
+// referenced by a parameter context CR. It takes the namespace of the CR as the first
+// argument and the reference itself as the second.
+func GetSecretRefNamespace(ns string, ref v1alpha1.SecretReference) string {
+	secretNamespace := ref.Namespace
+	if secretNamespace == "" {
+		return ns
+	}
+	return secretNamespace
 }

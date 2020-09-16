@@ -1,0 +1,13 @@
+apiVersion: nifi.orange.com/v1alpha1
+kind: NifiRegistryClient
+metadata:
+  name: squidflow
+spec:
+  # Contains the reference to the NifiCluster with the one the registry client is linked.
+  clusterRef:
+    name: nc
+    namespace: nifikop
+  # The Description of the Registry client.
+  description: "Squidflow demo"
+  # The URI of the NiFi registry that should be used for pulling the flow.
+  uri: "http://nifi-registry:18080"

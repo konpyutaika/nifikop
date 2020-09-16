@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.package apis
 
-
 // Package v1alpha1 contains API Schema definitions for the nifi v1alpha1 API group
 // +k8s:deepcopy-gen=package,register
 // +groupName=nifi.orange.com

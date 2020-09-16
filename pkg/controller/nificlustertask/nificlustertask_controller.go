@@ -21,13 +21,13 @@ import (
 	"time"
 
 	"emperror.dev/errors"
-	"github.com/go-logr/logr"
 	v1alpha1 "github.com/Orange-OpenSource/nifikop/pkg/apis/nifi/v1alpha1"
+	"github.com/Orange-OpenSource/nifikop/pkg/clientwrappers/scale"
 	"github.com/Orange-OpenSource/nifikop/pkg/controller/common"
 	"github.com/Orange-OpenSource/nifikop/pkg/errorfactory"
 	"github.com/Orange-OpenSource/nifikop/pkg/k8sutil"
-	"github.com/Orange-OpenSource/nifikop/pkg/scale"
 	nifiutil "github.com/Orange-OpenSource/nifikop/pkg/util/nifi"
+	"github.com/go-logr/logr"
 	apiErrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -42,7 +42,6 @@ import (
 )
 
 var log = logf.Log.WithName("controller_nificlustertask")
-
 
 // Add creates a new NifiCluster Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
@@ -76,19 +75,19 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 							return true
 						}
 					}
-					if reflect.DeepEqual(old.Status.NodesState, new.Status.NodesState) {
-						return true
-					}
+					//if reflect.DeepEqual(old.Status.NodesState, new.Status.NodesState) {
+					//	return true
+					//}
 					if !reflect.DeepEqual(old.Status.NodesState, new.Status.NodesState) ||
 						old.GetDeletionTimestamp() != new.GetDeletionTimestamp() ||
 						old.GetGeneration() != new.GetGeneration() {
-					return true
-				}
+						return true
+					}
 					return false
 				}
 				return true
-		},
-	}).Complete(r)
+			},
+		}).Complete(r)
 
 	if err != nil {
 		return err
@@ -245,7 +244,7 @@ func (r *ReconcileNifiClusterTask) handlePodDeleteNCTask(nifiCluster *v1alpha1.N
 
 		actionStep, taskStartTime, err := scale.DisconnectClusterNode(r.Client, nifiCluster, nodeId)
 		if err != nil {
-			log.Info(fmt.Sprintf("nifi cluster communication error during downscaling node(s) id(s): %s",nodeId))
+			log.Info(fmt.Sprintf("nifi cluster communication error during downscaling node(s) id(s): %s", nodeId))
 			return errorfactory.New(errorfactory.NifiClusterNotReady{}, err, fmt.Sprintf("node(s) id(s): %s", nodeId))
 		}
 		err = k8sutil.UpdateNodeStatus(r.Client, []string{nodeId}, nifiCluster,
@@ -308,7 +307,7 @@ func (r *ReconcileNifiClusterTask) handlePodRunningTask(nifiCluster *v1alpha1.Ni
 		// Disconnect Reason=Node was Shutdown, updateId=33]
 		// If pod finished deletion
 		// TODO : work here to manage node Status and state (If disconnected && Removing)
-		if nifiCluster.Status.NodesState[nodeId].GracefulActionState.ActionStep == v1alpha1.RemovePodStatus  {
+		if nifiCluster.Status.NodesState[nodeId].GracefulActionState.ActionStep == v1alpha1.RemovePodStatus {
 			actionStep, taskStartTime, err := scale.RemoveClusterNode(r.Client, nifiCluster, nodeId)
 			if err != nil {
 				log.Info(fmt.Sprintf("nifi cluster communication error during removing node id: %s", nodeId))
@@ -350,9 +349,9 @@ func (r *ReconcileNifiClusterTask) checkNCActionStep(nodeId string, nifiCluster 
 			succeedState = *state
 		}
 		err = k8sutil.UpdateNodeStatus(r.Client, []string{nodeId}, nifiCluster,
-			v1alpha1.GracefulActionState{State:  succeedState,
-				TaskStarted:	nodeState.GracefulActionState.TaskStarted,
-				ActionStep: 	actionStep,
+			v1alpha1.GracefulActionState{State: succeedState,
+				TaskStarted: nodeState.GracefulActionState.TaskStarted,
+				ActionStep:  actionStep,
 			}, log)
 		if err != nil {
 			return errors.WrapIfWithDetails(err, "could not update status for node(s)", "id(s)", nodeId)
@@ -378,13 +377,13 @@ func (r *ReconcileNifiClusterTask) checkNCActionStep(nodeId string, nifiCluster 
 
 			log.Info(fmt.Sprintf("Rollback nifi cluster task: %s", nodeState.GracefulActionState.ActionStep))
 
-			actionStep, taskStartTime, err  := scale.ConnectClusterNode(r.Client, nifiCluster, nodeId)
+			actionStep, taskStartTime, err := scale.ConnectClusterNode(r.Client, nifiCluster, nodeId)
 
 			timedOutNodeNCState := v1alpha1.GracefulActionState{
-				State:  		requiredNCState,
-				ActionStep: 	actionStep,
-				ErrorMessage:   "Timed out waiting for the task to complete",
-				TaskStarted:    taskStartTime,
+				State:        requiredNCState,
+				ActionStep:   actionStep,
+				ErrorMessage: "Timed out waiting for the task to complete",
+				TaskStarted:  taskStartTime,
 			}
 
 			if err != nil {
@@ -405,7 +404,6 @@ func (r *ReconcileNifiClusterTask) checkNCActionStep(nodeId string, nifiCluster 
 	log.Info("Nifi cluster task is still running", "actionStep", actionStep)
 	return errorfactory.New(errorfactory.NifiClusterTaskRunning{}, errors.New("Nifi cluster task is still running"), fmt.Sprintf("nc action step: %s", actionStep))
 }
-
 
 // getCorrectRequiredCCState returns the correct Required CC state based on that we upscale or downscale
 func (r *ReconcileNifiClusterTask) getCorrectRequiredNCState(ncState v1alpha1.State) (v1alpha1.State, error) {

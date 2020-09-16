@@ -52,11 +52,11 @@ func (c *certManager) GetControllerTLSConfig() (config *tls.Config, err error) {
 	caCert := tlsKeys.Data[v1alpha1.CoreCACertKey]
 
 	if len(caCert) == 0 {
-		certs := strings.SplitAfter(string(clientCert),"-----END CERTIFICATE-----")
+		certs := strings.SplitAfter(string(clientCert), "-----END CERTIFICATE-----")
 		clientCert = []byte(certs[0])
-		caCert   = []byte(certs[len(certs)-1])
+		caCert = []byte(certs[len(certs)-1])
 		if len(certs) == 3 {
-			caCert   = []byte(certs[len(certs)-2])
+			caCert = []byte(certs[len(certs)-2])
 		}
 	}
 

@@ -44,12 +44,12 @@ func TestBuild(t *testing.T) {
 	assert := assert.New(t)
 	client := newMockClient()
 
-	client.opts.NodesURI        = make(map[int32]string)
-	client.opts.NodesURI[1]     = fmt.Sprintf(nodeURITemplate,1, httpContainerPort)
+	client.opts.NodesURI = make(map[int32]string)
+	client.opts.NodesURI[1] = fmt.Sprintf(nodeURITemplate, 1, httpContainerPort)
 	client.opts.nodeURITemplate = nodeURITemplate
-	client.opts.NifiURI         = fmt.Sprintf(nifiURITemplate, httpContainerPort)
+	client.opts.NifiURI = fmt.Sprintf(nifiURITemplate, httpContainerPort)
 
-	url := "http://" + fmt.Sprintf(nodeURITemplate,1, httpContainerPort) + "/nifi-api/controller/cluster"
+	url := "http://" + fmt.Sprintf(nodeURITemplate, 1, httpContainerPort) + "/nifi-api/controller/cluster"
 
 	httpmock.RegisterResponder(http.MethodGet, url,
 		func(req *http.Request) (*http.Response, error) {
@@ -58,10 +58,10 @@ func TestBuild(t *testing.T) {
 				map[string]interface{}{
 					"cluster": map[string]interface{}{
 						"nodes": []interface{}{
-							[]nigoapi.NodeDto {
+							[]nigoapi.NodeDto{
 								{
 									NodeId:  "1234556",
-									Address: fmt.Sprintf(nodeURITemplate,1, httpContainerPort),
+									Address: fmt.Sprintf(nodeURITemplate, 1, httpContainerPort),
 									ApiPort: httpContainerPort,
 									Status:  string(v1alpha1.ConnectStatus),
 								},
@@ -71,7 +71,7 @@ func TestBuild(t *testing.T) {
 				})
 		})
 
-	err := client.Build();
+	err := client.Build()
 	assert.Nil(err)
 
 	httpmock.DeactivateAndReset()
@@ -91,14 +91,14 @@ func TestNewFromCluster(t *testing.T) {
 		func(req *http.Request) (*http.Response, error) {
 			return httpmock.NewJsonResponse(
 				200,
-				MockGetClusterResponse(cluster))
+				MockGetClusterResponse(cluster, false))
 		})
 
-	_, err :=  NewFromCluster(mockClient{}, cluster)
+	_, err := NewFromCluster(mockClient{}, cluster)
 	assert.Nil(err)
 
 	httpmock.DeactivateAndReset()
-	_, err =  NewFromCluster(mockClient{}, cluster)
+	_, err = NewFromCluster(mockClient{}, cluster)
 	assert.IsType(errorfactory.NodesUnreachable{}, err)
 
 }

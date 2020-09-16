@@ -14,6 +14,15 @@
 
 package v1alpha1
 
+// DataflowState defines the state of a NifiDataflow
+type DataflowState string
+
+// DataflowUpdateRequestType defines the type of versioned flow update request
+type DataflowUpdateRequestType string
+
+// DataflowUpdateStrategy defines the type of strategy to update a flow
+type DataflowUpdateStrategy string
+
 // RackAwarenessState stores info about rack awareness status
 type RackAwarenessState string
 
@@ -68,9 +77,30 @@ type NifiAccessType string
 // UserState defines the state of a NifiUser
 type UserState string
 
-// ClusterReference states a reference to a cluster for topic/user
+// ClusterReference states a reference to a cluster for dataflow/registryclient/user
 // provisioning
 type ClusterReference struct {
+	Name      string `json:"name"`
+	Namespace string `json:"namespace,omitempty"`
+}
+
+// RegistryClientReference states a reference to a registry client for dataflow
+// provisioning
+type RegistryClientReference struct {
+	Name      string `json:"name"`
+	Namespace string `json:"namespace,omitempty"`
+}
+
+// ParameterContextReference states a reference to a parameter context for dataflow
+// provisioning
+type ParameterContextReference struct {
+	Name      string `json:"name"`
+	Namespace string `json:"namespace,omitempty"`
+}
+
+// SecretReference states a reference to a secret for parameter context
+// provisioning
+type SecretReference struct {
 	Name      string `json:"name"`
 	Namespace string `json:"namespace,omitempty"`
 }
@@ -84,6 +114,28 @@ const (
 )
 
 const (
+	// DataflowStateCreated describes the status of a NifiDataflow as created
+	DataflowStateCreated DataflowState = "Created"
+	// DataflowStateStarting describes the status of a NifiDataflow as starting
+	DataflowStateStarting DataflowState = "Starting"
+	// DataflowStateRunning describes the status of a NifiDataflow as running
+	DataflowStateRan DataflowState = "Ran"
+	// DataflowStateOutOfSync describes the status of a NifiDataflow as out of sync
+	DataflowStateOutOfSync DataflowState = "OutOfSync"
+	// DataflowStateInSync describes the status of a NifiDataflow as in sync
+	DataflowStateInSync DataflowState = "InSync"
+
+	// RevertRequestType defines a revert changes request.
+	RevertRequestType DataflowUpdateRequestType = "Revert"
+	// UpdateRequestType defines an update version request.
+	UpdateRequestType DataflowUpdateRequestType = "Update"
+
+	// DrainStrategy leads to shutting down only input components (Input processors, remote input process group)
+	// and dropping all flowfiles from the flow.
+	DrainStrategy DataflowUpdateStrategy = "drain"
+	// DropStrategy leads to shutting down all components and dropping all flowfiles from the flow.
+	DropStrategy DataflowUpdateStrategy = "drop"
+
 	// UserStateCreated describes the status of a NifiUser as created
 	UserStateCreated UserState = "created"
 	// TLSCert is where a cert is stored in a user secret when requested
@@ -171,7 +223,7 @@ const (
 	ConfigOutOfSync ConfigurationState = "ConfigOutOfSync"
 
 	// DisconnectNodeAction states that the NiFi node is disconnecting from NiFi Cluster
-	DisconnectNodeAction ActionStep	= "DISCONNECTING"
+	DisconnectNodeAction ActionStep = "DISCONNECTING"
 	// DisconnectStatus states that the NiFi node is disconnected from NiFi Cluster
 	DisconnectStatus ActionStep = "DISCONNECTED"
 	// OffloadNodeAction states that the NiFi node is offloading data to NiFi Cluster

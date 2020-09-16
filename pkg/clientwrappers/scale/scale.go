@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/Orange-OpenSource/nifikop/pkg/apis/nifi/v1alpha1"
+	"github.com/Orange-OpenSource/nifikop/pkg/clientwrappers"
 	"github.com/Orange-OpenSource/nifikop/pkg/controller/common"
 	"github.com/Orange-OpenSource/nifikop/pkg/nificlient"
 	nifiutil "github.com/Orange-OpenSource/nifikop/pkg/util/nifi"
@@ -54,18 +55,13 @@ func DisconnectClusterNode(client client.Client, cluster *v1alpha1.NifiCluster, 
 	}
 
 	_, err = nClient.DisconnectClusterNode(int32NodeId)
-	if err != nil && err != nificlient.ErrNifiClusterNotReturned200 {
-		log.Error(err, "could not communicate with nifi node")
-		return "", "", err
-	}
-	if err == nificlient.ErrNifiClusterNotReturned200 {
-		log.Error(err, "Disconnect cluster gracefully failed since Nifi node returned non 200")
+	if err := clientwrappers.ErrorUpdateOperation(log, err, "Disconnect node gracefully"); err != nil {
 		return "", "", err
 	}
 
 	log.Info("Disconnect in nifi node")
 	startTimeStamp := time.Now().Format(nifiutil.TimeStampLayout)
-	actionStep :=  v1alpha1.DisconnectNodeAction
+	actionStep := v1alpha1.DisconnectNodeAction
 	return actionStep, startTimeStamp, nil
 }
 
@@ -85,19 +81,13 @@ func OffloadClusterNode(client client.Client, cluster *v1alpha1.NifiCluster, nod
 	}
 
 	_, err = nClient.OffloadClusterNode(int32NodeId)
-	if err != nil && err != nificlient.ErrNifiClusterNotReturned200 {
-		log.Error(err, "could not communicate with nifi node")
-		return "", "", err
-	}
-
-	if err == nificlient.ErrNifiClusterNotReturned200 {
-		log.Error(err, "Offload node gracefully failed since Nifi node returned non 200")
+	if err := clientwrappers.ErrorUpdateOperation(log, err, "Offload node gracefully"); err != nil {
 		return "", "", err
 	}
 
 	log.Info("Offload in nifi node")
 	startTimeStamp := time.Now().Format(nifiutil.TimeStampLayout)
-	actionStep :=  v1alpha1.OffloadNodeAction
+	actionStep := v1alpha1.OffloadNodeAction
 	return actionStep, startTimeStamp, nil
 }
 
@@ -117,19 +107,13 @@ func ConnectClusterNode(client client.Client, cluster *v1alpha1.NifiCluster, nod
 	}
 
 	_, err = nClient.ConnectClusterNode(int32NodeId)
-	if err != nil && err != nificlient.ErrNifiClusterNotReturned200 {
-		log.Error(err, "could not communicate with nifi node")
-		return "", "", err
-	}
-
-	if err == nificlient.ErrNifiClusterNotReturned200 {
-		log.Error(err, "Connect node gracefully failed since Nifi node returned non 200")
+	if err := clientwrappers.ErrorUpdateOperation(log, err, "Connect node gracefully"); err != nil {
 		return "", "", err
 	}
 
 	log.Info("Connect in nifi node")
 	startTimeStamp := time.Now().Format(nifiutil.TimeStampLayout)
-	actionStep :=  v1alpha1.OffloadNodeAction
+	actionStep := v1alpha1.OffloadNodeAction
 	return actionStep, startTimeStamp, nil
 }
 
@@ -149,23 +133,17 @@ func RemoveClusterNode(client client.Client, cluster *v1alpha1.NifiCluster, node
 	}
 
 	err = nClient.RemoveClusterNode(int32NodeId)
-	if err == nificlient.ErrNifiClusterNodeNotFound {
-		currentTime := time.Now()
-		return  v1alpha1.RemoveNodeAction, currentTime.Format(nifiutil.TimeStampLayout), nil
-	}
-	if err != nil && err != nificlient.ErrNifiClusterNotReturned200 {
-		log.Error(err, "could not communicate with nifi node")
-		return "", "", err
-	}
-
-	if err == nificlient.ErrNifiClusterNotReturned200 {
-		log.Error(err, "Disconnect node gracefully failed since Nifi node returned non 200 or 404")
+	if err := clientwrappers.ErrorUpdateOperation(log, err, "Disconnect node gracefully"); err != nil {
+		if err == nificlient.ErrNifiClusterNodeNotFound {
+			currentTime := time.Now()
+			return v1alpha1.RemoveNodeAction, currentTime.Format(nifiutil.TimeStampLayout), nil
+		}
 		return "", "", err
 	}
 
 	log.Info("Remove nifi node")
 	startTimeStamp := time.Now().Format(nifiutil.TimeStampLayout)
-	actionStep :=  v1alpha1.RemoveNodeAction
+	actionStep := v1alpha1.RemoveNodeAction
 	return actionStep, startTimeStamp, nil
 }
 
@@ -186,8 +164,8 @@ func CheckIfNCActionStepFinished(actionStep v1alpha1.ActionStep, client client.C
 		return false, err
 	}
 
-	nodeEntity, err :=  nClient.GetClusterNode(int32NodeId)
-	if ( err == nificlient.ErrNifiClusterNodeNotFound || err == nificlient.ErrNifiClusterReturned404) && actionStep == v1alpha1.RemoveNodeAction {
+	nodeEntity, err := nClient.GetClusterNode(int32NodeId)
+	if (err == nificlient.ErrNifiClusterNodeNotFound || err == nificlient.ErrNifiClusterReturned404) && actionStep == v1alpha1.RemoveNodeAction {
 		return true, nil
 	}
 
@@ -223,34 +201,25 @@ func EnsureRemovedNodes(client client.Client, cluster *v1alpha1.NifiCluster) err
 
 	nClient, err := common.NewNodeConnection(log, client, cluster)
 	if err != nil {
-		return  err
+		return err
 	}
 
 	clusterEntity, err := nClient.DescribeCluster()
 	if err != nil {
-		return  err
+		return err
 	}
 	// GenerateNodeAddress
 	stateAdresses := make(map[string]int32)
 
 	for _, nodeId := range generateNodeStateIdSlice(cluster.Status.NodesState) {
-		stateAdresses[nifiutil.GenerateNodeAddressFromCluster(nodeId, cluster)] =  nodeId
+		stateAdresses[nifiutil.GenerateNodeAddressFromCluster(nodeId, cluster)] = nodeId
 	}
 	for _, nodeDto := range clusterEntity.Cluster.Nodes {
 
 		if _, ok := stateAdresses[fmt.Sprintf("%s:%d", nodeDto.Address, nodeDto.ApiPort)]; !ok {
 
 			err = nClient.RemoveClusterNodeFromClusterNodeId(nodeDto.NodeId)
-			if err == nificlient.ErrNifiClusterNodeNotFound {
-				return nil
-			}
-			if err != nil && err != nificlient.ErrNifiClusterNotReturned200 {
-				log.Error(err, "could not communicate with nifi node")
-				return err
-			}
-
-			if err == nificlient.ErrNifiClusterNotReturned200 {
-				log.Error(err, "Disconnect node gracefully failed since Nifi node returned non 200 or 404")
+			if err := clientwrappers.ErrorRemoveOperation(log, err, "Remove node gracefully"); err != nil {
 				return err
 			}
 		}

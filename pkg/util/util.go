@@ -193,7 +193,6 @@ func GetNodeImage(nodeConfig *v1alpha1.NodeConfig, clusterImage string) string {
 	return clusterImage
 }
 
-
 // NifiUserSliceContains returns true if list contains s
 func NifiUserSliceContains(list []*v1alpha1.NifiUser, u *v1alpha1.NifiUser) bool {
 	for _, v := range list {

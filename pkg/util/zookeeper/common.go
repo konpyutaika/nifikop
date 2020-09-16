@@ -31,4 +31,3 @@ func GetHostnameAddress(zkAddresse string) string {
 func GetPortAddress(zkAddresse string) string {
 	return strings.Split(zkAddresse, ":")[1]
 }
-

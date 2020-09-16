@@ -36,7 +36,25 @@ Apache NiFi is a good candidate to create an operator, because everything is mad
 The operator fully automates NiFi's SSL support.
 The operator can provision the required secrets and certificates for you, or you can provide your own.
 
+### Dataflow lifecycle management via CRD
+
+|                       |           |
+| --------------------- | --------- |
+| Status                | Done      |
+| Priority              | High      |
+| Targeted Start date   | Aug 2020 |
+
 ## Backlog
+
+### Monitoring via Prometheus
+
+|                       |          |
+| --------------------- | -------- |
+| Status                | To Do    |
+| Priority              | High     |
+| Targeted Start date   | Oct 2020 |
+
+The NiFi operator exposes NiFi JMX metrics to Prometheus.
 
 ### Authentification management
 
@@ -46,26 +64,6 @@ The operator can provision the required secrets and certificates for you, or you
 | Priority              | High  |
 | Targeted Start date   | -     |
 
-
-
-
-### Monitoring via Prometheus
-
-|                       |       |
-| --------------------- | ----- |
-| Status                | To Do |
-| Priority              | High  |
-| Targeted Start date   | -     |
-
-The NiFi operator exposes NiFi JMX metrics to Prometheus.
-
-### Dataflow management via CRD
-
-|                       |           |
-| --------------------- | --------- |
-| Status                | To Do     |
-| Priority              | Medium    |
-| Targeted Start date   | -         |
 
 ### Reacting on Alerts
 
@@ -92,5 +90,5 @@ Currently, there are three actions expected :
 
 - Operator allows to use ClusterIP services instead of Headless, which still works better in case of Service meshes.
 - To avoid too early nifi initialization, which might lead to unready sidecar container. The operator will use a small script to
-mitigate this behaviour. All NiFi image can be used the only one requirement is an available **curl** command.
+mitigate this behaviour. All NiFi image can be used the only one requirement is an available **wget** command.
 - To access a NiFi cluster which runs inside the mesh. Operator will supports creating Istio ingress gateways.

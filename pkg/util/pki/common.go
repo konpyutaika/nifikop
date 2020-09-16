@@ -188,7 +188,6 @@ func nodeUserForClusterNode(cluster *v1alpha1.NifiCluster, nodeId int32, additio
 	}
 }
 
-
 // ControllerUserForCluster returns a NifiUser CR for the controller/cc certificates in a NifiCluster
 func ControllerUserForCluster(cluster *v1alpha1.NifiCluster) *v1alpha1.NifiUser {
 	nodeControllerName := fmt.Sprintf(NodeControllerFQDNTemplate,
@@ -201,7 +200,7 @@ func ControllerUserForCluster(cluster *v1alpha1.NifiCluster) *v1alpha1.NifiUser 
 			LabelsForNifiPKI(cluster.Name), cluster,
 		),
 		Spec: v1alpha1.NifiUserSpec{
-			DNSNames: []string{nodeControllerName},
+			DNSNames:   []string{nodeControllerName},
 			SecretName: fmt.Sprintf(NodeControllerTemplate, cluster.Name),
 			IncludeJKS: true,
 			ClusterRef: v1alpha1.ClusterReference{

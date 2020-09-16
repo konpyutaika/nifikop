@@ -68,4 +68,3 @@ var BootstrapNotificationServicesTemplate = ` <?xml version="1.0"?>
 -->
 </services>
 `
-

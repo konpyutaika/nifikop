@@ -40,7 +40,7 @@ func GetPKIManager(client client.Client, cluster *v1alpha1.NifiCluster) pki.Mana
 	// TODO : Add vault
 	// Use vault for pki backend
 	/*case v1alpha1.PKIBackendVault:
-		return vaultpki.New(client, cluster)*/
+	return vaultpki.New(client, cluster)*/
 
 	// Return mock backend for testing - cannot be triggered by CR due to enum in api schema
 	case MockBackend:

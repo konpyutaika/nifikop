@@ -104,7 +104,11 @@ generate:
 	echo "Generate zzz-deepcopy objects"
 	operator-sdk version
 	operator-sdk generate k8s
+	mkdir -p deploy/crds/v1beta1 deploy/crds/v1
 	operator-sdk generate crds
+	mv deploy/crds/nifi* deploy/crds/v1
+	operator-sdk generate crds --crd-version v1beta1
+	mv deploy/crds/nifi* deploy/crds/v1beta1
 
 # Build nifikop executable file in local go env
 .PHONY: build

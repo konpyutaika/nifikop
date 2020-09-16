@@ -123,7 +123,7 @@ func (c *certManager) nifipki(ctx context.Context, scheme *runtime.Scheme, exter
 
 func userProvidedIssuerPKI(cluster *v1alpha1.NifiCluster, externalHostnames []string) []runtime.Object {
 	// No need to generate self-signed certs and issuers because the issuer is provided by user
-	objects := []runtime.Object {
+	objects := []runtime.Object{
 		// Operator user
 		pkicommon.ControllerUserForCluster(cluster),
 	}
@@ -140,14 +140,14 @@ func fullPKI(cluster *v1alpha1.NifiCluster, scheme *runtime.Scheme, externalHost
 
 	if cluster.Spec.ListenersConfig.SSLSecrets.ClusterScoped {
 		objects = append(objects, []runtime.Object{
-				// A self-signer for the CA Certificate
-				selfSignerForCluster(cluster, scheme),
-				// The CA Certificate
-				caCertForCluster(cluster, scheme),
-				// A cluster issuer backed by the CA certificate - so it can provision secrets
-				// for app in other namespaces
-				mainIssuerForCluster(cluster, scheme),
-			}...
+			// A self-signer for the CA Certificate
+			selfSignerForCluster(cluster, scheme),
+			// The CA Certificate
+			caCertForCluster(cluster, scheme),
+			// A cluster issuer backed by the CA certificate - so it can provision secrets
+			// for app in other namespaces
+			mainIssuerForCluster(cluster, scheme),
+		}...
 		)
 	} else {
 		objects = append(objects, []runtime.Object{
@@ -183,9 +183,9 @@ func userProvidedPKI(ctx context.Context, client client.Client, cluster *v1alpha
 		caSecret,
 	}
 	if cluster.Spec.ListenersConfig.SSLSecrets.ClusterScoped {
-		objects = append(objects,mainIssuerForCluster(cluster, scheme))
+		objects = append(objects, mainIssuerForCluster(cluster, scheme))
 	} else {
-		objects = append(objects,mainIssuerForNamespace(cluster, scheme))
+		objects = append(objects, mainIssuerForNamespace(cluster, scheme))
 	}
 
 	objects = append(objects, pkicommon.ControllerUserForCluster(cluster))
@@ -247,14 +247,14 @@ func caCertForCluster(cluster *v1alpha1.NifiCluster, scheme *runtime.Scheme) *ce
 	return &certv1.Certificate{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf(pkicommon.NodeCACertTemplate, cluster.Name),
-			Namespace:  cluster.Namespace,
+			Namespace: cluster.Namespace,
 			Labels:    pkicommon.LabelsForNifiPKI(cluster.Name),
 		},
 		Spec: certv1.CertificateSpec{
 			SecretName: fmt.Sprintf(pkicommon.NodeCACertTemplate, cluster.Name),
 			CommonName: fmt.Sprintf(pkicommon.CAFQDNTemplate,
 				cluster.Name, cluster.Namespace, cluster.Spec.ListenersConfig.GetClusterDomain()),
-			IsCA:       true,
+			IsCA: true,
 			IssuerRef: certmeta.ObjectReference{
 				Name: fmt.Sprintf(pkicommon.NodeSelfSignerTemplate, cluster.Name),
 				Kind: certv1.ClusterIssuerKind,
@@ -279,7 +279,6 @@ func mainIssuerForCluster(cluster *v1alpha1.NifiCluster, scheme *runtime.Scheme)
 	controllerutil.SetControllerReference(cluster, issuer, scheme)
 	return issuer
 }
-
 
 func selfSignerForNamespace(cluster *v1alpha1.NifiCluster, scheme *runtime.Scheme) *certv1.Issuer {
 	selfsignerMeta := templates.ObjectMeta(fmt.Sprintf(pkicommon.NodeSelfSignerTemplate, cluster.Name), pkicommon.LabelsForNifiPKI(cluster.Name), cluster)
@@ -307,7 +306,7 @@ func caCertForNamespace(cluster *v1alpha1.NifiCluster, scheme *runtime.Scheme) *
 			SecretName: fmt.Sprintf(pkicommon.NodeCACertTemplate, cluster.Name),
 			CommonName: fmt.Sprintf(pkicommon.CAFQDNTemplate,
 				cluster.Name, cluster.Namespace, cluster.Spec.ListenersConfig.GetClusterDomain()),
-			IsCA:       true,
+			IsCA: true,
 			IssuerRef: certmeta.ObjectReference{
 				Name: fmt.Sprintf(pkicommon.NodeSelfSignerTemplate, cluster.Name),
 				Kind: certv1.IssuerKind,

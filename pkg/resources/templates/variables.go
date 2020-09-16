@@ -15,6 +15,6 @@
 package templates
 
 const (
-	NodeConfigTemplate			= "%s-config"
-	NodeStorageTemplate			= "%s-%d-storage"
+	NodeConfigTemplate  = "%s-config"
+	NodeStorageTemplate = "%s-%d-storage"
 )

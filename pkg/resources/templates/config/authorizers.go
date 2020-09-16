@@ -13,6 +13,8 @@
 // limitations under the License.package apis
 
 package config
+
+// Template for nifi's authorizer.xml file, used by the initial cluster's nodes
 var AuthorizersTemplate = `{{- $nodeList := .NodeList }}
 {{- $clusterName := .ClusterName }}
 {{- $namespace := .Namespace }}<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -47,6 +49,7 @@ var AuthorizersTemplate = `{{- $nodeList := .NodeList }}
 </authorizers>
 `
 
+// Empty authorizer.xml template, used by new node joining the cluster
 var EmptyAuthorizersTemplate = `<authorizers>
     <userGroupProvider>
         <identifier>file-user-group-provider</identifier>
@@ -350,4 +353,4 @@ var EmptyAuthorizersTemplate = `<authorizers>
     </authorizer>
     -->
 </authorizers>
- */
+*/
