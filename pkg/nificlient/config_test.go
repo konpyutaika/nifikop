@@ -24,13 +24,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-const(
+const (
 	httpContainerPort int32 = 443
 	succeededNodeId   int32 = 4
 
-	clusterName      =  "test-cluster"
+	clusterName      = "test-cluster"
 	clusterNamespace = "test-namespace"
-
 )
 
 type mockClient struct {
@@ -41,9 +40,9 @@ func testCluster(t *testing.T) *v1alpha1.NifiCluster {
 	t.Helper()
 	cluster := &v1alpha1.NifiCluster{}
 
-	cluster.Name      = clusterName
+	cluster.Name = clusterName
 	cluster.Namespace = clusterNamespace
-	cluster.Spec      = v1alpha1.NifiClusterSpec{}
+	cluster.Spec = v1alpha1.NifiClusterSpec{}
 
 	cluster.Status.NodesState = make(map[string]v1alpha1.NodeState)
 	cluster.Status.NodesState["1"] = v1alpha1.NodeState{
@@ -148,7 +147,6 @@ func TestGenerateNodesAddress(t *testing.T) {
 			clusterName, succeededNodeId, clusterName, clusterNamespace, httpContainerPort),
 		nodesURI[succeededNodeId])
 }
-
 
 func TestGenerateNodesURITemplate(t *testing.T) {
 	assert := assert.New(t)

@@ -32,8 +32,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-func (r *Reconciler) configMap(id int32, nodeConfig *v1alpha1.NodeConfig, serverPass, clientPass string, superUsers []string,log logr.Logger) runtime.Object {
-	 configMap := &corev1.ConfigMap{
+func (r *Reconciler) configMap(id int32, nodeConfig *v1alpha1.NodeConfig, serverPass, clientPass string, superUsers []string, log logr.Logger) runtime.Object {
+	configMap := &corev1.ConfigMap{
 		ObjectMeta: templates.ObjectMeta(
 			fmt.Sprintf(templates.NodeConfigTemplate+"-%d", r.NifiCluster.Name, id),
 			util.MergeLabels(
@@ -43,13 +43,13 @@ func (r *Reconciler) configMap(id int32, nodeConfig *v1alpha1.NodeConfig, server
 			r.NifiCluster,
 		),
 		Data: map[string]string{
-			"nifi.properties": 						r.generateNifiPropertiesNodeConfig(id, nodeConfig, serverPass, clientPass, superUsers, log),
-			"zookeeper.properties": 				r.generateZookeeperPropertiesNodeConfig(id, nodeConfig, log),
-			"state-management.xml": 				r.getStateManagementConfigString(nodeConfig, id, log),
-			"login-identity-providers.xml": 		r.getLoginIdentityProvidersConfigString(nodeConfig, id, log),
-			"logback.xml": 							r.getLogbackConfigString(nodeConfig, id, log),
-			"bootstrap.conf": 						r.generateBootstrapPropertiesNodeConfig(id, nodeConfig, log),
-			"bootstrap-notification-servces.xml": 	r.getBootstrapNotificationServicesConfigString(nodeConfig, id, log),
+			"nifi.properties":                    r.generateNifiPropertiesNodeConfig(id, nodeConfig, serverPass, clientPass, superUsers, log),
+			"zookeeper.properties":               r.generateZookeeperPropertiesNodeConfig(id, nodeConfig, log),
+			"state-management.xml":               r.getStateManagementConfigString(nodeConfig, id, log),
+			"login-identity-providers.xml":       r.getLoginIdentityProvidersConfigString(nodeConfig, id, log),
+			"logback.xml":                        r.getLogbackConfigString(nodeConfig, id, log),
+			"bootstrap.conf":                     r.generateBootstrapPropertiesNodeConfig(id, nodeConfig, log),
+			"bootstrap-notification-servces.xml": r.getBootstrapNotificationServicesConfigString(nodeConfig, id, log),
 		},
 	}
 
@@ -124,9 +124,9 @@ func (r *Reconciler) getNifiPropertiesConfigString(nConfig *v1alpha1.NodeConfig,
 	var out bytes.Buffer
 	t := template.Must(template.New("nConfig-config").Parse(config.NifiPropertiesTemplate))
 	if err := t.Execute(&out, map[string]interface{}{
-		"NifiCluster":				r.NifiCluster,
-		"Id": 						id,
-		"ListenerConfig":			config.GenerateListenerSpecificConfig(
+		"NifiCluster": r.NifiCluster,
+		"Id":          id,
+		"ListenerConfig": config.GenerateListenerSpecificConfig(
 			&r.NifiCluster.Spec.ListenersConfig,
 			id,
 			r.NifiCluster.Namespace,
@@ -135,24 +135,24 @@ func (r *Reconciler) getNifiPropertiesConfigString(nConfig *v1alpha1.NodeConfig,
 			r.NifiCluster.Spec.ListenersConfig.GetClusterDomain(),
 			r.NifiCluster.Spec.ListenersConfig.UseExternalDNS,
 			log),
-		"ProvenanceStorage":		nConfig.GetProvenanceStorage(),
-		"SiteToSiteSecure": 		r.NifiCluster.Spec.SiteToSiteSecure,
-		"ClusterSecure":			r.NifiCluster.Spec.ClusterSecure,
-		"WebProxyHosts": 			webProxyHosts,
-		"NeedClientAuth": 			base.NeedClientAuth,
-		"Authorizer": 				base.GetAuthorizer(),
+		"ProvenanceStorage":                  nConfig.GetProvenanceStorage(),
+		"SiteToSiteSecure":                   r.NifiCluster.Spec.SiteToSiteSecure,
+		"ClusterSecure":                      r.NifiCluster.Spec.ClusterSecure,
+		"WebProxyHosts":                      webProxyHosts,
+		"NeedClientAuth":                     base.NeedClientAuth,
+		"Authorizer":                         base.GetAuthorizer(),
 		"SSLEnabledForInternalCommunication": r.NifiCluster.Spec.ListenersConfig.SSLSecrets != nil && util.IsSSLEnabledForInternalCommunication(r.NifiCluster.Spec.ListenersConfig.InternalListeners),
-		"SuperUsers":               strings.Join(generateSuperUsers(superUsers), ";"),
+		"SuperUsers":                         strings.Join(generateSuperUsers(superUsers), ";"),
 		"ServerKeystorePath":                 serverKeystorePath,
 		"ClientKeystorePath":                 clientKeystorePath,
 		"KeystoreFile":                       v1alpha1.TLSJKSKey,
 		"ServerKeystorePassword":             serverPass,
 		"ClientKeystorePassword":             clientPass,
 		//
-		"LdapConfiguration": 		r.NifiCluster.Spec.LdapConfiguration,
-		"IsNode": 					nConfig.GetIsNode(),
-		"ZookeeperConnectString":	r.NifiCluster.Spec.ZKAddresse,
-		"ZookeeperPath": 			r.NifiCluster.Spec.GetZkPath(),
+		"LdapConfiguration":      r.NifiCluster.Spec.LdapConfiguration,
+		"IsNode":                 nConfig.GetIsNode(),
+		"ZookeeperConnectString": r.NifiCluster.Spec.ZKAddresse,
+		"ZookeeperPath":          r.NifiCluster.Spec.GetZkPath(),
 	}); err != nil {
 		log.Error(err, "error occurred during parsing the config template")
 	}
@@ -219,7 +219,7 @@ func (r *Reconciler) getZookeeperPropertiesConfigString(nConfig *v1alpha1.NodeCo
 
 	base := r.NifiCluster.Spec.ReadOnlyConfig.ZookeeperProperties.DeepCopy()
 	for _, node := range r.NifiCluster.Spec.Nodes {
-		if node.Id == id && node.ReadOnlyConfig != nil && &node.ReadOnlyConfig.ZookeeperProperties != nil{
+		if node.Id == id && node.ReadOnlyConfig != nil && &node.ReadOnlyConfig.ZookeeperProperties != nil {
 			mergo.Merge(base, node.ReadOnlyConfig.ZookeeperProperties, mergo.WithOverride)
 		}
 	}
@@ -243,10 +243,10 @@ func (r *Reconciler) getStateManagementConfigString(nConfig *v1alpha1.NodeConfig
 	var out bytes.Buffer
 	t := template.Must(template.New("nConfig-config").Parse(config.StateManagementTemplate))
 	if err := t.Execute(&out, map[string]interface{}{
-		"NifiCluster":				r.NifiCluster,
-		"Id": 						id,
-		"ZookeeperConnectString":	r.NifiCluster.Spec.ZKAddresse,
-		"ZookeeperPath": 			r.NifiCluster.Spec.GetZkPath(),
+		"NifiCluster":            r.NifiCluster,
+		"Id":                     id,
+		"ZookeeperConnectString": r.NifiCluster.Spec.ZKAddresse,
+		"ZookeeperPath":          r.NifiCluster.Spec.GetZkPath(),
 	}); err != nil {
 		log.Error(err, "error occurred during parsing the config template")
 	}
@@ -263,9 +263,9 @@ func (r *Reconciler) getLoginIdentityProvidersConfigString(nConfig *v1alpha1.Nod
 	var out bytes.Buffer
 	t := template.Must(template.New("nConfig-config").Parse(config.LoginIdentityProvidersTemplate))
 	if err := t.Execute(&out, map[string]interface{}{
-		"NifiCluster":				r.NifiCluster,
-		"Id": 						id,
-		"LdapConfiguration": 		r.NifiCluster.Spec.LdapConfiguration,
+		"NifiCluster":       r.NifiCluster,
+		"Id":                id,
+		"LdapConfiguration": r.NifiCluster.Spec.LdapConfiguration,
 	}); err != nil {
 		log.Error(err, "error occurred during parsing the config template")
 	}
@@ -282,8 +282,8 @@ func (r *Reconciler) getLogbackConfigString(nConfig *v1alpha1.NodeConfig, id int
 	var out bytes.Buffer
 	t := template.Must(template.New("nConfig-config").Parse(config.LogbackTemplate))
 	if err := t.Execute(&out, map[string]interface{}{
-		"NifiCluster":				r.NifiCluster,
-		"Id": 						id,
+		"NifiCluster": r.NifiCluster,
+		"Id":          id,
 	}); err != nil {
 		log.Error(err, "error occurred during parsing the config template")
 	}
@@ -300,8 +300,8 @@ func (r *Reconciler) getBootstrapNotificationServicesConfigString(nConfig *v1alp
 	var out bytes.Buffer
 	t := template.Must(template.New("nConfig-config").Parse(config.BootstrapNotificationServicesTemplate))
 	if err := t.Execute(&out, map[string]interface{}{
-		"NifiCluster":				r.NifiCluster,
-		"Id": 						id,
+		"NifiCluster": r.NifiCluster,
+		"Id":          id,
 	}); err != nil {
 		log.Error(err, "error occurred during parsing the config template")
 	}
@@ -331,12 +331,12 @@ func (r *Reconciler) getAuthorizersConfigString(nConfig *v1alpha1.NodeConfig, id
 	t := template.Must(template.New("nConfig-config").Parse(authorizersTemplate))
 
 	if err := t.Execute(&out, map[string]interface{}{
-		"NifiCluster":		r.NifiCluster,
-		"Id": 				id,
-		"ClusterName":		r.NifiCluster.Name,
-		"Namespace":		r.NifiCluster.Namespace,
-		"NodeList":			nodeList,
-		"InitialAdminUser":	r.NifiCluster.Spec.InitialAdminUser,
+		"NifiCluster":      r.NifiCluster,
+		"Id":               id,
+		"ClusterName":      r.NifiCluster.Name,
+		"Namespace":        r.NifiCluster.Namespace,
+		"NodeList":         nodeList,
+		"InitialAdminUser": r.NifiCluster.Spec.InitialAdminUser,
 	}); err != nil {
 		log.Error(err, "error occurred during parsing the config template")
 	}
@@ -396,7 +396,7 @@ func (r Reconciler) generateBootstrapPropertiesNodeConfig(id int32, nodeConfig *
 func (r *Reconciler) getBootstrapPropertiesConfigString(nConfig *v1alpha1.NodeConfig, id int32, log logr.Logger) string {
 	base := r.NifiCluster.Spec.ReadOnlyConfig.BootstrapProperties.DeepCopy()
 	for _, node := range r.NifiCluster.Spec.Nodes {
-		if node.Id == id && node.ReadOnlyConfig != nil && &node.ReadOnlyConfig.BootstrapProperties != nil{
+		if node.Id == id && node.ReadOnlyConfig != nil && &node.ReadOnlyConfig.BootstrapProperties != nil {
 			mergo.Merge(base, node.ReadOnlyConfig.BootstrapProperties, mergo.WithOverride)
 		}
 	}
@@ -404,19 +404,19 @@ func (r *Reconciler) getBootstrapPropertiesConfigString(nConfig *v1alpha1.NodeCo
 	var out bytes.Buffer
 	t := template.Must(template.New("nConfig-config").Parse(config.BootstrapPropertiesTemplate))
 	if err := t.Execute(&out, map[string]interface{}{
-		"NifiCluster":	r.NifiCluster,
-		"Id": 			id,
-		"JvmMemory":	base.GetNifiJvmMemory(),
+		"NifiCluster": r.NifiCluster,
+		"Id":          id,
+		"JvmMemory":   base.GetNifiJvmMemory(),
 	}); err != nil {
 		log.Error(err, "error occurred during parsing the config template")
 	}
 	return out.String()
 }
 
-func (r *Reconciler) GetNifiPropertiesBase(id int32) *v1alpha1.NifiProperties{
+func (r *Reconciler) GetNifiPropertiesBase(id int32) *v1alpha1.NifiProperties {
 	base := r.NifiCluster.Spec.ReadOnlyConfig.NifiProperties.DeepCopy()
 	for _, node := range r.NifiCluster.Spec.Nodes {
-		if node.Id == id && node.ReadOnlyConfig != nil && &node.ReadOnlyConfig.NifiProperties != nil{
+		if node.Id == id && node.ReadOnlyConfig != nil && &node.ReadOnlyConfig.NifiProperties != nil {
 			mergo.Merge(base, node.ReadOnlyConfig.NifiProperties, mergo.WithOverride)
 		}
 	}

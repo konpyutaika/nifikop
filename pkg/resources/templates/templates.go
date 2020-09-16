@@ -38,6 +38,7 @@ func ObjectMeta(name string, labels map[string]string, cluster *v1alpha1.NifiClu
 		},
 	}
 }
+
 // ObjectMetaWithGeneratedName returns a metav1.ObjectMeta object with labels, ownerReference and generatedname
 func ObjectMetaWithGeneratedName(namePrefix string, labels map[string]string, cluster *v1alpha1.NifiCluster) metav1.ObjectMeta {
 	return metav1.ObjectMeta{

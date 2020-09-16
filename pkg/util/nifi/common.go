@@ -23,18 +23,17 @@ import (
 )
 
 const (
-	PrefixNodeNameTemplate  = "%s-"
-	SuffixNodeNameTemplate  = "-node"
-	RootNodeNameTemplate    = "%d"
-	NodeNameTemplate        = PrefixNodeNameTemplate+RootNodeNameTemplate+SuffixNodeNameTemplate
+	PrefixNodeNameTemplate = "%s-"
+	SuffixNodeNameTemplate = "-node"
+	RootNodeNameTemplate   = "%d"
+	NodeNameTemplate       = PrefixNodeNameTemplate + RootNodeNameTemplate + SuffixNodeNameTemplate
 	// AllNodeServiceTemplate template for Nifi all nodes service
-	AllNodeServiceTemplate  = "%s-all-node"
+	AllNodeServiceTemplate = "%s-all-node"
 	// HeadlessServiceTemplate template for Nifi headless service
 	HeadlessServiceTemplate = "%s-headless"
 
 	// TimeStampLayout defines the date format used.
 	TimeStampLayout = "Mon, 2 Jan 2006 15:04:05 GMT"
-
 )
 
 // ParseTimeStampToUnixTime parses the given CC timeStamp to time format
@@ -53,7 +52,6 @@ func ParseStringToInt32(nodeId string) (int32, error) {
 
 	return int32NodeId, err
 }
-
 
 func GenerateNiFiAddressFromCluster(cluster *v1alpha1.NifiCluster) string {
 
@@ -105,15 +103,15 @@ func ComputeNodeAddress(
 	useExternalDNS bool,
 	internalListeners []v1alpha1.InternalListenerConfig) string {
 
-		return fmt.Sprintf("%s:%d",
-			ComputeNodeHostname(
-				nodeId,
-				clusterName,
-				namespace,
-				headlessServiceEnabled,
-				clusterDomain,
-				useExternalDNS),
-			InternalListenerForComm(internalListeners).ContainerPort)
+	return fmt.Sprintf("%s:%d",
+		ComputeNodeHostname(
+			nodeId,
+			clusterName,
+			namespace,
+			headlessServiceEnabled,
+			clusterDomain,
+			useExternalDNS),
+		InternalListenerForComm(internalListeners).ContainerPort)
 }
 
 func ComputeNodeHostnameFromCluster(nodeId int32, cluster *v1alpha1.NifiCluster) string {
@@ -134,9 +132,9 @@ func ComputeNodeHostname(
 	clusterDomain string,
 	useExternalDNS bool) string {
 
-		return fmt.Sprintf("%s.%s",
-			ComputeNodeName(nodeId, clusterName),
-			ComputeNiFiHostname(clusterName, namespace, headlessServiceEnabled, clusterDomain, useExternalDNS))
+	return fmt.Sprintf("%s.%s",
+		ComputeNodeName(nodeId, clusterName),
+		ComputeNiFiHostname(clusterName, namespace, headlessServiceEnabled, clusterDomain, useExternalDNS))
 }
 
 func ComputeNiFiHostname(

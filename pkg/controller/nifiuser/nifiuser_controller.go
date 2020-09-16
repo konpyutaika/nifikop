@@ -46,8 +46,7 @@ import (
 
 var log = logf.Log.WithName("controller_nifiuser")
 
-var userFinalizer =  "finalizer.nifiusers.nifi.orange.com"
-
+var userFinalizer = "finalizer.nifiusers.nifi.orange.com"
 
 // Add creates a new NifiCluster Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
@@ -68,13 +67,13 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	// Watch for changes to primary resource NifiCluster
+	// Watch for changes to primary resource NifiUser
 	err = c.Watch(&source.Kind{Type: &v1alpha1.NifiUser{}}, &handler.EnqueueRequestForObject{})
 	if err != nil {
 		return err
 	}
 
-	// Watch for changes to secondary resource Pods and requeue the owner NifiCluster
+	// Watch for changes to secondary resource Pods and requeue the owner NifiUser
 	err = c.Watch(&source.Kind{Type: &certv1.Certificate{}}, &handler.EnqueueRequestForOwner{
 		IsController: true,
 		OwnerType:    &v1alpha1.NifiUser{},
@@ -126,7 +125,7 @@ func (r *ReconcileNifiUser) Reconcile(request reconcile.Request) (reconcile.Resu
 			return common.Reconciled()
 		}
 		// Error reading the object - requeue the request.
-		return  common.RequeueWithError(reqLogger, err.Error(), err)
+		return common.RequeueWithError(reqLogger, err.Error(), err)
 	}
 
 	// Get the referenced NifiCluster
@@ -294,4 +293,3 @@ func (r *ReconcileNifiUser) addFinalizer(reqLogger logr.Logger, user *v1alpha1.N
 	user.SetFinalizers(append(user.GetFinalizers(), userFinalizer))
 	return
 }
-

@@ -39,9 +39,9 @@ func newMockCluster() *v1alpha1.NifiCluster {
 		{ContainerPort: 9092},
 	}
 	cluster.Spec.ListenersConfig.SSLSecrets = &v1alpha1.SSLSecrets{
-		TLSSecretName:   "test-controller",
-		PKIBackend:      v1alpha1.PKIBackendCertManager,
-		Create:          true,
+		TLSSecretName: "test-controller",
+		PKIBackend:    v1alpha1.PKIBackendCertManager,
+		Create:        true,
 	}
 
 	cluster.Spec.Nodes = []v1alpha1.Node{

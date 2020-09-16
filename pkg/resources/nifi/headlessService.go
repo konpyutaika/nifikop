@@ -26,7 +26,7 @@ import (
 func (r *Reconciler) headlessService() runtime.Object {
 
 	// InternalListeners ports
-	usedPorts :=  r.generateServicePortForInternalListeners()
+	usedPorts := r.generateServicePortForInternalListeners()
 
 	// Additionnal ports
 	usedPorts = append(usedPorts, r.generateDefaultServicePort()...)
@@ -47,4 +47,3 @@ func (r *Reconciler) headlessService() runtime.Object {
 		},
 	}
 }
-

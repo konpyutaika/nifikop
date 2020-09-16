@@ -28,7 +28,7 @@ import (
 var log = logf.Log.WithName("nifi_client")
 
 const (
-	PRIMARY_NODE     	= "Primary Node"
+	PRIMARY_NODE        = "Primary Node"
 	CLUSTER_COORDINATOR = "Cluster Coordinator"
 )
 
@@ -40,30 +40,74 @@ type NifiClient interface {
 	ConnectClusterNode(nId int32) (*nigoapi.NodeEntity, error)
 	OffloadClusterNode(nId int32) (*nigoapi.NodeEntity, error)
 	RemoveClusterNode(nId int32) error
-	GetClusterNode(nId int32)(*nigoapi.NodeEntity, error)
+	GetClusterNode(nId int32) (*nigoapi.NodeEntity, error)
 	RemoveClusterNodeFromClusterNodeId(nId string) error
+
+	// Registry client func
+	GetRegistryClient(id string) (*nigoapi.RegistryClientEntity, error)
+	CreateRegistryClient(entity nigoapi.RegistryClientEntity) (*nigoapi.RegistryClientEntity, error)
+	UpdateRegistryClient(entity nigoapi.RegistryClientEntity) (*nigoapi.RegistryClientEntity, error)
+	RemoveRegistryClient(entity nigoapi.RegistryClientEntity) error
+
+	// Flow client func
+	GetFlow(id string) (*nigoapi.ProcessGroupFlowEntity, error)
+	UpdateFlowControllerServices(entity nigoapi.ActivateControllerServicesEntity) (*nigoapi.ActivateControllerServicesEntity, error)
+	UpdateFlowProcessGroup(entity nigoapi.ScheduleComponentsEntity) (*nigoapi.ScheduleComponentsEntity, error)
+	GetFlowControllerServices(id string) (*nigoapi.ControllerServicesEntity, error)
+
+	// Drop request func
+	GetDropRequest(connectionId, id string) (*nigoapi.DropRequestEntity, error)
+	CreateDropRequest(connectionId string) (*nigoapi.DropRequestEntity, error)
+
+	// Process Group func
+	GetProcessGroup(id string) (*nigoapi.ProcessGroupEntity, error)
+	CreateProcessGroup(entity nigoapi.ProcessGroupEntity, pgParentId string) (*nigoapi.ProcessGroupEntity, error)
+	UpdateProcessGroup(entity nigoapi.ProcessGroupEntity) (*nigoapi.ProcessGroupEntity, error)
+	RemoveProcessGroup(entity nigoapi.ProcessGroupEntity) error
+
+	// Version func
+	CreateVersionUpdateRequest(pgId string, entity nigoapi.VersionControlInformationEntity) (*nigoapi.VersionedFlowUpdateRequestEntity, error)
+	GetVersionUpdateRequest(id string) (*nigoapi.VersionedFlowUpdateRequestEntity, error)
+	CreateVersionRevertRequest(pgId string, entity nigoapi.VersionControlInformationEntity) (*nigoapi.VersionedFlowUpdateRequestEntity, error)
+	GetVersionRevertRequest(id string) (*nigoapi.VersionedFlowUpdateRequestEntity, error)
+
+	// Snippet func
+	CreateSnippet(entity nigoapi.SnippetEntity) (*nigoapi.SnippetEntity, error)
+	UpdateSnippet(entity nigoapi.SnippetEntity) (*nigoapi.SnippetEntity, error)
+
+	// Processor func
+	UpdateProcessor(entity nigoapi.ProcessorEntity) (*nigoapi.ProcessorEntity, error)
+	UpdateProcessorRunStatus(id string, entity nigoapi.ProcessorRunStatusEntity) (*nigoapi.ProcessorEntity, error)
+
+	// Input port func
+	UpdateInputPortRunStatus(id string, entity nigoapi.PortRunStatusEntity) (*nigoapi.ProcessorEntity, error)
+
+	// Parameter context func
+	GetParameterContext(id string) (*nigoapi.ParameterContextEntity, error)
+	CreateParameterContext(entity nigoapi.ParameterContextEntity) (*nigoapi.ParameterContextEntity, error)
+	RemoveParameterContext(entity nigoapi.ParameterContextEntity) error
+	CreateParameterContextUpdateRequest(contextId string, entity nigoapi.ParameterContextEntity) (*nigoapi.ParameterContextUpdateRequestEntity, error)
+	GetParameterContextUpdateRequest(contextId, id string) (*nigoapi.ParameterContextUpdateRequestEntity, error)
 
 	Build() error
 }
 
-
 type nifiClient struct {
 	NifiClient
-	opts		*NifiConfig
-	client 		*nigoapi.APIClient
-	nodeClient 	map[int32]*nigoapi.APIClient
-	timeout 	time.Duration
-	nodes 		[]nigoapi.NodeDto
+	opts       *NifiConfig
+	client     *nigoapi.APIClient
+	nodeClient map[int32]*nigoapi.APIClient
+	timeout    time.Duration
+	nodes      []nigoapi.NodeDto
 
 	// client funcs for mocking
 	newClient func(*nigoapi.Configuration) *nigoapi.APIClient
 }
 
-
 func New(opts *NifiConfig) NifiClient {
 	nClient := &nifiClient{
-		opts:		opts,
-		timeout:	time.Duration(opts.OperationTimeout) * time.Second,
+		opts:    opts,
+		timeout: time.Duration(opts.OperationTimeout) * time.Second,
 	}
 
 	nClient.newClient = nigoapi.NewAPIClient
@@ -191,7 +235,7 @@ func (n *nifiClient) coordinatorNodeId() *int32 {
 		nodeDto := n.nodes[id]
 		// We return the Node Id associated to the Cluster Node coordinator, if it is connected
 		if isCoordinator(&nodeDto) && isConnected(&nodeDto) {
-			 return n.nodeIdByNodeDto(&nodeDto)
+			return n.nodeIdByNodeDto(&nodeDto)
 		}
 	}
 	return nil
@@ -228,7 +272,6 @@ func (n *nifiClient) nodeDtoByNodeId(nId int32) *nigoapi.NodeDto {
 	}
 	return nil
 }
-
 
 func (n *nifiClient) nodeIdByNodeDto(nodeDto *nigoapi.NodeDto) *int32 {
 	// Extract the uri associated to the Cluster Node

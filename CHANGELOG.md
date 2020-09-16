@@ -2,6 +2,8 @@
 
 ### Added
 
+- [PR #31](https://github.com/Orange-OpenSource/nifikop/pull/31) - **[Operator]** Dataflow lifecycle management
+
 ### Changed
 
 ### Deprecated

@@ -44,9 +44,8 @@ import (
 
 var log = logf.Log.WithName("controller_nificluster")
 
-var clusterFinalizer =  "finalizer.nificlusters.nifi.orange.com"
+var clusterFinalizer = "finalizer.nificlusters.nifi.orange.com"
 var clusterUsersFinalizer = "users.nificlusters.nifi.orange.com"
-
 
 // Add creates a new NifiCluster Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
@@ -82,7 +81,6 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-
 	// Watch for changes to secondary resource ConfigMap and requeue the owner NifiCluster
 	err = c.Watch(&source.Kind{Type: &corev1.ConfigMap{}}, &handler.EnqueueRequestForOwner{
 		IsController: true,
@@ -111,10 +109,10 @@ var _ reconcile.Reconciler = &ReconcileNifiCluster{}
 type ReconcileNifiCluster struct {
 	// This client, initialized using mgr.Client() above, is a split client
 	// that reads objects from the cache and writes to the apiserver
-	client 			client.Client
-	DirectClient 	client.Reader
-	scheme 			*runtime.Scheme
-	Namespaces		[]string
+	client       client.Client
+	DirectClient client.Reader
+	scheme       *runtime.Scheme
+	Namespaces   []string
 }
 
 // Reconcile reads that state of the cluster for a NifiCluster object and makes changes based on the state read

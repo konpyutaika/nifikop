@@ -32,11 +32,11 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-const(
-	livenessInitialDelaySeconds    int32 = 90
-	livenessHealthCheckTimeout     int32 = 20
-	livenessHealthCheckPeriod      int32 = 60
-	livenessHealthCheckThreshold   int32 = 5
+const (
+	livenessInitialDelaySeconds  int32 = 90
+	livenessHealthCheckTimeout   int32 = 20
+	livenessHealthCheckPeriod    int32 = 60
+	livenessHealthCheckThreshold int32 = 5
 
 	readinessInitialDelaySeconds  int32 = 60
 	readinessHealthCheckTimeout   int32 = 10
@@ -44,10 +44,10 @@ const(
 	readinessHealthCheckThreshold int32 = 5
 
 	// InitContainer resources
-	defaultInitContainerLimitsCPU       = "0.5"
-	defaultInitContainerLimitsMemory    = "0.5Gi"
-	defaultInitContainerRequestsCPU     = "0.5"
-	defaultInitContainerRequestsMemory  = "0.5Gi"
+	defaultInitContainerLimitsCPU      = "0.5"
+	defaultInitContainerLimitsMemory   = "0.5Gi"
+	defaultInitContainerRequestsCPU    = "0.5"
+	defaultInitContainerRequestsMemory = "0.5Gi"
 
 	ContainerName string = "nifi"
 )
@@ -58,7 +58,6 @@ func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev
 	zkHostname := zk.GetHostnameAddress(zkAddresse)
 	zkPort := zk.GetPortAddress(zkAddresse)
 
-
 	// ContainersPorts initialization
 	nifiNodeContainersPorts := r.generateContainerPortForInternalListeners()
 
@@ -67,12 +66,12 @@ func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev
 
 	dataVolume, dataVolumeMount := generateDataVolumeAndVolumeMount(pvcs)
 
-	volume 			:= []corev1.Volume{}
-	volumeMount 	:= []corev1.VolumeMount{}
-	initContainers 	:= append([]corev1.Container{}, r.NifiCluster.Spec.InitContainers...)
+	volume := []corev1.Volume{}
+	volumeMount := []corev1.VolumeMount{}
+	initContainers := append([]corev1.Container{}, r.NifiCluster.Spec.InitContainers...)
 
-	volume 		= append(volume, dataVolume...)
-	volumeMount	= append(volumeMount, dataVolumeMount...)
+	volume = append(volume, dataVolume...)
+	volumeMount = append(volumeMount, dataVolumeMount...)
 
 	readinessCommand := fmt.Sprintf(`curl -kv http://$(hostname -f):%d/nifi-api`,
 		GetServerPort(&r.NifiCluster.Spec.ListenersConfig))
@@ -89,7 +88,7 @@ func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev
 			GetServerPort(&r.NifiCluster.Spec.ListenersConfig))
 	}
 
-	podVolumes   := append(volume, []corev1.Volume{
+	podVolumes := append(volume, []corev1.Volume{
 		{
 			Name: nodeConfigMapVolumeMount,
 			VolumeSource: corev1.VolumeSource{
@@ -105,7 +104,6 @@ func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev
 		{
 			Name:      nodeConfigMapVolumeMount,
 			MountPath: "/opt/nifi/nifi-current/tmp",
-
 		},
 	}...)
 
@@ -117,7 +115,6 @@ func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev
 		return podVolumeMounts[i].Name < podVolumeMounts[j].Name
 	})
 
-
 	sort.Slice(initContainers, func(i, j int) bool {
 		return initContainers[i].Name < initContainers[j].Name
 	})
@@ -126,15 +123,15 @@ func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev
 
 	if val, ok := r.NifiCluster.Status.NodesState[fmt.Sprint(id)]; !ok || (
 		val.InitClusterNode != v1alpha1.IsInitClusterNode &&
-		(val.GracefulActionState.State == v1alpha1.GracefulUpscaleRequired ||
-		val.GracefulActionState.State == v1alpha1.GracefulUpscaleRunning)) {
+			(val.GracefulActionState.State == v1alpha1.GracefulUpscaleRequired ||
+				val.GracefulActionState.State == v1alpha1.GracefulUpscaleRunning)) {
 		failCondition = `else
 	echo fail to request cluster
 	exit 1
 `
 	}
 
-	requestClusterStatus :=  fmt.Sprintf("curl --fail -v http://%s/nifi-api/controller/cluster > $NIFI_BASE_DIR/cluster.state",
+	requestClusterStatus := fmt.Sprintf("curl --fail -v http://%s/nifi-api/controller/cluster > $NIFI_BASE_DIR/cluster.state",
 		nifiutil.GenerateNiFiAddressFromCluster(r.NifiCluster))
 
 	if r.NifiCluster.Spec.ListenersConfig.SSLSecrets != nil &&
@@ -158,9 +155,9 @@ func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev
 %s
 fi
 rm -f $NIFI_BASE_DIR/cluster.state `,
-	requestClusterStatus,
-	"STATUS=$(jq -r \".cluster.nodes[] | select(.address==\\\"$(hostname -f)\\\") | .status\" $NIFI_BASE_DIR/cluster.state)",
-	failCondition)
+		requestClusterStatus,
+		"STATUS=$(jq -r \".cluster.nodes[] | select(.address==\\\"$(hostname -f)\\\") | .status\" $NIFI_BASE_DIR/cluster.state)",
+		failCondition)
 
 	nodeAddress := nifiutil.ComputeNodeAddress(
 		id, r.NifiCluster.Name, r.NifiCluster.Namespace, r.NifiCluster.Spec.Service.HeadlessEnabled,
@@ -187,9 +184,9 @@ echo "Hostname is successfully binded withy IP adress"
 %s
 exec bin/nifi.sh run`, nodeAddress, nodeAddress, removesFileAction)}
 
-// curl -kv --cert /var/run/secrets/java.io/keystores/client/tls.crt --key /var/run/secrets/java.io/keystores/client/tls.key https://nifi.trycatchlearn.fr:8433/nifi
-// curl -kv --cert /var/run/secrets/java.io/keystores/client/tls.crt --key /var/run/secrets/java.io/keystores/client/tls.key https://securenc-headless.external-dns-test.gcp.trycatchlearn.fr:8443/nifi-api/controller/cluster
-// keytool -import -noprompt -keystore /home/nifi/truststore.jks -file /var/run/secrets/java.io/keystores/server/ca.crt -storepass $(cat /var/run/secrets/java.io/keystores/server/password) -alias test1
+	// curl -kv --cert /var/run/secrets/java.io/keystores/client/tls.crt --key /var/run/secrets/java.io/keystores/client/tls.key https://nifi.trycatchlearn.fr:8433/nifi
+	// curl -kv --cert /var/run/secrets/java.io/keystores/client/tls.crt --key /var/run/secrets/java.io/keystores/client/tls.key https://securenc-headless.external-dns-test.gcp.trycatchlearn.fr:8443/nifi-api/controller/cluster
+	// keytool -import -noprompt -keystore /home/nifi/truststore.jks -file /var/run/secrets/java.io/keystores/server/ca.crt -storepass $(cat /var/run/secrets/java.io/keystores/server/password) -alias test1
 	pod := &corev1.Pod{
 		//ObjectMeta: templates.ObjectMetaWithAnnotations(
 		ObjectMeta: templates.ObjectMetaWithGeneratedNameAndAnnotations(
@@ -212,38 +209,38 @@ exec bin/nifi.sh run`, nodeAddress, nodeAddress, removesFileAction)}
 			},
 			InitContainers: append(initContainers, []corev1.Container{
 				{
-					Name: 		     "zookeeper",
-					Image:		     r.NifiCluster.Spec.GetInitContainerImage(),
+					Name:            "zookeeper",
+					Image:           r.NifiCluster.Spec.GetInitContainerImage(),
 					ImagePullPolicy: nodeConfig.GetImagePullPolicy(),
-					Command: 	     []string{"sh", "-c",fmt.Sprintf(`
+					Command: []string{"sh", "-c", fmt.Sprintf(`
 echo trying to contact Zookeeper: %s
 until nc -vzw 1 %s %s; do
 	echo "waiting for zookeeper..."
 	sleep 2
 done`,
 						zkAddresse, zkHostname, zkPort)},
-					Resources:       generateInitContainerResources(),
+					Resources: generateInitContainerResources(),
 				},
 			}...),
 			Affinity: &corev1.Affinity{
 				PodAntiAffinity: generatePodAntiAffinity(r.NifiCluster.Name, r.NifiCluster.Spec.OneNifiNodePerNode),
 			},
 			Containers: []corev1.Container{
-					/*{
-						Name: "app-log",
-						Image: "ez123/alpine-tini",
-						Args: []string{"tail", "-n+1", "-F", "/var/log/nifi-app.log"},
-						VolumeMounts:[]corev1.VolumeMount{
-							{
-								Name:     "logs",
-								MountPath: "/var/log",
+				/*{
+					Name: "app-log",
+					Image: "ez123/alpine-tini",
+					Args: []string{"tail", "-n+1", "-F", "/var/log/nifi-app.log"},
+					VolumeMounts:[]corev1.VolumeMount{
+						{
+							Name:     "logs",
+							MountPath: "/var/log",
 
-							},
 						},
-					},*/
+					},
+				},*/
 				{
-					Name:	ContainerName,
-					Image: 	util.GetNodeImage(nodeConfig, r.NifiCluster.Spec.ClusterImage),
+					Name:            ContainerName,
+					Image:           util.GetNodeImage(nodeConfig, r.NifiCluster.Spec.ClusterImage),
 					ImagePullPolicy: nodeConfig.GetImagePullPolicy(),
 					Lifecycle: &corev1.Lifecycle{
 						PreStop: &corev1.Handler{
@@ -287,7 +284,7 @@ done`,
 					},
 					Env: []corev1.EnvVar{
 						{
-							Name: "NIFI_ZOOKEEPER_CONNECT_STRING",
+							Name:  "NIFI_ZOOKEEPER_CONNECT_STRING",
 							Value: zkAddresse,
 						},
 						{
@@ -300,28 +297,28 @@ done`,
 							},
 						},
 					},
-					Command: command,
-					Ports: nifiNodeContainersPorts,
+					Command:      command,
+					Ports:        nifiNodeContainersPorts,
 					VolumeMounts: podVolumeMounts,
-					Resources: *nodeConfig.GetResources(),
+					Resources:    *nodeConfig.GetResources(),
 				},
 			},
-			Volumes: podVolumes,
-			RestartPolicy: 					corev1.RestartPolicyNever,
-			TerminationGracePeriodSeconds:	util.Int64Pointer(120),
-			DNSPolicy:                     	corev1.DNSClusterFirst,
-			ImagePullSecrets:              	nodeConfig.GetImagePullSecrets(),
-			ServiceAccountName:            	nodeConfig.GetServiceAccount(),
-			Priority:                      	util.Int32Pointer(0),
-			SchedulerName:                 	"default-scheduler",
-			Tolerations:                   	nodeConfig.GetTolerations(),
-			NodeSelector:                  	nodeConfig.GetNodeSelector(),
+			Volumes:                       podVolumes,
+			RestartPolicy:                 corev1.RestartPolicyNever,
+			TerminationGracePeriodSeconds: util.Int64Pointer(120),
+			DNSPolicy:                     corev1.DNSClusterFirst,
+			ImagePullSecrets:              nodeConfig.GetImagePullSecrets(),
+			ServiceAccountName:            nodeConfig.GetServiceAccount(),
+			Priority:                      util.Int32Pointer(0),
+			SchedulerName:                 "default-scheduler",
+			Tolerations:                   nodeConfig.GetTolerations(),
+			NodeSelector:                  nodeConfig.GetNodeSelector(),
 		},
 	}
 
 	if r.NifiCluster.Spec.Service.HeadlessEnabled {
-		pod.Spec.Hostname	= nifiutil.ComputeNodeName(id, r.NifiCluster.Name)
-		pod.Spec.Subdomain	= nifiutil.ComputeServiceName(r.NifiCluster.Name, r.NifiCluster.Spec.Service.HeadlessEnabled)
+		pod.Spec.Hostname = nifiutil.ComputeNodeName(id, r.NifiCluster.Name)
+		pod.Spec.Subdomain = nifiutil.ComputeServiceName(r.NifiCluster.Name, r.NifiCluster.Spec.Service.HeadlessEnabled)
 	}
 
 	if nodeConfig.NodeAffinity != nil {
@@ -347,7 +344,7 @@ func generateDataVolumeAndVolumeMount(pvcs []corev1.PersistentVolumeClaim) (volu
 		volumeMount = append(volumeMount, corev1.VolumeMount{
 			//Name:      fmt.Sprintf(nifiDataVolumeMount+"-%d", i),
 			//Name: fmt.Sprintf(nifiDataVolumeMount+"-%s", pvc.Name),
-			Name: pvc.Annotations["storageName"],
+			Name:      pvc.Annotations["storageName"],
 			MountPath: pvc.Annotations["mountPath"],
 		})
 	}
@@ -387,14 +384,14 @@ func generatePodAntiAffinity(clusterName string, hardRuleEnabled bool) *corev1.P
 }
 
 //
-func (r *Reconciler) generateContainerPortForInternalListeners() []corev1.ContainerPort{
+func (r *Reconciler) generateContainerPortForInternalListeners() []corev1.ContainerPort {
 	var usedPorts []corev1.ContainerPort
 
 	for _, iListeners := range r.NifiCluster.Spec.ListenersConfig.InternalListeners {
 		usedPorts = append(usedPorts, corev1.ContainerPort{
-			Name: 			strings.ReplaceAll(iListeners.Name, "_", ""),
-			Protocol: 		corev1.ProtocolTCP,
-			ContainerPort:	iListeners.ContainerPort,
+			Name:          strings.ReplaceAll(iListeners.Name, "_", ""),
+			Protocol:      corev1.ProtocolTCP,
+			ContainerPort: iListeners.ContainerPort,
 		})
 	}
 
@@ -402,7 +399,7 @@ func (r *Reconciler) generateContainerPortForInternalListeners() []corev1.Contai
 }
 
 //
-func (r *Reconciler) generateContainerPortForExternalListeners() []corev1.ContainerPort{
+func (r *Reconciler) generateContainerPortForExternalListeners() []corev1.ContainerPort {
 	var usedPorts []corev1.ContainerPort
 
 	/*for _, eListener := range r.NifiCluster.Spec.ListenersConfig.ExternalListeners {
@@ -417,7 +414,7 @@ func (r *Reconciler) generateContainerPortForExternalListeners() []corev1.Contai
 }
 
 //
-func (r *Reconciler) generateDefaultContainerPort() []corev1.ContainerPort{
+func (r *Reconciler) generateDefaultContainerPort() []corev1.ContainerPort {
 
 	usedPorts := []corev1.ContainerPort{
 		// Prometheus metrics port for monitoring
@@ -427,7 +424,6 @@ func (r *Reconciler) generateDefaultContainerPort() []corev1.ContainerPort{
 			ContainerPort: v1alpha1.MetricsPort,
 		},*/
 	}
-
 
 	return usedPorts
 }
@@ -485,7 +481,6 @@ func generateVolumeMountForSSL() []corev1.VolumeMount {
 	}
 }
 
-
 func generateInitContainerResources() corev1.ResourceRequirements {
 
 	resourcesLimits := corev1.ResourceList{}
@@ -497,7 +492,7 @@ func generateInitContainerResources() corev1.ResourceRequirements {
 	resourcesReqs[corev1.ResourceMemory], _ = resource.ParseQuantity(defaultInitContainerRequestsMemory)
 
 	return corev1.ResourceRequirements{
-		Limits: resourcesLimits,
+		Limits:   resourcesLimits,
 		Requests: resourcesReqs,
 	}
 }

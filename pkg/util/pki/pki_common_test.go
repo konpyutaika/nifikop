@@ -87,7 +87,7 @@ func TestGetCommonName(t *testing.T) {
 
 func TestLabelsForNifiPKI(t *testing.T) {
 	expected := map[string]string{
-		"app":          "nifi",
+		"app":         "nifi",
 		"nifi_issuer": fmt.Sprintf(NodeIssuerTemplate, "test"),
 	}
 	got := LabelsForNifiPKI("test")
@@ -186,7 +186,7 @@ func TestControllerUserForCluster(t *testing.T) {
 			LabelsForNifiPKI(cluster.Name), cluster,
 		),
 		Spec: v1alpha1.NifiUserSpec{
-			DNSNames: []string{nodeControllerName},
+			DNSNames:   []string{nodeControllerName},
 			SecretName: fmt.Sprintf(NodeControllerTemplate, cluster.Name),
 			IncludeJKS: true,
 			ClusterRef: v1alpha1.ClusterReference{

@@ -55,14 +55,35 @@ type ReconcileRollingUpgrade struct{ error }
 // NifiClusterNotReady states that NC is not ready to receive actions
 type NifiClusterNotReady struct{ error }
 
-// DecommissionTaskRunning states that NC task is still running
+// NifiClusterTaskRunning states that NC task is still running
 type NifiClusterTaskRunning struct{ error }
 
 // NifiClusterTaskTimeout states that NC task timed out
-type  NifiClusterTaskTimeout struct{ error }
+type NifiClusterTaskTimeout struct{ error }
 
 // NifiClusterTaskFailure states that NC task was not found (CC restart?) or failed
-type  NifiClusterTaskFailure struct{ error }
+type NifiClusterTaskFailure struct{ error }
+
+// NifiConnectionDropping states that flowfile drop is still running
+type NifiConnectionDropping struct{ error }
+
+// NifiFlowDraining states that flowfile drop is still draining
+type NifiFlowDraining struct{ error }
+
+// NifiParameterContextUpdateRequestRunning states that the parameter context update request is still running
+type NifiParameterContextUpdateRequestRunning struct{ error }
+
+// NifiFlowUpdateRequestRunning states that the flow update request is still running
+type NifiFlowUpdateRequestRunning struct{ error }
+
+// NifiFlowControllerServiceScheduling states that the flow's controller service are still scheduling
+type NifiFlowControllerServiceScheduling struct{ error }
+
+// NifiFlowSyncing states that the flow's controller service are still scheduling
+type NifiFlowSyncing struct{ error }
+
+// NifiFlowScheduling states that the flow is still scheduling
+type NifiFlowScheduling struct{ error }
 
 // New creates a new error factory error
 func New(t interface{}, err error, msg string, wrapArgs ...interface{}) error {

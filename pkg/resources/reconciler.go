@@ -26,11 +26,11 @@ import (
 type Reconciler struct {
 	client.Client
 	DirectClient client.Reader
-	NifiCluster *v1alpha1.NifiCluster
+	NifiCluster  *v1alpha1.NifiCluster
 }
 
 // ComponentReconciler describes the Reconcile method
-type ComponentReconciler interface  {
+type ComponentReconciler interface {
 	Reconcile(log logr.Logger) error
 }
 

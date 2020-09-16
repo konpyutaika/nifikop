@@ -22,10 +22,10 @@ import (
 	"github.com/Orange-OpenSource/nifikop/pkg/apis/nifi/v1alpha1"
 )
 
-const(
+const (
 	httpContainerPort int32 = 443
 
-	clusterName      =  "test-cluster"
+	clusterName      = "test-cluster"
 	clusterNamespace = "test-namespace"
 
 	localClusterDomain       = "cluster.local"
@@ -46,9 +46,9 @@ func testClusterLocal(t *testing.T) *v1alpha1.NifiCluster {
 	t.Helper()
 	cluster := &v1alpha1.NifiCluster{}
 
-	cluster.Name      = clusterName
+	cluster.Name = clusterName
 	cluster.Namespace = clusterNamespace
-	cluster.Spec      = v1alpha1.NifiClusterSpec{}
+	cluster.Spec = v1alpha1.NifiClusterSpec{}
 
 	cluster.Spec.Nodes = []v1alpha1.Node{
 		{Id: 0},
@@ -75,7 +75,7 @@ func testClusterDemo(t *testing.T) *v1alpha1.NifiCluster {
 func testClusterExternalDNS(t *testing.T) *v1alpha1.NifiCluster {
 	t.Helper()
 	cluster := testClusterLocal(t)
-	cluster.Spec.ListenersConfig.ClusterDomain  = externalDNSClusterDomain
+	cluster.Spec.ListenersConfig.ClusterDomain = externalDNSClusterDomain
 	cluster.Spec.ListenersConfig.UseExternalDNS = true
 	return cluster
 }
@@ -227,7 +227,7 @@ func TestComputeServiceNameFull(t *testing.T) {
 
 	cluster := testClusterLocal(t)
 	cluster.Spec.Service.HeadlessEnabled = true
-	assert.Equal(fmt.Sprintf("%s.%s.svc", ComputeServiceName(clusterName, true,), clusterNamespace),
+	assert.Equal(fmt.Sprintf("%s.%s.svc", ComputeServiceName(clusterName, true, ), clusterNamespace),
 		ComputeServiceNameFull(cluster.Name, cluster.Namespace,
 			cluster.Spec.Service.HeadlessEnabled, cluster.Spec.ListenersConfig.UseExternalDNS))
 
@@ -243,7 +243,7 @@ func TestComputeServiceNameWithNamespace(t *testing.T) {
 
 	cluster := testClusterLocal(t)
 	cluster.Spec.Service.HeadlessEnabled = true
-	assert.Equal(fmt.Sprintf("%s.%s", ComputeServiceName(clusterName, true,), clusterNamespace),
+	assert.Equal(fmt.Sprintf("%s.%s", ComputeServiceName(clusterName, true, ), clusterNamespace),
 		ComputeServiceNameWithNamespace(cluster.Name, cluster.Namespace,
 			cluster.Spec.Service.HeadlessEnabled, cluster.Spec.ListenersConfig.UseExternalDNS))
 
@@ -266,7 +266,7 @@ func TestGenerateNodeAddressFromCluster(t *testing.T) {
 	for _, cluster := range clusters {
 		for _, node := range cluster.Spec.Nodes {
 			assert.Equal(
-				fmt.Sprintf("%s.%s",fmt.Sprintf(NodeNameTemplate, clusterName, node.Id),
+				fmt.Sprintf("%s.%s", fmt.Sprintf(NodeNameTemplate, clusterName, node.Id),
 					GenerateNiFiAddressFromCluster(cluster)),
 				GenerateNodeAddressFromCluster(node.Id, cluster))
 		}
@@ -285,7 +285,7 @@ func TestComputeNodeAddress(t *testing.T) {
 	for _, cluster := range clusters {
 		for _, node := range cluster.Spec.Nodes {
 			assert.Equal(
-				fmt.Sprintf("%s.%s",fmt.Sprintf(NodeNameTemplate, clusterName, node.Id),
+				fmt.Sprintf("%s.%s", fmt.Sprintf(NodeNameTemplate, clusterName, node.Id),
 					ComputeNiFiAddress(cluster.Name,
 						cluster.Namespace,
 						cluster.Spec.Service.HeadlessEnabled,
@@ -314,7 +314,7 @@ func TestComputeNodeHostname(t *testing.T) {
 	for _, cluster := range clusters {
 		for _, node := range cluster.Spec.Nodes {
 			assert.Equal(
-				fmt.Sprintf("%s.%s",fmt.Sprintf(NodeNameTemplate, clusterName, node.Id),
+				fmt.Sprintf("%s.%s", fmt.Sprintf(NodeNameTemplate, clusterName, node.Id),
 					ComputeNiFiHostname(cluster.Name,
 						cluster.Namespace,
 						cluster.Spec.Service.HeadlessEnabled,
@@ -341,7 +341,7 @@ func TestComputeNodeServiceNameFull(t *testing.T) {
 	for _, cluster := range clusters {
 		for _, node := range cluster.Spec.Nodes {
 			assert.Equal(
-				fmt.Sprintf("%s.%s",fmt.Sprintf(NodeNameTemplate, clusterName, node.Id),
+				fmt.Sprintf("%s.%s", fmt.Sprintf(NodeNameTemplate, clusterName, node.Id),
 					ComputeServiceNameFull(cluster.Name,
 						cluster.Namespace,
 						cluster.Spec.Service.HeadlessEnabled,
@@ -366,7 +366,7 @@ func TestComputeNodeServiceNameNs(t *testing.T) {
 	for _, cluster := range clusters {
 		for _, node := range cluster.Spec.Nodes {
 			assert.Equal(
-				fmt.Sprintf("%s.%s",fmt.Sprintf(NodeNameTemplate, clusterName, node.Id),
+				fmt.Sprintf("%s.%s", fmt.Sprintf(NodeNameTemplate, clusterName, node.Id),
 					ComputeServiceNameWithNamespace(cluster.Name,
 						cluster.Namespace,
 						cluster.Spec.Service.HeadlessEnabled,
@@ -391,11 +391,11 @@ func TestComputeNodeServiceName(t *testing.T) {
 	for _, cluster := range clusters {
 		for _, node := range cluster.Spec.Nodes {
 			assert.Equal(
-				fmt.Sprintf("%s.%s",fmt.Sprintf(NodeNameTemplate, clusterName, node.Id),
+				fmt.Sprintf("%s.%s", fmt.Sprintf(NodeNameTemplate, clusterName, node.Id),
 					ComputeServiceName(cluster.Name,
 						cluster.Spec.Service.HeadlessEnabled)),
 				ComputeNodeServiceName(node.Id, cluster.Name,
-					cluster.Spec.Service.HeadlessEnabled,))
+					cluster.Spec.Service.HeadlessEnabled, ))
 		}
 	}
 }
