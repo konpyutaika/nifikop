@@ -2,13 +2,19 @@
 
 ### Added
 
-- [PR #31](https://github.com/Orange-OpenSource/nifikop/pull/31) - **[Operator]** Dataflow lifecycle management
-
 ### Changed
 
 ### Deprecated
 
 ### Removed
+
+### Fixed Bugs
+
+## v0.3.0-release
+
+### Added
+
+- [PR #31](https://github.com/Orange-OpenSource/nifikop/pull/31) - **[Operator]** Dataflow lifecycle management
 
 ### Fixed Bugs
 
