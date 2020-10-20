@@ -10,6 +10,10 @@
 
 ### Fixed Bugs
 
+## v0.3.1-release
+
+### Fixed Bugs
+
 - [PR #37](https://github.com/Orange-OpenSource/nifikop/pull/37) - **[Operator]** nifi.properties merge
 
 ## v0.3.0-release
