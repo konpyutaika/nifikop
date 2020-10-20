@@ -87,13 +87,14 @@ func (r Reconciler) generateNifiPropertiesNodeConfig(id int32, nodeConfig *v1alp
 	//Generate the Complete Configuration for the Node
 	completeConfigMap := map[string]string{}
 
+	if err := mergo.Merge(&completeConfigMap, parsedReadOnlyNodeConfig); err != nil {
+		log.Error(err, "error occurred during merging readOnly config to complete configs")
+	}
+
 	if err := mergo.Merge(&completeConfigMap, util.ParsePropertiesFormat(r.getNifiPropertiesConfigString(nodeConfig, id, serverPass, clientPass, superUsers, log))); err != nil {
 		log.Error(err, "error occurred during merging operator generated configs")
 	}
 
-	if err := mergo.Merge(&completeConfigMap, parsedReadOnlyNodeConfig); err != nil {
-		log.Error(err, "error occurred during merging readOnly config to complete configs")
-	}
 
 	completeConfig := []string{}
 
