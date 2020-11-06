@@ -10,7 +10,7 @@ NiFiKop is Apache 2.0 licensed and accepts contributions via GitHub pull request
 ## Getting started
 
 - Fork the repository on GitHub
-- See the [developer guide](./doc/dev/developer_guide.md) for build instructions
+- See the [developer guide](https://orange-opensource.github.io/nifikop/docs/6_contributing/1_developer_guide) for build instructions
 
 ## Reporting bugs and creating issues
 

@@ -10,6 +10,8 @@
 
 ### Fixed Bugs
 
+- [PR #30](https://github.com/Orange-OpenSource/nifikop/pull/40) - [Documentation] Fix getting started
+
 ## v0.3.1-release
 
 ### Fixed Bugs

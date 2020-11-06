@@ -52,7 +52,7 @@ make build
 
 #### Cross platform build environment
 
-Build the docker image which will be used to build CassKop docker image
+Build the docker image which will be used to build NiFiKop docker image
 
 ```bash
 make build-ci-image
@@ -95,13 +95,17 @@ This method can be used to run the operator locally outside of the cluster. This
 Set the name of the operator in an environment variable
 
 ```bash
- export OPERATOR_NAME=cassandra-operator
+ export OPERATOR_NAME=nifi-operator
 ```
 
-Deploy the CRD.
+Deploy the CRDs.
 
 ```bash
 kubectl apply -f deploy/crds/nifi.orange.com_nificlusters_crd.yaml
+kubectl apply -f deploy/crds/nifi.orange.com_nifidataflows_crd.yaml
+kubectl apply -f deploy/crds/nifi.orange.com_nifiparametercontexts_crd.yaml
+kubectl apply -f deploy/crds/nifi.orange.com_nifiregistryclients_crd.yaml
+kubectl apply -f deploy/crds/nifi.orange.com_nifiusers_crd.yaml
 ```
 
 And deploy the operator.
