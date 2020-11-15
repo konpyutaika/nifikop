@@ -13,24 +13,24 @@
 <link data-react-helmet="true" rel="shortcut icon" href="/nifikop/img/nifikop.ico">
 
 
-<link rel="stylesheet" href="/nifikop/styles.dcb18faf.css">
+<link rel="stylesheet" href="/nifikop/styles.e511046b.css">
 
 
-<link rel="preload" href="/nifikop/styles.fc6059d5.js" as="script">
+<link rel="preload" href="/nifikop/styles.24b444e3.js" as="script">
 
-<link rel="preload" href="/nifikop/runtime~main.66f38fa7.js" as="script">
+<link rel="preload" href="/nifikop/runtime~main.78687e4a.js" as="script">
 
-<link rel="preload" href="/nifikop/main.517e2cd8.js" as="script">
+<link rel="preload" href="/nifikop/main.f7c755f2.js" as="script">
 
-<link rel="preload" href="/nifikop/1.a7224f63.js" as="script">
+<link rel="preload" href="/nifikop/1.a7cc04f0.js" as="script">
 
-<link rel="preload" href="/nifikop/2.04f92f26.js" as="script">
+<link rel="preload" href="/nifikop/2.466d722f.js" as="script">
 
-<link rel="preload" href="/nifikop/3.535b589c.js" as="script">
+<link rel="preload" href="/nifikop/3.29b1ff21.js" as="script">
 
-<link rel="preload" href="/nifikop/ccc49370.ce31f48e.js" as="script">
+<link rel="preload" href="/nifikop/ccc49370.11afaaec.js" as="script">
 
-<link rel="preload" href="/nifikop/0229501e.cb506535.js" as="script">
+<link rel="preload" href="/nifikop/0229501e.25f9b4eb.js" as="script">
 
 </head>
 <body>
@@ -44,21 +44,21 @@ You can also change the acme server to prod one <code>https://acme-v02.api.letse
 And you can now start to play with scaling, following the <a href="/nifikop/docs/3_tasks/2_security/1_ssl#scale-up---node-declaration">documentation&#x27;s page</a></p></div></div><h2><a aria-hidden="true" tabindex="-1" class="anchor enhancedAnchor_ZqCz" id="cleaning"></a><a aria-hidden="true" tabindex="-1" class="hash-link" href="#cleaning" title="Direct link to heading">#</a>Cleaning</h2><p>Start to remove you NiFi cluster and NiFiKop operator : </p><div class="mdxCodeBlock_iHAB"><pre class="prism-code language-bash codeBlock_2GNs"><button type="button" aria-label="Copy code to clipboard" class="copyButton_1Zmi">Copy</button><code class="codeBlockLines__q0i" style="color:#bfc7d5;background-color:#292d3e"><div class="token-line" style="color:#bfc7d5"><span class="token plain">kubectl delete nificlusters.nifi.orange.com nifi -n nifikop</span></div><div class="token-line" style="color:#bfc7d5"><span class="token plain">helm del nifikop</span></div><div class="token-line" style="color:#bfc7d5"><span class="token plain">kubectl delete crds nificlusters.nifi.orange.com</span></div><div class="token-line" style="color:#bfc7d5"><span class="token plain">kubectl delete crds nifiusers.nifi.orange.com</span></div><div class="token-line" style="color:#bfc7d5"><span class="token plain">kubectl delete issuers.cert-manager.io letsencrypt-staging -n nifikop</span></div></code></pre></div><p>To destroy all resources you created, you just need to run : </p><div class="mdxCodeBlock_iHAB"><pre class="prism-code language-consol codeBlock_2GNs"><button type="button" aria-label="Copy code to clipboard" class="copyButton_1Zmi">Copy</button><code class="codeBlockLines__q0i" style="color:#bfc7d5;background-color:#292d3e"><div class="token-line" style="color:#bfc7d5"><span class="token plain">cd terraform</span></div><div class="token-line" style="color:#bfc7d5"><span class="token plain">./destroy.sh &lt;service account key&#x27;s path&gt;</span></div></code></pre></div></section><footer class="row margin-vert--lg"><div class="col"><strong>Tags:</strong><a class="margin-horiz--sm" href="/nifikop/blog/tags/gke">gke</a><a class="margin-horiz--sm" href="/nifikop/blog/tags/nifikop">nifikop</a><a class="margin-horiz--sm" href="/nifikop/blog/tags/secured">secured</a><a class="margin-horiz--sm" href="/nifikop/blog/tags/oidc">oidc</a><a class="margin-horiz--sm" href="/nifikop/blog/tags/google-cloud-platform">google cloud platform</a><a class="margin-horiz--sm" href="/nifikop/blog/tags/google-cloud">google cloud</a><a class="margin-horiz--sm" href="/nifikop/blog/tags/gcp">gcp</a><a class="margin-horiz--sm" href="/nifikop/blog/tags/kubernetes">kubernetes</a></div></footer></article><div class="margin-vert--xl"><nav class="pagination-nav"><div class="pagination-nav__item"></div><div class="pagination-nav__item pagination-nav__item--next"><a class="pagination-nav__link" href="/nifikop/blog/secured_nifi_cluster_on_gcp"><h5 class="pagination-nav__link--sublabel">Next Post</h5><h4 class="pagination-nav__link--label">Secured NiFi cluster with NiFiKop on the Google Cloud Platform »</h4></a></div></nav></div></div></div></div></div><footer class="footer footer--dark"><div class="container"><div class="row footer__links"><div class="col footer__col"><h4 class="footer__title">Getting Started</h4><ul class="footer__items"><li class="footer__item"><a class="footer__link-item" href="/nifikop/docs/1_concepts/1_introduction">Documentation</a></li><li class="footer__item"><a class="footer__link-item" target="_blank" rel="noopener noreferrer" href="https://github.com/Orange-OpenSource/nifikop">GitHub</a></li></ul></div><div class="col footer__col"><h4 class="footer__title">Community</h4><ul class="footer__items"><li class="footer__item"><a class="footer__link-item" target="_blank" rel="noopener noreferrer" href="https://nifikop.slack.com">Slack</a></li><li class="footer__item"><a aria-current="page" class="footer__link-item active" href="/nifikop/blog">Blog</a></li></ul></div><div class="col footer__col"><h4 class="footer__title">Contact</h4><ul class="footer__items"><li class="footer__item"><a class="footer__link-item" target="_blank" rel="noopener noreferrer" href="https://github.com/Orange-OpenSource/nifikop/issues">Feature request</a></li></ul></div></div><div class="text--center">Copyright © 2020 Orange, Inc. Built with Docusaurus.</div></div></footer>
 </div>
 
-<script src="/nifikop/styles.fc6059d5.js"></script>
+<script src="/nifikop/styles.24b444e3.js"></script>
 
-<script src="/nifikop/runtime~main.66f38fa7.js"></script>
+<script src="/nifikop/runtime~main.78687e4a.js"></script>
 
-<script src="/nifikop/main.517e2cd8.js"></script>
+<script src="/nifikop/main.f7c755f2.js"></script>
 
-<script src="/nifikop/1.a7224f63.js"></script>
+<script src="/nifikop/1.a7cc04f0.js"></script>
 
-<script src="/nifikop/2.04f92f26.js"></script>
+<script src="/nifikop/2.466d722f.js"></script>
 
-<script src="/nifikop/3.535b589c.js"></script>
+<script src="/nifikop/3.29b1ff21.js"></script>
 
-<script src="/nifikop/ccc49370.ce31f48e.js"></script>
+<script src="/nifikop/ccc49370.11afaaec.js"></script>
 
-<script src="/nifikop/0229501e.cb506535.js"></script>
+<script src="/nifikop/0229501e.25f9b4eb.js"></script>
 
 
 </body>
