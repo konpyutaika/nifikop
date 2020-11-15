@@ -12,9 +12,9 @@ spec:
 #  pod:
     # Annotations specifies the annotations to attach to pods the operator creates
 #    annotations:
-  # zKAddresse specifies the ZooKeeper connection string
+  # zKAddress specifies the ZooKeeper connection string
   # in the form hostname:port where host and port are those of a Zookeeper server.
-  zkAddresse: "zookeepercluster-client.zookeeper:2181"
+  zkAddress: "zookeepercluster-client.zookeeper:2181"
   # zKPath specifies the Zookeeper chroot path as part
   # of its Zookeeper connection string which puts its data under same path in the global ZooKeeper namespace.
   zkPath: "/myNiFi"
@@ -33,18 +33,19 @@ spec:
 #        - name: logs
 #          mountPath: /logs
   # clusterImage can specify the whole nificluster image in one place
-  clusterImage: "apache/nifi:1.11.2"
-  # Cluster nodes secure mode : https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#cluster_common_properties
-  clusterSecure: false
-  # Site to Site properties Secure mode : https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#site_to_site_properties
-  siteToSiteSecure: false
+  clusterImage: "apache/nifi:1.12.1"
   # oneNifiNodePerNode if set to true every nifi node is started on a new node, if there is not enough node to do that
   # it will stay in pending state. If set to false the operator also tries to schedule the nifi node to a unique node
   # but if the node number is insufficient the nifi node will be scheduled to a node where a nifi node is already running.
   oneNifiNodePerNode: false
   #
   propagateLabels: true
-#  initialAdminUser:
+#  managedAdminUsers:
+#    -  identity : "alexandre.guitton@orange.com"
+#       name: "aguitton"
+#  managedReaderUsers:
+#    -  identity : "toto@orange.com"
+#       name: "toto"
   # readOnlyConfig specifies the read-only type Nifi config cluster wide, all theses
   # will be merged with node specified readOnly configurations, so it can be overwritten per node.
   readOnlyConfig:
@@ -153,6 +154,12 @@ spec:
       # Additionnal annotation to attach to the pod associated
       # https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#syntax-and-character-set
 #      nodeAnnotations:
+  # disruptionBudget defines the configuration for PodDisruptionBudget
+  disruptionBudget:
+    # create will enable the PodDisruptionBudget when set to true
+    create: false
+  # The budget to set for the PDB, can either be static number or a percentage
+  #   budget: "1"
   # all node requires an image, unique id, and storageConfigs settings
   nodes:
     # Unique Node id

@@ -210,7 +210,7 @@ func (r *ReconcileNifiDataflow) Reconcile(request reconcile.Request) (reconcile.
 		return r.checkFinalizers(ctx, reqLogger, instance, cluster)
 	}
 
-	if *instance.Spec.RunOnce && instance.Status.State == v1alpha1.DataflowStateRan {
+	if instance.Spec.GetRunOnce() && instance.Status.State == v1alpha1.DataflowStateRan {
 		return common.Reconciled()
 	}
 
@@ -287,7 +287,7 @@ func (r *ReconcileNifiDataflow) Reconcile(request reconcile.Request) (reconcile.
 	if instance.Status.State == v1alpha1.DataflowStateCreated ||
 		instance.Status.State == v1alpha1.DataflowStateStarting ||
 		instance.Status.State == v1alpha1.DataflowStateInSync ||
-		(!*instance.Spec.RunOnce && instance.Status.State == v1alpha1.DataflowStateRan) {
+		(!instance.Spec.GetRunOnce() && instance.Status.State == v1alpha1.DataflowStateRan) {
 
 		instance.Status.State = v1alpha1.DataflowStateStarting
 		if err := r.client.Status().Update(ctx, instance); err != nil {
@@ -321,7 +321,7 @@ func (r *ReconcileNifiDataflow) Reconcile(request reconcile.Request) (reconcile.
 
 	reqLogger.Info("Ensured Dataflow")
 
-	if *instance.Spec.RunOnce {
+	if instance.Spec.GetRunOnce() {
 		return common.Reconciled()
 	}
 

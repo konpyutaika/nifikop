@@ -21,13 +21,15 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/go-logr/logr"
-	"github.com/imdario/mergo"
 	"github.com/Orange-OpenSource/nifikop/pkg/apis/nifi/v1alpha1"
+	"github.com/Orange-OpenSource/nifikop/pkg/nificlient"
 	"github.com/Orange-OpenSource/nifikop/pkg/resources/templates"
 	"github.com/Orange-OpenSource/nifikop/pkg/resources/templates/config"
 	"github.com/Orange-OpenSource/nifikop/pkg/util"
+	pkicommon "github.com/Orange-OpenSource/nifikop/pkg/util/pki"
 	utilpki "github.com/Orange-OpenSource/nifikop/pkg/util/pki"
+	"github.com/go-logr/logr"
+	"github.com/imdario/mergo"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -53,7 +55,7 @@ func (r *Reconciler) configMap(id int32, nodeConfig *v1alpha1.NodeConfig, server
 		},
 	}
 
-	if r.NifiCluster.Spec.ListenersConfig.SSLSecrets != nil && r.NifiCluster.Spec.ClusterSecure && r.NifiCluster.Spec.SiteToSiteSecure {
+	if nificlient.UseSSL(r.NifiCluster) {
 		configMap.Data["authorizers.xml"] = r.getAuthorizersConfigString(nodeConfig, id, log)
 	}
 	return configMap
@@ -122,6 +124,7 @@ func (r *Reconciler) getNifiPropertiesConfigString(nConfig *v1alpha1.NodeConfig,
 		webProxyHosts = strings.Join(append(dnsNames, base.WebProxyHosts...), ",")
 	}
 
+	useSSL := nificlient.UseSSL(r.NifiCluster)
 	var out bytes.Buffer
 	t := template.Must(template.New("nConfig-config").Parse(config.NifiPropertiesTemplate))
 	if err := t.Execute(&out, map[string]interface{}{
@@ -137,8 +140,8 @@ func (r *Reconciler) getNifiPropertiesConfigString(nConfig *v1alpha1.NodeConfig,
 			r.NifiCluster.Spec.ListenersConfig.UseExternalDNS,
 			log),
 		"ProvenanceStorage":                  nConfig.GetProvenanceStorage(),
-		"SiteToSiteSecure":                   r.NifiCluster.Spec.SiteToSiteSecure,
-		"ClusterSecure":                      r.NifiCluster.Spec.ClusterSecure,
+		"SiteToSiteSecure":                   useSSL,
+		"ClusterSecure":                      useSSL,
 		"WebProxyHosts":                      webProxyHosts,
 		"NeedClientAuth":                     base.NeedClientAuth,
 		"Authorizer":                         base.GetAuthorizer(),
@@ -152,7 +155,7 @@ func (r *Reconciler) getNifiPropertiesConfigString(nConfig *v1alpha1.NodeConfig,
 		//
 		"LdapConfiguration":      r.NifiCluster.Spec.LdapConfiguration,
 		"IsNode":                 nConfig.GetIsNode(),
-		"ZookeeperConnectString": r.NifiCluster.Spec.ZKAddresse,
+		"ZookeeperConnectString": r.NifiCluster.Spec.ZKAddress,
 		"ZookeeperPath":          r.NifiCluster.Spec.GetZkPath(),
 	}); err != nil {
 		log.Error(err, "error occurred during parsing the config template")
@@ -246,7 +249,7 @@ func (r *Reconciler) getStateManagementConfigString(nConfig *v1alpha1.NodeConfig
 	if err := t.Execute(&out, map[string]interface{}{
 		"NifiCluster":            r.NifiCluster,
 		"Id":                     id,
-		"ZookeeperConnectString": r.NifiCluster.Spec.ZKAddresse,
+		"ZookeeperConnectString": r.NifiCluster.Spec.ZKAddress,
 		"ZookeeperPath":          r.NifiCluster.Spec.GetZkPath(),
 	}); err != nil {
 		log.Error(err, "error occurred during parsing the config template")
@@ -337,7 +340,10 @@ func (r *Reconciler) getAuthorizersConfigString(nConfig *v1alpha1.NodeConfig, id
 		"ClusterName":      r.NifiCluster.Name,
 		"Namespace":        r.NifiCluster.Namespace,
 		"NodeList":         nodeList,
-		"InitialAdminUser": r.NifiCluster.Spec.InitialAdminUser,
+		"ControllerUser":   fmt.Sprintf(pkicommon.NodeControllerFQDNTemplate,
+			fmt.Sprintf(pkicommon.NodeControllerTemplate, r.NifiCluster.Name),
+			r.NifiCluster.Namespace,
+			r.NifiCluster.Spec.ListenersConfig.GetClusterDomain()),
 	}); err != nil {
 		log.Error(err, "error occurred during parsing the config template")
 	}

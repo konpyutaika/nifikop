@@ -31,6 +31,62 @@ spec:
         spec:
           description: NifiUserSpec defines the desired state of NifiUser
           properties:
+            accessPolicies:
+              description: accessPolicies defines the list of access policies that
+                will be granted to the group.
+              items:
+                properties:
+                  action:
+                    description: action defines the kind of action that will be granted,
+                      could be "read" or "write"
+                    enum:
+                    - global
+                    - component
+                    type: string
+                  componentId:
+                    description: componentId is used if the type is "component", it's
+                      allow to define the id of the component on which is the access
+                      policy
+                    type: string
+                  componentType:
+                    description: componentType is used if the type is "component",
+                      it's allow to define the kind of component on which is the access
+                      policy
+                    type: string
+                  resource:
+                    description: 'resource defines the kind of resource targeted by
+                      this access policies, please refer to the following page : https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#access-policies'
+                    enum:
+                    - /flow
+                    - /controller
+                    - /parameter-context
+                    - /provenance
+                    - /restricted-components
+                    - /policies
+                    - /tenants
+                    - /site-to-site
+                    - /proxy
+                    - /counters
+                    - /
+                    - /operation
+                    - /provenance-data
+                    - /data
+                    - /policies
+                    - /data-transfer
+                    type: string
+                  type:
+                    description: type defines the kind of access policy, could be
+                      "global" or "component".
+                    enum:
+                    - global
+                    - component
+                    type: string
+                required:
+                - action
+                - resource
+                - type
+                type: object
+              type: array
             clusterRef:
               description: contains the reference to the NifiCluster with the one
                 the user is linked
@@ -42,12 +98,20 @@ spec:
               required:
               - name
               type: object
+            createCert:
+              description: Whether or not a certificate will be created for this user.
+              type: boolean
             dnsNames:
               description: List of DNSNames that the user will used to request the
                 NifiCluster (allowing to create the right certificates associated)
               items:
                 type: string
               type: array
+            identity:
+              description: identity field is used to define the user identity on NiFi
+                cluster side, when the user's name doesn't suit with Kubernetes resource
+                name.
+              type: string
             includeJKS:
               description: Whether or not the the operator also include a Java keystore
                 format (JKS) with you secret
@@ -57,16 +121,20 @@ spec:
               type: string
           required:
           - clusterRef
-          - secretName
           type: object
         status:
           description: NifiUserStatus defines the observed state of NifiUser
           properties:
-            state:
-              description: UserState defines the state of a NifiUser
+            id:
+              description: The nifi user's node id
               type: string
+            version:
+              description: The last nifi  user's node revision version catched
+              format: int64
+              type: integer
           required:
-          - state
+          - id
+          - version
           type: object
       type: object
   version: v1alpha1

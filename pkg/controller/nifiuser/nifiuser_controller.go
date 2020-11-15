@@ -23,11 +23,11 @@ import (
 	certv1 "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha2"
 
 	v1alpha1 "github.com/Orange-OpenSource/nifikop/pkg/apis/nifi/v1alpha1"
+	usercli "github.com/Orange-OpenSource/nifikop/pkg/clientwrappers/user"
 	common "github.com/Orange-OpenSource/nifikop/pkg/controller/common"
 	"github.com/Orange-OpenSource/nifikop/pkg/errorfactory"
 	"github.com/Orange-OpenSource/nifikop/pkg/k8sutil"
 	"github.com/Orange-OpenSource/nifikop/pkg/pki"
-	pkicommon "github.com/Orange-OpenSource/nifikop/pkg/util/pki"
 	"github.com/go-logr/logr"
 
 	"github.com/Orange-OpenSource/nifikop/pkg/util"
@@ -150,38 +150,41 @@ func (r *ReconcileNifiUser) Reconcile(request reconcile.Request) (reconcile.Resu
 
 	pkiManager := pki.GetPKIManager(r.client, cluster)
 
-	// Reconcile no matter what to get a user certificate instance for ACL management
-	// TODO (tinyzimmer): This can go wrong if the user made a mistake in their secret path
-	// using the vault backend, then tried to delete and fix it. Should probably
-	// have the PKIManager export a GetUserCertificate specifically for deletions
-	// that will allow the error to fall through if the certificate doesn't exist.
-	user, err := pkiManager.ReconcileUserCertificate(ctx, instance, r.scheme)
-	if err != nil {
-		switch errors.Cause(err).(type) {
-		case errorfactory.ResourceNotReady:
-			reqLogger.Info("generated secret not found, may not be ready")
-			return ctrl.Result{
-				Requeue:      true,
-				RequeueAfter: time.Duration(5) * time.Second,
-			}, nil
-		case errorfactory.FatalReconcileError:
-			// TODO: (tinyzimmer) - Sleep for longer for now to give user time to see the error
-			// But really we should catch these kinds of issues in a pre-admission hook in a future PR
-			// The user can fix while this is looping and it will pick it up next reconcile attempt
-			reqLogger.Error(err, "Fatal error attempting to reconcile the user certificate. If using vault perhaps a permissions issue or improperly configured PKI?")
-			return ctrl.Result{
-				Requeue:      true,
-				RequeueAfter: time.Duration(15) * time.Second,
-			}, nil
-		case errorfactory.VaultAPIFailure:
-			// Same as above in terms of things that could be checked pre-flight on the cluster
-			reqLogger.Error(err, "Vault API error attempting to reconcile the user certificate. If using vault perhaps a permissions issue or improperly configured PKI?")
-			return ctrl.Result{
-				Requeue:      true,
-				RequeueAfter: time.Duration(15) * time.Second,
-			}, nil
-		default:
-			return common.RequeueWithError(reqLogger, "failed to reconcile user secret", err)
+	if instance.Spec.GetCreateCert() {
+
+		// Reconcile no matter what to get a user certificate instance for ACL management
+		// TODO (tinyzimmer): This can go wrong if the user made a mistake in their secret path
+		// using the vault backend, then tried to delete and fix it. Should probably
+		// have the PKIManager export a GetUserCertificate specifically for deletions
+		// that will allow the error to fall through if the certificate doesn't exist.
+		_, err := pkiManager.ReconcileUserCertificate(ctx, instance, r.scheme)
+		if err != nil {
+			switch errors.Cause(err).(type) {
+			case errorfactory.ResourceNotReady:
+				reqLogger.Info("generated secret not found, may not be ready")
+				return ctrl.Result{
+					Requeue:      true,
+					RequeueAfter: time.Duration(5) * time.Second,
+				}, nil
+			case errorfactory.FatalReconcileError:
+				// TODO: (tinyzimmer) - Sleep for longer for now to give user time to see the error
+				// But really we should catch these kinds of issues in a pre-admission hook in a future PR
+				// The user can fix while this is looping and it will pick it up next reconcile attempt
+				reqLogger.Error(err, "Fatal error attempting to reconcile the user certificate. If using vault perhaps a permissions issue or improperly configured PKI?")
+				return ctrl.Result{
+					Requeue:      true,
+					RequeueAfter: time.Duration(15) * time.Second,
+				}, nil
+			case errorfactory.VaultAPIFailure:
+				// Same as above in terms of things that could be checked pre-flight on the cluster
+				reqLogger.Error(err, "Vault API error attempting to reconcile the user certificate. If using vault perhaps a permissions issue or improperly configured PKI?")
+				return ctrl.Result{
+					Requeue:      true,
+					RequeueAfter: time.Duration(15) * time.Second,
+				}, nil
+			default:
+				return common.RequeueWithError(reqLogger, "failed to reconcile user secret", err)
+			}
 		}
 	}
 
@@ -191,32 +194,52 @@ func (r *ReconcileNifiUser) Reconcile(request reconcile.Request) (reconcile.Resu
 		if err = pkiManager.FinalizeUserCertificate(ctx, instance); err != nil {
 			return common.RequeueWithError(reqLogger, "failed to finalize user certificate", err)
 		}
-		return r.checkFinalizers(ctx, reqLogger, cluster, instance, user)
+		return r.checkFinalizers(ctx, reqLogger, instance, cluster)
+	}
+
+	// Check if the NiFi user already exist
+	exist, err := usercli.ExistUser(r.client, instance, cluster)
+	if err != nil {
+		return common.RequeueWithError(reqLogger, "failure checking for existing registry client", err)
+	}
+
+	if !exist {
+		var status *v1alpha1.NifiUserStatus
+
+		status, err = usercli.FindUserByIdentity(r.client, instance, cluster)
+		if err != nil {
+			return common.RequeueWithError(reqLogger, "failure finding user", err)
+		}
+
+		if status == nil {
+			// Create NiFi registry client
+			status, err = usercli.CreateUser(r.client, instance, cluster)
+			if err != nil {
+				return common.RequeueWithError(reqLogger, "failure creating user", err)
+			}
+		}
+
+		instance.Status = *status
+		if err := r.client.Status().Update(ctx, instance); err != nil {
+			return common.RequeueWithError(reqLogger, "failed to update NifiUser status", err)
+		}
+	}
+
+	// Sync user resource with NiFi side component
+	status, err := usercli.SyncUser(r.client, instance, cluster)
+	if err != nil {
+		return common.RequeueWithError(reqLogger, "failed to sync NifiUser", err)
+	}
+
+	instance.Status = *status
+	if err := r.client.Status().Update(ctx, instance); err != nil {
+		return common.RequeueWithError(reqLogger, "failed to update NifiRegistryClient status", err)
 	}
 
 	// ensure a NifiCluster label
 	if instance, err = r.ensureClusterLabel(ctx, cluster, instance); err != nil {
 		return common.RequeueWithError(reqLogger, "failed to ensure NifiCluster label on user", err)
 	}
-
-	// If topic grants supplied, grab a broker connection and set ACLs
-	// TODO : Check Grant into NiFi
-	/*if len(instance.Spec.TopicGrants) > 0 {
-		broker, close, err := newBrokerConnection(reqLogger, r.Client, cluster)
-		if err != nil {
-			return checkBrokerConnectionError(reqLogger, err)
-		}
-		defer close()
-
-		// TODO (tinyzimmer): Should probably take this opportunity to see if we are removing any ACLs
-		for _, grant := range instance.Spec.TopicGrants {
-			reqLogger.Info(fmt.Sprintf("Ensuring %s ACLs for User: %s -> Topic: %s", grant.AccessType, user.DN(), grant.TopicName))
-			// CreateUserACLs returns no error if the ACLs already exist
-			if err = broker.CreateUserACLs(grant.AccessType, grant.PatternType, user.DN(), grant.TopicName); err != nil {
-				return common.RequeueWithError(reqLogger, "failed to ensure ACLs for NifiUser", err)
-			}
-		}
-	}*/
 
 	// ensure a finalizer for cleanup on deletion
 	if !util.StringSliceContains(instance.GetFinalizers(), userFinalizer) {
@@ -226,15 +249,24 @@ func (r *ReconcileNifiUser) Reconcile(request reconcile.Request) (reconcile.Resu
 		}
 	}
 
-	// set user status
-	instance.Status = v1alpha1.NifiUserStatus{
-		State: v1alpha1.UserStateCreated,
-	}
-	if err := r.client.Status().Update(ctx, instance); err != nil {
-		return common.RequeueWithError(reqLogger, "failed to update NifiUser status", err)
+	// Push any changes
+	if instance, err = r.updateAndFetchLatest(ctx, instance); err != nil {
+		return common.RequeueWithError(reqLogger, "failed to update NifiUser", err)
 	}
 
-	return common.Reconciled()
+	reqLogger.Info("Ensured user")
+
+	return common.RequeueAfter(time.Duration(15) * time.Second)
+
+	// set user status
+	//instance.Status = v1alpha1.NifiUserStatus{
+	//	State: v1alpha1.UserStateCreated,
+	//}
+	//if err := r.client.Status().Update(ctx, instance); err != nil {
+	//	return common.RequeueWithError(reqLogger, "failed to update NifiUser status", err)
+	//}
+
+	//return common.Reconciled()
 }
 
 func (r *ReconcileNifiUser) ensureClusterLabel(ctx context.Context, cluster *v1alpha1.NifiCluster, user *v1alpha1.NifiUser) (*v1alpha1.NifiUser, error) {
@@ -256,17 +288,15 @@ func (r *ReconcileNifiUser) updateAndFetchLatest(ctx context.Context, user *v1al
 	return user, nil
 }
 
-func (r *ReconcileNifiUser) checkFinalizers(ctx context.Context, reqLogger logr.Logger, cluster *v1alpha1.NifiCluster, instance *v1alpha1.NifiUser, user *pkicommon.UserCertificate) (reconcile.Result, error) {
-	// run finalizers
+func (r *ReconcileNifiUser) checkFinalizers(ctx context.Context, reqLogger logr.Logger, user *v1alpha1.NifiUser, cluster *v1alpha1.NifiCluster) (reconcile.Result, error) {
+	reqLogger.Info("NiFi user is marked for deletion")
 	var err error
-	if util.StringSliceContains(instance.GetFinalizers(), userFinalizer) {
-		/*if len(instance.Spec.TopicGrants) > 0 {
-			if err = r.finalizeNifiUserACLs(reqLogger, cluster, user); err != nil {
-				return common.RequeueWithError(reqLogger, "failed to finalize NifiUser", err)
-			}
-		}*/
+	if util.StringSliceContains(user.GetFinalizers(), userFinalizer) {
+		if err = r.finalizeNifiUser(reqLogger, user, cluster); err != nil {
+			return common.RequeueWithError(reqLogger, "failed to finalize nifiuser", err)
+		}
 		// remove finalizer
-		if err = r.removeFinalizer(ctx, instance); err != nil {
+		if err = r.removeFinalizer(ctx, user); err != nil {
 			return common.RequeueWithError(reqLogger, "failed to remove finalizer from NifiUser", err)
 		}
 	}
@@ -279,12 +309,16 @@ func (r *ReconcileNifiUser) removeFinalizer(ctx context.Context, user *v1alpha1.
 	return err
 }
 
-func (r *ReconcileNifiUser) finalizeNifiUserACLs(reqLogger logr.Logger, cluster *v1alpha1.NifiCluster, user *pkicommon.UserCertificate) error {
+func (r *ReconcileNifiUser) finalizeNifiUser(reqLogger logr.Logger, user *v1alpha1.NifiUser, cluster *v1alpha1.NifiCluster) error {
 	if k8sutil.IsMarkedForDeletion(cluster.ObjectMeta) {
-		reqLogger.Info("Cluster is being deleted, skipping ACL deletion")
+		reqLogger.Info("Cluster is being deleted, skipping deletion")
 		return nil
 	}
 
+	if err := usercli.RemoveUser(r.client, user, cluster); err != nil {
+		return err
+	}
+	reqLogger.Info("Delete user")
 	return nil
 }
 

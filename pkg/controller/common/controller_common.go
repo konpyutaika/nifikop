@@ -162,3 +162,15 @@ func GetSecretRefNamespace(ns string, ref v1alpha1.SecretReference) string {
 	}
 	return secretNamespace
 }
+
+
+// GetUserRefNamespace returns the expected namespace for a Nifi user
+// referenced by a parameter context CR. It takes the namespace of the CR as the first
+// argument and the reference itself as the second.
+func GetUserRefNamespace(ns string, ref v1alpha1.UserReference) string {
+	userNamespace := ref.Namespace
+	if userNamespace == "" {
+		return ns
+	}
+	return userNamespace
+}

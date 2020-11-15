@@ -35,11 +35,18 @@ spec:
               description: clusterImage can specify the whole NiFi cluster image in
                 one place
               type: string
-            clusterSecure:
-              description: 'Cluster nodes secure mode : https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#cluster_common_properties
-                TODO : rework to define into internalListener ! (Note: if ssl enabled
-                need Cluster & SiteToSite & Https port)'
-              type: boolean
+            disruptionBudget:
+              description: Defines the configuration for PodDisruptionBudget
+              properties:
+                budget:
+                  description: The budget to set for the PDB, can either be static
+                    number or a percentage
+                  pattern: ^[0-9]+$|^[0-9]{1,2}%$|^100%$
+                  type: string
+                create:
+                  description: If set to true, will create a podDisruptionBudget
+                  type: boolean
+              type: object
             initContainerImage:
               description: initContainerImage can override the default image used
                 into the init container to check if ZoooKeeper server is reachable.
@@ -1089,10 +1096,6 @@ spec:
                 - name
                 type: object
               type: array
-            initialAdminUser:
-              description: 'TODO : remove once the user management is implemented
-                into the operator'
-              type: string
             ldapConfiguration:
               description: LdapConfiguration specifies the configuration if you want
                 to use LDAP
@@ -1203,6 +1206,44 @@ spec:
               required:
               - internalListeners
               type: object
+            managedAdminUsers:
+              description: managedAdminUsers contains the list of users that will
+                be added to the managed admin group (with all rights)
+              items:
+                properties:
+                  identity:
+                    description: identity field is use to define the user identity
+                      on NiFi cluster side, it use full when the user's name doesn't
+                      suite with Kubernetes resource name.
+                    type: string
+                  name:
+                    description: name field is use to name the NifiUser resource,
+                      if not identity is provided it will be used to name the user
+                      on NiFi cluster side.
+                    type: string
+                required:
+                - name
+                type: object
+              type: array
+            managedReaderUsers:
+              description: managedReaderUsers contains the list of users that will
+                be added to the managed reader group (with all view rights)
+              items:
+                properties:
+                  identity:
+                    description: identity field is use to define the user identity
+                      on NiFi cluster side, it use full when the user's name doesn't
+                      suite with Kubernetes resource name.
+                    type: string
+                  name:
+                    description: name field is use to name the NifiUser resource,
+                      if not identity is provided it will be used to name the user
+                      on NiFi cluster side.
+                    type: string
+                required:
+                - name
+                type: object
+              type: array
             nifiClusterTaskSpec:
               description: NifiClusterTaskSpec specifies the configuration of the
                 nifi cluster Tasks
@@ -2366,12 +2407,8 @@ spec:
               required:
               - headlessEnabled
               type: object
-            siteToSiteSecure:
-              description: 'Site to Site properties Secure mode : https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#site_to_site_properties
-                TODO : rework to define into internalListener !'
-              type: boolean
-            zkAddresse:
-              description: 'zKAddresse specifies the ZooKeeper connection string in
+            zkAddress:
+              description: 'zKAddress specifies the ZooKeeper connection string in
                 the form hostname:port where host and port are those of a Zookeeper
                 server. TODO: rework for nice zookeeper connect string ='
               type: string
@@ -2384,7 +2421,7 @@ spec:
           - listenersConfig
           - nodes
           - oneNifiNodePerNode
-          - zkAddresse
+          - zkAddress
           type: object
         status:
           description: NifiClusterStatus defines the observed state of NifiCluster
@@ -2441,6 +2478,10 @@ spec:
               - errorCount
               - lastSuccess
               type: object
+            rootProcessGroupId:
+              description: RootProcessGroupId contains the uuid of the root process
+                group for this cluster
+              type: string
             state:
               description: ClusterState holds info about the cluster state
               type: string

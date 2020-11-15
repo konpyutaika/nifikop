@@ -140,9 +140,9 @@ The image tag is a combination of the version as defined in `verion/version.go` 
 Install the Helm chart.
 
 ```bash
-helm install ./helm/nifikop \
+helm install skeleton ./helm/nifikop \
     --set image.tag=v0.3.1-release \
-    --name skeleton
+    --namesapce-{"nifikop"}
 ```
 
 :::important
@@ -156,7 +156,7 @@ We set the chart name to the branch, but it can be anything.
 Lastly, verify that the operator is running.
 
 ```console
-$ kubectl get pods
+$ kubectl get pods -n nifikop
 NAME                                                READY   STATUS    RESTARTS   AGE
 skeleton-nifikop-8946b89dc-4cfs9   1/1     Running   0          7m45s
 ```

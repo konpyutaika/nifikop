@@ -18,7 +18,6 @@ Some of the high-level capabilities and objectives of Apache NiFi include, and s
 - the provisioning of secure NiFi clusters
 - Advanced Dataflow and user management via CRD
 
-
 Some of the roadmap features :
 
 - Monitoring via **Prometheus**

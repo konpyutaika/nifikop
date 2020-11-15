@@ -5,13 +5,16 @@ metadata:
 spec:
   service:
     headlessEnabled: true
-  zkAddresse: "zookeeper.zookeeper:2181"
+  zkAddress: "zookeeper.zookeeper:2181"
   zkPath: "/ssllnifi"
-  clusterImage: "apache/nifi:1.11.4"
-  clusterSecure: true
-  siteToSiteSecure: true
+  clusterImage: "apache/nifi:1.12.1"
   oneNifiNodePerNode: false
-  initialAdminUser: alexandre.guitton@orange.com
+  managedAdminUsers:
+    -  identity : "alexandre.guitton@orange.com"
+       name: "aguitton"
+  managedReaderUsers:
+    -  identity : "toton@orange.com"
+       name: "toto"
   propagateLabels: true
   nifiClusterTaskSpec:
     retryDurationMinutes: 10

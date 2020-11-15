@@ -24,7 +24,7 @@ var AuthorizersTemplate = `{{- $nodeList := .NodeList }}
         <class>org.apache.nifi.authorization.FileUserGroupProvider</class>
         <property name="Users File">../data/users.xml</property>
         <property name="Legacy Authorized Users File"></property>
-        <property name="Initial User Identity admin">{{ .InitialAdminUser }}</property>
+        <property name="Initial User Identity admin">{{ .ControllerUser }}</property>
 {{- range $i, $host := .NodeList }}
         <property name="Initial User Identity {{ $i }}">{{ $host }}</property>
 {{- end }}
@@ -34,7 +34,7 @@ var AuthorizersTemplate = `{{- $nodeList := .NodeList }}
         <class>org.apache.nifi.authorization.FileAccessPolicyProvider</class>
         <property name="User Group Provider">file-user-group-provider</property>
         <property name="Authorizations File">../data/authorizations.xml</property>
-        <property name="Initial Admin Identity">{{ .InitialAdminUser }}</property>
+        <property name="Initial Admin Identity">{{ .ControllerUser }}</property>
         <property name="Legacy Authorized Users File"></property>
 {{- range $i, $host := .NodeList }}
         <property name="Node Identity {{ $i }}">{{ $host }}</property>

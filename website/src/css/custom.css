@@ -15,6 +15,7 @@
   --ifm-color-primary-lightest: #fcb57c;
   --ifm-color-feedback-background: #fff;
   --ifm-code-background: #d9b295ad;
+  --ra-color-important: #1f7996
 }
 
 html[data-theme='dark'] {

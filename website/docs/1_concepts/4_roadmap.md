@@ -44,6 +44,16 @@ The operator can provision the required secrets and certificates for you, or you
 | Priority              | High      |
 | Targeted Start date   | Aug 2020 |
 
+### Users & access policies management
+
+|                       |       |
+| --------------------- | ----- |
+| Status                | Done|
+| Priority              | High  |
+| Targeted Start date   | November 2020     |
+
+The operator fully automates NiFi's user and access policies management.
+
 ## Backlog
 
 ### Monitoring via Prometheus
@@ -55,15 +65,6 @@ The operator can provision the required secrets and certificates for you, or you
 | Targeted Start date   | Oct 2020 |
 
 The NiFi operator exposes NiFi JMX metrics to Prometheus.
-
-### Authentification management
-
-|                       |       |
-| --------------------- | ----- |
-| Status                | To Do |
-| Priority              | High  |
-| Targeted Start date   | -     |
-
 
 ### Reacting on Alerts
 

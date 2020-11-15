@@ -14,8 +14,6 @@ kind: NifiCluster
 ...
 spec:
   ...
-  clusterSecure: true
-  siteToSiteSecure: true
   initialAdminUser: aguitton.ext@orange.com
   ...
   readOnlyConfig:
@@ -41,8 +39,6 @@ spec:
       create: true
 ```
 
-- `clusterSecure` : cluster nodes secure mode : https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#cluster_common_properties.
-- `siteToSiteSecure` : site to Site properties Secure mode : https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#site_to_site_properties.
 - `initialAdminUser` : name of the user account which will be configured as initial admin into NiFi cluster : https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#initial-admin-identity
 - `readOnlyConfig.nifiProperties.webProxyHosts` : A list of allowed HTTP Host header values to consider when NiFi is running securely and will be receiving requests to a different host[:port] than it is bound to. [web-properties](https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#web-properties)
 
@@ -159,65 +155,3 @@ The operator can also include a Java keystore format (JKS) with your user secret
 |-----|-------|
 | tls.jks | The java keystore containing both the user keys and the CA (use this for your keystore AND truststore) |
 | pass.txt | The password to decrypt the JKS (this will be randomly generated) |
-
-## Current limitations
-
-### Operator access policies
-
-For the current version of the operator, the access policies are still not managed (refer to the [Roadmap page](/nifikop/docs/1_concepts/4_roadmap#authentification-management)).
-That's why when you deploy a cluster in a secure mode, you have to define an `Initial admin`, which is a user account, that you will use to access to the cluster and add the `view` and `modify` access to the `access the controller` policy.
-
-If you check the controller log you should have the following error : 
-
-```json
-{
-  "level":"error",
-  "ts":1589974514.048613,
-  "logger":"nifi_client",
-  "msg":"Error during talking to nifi node",
-  "error":"403 Forbidden",
-  "stacktrace":"github.com/go-logr/zapr.(*zapLogger).Error\n\t/go/pkg/mod/github.com/go-logr/zapr@v0.1.1/zapr.go:128\ngithub.com/Orange-OpenSource/nifikop/pkg/nificlient.(*nifiClient).DescribeCluster\n\tnifikop/pkg/nificlient/system.go:22\ngithub.com/Orange-OpenSource/nifikop/pkg/nificlient.(*nifiClient).Build\n\tnifikop/pkg/nificlient/client.go:70\ngithub.com/Orange-OpenSource/nifikop/pkg/nificlient.NewFromCluster\n\tnifikop/pkg/nificlient/client.go:92\ngithub.com/Orange-OpenSource/nifikop/pkg/controller/common.NewNodeConnection\n\tnifikop/pkg/controller/common/controller_common.go:68\ngithub.com/Orange-OpenSource/nifikop/pkg/scale.EnsureRemovedNodes\n\tnifikop/pkg/scale/scale.go:210\ngithub.com/Orange-OpenSource/nifikop/pkg/resources/nifi.(*Reconciler).Reconcile\n\tnifikop/pkg/resources/nifi/nifi.go:186\ngithub.com/Orange-OpenSource/nifikop/pkg/controller/nificluster.(*ReconcileNifiCluster).Reconcile\n\tnifikop/pkg/controller/nificluster/nificluster_controller.go:146\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).reconcileHandler\n\t/go/pkg/mod/sigs.k8s.io/controller-runtime@v0.4.0/pkg/internal/controller/controller.go:256\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).processNextWorkItem\n\t/go/pkg/mod/sigs.k8s.io/controller-runtime@v0.4.0/pkg/internal/controller/controller.go:232\nsigs.k8s.io/controller-runtime/pkg/internal/controller.(*Controller).worker\n\t/go/pkg/mod/sigs.k8s.io/controller-runtime@v0.4.0/pkg/internal/controller/controller.go:211\nk8s.io/apimachinery/pkg/util/wait.JitterUntil.func1\n\t/go/pkg/mod/k8s.io/apimachinery@v0.0.0-20191004115801-a2eda9f80ab8/pkg/util/wait/wait.go:152\nk8s.io/apimachinery/pkg/util/wait.JitterUntil\n\t/go/pkg/mod/k8s.io/apimachinery@v0.0.0-20191004115801-a2eda9f80ab8/pkg/util/wait/wait.go:153\nk8s.io/apimachinery/pkg/util/wait.Until\n\t/go/pkg/mod/k8s.io/apimachinery@v0.0.0-20191004115801-a2eda9f80ab8/pkg/util/wait/wait.go:88"
-}
-```
-
-1. To do this, you have to connect on your cluster and go into the users page : 
-
-![users page](/nifikop/img/3_tasks/2_security/1_ssl/users.png)
-
-2. Create a new user entry with `<NifiCluster's name>-controller.<NifiCluster's namespace>.mgt.cluster.local` name, this the name of the `NifiUser` associated to the operator : 
-For example for the the `NifiCluster` **sslnifi** deployed into the namespace **nifi** we have the following configuration : 
-
-![add controller's user](/nifikop/img/3_tasks/2_security/1_ssl/add_user_controller.png)
-
-3. Now we will add the required policies, so go to the `Access Policies` page : 
-
-![Access policies page](/nifikop/img/3_tasks/2_security/1_ssl/access_policies_page.png)
-
-4. And add the operator's user the right to `view` and `modify` to the `access the controller` policy.
-
-![Access Controller view](/nifikop/img/3_tasks/2_security/1_ssl/access_conrtoller_view.png)
-
-![Access Controller modify](/nifikop/img/3_tasks/2_security/1_ssl/access_conrtoller_modify.png)
-
-If you check once again the logs, you no longer have the error.
-
-### Scale up - Node declaration
-
-For the moment the operator is not able to add a new user inside NiFi cluster. So when you scale up the cluster, the node will join the cluster but will not create the user and associated policies.
-This will be covered by the [issue #9](https://github.com/Orange-OpenSource/nifikop/issues/9), while waiting for this feature, you have to :
-
-1. Go on users page : 
-
-![users page](/nifikop/img/3_tasks/2_security/1_ssl/users.png)
-
-2. Create a new user entry with `<NifiCluster's name>-<NiFi node id>-node.<NifiCluster's name>-headless.<NifiCluster's namespace>` name if you setup **Headless**, else use `<NifiCluster's name>-<NiFi node id>-node.<NifiCluster's namespace>` as name : 
-
-![add node's user](/nifikop/img/3_tasks/2_security/1_ssl/add_node_user.png)
-
-3. The node require `proxy user requests` access policy, so go to the `Access Policies` page : 
-
-![Access policies page](/nifikop/img/3_tasks/2_security/1_ssl/access_policies_page.png)
-
-4. Add the node user to this policy : 
-
-![Access policy Node](/nifikop/img/3_tasks/2_security/1_ssl/access_policy_node.png)

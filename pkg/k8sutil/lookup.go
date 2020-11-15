@@ -50,3 +50,10 @@ func LookupSecret(client runtimeClient.Client, secretName, secretNamespace strin
 	err = client.Get(context.TODO(), types.NamespacedName{Name: secretName, Namespace: secretNamespace}, secret)
 	return
 }
+
+// LookupNifiUser returns the user instance based on its name and namespace
+func LookupNifiUser(client runtimeClient.Client, userName, userNamespace string) (user *v1alpha1.NifiUser, err error) {
+	user = &v1alpha1.NifiUser{}
+	err = client.Get(context.TODO(), types.NamespacedName{Name: userName, Namespace: userNamespace}, user)
+	return
+}

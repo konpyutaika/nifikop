@@ -14,7 +14,7 @@ metadata:
 spec:
   service:
     headlessEnabled: true
-  zkAddresse: "zookeepercluster-client.zookeeper:2181"
+  zkAddress: "zookeepercluster-client.zookeeper:2181"
   zkPath: "/simplenifi"
   clusterImage: "apache/nifi:1.11.3"
   oneNifiNodePerNode: false
@@ -74,19 +74,19 @@ spec:
 |-----|----|-----------|--------|--------|
 |service|[ServicePolicy](#servicepolicy)| defines the policy for services owned by NiFiKop operator. |No| - |
 |pod|[PodPolicy](#podpolicy)| defines the policy for pod owned by NiFiKop operator. |No| - |
-|zkAddresse|string| specifies the ZooKeeper connection string in the form hostname:port where host and port are those of a Zookeeper server.|Yes|""|
+|zkAddress|string| specifies the ZooKeeper connection string in the form hostname:port where host and port are those of a Zookeeper server.|Yes|""|
 |zkPath|string| specifies the Zookeeper chroot path as part of its Zookeeper connection string which puts its data under same path in the global ZooKeeper namespace.|Yes|"/"|
 |initContainerImage|string|  can override the default image used into the init container to check if ZoooKeeper server is reachable.. |Yes|"busybox"|
 |initContainers|\[ \]string| defines additional initContainers configurations. |No|\[ \]|
 |clusterImage|string| can specify the whole nificluster image in one place. |No|""|
-|clusterSecure|boolean| cluster nodes secure mode : https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#cluster_common_properties. |Yes|false|
-|siteToSiteSecure|boolean| site to Site properties Secure mode : https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#site_to_site_properties. |Yes|false|
 |oneNifiNodePerNode|boolean|if set to true every nifi node is started on a new node, if there is not enough node to do that it will stay in pending state. If set to false the operator also tries to schedule the nifi node to a unique node but if the node number is insufficient the nifi node will be scheduled to a node where a nifi node is already running.|Yes| nil |
 |propagateLabels|boolean| - |Yes|false|
-|initialAdminUser|string| name of the user account which will be configured as initial admin into NiFi cluster : https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#initial-admin-identity. |No|""|
+|managedAdminUsers|\[  \][ManagedUser](#managedusers)| contains the list of users that will be added to the managed admin group (with all rights). |No|[]|
+|managedReaderUsers|\[  \][ManagedUser](#managedusers)| contains the list of users that will be added to the managed admin group (with all rights). |No|[]|
 |readOnlyConfig|[ReadOnlyConfig](/nifikop/docs/5_references/1_nifi_cluster/2_read_only_config)| specifies the read-only type Nifi config cluster wide, all theses will be merged with node specified readOnly configurations, so it can be overwritten per node.|No| nil |
 |nodeConfigGroups|map\[string\][NodeConfig](/nifikop/docs/5_references/1_nifi_cluster/3_node_config)| specifies multiple node configs with unique name|No| nil |
 |nodes|\[  \][Node](/nifikop/docs/5_references/1_nifi_cluster/3_node_config)| specifies the list of cluster nodes, all node requires an image, unique id, and storageConfigs settings|Yes| nil 
+|disruptionBudget|[DisruptionBudget](#disruptionbudget)| defines the configuration for PodDisruptionBudget.|No| nil |
 |ldapConfiguration|[LdapConfiguration](#ldapconfiguration)| specifies the configuration if you want to use LDAP.|No| nil |
 |nifiClusterTaskSpec|[NifiClusterTaskSpec](#nificlustertaskspec)| specifies the configuration of the nifi cluster Tasks.|No| nil |
 |listenersConfig|[ListenersConfig](/nifikop/docs/5_references/1_nifi_cluster/6_listeners_config)| listenersConfig specifies nifi's listener specifig configs.|Yes| - |
@@ -97,6 +97,7 @@ spec:
 |-----|----|-----------|--------|--------|
 |nodesState|map\[string\][NodeState](/nifikop/docs/5_references/1_nifi_cluster/5_node_state)|Store the state of each nifi node.|No| - |
 |State|[ClusterState](#clusterstate)|Store the state of each nifi node.|Yes| - |
+|rootProcessGroupId|string|contains the uuid of the root process group for this cluster.|No| - |
 
 ## ServicePolicy
 
@@ -111,6 +112,19 @@ spec:
 |-----|----|-----------|--------|--------|
 |annotations|map\[string\]string|Annotations specifies the annotations to attach to pods the NiFiKop operator creates|No|-|
 
+## ManagedUsers
+
+|Field|Type|Description|Required|Default|
+|-----|----|-----------|--------|--------|
+|create|bool| if set to true, will create a podDisruptionBudget.|No| - |
+|name|string|name field is use to name the NifiUser resource, if not identity is provided it will be used to name the user on NiFi cluster side.|Yes| - |
+
+## DisruptionBudget
+
+|Field|Type|Description|Required|Default|
+|-----|----|-----------|--------|--------|
+|identity|string|identity field is use to define the user identity on NiFi cluster side, it use full when the user's name doesn't suite with Kubernetes resource name.|No| - |
+|budget|string| the budget to set for the PDB, can either be static number or a percentage.|Yes| - |
 
 ## LdapConfiguration
 
