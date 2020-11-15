@@ -14,6 +14,8 @@
 
 package v1alpha1
 
+import "fmt"
+
 // DataflowState defines the state of a NifiDataflow
 type DataflowState string
 
@@ -43,6 +45,15 @@ type InitClusterNode bool
 
 // PKIBackend represents an interface implementing the PKIManager
 type PKIBackend string
+
+// AccessPolicyType represents the type of access policy
+type AccessPolicyType string
+
+// AccessPolicyAction represents the access policy action
+type AccessPolicyAction string
+
+// AccessPolicyResource represents the access policy resource
+type AccessPolicyResource string
 
 func (r State) IsUpscale() bool {
 	return r == GracefulUpscaleRequired || r == GracefulUpscaleSucceeded || r == GracefulUpscaleRunning
@@ -104,6 +115,106 @@ type SecretReference struct {
 	Name      string `json:"name"`
 	Namespace string `json:"namespace,omitempty"`
 }
+
+// UserReference states a reference to a user for user group
+// provisioning
+type UserReference struct {
+	Name      string `json:"name"`
+	Namespace string `json:"namespace,omitempty"`
+}
+
+type AccessPolicy struct {
+	// +kubebuilder:validation:Enum={"global","component"}
+	// type defines the kind of access policy, could be "global" or "component".
+	Type AccessPolicyType `json:"type"`
+	// +kubebuilder:validation:Enum={"global","component"}
+	// action defines the kind of action that will be granted, could be "read" or "write"
+	Action AccessPolicyAction `json:"action"`
+	// +kubebuilder:validation:Enum={"/flow","/controller","/parameter-context","/provenance","/restricted-components","/policies","/tenants","/site-to-site","/proxy","/counters","/","/operation","/provenance-data","/data","/policies","/data-transfer"}
+	// resource defines the kind of resource targeted by this access policies, please refer to the following page :
+	// https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#access-policies
+	Resource AccessPolicyResource `json:"resource"`
+	// componentType is used if the type is "component", it's allow to define the kind of component on which is the
+	// access policy
+	ComponentType string `json:"componentType,omitempty"`
+	// componentId is used if the type is "component", it's allow to define the id of the component on which is the
+	// access policy
+	ComponentId string `json:"componentId,omitempty"`
+}
+
+func (a *AccessPolicy) GetResource(cluster *NifiCluster) string {
+	if a.Type == GlobalAccessPolicyType {
+		return string(a.Resource)
+	}
+	componentId := a.ComponentId
+	if a.ComponentType == "process-groups" && componentId == "" {
+		componentId = cluster.Status.RootProcessGroupId
+	}
+	resource := a.Resource
+	if a.Resource == ComponentsAccessPolicyResource {
+		resource = ""
+	}
+	return fmt.Sprintf("%s/%s/%s", resource, a.ComponentType, componentId)
+}
+
+const(
+	// Global access policies govern the following system level authorizations
+	GlobalAccessPolicyType AccessPolicyType = "global"
+	// Component level access policies govern the following component level authorizations
+	ComponentAccessPolicyType AccessPolicyType = "component"
+
+	// Allows users to view
+	ReadAccessPolicyAction AccessPolicyAction = "read"
+	// Allows users to modify
+	WriteAccessPolicyAction AccessPolicyAction = "write"
+
+	// Global
+	// About the UI
+	FlowAccessPolicyResource AccessPolicyResource = "/flow"
+	// About the controller including Reporting Tasks, Controller Services, Parameter Contexts and Nodes in the Cluster
+	ControllerAccessPolicyResource AccessPolicyResource = "/controller"
+	// About the Parameter Contexts. Access to Parameter Contexts are inherited from the "access the controller"
+	// policies unless overridden.
+	ParameterContextAccessPolicyResource AccessPolicyResource = "/parameter-context"
+	// Allows users to submit a Provenance Search and request Event Lineage
+	ProvenanceAccessPolicyResource AccessPolicyResource = "/provenance"
+	// About the restricted components assuming other permissions are sufficient. The restricted components may
+	// indicate which specific permissions are required. Permissions can be granted for specific restrictions or
+	// be granted regardless of restrictions. If permission is granted regardless of restrictions,
+	// the user can create/modify all restricted components.
+	RestrictedComponentsAccessPolicyResource AccessPolicyResource = "/restricted-components"
+	// About the policies for all components
+	PoliciesAccessPolicyResource AccessPolicyResource = "/policies"
+	// About the users and user groups
+	TenantsAccessPolicyResource AccessPolicyResource = "/tenants"
+	// Allows other NiFi instances to retrieve Site-To-Site details
+	SiteToSiteAccessPolicyResource AccessPolicyResource = "/site-to-site"
+	// Allows users to view System Diagnostics
+	SystemAccessPolicyResource AccessPolicyResource = "/system"
+	// Allows proxy machines to send requests on the behalf of others
+	ProxyAccessPolicyResource AccessPolicyResource = "/proxy"
+	// About counters
+	CountersAccessPolicyResource AccessPolicyResource = "/counters"
+
+	// Component
+	// About the component configuration details
+	ComponentsAccessPolicyResource AccessPolicyResource = "/"
+	// to operate components by changing component run status (start/stop/enable/disable),
+	// remote port transmission status, or terminating processor threads
+	OperationAccessPolicyResource AccessPolicyResource = "/operation"
+	// to view provenance events generated by this component
+	ProvenanceDataAccessPolicyResource AccessPolicyResource = "/provenance-data"
+	// About metadata and content for this component in flowfile queues in outbound connections
+	// and through provenance events
+	DataAccessPolicyResource AccessPolicyResource = "/data"
+	//
+	PoliciesComponentAccessPolicyResource AccessPolicyResource = "/policies"
+	// Allows a port to receive data from NiFi instances
+	DataTransferAccessPolicyResource AccessPolicyResource = "/data-transfer"
+
+	// ComponentType
+	ProcessGroupType string = "process-groups"
+)
 
 const (
 	// PKIBackendCertManager invokes cert-manager for user certificate management

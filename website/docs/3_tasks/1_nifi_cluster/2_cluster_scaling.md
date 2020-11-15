@@ -51,10 +51,11 @@ kind: NifiCluster
 metadata:
   name: simplenifi
 spec:
-  headlessServiceEnabled: true
-  zkAddresse: "zookeepercluster-client.zookeeper:2181"
+  service:
+    headlessEnabled: true
+  zkAddress: "zookeepercluster-client.zookeeper:2181"
   zkPath: "/simplenifi"
-  clusterImage: "apache/nifi:1.11.3"
+  clusterImage: "apache/nifi:1.12.1"
   oneNifiNodePerNode: false
   nodeConfigGroups:
     default_group:
@@ -134,7 +135,7 @@ And if you go on the NiFi UI, in the cluster administration page :
 
 5. You now have data on the new node : 
 
-![Scale up, clmuster distribution](/nifikop/img/3_tasks/1_nifi_cluster/2_cluster_scaling/scaleup_distribution.png)
+![Scale up, cluster distribution](/nifikop/img/3_tasks/1_nifi_cluster/2_cluster_scaling/scaleup_distribution.png)
 
 ## Scaledown : Gracefully remove node
 
@@ -232,5 +233,5 @@ The list of decommision's step and their corresponding value for the `Nifi Clust
 4. Once the scaledown successfully performed, you should have the data offloaded on the other nodes, and the node state removed from the `NifiCluster.Status.NodesState` list :
 
 :::warning
-Keep in mind that the [`NifiCluster.Spec.nifiClusterTaskSpec.retryDurationMinutes`](nifikop/docs/5_references/1_nifi_cluster/1_nifi_cluster#nificlustertaskspec) should be long enough to perform the whole procedure, or you will have some rollback and retry loop.
+Keep in mind that the [`NifiCluster.Spec.nifiClusterTaskSpec.retryDurationMinutes`](/nifikop/docs/5_references/1_nifi_cluster/1_nifi_cluster#nificlustertaskspec) should be long enough to perform the whole procedure, or you will have some rollback and retry loop.
 :::

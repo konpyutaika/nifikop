@@ -21,24 +21,30 @@ import (
 // NifiUserSpec defines the desired state of NifiUser
 // +k8s:openapi-gen=true
 type NifiUserSpec struct {
+	// identity field is used to define the user identity on NiFi cluster side, when the user's name doesn't
+	// suit with Kubernetes resource name.
+	Identity string `json:"identity,omitempty"`
 	// Name of the secret where all cert resources will be stored
-	SecretName string `json:"secretName"`
+	SecretName string `json:"secretName,omitempty"`
 	// contains the reference to the NifiCluster with the one the user is linked
 	ClusterRef ClusterReference `json:"clusterRef"`
 	// List of DNSNames that the user will used to request the NifiCluster (allowing to create the right certificates associated)
 	DNSNames []string `json:"dnsNames,omitempty"`
-	//
-	//TopicGrants []UserTopicGrant `json:"topicGrants,omitempty"`
-
 	// Whether or not the the operator also include a Java keystore format (JKS) with you secret
 	IncludeJKS bool `json:"includeJKS,omitempty"`
+	// Whether or not a certificate will be created for this user.
+	CreateCert *bool `json:"createCert,omitempty"`
+	// accessPolicies defines the list of access policies that will be granted to the group.
+	AccessPolicies []AccessPolicy `json:"accessPolicies,omitempty"`
 }
 
 // NifiUserStatus defines the observed state of NifiUser
 // +k8s:openapi-gen=true
 type NifiUserStatus struct {
-	State UserState `json:"state"`
-	//	ACLs  []string  `json:"acls,omitempty"`
+	// The nifi user's node id
+	Id string `json:"id"`
+	// The last nifi  user's node revision version catched
+	Version int64 `json:"version"`
 }
 
 // Nifi User is the Schema for the nifi users API
@@ -65,4 +71,18 @@ type NifiUserList struct {
 
 func init() {
 	SchemeBuilder.Register(&NifiUser{}, &NifiUserList{})
+}
+
+func (u *NifiUserSpec) GetCreateCert() bool {
+	if u.CreateCert != nil {
+		return *u.CreateCert
+	}
+	return true
+}
+
+func (u *NifiUser) GetIdentity() string {
+	if u.Spec.Identity == "" {
+		return u.Name
+	}
+	return u.Spec.Identity
 }

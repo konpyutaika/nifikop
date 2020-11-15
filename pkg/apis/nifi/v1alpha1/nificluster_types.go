@@ -40,10 +40,10 @@ type NifiClusterSpec struct {
 	Service ServicePolicy `json:"service,omitempty"`
 	// Pod defines the policy for  pods owned by NiFiKop operator.
 	Pod PodPolicy `json:"pod,omitempty"`
-	// zKAddresse specifies the ZooKeeper connection string
+	// zKAddress specifies the ZooKeeper connection string
 	// in the form hostname:port where host and port are those of a Zookeeper server.
 	// TODO: rework for nice zookeeper connect string =
-	ZKAddresse string `json:"zkAddresse"`
+	ZKAddress string `json:"zkAddress"`
 	// zKPath specifies the Zookeeper chroot path as part
 	// of its Zookeeper connection string which puts its data under same path in the global ZooKeeper namespace.
 	ZKPath string `json:"zkPath,omitempty"`
@@ -54,20 +54,16 @@ type NifiClusterSpec struct {
 	InitContainers []corev1.Container `json:"initContainers,omitempty" patchStrategy:"merge" patchMergeKey:"name" protobuf:"bytes,2,rep,name=containers"`
 	// clusterImage can specify the whole NiFi cluster image in one place
 	ClusterImage string `json:"clusterImage,omitempty"`
-	// Cluster nodes secure mode : https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#cluster_common_properties
-	// TODO : rework to define into internalListener ! (Note: if ssl enabled need Cluster & SiteToSite & Https port)
-	ClusterSecure bool `json:"clusterSecure,omitempty"`
-	// Site to Site properties Secure mode : https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#site_to_site_properties
-	// TODO : rework to define into internalListener !
-	SiteToSiteSecure bool `json:"siteToSiteSecure,omitempty"`
 	// oneNifiNodePerNode if set to true every nifi node is started on a new node, if there is not enough node to do that
 	// it will stay in pending state. If set to false the operator also tries to schedule the nifi node to a unique node
 	// but if the node number is insufficient the nifi node will be scheduled to a node where a nifi node is already running.
 	OneNifiNodePerNode bool `json:"oneNifiNodePerNode"`
 	// propage
 	PropagateLabels bool `json:"propagateLabels,omitempty"`
-	// TODO : remove once the user management is implemented into the operator
-	InitialAdminUser string `json:"initialAdminUser,omitempty""`
+	// managedAdminUsers contains the list of users that will be added to the managed admin group (with all rights)
+	ManagedAdminUsers []ManagedUser `json:"managedAdminUsers,omitempty""`
+	// managedReaderUsers contains the list of users that will be added to the managed reader group (with all view rights)
+	ManagedReaderUsers []ManagedUser `json:"managedReaderUsers,omitempty""`
 	// readOnlyConfig specifies the read-only type Nifi config cluster wide, all theses
 	// will be merged with node specified readOnly configurations, so it can be overwritten per node.
 	ReadOnlyConfig ReadOnlyConfig `json:"readOnlyConfig,omitempty"`
@@ -75,6 +71,8 @@ type NifiClusterSpec struct {
 	NodeConfigGroups map[string]NodeConfig `json:"nodeConfigGroups,omitempty"`
 	// all node requires an image, unique id, and storageConfigs settings
 	Nodes []Node `json:"nodes"`
+	// Defines the configuration for PodDisruptionBudget
+	DisruptionBudget DisruptionBudget `json:"disruptionBudget,omitempty"`
 	// LdapConfiguration specifies the configuration if you want to use LDAP
 	LdapConfiguration LdapConfiguration `json:"ldapConfiguration,omitempty"`
 	// NifiClusterTaskSpec specifies the configuration of the nifi cluster Tasks
@@ -83,6 +81,16 @@ type NifiClusterSpec struct {
 	//VaultConfig         	VaultConfig         `json:"vaultConfig,omitempty"`
 	// listenerConfig specifies nifi's listener specifig configs
 	ListenersConfig ListenersConfig `json:"listenersConfig"`
+}
+
+// DisruptionBudget defines the configuration for PodDisruptionBudget
+type DisruptionBudget struct {
+	// If set to true, will create a podDisruptionBudget
+	// +optional
+	Create bool `json:"create,omitempty"`
+	// The budget to set for the PDB, can either be static number or a percentage
+	// +kubebuilder:validation:Pattern:="^[0-9]+$|^[0-9]{1,2}%$|^100%$"
+	Budget string `json:"budget,omitempty"`
 }
 
 type ServicePolicy struct {
@@ -109,6 +117,8 @@ type NifiClusterStatus struct {
 	State ClusterState `json:"state"`
 	// RollingUpgradeStatus defines status of rolling upgrade
 	RollingUpgrade RollingUpgradeStatus `json:"rollingUpgradeStatus,omitempty"`
+	// RootProcessGroupId contains the uuid of the root process group for this cluster
+	RootProcessGroupId string `json:"rootProcessGroupId,omitempty"`
 }
 
 // RollingUpgradeStatus defines status of rolling upgrade
@@ -337,6 +347,22 @@ type NifiCluster struct {
 
 	Spec   NifiClusterSpec   `json:"spec,omitempty"`
 	Status NifiClusterStatus `json:"status,omitempty"`
+}
+
+type ManagedUser struct {
+	// identity field is use to define the user identity on NiFi cluster side,
+	// it use full when the user's name doesn't suite with Kubernetes resource name.
+	Identity string `json:"identity,omitempty"`
+	// name field is use to name the NifiUser resource, if not identity is provided it will be used to name
+	// the user on NiFi cluster side.
+	Name string `json:"name"`
+}
+
+func (u *ManagedUser) GetIdentity() string {
+	if u.Identity == "" {
+		return u.Name
+	}
+	return u.Identity
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

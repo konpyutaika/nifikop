@@ -22,9 +22,11 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/Orange-OpenSource/nifikop/pkg/apis/nifi/v1alpha1"
+	"github.com/Orange-OpenSource/nifikop/pkg/clientwrappers/dataflow"
 	"github.com/Orange-OpenSource/nifikop/pkg/clientwrappers/scale"
 	"github.com/Orange-OpenSource/nifikop/pkg/errorfactory"
 	"github.com/Orange-OpenSource/nifikop/pkg/k8sutil"
+	"github.com/Orange-OpenSource/nifikop/pkg/nificlient"
 	"github.com/Orange-OpenSource/nifikop/pkg/pki"
 	"github.com/Orange-OpenSource/nifikop/pkg/resources"
 	"github.com/Orange-OpenSource/nifikop/pkg/resources/templates"
@@ -189,6 +191,18 @@ func (r *Reconciler) Reconcile(log logr.Logger) error {
 		return errors.WrapIfWithDetails(err, "failed to reconcile resource", "resource", o.GetObjectKind().GroupVersionKind())
 	}
 
+	// Handle PDB
+	if r.NifiCluster.Spec.DisruptionBudget.Create {
+		o, err := r.podDisruptionBudget(log)
+		if err != nil {
+			return errors.WrapIfWithDetails(err, "failed to compute podDisruptionBudget")
+		}
+		err = k8sutil.Reconcile(log, r.Client, o, r.NifiCluster)
+		if err != nil {
+			return errors.WrapIfWithDetails(err, "failed to reconcile resource", "resource", o.GetObjectKind().GroupVersionKind())
+		}
+	}
+
 	// Handle Pod delete
 	err = r.reconcileNifiPodDelete(log)
 	if err != nil {
@@ -201,6 +215,23 @@ func (r *Reconciler) Reconcile(log logr.Logger) error {
 		return err
 	}
 
+	
+	// Reconcile cluster communications
+	pgRootId, err := dataflow.RootProcessGroup(r.Client, r.NifiCluster)
+	if err != nil {
+		return err
+	}
+
+	if err := k8sutil.UpdateRootProcessGroupIdStatus(r.Client, r.NifiCluster, pgRootId, log); err != nil {
+		return err
+	}
+
+	if nificlient.UseSSL(r.NifiCluster) {
+		if err := r.reconcileNifiUsersAndGroups(log); err != nil {
+			return errors.WrapIf(err, "failed to reconcile resource")
+		}
+	}
+	
 	log.V(1).Info("Reconciled")
 
 	return nil
@@ -597,6 +628,171 @@ func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) e
 		err = r.Client.Delete(context.TODO(), currentPod)
 		if err != nil {
 			return errorfactory.New(errorfactory.APIFailure{}, err, "deleting resource failed", "kind", desiredType)
+		}
+	}
+
+	return nil
+}
+
+func (r *Reconciler) reconcileNifiUsersAndGroups(log logr.Logger) error {
+	controllerName := types.NamespacedName{Name: fmt.Sprintf(pkicommon.NodeControllerFQDNTemplate,
+		fmt.Sprintf(pkicommon.NodeControllerTemplate, r.NifiCluster.Name),
+		r.NifiCluster.Namespace,
+		r.NifiCluster.Spec.ListenersConfig.GetClusterDomain()), Namespace: r.NifiCluster.Namespace}
+
+	managedUsers := append(r.NifiCluster.Spec.ManagedAdminUsers, r.NifiCluster.Spec.ManagedReaderUsers...)
+	var users []*v1alpha1.NifiUser
+	pFalse := false
+	for _, managedUser := range managedUsers {
+		users = append(users, &v1alpha1.NifiUser{
+			ObjectMeta: templates.ObjectMeta(
+				managedUser.Name,
+				pkicommon.LabelsForNifiPKI(r.NifiCluster.Name), r.NifiCluster,
+			),
+			Spec: v1alpha1.NifiUserSpec{
+				Identity: managedUser.GetIdentity(),
+				CreateCert: &pFalse,
+				ClusterRef: v1alpha1.ClusterReference{
+					Name:      r.NifiCluster.Name,
+					Namespace: r.NifiCluster.Namespace,
+				},
+			},
+		})
+	}
+
+	var managedAdminUserRef []v1alpha1.UserReference
+	for _, user := range r.NifiCluster.Spec.ManagedAdminUsers {
+		managedAdminUserRef = append(managedAdminUserRef, v1alpha1.UserReference{Name: user.Name})
+	}
+
+	var managedReaderUserRef []v1alpha1.UserReference
+	for _, user := range r.NifiCluster.Spec.ManagedReaderUsers {
+		managedReaderUserRef = append(managedReaderUserRef, v1alpha1.UserReference{Name: user.Name})
+	}
+
+	var managedNodeUserRef []v1alpha1.UserReference
+	for _, node := range r.NifiCluster.Spec.Nodes {
+		managedNodeUserRef = append(managedNodeUserRef, v1alpha1.UserReference{Name: pkicommon.GetNodeUserName(r.NifiCluster, node.Id)})
+	}
+
+	groups := []*v1alpha1.NifiUserGroup{
+		{
+			ObjectMeta: templates.ObjectMeta(
+				"managed-admins",
+				pkicommon.LabelsForNifiPKI(r.NifiCluster.Name), r.NifiCluster,
+			),
+			Spec: v1alpha1.NifiUserGroupSpec{
+				ClusterRef: v1alpha1.ClusterReference{
+					Name: r.NifiCluster.Name,
+					Namespace: r.NifiCluster.Namespace,
+				},
+				UsersRef: append(managedAdminUserRef, v1alpha1.UserReference{
+					Name:      controllerName.Name,
+					Namespace: controllerName.Namespace,
+				},
+				),
+				AccessPolicies: []v1alpha1.AccessPolicy{
+					// Global
+					{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.ReadAccessPolicyAction, Resource: v1alpha1.FlowAccessPolicyResource},
+					{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.WriteAccessPolicyAction, Resource: v1alpha1.FlowAccessPolicyResource},
+					{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.ReadAccessPolicyAction, Resource: v1alpha1.ControllerAccessPolicyResource},
+					{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.WriteAccessPolicyAction, Resource: v1alpha1.ControllerAccessPolicyResource},
+					{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.ReadAccessPolicyAction, Resource: v1alpha1.ParameterContextAccessPolicyResource},
+					{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.WriteAccessPolicyAction, Resource: v1alpha1.ParameterContextAccessPolicyResource},
+					{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.ReadAccessPolicyAction, Resource: v1alpha1.ProvenanceAccessPolicyResource},
+					{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.WriteAccessPolicyAction, Resource: v1alpha1.ProvenanceAccessPolicyResource},
+					{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.ReadAccessPolicyAction, Resource: v1alpha1.RestrictedComponentsAccessPolicyResource},
+					{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.WriteAccessPolicyAction, Resource: v1alpha1.RestrictedComponentsAccessPolicyResource},
+					{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.ReadAccessPolicyAction, Resource: v1alpha1.PoliciesAccessPolicyResource},
+					{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.WriteAccessPolicyAction, Resource: v1alpha1.PoliciesAccessPolicyResource},
+					{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.ReadAccessPolicyAction, Resource: v1alpha1.TenantsAccessPolicyResource},
+					{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.WriteAccessPolicyAction, Resource: v1alpha1.TenantsAccessPolicyResource},
+					{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.ReadAccessPolicyAction, Resource: v1alpha1.SiteToSiteAccessPolicyResource},
+					{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.ReadAccessPolicyAction, Resource: v1alpha1.SystemAccessPolicyResource},
+					{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.WriteAccessPolicyAction, Resource: v1alpha1.SiteToSiteAccessPolicyResource},
+					{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.ReadAccessPolicyAction, Resource: v1alpha1.ProxyAccessPolicyResource},
+					{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.WriteAccessPolicyAction, Resource: v1alpha1.ProxyAccessPolicyResource},
+					{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.ReadAccessPolicyAction, Resource: v1alpha1.CountersAccessPolicyResource},
+					{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.WriteAccessPolicyAction, Resource: v1alpha1.CountersAccessPolicyResource},
+					// Root process group
+					{Type: v1alpha1.ComponentAccessPolicyType, Action: v1alpha1.ReadAccessPolicyAction, Resource: v1alpha1.ComponentsAccessPolicyResource, ComponentType: v1alpha1.ProcessGroupType},
+					{Type: v1alpha1.ComponentAccessPolicyType, Action: v1alpha1.WriteAccessPolicyAction, Resource: v1alpha1.ComponentsAccessPolicyResource, ComponentType: v1alpha1.ProcessGroupType},
+					{Type: v1alpha1.ComponentAccessPolicyType, Action: v1alpha1.WriteAccessPolicyAction, Resource: v1alpha1.OperationAccessPolicyResource, ComponentType: v1alpha1.ProcessGroupType},
+					{Type: v1alpha1.ComponentAccessPolicyType, Action: v1alpha1.ReadAccessPolicyAction, Resource: v1alpha1.ProvenanceDataAccessPolicyResource, ComponentType: v1alpha1.ProcessGroupType},
+					{Type: v1alpha1.ComponentAccessPolicyType, Action: v1alpha1.ReadAccessPolicyAction, Resource: v1alpha1.DataAccessPolicyResource, ComponentType: v1alpha1.ProcessGroupType},
+					{Type: v1alpha1.ComponentAccessPolicyType, Action: v1alpha1.WriteAccessPolicyAction, Resource: v1alpha1.DataAccessPolicyResource, ComponentType: v1alpha1.ProcessGroupType},
+					//{Type: v1alpha1.ComponentAccessPolicyType, Action: v1alpha1.ReadAccessPolicyAction, Resource: v1alpha1.PoliciesComponentAccessPolicyResource, ComponentType: v1alpha1.ProcessGroupType},
+					//{Type: v1alpha1.ComponentAccessPolicyType, Action: v1alpha1.WriteAccessPolicyAction, Resource: v1alpha1.PoliciesComponentAccessPolicyResource, ComponentType: v1alpha1.ProcessGroupType},
+					//{Type: v1alpha1.ComponentAccessPolicyType, Action: v1alpha1.ReadAccessPolicyAction, Resource: v1alpha1.DataTransferAccessPolicyResource, ComponentType: v1alpha1.ProcessGroupType},
+					//{Type: v1alpha1.ComponentAccessPolicyType, Action: v1alpha1.WriteAccessPolicyAction, Resource: v1alpha1.DataTransferAccessPolicyResource, ComponentType: v1alpha1.ProcessGroupType},
+				},
+			},
+		},
+		{
+			ObjectMeta: templates.ObjectMeta(
+				"managed-readers",
+				pkicommon.LabelsForNifiPKI(r.NifiCluster.Name), r.NifiCluster,
+			),
+			Spec: v1alpha1.NifiUserGroupSpec{
+				ClusterRef: v1alpha1.ClusterReference{
+					Name: r.NifiCluster.Name,
+					Namespace: r.NifiCluster.Namespace,
+				},
+				UsersRef: managedAdminUserRef,
+				AccessPolicies: []v1alpha1.AccessPolicy{
+					// Global
+					{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.ReadAccessPolicyAction, Resource: v1alpha1.FlowAccessPolicyResource},
+					{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.ReadAccessPolicyAction, Resource: v1alpha1.ControllerAccessPolicyResource},
+					{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.ReadAccessPolicyAction, Resource: v1alpha1.ParameterContextAccessPolicyResource},
+					{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.ReadAccessPolicyAction, Resource: v1alpha1.ProvenanceAccessPolicyResource},
+					{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.ReadAccessPolicyAction, Resource: v1alpha1.RestrictedComponentsAccessPolicyResource},
+					{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.ReadAccessPolicyAction, Resource: v1alpha1.PoliciesAccessPolicyResource},
+					{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.ReadAccessPolicyAction, Resource: v1alpha1.TenantsAccessPolicyResource},
+					{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.ReadAccessPolicyAction, Resource: v1alpha1.SiteToSiteAccessPolicyResource},
+					{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.ReadAccessPolicyAction, Resource: v1alpha1.SystemAccessPolicyResource},
+					{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.ReadAccessPolicyAction, Resource: v1alpha1.ProxyAccessPolicyResource},
+					{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.ReadAccessPolicyAction, Resource: v1alpha1.CountersAccessPolicyResource},
+					// Root process group
+					{Type: v1alpha1.ComponentAccessPolicyType, Action: v1alpha1.ReadAccessPolicyAction, Resource: v1alpha1.ComponentsAccessPolicyResource, ComponentType: v1alpha1.ProcessGroupType},
+					{Type: v1alpha1.ComponentAccessPolicyType, Action: v1alpha1.ReadAccessPolicyAction, Resource: v1alpha1.OperationAccessPolicyResource, ComponentType: v1alpha1.ProcessGroupType},
+					{Type: v1alpha1.ComponentAccessPolicyType, Action: v1alpha1.ReadAccessPolicyAction, Resource: v1alpha1.ProvenanceDataAccessPolicyResource, ComponentType: v1alpha1.ProcessGroupType},
+					{Type: v1alpha1.ComponentAccessPolicyType, Action: v1alpha1.ReadAccessPolicyAction, Resource: v1alpha1.DataAccessPolicyResource, ComponentType: v1alpha1.ProcessGroupType},
+				},
+			},
+		},
+		{
+			ObjectMeta: templates.ObjectMeta(
+				"managed-nodes",
+				pkicommon.LabelsForNifiPKI(r.NifiCluster.Name), r.NifiCluster,
+			),
+			Spec: v1alpha1.NifiUserGroupSpec{
+				ClusterRef: v1alpha1.ClusterReference{
+					Name: r.NifiCluster.Name,
+					Namespace: r.NifiCluster.Namespace,
+				},
+				UsersRef: managedNodeUserRef,
+				AccessPolicies: []v1alpha1.AccessPolicy{
+					// Global
+					{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.ReadAccessPolicyAction, Resource: v1alpha1.ProxyAccessPolicyResource},
+					// Root process group
+					{Type: v1alpha1.ComponentAccessPolicyType, Action: v1alpha1.ReadAccessPolicyAction, Resource: v1alpha1.ProvenanceDataAccessPolicyResource, ComponentType: v1alpha1.ProcessGroupType},
+					{Type: v1alpha1.ComponentAccessPolicyType, Action: v1alpha1.WriteAccessPolicyAction, Resource: v1alpha1.ProvenanceDataAccessPolicyResource, ComponentType: v1alpha1.ProcessGroupType},
+					{Type: v1alpha1.ComponentAccessPolicyType, Action: v1alpha1.ReadAccessPolicyAction, Resource: v1alpha1.DataAccessPolicyResource, ComponentType: v1alpha1.ProcessGroupType},
+					{Type: v1alpha1.ComponentAccessPolicyType, Action: v1alpha1.WriteAccessPolicyAction, Resource: v1alpha1.DataAccessPolicyResource, ComponentType: v1alpha1.ProcessGroupType},
+				},
+			},
+		},
+	}
+
+	for _, user := range users {
+		if err := k8sutil.Reconcile(log, r.Client, user, r.NifiCluster); err != nil {
+			return errors.WrapIfWithDetails(err, "failed to reconcile resource", "resource", user.GetObjectKind().GroupVersionKind())
+		}
+	}
+
+	for _, group := range groups {
+		if err := k8sutil.Reconcile(log, r.Client, group, r.NifiCluster); err != nil {
+			return errors.WrapIfWithDetails(err, "failed to reconcile resource", "resource", group.GetObjectKind().GroupVersionKind())
 		}
 	}
 

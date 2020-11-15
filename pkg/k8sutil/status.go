@@ -220,6 +220,40 @@ func UpdateCRStatus(c client.Client, cluster *v1alpha1.NifiCluster, state interf
 	return nil
 }
 
+// UpdateRootProcessGroupIdStatus updates the cluster root process group id
+func UpdateRootProcessGroupIdStatus(c client.Client, cluster *v1alpha1.NifiCluster, id string, logger logr.Logger) error {
+	typeMeta := cluster.TypeMeta
+
+	cluster.Status.RootProcessGroupId = id
+
+	err := c.Status().Update(context.Background(), cluster)
+	if apierrors.IsNotFound(err) {
+		err = c.Update(context.Background(), cluster)
+	}
+	if err != nil {
+		if !apierrors.IsConflict(err) {
+			return errors.WrapIf(err, "could not update CR state")
+		}
+		err := c.Get(context.TODO(), types.NamespacedName{
+			Namespace: cluster.Namespace,
+			Name:      cluster.Name,
+		}, cluster)
+		if err != nil {
+			return errors.WrapIf(err, "could not get config for updating status")
+		}
+		cluster.Status.RootProcessGroupId = id
+
+		err = updateClusterStatus(c, cluster)
+		if err != nil {
+			return errors.WrapIf(err, "could not update CR state")
+		}
+	}
+	// update loses the typeMeta of the config that's used later when setting ownerrefs
+	cluster.TypeMeta = typeMeta
+	logger.Info("Root process grout id updated", "id", id)
+	return nil
+}
+
 // UpdateRollingUpgradeState updates the state of the cluster with rolling upgrade info
 func UpdateRollingUpgradeState(c client.Client, cluster *v1alpha1.NifiCluster, time time.Time, logger logr.Logger) error {
 	typeMeta := cluster.TypeMeta

@@ -89,6 +89,26 @@ type NifiClient interface {
 	CreateParameterContextUpdateRequest(contextId string, entity nigoapi.ParameterContextEntity) (*nigoapi.ParameterContextUpdateRequestEntity, error)
 	GetParameterContextUpdateRequest(contextId, id string) (*nigoapi.ParameterContextUpdateRequestEntity, error)
 
+	// User groups func
+	GetUserGroups() ([]nigoapi.UserGroupEntity, error)
+	GetUserGroup(id string) (*nigoapi.UserGroupEntity, error)
+	CreateUserGroup(entity nigoapi.UserGroupEntity) (*nigoapi.UserGroupEntity, error)
+	UpdateUserGroup(entity nigoapi.UserGroupEntity) (*nigoapi.UserGroupEntity, error)
+	RemoveUserGroup(entity nigoapi.UserGroupEntity) error
+
+	// User func
+	GetUsers() ([]nigoapi.UserEntity, error)
+	GetUser(id string) (*nigoapi.UserEntity, error)
+	CreateUser(entity nigoapi.UserEntity) (*nigoapi.UserEntity, error)
+	UpdateUser(entity nigoapi.UserEntity) (*nigoapi.UserEntity, error)
+	RemoveUser(entity nigoapi.UserEntity) error
+
+	// Policies func
+	GetAccessPolicy(action, resource string) (*nigoapi.AccessPolicyEntity, error)
+	CreateAccessPolicy(entity nigoapi.AccessPolicyEntity) (*nigoapi.AccessPolicyEntity, error)
+	UpdateAccessPolicy(entity nigoapi.AccessPolicyEntity) (*nigoapi.AccessPolicyEntity, error)
+	RemoveAccessPolicy(entity nigoapi.AccessPolicyEntity) error
+
 	Build() error
 }
 

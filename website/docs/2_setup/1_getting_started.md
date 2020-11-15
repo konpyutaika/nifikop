@@ -98,41 +98,13 @@ helm install --name cert-manager \
 
 ## Installation
 
-We recommend to use a **custom StorageClass** to leverage the volume binding mode `WaitForFirstConsumer`
-
-```bash
-apiVersion: storage.k8s.io/v1
-kind: StorageClass
-metadata:
-  name: exampleStorageclass
-parameters:
-  type: pd-standard
-provisioner: kubernetes.io/gce-pd
-reclaimPolicy: Delete
-volumeBindingMode: WaitForFirstConsumer
-```
-
-:::tip
-Remember to set your NiFiCluster CR properly to use the newly created StorageClass.
-:::
-
-
-1. Set `KUBECONFIG` pointing towards your cluster
-2. Run `make deploy` (deploys the operator in the current namespace into the cluster)
-3. Set your NiFi configurations in a Kubernetes custom resource (sample: `config/samples/simplenificluster.yaml`) and run this command to deploy the NiFi components:
-
-```bash
-# Add your zookeeper svc name to the configuration
-kubectl create -n nifi -f config/samples/simplenificluster.yaml
-```
-
 ## Installing with Helm
 
 You can deploy the operator using a Helm chart [Helm chart](https://github.com/Orange-OpenSource/nifikop/tree/master/helm):
 
 > To install  an other version of the operator use `helm install --name=nifikop --namespace=nifi --set operator.image.tag=x.y.z orange-incubator/nifikop`
 
-First, eploy the NiFiKop crds : 
+In the case where you don't want to deploy the crds using helm (`--skip-crds`) or you are using a version of kubernetes that is under 1.16, you have to deploy manually the crds :
 
 <Tabs
   defaultValue="k8s16+"
@@ -146,6 +118,7 @@ First, eploy the NiFiKop crds :
 ```bash
 kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/v1/nifi.orange.com_nificlusters_crd.yaml
 kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/v1/nifi.orange.com_nifiusers_crd.yaml
+kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/v1/nifi.orange.com_nifiusergroups_crd.yaml
 kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/v1/nifi.orange.com_nifidataflows_crd.yaml
 kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/v1/nifi.orange.com_nifiparametercontexts_crd.yaml
 kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/v1/nifi.orange.com_nifiregistryclients_crd.yaml
@@ -157,6 +130,7 @@ kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/mas
 ```bash
 kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/v1beta1/nifi.orange.com_nificlusters_crd.yaml
 kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/v1beta1/nifi.orange.com_nifiusers_crd.yaml
+kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/v1beta1/nifi.orange.com_nifiusergroups_crd.yaml
 kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/v1beta1/nifi.orange.com_nifidataflows_crd.yaml
 kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/v1beta1/nifi.orange.com_nifiparametercontexts_crd.yaml
 kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/v1beta1/nifi.orange.com_nifiregistryclients_crd.yaml
@@ -181,17 +155,53 @@ helm repo add orange-incubator https://orange-kubernetes-charts-incubator.storag
 
 ```bash
 # You have to create the namespace before executing following command
-helm install nifikop --namespace=nifi orange-incubator/nifikop
+helm install nifikop \
+    orange-incubator/nifikop \
+    --namespace=nifi \
+    --set resources.requests.memory=256Mi \
+    --set resources.requests.cpu=250m \
+    --set resources.limits.memory=256Mi \
+    --set resources.limits.cpu=250m \
+    --set namespaces={"nifi"}
 ```
 
 </TabItem>
 <TabItem value="helm">
 
 ```bash
-helm install --name=nifikop --namespace=nifi orange-incubator/nifikop
+helm install --name=nifikop \
+    orange-incubator/nifikop \
+    --namespace=nifi \
+    --set resources.requests.memory=256Mi \
+    --set resources.requests.cpu=250m \
+    --set resources.limits.memory=256Mi \
+    --set resources.limits.cpu=250m \
+    --set namespaces={"nifi"}
 ```
 </TabItem>
 </Tabs>
+
+## Create custom storage class
+
+We recommend to use a **custom StorageClass** to leverage the volume binding mode `WaitForFirstConsumer`
+
+```bash
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: exampleStorageclass
+parameters:
+  type: pd-standard
+provisioner: kubernetes.io/gce-pd
+reclaimPolicy: Delete
+volumeBindingMode: WaitForFirstConsumer
+```
+
+:::tip
+Remember to set your NiFiCluster CR properly to use the newly created StorageClass.
+:::
+
+## Deploy NiFi cluster
 
 And after you can deploy a simple NiFi cluster.
 

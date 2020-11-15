@@ -19,6 +19,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/Orange-OpenSource/nifikop/pkg/nificlient"
 	"github.com/go-logr/logr"
 	"github.com/Orange-OpenSource/nifikop/pkg/apis/nifi/v1alpha1"
 	"github.com/Orange-OpenSource/nifikop/pkg/resources/templates"
@@ -54,9 +55,9 @@ const (
 
 func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev1.PersistentVolumeClaim, log logr.Logger) runtime.Object {
 
-	zkAddresse := r.NifiCluster.Spec.ZKAddresse
-	zkHostname := zk.GetHostnameAddress(zkAddresse)
-	zkPort := zk.GetPortAddress(zkAddresse)
+	zkAddress := r.NifiCluster.Spec.ZKAddress
+	zkHostname := zk.GetHostnameAddress(zkAddress)
+	zkPort := zk.GetPortAddress(zkAddress)
 
 	// ContainersPorts initialization
 	nifiNodeContainersPorts := r.generateContainerPortForInternalListeners()
@@ -134,9 +135,7 @@ func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev
 	requestClusterStatus := fmt.Sprintf("curl --fail -v http://%s/nifi-api/controller/cluster > $NIFI_BASE_DIR/cluster.state",
 		nifiutil.GenerateNiFiAddressFromCluster(r.NifiCluster))
 
-	if r.NifiCluster.Spec.ListenersConfig.SSLSecrets != nil &&
-		r.NifiCluster.Spec.ClusterSecure &&
-		r.NifiCluster.Spec.SiteToSiteSecure {
+	if nificlient.UseSSL(r.NifiCluster) {
 		requestClusterStatus = fmt.Sprintf(
 			"curl --fail -kv --cert /var/run/secrets/java.io/keystores/client/tls.crt --key /var/run/secrets/java.io/keystores/client/tls.key https://%s/nifi-api/controller/cluster > $NIFI_BASE_DIR/cluster.state",
 			nifiutil.GenerateNiFiAddressFromCluster(r.NifiCluster))
@@ -218,7 +217,7 @@ until nc -vzw 1 %s %s; do
 	echo "waiting for zookeeper..."
 	sleep 2
 done`,
-						zkAddresse, zkHostname, zkPort)},
+						zkAddress, zkHostname, zkPort)},
 					Resources: generateInitContainerResources(),
 				},
 			}...),
@@ -285,7 +284,7 @@ done`,
 					Env: []corev1.EnvVar{
 						{
 							Name:  "NIFI_ZOOKEEPER_CONNECT_STRING",
-							Value: zkAddresse,
+							Value: zkAddress,
 						},
 						{
 							Name: "POD_IP",

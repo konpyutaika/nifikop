@@ -50,7 +50,7 @@ func ClusterConfig(client client.Client, cluster *v1alpha1.NifiCluster) (*NifiCo
 	conf.NifiURI = nifi.GenerateNiFiAddressFromCluster(cluster)
 	conf.OperationTimeout = nifiDefaultTimeout
 
-	if cluster.Spec.ListenersConfig.SSLSecrets != nil && useSSL(cluster) {
+	if cluster.Spec.ListenersConfig.SSLSecrets != nil && UseSSL(cluster) {
 		tlsConfig, err := pki.GetPKIManager(client, cluster).GetControllerTLSConfig()
 		if err != nil {
 			return conf, err
@@ -61,8 +61,8 @@ func ClusterConfig(client client.Client, cluster *v1alpha1.NifiCluster) (*NifiCo
 	return conf, nil
 }
 
-func useSSL(cluster *v1alpha1.NifiCluster) bool {
-	return cluster.Spec.ClusterSecure
+func UseSSL(cluster *v1alpha1.NifiCluster) bool {
+	return cluster.Spec.ListenersConfig.SSLSecrets != nil
 }
 
 func generateNodesAddress(cluster *v1alpha1.NifiCluster) map[int32]string {

@@ -5,7 +5,7 @@ metadata:
   namespace: nifi
 spec:
   headlessServiceEnabled: true
-  zkAddresse: "zookeeper.zookeeper:2181"
+  zkAddress: "zookeeper.zookeeper:2181"
   zkPath: "/securednificluster"
   clusterImage: "apache/nifi:1.11.4"
   clusterSecure: true

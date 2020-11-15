@@ -78,6 +78,7 @@ rules:
   - nifi.orange.com
   resources:
   - "nifiusers"
+  - "nifiusergroups"
   - "nificlusters"
   - "nifidataflows"
   - "nifiregistryclients"
@@ -111,6 +112,7 @@ rules:
   - nifi.orange.com
   resources:
   - nifiusers/status
+  - nifiusergroups/status
   - nificlusters/status
   - nifidataflows/status
   - nifiregistryclients/status
@@ -119,6 +121,18 @@ rules:
   - get
   - update
   - patch
+- apiGroups:
+  - policy
+  resources:
+  - poddisruptionbudgets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
 ---
 {{- end}}
 {{- end}}

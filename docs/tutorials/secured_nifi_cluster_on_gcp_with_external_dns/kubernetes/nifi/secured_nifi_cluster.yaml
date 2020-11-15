@@ -8,7 +8,7 @@ spec:
     headlessEnabled: true
     annotations:
       external-dns.alpha.kubernetes.io/ttl: "5"
-  zkAddresse: "zookeeper.zookeeper:2181"
+  zkAddress: "zookeeper.zookeeper:2181"
   zkPath: "/sec"
   clusterImage: "apache/nifi:1.11.4"
   clusterSecure: true

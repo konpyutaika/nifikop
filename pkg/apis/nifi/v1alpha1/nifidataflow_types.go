@@ -125,3 +125,18 @@ type NifiDataflowList struct {
 func init() {
 	SchemeBuilder.Register(&NifiDataflow{}, &NifiDataflowList{})
 }
+
+func (d *NifiDataflowSpec) GetRunOnce() bool {
+	if d.RunOnce != nil {
+		return *d.RunOnce
+	}
+	return true
+}
+
+func (d *NifiDataflowSpec) GetParentProcessGroupID(cluster *NifiCluster) string {
+	if d.ParentProcessGroupID == "" {
+		return cluster.Status.RootProcessGroupId
+	}
+	return d.ParentProcessGroupID
+}
+

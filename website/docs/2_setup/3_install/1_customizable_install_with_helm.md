@@ -13,10 +13,17 @@ import TabItem from '@theme/TabItem';
 
 ## Introduction
 
-The Helm chart install NiFiKop the Orange's Nifi Kubernetes operator to create/configure/manage NiFi 
+This Helm chart install NiFiKop the Orange's Nifi Kubernetes operator to create/configure/manage NiFi 
 clusters in a Kubernetes Namespace.
-It will uses a Custom Ressource Definition CRD: `nificlusters.nifi.orange.com`, 
-which implements a `NifiCluster` kubernetes custom ressource definition.
+
+It will use Custom Ressources Definition CRDs:
+ 
+- `nificlusters.nifi.orange.com`, 
+- `nifiusers.nifi.orange.com`, 
+- `nifiusergroups.nifi.orange.com`, 
+- `nifiregistryclients.nifi.orange.com`, 
+- `nifiparametercontexts.nifi.orange.com`, 
+- `nifidataflows.nifi.orange.com`, 
 
 ### Configuration
 
@@ -41,16 +48,47 @@ Specify each parameter using the `--set key=value[,key=value]` argument to `helm
 Alternatively, a YAML file that specifies the values for the above parameters can be provided while installing the chart. For example,
 
 ```console
-$ helm install --name nifikop orange-incubator/nifikop -f values.yaml
+$ helm install nifikop \
+      orange-incubator/nifikop \
+      -f values.yaml
 ```
 
 ### Installing the Chart
 
 :::important Helm 3 users
-You need to manually install the crds beforehand
-```console
-kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/nifi.orange.com_nificlusters_crd.yaml
+In the case where you don't want to deploy the crds using helm (`--skip-crds`) or you are using a version of kubernetes that is under 1.16, you need to deploy manually the crds beforehand:
+
+<Tabs
+  defaultValue="k8s16+"
+  values={[
+    { label: 'k8s version 1.16+', value: 'k8s16+', },
+    { label: 'k8s previous versions', value: 'k8sprev', },
+  ]
+}>
+<TabItem value="k8s16+">
+
+```bash
+kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/v1/nifi.orange.com_nificlusters_crd.yaml
+kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/v1/nifi.orange.com_nifiusers_crd.yaml
+kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/v1/nifi.orange.com_nifiusergroups_crd.yaml
+kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/v1/nifi.orange.com_nifidataflows_crd.yaml
+kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/v1/nifi.orange.com_nifiparametercontexts_crd.yaml
+kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/v1/nifi.orange.com_nifiregistryclients_crd.yaml
 ```
+
+</TabItem>
+<TabItem value="k8sprev">
+
+```bash
+kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/v1beta1/nifi.orange.com_nificlusters_crd.yaml
+kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/v1beta1/nifi.orange.com_nifiusers_crd.yaml
+kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/v1beta1/nifi.orange.com_nifiusergroups_crd.yaml
+kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/v1beta1/nifi.orange.com_nifidataflows_crd.yaml
+kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/v1beta1/nifi.orange.com_nifiparametercontexts_crd.yaml
+kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/v1beta1/nifi.orange.com_nifiregistryclients_crd.yaml
+```
+</TabItem>
+</Tabs>
 ::: 
 
 <Tabs
@@ -64,20 +102,24 @@ kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/mas
 <TabItem value="dryrun">
 
 ```bash
-helm install --dry-run --debug.enabled orange-incubator/nifikop --set debug.enabled=true --name nifikop
+helm install nifikop orange-incubator/nifikop \
+    --dry-run \
+    --debug.enabled \
+    --set debug.enabled=true \
+    --set namespaces={"nifikop"}
 ```
 </TabItem>
 <TabItem value="rn">
 
 ```bash
-helm install --name nifikop orange-incubator/nifikop
+helm install nifikop orange-incubator/nifikop --set namespaces={"nifikop"}
 ```
 </TabItem>
 
 <TabItem value="set-params">
 
 ```bash
-helm install --name nifikop orange-incubator/nifikop
+helm install nifikop orange-incubator/nifikop --set namespaces={"nifikop"}
 ```
 </TabItem>
 </Tabs>
@@ -102,7 +144,7 @@ If you want to delete the operator from your Kubernetes cluster, the operator de
 should be deleted.
 
 ```
-$ helm delete nifikop
+$ helm del nifikop
 ```
 
 The command removes all the Kubernetes components associated with the chart and deletes the helm release.
@@ -115,6 +157,11 @@ Manually delete the CRD:
 
 ```
 kubectl delete crd nificlusters.nifi.orange.com
+kubectl delete crd nifiusers.nifi.orange.com
+kubectl delete crd nifiusergroups.nifi.orange.com
+kubectl delete crd nifiregistryclients.nifi.orange.com
+kubectl delete crd nifiparametercontexts.nifi.orange.com
+kubectl delete crd nifidataflows.nifi.orange.com
 ```
 
 :::warning
@@ -152,18 +199,11 @@ helm delete --purge nifikop
 
 ### Install of the CRD
 
-By default, the chart will install via a helm hook the NifiCluster CRD, but this installation is global for the whole
-cluster, and you may deploy a chart with an existing CRD already deployed.
+By default, the chart will install the CRDs, but this installation is global for the whole
+cluster, and you may want to not modify the already deployed CRDs.
 
-In that case you can get an error like :
-
-```
-$ helm install --name nifikop ./helm/nifikop
-Error: customresourcedefinitions.apiextensions.k8s.io "nificlusters.nifi.orange.com" already exists
-```
-
-In this case there si a parameter to say to not uses the hook to install the CRD :
+In this case there is a parameter to say to not install the CRDs :
 
 ```
-$ helm install --name nifikop ./helm/nifikop --no-hooks
+$ helm install --name nifikop ./helm/nifikop --set namespaces={"nifikop"} --skip-crds
 ```

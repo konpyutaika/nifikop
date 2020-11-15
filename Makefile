@@ -109,6 +109,8 @@ generate:
 	mv deploy/crds/nifi* deploy/crds/v1
 	operator-sdk generate crds --crd-version v1beta1
 	mv deploy/crds/nifi* deploy/crds/v1beta1
+	mkdir -p helm/nifikop/crds
+	cp deploy/crds/v1/* helm/nifikop/crds
 
 # Build nifikop executable file in local go env
 .PHONY: build

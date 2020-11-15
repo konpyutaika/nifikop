@@ -16,10 +16,6 @@ ReadOnlyConfig object specifies the read-only type Nifi config cluster wide, all
       # on template and configurations.
       overrideConfigs: |
         nifi.ui.banner.text=NiFiKop by Orange
-      # Site to Site properties Secure mode : https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#site_to_site_properties
-      siteToSiteSecure: false
-      # Cluster nodes secure mode : https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#cluster_common_properties
-      clusterSecure: false
       # A comma separated list of allowed HTTP Host header values to consider when NiFi
       # is running securely and will be receiving requests to a different host[:port] than it is bound to.
       # https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#web-properties
@@ -65,8 +61,6 @@ ReadOnlyConfig object specifies the read-only type Nifi config cluster wide, all
 |Field|Type|Description|Required|Default|
 |-----|----|-----------|--------|--------|
 |overrideConfigs|string|Additionnals nifi.properties configuration that will override the one produced based on template and configurations.|No|""|
-|siteToSiteSecure|boolean|Site to Site properties Secure mode : [site_to_site_properties](https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#site_to_site_properties).|No|""|
-|clusterSecure|boolean|Cluster nodes secure mode : [cluster_common_properties](https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#cluster_common_properties).|No|""|
 |webProxyHosts|\[ \]string| A list of allowed HTTP Host header values to consider when NiFi is running securely and will be receiving requests to a different host[:port] than it is bound to. [web-properties](https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#web-properties)|No|""|
 |needClientAuth|boolean|Nifi security client auth.|No|false|
 |authorizer|string|Indicates which of the configured authorizers in the authorizers.xml file to use [authorizer-configuration](https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#authorizer-configuration)|No|"managed-authorizer"|
