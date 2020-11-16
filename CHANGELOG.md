@@ -2,10 +2,23 @@
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed Bugs
+
+## v0.4.0-alpha-release
+
+### Added
+
 - [PR #41](https://github.com/Orange-OpenSource/nifikop/pull/41) - **[Operator/NifiUser]** Manage NiFi's users into NiFi Cluster
 - [PR #41](https://github.com/Orange-OpenSource/nifikop/pull/41) - **[Operator/NifiUserGroup]** Manage NiFi's user groups into NiFi Cluster
 - [PR #41](https://github.com/Orange-OpenSource/nifikop/pull/41) - **[Operator]** Manage NiFi's access policies
 - [PR #41](https://github.com/Orange-OpenSource/nifikop/pull/41) - **[Operator/NifiCluster]** Create three defaults groups : admins, readers, nodes
+- [PR #41](https://github.com/Orange-OpenSource/nifikop/pull/41) - **[Operator/NifiCluster]** Add pod disruption budget support
 
 
 ### Changed
@@ -13,8 +26,6 @@
 - [PR #41](https://github.com/Orange-OpenSource/nifikop/pull/41) - **[Helm Chart]** Add CRDs
 - [PR #41](https://github.com/Orange-OpenSource/nifikop/pull/41) - **[Operator/NifiCluster]** Manage default process group id if not defined, using the root process group one.
 - [PR #41](https://github.com/Orange-OpenSource/nifikop/pull/41) - **[Operator/NifiCluster]** Rename `zkAddresse` to `zkAddress`
-
-### Deprecated
 
 ### Removed
 

@@ -141,7 +141,7 @@ Install the Helm chart.
 
 ```bash
 helm install skeleton ./helm/nifikop \
-    --set image.tag=v0.3.1-release \
+    --set image.tag=v0.4.0-alpha-release \
     --namesapce-{"nifikop"}
 ```
 
