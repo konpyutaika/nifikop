@@ -127,10 +127,10 @@ type AccessPolicy struct {
 	// +kubebuilder:validation:Enum={"global","component"}
 	// type defines the kind of access policy, could be "global" or "component".
 	Type AccessPolicyType `json:"type"`
-	// +kubebuilder:validation:Enum={"global","component"}
+	// +kubebuilder:validation:Enum={"read","write"}
 	// action defines the kind of action that will be granted, could be "read" or "write"
 	Action AccessPolicyAction `json:"action"`
-	// +kubebuilder:validation:Enum={"/flow","/controller","/parameter-context","/provenance","/restricted-components","/policies","/tenants","/site-to-site","/proxy","/counters","/","/operation","/provenance-data","/data","/policies","/data-transfer"}
+	// +kubebuilder:validation:Enum={"/system","/flow","/controller","/parameter-context","/provenance","/restricted-components","/policies","/tenants","/site-to-site","/proxy","/counters","/","/operation","/provenance-data","/data","/policies","/data-transfer"}
 	// resource defines the kind of resource targeted by this access policies, please refer to the following page :
 	// https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#access-policies
 	Resource AccessPolicyResource `json:"resource"`
