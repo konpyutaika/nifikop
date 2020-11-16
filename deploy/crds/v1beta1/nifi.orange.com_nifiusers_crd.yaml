@@ -40,8 +40,8 @@ spec:
                     description: action defines the kind of action that will be granted,
                       could be "read" or "write"
                     enum:
-                    - global
-                    - component
+                    - read
+                    - write
                     type: string
                   componentId:
                     description: componentId is used if the type is "component", it's
@@ -57,6 +57,7 @@ spec:
                     description: 'resource defines the kind of resource targeted by
                       this access policies, please refer to the following page : https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#access-policies'
                     enum:
+                    - /system
                     - /flow
                     - /controller
                     - /parameter-context

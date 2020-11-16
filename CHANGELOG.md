@@ -10,7 +10,14 @@
 
 ### Fixed Bugs
 
-## v0.4.1-alpha-release
+## v0.4.2-alpha-release
+
+### Fixed Bugs
+
+## v0.4.2-alpha-release
+
+- [PR #41](https://github.com/Orange-OpenSource/nifikop/pull/42) - **[Operator]** Access policies enum type list
+
 
 ### Added
 
