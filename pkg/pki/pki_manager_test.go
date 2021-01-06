@@ -19,7 +19,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/Orange-OpenSource/nifikop/pkg/apis/nifi/v1alpha1"
+	"github.com/Orange-OpenSource/nifikop/api/v1alpha1"
 	"github.com/go-logr/logr"
 	"k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/controller-runtime/pkg/client"

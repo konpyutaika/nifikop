@@ -17,11 +17,12 @@ package nifi
 import (
 	"bytes"
 	"fmt"
+	runtimeClient "sigs.k8s.io/controller-runtime/pkg/client"
 	"sort"
 	"strings"
 	"text/template"
 
-	"github.com/Orange-OpenSource/nifikop/pkg/apis/nifi/v1alpha1"
+	"github.com/Orange-OpenSource/nifikop/api/v1alpha1"
 	"github.com/Orange-OpenSource/nifikop/pkg/nificlient"
 	"github.com/Orange-OpenSource/nifikop/pkg/resources/templates"
 	"github.com/Orange-OpenSource/nifikop/pkg/resources/templates/config"
@@ -31,10 +32,9 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/imdario/mergo"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 )
 
-func (r *Reconciler) configMap(id int32, nodeConfig *v1alpha1.NodeConfig, serverPass, clientPass string, superUsers []string, log logr.Logger) runtime.Object {
+func (r *Reconciler) configMap(id int32, nodeConfig *v1alpha1.NodeConfig, serverPass, clientPass string, superUsers []string, log logr.Logger) runtimeClient.Object {
 	configMap := &corev1.ConfigMap{
 		ObjectMeta: templates.ObjectMeta(
 			fmt.Sprintf(templates.NodeConfigTemplate+"-%d", r.NifiCluster.Name, id),
@@ -96,7 +96,6 @@ func (r Reconciler) generateNifiPropertiesNodeConfig(id int32, nodeConfig *v1alp
 	if err := mergo.Merge(&completeConfigMap, util.ParsePropertiesFormat(r.getNifiPropertiesConfigString(nodeConfig, id, serverPass, clientPass, superUsers, log))); err != nil {
 		log.Error(err, "error occurred during merging operator generated configs")
 	}
-
 
 	completeConfig := []string{}
 
@@ -230,8 +229,7 @@ func (r *Reconciler) getZookeeperPropertiesConfigString(nConfig *v1alpha1.NodeCo
 
 	var out bytes.Buffer
 	t := template.Must(template.New("nConfig-config").Parse(config.ZookeeperPropertiesTemplate))
-	if err := t.Execute(&out, map[string]interface{}{
-	}); err != nil {
+	if err := t.Execute(&out, map[string]interface{}{}); err != nil {
 		log.Error(err, "error occurred during parsing the config template")
 	}
 	return out.String()
@@ -335,12 +333,12 @@ func (r *Reconciler) getAuthorizersConfigString(nConfig *v1alpha1.NodeConfig, id
 	t := template.Must(template.New("nConfig-config").Parse(authorizersTemplate))
 
 	if err := t.Execute(&out, map[string]interface{}{
-		"NifiCluster":      r.NifiCluster,
-		"Id":               id,
-		"ClusterName":      r.NifiCluster.Name,
-		"Namespace":        r.NifiCluster.Namespace,
-		"NodeList":         nodeList,
-		"ControllerUser":   fmt.Sprintf(pkicommon.NodeControllerFQDNTemplate,
+		"NifiCluster": r.NifiCluster,
+		"Id":          id,
+		"ClusterName": r.NifiCluster.Name,
+		"Namespace":   r.NifiCluster.Namespace,
+		"NodeList":    nodeList,
+		"ControllerUser": fmt.Sprintf(pkicommon.NodeControllerFQDNTemplate,
 			fmt.Sprintf(pkicommon.NodeControllerTemplate, r.NifiCluster.Name),
 			r.NifiCluster.Namespace,
 			r.NifiCluster.Spec.ListenersConfig.GetClusterDomain()),

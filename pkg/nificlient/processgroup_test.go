@@ -204,8 +204,8 @@ func MockProcessGroup(id, name, parentPGId, registryId, bucketId, flowId string,
 	return nigoapi.ProcessGroupEntity{
 		Id: id,
 		Component: &nigoapi.ProcessGroupDto{
-			Name: name,
-			ParentGroupId: parentPGId,
+			Name:                      name,
+			ParentGroupId:             parentPGId,
 			VersionControlInformation: MockVersionControlInformationDto(id, registryId, bucketId, flowId, flowVersion),
 		},
 		Revision: &nigoapi.RevisionDto{Version: &version},

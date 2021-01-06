@@ -1,0 +1,20 @@
+# permissions for end users to view nifidataflows.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: nifidataflow-viewer-role
+rules:
+- apiGroups:
+  - nifi.orange.com
+  resources:
+  - nifidataflows
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - nifi.orange.com
+  resources:
+  - nifidataflows/status
+  verbs:
+  - get

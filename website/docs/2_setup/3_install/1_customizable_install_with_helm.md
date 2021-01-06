@@ -9,7 +9,7 @@ import TabItem from '@theme/TabItem';
 ## Prerequisites
 
 - Perform any necessary [plateform-specific setup](/nifikop/docs/2_setup/2_platform_setup/1_gke)
-- [Install a Helm client](https://github.com/helm/helm#install) with a version higher than 2.10
+- [Install a Helm client](https://github.com/helm/helm#install) with a version higher than 3
 
 ## Introduction
 
@@ -55,40 +55,18 @@ $ helm install nifikop \
 
 ### Installing the Chart
 
-:::important Helm 3 users
-In the case where you don't want to deploy the crds using helm (`--skip-crds`) or you are using a version of kubernetes that is under 1.16, you need to deploy manually the crds beforehand:
-
-<Tabs
-  defaultValue="k8s16+"
-  values={[
-    { label: 'k8s version 1.16+', value: 'k8s16+', },
-    { label: 'k8s previous versions', value: 'k8sprev', },
-  ]
-}>
-<TabItem value="k8s16+">
+:::important Skip CRDs
+In the case where you don't want to deploy the crds using helm (`--skip-crds`) you need to deploy manually the crds beforehand:
 
 ```bash
-kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/v1/nifi.orange.com_nificlusters_crd.yaml
-kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/v1/nifi.orange.com_nifiusers_crd.yaml
-kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/v1/nifi.orange.com_nifiusergroups_crd.yaml
-kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/v1/nifi.orange.com_nifidataflows_crd.yaml
-kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/v1/nifi.orange.com_nifiparametercontexts_crd.yaml
-kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/v1/nifi.orange.com_nifiregistryclients_crd.yaml
+kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/config/crd/bases/nifi.orange.com_nificlusters.yaml
+kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/config/crd/bases/nifi.orange.com_nifiusers.yaml
+kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/config/crd/bases/nifi.orange.com_nifiusergroups.yaml
+kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/config/crd/bases/nifi.orange.com_nifidataflows.yaml
+kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/config/crd/bases/nifi.orange.com_nifiparametercontexts.yaml
+kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/config/crd/bases/nifi.orange.com_nifiregistryclients.yaml
 ```
 
-</TabItem>
-<TabItem value="k8sprev">
-
-```bash
-kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/v1beta1/nifi.orange.com_nificlusters_crd.yaml
-kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/v1beta1/nifi.orange.com_nifiusers_crd.yaml
-kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/v1beta1/nifi.orange.com_nifiusergroups_crd.yaml
-kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/v1beta1/nifi.orange.com_nifidataflows_crd.yaml
-kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/v1beta1/nifi.orange.com_nifiparametercontexts_crd.yaml
-kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/v1beta1/nifi.orange.com_nifiregistryclients_crd.yaml
-```
-</TabItem>
-</Tabs>
 ::: 
 
 <Tabs
@@ -112,7 +90,7 @@ helm install nifikop orange-incubator/nifikop \
 <TabItem value="rn">
 
 ```bash
-helm install nifikop orange-incubator/nifikop --set namespaces={"nifikop"}
+helm install <release name> orange-incubator/nifikop 
 ```
 </TabItem>
 
@@ -144,7 +122,7 @@ If you want to delete the operator from your Kubernetes cluster, the operator de
 should be deleted.
 
 ```
-$ helm del nifikop
+helm del nifikop
 ```
 
 The command removes all the Kubernetes components associated with the chart and deletes the helm release.
@@ -167,7 +145,7 @@ kubectl delete crd nifidataflows.nifi.orange.com
 :::warning
 If you delete the CRD then
 It will delete **ALL** Clusters that has been created using this CRD!!!
-Please never delete a CRD without very very good care
+Please never delete a CRD without very good care
 :::
 
 Helm always keeps records of what releases happened. Need to see the deleted releases ? 

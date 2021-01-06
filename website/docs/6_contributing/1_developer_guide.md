@@ -10,26 +10,11 @@ sidebar_label: Developer guide
 
 NiFiKop has been validated with :
 
-- [dep](dep_tool) version v0.5.1+.
-- [go](go_tool) version v1.13+.
-- [docker](docker_tool) version 18.09+.
-- [kubectl](kubectl_tool) version v1.13.3+.
-- [Helm](https://helm.sh/) version v2.12.2.
-- [Operator sdk](https://github.com/operator-framework/operator-sdk) version v0.18.2 
-
-### Install the Operator SDK CLI
-
-First, checkout and install the operator-sdk CLI:
-
-```bash
-mkdir -p $GOPATH/src/github.com/operator-framework/
-cd $GOPATH/src/github.com/operator-framework/
-git clone https://github.com/operator-framework/operator-sdk.git
-cd operator-sdk
-git checkout v1.18.0
-make tidy
-make install
-```
+- [go](go_tool) version v1.15+.
+- [docker](docker_tool) version 18.09+
+- [kubectl](kubectl_tool) version v1.16+
+- [Helm](https://helm.sh/) version v3.4.2
+- [Operator sdk](https://github.com/operator-framework/operator-sdk) version v1.3.0
 
 ### Initial setup
 
@@ -40,6 +25,10 @@ git clone https://github.com/Orange-OpenSource/nifikop.git
 cd nifikop
 ```
 
+### Operator sdk 
+
+The full list of command is available here : https://sdk.operatorframework.io/docs/upgrading-sdk-version/v1.0.0/#cli-changes
+
 ### Build NiFiKop
 
 #### Local environment
@@ -48,24 +37,6 @@ If you prefer working directly with your local go environment you can simply use
 
 ```bash
 make build
-```
-
-#### Cross platform build environment
-
-Build the docker image which will be used to build NiFiKop docker image
-
-```bash
-make build-ci-image
-```
-
-:::tip
-If you want to change the operator-sdk version change the **OPERATOR_SDK_VERSION** in the Makefile.
-:::
-
-Then build NiFiKop (code & image)
-
-```bash
-make docker-build
 ```
 
 ### Run NiFiKop
@@ -101,11 +72,11 @@ Set the name of the operator in an environment variable
 Deploy the CRDs.
 
 ```bash
-kubectl apply -f deploy/crds/nifi.orange.com_nificlusters_crd.yaml
-kubectl apply -f deploy/crds/nifi.orange.com_nifidataflows_crd.yaml
-kubectl apply -f deploy/crds/nifi.orange.com_nifiparametercontexts_crd.yaml
-kubectl apply -f deploy/crds/nifi.orange.com_nifiregistryclients_crd.yaml
-kubectl apply -f deploy/crds/nifi.orange.com_nifiusers_crd.yaml
+kubectl apply -f config/crd/bases/nifi.orange.com_nificlusters.yaml
+kubectl apply -f config/crd/bases/nifi.orange.com_nifidataflows.yaml
+kubectl apply -f config/crd/bases/nifi.orange.com_nifiparametercontexts.yaml
+kubectl apply -f config/crd/bases/nifi.orange.com_nifiregistryclients.yaml
+kubectl apply -f config/crd/bases/nifi.orange.com_nifiusers.yaml
 ```
 
 And deploy the operator.
@@ -130,7 +101,7 @@ make docker-build
 Push the image to docker hub (or to whichever repo you want to use)
 
 ```bash
-$ make push
+$ make docker-push
 ```
 
 :::info
@@ -142,7 +113,7 @@ Install the Helm chart.
 ```bash
 helm install skeleton ./helm/nifikop \
     --set image.tag=v0.4.2-alpha-release \
-    --namesapce-{"nifikop"}
+    --namespace-{"nifikop"}
 ```
 
 :::important

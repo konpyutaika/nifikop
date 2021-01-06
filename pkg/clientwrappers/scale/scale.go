@@ -16,19 +16,18 @@ package scale
 
 import (
 	"fmt"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"time"
 
-	"github.com/Orange-OpenSource/nifikop/pkg/apis/nifi/v1alpha1"
+	"github.com/Orange-OpenSource/nifikop/api/v1alpha1"
 	"github.com/Orange-OpenSource/nifikop/pkg/clientwrappers"
-	"github.com/Orange-OpenSource/nifikop/pkg/controller/common"
+	"github.com/Orange-OpenSource/nifikop/pkg/common"
 	"github.com/Orange-OpenSource/nifikop/pkg/nificlient"
 	nifiutil "github.com/Orange-OpenSource/nifikop/pkg/util/nifi"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
 
-var log = logf.Log.WithName("scale-methods")
+var log = ctrl.Log.WithName("scale-methods")
 
 // TODO : rework upscale to check that the node is connected before ending operation.
 // UpScaleCluster upscales Nifi cluster

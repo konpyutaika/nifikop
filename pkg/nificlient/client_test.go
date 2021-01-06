@@ -19,12 +19,12 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/Orange-OpenSource/nifikop/api/v1alpha1"
+	"github.com/Orange-OpenSource/nifikop/pkg/errorfactory"
+	nifiutil "github.com/Orange-OpenSource/nifikop/pkg/util/nifi"
 	nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
-	"github.com/Orange-OpenSource/nifikop/pkg/apis/nifi/v1alpha1"
-	"github.com/Orange-OpenSource/nifikop/pkg/errorfactory"
-	nifiutil "github.com/Orange-OpenSource/nifikop/pkg/util/nifi"
 )
 
 var (

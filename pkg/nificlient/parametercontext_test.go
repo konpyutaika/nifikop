@@ -56,7 +56,7 @@ func testGetParameterContext(t *testing.T, id string, status int) (*nigoapi.Para
 func TestCreateParameterContext(t *testing.T) {
 	assert := assert.New(t)
 
-	mockEntity :=  MockParameterContext("16cfd2ec-0174-1000-0000-00004b9b35cc", "test-unit", "unit test",
+	mockEntity := MockParameterContext("16cfd2ec-0174-1000-0000-00004b9b35cc", "test-unit", "unit test",
 		map[string]string{"key1": "value1", "key2": "value2"},
 		map[string]string{"secret1": "value1", "secret2": "value2"})
 
@@ -99,7 +99,7 @@ func testCreateParameterContext(t *testing.T, entity *nigoapi.ParameterContextEn
 func TestRemoveParameterContext(t *testing.T) {
 	assert := assert.New(t)
 
-	mockEntity :=MockParameterContext("16cfd2ec-0174-1000-0000-00004b9b35cc", "test-unit", "unit test",
+	mockEntity := MockParameterContext("16cfd2ec-0174-1000-0000-00004b9b35cc", "test-unit", "unit test",
 		map[string]string{"key1": "value1", "key2": "value2"},
 		map[string]string{"secret1": "value1", "secret2": "value2"})
 
@@ -139,7 +139,7 @@ func testRemoveParameterContext(t *testing.T, entity *nigoapi.ParameterContextEn
 func TestCreateParameterContextUpdateRequest(t *testing.T) {
 	assert := assert.New(t)
 
-	mockEntity :=MockParameterContext("16cfd2ec-0174-1000-0000-00004b9b35cc", "test-unit",
+	mockEntity := MockParameterContext("16cfd2ec-0174-1000-0000-00004b9b35cc", "test-unit",
 		"unit test",
 		map[string]string{"key1": "value1", "key2": "value2"},
 		map[string]string{"secret1": "value1", "secret2": "value2"})
@@ -198,7 +198,7 @@ func TestGetParameterContextUpdateRequest(t *testing.T) {
 	assert.Nil(err)
 	assert.NotNil(entity)
 
-	entity, err = testGetParameterContextUpdateRequest(t, &mockEntity, id,404)
+	entity, err = testGetParameterContextUpdateRequest(t, &mockEntity, id, 404)
 	assert.IsType(ErrNifiClusterReturned404, err)
 	assert.Nil(entity)
 

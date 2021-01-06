@@ -23,23 +23,3 @@ roleRef:
 {{- end }}
 {{- end }}
 ---
- 
-#kind: RoleBinding
-#apiVersion: rbac.authorization.k8s.io/v1
-#metadata:
-#  labels:
-#    app: {{ template "nifikop.name" . }}
-#    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
-#    heritage: {{ .Release.Service }}
-#    release: {{ .Release.Name }}
-#  name: {{ template "nifikop.name" . }}-cert-manager
-#  namespace:
-#subjects:
-#  - kind: ServiceAccount
-#    name: {{ template "nifikop.name" . }}
-#    namespace: {{ .Release.Namespace }}
-#roleRef:
-#  kind: Role
-#  name: {{ template "nifikop.name" . }}
-#  apiGroup: rbac.authorization.k8s.io
-#

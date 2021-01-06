@@ -1,0 +1,27 @@
+# kubectl create secret generic secret-params --from-literal=secret1=yop --from-literal=secret2=yep
+apiVersion: nifi.orange.com/v1alpha1
+kind: NifiParameterContext
+metadata:
+  name: dataflow-lifecycle
+spec:
+  # the Description of the Parameter Context.
+  description: "It is a test"
+  # contains the reference to the NifiCluster with the one the user is linked
+  clusterRef:
+    name: nc
+    namespace: nifikop
+  # a list of secret containing sensitive parameters (the key will name of the parameter)
+  secretRefs:
+    - name: secret-params
+      namespace: nifikop
+  # a list of non-sensitive Parameters.
+  parameters:
+    # the name of the Parameter.
+    - name: test
+      # the value of the Parameter.
+      value: toto
+      # the description of the Parameter.
+      description: tutu
+    - name: test2
+      value: toto
+      description: toto

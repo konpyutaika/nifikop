@@ -18,7 +18,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Orange-OpenSource/nifikop/pkg/apis/nifi/v1alpha1"
+	"github.com/Orange-OpenSource/nifikop/api/v1alpha1"
 	"github.com/Orange-OpenSource/nifikop/pkg/errorfactory"
 	"github.com/Orange-OpenSource/nifikop/pkg/resources/templates"
 	pkicommon "github.com/Orange-OpenSource/nifikop/pkg/util/pki"
@@ -147,7 +147,7 @@ func fullPKI(cluster *v1alpha1.NifiCluster, scheme *runtime.Scheme, externalHost
 			// A cluster issuer backed by the CA certificate - so it can provision secrets
 			// for app in other namespaces
 			mainIssuerForCluster(cluster, scheme),
-		}...
+		}...,
 		)
 	} else {
 		objects = append(objects, []runtime.Object{
@@ -158,7 +158,7 @@ func fullPKI(cluster *v1alpha1.NifiCluster, scheme *runtime.Scheme, externalHost
 			// A issuer backed by the CA certificate - so it can provision secrets
 			// in this namespace
 			mainIssuerForNamespace(cluster, scheme),
-		}...
+		}...,
 		)
 	}
 

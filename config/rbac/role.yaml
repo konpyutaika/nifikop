@@ -1,0 +1,287 @@
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: manager-role
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - namespaces
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - nodes
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - persistentvolumeclaims
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - services
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - cert-manager.io
+  resources:
+  - certificates
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - cert-manager.io
+  resources:
+  - clusterissuers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - cert-manager.io
+  resources:
+  - issuers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - nifi.orange.com
+  resources:
+  - nificlusters
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - nifi.orange.com
+  resources:
+  - nificlusters/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - nifi.orange.com
+  resources:
+  - nificlusters/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - nifi.orange.com
+  resources:
+  - nifidataflows
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - nifi.orange.com
+  resources:
+  - nifidataflows/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - nifi.orange.com
+  resources:
+  - nifidataflows/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - nifi.orange.com
+  resources:
+  - nifiparametercontexts
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - nifi.orange.com
+  resources:
+  - nifiparametercontexts/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - nifi.orange.com
+  resources:
+  - nifiparametercontexts/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - nifi.orange.com
+  resources:
+  - nifiregistryclients
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - nifi.orange.com
+  resources:
+  - nifiregistryclients/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - nifi.orange.com
+  resources:
+  - nifiregistryclients/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - nifi.orange.com
+  resources:
+  - nifiusergroups
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - nifi.orange.com
+  resources:
+  - nifiusergroups/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - nifi.orange.com
+  resources:
+  - nifiusergroups/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - nifi.orange.com
+  resources:
+  - nifiusers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - nifi.orange.com
+  resources:
+  - nifiusers/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - nifi.orange.com
+  resources:
+  - nifiusers/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - policy
+  resources:
+  - poddisruptionbudgets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch

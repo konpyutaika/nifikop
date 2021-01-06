@@ -18,7 +18,7 @@ import (
 	"crypto/tls"
 	"fmt"
 
-	"github.com/Orange-OpenSource/nifikop/pkg/apis/nifi/v1alpha1"
+	"github.com/Orange-OpenSource/nifikop/api/v1alpha1"
 	"github.com/Orange-OpenSource/nifikop/pkg/pki"
 	"github.com/Orange-OpenSource/nifikop/pkg/util"
 	"github.com/Orange-OpenSource/nifikop/pkg/util/nifi"

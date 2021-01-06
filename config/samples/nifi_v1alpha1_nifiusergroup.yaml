@@ -1,0 +1,29 @@
+apiVersion: nifi.orange.com/v1alpha1
+kind: NifiUserGroup
+metadata:
+  name: group-test
+spec:
+  # Contains the reference to the NifiCluster with the one the registry client is linked.
+  clusterRef:
+    name: nc
+    namespace: nifikop
+  # contains the list of reference to NifiUsers that are part to the group.
+  usersRef:
+    - name: nc-0-node.nc-headless.nifikop.svc.cluster.local
+    #      namespace: nifikop
+    - name: nc-controller.nifikop.mgt.cluster.local
+  # defines the list of access policies that will be granted to the group.
+  accessPolicies:
+    # defines the kind of access policy, could be "global" or "component".
+    - type: global
+      # defines the kind of action that will be granted, could be "read" or "write"
+      action: read
+      # resource defines the kind of resource targeted by this access policies, please refer to the following page :
+      #	https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#access-policies
+      resource: /counters
+#      # componentType is used if the type is "component", it's allow to define the kind of component on which is the
+#      # access policy
+#      componentType: "process-groups"
+#      # componentId is used if the type is "component", it's allow to define the id of the component on which is the
+#      # access policy
+#      componentId: ""

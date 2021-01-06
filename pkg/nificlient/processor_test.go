@@ -15,17 +15,17 @@ func TestUpdateProcessorRunStatus(t *testing.T) {
 
 	id := "16cfd2ec-0174-1000-0000-00004b9b35cc"
 
-	mockEntity :=  MockProcessorRunStatus("Stopped")
+	mockEntity := MockProcessorRunStatus("Stopped")
 
-	entity, err := testUpdateProcessorRunStatus(t, mockEntity, id,200)
+	entity, err := testUpdateProcessorRunStatus(t, mockEntity, id, 200)
 	assert.Nil(err)
 	assert.NotNil(entity)
 
-	entity, err = testUpdateProcessorRunStatus(t, mockEntity, id,404)
+	entity, err = testUpdateProcessorRunStatus(t, mockEntity, id, 404)
 	assert.IsType(ErrNifiClusterReturned404, err)
 	assert.Nil(entity)
 
-	entity, err = testUpdateProcessorRunStatus(t, mockEntity, id,500)
+	entity, err = testUpdateProcessorRunStatus(t, mockEntity, id, 500)
 	assert.IsType(ErrNifiClusterNotReturned200, err)
 	assert.Nil(entity)
 }
@@ -57,6 +57,6 @@ func MockProcessorRunStatus(state string) nigoapi.ProcessorRunStatusEntity {
 	var version int64 = 10
 	return nigoapi.ProcessorRunStatusEntity{
 		Revision: &nigoapi.RevisionDto{Version: &version},
-		State: state,
+		State:    state,
 	}
 }

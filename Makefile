@@ -3,9 +3,7 @@ SERVICE_NAME			:= nifikop
 DOCKER_REGISTRY_BASE 	?= orangeopensource
 IMAGE_TAG				?= $(shell git describe --tags --abbrev=0 --match '[0-9].*[0-9].*[0-9]' 2>/dev/null)
 IMAGE_NAME 				?= $(SERVICE_NAME)
-BUILD_IMAGE				?= orangeopensource/nifikop-build
 
-OPERATOR_SDK_VERSION=v0.18.0
 # workdir
 WORKDIR := /go/nifikop
 
@@ -50,115 +48,170 @@ ifeq ($(CIRCLE_BRANCH),master)
 	PUSHLATEST := true
 endif
 
-# Shell to use for running scripts
-SHELL := $(shell which bash)
-
-# Get docker path or an empty string
-DOCKER := $(shell command -v docker)
-
-# Get the main unix group for the user running make (to be used by docker-compose later)
-GID := $(shell id -g)
-
-# Get the unix user id for the user running make (to be used by docker-compose later)
-UID := $(shell id -u)
-
-# Commit hash from git
-COMMIT=$(shell git rev-parse HEAD)
-
-# CMDs
-UNIT_TEST_CMD := KUBERNETES_CONFIG=`pwd`/config/test-kube-config.yaml POD_NAME=test go test --cover --coverprofile=coverage.out `go list ./... | grep -v e2e` > test-report.out
-UNIT_TEST_CMD_WITH_VENDOR := KUBERNETES_CONFIG=`pwd`/config/test-kube-config.yaml POD_NAME=test go test -mod=vendor --cover --coverprofile=coverage.out `go list -mod=vendor ./... | grep -v e2e` > test-report.out
-UNIT_TEST_COVERAGE := go tool cover -html=coverage.out -o coverage.html
-GO_GENERATE_CMD := go generate `go list ./... | grep -v /vendor/`
-GO_LINT_CMD := golint `go list ./... | grep -v /vendor/`
-
-# environment dirs
-DEV_DIR := docker/build-image
-APP_DIR := build/Dockerfile
-
 # The default action of this Makefile is to build the development docker image
 default: build
+all: manager
+
+# Default bundle image tag
+BUNDLE_IMG ?= $(REPOSITORY)-bundle:$(VERSION)
+# Options for 'bundle-build'
+ifneq ($(origin CHANNELS), undefined)
+BUNDLE_CHANNELS := --channels=$(CHANNELS)
+endif
+ifneq ($(origin DEFAULT_CHANNEL), undefined)
+BUNDLE_DEFAULT_CHANNEL := --default-channel=$(DEFAULT_CHANNEL)
+endif
+BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
+
+
+# ----
+# Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
+CRD_OPTIONS ?= "crd:trivialVersions=true,preserveUnknownFields=false"
+
+# Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
+ifeq (,$(shell go env GOBIN))
+GOBIN=$(shell go env GOPATH)/bin
+else
+GOBIN=$(shell go env GOBIN)
+endif
+
+# Build manager binary
+manager: generate fmt vet
+	go build -o bin/manager main.go
+
+# Generate code
+generate: controller-gen
+	@echo "Generate zzz-deepcopy objects"
+	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
+
+# Generate manifests e.g. CRD, RBAC etc.
+manifests: controller-gen
+	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases
+
+# Build the docker image
+docker-build:
+	docker build -t $(REPOSITORY):$(VERSION) .
+
+build: manager manifests docker-build
+
+# Download controller-gen locally if necessary
+CONTROLLER_GEN = $(shell pwd)/bin/controller-gen
+controller-gen:
+	$(call go-get-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@v0.4.1)
+
+# Run go fmt against code
+fmt:
+	go fmt ./...
+
+# Run go vet against code
+vet:
+	go vet ./...
+
+# Run tests
+ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
+test: generate fmt vet manifests
+	mkdir -p ${ENVTEST_ASSETS_DIR}
+	test -f ${ENVTEST_ASSETS_DIR}/setup-envtest.sh || curl -sSLo ${ENVTEST_ASSETS_DIR}/setup-envtest.sh https://raw.githubusercontent.com/kubernetes-sigs/controller-runtime/v0.7.0/hack/setup-envtest.sh
+	source ${ENVTEST_ASSETS_DIR}/setup-envtest.sh; fetch_envtest_tools $(ENVTEST_ASSETS_DIR); setup_envtest_env $(ENVTEST_ASSETS_DIR); go test ./... -coverprofile cover.out; go tool cover -html=cover.out -o coverage.html
+
+test-with-vendor: generate fmt vet manifests
+	mkdir -p ${ENVTEST_ASSETS_DIR}
+	test -f ${ENVTEST_ASSETS_DIR}/setup-envtest.sh || curl -sSLo ${ENVTEST_ASSETS_DIR}/setup-envtest.sh https://raw.githubusercontent.com/kubernetes-sigs/controller-runtime/v0.7.0/hack/setup-envtest.sh
+	source ${ENVTEST_ASSETS_DIR}/setup-envtest.sh; fetch_envtest_tools $(ENVTEST_ASSETS_DIR); setup_envtest_env $(ENVTEST_ASSETS_DIR); go test -mod=vendor ./... -coverprofile cover.out; go tool cover -html=cover.out -o coverage.html
+
+# Run against the configured Kubernetes cluster in ~/.kube/config
+run: generate fmt vet manifests
+	go run ./main.go
+
+# Install CRDs into a cluster
+install: manifests kustomize
+	$(KUSTOMIZE) build config/crd | kubectl apply -f -
+
+# Uninstall CRDs from a cluster
+uninstall: manifests kustomize
+	$(KUSTOMIZE) build config/crd | kubectl delete -f -
+
+# Deploy controller in the configured Kubernetes cluster in ~/.kube/config
+deploy: manifests kustomize
+	cd config/manager && $(KUSTOMIZE) edit set image controller=$(REPOSITORY):$(VERSION)
+	$(KUSTOMIZE) build config/default | kubectl apply -f -
+
+# UnDeploy controller from the configured Kubernetes cluster in ~/.kube/config
+undeploy:
+	$(KUSTOMIZE) build config/default | kubectl delete -f -
+
+# Download kustomize locally if necessary
+KUSTOMIZE = $(shell pwd)/bin/kustomize
+kustomize:
+	$(call go-get-tool,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v3@v3.8.7)
+
+# go-get-tool will 'go get' any package $2 and install it to $1.
+PROJECT_DIR := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
+define go-get-tool
+@[ -f $(1) ] || { \
+set -e ;\
+TMP_DIR=$$(mktemp -d) ;\
+cd $$TMP_DIR ;\
+go mod init tmp ;\
+echo "Downloading $(2)" ;\
+GOBIN=$(PROJECT_DIR)/bin go get $(2) ;\
+rm -rf $$TMP_DIR ;\
+}
+endef
+
+# Generate bundle manifests and metadata, then validate generated files.
+.PHONY: bundle
+bundle: manifests kustomize
+	operator-sdk generate kustomize manifests -q
+	cd config/manager && $(KUSTOMIZE) edit set image controller=$(REPOSITORY):$(VERSION)
+	$(KUSTOMIZE) build config/manifests | operator-sdk generate bundle -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
+	operator-sdk bundle validate ./bundle
+
+# Build the bundle image.
+.PHONY: bundle-build
+bundle-build:
+	docker build -f bundle.Dockerfile -t $(BUNDLE_IMG) .
+
+helm-package:
+	@echo Packaging $(CHART_VERSION)
+ifdef CHART_VERSION
+	    echo $(CHART_VERSION)
+	    helm package --version $(CHART_VERSION) helm/nifikop
+else
+		CHART_VERSION=$(HELM_VERSION)
+	    helm package helm/nifikop
+endif
+	mv nifikop-$(CHART_VERSION).tgz $(HELM_TARGET_DIR)
+	helm repo index $(HELM_TARGET_DIR)/
+
+# Push the docker image
+docker-push:
+	docker push $(REPOSITORY):$(VERSION)
+ifdef PUSHLATEST
+	docker push $(REPOSITORY):latest
+endif
+# ----
 
 .DEFAULT_GOAL := help
 help:
 	@grep -E '(^[a-zA-Z_-]+:.*?##.*$$)|(^##)' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}{printf "\033[32m%-30s\033[0m %s\n", $$1, $$2}' | sed -e 's/\[32m##/[33m/'
-
-get-baseversion:
-	@echo $(BASEVERSION)
 
 get-version:
 	@echo $(VERSION)
 
 clean:
 	@rm -rf $(OUT_BIN) || true
-	@rm -f apis/nificluster/v1alpha1/zz_generated.deepcopy.go || true
+	@rm -f api/v1alpha1/zz_generated.deepcopy.go || true
 
-helm-package:
-	@echo Packaging $(HELM_VERSION)
-	helm package helm/nifikop
-	mv nifikop-$(HELM_VERSION).tgz $(HELM_TARGET_DIR)
-	helm repo index $(HELM_TARGET_DIR)/
+#Generate dep for graph
+UNAME := $(shell uname -s)
 
-.PHONY: generate
-generate:
-	echo "Generate zzz-deepcopy objects"
-	operator-sdk version
-	operator-sdk generate k8s
-	mkdir -p deploy/crds/v1beta1 deploy/crds/v1
-	operator-sdk generate crds
-	mv deploy/crds/nifi* deploy/crds/v1
-	operator-sdk generate crds --crd-version v1beta1
-	mv deploy/crds/nifi* deploy/crds/v1beta1
-	mkdir -p helm/nifikop/crds
-	cp deploy/crds/v1/* helm/nifikop/crds
-
-# Build nifikop executable file in local go env
-.PHONY: build
-build:
-	echo "Generate zzz-deepcopy objects"
-	operator-sdk version
-	operator-sdk generate k8s
-	operator-sdk generate crds
-	echo "Build Nifi Operator"
-	operator-sdk build $(REPOSITORY):$(VERSION) --image-build-args "--build-arg https_proxy=$$https_proxy --build-arg http_proxy=$$http_proxy"
-ifdef PUSHLATEST
-	docker tag $(REPOSITORY):$(VERSION) $(REPOSITORY):latest
+dep-graph:
+ifeq ($(UNAME), Darwin)
+	dep status -dot | dot -T png | open -f -a /Applications/Preview.app
 endif
-
-# Run a shell into the development docker image
-docker-build: ## Build the Operator and it's Docker Image
-	echo "Generate zzz-deepcopy objects"
-	docker run --rm -v $(PWD):$(WORKDIR) -v $(GOPATH)/pkg/mod:/go/pkg/mod \
-		-v $(shell go env GOCACHE):/root/.cache/go-build --env GO111MODULE=on \
-		--env https_proxy=$(https_proxy) --env http_proxy=$(http_proxy) \
-		$(BUILD_IMAGE):$(OPERATOR_SDK_VERSION) /bin/bash -c 'operator-sdk generate k8s'
-	docker run --rm -v $(PWD):$(WORKDIR) -v $(GOPATH)/pkg/mod:/go/pkg/mod \
-		-v $(shell go env GOCACHE):/root/.cache/go-build --env GO111MODULE=on \
-		--env https_proxy=$(https_proxy) --env http_proxy=$(http_proxy) \
-		$(BUILD_IMAGE):$(OPERATOR_SDK_VERSION) /bin/bash -c 'operator-sdk generate crds'
-	echo "Build NiFi Operator. Using cache from "$(shell go env GOCACHE)
-	docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v $(PWD):$(WORKDIR) \
-	-v $(GOPATH)/pkg/mod:/go/pkg/mod -v $(shell go env GOCACHE):/root/.cache/go-build \
-	--env GO111MODULE=on --env https_proxy=$(https_proxy) --env http_proxy=$(http_proxy) \
-	$(BUILD_IMAGE):$(OPERATOR_SDK_VERSION) /bin/bash -c 'operator-sdk build $(REPOSITORY):$(VERSION) \
-	--image-build-args "--build-arg https_proxy=$$https_proxy --build-arg http_proxy=$$http_proxy"'
-ifdef PUSHLATEST
-	docker tag $(REPOSITORY):$(VERSION) $(REPOSITORY):latest
-endif
-
-# Build the docker development environment
-build-ci-image: deps-development
-	docker build --cache-from $(BUILD_IMAGE):latest \
-	  --build-arg OPERATOR_SDK_VERSION=$(OPERATOR_SDK_VERSION) \
-		-t $(BUILD_IMAGE):latest \
-		-t $(BUILD_IMAGE):$(OPERATOR_SDK_VERSION) \
-		-f $(DEV_DIR)/Dockerfile \
-		.
-
-push-ci-image: deps-development
-	docker push $(BUILD_IMAGE):$(OPERATOR_SDK_VERSION)
-ifdef PUSHLATEST
-	docker push $(BUILD_IMAGE):latest
+ifeq ($(UNAME), Linux)
+	dep status -dot | dot -T png | display
 endif
 
 debug-port-forward:
@@ -182,72 +235,3 @@ debug-telepresence:
 
 debug-telepresence-with-alias:
 	$(call debug_telepresence,--also-proxy,10.40.0.0/16)
-
-# Run the development environment (in local go env) in the background using local ~/.kube/config
-run:
-	export POD_NAME=nifikop; \
-	operator-sdk up local
-
-push:
-	docker push $(REPOSITORY):$(VERSION)
-ifdef PUSHLATEST
-	docker push $(REPOSITORY):latest
-endif
-
-tag:
-	git tag $(VERSION)
-
-publish:
-	@COMMIT_VERSION="$$(git rev-list -n 1 $(VERSION))"; \
-	docker tag $(REPOSITORY):"$$COMMIT_VERSION" $(REPOSITORY):$(VERSION)
-	docker push $(REPOSITORY):$(VERSION)
-ifdef PUSHLATEST
-	docker push $(REPOSITORY):latest
-endif
-
-release: tag image publish
-
-# Install CRDS and Deploy controller in
-# the configured Kubernetes cluster in ~/.kube/config
-deploy: generate
-	kubectl apply -f deploy/crds/nifi.orange.com_nificlusters_crd.yaml
-	kubectl apply -f deploy/.
-
-# Test stuff in dev
-docker-unit-test:
-	docker run --env GO111MODULE=on --rm -v $(PWD):$(WORKDIR) -v $(GOPATH)/pkg/mod:/go/pkg/mod -v $(shell go env GOCACHE):/root/.cache/go-build $(BUILD_IMAGE):$(OPERATOR_SDK_VERSION) /bin/bash -c '$(UNIT_TEST_CMD); cat test-report.out; $(UNIT_TEST_COVERAGE)'
-
-docker-unit-test-with-vendor:
-	docker run --env GO111MODULE=on --rm -v $(PWD):$(WORKDIR) -v $(GOPATH)/pkg/mod:/go/pkg/mod -v $(shell go env GOCACHE):/root/.cache/go-build $(BUILD_IMAGE):$(OPERATOR_SDK_VERSION) /bin/bash -c '$(UNIT_TEST_CMD_WITH_VENDOR); cat test-report.out; $(UNIT_TEST_COVERAGE)'
-
-unit-test:
-	$(UNIT_TEST_CMD) && echo "success!" || { echo "failure!"; cat test-report.out; exit 1; }
-	cat test-report.out
-	$(UNIT_TEST_COVERAGE)
-
-unit-test-with-vendor:
-	$(UNIT_TEST_CMD_WITH_VENDOR) && echo "success!" || { echo "failure!"; cat test-report.out; exit 1; }
-	cat test-report.out
-	$(UNIT_TEST_COVERAGE)
-
-# golint is not fully supported by modules yet - https://github.com/golang/lint/issues/409
-go-lint:
-	$(GO_LINT_CMD)
-
-# Test if the dependencies we need to run this Makefile are installed
-deps-development:
-ifndef DOCKER
-	@echo "Docker is not available. Please install docker"
-	@exit 1
-endif
-
-#Generate dep for graph
-UNAME := $(shell uname -s)
-
-dep-graph:
-ifeq ($(UNAME), Darwin)
-	dep status -dot | dot -T png | open -f -a /Applications/Preview.app
-endif
-ifeq ($(UNAME), Linux)
-	dep status -dot | dot -T png | display
-endif

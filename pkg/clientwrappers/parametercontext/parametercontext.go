@@ -1,18 +1,18 @@
 package parametercontext
 
 import (
-	"github.com/Orange-OpenSource/nifikop/pkg/apis/nifi/v1alpha1"
+	"github.com/Orange-OpenSource/nifikop/api/v1alpha1"
 	"github.com/Orange-OpenSource/nifikop/pkg/clientwrappers"
-	"github.com/Orange-OpenSource/nifikop/pkg/controller/common"
+	"github.com/Orange-OpenSource/nifikop/pkg/common"
 	"github.com/Orange-OpenSource/nifikop/pkg/errorfactory"
 	"github.com/Orange-OpenSource/nifikop/pkg/nificlient"
 	nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
 	corev1 "k8s.io/api/core/v1"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
 
-var log = logf.Log.WithName("parametercontext-method")
+var log = ctrl.Log.WithName("parametercontext-method")
 
 func ExistParameterContext(client client.Client, parameterContext *v1alpha1.NifiParameterContext,
 	cluster *v1alpha1.NifiCluster) (bool, error) {
@@ -84,8 +84,7 @@ func SyncParameterContext(
 			parameterContext.Status.LatestUpdateRequest = updateRequest2Status(updateRequest)
 		}
 
-		if err := clientwrappers.ErrorGetOperation(log, err, "Get update-request");
-			err != nificlient.ErrNifiClusterReturned404 {
+		if err := clientwrappers.ErrorGetOperation(log, err, "Get update-request"); err != nificlient.ErrNifiClusterReturned404 {
 			if err != nil {
 				return &parameterContext.Status, err
 			}
@@ -241,8 +240,7 @@ func updateParameterContextEntity(parameterContext *v1alpha1.NifiParameterContex
 	}
 
 	if entity.Component == nil {
-		entity.Component = &nigoapi.ParameterContextDto{
-		}
+		entity.Component = &nigoapi.ParameterContextDto{}
 	}
 
 	var parameters []nigoapi.ParameterEntity

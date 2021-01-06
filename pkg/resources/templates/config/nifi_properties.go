@@ -17,9 +17,9 @@ package config
 import (
 	"fmt"
 
-	"github.com/go-logr/logr"
-	"github.com/Orange-OpenSource/nifikop/pkg/apis/nifi/v1alpha1"
+	"github.com/Orange-OpenSource/nifikop/api/v1alpha1"
 	"github.com/Orange-OpenSource/nifikop/pkg/util/nifi"
+	"github.com/go-logr/logr"
 )
 
 var NifiPropertiesTemplate = `# Licensed to the Apache Software Foundation (ASF) under one or more

@@ -54,7 +54,7 @@ func testGetRegistryClient(t *testing.T, id string, status int) (*nigoapi.Regist
 func TestCreateRegistryClient(t *testing.T) {
 	assert := assert.New(t)
 
-	mockEntity :=  MockRegistryClient("16cfd2ec-0174-1000-0000-00004b9b35cc", "mock", "description", "http://uri:8888")
+	mockEntity := MockRegistryClient("16cfd2ec-0174-1000-0000-00004b9b35cc", "mock", "description", "http://uri:8888")
 
 	entity, err := testCreateRegistryClient(t, &mockEntity, 201)
 	assert.Nil(err)
@@ -95,7 +95,7 @@ func testCreateRegistryClient(t *testing.T, entity *nigoapi.RegistryClientEntity
 func TestUpdateRegistryClient(t *testing.T) {
 	assert := assert.New(t)
 
-	mockEntity :=  MockRegistryClient("16cfd2ec-0174-1000-0000-00004b9b35cc", "mock", "description", "http://uri:8888")
+	mockEntity := MockRegistryClient("16cfd2ec-0174-1000-0000-00004b9b35cc", "mock", "description", "http://uri:8888")
 
 	entity, err := testUpdateRegistryClient(t, &mockEntity, 200)
 	assert.Nil(err)
@@ -136,7 +136,7 @@ func testUpdateRegistryClient(t *testing.T, entity *nigoapi.RegistryClientEntity
 func TestRemoveRegistryClient(t *testing.T) {
 	assert := assert.New(t)
 
-	mockEntity :=  MockRegistryClient("16cfd2ec-0174-1000-0000-00004b9b35cc", "mock", "description", "http://uri:8888")
+	mockEntity := MockRegistryClient("16cfd2ec-0174-1000-0000-00004b9b35cc", "mock", "description", "http://uri:8888")
 
 	err := testRemoveRegistryClient(t, &mockEntity, 200)
 	assert.Nil(err)

@@ -19,11 +19,11 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/Orange-OpenSource/nifikop/api/v1alpha1"
+	nifiutil "github.com/Orange-OpenSource/nifikop/pkg/util/nifi"
 	nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
-	"github.com/Orange-OpenSource/nifikop/pkg/apis/nifi/v1alpha1"
-	nifiutil "github.com/Orange-OpenSource/nifikop/pkg/util/nifi"
 )
 
 func TestDescribeCluster(t *testing.T) {
@@ -203,7 +203,7 @@ func TestOffloadClusterNode(t *testing.T) {
 	cluster := testClusterMock(t)
 
 	for _, node := range cluster.Spec.Nodes {
-		nodeEntity, err := testOffloadClusterNode(t, cluster, node.Id, 200 )
+		nodeEntity, err := testOffloadClusterNode(t, cluster, node.Id, 200)
 		assert.Nil(err)
 		assert.NotNil(nodeEntity)
 	}

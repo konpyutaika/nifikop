@@ -16,16 +16,16 @@ package nificlient
 import (
 	"fmt"
 	"net/http"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"time"
 
-	"github.com/Orange-OpenSource/nifikop/pkg/apis/nifi/v1alpha1"
+	"github.com/Orange-OpenSource/nifikop/api/v1alpha1"
 	"github.com/Orange-OpenSource/nifikop/pkg/errorfactory"
 	nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
 
-var log = logf.Log.WithName("nifi_client")
+var log = ctrl.Log.WithName("nifi_client")
 
 const (
 	PRIMARY_NODE        = "Primary Node"
