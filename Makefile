@@ -188,6 +188,7 @@ endif
 docker-push:
 	docker push $(REPOSITORY):$(VERSION)
 ifdef PUSHLATEST
+	docker tag $(REPOSITORY):$(VERSION) $(REPOSITORY):latest
 	docker push $(REPOSITORY):latest
 endif
 # ----
