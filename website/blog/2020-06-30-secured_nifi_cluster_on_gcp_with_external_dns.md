@@ -49,7 +49,7 @@ First step is to create the OAuth Credential :
 - For `Authorised redirect URIs` it's your previous URI + `/nifi-api/access/oidc/callback`, for me : `https://nifi.orange.trycatchlearn.fr:8443/nifi-api/access/oidc/callback`
 
 
-![OAuth credentials](/nifikop/img/blog/2020-06-30-secured_nifi_cluster_on_gcp_with_external_dns/oauth_credentials.png)
+![OAuth credentials](/img/blog/2020-06-30-secured_nifi_cluster_on_gcp_with_external_dns/oauth_credentials.png)
 
 - Create the OAuth credentials
 
@@ -364,11 +364,11 @@ You can now access the NiFi cluster using the loadbalancer service hostname `<ni
 
 Here is my 3-nodes secured NiFi cluster up and running : 
 
-![3 nodes cluster](/nifikop/img/blog/2020-06-30-secured_nifi_cluster_on_gcp_with_external_dns/3_nodes_cluster.png)
+![3 nodes cluster](/img/blog/2020-06-30-secured_nifi_cluster_on_gcp_with_external_dns/3_nodes_cluster.png)
 
 3-nodes secured NiFi cluster : 
 
-![3 nodes](/nifikop/img/blog/2020-06-30-secured_nifi_cluster_on_gcp_with_external_dns/3_nodes.png)
+![3 nodes](/img/blog/2020-06-30-secured_nifi_cluster_on_gcp_with_external_dns/3_nodes.png)
 
 You can now update the authorizations and add additional users/groups.
 

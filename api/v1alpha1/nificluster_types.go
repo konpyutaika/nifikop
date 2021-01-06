@@ -82,6 +82,8 @@ type NifiClusterSpec struct {
 	//VaultConfig         	VaultConfig         `json:"vaultConfig,omitempty"`
 	// listenerConfig specifies nifi's listener specifig configs
 	ListenersConfig ListenersConfig `json:"listenersConfig"`
+	// SidecarsConfig defines additional sidecar configurations
+	SidecarConfigs []corev1.Container `json:"sidecarConfigs,omitempty" patchStrategy:"merge" patchMergeKey:"name" protobuf:"bytes,2,rep,name=containers"`
 }
 
 // DisruptionBudget defines the configuration for PodDisruptionBudget

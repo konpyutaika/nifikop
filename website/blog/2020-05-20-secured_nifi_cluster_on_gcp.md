@@ -44,7 +44,7 @@ First step is to create the OAuth Credential :
 - For `Authorised redirect URIs` it's your previous URI + `/nifi-api/access/oidc/callback`, for me : `https://nifisecured.trycatchlearn.fr:8443/nifi-api/access/oidc/callback`
 
 
-![OAuth credentials](/nifikop/img/blog/2020-05-20-secured_nifi_cluster_on_gcp/oauth_credentials.png)
+![OAuth credentials](/img/blog/2020-05-20-secured_nifi_cluster_on_gcp/oauth_credentials.png)
 
 - Create the OAuth credentials
 
@@ -227,11 +227,11 @@ I can now access the NiFi cluster using [https://nifisecured.trycatchlearn.fr:84
 
 Here is my 5-nodes secured NiFi cluster up and running : 
 
-![6 nodes cluster](/nifikop/img/blog/2020-05-20-secured_nifi_cluster_on_gcp/6_nodes_cluster.png)
+![6 nodes cluster](/img/blog/2020-05-20-secured_nifi_cluster_on_gcp/6_nodes_cluster.png)
 
 5-nodes secured NiFi cluster : 
 
-![5 nodes](/nifikop/img/blog/2020-05-20-secured_nifi_cluster_on_gcp/5_nodes.png)
+![5 nodes](/img/blog/2020-05-20-secured_nifi_cluster_on_gcp/5_nodes.png)
 
 You can now update the authorizations and add additionnal users/groups.
 

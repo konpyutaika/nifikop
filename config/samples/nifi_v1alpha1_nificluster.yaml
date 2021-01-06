@@ -218,6 +218,7 @@ spec:
   nifiClusterTaskSpec:
     # retryDurationMinutes describes the amount of time the Operator waits for the task
     retryDurationMinutes: 10
+
   # listenerConfig specifies nifi's listener specifig configs
   listenersConfig:
     # internalListeners specifies settings required to access nifi internally
@@ -256,3 +257,31 @@ spec:
 #      issuerRef:
 #        name: letsencrypt-staging
 #        kind: Issuer
+  sidecarConfigs:
+    - name: app-log
+      image: "busybox:1.32.0"
+      args: [ tail, -n+1, -F, /var/log/nifi-app.log ]
+      resources: &log_resources
+        requests:
+          cpu: 50m
+          memory: 50Mi
+        limits:
+          cpu: 50m
+          memory: 50Mi
+        volumeMounts:
+          - name: logs
+            mountPath: /var/log
+    - name: bootstrap-log
+      image: "busybox:1.32.0"
+      args: [tail, -n+1, -F, /var/log/nifi-bootstrap.log]
+      resources: *log_resources
+      volumeMounts:
+        - name: logs
+          mountPath: /var/log
+    - name: user-log
+      image: "busybox:1.32.0"
+      args: [tail, -n+1, -F, /var/log/nifi-user.log]
+      resources: *log_resources
+      volumeMounts:
+        - name: logs
+          mountPath: /var/log

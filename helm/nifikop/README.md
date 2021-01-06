@@ -27,6 +27,7 @@ The following tables lists the configurable parameters of the NiFi Operator Helm
 | `image.pullPolicy`               | Image pull policy                                | `Always`                                  |
 | `image.imagePullSecrets.enabled` | Enable tue use of secret for docker image        | `false`                                   |
 | `image.imagePullSecrets.name`    | Name of the secret to connect to docker registry | -                                         |
+| `certManager.enabled`            | Enable cert-manager integration                  | `true`                                    |
 | `rbacEnable`                     | If true, create & use RBAC resources             | `true`                                    |
 | `resources`                      | Pod resource requests & limits                   | `{}`                                      |
 | `metricService`                  | deploy service for metrics                       | `false`                                   |
