@@ -16,13 +16,13 @@ package pki
 
 import (
 	"fmt"
-	"reflect"
-	"testing"
-	"github.com/stretchr/testify/assert"
-	"github.com/Orange-OpenSource/nifikop/pkg/apis/nifi/v1alpha1"
+	"github.com/Orange-OpenSource/nifikop/api/v1alpha1"
 	"github.com/Orange-OpenSource/nifikop/pkg/resources/templates"
 	"github.com/Orange-OpenSource/nifikop/pkg/util"
 	certutil "github.com/Orange-OpenSource/nifikop/pkg/util/cert"
+	"github.com/stretchr/testify/assert"
+	"reflect"
+	"testing"
 )
 
 func testCluster(t *testing.T) *v1alpha1.NifiCluster {

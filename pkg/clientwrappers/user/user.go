@@ -1,17 +1,17 @@
 package user
 
 import (
-	"github.com/Orange-OpenSource/nifikop/pkg/apis/nifi/v1alpha1"
+	"github.com/Orange-OpenSource/nifikop/api/v1alpha1"
 	"github.com/Orange-OpenSource/nifikop/pkg/clientwrappers"
 	"github.com/Orange-OpenSource/nifikop/pkg/clientwrappers/accesspolicies"
-	"github.com/Orange-OpenSource/nifikop/pkg/controller/common"
+	"github.com/Orange-OpenSource/nifikop/pkg/common"
 	"github.com/Orange-OpenSource/nifikop/pkg/nificlient"
 	nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
 
-var log = logf.Log.WithName("user-method")
+var log = ctrl.Log.WithName("user-method")
 
 func ExistUser(client client.Client, user *v1alpha1.NifiUser,
 	cluster *v1alpha1.NifiCluster) (bool, error) {
@@ -114,7 +114,7 @@ func SyncUser(client client.Client, user *v1alpha1.NifiUser,
 	// Remove from access policy
 	for _, entity := range entity.Component.AccessPolicies {
 		contains := false
-		for _,  accessPolicy := range user.Spec.AccessPolicies {
+		for _, accessPolicy := range user.Spec.AccessPolicies {
 			if entity.Component.Action == string(accessPolicy.Action) &&
 				entity.Component.Resource == accessPolicy.GetResource(cluster) {
 				contains = true
@@ -125,9 +125,9 @@ func SyncUser(client client.Client, user *v1alpha1.NifiUser,
 			if err := accesspolicies.UpdateAccessPolicyEntity(client,
 				&nigoapi.AccessPolicyEntity{
 					Component: &nigoapi.AccessPolicyDto{
-						Id: entity.Component.Id,
+						Id:       entity.Component.Id,
 						Resource: entity.Component.Resource,
-						Action: entity.Component.Action,
+						Action:   entity.Component.Action,
 					},
 				},
 				[]*v1alpha1.NifiUser{}, []*v1alpha1.NifiUser{user},
@@ -138,7 +138,7 @@ func SyncUser(client client.Client, user *v1alpha1.NifiUser,
 	}
 
 	// add
-	for _,  accessPolicy := range user.Spec.AccessPolicies {
+	for _, accessPolicy := range user.Spec.AccessPolicies {
 		contains := false
 		for _, entity := range entity.Component.AccessPolicies {
 			if entity.Component.Action == string(accessPolicy.Action) &&
@@ -159,7 +159,7 @@ func SyncUser(client client.Client, user *v1alpha1.NifiUser,
 	return &status, nil
 }
 
-func RemoveUser(client client.Client, user *v1alpha1.NifiUser,	cluster *v1alpha1.NifiCluster) error {
+func RemoveUser(client client.Client, user *v1alpha1.NifiUser, cluster *v1alpha1.NifiCluster) error {
 	nClient, err := common.NewNodeConnection(log, client, cluster)
 	if err != nil {
 		return err
@@ -198,8 +198,7 @@ func updateUserEntity(user *v1alpha1.NifiUser, entity *nigoapi.UserEntity) {
 	}
 
 	if entity.Component == nil {
-		entity.Component = &nigoapi.UserDto{
-		}
+		entity.Component = &nigoapi.UserDto{}
 	}
 
 	entity.Component.Identity = user.GetIdentity()

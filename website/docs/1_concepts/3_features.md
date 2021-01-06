@@ -16,7 +16,7 @@ Apache NiFi is a good candidate to create an operator, because everything is mad
 
 ## Graceful Rolling Upgrade
 
-Operator supports graceful rolling upgrade, It means the operator will check if the cluster is healthy.
+Operator supports graceful rolling upgrade. It means the operator will check if the cluster is healthy.
 
 ## Dynamic Configuration Support
 

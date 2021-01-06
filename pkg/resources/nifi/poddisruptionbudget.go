@@ -3,6 +3,7 @@ package nifi
 import (
 	"fmt"
 	"math"
+	runtimeClient "sigs.k8s.io/controller-runtime/pkg/client"
 	"strconv"
 	"strings"
 
@@ -11,12 +12,10 @@ import (
 	"github.com/go-logr/logr"
 	policyv1beta1 "k8s.io/api/policy/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-
-func (r *Reconciler) podDisruptionBudget(log logr.Logger) (runtime.Object, error) {
+func (r *Reconciler) podDisruptionBudget(log logr.Logger) (runtimeClient.Object, error) {
 	minAvailable, err := r.computeMinAvailable(log)
 
 	if err != nil {
@@ -44,6 +43,7 @@ func (r *Reconciler) podDisruptionBudget(log logr.Logger) (runtime.Object, error
 	}, nil
 
 }
+
 // Calculate maxUnavailable as max between nodeCount - 1 (so we only allow 1 node to be disrupted)
 // and 1 (to cover for 1 node clusters)
 func (r *Reconciler) computeMinAvailable(log logr.Logger) (intstr.IntOrString, error) {

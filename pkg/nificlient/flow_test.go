@@ -94,13 +94,13 @@ func TestGetFlowControllerServices(t *testing.T) {
 
 func testGetFlowControllerServices(t *testing.T, pgId string, status int) (*nigoapi.ControllerServicesEntity, error) {
 
-	cs := []nigoapi.ControllerServiceEntity {
+	cs := []nigoapi.ControllerServiceEntity{
 		MockControllerService(
 			"16cfd2ec-2174-1065-0650-10004b9b35cc", pgId,
-			"unit-test controller 1", "DISABLED" ),
+			"unit-test controller 1", "DISABLED"),
 		MockControllerService(
 			"18cfd2ec-2174-1065-0650-10004b9b35cc", pgId,
-			"unit-test controller 2", "ENABLED" ),
+			"unit-test controller 2", "ENABLED"),
 	}
 
 	cluster := testClusterMock(t)
@@ -129,24 +129,24 @@ func TestUpdateFlowControllerServices(t *testing.T) {
 
 	pgId := "16cfd2ec-0174-1000-0000-00004b9b35cc"
 
-	mockEntity := MockFlowControllerServices([]nigoapi.ControllerServiceEntity {
+	mockEntity := MockFlowControllerServices([]nigoapi.ControllerServiceEntity{
 		MockControllerService(
 			"16cfd2ec-2174-1065-0650-10004b9b35cc", pgId,
-			"unit-test controller 1", "DISABLED" ),
+			"unit-test controller 1", "DISABLED"),
 		MockControllerService(
 			"18cfd2ec-2174-1065-0650-10004b9b35cc", pgId,
-			"unit-test controller 2", "ENABLED" ),
+			"unit-test controller 2", "ENABLED"),
 	})
 
-	entity, err := testUpdateFlowControllerServices(t, &mockEntity, pgId,200)
+	entity, err := testUpdateFlowControllerServices(t, &mockEntity, pgId, 200)
 	assert.Nil(err)
 	assert.NotNil(entity)
 
-	entity, err = testUpdateFlowControllerServices(t, &mockEntity, pgId,404)
+	entity, err = testUpdateFlowControllerServices(t, &mockEntity, pgId, 404)
 	assert.IsType(ErrNifiClusterReturned404, err)
 	assert.Nil(entity)
 
-	entity, err = testUpdateFlowControllerServices(t, &mockEntity, pgId,500)
+	entity, err = testUpdateFlowControllerServices(t, &mockEntity, pgId, 500)
 	assert.IsType(ErrNifiClusterNotReturned200, err)
 	assert.Nil(entity)
 }
@@ -178,13 +178,13 @@ func testUpdateFlowControllerServices(t *testing.T, entity *nigoapi.ControllerSe
 func TestUpdateFlowProcessGroup(t *testing.T) {
 	assert := assert.New(t)
 
-	mockEntity := MockScheduleComponentsEntity("16cfd2ec-2174-1065-0650-10004b9b35cc", "STOPPED" )
+	mockEntity := MockScheduleComponentsEntity("16cfd2ec-2174-1065-0650-10004b9b35cc", "STOPPED")
 
 	entity, err := testUpdateFlowProcessGroup(t, mockEntity, 200)
 	assert.Nil(err)
 	assert.NotNil(entity)
 
-	entity, err = testUpdateFlowProcessGroup(t, mockEntity,404)
+	entity, err = testUpdateFlowProcessGroup(t, mockEntity, 404)
 	assert.IsType(ErrNifiClusterReturned404, err)
 	assert.Nil(entity)
 
@@ -228,10 +228,10 @@ func MockActivateControllerServicesEntity(pgId string, cs nigoapi.ControllerServ
 
 	state := "ENABLED"
 	for _, c := range cs.ControllerServices {
-		 components[c.Id] = nigoapi.RevisionDto{Version: &version}
-		 if c.Component.State == "DISABLED" {
-		 	state = c.Component.State
-		 }
+		components[c.Id] = nigoapi.RevisionDto{Version: &version}
+		if c.Component.State == "DISABLED" {
+			state = c.Component.State
+		}
 	}
 	return nigoapi.ActivateControllerServicesEntity{
 		Id:                           pgId,
@@ -245,15 +245,15 @@ func MockControllerService(id, pgId, name, state string) nigoapi.ControllerServi
 	var version int64 = 10
 	return nigoapi.ControllerServiceEntity{
 		Revision: &nigoapi.RevisionDto{
-			Version:      &version,
+			Version: &version,
 		},
 		Id:            id,
 		ParentGroupId: pgId,
-		Component:     &nigoapi.ControllerServiceDto{
-			Id:                   id,
-			ParentGroupId:        pgId,
-			Name:                 name,
-			State:                state,
+		Component: &nigoapi.ControllerServiceDto{
+			Id:            id,
+			ParentGroupId: pgId,
+			Name:          name,
+			State:         state,
 		},
 	}
 }
@@ -269,14 +269,14 @@ func MockFlow(
 			Uri:              "",
 			ParentGroupId:    pgID,
 			ParameterContext: parameterContext,
-			Flow:             &nigoapi.FlowDto{
+			Flow: &nigoapi.FlowDto{
 				ProcessGroups: processGroups,
 			},
-			LastRefreshed:    "",
+			LastRefreshed: "",
 		},
 	}
 }
 
 func MockScheduleComponentsEntity(id, state string) nigoapi.ScheduleComponentsEntity {
-	return nigoapi.ScheduleComponentsEntity{Id:id, State:state}
+	return nigoapi.ScheduleComponentsEntity{Id: id, State: state}
 }

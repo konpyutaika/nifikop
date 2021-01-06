@@ -18,7 +18,7 @@ import (
 	"context"
 	"reflect"
 
-	"github.com/Orange-OpenSource/nifikop/pkg/apis/nifi/v1alpha1"
+	"github.com/Orange-OpenSource/nifikop/api/v1alpha1"
 	"github.com/Orange-OpenSource/nifikop/pkg/errorfactory"
 	v1 "k8s.io/api/core/v1"
 
@@ -33,18 +33,15 @@ import (
 )
 
 // Reconcile reconciles K8S resources
-func Reconcile(log logr.Logger, client runtimeClient.Client, desired runtime.Object, cr *v1alpha1.NifiCluster) error {
+func Reconcile(log logr.Logger, client runtimeClient.Client, desired runtimeClient.Object, cr *v1alpha1.NifiCluster) error {
 	desiredType := reflect.TypeOf(desired)
-	var current = desired.DeepCopyObject()
+	var current = desired
 	var err error
 
 	switch desired.(type) {
 	default:
 		var key runtimeClient.ObjectKey
-		key, err = runtimeClient.ObjectKeyFromObject(current)
-		if err != nil {
-			return errors.WithDetails(err, "kind", desiredType)
-		}
+		key = runtimeClient.ObjectKeyFromObject(current)
 		log = log.WithValues("kind", desiredType, "name", key.Name)
 
 		err = client.Get(context.TODO(), key, current)

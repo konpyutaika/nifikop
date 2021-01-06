@@ -13,7 +13,7 @@ import (
 func TestCreateVersionUpdateRequest(t *testing.T) {
 	assert := assert.New(t)
 
-	mockEntity :=  MockVersionUpdateRequest(
+	mockEntity := MockVersionUpdateRequest(
 		"16cfd2ec-0174-1000-0000-00004b9b35cc",
 		"16cfd2ec-0174-1450-0000-00004b9b35cc",
 		"16cfd2ec-0174-6580-0000-00004b9b35cc",
@@ -62,7 +62,7 @@ func TestGetVersionUpdateRequest(t *testing.T) {
 
 	id := "16cfd2ec-0174-1000-0000-00004b9b35cc"
 
-	mockEntity :=  MockVersionUpdateRequest(
+	mockEntity := MockVersionUpdateRequest(
 		"16cfd2ec-0174-1000-0000-00004b9b35cc",
 		"16cfd2ec-0174-1450-0000-00004b9b35cc",
 		"16cfd2ec-0174-6580-0000-00004b9b35cc",
@@ -73,7 +73,7 @@ func TestGetVersionUpdateRequest(t *testing.T) {
 	assert.Nil(err)
 	assert.NotNil(entity)
 
-	entity, err = testGetVersionUpdateRequest(t, &mockEntity, id,404)
+	entity, err = testGetVersionUpdateRequest(t, &mockEntity, id, 404)
 	assert.IsType(ErrNifiClusterReturned404, err)
 	assert.Nil(entity)
 
@@ -109,7 +109,7 @@ func testGetVersionUpdateRequest(t *testing.T, entity *nigoapi.VersionControlInf
 func TestCreateVersionRevertRequest(t *testing.T) {
 	assert := assert.New(t)
 
-	mockEntity :=  MockVersionRevertRequest(
+	mockEntity := MockVersionRevertRequest(
 		"16cfd2ec-0174-1000-0000-00004b9b35cc",
 		"16cfd2ec-0174-1450-0000-00004b9b35cc",
 		"16cfd2ec-0174-6580-0000-00004b9b35cc",
@@ -158,7 +158,7 @@ func TestGetVersionRevertRequest(t *testing.T) {
 
 	id := "16cfd2ec-0174-1000-0000-00004b9b35cc"
 
-	mockEntity :=  MockVersionRevertRequest(
+	mockEntity := MockVersionRevertRequest(
 		"16cfd2ec-0174-1000-0000-00004b9b35cc",
 		"16cfd2ec-0174-1450-0000-00004b9b35cc",
 		"16cfd2ec-0174-6580-0000-00004b9b35cc",
@@ -169,7 +169,7 @@ func TestGetVersionRevertRequest(t *testing.T) {
 	assert.Nil(err)
 	assert.NotNil(entity)
 
-	entity, err = testGetVersionRevertRequest(t, &mockEntity, id,404)
+	entity, err = testGetVersionRevertRequest(t, &mockEntity, id, 404)
 	assert.IsType(ErrNifiClusterReturned404, err)
 	assert.Nil(entity)
 

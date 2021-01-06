@@ -16,21 +16,21 @@ package nifi
 
 import (
 	"fmt"
+	runtimeClient "sigs.k8s.io/controller-runtime/pkg/client"
 	"sort"
 	"strings"
 
+	"github.com/Orange-OpenSource/nifikop/api/v1alpha1"
 	"github.com/Orange-OpenSource/nifikop/pkg/nificlient"
-	"github.com/go-logr/logr"
-	"github.com/Orange-OpenSource/nifikop/pkg/apis/nifi/v1alpha1"
 	"github.com/Orange-OpenSource/nifikop/pkg/resources/templates"
 	"github.com/Orange-OpenSource/nifikop/pkg/util"
 	nifiutil "github.com/Orange-OpenSource/nifikop/pkg/util/nifi"
 	pkicommon "github.com/Orange-OpenSource/nifikop/pkg/util/pki"
 	zk "github.com/Orange-OpenSource/nifikop/pkg/util/zookeeper"
+	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 )
 
 const (
@@ -53,7 +53,7 @@ const (
 	ContainerName string = "nifi"
 )
 
-func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev1.PersistentVolumeClaim, log logr.Logger) runtime.Object {
+func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev1.PersistentVolumeClaim, log logr.Logger) runtimeClient.Object {
 
 	zkAddress := r.NifiCluster.Spec.ZKAddress
 	zkHostname := zk.GetHostnameAddress(zkAddress)
@@ -122,10 +122,9 @@ func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev
 
 	failCondition := ""
 
-	if val, ok := r.NifiCluster.Status.NodesState[fmt.Sprint(id)]; !ok || (
-		val.InitClusterNode != v1alpha1.IsInitClusterNode &&
-			(val.GracefulActionState.State == v1alpha1.GracefulUpscaleRequired ||
-				val.GracefulActionState.State == v1alpha1.GracefulUpscaleRunning)) {
+	if val, ok := r.NifiCluster.Status.NodesState[fmt.Sprint(id)]; !ok || (val.InitClusterNode != v1alpha1.IsInitClusterNode &&
+		(val.GracefulActionState.State == v1alpha1.GracefulUpscaleRequired ||
+			val.GracefulActionState.State == v1alpha1.GracefulUpscaleRunning)) {
 		failCondition = `else
 	echo fail to request cluster
 	exit 1

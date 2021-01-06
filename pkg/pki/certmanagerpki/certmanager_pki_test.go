@@ -20,7 +20,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/Orange-OpenSource/nifikop/pkg/apis/nifi/v1alpha1"
+	"github.com/Orange-OpenSource/nifikop/api/v1alpha1"
 	"github.com/Orange-OpenSource/nifikop/pkg/errorfactory"
 	certutil "github.com/Orange-OpenSource/nifikop/pkg/util/cert"
 	pkicommon "github.com/Orange-OpenSource/nifikop/pkg/util/pki"

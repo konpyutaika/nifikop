@@ -16,16 +16,16 @@ package nifi
 
 import (
 	"fmt"
-	"github.com/go-logr/logr"
 	"github.com/Orange-OpenSource/nifikop/pkg/resources/templates"
 	"github.com/Orange-OpenSource/nifikop/pkg/util"
+	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	runtimeClient "sigs.k8s.io/controller-runtime/pkg/client"
 	"strings"
 )
 
-func (r *Reconciler) service(id int32, log logr.Logger) runtime.Object {
+func (r *Reconciler) service(id int32, log logr.Logger) runtimeClient.Object {
 
 	usedPorts := r.generateServicePortForInternalListeners()
 

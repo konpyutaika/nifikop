@@ -5,9 +5,9 @@ metadata:
 spec:
   service:
     headlessEnabled: true
-  zkAddress: "zookeepercluster-client.zookeeper:2181"
+  zkAddress: "zookeeper.nifi:2181"
   zkPath: "/simplenifi"
-  clusterImage: "apache/nifi:1.12,1"
+  clusterImage: "apache/nifi:1.12.1"
   oneNifiNodePerNode: false
   nodeConfigGroups:
     default_group:
@@ -25,11 +25,11 @@ spec:
       serviceAccountName: "default"
       resourcesRequirements:
         limits:
-          cpu: "2"
-          memory: 3Gi
+          cpu: "0.5"
+          memory: 2Gi
         requests:
-          cpu: "1"
-          memory: 1Gi
+          cpu: "0.5"
+          memory: 2Gi
   nodes:
     - id: 1
       nodeConfigGroup: "default_group"

@@ -18,8 +18,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/Orange-OpenSource/nifikop/api/v1alpha1"
 	"github.com/stretchr/testify/assert"
-	"github.com/Orange-OpenSource/nifikop/pkg/apis/nifi/v1alpha1"
 )
 
 const (
@@ -227,7 +227,7 @@ func TestComputeServiceNameFull(t *testing.T) {
 
 	cluster := testClusterLocal(t)
 	cluster.Spec.Service.HeadlessEnabled = true
-	assert.Equal(fmt.Sprintf("%s.%s.svc", ComputeServiceName(clusterName, true, ), clusterNamespace),
+	assert.Equal(fmt.Sprintf("%s.%s.svc", ComputeServiceName(clusterName, true), clusterNamespace),
 		ComputeServiceNameFull(cluster.Name, cluster.Namespace,
 			cluster.Spec.Service.HeadlessEnabled, cluster.Spec.ListenersConfig.UseExternalDNS))
 
@@ -243,7 +243,7 @@ func TestComputeServiceNameWithNamespace(t *testing.T) {
 
 	cluster := testClusterLocal(t)
 	cluster.Spec.Service.HeadlessEnabled = true
-	assert.Equal(fmt.Sprintf("%s.%s", ComputeServiceName(clusterName, true, ), clusterNamespace),
+	assert.Equal(fmt.Sprintf("%s.%s", ComputeServiceName(clusterName, true), clusterNamespace),
 		ComputeServiceNameWithNamespace(cluster.Name, cluster.Namespace,
 			cluster.Spec.Service.HeadlessEnabled, cluster.Spec.ListenersConfig.UseExternalDNS))
 
@@ -395,7 +395,7 @@ func TestComputeNodeServiceName(t *testing.T) {
 					ComputeServiceName(cluster.Name,
 						cluster.Spec.Service.HeadlessEnabled)),
 				ComputeNodeServiceName(node.Id, cluster.Name,
-					cluster.Spec.Service.HeadlessEnabled, ))
+					cluster.Spec.Service.HeadlessEnabled))
 		}
 	}
 }

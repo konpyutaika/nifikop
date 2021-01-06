@@ -1,17 +1,17 @@
 package usergroup
 
 import (
-	"github.com/Orange-OpenSource/nifikop/pkg/apis/nifi/v1alpha1"
+	"github.com/Orange-OpenSource/nifikop/api/v1alpha1"
 	"github.com/Orange-OpenSource/nifikop/pkg/clientwrappers"
 	"github.com/Orange-OpenSource/nifikop/pkg/clientwrappers/accesspolicies"
-	"github.com/Orange-OpenSource/nifikop/pkg/controller/common"
+	"github.com/Orange-OpenSource/nifikop/pkg/common"
 	"github.com/Orange-OpenSource/nifikop/pkg/nificlient"
 	nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
 
-var log = logf.Log.WithName("usergroup-method")
+var log = ctrl.Log.WithName("usergroup-method")
 
 func ExistUserGroup(client client.Client, userGroup *v1alpha1.NifiUserGroup,
 	cluster *v1alpha1.NifiCluster) (bool, error) {
@@ -91,7 +91,6 @@ func SyncUserGroup(client client.Client, userGroup *v1alpha1.NifiUserGroup, user
 		}
 	}
 
-
 	if !userGroupIsSync(userGroup, users, entity) {
 		updateUserGroupEntity(userGroup, users, entity)
 		entity, err = nClient.UpdateUserGroup(*entity)
@@ -107,7 +106,7 @@ func SyncUserGroup(client client.Client, userGroup *v1alpha1.NifiUserGroup, user
 	// Remove from access policy
 	for _, entity := range entity.Component.AccessPolicies {
 		contains := false
-		for _,  accessPolicy := range userGroup.Spec.AccessPolicies {
+		for _, accessPolicy := range userGroup.Spec.AccessPolicies {
 			if entity.Component.Action == string(accessPolicy.Action) &&
 				entity.Component.Resource == accessPolicy.GetResource(cluster) {
 				contains = true
@@ -124,7 +123,7 @@ func SyncUserGroup(client client.Client, userGroup *v1alpha1.NifiUserGroup, user
 	}
 
 	// add
-	for _,  accessPolicy := range userGroup.Spec.AccessPolicies {
+	for _, accessPolicy := range userGroup.Spec.AccessPolicies {
 		contains := false
 		for _, entity := range entity.Component.AccessPolicies {
 			if entity.Component.Action == string(accessPolicy.Action) &&
@@ -205,8 +204,7 @@ func updateUserGroupEntity(userGroup *v1alpha1.NifiUserGroup, users []*v1alpha1.
 	}
 
 	if entity.Component == nil {
-		entity.Component = &nigoapi.UserGroupDto{
-		}
+		entity.Component = &nigoapi.UserGroupDto{}
 	}
 
 	entity.Component.Identity = userGroup.GetIdentity()

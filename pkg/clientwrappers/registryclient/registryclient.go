@@ -1,16 +1,16 @@
 package registryclient
 
 import (
-	"github.com/Orange-OpenSource/nifikop/pkg/apis/nifi/v1alpha1"
+	"github.com/Orange-OpenSource/nifikop/api/v1alpha1"
 	"github.com/Orange-OpenSource/nifikop/pkg/clientwrappers"
-	"github.com/Orange-OpenSource/nifikop/pkg/controller/common"
+	"github.com/Orange-OpenSource/nifikop/pkg/common"
 	"github.com/Orange-OpenSource/nifikop/pkg/nificlient"
 	nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
 
-var log = logf.Log.WithName("registryclient-method")
+var log = ctrl.Log.WithName("registryclient-method")
 
 func ExistRegistryClient(client client.Client, registryClient *v1alpha1.NifiRegistryClient,
 	cluster *v1alpha1.NifiCluster) (bool, error) {
@@ -126,8 +126,7 @@ func updateRegistryClientEntity(registryClient *v1alpha1.NifiRegistryClient, ent
 	}
 
 	if entity.Component == nil {
-		entity.Component = &nigoapi.RegistryDto{
-		}
+		entity.Component = &nigoapi.RegistryDto{}
 	}
 
 	entity.Component.Name = registryClient.Name

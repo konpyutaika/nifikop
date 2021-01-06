@@ -18,9 +18,10 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
+
 HELM_TARGET_DIR=$(pwd)/tmp/incubator
-readonly HELM_URL=https://storage.googleapis.com/kubernetes-helm
-readonly HELM_TARBALL=helm-v2.9.1-linux-amd64.tar.gz
+readonly HELM_URL=https://get.helm.sh
+readonly HELM_TARBALL=helm-v3.4.2-linux-amd64.tar.gz
 #readonly HELM_TARBALL=helm-v2.9.1-darwin-amd64.tar.gz
 #readonly STABLE_REPO_URL=https://orange-kubernetes-charts.storage.googleapis.com/
 readonly INCUBATOR_REPO_URL=https://orange-kubernetes-charts-incubator.storage.googleapis.com/
@@ -35,7 +36,7 @@ main() {
 #    if ! sync_repo stable "$GCS_BUCKET_STABLE" "$STABLE_REPO_URL"; then
 #        log_error "Not all stable charts could be packaged and synced!"
 #    fi
-    if ! sync_repo ${HELM_TARGET_DIR} "$GCS_BUCKET_INCUBATOR" "$INCUBATOR_REPO_URL"; then
+    if ! sync_repo ${HELM_TARGET_DIR} "$GCS_BUCKET_INCUBATOR" "$INCUBATOR_REPO_URL" "$CHART_VERSION"; then
         log_error "Not all incubator charts could be packaged and pushed!"
     fi
 }
@@ -45,12 +46,13 @@ setup_helm_client() {
 
     curl --user-agent curl-ci-sync -sSL -o "$HELM_TARBALL" "$HELM_URL/$HELM_TARBALL"
     tar xzfv "$HELM_TARBALL" -C tmp
+    rm -f "$HELM_TARBALL"
 
 #    PATH="$(pwd)/tmp/darwin-amd64/:$PATH"
     PATH="$(pwd)/tmp/linux-amd64/:$PATH"
 
-    helm init --client-only
-    helm repo add incubator-orange "$INCUBATOR_REPO_URL"
+#    helm init --client-only
+    helm repo add orange-incubator "$INCUBATOR_REPO_URL"
 }
 
 authenticate() {
@@ -62,7 +64,9 @@ sync_repo() {
     local target_dir="${1?Specify repo dir}"
     local bucket="${2?Specify repo bucket}"
     local repo_url="${3?Specify repo url}"
+    local chart_version="${4?Specify chart version}"
     local index_dir="${target_dir}-index"
+
 
     echo "Syncing repo '$target_dir'..."
 
@@ -75,9 +79,16 @@ sync_repo() {
     local exit_code=0
 
     echo "Packaging operators ..."
-    if ! HELM_TARGET_DIR=${target_dir} make helm-package; then
-      log_error "Problem packaging operator"
-      exit_code=1
+    if [[ -n "$chart_version" ]]; then
+      if ! HELM_TARGET_DIR=${target_dir} make helm-package; then
+        log_error "Problem packaging operator"
+        exit_code=1
+      fi
+    else
+      if ! CHART_VERSION=${chart_version} HELM_TARGET_DIR=${target_dir} make helm-package; then
+        log_error "Problem packaging operator"
+        exit_code=1
+      fi
     fi
 
     if helm repo index --url "$repo_url" --merge "$index_dir/index.yaml" "$target_dir"; then

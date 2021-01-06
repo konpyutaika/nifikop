@@ -15,17 +15,17 @@ func TestUpdatePortRunStatus(t *testing.T) {
 
 	id := "16cfd2ec-0174-1000-0000-00004b9b35cc"
 
-	mockEntity :=  MockPortRunStatus("Stopped")
+	mockEntity := MockPortRunStatus("Stopped")
 
-	entity, err := testUpdatePortRunStatus(t, mockEntity, id,200)
+	entity, err := testUpdatePortRunStatus(t, mockEntity, id, 200)
 	assert.Nil(err)
 	assert.NotNil(entity)
 
-	entity, err = testUpdatePortRunStatus(t, mockEntity, id,404)
+	entity, err = testUpdatePortRunStatus(t, mockEntity, id, 404)
 	assert.IsType(ErrNifiClusterReturned404, err)
 	assert.Nil(entity)
 
-	entity, err = testUpdatePortRunStatus(t, mockEntity, id,500)
+	entity, err = testUpdatePortRunStatus(t, mockEntity, id, 500)
 	assert.IsType(ErrNifiClusterNotReturned200, err)
 	assert.Nil(entity)
 }
@@ -57,6 +57,6 @@ func MockPortRunStatus(state string) nigoapi.PortRunStatusEntity {
 	var version int64 = 10
 	return nigoapi.PortRunStatusEntity{
 		Revision: &nigoapi.RevisionDto{Version: &version},
-		State: state,
+		State:    state,
 	}
 }

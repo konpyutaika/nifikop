@@ -1,19 +1,19 @@
 package dataflow
 
 import (
+	"github.com/Orange-OpenSource/nifikop/pkg/common"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"strings"
 
-	"github.com/Orange-OpenSource/nifikop/pkg/apis/nifi/v1alpha1"
+	"github.com/Orange-OpenSource/nifikop/api/v1alpha1"
 	"github.com/Orange-OpenSource/nifikop/pkg/clientwrappers"
-	"github.com/Orange-OpenSource/nifikop/pkg/controller/common"
 	"github.com/Orange-OpenSource/nifikop/pkg/errorfactory"
 	"github.com/Orange-OpenSource/nifikop/pkg/nificlient"
 	nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
 
-var log = logf.Log.WithName("dataflow-method")
+var log = ctrl.Log.WithName("dataflow-method")
 
 // DataflowExist check if the NifiDataflow exist on NiFi Cluster
 func DataflowExist(client client.Client, flow *v1alpha1.NifiDataflow, cluster *v1alpha1.NifiCluster) (bool, error) {
@@ -250,8 +250,7 @@ func SyncDataflow(
 
 		for _, pg := range processGroups {
 			if parameterContext == nil {
-				pg.Component.ParameterContext = &nigoapi.ParameterContextReferenceEntity{
-				}
+				pg.Component.ParameterContext = &nigoapi.ParameterContextReferenceEntity{}
 			} else {
 				pg.Component.ParameterContext = &nigoapi.ParameterContextReferenceEntity{
 					Id: parameterContext.Status.Id,
@@ -320,8 +319,7 @@ func SyncDataflow(
 				updateRequest2Status(updateRequest, t)
 		}
 
-		if err := clientwrappers.ErrorGetOperation(log, err, "Get version-request");
-			err != nificlient.ErrNifiClusterReturned404 || !updateRequest.Request.Complete {
+		if err := clientwrappers.ErrorGetOperation(log, err, "Get version-request"); err != nificlient.ErrNifiClusterReturned404 || !updateRequest.Request.Complete {
 			if err != nil {
 				return &flow.Status, err
 			}
@@ -331,7 +329,7 @@ func SyncDataflow(
 
 	isOutOfSink, err := IsOutOfSyncDataflow(client, flow, cluster, registry, parameterContext)
 	if err != nil {
-		return  &flow.Status, err
+		return &flow.Status, err
 	}
 	if isOutOfSink {
 		status, err := prepareUpdatePG(client, flow, cluster)
@@ -400,7 +398,7 @@ func SyncDataflow(
 func prepareUpdatePG(
 	client client.Client,
 	flow *v1alpha1.NifiDataflow,
-	cluster *v1alpha1.NifiCluster, ) (*v1alpha1.NifiDataflowStatus, error) {
+	cluster *v1alpha1.NifiCluster) (*v1alpha1.NifiDataflowStatus, error) {
 
 	nClient, err := common.NewNodeConnection(log, client, cluster)
 	if err != nil {
@@ -422,8 +420,7 @@ func prepareUpdatePG(
 
 			dropRequest, err :=
 				nClient.GetDropRequest(flow.Status.LatestDropRequest.ConnectionId, flow.Status.LatestDropRequest.Id)
-			if err := clientwrappers.ErrorGetOperation(log, err, "Get drop-request");
-				err != nificlient.ErrNifiClusterReturned404 {
+			if err := clientwrappers.ErrorGetOperation(log, err, "Get drop-request"); err != nificlient.ErrNifiClusterReturned404 {
 				if err != nil {
 					return nil, err
 				}

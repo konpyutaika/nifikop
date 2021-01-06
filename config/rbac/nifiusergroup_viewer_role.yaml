@@ -1,0 +1,20 @@
+# permissions for end users to view nifiusergroups.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: nifiusergroup-viewer-role
+rules:
+- apiGroups:
+  - nifi.orange.com
+  resources:
+  - nifiusergroups
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - nifi.orange.com
+  resources:
+  - nifiusergroups/status
+  verbs:
+  - get

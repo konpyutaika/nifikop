@@ -20,10 +20,10 @@ import (
 	"github.com/Orange-OpenSource/nifikop/pkg/util"
 	nifiutils "github.com/Orange-OpenSource/nifikop/pkg/util/nifi"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/runtime"
+	runtimeClient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func (r *Reconciler) headlessService() runtime.Object {
+func (r *Reconciler) headlessService() runtimeClient.Object {
 
 	// InternalListeners ports
 	usedPorts := r.generateServicePortForInternalListeners()

@@ -1,0 +1,33 @@
+domain: orange.com
+layout: go.kubebuilder.io/v3
+projectName: nifikop
+repo: github.com/Orange-OpenSource/nifikop
+resources:
+- crdVersion: v1
+  group: nifi
+  kind: NifiCluster
+  version: v1alpha1
+- crdVersion: v1
+  group: nifi
+  kind: NifiUserGroup
+  version: v1alpha1
+- crdVersion: v1
+  group: nifi
+  kind: NifiUser
+  version: v1alpha1
+- crdVersion: v1
+  group: nifi
+  kind: NifiRegistryClient
+  version: v1alpha1
+- crdVersion: v1
+  group: nifi
+  kind: NifiDataflow
+  version: v1alpha1
+- crdVersion: v1
+  group: nifi
+  kind: NifiParameterContext
+  version: v1alpha1
+version: 3-alpha
+plugins:
+  manifests.sdk.operatorframework.io/v2: {}
+  scorecard.sdk.operatorframework.io/v2: {}

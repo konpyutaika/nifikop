@@ -17,11 +17,11 @@ package nifi
 import (
 	"github.com/Orange-OpenSource/nifikop/pkg/resources/templates"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/runtime"
+	runtimeClient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 // TODO: To remove ? Or to redo
-func (r *Reconciler) lbService() runtime.Object {
+func (r *Reconciler) lbService() runtimeClient.Object {
 
 	usedPorts := r.generateServicePortForInternalListeners()
 

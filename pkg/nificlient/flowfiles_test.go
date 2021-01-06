@@ -14,19 +14,19 @@ func TestCreateDropRequest(t *testing.T) {
 	assert := assert.New(t)
 
 	connectionId := "16cfd2ec-0174-1000-0000-54654754c"
-	mockEntity :=  MockDropRequest(
+	mockEntity := MockDropRequest(
 		"16cfd2ec-0174-1000-0000-00004b9b35cc", connectionId, "",
 		"", "", 50, 10, 15, 5, false)
 
-	entity, err := testCreateDropRequest(t, &mockEntity, connectionId,201)
+	entity, err := testCreateDropRequest(t, &mockEntity, connectionId, 201)
 	assert.Nil(err)
 	assert.NotNil(entity)
 
-	entity, err = testCreateDropRequest(t, &mockEntity, connectionId,404)
+	entity, err = testCreateDropRequest(t, &mockEntity, connectionId, 404)
 	assert.IsType(ErrNifiClusterReturned404, err)
 	assert.Nil(entity)
 
-	entity, err = testCreateDropRequest(t, &mockEntity, connectionId,500)
+	entity, err = testCreateDropRequest(t, &mockEntity, connectionId, 500)
 	assert.IsType(ErrNifiClusterNotReturned200, err)
 	assert.Nil(entity)
 }
@@ -59,7 +59,7 @@ func TestGetDropRequest(t *testing.T) {
 	assert := assert.New(t)
 
 	connectionId := "16cfd2ec-0174-1000-0000-54654754c"
-	mockEntity :=  MockDropRequest(
+	mockEntity := MockDropRequest(
 		"16cfd2ec-0174-1000-0000-00004b9b35cc", connectionId, "",
 		"", "", 50, 10, 15, 5, false)
 
@@ -67,7 +67,7 @@ func TestGetDropRequest(t *testing.T) {
 	assert.Nil(err)
 	assert.NotNil(entity)
 
-	entity, err = testGetDropRequest(t, &mockEntity, connectionId,404)
+	entity, err = testGetDropRequest(t, &mockEntity, connectionId, 404)
 	assert.IsType(ErrNifiClusterReturned404, err)
 	assert.Nil(entity)
 
@@ -102,26 +102,25 @@ func testGetDropRequest(t *testing.T, entity *nigoapi.DropRequestEntity, connect
 
 func MockDropRequest(
 	id, connectionId, lastUpdated, failureReason, state string,
-	percentCompleted, currentCount, originalCount,  droppedCount int32, finished bool) nigoapi.DropRequestEntity {
+	percentCompleted, currentCount, originalCount, droppedCount int32, finished bool) nigoapi.DropRequestEntity {
 
-		return nigoapi.DropRequestEntity{DropRequest:
-		&nigoapi.DropRequestDto{
-			Id:               id,
-			Uri:              fmt.Sprintf("http://testunit.com:8080/nifi-api/flowfile-queues/%s/drop-requests/%s", connectionId, id),
-			SubmissionTime:   "",
-			LastUpdated:      lastUpdated,
-			PercentCompleted: percentCompleted,
-			Finished:         finished,
-			FailureReason:    failureReason,
-			CurrentCount:     currentCount,
-			CurrentSize:      int64(currentCount*250),
-			Current:          "",
-			OriginalCount:    originalCount,
-			OriginalSize:     int64(originalCount*250),
-			Original:         "",
-			DroppedCount:     droppedCount,
-			DroppedSize:      int64(droppedCount*250),
-			Dropped:          "",
-			State:            state,
+	return nigoapi.DropRequestEntity{DropRequest: &nigoapi.DropRequestDto{
+		Id:               id,
+		Uri:              fmt.Sprintf("http://testunit.com:8080/nifi-api/flowfile-queues/%s/drop-requests/%s", connectionId, id),
+		SubmissionTime:   "",
+		LastUpdated:      lastUpdated,
+		PercentCompleted: percentCompleted,
+		Finished:         finished,
+		FailureReason:    failureReason,
+		CurrentCount:     currentCount,
+		CurrentSize:      int64(currentCount * 250),
+		Current:          "",
+		OriginalCount:    originalCount,
+		OriginalSize:     int64(originalCount * 250),
+		Original:         "",
+		DroppedCount:     droppedCount,
+		DroppedSize:      int64(droppedCount * 250),
+		Dropped:          "",
+		State:            state,
 	}}
 }

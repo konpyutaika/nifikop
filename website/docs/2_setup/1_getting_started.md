@@ -6,7 +6,7 @@ sidebar_label: Getting Started
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-The operator installs the 1.11.4 version of Apache NiFi, and can run on Minikube v0.33.1+ and Kubernetes 1.12.0+.
+The operator installs the 1.12.1 version of Apache NiFi, can run on Minikube v0.33.1+ and **Kubernetes 1.16.0+**, and require **Helm 3**.
 
 :::info
 The operator supports NiFi 1.11.0+
@@ -28,15 +28,19 @@ helm repo add bitnami https://charts.bitnami.com/bitnami
 
 ```bash
 # You have to create the namespace before executing following command
-helm install nifikop-zk bitnami/zookeeper \
+helm install zookeeper bitnami/zookeeper \
     --set resources.requests.memory=256Mi \
     --set resources.requests.cpu=250m \
     --set resources.limits.memory=256Mi \
     --set resources.limits.cpu=250m \
-    --set global.storageClass=local-storage \
+    --set global.storageClass=standard \
     --set networkPolicy.enabled=true \
     --set replicaCount=3 
 ```
+
+:::warning
+Replace the `storageClass` parameter value with your own.
+:::
 
 ### Install cert-manager
 
@@ -47,7 +51,6 @@ The NiFiKop operator uses `cert-manager` for issuing certificates to users and a
   values={[
     { label: 'Directly', value: 'directly', },
     { label: 'helm 3', value: 'helm3', },
-    { label: 'helm previous', value: 'helm', },
   ]
 }>
 <TabItem value="directly">
@@ -76,24 +79,6 @@ helm install cert-manager \
 ```
 
 </TabItem>
-<TabItem value="helm">
-
-```bash
-# Install CustomResourceDefinitions first
-kubectl apply --validate=false -f \
-    https://github.com/jetstack/cert-manager/releases/download/v0.15.1/cert-manager.crds.yaml
-
-# Add the jetstack helm repo
-helm repo add jetstack https://charts.jetstack.io
-helm repo update
-
-# Using previous versions of helm
-helm install --name cert-manager \
-    --namespace cert-manager \
-    --version v0.15.1 \
-    jetstack/cert-manager
-```
-</TabItem>
 </Tabs>
 
 ## Installation
@@ -102,62 +87,35 @@ helm install --name cert-manager \
 
 You can deploy the operator using a Helm chart [Helm chart](https://github.com/Orange-OpenSource/nifikop/tree/master/helm):
 
-> To install  an other version of the operator use `helm install --name=nifikop --namespace=nifi --set operator.image.tag=x.y.z orange-incubator/nifikop`
+> To install an other version of the operator use `helm install --name=nifikop --namespace=nifi --set operator.image.tag=x.y.z orange-incubator/nifikop`
 
-In the case where you don't want to deploy the crds using helm (`--skip-crds`) or you are using a version of kubernetes that is under 1.16, you have to deploy manually the crds :
-
-<Tabs
-  defaultValue="k8s16+"
-  values={[
-    { label: 'k8s version 1.16+', value: 'k8s16+', },
-    { label: 'k8s previous versions', value: 'k8sprev', },
-  ]
-}>
-<TabItem value="k8s16+">
+In the case where you don't want to deploy the crds using helm (`--skip-crds`), you have to deploy manually the crds :
 
 ```bash
-kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/v1/nifi.orange.com_nificlusters_crd.yaml
-kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/v1/nifi.orange.com_nifiusers_crd.yaml
-kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/v1/nifi.orange.com_nifiusergroups_crd.yaml
-kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/v1/nifi.orange.com_nifidataflows_crd.yaml
-kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/v1/nifi.orange.com_nifiparametercontexts_crd.yaml
-kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/v1/nifi.orange.com_nifiregistryclients_crd.yaml
+kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/config/crd/bases/nifi.orange.com_nificlusters.yaml
+kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/config/crd/bases/nifi.orange.com_nifiusers.yaml
+kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/config/crd/bases/nifi.orange.com_nifiusergroups.yaml
+kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/config/crd/bases/nifi.orange.com_nifidataflows.yaml
+kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/config/crd/bases/nifi.orange.com_nifiparametercontexts.yaml
+kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/config/crd/bases/nifi.orange.com_nifiregistryclients.yaml
 ```
 
-</TabItem>
-<TabItem value="k8sprev">
+Add the orange incubator repository :
 
 ```bash
-kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/v1beta1/nifi.orange.com_nificlusters_crd.yaml
-kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/v1beta1/nifi.orange.com_nifiusers_crd.yaml
-kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/v1beta1/nifi.orange.com_nifiusergroups_crd.yaml
-kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/v1beta1/nifi.orange.com_nifidataflows_crd.yaml
-kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/v1beta1/nifi.orange.com_nifiparametercontexts_crd.yaml
-kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/deploy/crds/v1beta1/nifi.orange.com_nifiregistryclients_crd.yaml
-```
-</TabItem>
-</Tabs>
 
-Now deploy the helm chart :
-
-```bash
 helm repo add orange-incubator https://orange-kubernetes-charts-incubator.storage.googleapis.com/
 ```
 
-<Tabs
-  defaultValue="helm3"
-  values={[
-    { label: 'helm 3', value: 'helm3', },
-    { label: 'helm previous', value: 'helm', },
-  ]
-}>
-<TabItem value="helm3">
+Now deploy the helm chart :
 
 ```bash
 # You have to create the namespace before executing following command
 helm install nifikop \
     orange-incubator/nifikop \
     --namespace=nifi \
+    --version 0.4.2-alpha \
+    --set image.tag=v0.4.2-alpha-release \
     --set resources.requests.memory=256Mi \
     --set resources.requests.cpu=250m \
     --set resources.limits.memory=256Mi \
@@ -165,21 +123,9 @@ helm install nifikop \
     --set namespaces={"nifi"}
 ```
 
-</TabItem>
-<TabItem value="helm">
-
-```bash
-helm install --name=nifikop \
-    orange-incubator/nifikop \
-    --namespace=nifi \
-    --set resources.requests.memory=256Mi \
-    --set resources.requests.cpu=250m \
-    --set resources.limits.memory=256Mi \
-    --set resources.limits.cpu=250m \
-    --set namespaces={"nifi"}
-```
-</TabItem>
-</Tabs>
+:::note
+Add the following parameter if you are using this instance to only deploy unsecured clusters : `--set certManager.enabled=false`
+:::
 
 ## Create custom storage class
 

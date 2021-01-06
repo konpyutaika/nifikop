@@ -1,0 +1,24 @@
+# permissions for end users to edit nifiregistryclients.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: nifiregistryclient-editor-role
+rules:
+- apiGroups:
+  - nifi.orange.com
+  resources:
+  - nifiregistryclients
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - nifi.orange.com
+  resources:
+  - nifiregistryclients/status
+  verbs:
+  - get

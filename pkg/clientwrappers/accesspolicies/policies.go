@@ -1,16 +1,16 @@
 package accesspolicies
 
 import (
-	"github.com/Orange-OpenSource/nifikop/pkg/apis/nifi/v1alpha1"
+	"github.com/Orange-OpenSource/nifikop/api/v1alpha1"
 	"github.com/Orange-OpenSource/nifikop/pkg/clientwrappers"
-	"github.com/Orange-OpenSource/nifikop/pkg/controller/common"
+	"github.com/Orange-OpenSource/nifikop/pkg/common"
 	"github.com/Orange-OpenSource/nifikop/pkg/nificlient"
 	nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
 
-var log = logf.Log.WithName("accesspolicies-method")
+var log = ctrl.Log.WithName("accesspolicies-method")
 
 func ExistAccessPolicies(client client.Client, accessPolicy *v1alpha1.AccessPolicy,
 	cluster *v1alpha1.NifiCluster) (bool, error) {
@@ -30,7 +30,6 @@ func ExistAccessPolicies(client client.Client, accessPolicy *v1alpha1.AccessPoli
 
 	return entity != nil, nil
 }
-
 
 func CreateAccessPolicy(client client.Client, accessPolicy *v1alpha1.AccessPolicy,
 	cluster *v1alpha1.NifiCluster) (string, error) {
@@ -93,7 +92,6 @@ func UpdateAccessPolicy(
 	return clientwrappers.ErrorUpdateOperation(log, err, "Update user")
 }
 
-
 func UpdateAccessPolicyEntity(
 	client client.Client,
 	entity *nigoapi.AccessPolicyEntity,
@@ -120,7 +118,6 @@ func UpdateAccessPolicyEntity(
 	return clientwrappers.ErrorUpdateOperation(log, err, "Update user")
 }
 
-
 func updateAccessPolicyEntity(
 	accessPolicy *v1alpha1.AccessPolicy,
 	addUsers []*v1alpha1.NifiUser,
@@ -143,8 +140,7 @@ func updateAccessPolicyEntity(
 	}
 
 	if entity.Component == nil {
-		entity.Component = &nigoapi.AccessPolicyDto{
-		}
+		entity.Component = &nigoapi.AccessPolicyDto{}
 	}
 
 	entity.Component.Action = string(accessPolicy.Action)

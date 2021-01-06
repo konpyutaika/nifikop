@@ -39,4 +39,5 @@ debug:
   enabled: false
 
 certManager:
+  enabled: true
   clusterScoped: false

@@ -59,7 +59,7 @@ spec:
       description: toto
 ```
 
-As you can see, in the [NifiParameterContext] you can refer to some secrets that will be converted into [sensitive parameter](https://nifi.apache.org/docs/nifi-docs/html/user-guide.html#using-parameters-with-sensitive-properties)/
+As you can see, in the [NifiParameterContext] you can refer to some secrets that will be converted into [sensitive parameter](https://nifi.apache.org/docs/nifi-docs/html/user-guide.html#using-parameters-with-sensitive-properties).
 
 Here is an example of secret that you can create that will be used by the configuration above : 
 
@@ -113,10 +113,10 @@ You have two modes of control from your dataflow by the operator :
 
 1 - `Spec.RunOnce == true` : The operator will deploy the dataflow as described in the resource, run it once, and never control it again (unless you change the field to `false`). It is useful when you want to deploy your dataflow in a dev environment, and you want to update the dataflow.
 
-2 - `Spec.RunOnce == true` : The operator will deploy and ensure the dataflow lifecycle, it will avoid all manual modification directly from the Cluster (e.g remove the process group, remove the versioning, update the parent process group, make some local changes ...). If you want to perform update, rollback or stuff like this, you have to simply update the [NifiDataflow] resource.
+2 - `Spec.RunOnce == false` : The operator will deploy and ensure the dataflow lifecycle, it will avoid all manual modification directly from the Cluster (e.g remove the process group, remove the versioning, update the parent process group, make some local changes ...). If you want to perform update, rollback or stuff like this, you have to simply update the [NifiDataflow] resource.
 
-:::info
-More information about `Spec.UpdateStrategy` [here](http://localhost:3000/nifikop/docs/5_references/5_nifi_dataflow#dataflowupdatestrategy)
+:::important
+More information about `Spec.UpdateStrategy` [here](/nifikop/docs/5_references/5_nifi_dataflow#dataflowupdatestrategy)
 :::
 
 [NifiDataflow]: /nifikop/docs/5_references/5_nifi_dataflow

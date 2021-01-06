@@ -1,0 +1,24 @@
+# permissions for end users to edit nificlusters.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: nificluster-editor-role
+rules:
+- apiGroups:
+  - nifi.orange.com
+  resources:
+  - nificlusters
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - nifi.orange.com
+  resources:
+  - nificlusters/status
+  verbs:
+  - get

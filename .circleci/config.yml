@@ -6,8 +6,6 @@ experimental:
       only:
         - master
 
-
-
 # Define shareable packages of configuration
 # elements used into the worflow (= Orbs)
 orbs:
@@ -57,7 +55,7 @@ orbs:
               name: Vendor dependencies
               command: if [ ! -d vendor ]; then go mod vendor; fi
           - run:
-              name: Generate k8s
+              name: Generate
               command: |
                 make generate
                 [ "$(git ls-files -m | grep -c zz_generated)" -eq 0 ]
@@ -72,42 +70,6 @@ orbs:
               paths:
                 - build/_output
                 - vendor
-
-      # Build job, which build operator docker image (with operator-sdk build)
-      build-ci:
-        <<: *params_operator
-        <<: *job_operator
-        steps:
-          - checkout:
-              path: /home/circleci/nifikop
-          - setup_remote_docker # Creates a separate environment for each build for security.
-          - restore_cache: # If exist, restore dependencies libs download cache, from previous pipeline execution.
-              keys: # Use checksum of go.sum to version cache.
-                - << parameters.operatorName >>-build-ci-{{ .Branch }}-{{ checksum "go.sum" }}
-          - attach_workspace:  # Attach artifact from workdir
-              at: /home/circleci
-          - run:
-              name: Build Operator
-              command: make build-ci-image
-          - persist_to_workspace: # Create artifacts
-              root: /home/circleci
-              paths:
-                - << parameters.operatorDir >>/build/_output
-          - deploy:
-              name: Push image to Docker Hub
-              command: |
-                if [[ $(echo "$CIRCLE_BRANCH" | grep -c "pull") -gt 0 ]]; then
-                  echo "This is a PR, we don't push to Hub."
-                else
-                  docker login --username $DOCKERHUB_USER --password $DOCKERHUB_PASSWORD
-                  make push-ci-image
-                fi
-          - save_cache:
-              name: Save build artifacts in cache
-              key: << parameters.operatorName >>-build-ci-{{ .Branch }}-{{ checksum "go.sum" }}
-              paths:
-                - build/_output
-
 
       # Build job, which build operator docker image (with operator-sdk build)
       build-operator:
@@ -137,7 +99,7 @@ orbs:
                   echo "This is a PR, we don't push to Hub."
                 else
                   docker login --username $DOCKERHUB_USER --password $DOCKERHUB_PASSWORD
-                  make push
+                  make docker-push
                 fi
           - save_cache:
               name: Save build artifacts in cache
@@ -158,15 +120,14 @@ orbs:
           # Unit tests steps
           - run:
               name: Unit Tests
-              command: make unit-test-with-vendor
+              command: make test-with-vendor
           # Artifacts definitions
           - store_artifacts: # Store unit test coverage reports
               path: coverage.html
           - persist_to_workspace:
               root: /home/circleci
               paths:
-                - << parameters.operatorDir >>/coverage.out
-                - << parameters.operatorDir >>/test-report.out
+                - << parameters.operatorDir >>/cover.out
 #      report-sonar:
 #        description: Detect bugs and vulnerabilities
 #        parameters:
@@ -249,7 +210,7 @@ orbs:
                 if [[ $(echo "$CIRCLE_BRANCH" | grep -c "pull") -gt 0 ]]; then
                   echo "This is a PR, we don't publish to helm repo."
                 else
-                  GCP_SA_CREDS=${GCP_POC_RTC_SA_KEY} /home/circleci/nifikop/tools/publish_helm_gcs.sh
+                  CHART_VERSION=$(cat helm/nifikop/Chart.yaml| grep version | awk -F"version: " '{print $2}') GCP_SA_CREDS=${GCP_POC_RTC_SA_KEY} /home/circleci/nifikop/tools/publish_helm_gcs.sh
                 fi
 jobs:
   deploy-website:
@@ -324,13 +285,6 @@ workflows:
           requires:
             - unit-test-nifikop
           <<: *everytime_filter
-
-      - operator/build-ci:
-          type: approval
-          name: build-ci
-          requires:
-            - unit-test-nifikop
-          <<: *website_publish
 
 #      - operator/report-sonar:
 #          name: report-nifikop

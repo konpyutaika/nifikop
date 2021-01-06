@@ -19,10 +19,10 @@ import (
 	"github.com/Orange-OpenSource/nifikop/pkg/resources/templates"
 	nifiutils "github.com/Orange-OpenSource/nifikop/pkg/util/nifi"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/runtime"
+	runtimeClient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func (r *Reconciler) allNodeService() runtime.Object {
+func (r *Reconciler) allNodeService() runtimeClient.Object {
 
 	usedPorts := r.generateServicePortForInternalListeners()
 	usedPorts = append(usedPorts, r.generateDefaultServicePort()...)
