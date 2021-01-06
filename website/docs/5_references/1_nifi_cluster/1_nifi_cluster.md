@@ -83,19 +83,20 @@ spec:
 |propagateLabels|boolean| - |Yes|false|
 |managedAdminUsers|\[  \][ManagedUser](#managedusers)| contains the list of users that will be added to the managed admin group (with all rights). |No|[]|
 |managedReaderUsers|\[  \][ManagedUser](#managedusers)| contains the list of users that will be added to the managed admin group (with all rights). |No|[]|
-|readOnlyConfig|[ReadOnlyConfig](/nifikop/docs/5_references/1_nifi_cluster/2_read_only_config)| specifies the read-only type Nifi config cluster wide, all theses will be merged with node specified readOnly configurations, so it can be overwritten per node.|No| nil |
-|nodeConfigGroups|map\[string\][NodeConfig](/nifikop/docs/5_references/1_nifi_cluster/3_node_config)| specifies multiple node configs with unique name|No| nil |
-|nodes|\[  \][Node](/nifikop/docs/5_references/1_nifi_cluster/3_node_config)| specifies the list of cluster nodes, all node requires an image, unique id, and storageConfigs settings|Yes| nil 
+|readOnlyConfig|[ReadOnlyConfig](./2_read_only_config)| specifies the read-only type Nifi config cluster wide, all theses will be merged with node specified readOnly configurations, so it can be overwritten per node.|No| nil |
+|nodeConfigGroups|map\[string\][NodeConfig](./3_node_config)| specifies multiple node configs with unique name|No| nil |
+|nodes|\[  \][Node](./3_node_config)| specifies the list of cluster nodes, all node requires an image, unique id, and storageConfigs settings|Yes| nil 
 |disruptionBudget|[DisruptionBudget](#disruptionbudget)| defines the configuration for PodDisruptionBudget.|No| nil |
 |ldapConfiguration|[LdapConfiguration](#ldapconfiguration)| specifies the configuration if you want to use LDAP.|No| nil |
 |nifiClusterTaskSpec|[NifiClusterTaskSpec](#nificlustertaskspec)| specifies the configuration of the nifi cluster Tasks.|No| nil |
-|listenersConfig|[ListenersConfig](/nifikop/docs/5_references/1_nifi_cluster/6_listeners_config)| listenersConfig specifies nifi's listener specifig configs.|Yes| - |
+|listenersConfig|[ListenersConfig](./6_listeners_config)| listenersConfig specifies nifi's listener specifig configs.|Yes| - |
+|sidecarConfigs|\[  \][Container](https://godoc.org/k8s.io/api/core/v1#Container)|Defines additional sidecar configurations. [Check documentation for more informations]|
 
 ## NifiClusterStatus
 
 |Field|Type|Description|Required|Default|
 |-----|----|-----------|--------|--------|
-|nodesState|map\[string\][NodeState](/nifikop/docs/5_references/1_nifi_cluster/5_node_state)|Store the state of each nifi node.|No| - |
+|nodesState|map\[string\][NodeState](./5_node_state)|Store the state of each nifi node.|No| - |
 |State|[ClusterState](#clusterstate)|Store the state of each nifi node.|Yes| - |
 |rootProcessGroupId|string|contains the uuid of the root process group for this cluster.|No| - |
 

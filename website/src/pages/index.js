@@ -42,8 +42,30 @@ const features = [
         imageUrl: 'img/namespace.png',
         description: (
             <>
-                NiFiKop is listening only in the Kubernetes namespace it is deployed in, and
-                is able to manage several Nifi Clusters within this namespace.
+                NiFiKop is listening is a Multi-Namespace scoped operator (not cluster wide), and
+                is able to manage several Nifi Clusters within these namespaces.
+            </>
+        ),
+    },
+
+    {
+        title: <>User and group management</>,
+        imageUrl: 'img/users.png',
+        description: (
+            <>
+                NiFiKop allows you to define users and groups with their access policies using K8s resources.
+                This way you can fully automate your NiFi cluster setup using yaml configurations.
+            </>
+        ),
+    },
+
+    {
+        title: <>Dataflow lifecycle management</>,
+        imageUrl: 'img/dataflow.png',
+        description: (
+            <>
+                NiFiKop allows you to define NiFi registry client, parameter context and datflow using K8s resources.
+                This way you can fully automate your Dataflow deployment and let the operator manage is lifecycle.
             </>
         ),
     },

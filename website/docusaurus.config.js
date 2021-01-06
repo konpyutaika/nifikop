@@ -1,3 +1,12 @@
+const versions = require('./versions.json');
+
+const allDocHomesPaths = [
+  '/docs/',
+  '/docs/next/',
+  ...versions.slice(1).map((version) => `/docs/${version}/`),
+];
+
+
 module.exports = {
   title: 'NiFiKop',
   tagline: 'Open-Source, Apache NiFi operator for Kubernetes',
@@ -7,19 +16,42 @@ module.exports = {
   organizationName: 'Orange-OpenSource', // Usually your GitHub org/user name.
   projectName: 'nifikop', // Usually your repo name.
   themeConfig: {
+    algolia: {
+      apiKey: '34dbf55751628f3e3aaf8e06776fba0b',
+      indexName: 'nifikop',
+
+      // Optional: see doc section bellow
+      contextualSearch: true,
+
+      // Optional: Algolia search parameters
+      searchParameters: {},
+
+    },
     navbar: {
       title: 'NiFiKop',
       logo: {
         alt: 'NiFiKop Logo',
         src: 'img/nifikop.png',
       },
-      links: [
-        {to: 'docs/1_concepts/1_introduction', label: 'Docs', position: 'right'},
-        {to: 'blog', label: 'Blog', position: 'right'},
+      items: [
+        {
+          type: 'docsVersionDropdown',
+          position: 'right',
+          dropdownActiveClassDisabled: true,
+          dropdownItemsAfter: [
+            {
+              to: '/versions',
+              label: 'All versions',
+            },
+          ],
+        },
+        {to: 'docs/1_concepts/1_introduction', className: 'header-doc-link', 'aria-label': 'Documentation', position: 'right'},
+        {to: 'blog', className: 'header-blog-link', 'aria-label': 'Blog', position: 'right'},
         {
           href: 'https://github.com/Orange-OpenSource/nifikop',
-          label: 'GitHub',
           position: 'right',
+          className: 'header-github-link',
+          'aria-label': 'GitHub repository',
         },
       ],
     },
@@ -65,7 +97,7 @@ module.exports = {
       copyright: `Copyright © ${new Date().getFullYear()} Orange, Inc. Built with Docusaurus.`,
     },
   },
-  themes: ['@docusaurus/theme-classic', '@docusaurus/theme-live-codeblock'],
+  themes: ['@docusaurus/theme-live-codeblock'],
   presets: [
     [
       '@docusaurus/preset-classic',
@@ -78,6 +110,14 @@ module.exports = {
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
         },
+        editCurrentVersion: true,
+        showLastUpdateAuthor: true,
+        showLastUpdateTime: true,
+        remarkPlugins: [
+          [require('@docusaurus/remark-plugin-npm2yarn'), {sync: true}],
+        ],
+        disableVersioning: false,
+        onlyIncludeVersions: ['current', ...versions.slice(0, 2)],
       },
     ],
   ],
