@@ -214,7 +214,7 @@ orbs:
                 fi
 jobs:
   deploy-website:
-    working_directory: /home/circleci/nifikop/website
+    working_directory: /home/circleci/nifikop/site
     docker: # run the steps with Docker
       - image: node:14.15.4
     steps:
@@ -229,6 +229,7 @@ jobs:
             git config --global user.email "${GH_EMAIL}"
             echo "machine github.com login ${GH_NAME} password ${GH_TOKEN}" > ~/.netrc
             yarn install
+            cd website
             yarn build
             CUSTOM_COMMIT_MESSAGE="[skip ci]" GIT_USER="${GH_NAME}" yarn deploy
 
