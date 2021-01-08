@@ -1,0 +1,1 @@
+(window.webpackJsonp=window.webpackJsonp||[]).push([[60],{124:function(p){p.exports=JSON.parse('{"allTagsPath":"/nifikop/blog/tags","slug":"gcp","name":"gcp","count":2,"permalink":"/nifikop/blog/tags/gcp"}')}}]);
