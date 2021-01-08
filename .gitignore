@@ -85,14 +85,16 @@ nifi-operator.env
 telepresence.log
 
 # Dependencies
-website/node_modules
+site/node_modules
+site/website/node_modules
+
 
 # Production
-website/build
+site/website/build
 
 # Generated files
-website/.docusaurus
-website/.cache-loader
+site/website/.docusaurus
+site/website/.cache-loader
 
 # Misc
 website/.DS_Store
@@ -101,9 +103,12 @@ website/.env.development.local
 website/.env.test.local
 website/.env.production.local
 
-website/npm-debug.log*
-website/yarn-debug.log*
-website/yarn-error.log*
+sites/website/npm-debug.log*
+sites/website/yarn-debug.log*
+sites/website/yarn-error.log*
+sites/npm-debug.log*
+sites/yarn-debug.log*
+sites/yarn-error.log*
 
 bin
 testbin/*
