@@ -59,7 +59,8 @@
           "5_references/1_nifi_cluster/3_node_config",
           "5_references/1_nifi_cluster/4_node",
           "5_references/1_nifi_cluster/5_node_state",
-          "5_references/1_nifi_cluster/6_listeners_config"
+          "5_references/1_nifi_cluster/6_listeners_config",
+          "5_references/1_nifi_cluster/7_external_service_config"
         ]
       },
       "5_references/2_nifi_user",
