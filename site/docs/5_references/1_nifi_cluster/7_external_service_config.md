@@ -30,7 +30,7 @@ ListenersConfig defines the Nifi listener types :
 
 Field|Type|Description|Required|Default|
 |-----|----|-----------|--------|--------|
-|portConfigs||\[  \][PortConfig](portconfig)| Contains the list port for the service and the associated listener| Yes | - |
+|portConfigs||\[  \][PortConfig](#portconfig)| Contains the list port for the service and the associated listener| Yes | - |
 |clusterIP|string| More info: https://kubernetes.io/docs/concepts/services-networking/service/#virtual-ips-and-service-proxies | No | - |
 |type|[ServiceType](https://godoc.org/k8s.io/api/core/v1#ServiceType)| type determines how the Service is exposed. Defaults to ClusterIP. Valid options are ExternalName, ClusterIP, NodePort, and LoadBalancer. | No | - |
 |externalIPs|\[  \]string| externalIPs is a list of IP addresses for which nodes in the cluster will also accept traffic for this service.  These IPs are not managed by Kubernetes | No | - |
