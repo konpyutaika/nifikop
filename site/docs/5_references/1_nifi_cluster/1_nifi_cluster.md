@@ -58,6 +58,15 @@ spec:
       - type: "s2s"
         name: "s2s"
         containerPort: 10000
+  externalServices:
+    - name: "clusterip"
+      spec:
+        type: ClusterIP
+        portConfigs:
+          - port: 8080
+            internalListenerName: "http"
+      serviceAnnotations:
+        toto: tata
 ```
 
 ## NifiCluster
@@ -89,8 +98,9 @@ spec:
 |disruptionBudget|[DisruptionBudget](#disruptionbudget)| defines the configuration for PodDisruptionBudget.|No| nil |
 |ldapConfiguration|[LdapConfiguration](#ldapconfiguration)| specifies the configuration if you want to use LDAP.|No| nil |
 |nifiClusterTaskSpec|[NifiClusterTaskSpec](#nificlustertaskspec)| specifies the configuration of the nifi cluster Tasks.|No| nil |
-|listenersConfig|[ListenersConfig](./6_listeners_config.md)| listenersConfig specifies nifi's listener specifig configs.|Yes| - |
+|listenersConfig|[ListenersConfig](./6_listeners_config.md)| specifies nifi's listener specifig configs.|Yes| - |
 |sidecarConfigs|\[  \][Container](https://godoc.org/k8s.io/api/core/v1#Container)|Defines additional sidecar configurations. [Check documentation for more informations]|
+|externalServices|\[  \][ExternalServiceConfigs](./7_external_service_config.md)| specifies settings required to access nifi externally.|No| - |
 
 ## NifiClusterStatus
 
