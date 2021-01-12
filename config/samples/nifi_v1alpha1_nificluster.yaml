@@ -55,8 +55,6 @@ spec:
       # on template and configurations.
       overrideConfigs: |
         nifi.ui.banner.text=NiFiKop by Orange
-      # Site to Site properties Secure mode : https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#site_to_site_properties
-      siteToSiteSecure: false
       # A comma separated list of allowed HTTP Host header values to consider when NiFi
       # is running securely and will be receiving requests to a different host[:port] than it is bound to.
       # https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#web-properties
@@ -218,7 +216,6 @@ spec:
   nifiClusterTaskSpec:
     # retryDurationMinutes describes the amount of time the Operator waits for the task
     retryDurationMinutes: 10
-
   # listenerConfig specifies nifi's listener specifig configs
   listenersConfig:
     # internalListeners specifies settings required to access nifi internally
@@ -257,6 +254,31 @@ spec:
 #      issuerRef:
 #        name: letsencrypt-staging
 #        kind: Issuer
+  externalServices:
+    - name: "clusterip"
+      spec:
+        type: ClusterIP
+        portConfigs:
+          - port: 8080
+            internalListenerName: "http"
+      serviceAnnotations:
+        toto: tata
+    - name: "loadbalancer"
+      spec:
+        type: LoadBalancer
+        portConfigs:
+          - port: 8080
+            internalListenerName: "http"
+      serviceAnnotations:
+        toto: tata
+    - name: "nodepart"
+      spec:
+        type: NodePort
+        portConfigs:
+          - port: 8080
+            internalListenerName: "http"
+      serviceAnnotations:
+        toto: tata
   sidecarConfigs:
     - name: app-log
       image: "busybox:1.32.0"

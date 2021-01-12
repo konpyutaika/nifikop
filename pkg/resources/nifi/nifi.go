@@ -185,10 +185,14 @@ func (r *Reconciler) Reconcile(log logr.Logger) error {
 		}
 	}
 
-	o := r.lbService()
-	err := k8sutil.Reconcile(log, r.Client, o, r.NifiCluster)
-	if err != nil {
-		return errors.WrapIfWithDetails(err, "failed to reconcile resource", "resource", o.GetObjectKind().GroupVersionKind())
+	var err error
+	// Reconcile external services
+	services := r.externalServices(log)
+	for _, o := range services {
+		err = k8sutil.Reconcile(log, r.Client, o, r.NifiCluster)
+		if err != nil {
+			return errors.WrapIfWithDetails(err, "failed to reconcile resource", "resource", o.GetObjectKind().GroupVersionKind())
+		}
 	}
 
 	// Handle PDB

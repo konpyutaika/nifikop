@@ -84,6 +84,8 @@ type NifiClusterSpec struct {
 	ListenersConfig ListenersConfig `json:"listenersConfig"`
 	// SidecarsConfig defines additional sidecar configurations
 	SidecarConfigs []corev1.Container `json:"sidecarConfigs,omitempty" patchStrategy:"merge" patchMergeKey:"name" protobuf:"bytes,2,rep,name=containers"`
+	// ExternalService specifies settings required to access nifi externally
+	ExternalServices []ExternalServiceConfig `json:"externalServices,omitempty"`
 }
 
 // DisruptionBudget defines the configuration for PodDisruptionBudget
@@ -233,9 +235,6 @@ type StorageConfig struct {
 
 //ListenersConfig defines the Nifi listener types
 type ListenersConfig struct {
-	// externalListeners specifies settings required to access nifi externally
-	// TODO: enable externalListener configuration
-	//ExternalListeners []ExternalListenerConfig `json:"externalListeners,omitempty"`
 	// internalListeners specifies settings required to access nifi internally
 	InternalListeners []InternalListenerConfig `json:"internalListeners"`
 	// sslSecrets contains information about ssl related kubernetes secrets if one of the
@@ -279,22 +278,6 @@ type SSLSecrets struct {
 	UserStore string `json:"userStore"`
 }*/
 
-// ExternalListenerConfig defines the external listener config for Nifi
-// TODO: enable configuration of ingress or something like this.
-type ExternalListenerConfig struct {
-	// TODO: remove type field # specific to Nifi ?
-	//
-	Type string `json:"type"`
-	//
-	Name string `json:"name"`
-	//
-	ExternalStartingPort int32 `json:"externalStartingPort"`
-	//
-	ContainerPort int32 `json:"containerPort"`
-	//
-	HostnameOverride string `json:"hostnameOverride,omitempty"`
-}
-
 // InternalListenerConfig defines the internal listener config for Nifi
 type InternalListenerConfig struct {
 	// +kubebuilder:validation:Enum={"cluster", "http", "https", "s2s"}
@@ -307,6 +290,91 @@ type InternalListenerConfig struct {
 	// The container port.
 	ContainerPort int32 `json:"containerPort"`
 }
+
+type ExternalServiceConfig struct {
+	// Name must be unique within a namespace. Is required when creating resources, although
+	// some resources may allow a client to request the generation of an appropriate name
+	// automatically. Name is primarily intended for creation idempotence and configuration
+	// definition.
+	// Cannot be updated.
+	// More info: http://kubernetes.io/docs/user-guide/identifiers#names
+	// +optional
+	Name string `json:"name"`
+	// Annotations is an unstructured key value map stored with a resource that may be
+	// set by external tools to store and retrieve arbitrary metadata. They are not
+	// queryable and should be preserved when modifying objects.
+	// More info: http://kubernetes.io/docs/user-guide/annotations
+	ServiceAnnotations map[string]string `json:"serviceAnnotations,omitempty"`
+	// Spec defines the behavior of a service.
+	Spec ExternalServiceSpec `json:"spec"`
+}
+
+type ExternalServiceSpec struct {
+	// Contains the list port for the service and the associated listener
+	PortConfigs []PortConfig `json:"portConfigs"`
+	// clusterIP is the IP address of the service and is usually assigned
+	// randomly by the master. If an address is specified manually and is not in
+	// use by others, it will be allocated to the service; otherwise, creation
+	// of the service will fail. This field can not be changed through updates.
+	// Valid values are "None", empty string (""), or a valid IP address. "None"
+	// can be specified for headless services when proxying is not required.
+	// Only applies to types ClusterIP, NodePort, and LoadBalancer. Ignored if
+	// type is ExternalName.
+	// More info: https://kubernetes.io/docs/concepts/services-networking/service/#virtual-ips-and-service-proxies
+	// +optional
+	ClusterIP string `json:"clusterIP,omitempty" protobuf:"bytes,3,opt,name=clusterIP"`
+	// type determines how the Service is exposed. Defaults to ClusterIP. Valid
+	// options are ExternalName, ClusterIP, NodePort, and LoadBalancer.
+	// "ExternalName" maps to the specified externalName.
+	// "ClusterIP" allocates a cluster-internal IP address for load-balancing to
+	// endpoints. Endpoints are determined by the selector or if that is not
+	// specified, by manual construction of an Endpoints object. If clusterIP is
+	// "None", no virtual IP is allocated and the endpoints are published as a
+	// set of endpoints rather than a stable IP.
+	// "NodePort" builds on ClusterIP and allocates a port on every node which
+	// routes to the clusterIP.
+	// "LoadBalancer" builds on NodePort and creates an
+	// external load-balancer (if supported in the current cloud) which routes
+	// to the clusterIP.
+	// More info: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
+	// +optional
+	Type corev1.ServiceType `json:"type,omitempty" protobuf:"bytes,4,opt,name=type,casttype=ServiceType"`
+	// externalIPs is a list of IP addresses for which nodes in the cluster
+	// will also accept traffic for this service.  These IPs are not managed by
+	// Kubernetes.  The user is responsible for ensuring that traffic arrives
+	// at a node with this IP.  A common example is external load-balancers
+	// that are not part of the Kubernetes system.
+	// +optional
+	ExternalIPs []string `json:"externalIPs,omitempty" protobuf:"bytes,5,rep,name=externalIPs"`
+	// Only applies to Service Type: LoadBalancer
+	// LoadBalancer will get created with the IP specified in this field.
+	// This feature depends on whether the underlying cloud-provider supports specifying
+	// the loadBalancerIP when a load balancer is created.
+	// This field will be ignored if the cloud-provider does not support the feature.
+	// +optional
+	LoadBalancerIP string `json:"loadBalancerIP,omitempty" protobuf:"bytes,8,opt,name=loadBalancerIP"`
+	// If specified and supported by the platform, this will restrict traffic through the cloud-provider
+	// load-balancer will be restricted to the specified client IPs. This field will be ignored if the
+	// cloud-provider does not support the feature."
+	// More info: https://kubernetes.io/docs/tasks/access-application-cluster/configure-cloud-provider-firewall/
+	// +optional
+	LoadBalancerSourceRanges []string `json:"loadBalancerSourceRanges,omitempty" protobuf:"bytes,9,opt,name=loadBalancerSourceRanges"`
+	// externalName is the external reference that kubedns or equivalent will
+	// return as a CNAME record for this service. No proxying will be involved.
+	// Must be a valid RFC-1123 hostname (https://tools.ietf.org/html/rfc1123)
+	// and requires Type to be ExternalName.
+	// +optional
+	ExternalName string `json:"externalName,omitempty" protobuf:"bytes,10,opt,name=externalName"`
+}
+
+type PortConfig struct {
+	// The port that will be exposed by this service.
+	Port int32 `json:"port" protobuf:"varint,3,opt,name=port"`
+	// The name of the listener which will be used as target container.
+	InternalListenerName string `json:"internalListenerName"`
+}
+
+
 
 // LdapConfiguration specifies the configuration if you want to use LDAP
 type LdapConfiguration struct {

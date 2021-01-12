@@ -24,8 +24,7 @@ import (
 
 func (r *Reconciler) allNodeService() runtimeClient.Object {
 
-	usedPorts := r.generateServicePortForInternalListeners()
-	usedPorts = append(usedPorts, r.generateDefaultServicePort()...)
+	usedPorts := generateServicePortForInternalListeners(r.NifiCluster.Spec.ListenersConfig.InternalListeners)
 
 	return &corev1.Service{
 		ObjectMeta: templates.ObjectMetaWithAnnotations(fmt.Sprintf(nifiutils.AllNodeServiceTemplate, r.NifiCluster.Name),

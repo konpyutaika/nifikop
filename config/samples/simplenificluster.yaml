@@ -49,3 +49,28 @@ spec:
       - type: "s2s"
         name: "s2s"
         containerPort: 10000
+  externalServices:
+    - name: "clusterip"
+      spec:
+        type: ClusterIP
+        portConfigs:
+          - port: 8080
+            internalListenerName: "http"
+      serviceAnnotations:
+        toto: tata
+    - name: "loadbalancer"
+      spec:
+        type: LoadBalancer
+        portConfigs:
+          - port: 8080
+            internalListenerName: "http"
+      serviceAnnotations:
+        toto: tata
+    - name: "nodepart"
+      spec:
+        type: NodePort
+        portConfigs:
+          - port: 8080
+            internalListenerName: "http"
+      serviceAnnotations:
+        toto: tata

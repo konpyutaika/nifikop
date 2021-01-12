@@ -26,10 +26,7 @@ import (
 func (r *Reconciler) headlessService() runtimeClient.Object {
 
 	// InternalListeners ports
-	usedPorts := r.generateServicePortForInternalListeners()
-
-	// Additionnal ports
-	usedPorts = append(usedPorts, r.generateDefaultServicePort()...)
+	usedPorts := generateServicePortForInternalListeners(r.NifiCluster.Spec.ListenersConfig.InternalListeners)
 
 	return &corev1.Service{
 		ObjectMeta: templates.ObjectMetaWithAnnotations(
