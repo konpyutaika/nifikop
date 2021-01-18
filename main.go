@@ -133,9 +133,9 @@ func main() {
 	}
 
 	if err = (&controllers.NifiClusterTaskReconciler{
-		Client:       mgr.GetClient(),
-		Log:          ctrl.Log.WithName("controllers").WithName("NifiClusterTask"),
-		Scheme:       mgr.GetScheme(),
+		Client: mgr.GetClient(),
+		Log:    ctrl.Log.WithName("controllers").WithName("NifiClusterTask"),
+		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "NifiClusterTask")
 		os.Exit(1)

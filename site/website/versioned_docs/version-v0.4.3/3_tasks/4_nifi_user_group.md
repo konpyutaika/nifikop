@@ -6,7 +6,7 @@ sidebar_label: NiFi Users and Groups
 
 ## User management
 
-The `NifiUser` resource was already introduced for the [SSL credentials](./2_security/1_ssl#create-ssl-credentials.md) concerns.
+The `NifiUser` resource was already introduced for the [SSL credentials](./2_security/1_ssl.md#create-ssl-credentials) concerns.
 What we are covering here is the NiFi user management part introduced in this resource.
 
 When you create a `NifiUser` resource the operator will :

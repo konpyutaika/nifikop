@@ -12,7 +12,11 @@
 
 ### Removed
 
+- [PR #59](https://github.com/Orange-OpenSource/nifikop/pull/59) - **[Operator/NifiCluster]** No more default service to expose the NiFi cluster, you have to explicitly define ExternalService.
+
 ### Fixed Bugs
+
+- [PR #62](https://github.com/Orange-OpenSource/nifikop/pull/62) - **[Operator/NifiCluster]** Fix DNS names for services in all-node mode.
 
 ## v0.4.3
 

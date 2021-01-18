@@ -58,7 +58,6 @@ func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev
 	zkAddress := r.NifiCluster.Spec.ZKAddress
 	zkHostname := zk.GetHostnameAddress(zkAddress)
 	zkPort := zk.GetPortAddress(zkAddress)
-	
 
 	dataVolume, dataVolumeMount := generateDataVolumeAndVolumeMount(pvcs)
 
@@ -73,7 +72,7 @@ func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev
 		volume = append(volume, generateVolumesForSSL(r.NifiCluster, id)...)
 		volumeMount = append(volumeMount, generateVolumeMountForSSL()...)
 	}
-	
+
 	podVolumes := append(volume, []corev1.Volume{
 		{
 			Name: nodeConfigMapVolumeMount,
@@ -146,7 +145,7 @@ done`,
 			Affinity: &corev1.Affinity{
 				PodAntiAffinity: generatePodAntiAffinity(r.NifiCluster.Name, r.NifiCluster.Spec.OneNifiNodePerNode),
 			},
-			Containers: r.generateContainers(nodeConfig, id, podVolumeMounts, zkAddress),
+			Containers:                    r.generateContainers(nodeConfig, id, podVolumeMounts, zkAddress),
 			Volumes:                       podVolumes,
 			RestartPolicy:                 corev1.RestartPolicyNever,
 			TerminationGracePeriodSeconds: util.Int64Pointer(120),
@@ -160,10 +159,10 @@ done`,
 		},
 	}
 
-	if r.NifiCluster.Spec.Service.HeadlessEnabled {
-		pod.Spec.Hostname = nifiutil.ComputeNodeName(id, r.NifiCluster.Name)
-		pod.Spec.Subdomain = nifiutil.ComputeServiceName(r.NifiCluster.Name, r.NifiCluster.Spec.Service.HeadlessEnabled)
-	}
+	//if r.NifiCluster.Spec.Service.HeadlessEnabled {
+	pod.Spec.Hostname = nifiutil.ComputeNodeName(id, r.NifiCluster.Name)
+	pod.Spec.Subdomain = nifiutil.ComputeAllNodeServiceName(r.NifiCluster.Name, r.NifiCluster.Spec.Service.HeadlessEnabled)
+	//}
 
 	if nodeConfig.NodeAffinity != nil {
 		pod.Spec.Affinity.NodeAffinity = nodeConfig.NodeAffinity
@@ -370,7 +369,7 @@ func (r *Reconciler) createNifiNodeContainer(nodeConfig *v1alpha1.NodeConfig, id
 			v1alpha1.TLSKey,
 			GetServerPort(&r.NifiCluster.Spec.ListenersConfig))
 	}
-	
+
 	failCondition := ""
 
 	if val, ok := r.NifiCluster.Status.NodesState[fmt.Sprint(id)]; !ok || (val.InitClusterNode != v1alpha1.IsInitClusterNode &&
@@ -413,8 +412,10 @@ rm -f $NIFI_BASE_DIR/cluster.state `,
 		r.NifiCluster.Spec.ListenersConfig.GetClusterDomain(), r.NifiCluster.Spec.ListenersConfig.UseExternalDNS,
 		r.NifiCluster.Spec.ListenersConfig.InternalListeners)
 
-	command := []string{"bash", "-ce", fmt.Sprintf(`cp ${NIFI_HOME}/tmp/* ${NIFI_HOME}/conf/
-echo "Waiting for host to be reachable"
+	resolveIp := ""
+
+	if r.NifiCluster.Spec.Service.HeadlessEnabled {
+		resolveIp = fmt.Sprintf(`echo "Waiting for host to be reachable"
 notMatchedIp=true
 while $notMatchedIp
 do
@@ -429,10 +430,13 @@ do
 		notMatchedIp=false
 	fi
 done
-echo "Hostname is successfully binded withy IP adress"
+echo "Hostname is successfully binded withy IP adress"`, nodeAddress, nodeAddress)
+	}
+	command := []string{"bash", "-ce", fmt.Sprintf(`cp ${NIFI_HOME}/tmp/* ${NIFI_HOME}/conf/
 %s
-exec bin/nifi.sh run`, nodeAddress, nodeAddress, removesFileAction)}
-	
+%s
+exec bin/nifi.sh run`, resolveIp, removesFileAction)}
+
 	return corev1.Container{
 		Name:            ContainerName,
 		Image:           util.GetNodeImage(nodeConfig, r.NifiCluster.Spec.ClusterImage),
