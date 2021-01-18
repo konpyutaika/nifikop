@@ -374,8 +374,6 @@ type PortConfig struct {
 	InternalListenerName string `json:"internalListenerName"`
 }
 
-
-
 // LdapConfiguration specifies the configuration if you want to use LDAP
 type LdapConfiguration struct {
 	// If set to true, we will enable ldap usage into nifi.properties configuration.

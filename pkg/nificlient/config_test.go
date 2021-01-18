@@ -107,15 +107,15 @@ func testClusterConfig(t *testing.T, cluster *v1alpha1.NifiCluster, expectedUseS
 	}
 
 	assert.Equal(
-		fmt.Sprintf("%s-%s-node.%s-all-node.%s.svc.cluster.local:%d",
-			clusterName, "%d", clusterName, clusterNamespace, httpContainerPort),
+		fmt.Sprintf("%s-%s-node.%s.svc.cluster.local:%d",
+			clusterName, "%d", clusterNamespace, httpContainerPort),
 		conf.nodeURITemplate)
 
 	assert.Equal(1, len(conf.NodesURI))
 	assert.NotNil(conf.NodesURI[succeededNodeId])
 	assert.Equal(
-		fmt.Sprintf("%s-%d-node.%s-all-node.%s.svc.cluster.local:%d",
-			clusterName, succeededNodeId, clusterName, clusterNamespace, httpContainerPort),
+		fmt.Sprintf("%s-%d-node.%s.svc.cluster.local:%d",
+			clusterName, succeededNodeId, clusterNamespace, httpContainerPort),
 		conf.NodesURI[succeededNodeId])
 
 	assert.Equal(
@@ -142,8 +142,8 @@ func TestGenerateNodesAddress(t *testing.T) {
 	assert.Equal(1, len(nodesURI))
 	assert.NotNil(nodesURI[succeededNodeId])
 	assert.Equal(
-		fmt.Sprintf("%s-%d-node.%s-all-node.%s.svc.cluster.local:%d",
-			clusterName, succeededNodeId, clusterName, clusterNamespace, httpContainerPort),
+		fmt.Sprintf("%s-%d-node.%s.svc.cluster.local:%d",
+			clusterName, succeededNodeId, clusterNamespace, httpContainerPort),
 		nodesURI[succeededNodeId])
 }
 
@@ -153,7 +153,7 @@ func TestGenerateNodesURITemplate(t *testing.T) {
 	cluster := testCluster(t)
 
 	assert.Equal(
-		fmt.Sprintf("%s-%s-node.%s-all-node.%s.svc.cluster.local:%d",
-			clusterName, "%d", clusterName, clusterNamespace, httpContainerPort),
+		fmt.Sprintf("%s-%s-node.%s.svc.cluster.local:%d",
+			clusterName, "%d", clusterNamespace, httpContainerPort),
 		generateNodesURITemplate(cluster))
 }

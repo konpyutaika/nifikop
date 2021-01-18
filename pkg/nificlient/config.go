@@ -17,12 +17,12 @@ package nificlient
 import (
 	"crypto/tls"
 	"fmt"
-
 	"github.com/Orange-OpenSource/nifikop/api/v1alpha1"
 	"github.com/Orange-OpenSource/nifikop/pkg/pki"
 	"github.com/Orange-OpenSource/nifikop/pkg/util"
 	"github.com/Orange-OpenSource/nifikop/pkg/util/nifi"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"strings"
 )
 
 const (
@@ -83,6 +83,6 @@ func generateNodesURITemplate(cluster *v1alpha1.NifiCluster) string {
 			nifi.SuffixNodeNameTemplate
 
 	return nodeNameTemplate + fmt.Sprintf(".%s",
-		nifi.GenerateNiFiAddressFromCluster(cluster),
+		strings.SplitAfterN(nifi.GenerateNodeAddressFromCluster(0, cluster), ".", 2)[1],
 	)
 }

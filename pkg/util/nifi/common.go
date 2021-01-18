@@ -73,7 +73,7 @@ func ComputeNiFiAddress(
 	internalListeners []v1alpha1.InternalListenerConfig) string {
 
 	return fmt.Sprintf("%s:%d",
-		ComputeNiFiHostname(
+		ComputeAllNodeServiceHostname(
 			clusterName,
 			namespace,
 			headlessServiceEnabled,
@@ -133,60 +133,89 @@ func ComputeNodeHostname(
 	useExternalDNS bool) string {
 
 	return fmt.Sprintf("%s.%s",
-		ComputeNodeName(nodeId, clusterName),
-		ComputeNiFiHostname(clusterName, namespace, headlessServiceEnabled, clusterDomain, useExternalDNS))
+		ComputeNodeServiceNameFull(nodeId, clusterName, namespace, headlessServiceEnabled, useExternalDNS),
+		clusterDomain)
 }
 
-func ComputeNiFiHostname(
+func ComputeNodeAllNodeHostname(
+	nodeId int32,
+	clusterName, namespace string,
+	headlessServiceEnabled bool,
+	clusterDomain string,
+	useExternalDNS bool) string {
+
+	return fmt.Sprintf("%s.%s", ComputeNodeName(nodeId, clusterName),
+		ComputeAllNodeServiceHostname(clusterName, namespace, headlessServiceEnabled, clusterDomain, useExternalDNS))
+}
+
+func ComputeAllNodeServiceHostname(
 	clusterName, namespace string,
 	headlessServiceEnabled bool,
 	clusterDomain string,
 	useExternalDNS bool) string {
 
 	return fmt.Sprintf("%s.%s",
-		ComputeServiceNameFull(clusterName, namespace, headlessServiceEnabled, useExternalDNS),
+		ComputeAllNodeServiceNameFull(clusterName, namespace, headlessServiceEnabled, useExternalDNS),
 		clusterDomain)
 }
 
 // ComputeNodeServiceNameFull return the node service name in svc format
 func ComputeNodeServiceNameFull(nodeId int32, clusterName, namespace string, headlessServiceEnabled, useExternalDNS bool) string {
-	return fmt.Sprintf("%s.%s",
-		ComputeNodeName(nodeId, clusterName),
-		ComputeServiceNameFull(clusterName, namespace, headlessServiceEnabled, useExternalDNS))
+	allNodeServiceName := ComputeNodeServiceName(nodeId, clusterName, headlessServiceEnabled)
+	if useExternalDNS {
+		return allNodeServiceName
+	}
+
+	return fmt.Sprintf("%s.svc", ComputeNodeServiceNameNs(nodeId, clusterName, namespace, headlessServiceEnabled))
 }
 
 // ComputeNodeServiceNameNs return the node service name in namespace format
-func ComputeNodeServiceNameNs(nodeId int32, clusterName, namespace string, headlessServiceEnabled, useExternalDNS bool) string {
-	return fmt.Sprintf("%s.%s",
-		ComputeNodeName(nodeId, clusterName),
-		ComputeServiceNameWithNamespace(clusterName, namespace, headlessServiceEnabled, useExternalDNS))
+func ComputeNodeServiceNameNs(nodeId int32, clusterName, namespace string, headlessServiceEnabled bool) string {
+	return ComputeNamespaceServiceName(ComputeNodeServiceName(nodeId, clusterName, headlessServiceEnabled), namespace)
 }
 
-func ComputeServiceNameFull(clusterName, namespace string, headlessServiceEnabled, useExternalDNS bool) string {
-	nsService := ComputeServiceNameWithNamespace(clusterName, namespace, headlessServiceEnabled, useExternalDNS)
+func ComputeAllNodeServiceNameFull(clusterName, namespace string, headlessServiceEnabled, useExternalDNS bool) string {
+	allNodeServiceName := ComputeAllNodeServiceName(clusterName, headlessServiceEnabled)
 	if useExternalDNS {
-		return nsService
+		return allNodeServiceName
 	}
 
-	return fmt.Sprintf("%s.svc", nsService)
+	return fmt.Sprintf("%s.svc", ComputeAllNodeServiceNameNs(clusterName, namespace, headlessServiceEnabled))
 }
 
-// ComputeServiceNameWithNamespace return the service name with namespace with the right format
-func ComputeServiceNameWithNamespace(clusterName, namespace string, headlessServiceEnabled, useExternalDNS bool) string {
-	serviceName := ComputeServiceName(clusterName, headlessServiceEnabled)
-	if useExternalDNS {
-		return serviceName
-	}
+func ComputeAllNodeServiceNameNs(clusterName, namespace string, headlessServiceEnabled bool) string {
+	allNodeServiceName := ComputeAllNodeServiceName(clusterName, headlessServiceEnabled)
+	return ComputeNamespaceServiceName(allNodeServiceName, namespace)
+}
+
+//func ComputeNodeServiceName(nodeId int32, clusterName string, headlessServiceEnabled bool) string {
+//	return fmt.Sprintf("%s.%s", ComputeNodeName(nodeId, clusterName),
+//		ComputeServiceName(clusterName, headlessServiceEnabled))
+//}
+
+//// ComputeServiceName return the service name with the right format
+//func ComputeServiceName(clusterName string, headlessServiceEnabled bool) string {
+//	if headlessServiceEnabled {
+//		return fmt.Sprintf(HeadlessServiceTemplate, clusterName)
+//	}
+//
+//	return fmt.Sprintf(AllNodeServiceTemplate, clusterName)
+//}
+
+func ComputeNamespaceServiceName(serviceName, namespace string) string {
 	return fmt.Sprintf("%s.%s", serviceName, namespace)
 }
 
 func ComputeNodeServiceName(nodeId int32, clusterName string, headlessServiceEnabled bool) string {
-	return fmt.Sprintf("%s.%s", ComputeNodeName(nodeId, clusterName),
-		ComputeServiceName(clusterName, headlessServiceEnabled))
+	nodeName := ComputeNodeName(nodeId, clusterName)
+	if headlessServiceEnabled {
+		allNodeServiceName := ComputeAllNodeServiceName(clusterName, headlessServiceEnabled)
+		return fmt.Sprintf("%s.%s", nodeName, allNodeServiceName)
+	}
+	return nodeName
 }
 
-// ComputeServiceName return the service name with the right format
-func ComputeServiceName(clusterName string, headlessServiceEnabled bool) string {
+func ComputeAllNodeServiceName(clusterName string, headlessServiceEnabled bool) string {
 	if headlessServiceEnabled {
 		return fmt.Sprintf(HeadlessServiceTemplate, clusterName)
 	}

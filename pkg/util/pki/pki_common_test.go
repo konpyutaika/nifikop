@@ -54,37 +54,6 @@ func TestDN(t *testing.T) {
 	}
 }
 
-func TestGetCommonName(t *testing.T) {
-	cluster := &v1alpha1.NifiCluster{}
-	cluster.Name = "test-cluster"
-	cluster.Namespace = "test-namespace"
-
-	cluster.Spec = v1alpha1.NifiClusterSpec{Service: v1alpha1.ServicePolicy{HeadlessEnabled: true}}
-	headlessCN := GetCommonName(cluster)
-	expected := "test-cluster-headless.test-namespace.svc.cluster.local"
-	if headlessCN != expected {
-		t.Error("Expected:", expected, "Got:", headlessCN)
-	}
-
-	cluster.Spec = v1alpha1.NifiClusterSpec{Service: v1alpha1.ServicePolicy{HeadlessEnabled: false}}
-	allNodeCN := GetCommonName(cluster)
-	expected = "test-cluster-all-node.test-namespace.svc.cluster.local"
-	if allNodeCN != expected {
-		t.Error("Expected:", expected, "Got:", allNodeCN)
-	}
-
-	cluster.Spec = v1alpha1.NifiClusterSpec{Service: v1alpha1.ServicePolicy{HeadlessEnabled: true},
-		ListenersConfig: v1alpha1.ListenersConfig{
-			ClusterDomain: "foo.bar",
-		},
-	}
-	kubernetesClusterDomainCN := GetCommonName(cluster)
-	expected = "test-cluster-headless.test-namespace.svc.foo.bar"
-	if kubernetesClusterDomainCN != expected {
-		t.Error("Expected:", expected, "Got:", kubernetesClusterDomainCN)
-	}
-}
-
 func TestLabelsForNifiPKI(t *testing.T) {
 	expected := map[string]string{
 		"app":         "nifi",
@@ -122,13 +91,12 @@ func TestGetInternalDNSNames(t *testing.T) {
 		allNodeNames := GetInternalDNSNames(cluster, node.Id)
 		expected = []string{
 			"test-cluster-all-node.test-namespace.svc.cluster.local",
-			fmt.Sprintf("test-cluster-%d-node.test-cluster-all-node.test-namespace.svc.cluster.local", node.Id),
+			fmt.Sprintf("test-cluster-%d-node.test-namespace.svc.cluster.local", node.Id),
 			"test-cluster-all-node.test-namespace.svc",
-			fmt.Sprintf("test-cluster-%d-node.test-cluster-all-node.test-namespace.svc", node.Id),
+			fmt.Sprintf("test-cluster-%d-node.test-namespace.svc", node.Id),
 			"test-cluster-all-node.test-namespace",
-			fmt.Sprintf("test-cluster-%d-node.test-cluster-all-node.test-namespace", node.Id),
+			fmt.Sprintf("test-cluster-%d-node.test-namespace", node.Id),
 			"test-cluster-all-node",
-			fmt.Sprintf("test-cluster-%d-node.test-cluster-all-node", node.Id),
 			fmt.Sprintf("test-cluster-%d-node", node.Id),
 		}
 		if !reflect.DeepEqual(expected, allNodeNames) {
@@ -142,7 +110,7 @@ func TestGetInternalDNSNames(t *testing.T) {
 		assert.Equal(2, len(names))
 		expected := []string{
 			"test-cluster-all-node.cluster.local",
-			fmt.Sprintf("test-cluster-%d-node.test-cluster-all-node.cluster.local", node.Id),
+			fmt.Sprintf("test-cluster-%d-node.cluster.local", node.Id),
 		}
 
 		assert.Equal(expected, names)

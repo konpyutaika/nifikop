@@ -15,7 +15,6 @@
 package nifi
 
 import (
-	"fmt"
 	"github.com/Orange-OpenSource/nifikop/pkg/resources/templates"
 	nifiutils "github.com/Orange-OpenSource/nifikop/pkg/util/nifi"
 	corev1 "k8s.io/api/core/v1"
@@ -27,7 +26,7 @@ func (r *Reconciler) allNodeService() runtimeClient.Object {
 	usedPorts := generateServicePortForInternalListeners(r.NifiCluster.Spec.ListenersConfig.InternalListeners)
 
 	return &corev1.Service{
-		ObjectMeta: templates.ObjectMetaWithAnnotations(fmt.Sprintf(nifiutils.AllNodeServiceTemplate, r.NifiCluster.Name),
+		ObjectMeta: templates.ObjectMetaWithAnnotations(nifiutils.ComputeAllNodeServiceName(r.NifiCluster.Name, false),
 			LabelsForNifi(r.NifiCluster.Name),
 			r.NifiCluster.Spec.Service.Annotations,
 			r.NifiCluster),

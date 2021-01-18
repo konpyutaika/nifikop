@@ -19,6 +19,7 @@ import (
 	"github.com/Orange-OpenSource/nifikop/api/v1alpha1"
 	"github.com/Orange-OpenSource/nifikop/pkg/resources/templates"
 	"github.com/Orange-OpenSource/nifikop/pkg/util"
+	nifiutil "github.com/Orange-OpenSource/nifikop/pkg/util/nifi"
 	"github.com/go-logr/logr"
 	"github.com/imdario/mergo"
 	corev1 "k8s.io/api/core/v1"
@@ -32,7 +33,8 @@ func (r *Reconciler) service(id int32, log logr.Logger) runtimeClient.Object {
 	usedPorts := generateServicePortForInternalListeners(r.NifiCluster.Spec.ListenersConfig.InternalListeners)
 
 	return &corev1.Service{
-		ObjectMeta: templates.ObjectMeta(fmt.Sprintf("%s-%d", r.NifiCluster.Name, id),
+		ObjectMeta: templates.ObjectMeta(nifiutil.ComputeNodeName(id, r.NifiCluster.Name),
+			//fmt.Sprintf("%s-%d", r.NifiCluster.Name, id),
 			util.MergeLabels(
 				LabelsForNifi(r.NifiCluster.Name),
 				map[string]string{"nodeId": fmt.Sprintf("%d", id)},
@@ -55,7 +57,7 @@ func (r *Reconciler) externalServices(log logr.Logger) []runtimeClient.Object {
 		var listeners []v1alpha1.InternalListenerConfig
 
 		for _, port := range eService.Spec.PortConfigs {
-			for  _, iListener := range r.NifiCluster.Spec.ListenersConfig.InternalListeners {
+			for _, iListener := range r.NifiCluster.Spec.ListenersConfig.InternalListeners {
 				if port.InternalListenerName == iListener.Name {
 					listeners = append(listeners, iListener)
 				}
@@ -67,7 +69,7 @@ func (r *Reconciler) externalServices(log logr.Logger) []runtimeClient.Object {
 		}
 
 		usedPorts := generateServicePortForInternalListeners(listeners)
-		services = append(services,  &corev1.Service{
+		services = append(services, &corev1.Service{
 			ObjectMeta: templates.ObjectMetaWithAnnotations(eService.Name, LabelsForNifi(r.NifiCluster.Name),
 				annotations, r.NifiCluster),
 			Spec: corev1.ServiceSpec{
@@ -75,7 +77,7 @@ func (r *Reconciler) externalServices(log logr.Logger) []runtimeClient.Object {
 				SessionAffinity:          corev1.ServiceAffinityClientIP,
 				Selector:                 LabelsForNifi(r.NifiCluster.Name),
 				Ports:                    usedPorts,
-				ClusterIP: 		          eService.Spec.ClusterIP,
+				ClusterIP:                eService.Spec.ClusterIP,
 				ExternalIPs:              eService.Spec.ExternalIPs,
 				LoadBalancerIP:           eService.Spec.LoadBalancerIP,
 				LoadBalancerSourceRanges: eService.Spec.LoadBalancerSourceRanges,

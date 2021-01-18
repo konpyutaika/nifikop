@@ -28,8 +28,8 @@ import (
 )
 
 var (
-	nodeURITemplate = fmt.Sprintf("%s-%s-node.%s-all-node.%s.svc.cluster.local:%s",
-		clusterName, "%d", clusterName, clusterNamespace, "%d")
+	nodeURITemplate = fmt.Sprintf("%s-%s-node.%s.svc.cluster.local:%s",
+		clusterName, "%d", clusterNamespace, "%d")
 	nifiURITemplate = "cluster-all-node.namespace.svc.cluster.local:%d"
 )
 
