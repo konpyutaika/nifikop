@@ -17,6 +17,7 @@
 ### Fixed Bugs
 
 - [PR #62](https://github.com/Orange-OpenSource/nifikop/pull/62) - **[Operator/NifiCluster]** Fix DNS names for services in all-node mode.
+- [PR #64](https://github.com/Orange-OpenSource/nifikop/pull/64) - **[Operator/NifiCluster]** Manage several NiFiClusters with the same managed user.
 
 ## v0.4.3
 
