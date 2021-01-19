@@ -2,13 +2,21 @@
 
 ### Added
 
-- [PR #55](https://github.com/Orange-OpenSource/nifikop/pull/55) - **[Operator/NifiCluster]** Add the ability to define additional sidecar to each NiFi nodes.
-- [PR #59](https://github.com/Orange-OpenSource/nifikop/pull/59) - **[Operator/NifiCluster]** Give the ability to define kubernetes services to expose the NiFi cluster.
-- [PR #55](https://github.com/Orange-OpenSource/nifikop/pull/55) - **[Documentation]** Upgdrade to Docusaurus 2.0.0-alpha70 and enable versioned feature.
-
 ### Changed
 
 ### Deprecated
+
+### Removed
+
+### Fixed Bugs
+
+## v0.5.0
+
+### Added
+
+- [PR #55](https://github.com/Orange-OpenSource/nifikop/pull/55) - **[Operator/NifiCluster]** Add the ability to define additional sidecar to each NiFi nodes.
+- [PR #59](https://github.com/Orange-OpenSource/nifikop/pull/59) - **[Operator/NifiCluster]** Give the ability to define kubernetes services to expose the NiFi cluster.
+- [PR #55](https://github.com/Orange-OpenSource/nifikop/pull/55) - **[Documentation]** Upgdrade to Docusaurus 2.0.0-alpha70 and enable versioned feature.
 
 ### Removed
 
