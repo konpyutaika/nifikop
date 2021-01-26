@@ -1415,6 +1415,12 @@ spec:
                 additionalProperties:
                   description: NodeConfig defines the node configuration
                   properties:
+                    fsGroup:
+                      description: FSGroup define the id of the group for each volumes
+                        in Nifi image
+                      format: int64
+                      minimum: 1
+                      type: integer
                     image:
                       description: ' Docker image used by the operator to create the
                         node associated  https://hub.docker.com/r/apache/nifi/'
@@ -1917,6 +1923,12 @@ spec:
                     nodeConfig:
                       description: node configuration
                       properties:
+                        fsGroup:
+                          description: FSGroup define the id of the group for each
+                            volumes in Nifi image
+                          format: int64
+                          minimum: 1
+                          type: integer
                         image:
                           description: ' Docker image used by the operator to create
                             the node associated  https://hub.docker.com/r/apache/nifi/'

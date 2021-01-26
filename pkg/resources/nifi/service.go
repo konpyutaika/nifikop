@@ -63,7 +63,7 @@ func (r *Reconciler) externalServices(log logr.Logger) []runtimeClient.Object {
 				}
 			}
 		}
-		annotations := eService.ServiceAnnotations
+		annotations := &eService.ServiceAnnotations
 		if err := mergo.Merge(annotations, r.NifiCluster.Spec.Service.Annotations); err != nil {
 			log.Error(err, "error occurred during merging service annotations")
 		}
@@ -71,7 +71,7 @@ func (r *Reconciler) externalServices(log logr.Logger) []runtimeClient.Object {
 		usedPorts := generateServicePortForInternalListeners(listeners)
 		services = append(services, &corev1.Service{
 			ObjectMeta: templates.ObjectMetaWithAnnotations(eService.Name, LabelsForNifi(r.NifiCluster.Name),
-				annotations, r.NifiCluster),
+				*annotations, r.NifiCluster),
 			Spec: corev1.ServiceSpec{
 				Type:                     eService.Spec.Type,
 				SessionAffinity:          corev1.ServiceAffinityClientIP,

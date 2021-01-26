@@ -57,6 +57,7 @@ NodeConfig defines the node configuration
 |-----|----|-----------|--------|--------|
 |provenanceStorage|string|provenanceStorage allow to specify the maximum amount of data provenance information to store at a time: [write-ahead-provenance-repository-properties](https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#write-ahead-provenance-repository-properties)|No|"8 GB"|
 |runAsUser|int64|define the id of the user to run in the Nifi image|No|1000|
+|fsGroup|int64|define the id of the group for each volumes in Nifi image|No|1000|
 |isNode|boolean|Set this to true if the instance is a node in a cluster: [basic-cluster-setup](https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#basic-cluster-setup)|No|true|
 |image|string| Docker image used by the operator to create the node associated. [Nifi docker registry](https://hub.docker.com/r/apache/nifi/)|No|""|
 |imagePullPolicy|[PullPolicy](https://godoc.org/k8s.io/api/core/v1#PullPolicy)| define the pull policy for NiFi cluster docker image.)|No|""|
