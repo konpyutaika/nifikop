@@ -2,13 +2,19 @@
 
 ### Added
 
-- [PR #61](https://github.com/Orange-OpenSource/nifikop/pull/61) - **[Operator/NifiCluster]** Replace hardcoded FSGroup (1000) with property (Implemented by @made-with-care in [PR #61](https://github.com/Orange-OpenSource/nifikop/pull/61))
-
 ### Changed
 
 ### Deprecated
 
 ### Removed
+
+### Fixed Bugs
+
+## v0.5.1
+
+### Added
+
+- [PR #61](https://github.com/Orange-OpenSource/nifikop/pull/61) - **[Operator/NifiCluster]** Replace hardcoded FSGroup (1000) with property (Implemented by @made-with-care in [PR #61](https://github.com/Orange-OpenSource/nifikop/pull/61))
 
 ### Fixed Bugs
 
