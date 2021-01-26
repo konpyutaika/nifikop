@@ -2,6 +2,8 @@
 
 ### Added
 
+- [PR #61](https://github.com/Orange-OpenSource/nifikop/pull/61) - **[Operator/NifiCluster]** Replace hardcoded FSGroup (1000) with property (Implemented by @made-with-care in [PR #61](https://github.com/Orange-OpenSource/nifikop/pull/61))
+
 ### Changed
 
 ### Deprecated
@@ -9,6 +11,8 @@
 ### Removed
 
 ### Fixed Bugs
+
+- [PR #61](https://github.com/Orange-OpenSource/nifikop/pull/61) - **[Operator/NifiCluster]** Fix external service annotations (merge maps require a point for destination field)
 
 ## v0.5.0
 

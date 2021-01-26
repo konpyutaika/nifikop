@@ -125,7 +125,7 @@ func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev
 			SecurityContext: &corev1.PodSecurityContext{
 				RunAsUser:    nodeConfig.GetRunAsUser(),
 				RunAsNonRoot: func(b bool) *bool { return &b }(true),
-				FSGroup:      func(i int64) *int64 { return &i }(1000),
+				FSGroup:      nodeConfig.GetFSGroup(),
 			},
 			InitContainers: append(initContainers, []corev1.Container{
 				{

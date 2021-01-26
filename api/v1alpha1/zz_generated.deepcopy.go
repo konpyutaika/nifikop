@@ -976,6 +976,11 @@ func (in *NodeConfig) DeepCopyInto(out *NodeConfig) {
 		*out = new(int64)
 		**out = **in
 	}
+	if in.FSGroup != nil {
+		in, out := &in.FSGroup, &out.FSGroup
+		*out = new(int64)
+		**out = **in
+	}
 	if in.IsNode != nil {
 		in, out := &in.IsNode, &out.IsNode
 		*out = new(bool)
