@@ -44,8 +44,11 @@ func TestBuild(t *testing.T) {
 	assert := assert.New(t)
 	client := newMockClient()
 
-	client.opts.NodesURI = make(map[int32]string)
-	client.opts.NodesURI[1] = fmt.Sprintf(nodeURITemplate, 1, httpContainerPort)
+	client.opts.NodesURI = make(map[int32]nodeUri)
+	client.opts.NodesURI[1] = nodeUri{
+		HostListener: fmt.Sprintf(nodeURITemplate, 1, httpContainerPort),
+		RequestHost:  fmt.Sprintf(nodeURITemplate, 1, httpContainerPort),
+	}
 	client.opts.nodeURITemplate = nodeURITemplate
 	client.opts.NifiURI = fmt.Sprintf(nifiURITemplate, httpContainerPort)
 
@@ -86,7 +89,7 @@ func TestNewFromCluster(t *testing.T) {
 
 	cluster := testClusterMock(t)
 
-	url := fmt.Sprintf("http://%s/nifi-api/controller/cluster", nifiutil.GenerateNiFiAddressFromCluster(cluster))
+	url := fmt.Sprintf("http://%s/nifi-api/controller/cluster", nifiutil.GenerateRequestNiFiAllNodeAddressFromCluster(cluster))
 	httpmock.RegisterResponder(http.MethodGet, url,
 		func(req *http.Request) (*http.Response, error) {
 			return httpmock.NewJsonResponse(

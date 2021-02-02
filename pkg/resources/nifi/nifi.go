@@ -649,7 +649,7 @@ func (r *Reconciler) reconcileNifiUsersAndGroups(log logr.Logger) error {
 	for _, managedUser := range managedUsers {
 		users = append(users, &v1alpha1.NifiUser{
 			ObjectMeta: templates.ObjectMeta(
-				fmt.Sprintf("%s.%s",r.NifiCluster.Name, managedUser.Name),
+				fmt.Sprintf("%s.%s", r.NifiCluster.Name, managedUser.Name),
 				pkicommon.LabelsForNifiPKI(r.NifiCluster.Name), r.NifiCluster,
 			),
 			Spec: v1alpha1.NifiUserSpec{
@@ -665,12 +665,12 @@ func (r *Reconciler) reconcileNifiUsersAndGroups(log logr.Logger) error {
 
 	var managedAdminUserRef []v1alpha1.UserReference
 	for _, user := range r.NifiCluster.Spec.ManagedAdminUsers {
-		managedAdminUserRef = append(managedAdminUserRef, v1alpha1.UserReference{Name: fmt.Sprintf("%s.%s",r.NifiCluster.Name, user.Name)})
+		managedAdminUserRef = append(managedAdminUserRef, v1alpha1.UserReference{Name: fmt.Sprintf("%s.%s", r.NifiCluster.Name, user.Name)})
 	}
 
 	var managedReaderUserRef []v1alpha1.UserReference
 	for _, user := range r.NifiCluster.Spec.ManagedReaderUsers {
-		managedReaderUserRef = append(managedReaderUserRef, v1alpha1.UserReference{Name: fmt.Sprintf("%s.%s",r.NifiCluster.Name, user.Name)})
+		managedReaderUserRef = append(managedReaderUserRef, v1alpha1.UserReference{Name: fmt.Sprintf("%s.%s", r.NifiCluster.Name, user.Name)})
 	}
 
 	var managedNodeUserRef []v1alpha1.UserReference

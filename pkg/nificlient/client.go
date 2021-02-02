@@ -203,7 +203,7 @@ func (n *nifiClient) getNiNodeGoApiConfig(nodeId int32) (config *nigoapi.Configu
 		config.HTTPClient = &http.Client{Transport: transport}
 		protocol = "https"
 	}
-	config.BasePath = fmt.Sprintf("%s://%s/nifi-api", protocol, n.opts.NodesURI[nodeId])
+	config.BasePath = fmt.Sprintf("%s://%s/nifi-api", protocol, n.opts.NodesURI[nodeId].RequestHost)
 	config.Host = n.opts.NifiURI
 
 	return
@@ -299,7 +299,7 @@ func (n *nifiClient) nodeIdByNodeDto(nodeDto *nigoapi.NodeDto) *int32 {
 	// For each uri generated from NifiCluster resources node defined
 	for id, uri := range n.opts.NodesURI {
 		// Check if we find a match
-		if uri == searchedUri {
+		if uri.HostListener == searchedUri {
 			findId := id
 			return &findId
 		}

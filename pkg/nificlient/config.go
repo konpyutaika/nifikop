@@ -32,12 +32,17 @@ const (
 // NifiConfig are the options to creating a new ClusterAdmin client
 type NifiConfig struct {
 	nodeURITemplate string
-	NodesURI        map[int32]string
+	NodesURI        map[int32]nodeUri
 	NifiURI         string
 	UseSSL          bool
 	TLSConfig       *tls.Config
 
 	OperationTimeout int64
+}
+
+type nodeUri struct {
+	HostListener string
+	RequestHost  string
 }
 
 // ClusterConfig creates connection options from a NifiCluster CR
@@ -47,7 +52,7 @@ func ClusterConfig(client client.Client, cluster *v1alpha1.NifiCluster) (*NifiCo
 
 	conf.nodeURITemplate = generateNodesURITemplate(cluster)
 	conf.NodesURI = generateNodesAddress(cluster)
-	conf.NifiURI = nifi.GenerateNiFiAddressFromCluster(cluster)
+	conf.NifiURI = nifi.GenerateRequestNiFiAllNodeAddressFromCluster(cluster)
 	conf.OperationTimeout = nifiDefaultTimeout
 
 	if cluster.Spec.ListenersConfig.SSLSecrets != nil && UseSSL(cluster) {
@@ -65,12 +70,15 @@ func UseSSL(cluster *v1alpha1.NifiCluster) bool {
 	return cluster.Spec.ListenersConfig.SSLSecrets != nil
 }
 
-func generateNodesAddress(cluster *v1alpha1.NifiCluster) map[int32]string {
-	addresses := make(map[int32]string)
+func generateNodesAddress(cluster *v1alpha1.NifiCluster) map[int32]nodeUri {
+	addresses := make(map[int32]nodeUri)
 
 	for nId, state := range cluster.Status.NodesState {
 		if !(state.GracefulActionState.State.IsRunningState() || state.GracefulActionState.State.IsRequiredState()) && state.GracefulActionState.ActionStep != v1alpha1.RemoveStatus {
-			addresses[util.ConvertStringToInt32(nId)] = nifi.GenerateNodeAddressFromCluster(util.ConvertStringToInt32(nId), cluster)
+			addresses[util.ConvertStringToInt32(nId)] = nodeUri{
+				HostListener: nifi.GenerateHostListenerNodeAddressFromCluster(util.ConvertStringToInt32(nId), cluster),
+				RequestHost:  nifi.GenerateRequestNiFiNodeAddressFromCluster(util.ConvertStringToInt32(nId), cluster),
+			}
 		}
 	}
 	return addresses
@@ -83,6 +91,6 @@ func generateNodesURITemplate(cluster *v1alpha1.NifiCluster) string {
 			nifi.SuffixNodeNameTemplate
 
 	return nodeNameTemplate + fmt.Sprintf(".%s",
-		strings.SplitAfterN(nifi.GenerateNodeAddressFromCluster(0, cluster), ".", 2)[1],
+		strings.SplitAfterN(nifi.GenerateRequestNiFiNodeAddressFromCluster(0, cluster), ".", 2)[1],
 	)
 }

@@ -85,19 +85,19 @@ func MockGetClusterResponse(cluster *v1alpha1.NifiCluster, empty bool) map[strin
 			"nodes": []nigoapi.NodeDto{
 				{
 					NodeId:  nodesId[0],
-					Address: nifiutil.ComputeNodeHostnameFromCluster(0, cluster),
+					Address: nifiutil.GenerateRequestNiFiNodeHostnameFromCluster(0, cluster),
 					ApiPort: httpContainerPort,
 					Status:  string(v1alpha1.ConnectStatus),
 				},
 				{
 					NodeId:  nodesId[1],
-					Address: nifiutil.ComputeNodeHostnameFromCluster(1, cluster),
+					Address: nifiutil.GenerateRequestNiFiNodeHostnameFromCluster(1, cluster),
 					ApiPort: httpContainerPort,
 					Status:  string(v1alpha1.DisconnectStatus),
 				},
 				{
 					NodeId:  nodesId[2],
-					Address: nifiutil.ComputeNodeHostnameFromCluster(2, cluster),
+					Address: nifiutil.GenerateRequestNiFiNodeHostnameFromCluster(2, cluster),
 					ApiPort: httpContainerPort,
 					Status:  string(v1alpha1.OffloadStatus),
 				},
@@ -111,7 +111,7 @@ func MockGetNodeResponse(nodeId int32, cluster *v1alpha1.NifiCluster) interface{
 		0: {
 			"node": nigoapi.NodeDto{
 				NodeId:  nodesId[0],
-				Address: nifiutil.ComputeNodeHostnameFromCluster(0, cluster),
+				Address: nifiutil.GenerateRequestNiFiNodeHostnameFromCluster(0, cluster),
 				ApiPort: httpContainerPort,
 				Status:  string(v1alpha1.ConnectStatus),
 			},
@@ -119,7 +119,7 @@ func MockGetNodeResponse(nodeId int32, cluster *v1alpha1.NifiCluster) interface{
 		1: {
 			"node": nigoapi.NodeDto{
 				NodeId:  nodesId[1],
-				Address: nifiutil.ComputeNodeHostnameFromCluster(1, cluster),
+				Address: nifiutil.GenerateRequestNiFiNodeHostnameFromCluster(1, cluster),
 				ApiPort: httpContainerPort,
 				Status:  string(v1alpha1.ConnectStatus),
 			},
@@ -127,7 +127,7 @@ func MockGetNodeResponse(nodeId int32, cluster *v1alpha1.NifiCluster) interface{
 		2: {
 			"node": nigoapi.NodeDto{
 				NodeId:  nodesId[2],
-				Address: nifiutil.ComputeNodeHostnameFromCluster(2, cluster),
+				Address: nifiutil.GenerateRequestNiFiNodeHostnameFromCluster(2, cluster),
 				ApiPort: httpContainerPort,
 				Status:  string(v1alpha1.ConnectStatus),
 			},

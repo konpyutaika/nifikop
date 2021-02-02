@@ -340,5 +340,5 @@ func testClientFromCluster(cluster *v1alpha1.NifiCluster, empty bool) (NifiClien
 }
 
 func nifiAddress(cluster *v1alpha1.NifiCluster, path string) string {
-	return fmt.Sprintf("http://%s/nifi-api%s", nifiutil.GenerateNiFiAddressFromCluster(cluster), path)
+	return fmt.Sprintf("http://%s/nifi-api%s", nifiutil.GenerateRequestNiFiAllNodeAddressFromCluster(cluster), path)
 }
