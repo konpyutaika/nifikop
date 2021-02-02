@@ -10,6 +10,10 @@
 
 ### Fixed Bugs
 
+## v0.5.2
+
+### Fixed Bugs
+
 - [PR #70](https://github.com/Orange-OpenSource/nifikop/pull/70) - **[Operator/NifiCluster]** Rework DNS names generation to fix non headless mode.
 
 ## v0.5.1
