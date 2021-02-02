@@ -116,7 +116,7 @@ func testClusterConfig(t *testing.T, cluster *v1alpha1.NifiCluster, expectedUseS
 	assert.Equal(
 		fmt.Sprintf("%s-%d-node.%s.svc.cluster.local:%d",
 			clusterName, succeededNodeId, clusterNamespace, httpContainerPort),
-		conf.NodesURI[succeededNodeId])
+		conf.NodesURI[succeededNodeId].RequestHost)
 
 	assert.Equal(
 		fmt.Sprintf("%s-all-node.%s.svc.cluster.local:%d",
@@ -144,7 +144,7 @@ func TestGenerateNodesAddress(t *testing.T) {
 	assert.Equal(
 		fmt.Sprintf("%s-%d-node.%s.svc.cluster.local:%d",
 			clusterName, succeededNodeId, clusterNamespace, httpContainerPort),
-		nodesURI[succeededNodeId])
+		nodesURI[succeededNodeId].RequestHost)
 }
 
 func TestGenerateNodesURITemplate(t *testing.T) {

@@ -106,7 +106,7 @@ func GetInternalDNSNames(cluster *v1alpha1.NifiCluster, nodeId int32) (dnsNames 
 //}
 
 func GetNodeUserName(cluster *v1alpha1.NifiCluster, nodeId int32) string {
-	return nifi.ComputeNodeHostname(nodeId, cluster.Name, cluster.Namespace,
+	return nifi.ComputeRequestNiFiNodeHostname(nodeId, cluster.Name, cluster.Namespace,
 		cluster.Spec.Service.HeadlessEnabled, cluster.Spec.ListenersConfig.GetClusterDomain(), cluster.Spec.ListenersConfig.UseExternalDNS)
 }
 
@@ -116,39 +116,41 @@ func ClusterDNSNames(cluster *v1alpha1.NifiCluster, nodeId int32) (names []strin
 
 	// FQDN
 	names = append(names,
-		nifi.ComputeAllNodeServiceHostname(cluster.Name, cluster.Namespace, cluster.Spec.Service.HeadlessEnabled,
+		nifi.ComputeRequestNiFiAllNodeHostname(cluster.Name, cluster.Namespace, cluster.Spec.Service.HeadlessEnabled,
 			cluster.Spec.ListenersConfig.GetClusterDomain(), cluster.Spec.ListenersConfig.UseExternalDNS))
 	names = append(names,
-		nifi.ComputeNodeHostname(nodeId, cluster.Name, cluster.Namespace, cluster.Spec.Service.HeadlessEnabled,
+		nifi.ComputeRequestNiFiNodeHostname(nodeId, cluster.Name, cluster.Namespace, cluster.Spec.Service.HeadlessEnabled,
 			cluster.Spec.ListenersConfig.GetClusterDomain(), cluster.Spec.ListenersConfig.UseExternalDNS))
 
 	if !cluster.Spec.ListenersConfig.UseExternalDNS {
 		// SVC notation
 		names = append(names,
-			nifi.ComputeAllNodeServiceNameFull(cluster.Name, cluster.Namespace,
+			nifi.ComputeRequestNiFiAllNodeNamespaceFull(cluster.Name, cluster.Namespace,
 				cluster.Spec.Service.HeadlessEnabled, cluster.Spec.ListenersConfig.UseExternalDNS))
 		names = append(names,
-			nifi.ComputeNodeServiceNameFull(nodeId, cluster.Name, cluster.Namespace,
+			nifi.ComputeRequestNiFiNodeNamespaceFull(nodeId, cluster.Name, cluster.Namespace,
 				cluster.Spec.Service.HeadlessEnabled, cluster.Spec.ListenersConfig.UseExternalDNS))
 
 		// Namespace notation
 		names = append(names,
-			nifi.ComputeAllNodeServiceNameNs(cluster.Name, cluster.Namespace, cluster.Spec.Service.HeadlessEnabled))
+			nifi.ComputeRequestNiFiAllNodeNamespace(cluster.Name, cluster.Namespace,
+				cluster.Spec.Service.HeadlessEnabled, cluster.Spec.ListenersConfig.UseExternalDNS))
 		names = append(names,
-			nifi.ComputeNodeServiceNameNs(nodeId, cluster.Name, cluster.Namespace, cluster.Spec.Service.HeadlessEnabled))
+			nifi.ComputeRequestNiFiNodeNamespace(nodeId, cluster.Name, cluster.Namespace,
+				cluster.Spec.Service.HeadlessEnabled, cluster.Spec.ListenersConfig.UseExternalDNS))
 
 		// Service name only
 		names = append(names,
-			nifi.ComputeAllNodeServiceName(cluster.Name, cluster.Spec.Service.HeadlessEnabled))
+			nifi.ComputeRequestNiFiAllNodeService(cluster.Name, cluster.Spec.Service.HeadlessEnabled))
 		names = append(names,
-			nifi.ComputeNodeServiceName(nodeId, cluster.Name, cluster.Spec.Service.HeadlessEnabled))
+			nifi.ComputeRequestNiFiNodeService(nodeId, cluster.Name, cluster.Spec.Service.HeadlessEnabled))
 
 		// Pod name only
 		if cluster.Spec.Service.HeadlessEnabled {
 			names = append(names,
 				nifi.ComputeNodeName(nodeId, cluster.Name))
 		} else {
-			names = append(names, nifi.ComputeNodeAllNodeHostname(
+			names = append(names, nifi.ComputeHostListenerNodeHostname(
 				nodeId, cluster.Name, cluster.Namespace, cluster.Spec.Service.HeadlessEnabled,
 				cluster.Spec.ListenersConfig.GetClusterDomain(), cluster.Spec.ListenersConfig.UseExternalDNS))
 		}

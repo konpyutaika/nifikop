@@ -211,7 +211,7 @@ func EnsureRemovedNodes(client client.Client, cluster *v1alpha1.NifiCluster) err
 	stateAdresses := make(map[string]int32)
 
 	for _, nodeId := range generateNodeStateIdSlice(cluster.Status.NodesState) {
-		stateAdresses[nifiutil.GenerateNodeAddressFromCluster(nodeId, cluster)] = nodeId
+		stateAdresses[nifiutil.GenerateHostListenerNodeAddressFromCluster(nodeId, cluster)] = nodeId
 	}
 	for _, nodeDto := range clusterEntity.Cluster.Nodes {
 

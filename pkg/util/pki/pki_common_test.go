@@ -98,6 +98,7 @@ func TestGetInternalDNSNames(t *testing.T) {
 			fmt.Sprintf("test-cluster-%d-node.test-namespace", node.Id),
 			"test-cluster-all-node",
 			fmt.Sprintf("test-cluster-%d-node", node.Id),
+			fmt.Sprintf("test-cluster-%d-node.test-cluster-all-node.test-namespace.svc.cluster.local", node.Id),
 		}
 		if !reflect.DeepEqual(expected, allNodeNames) {
 			t.Error("Expected:", expected, "got:", allNodeNames)

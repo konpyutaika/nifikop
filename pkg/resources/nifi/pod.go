@@ -161,7 +161,7 @@ done`,
 
 	//if r.NifiCluster.Spec.Service.HeadlessEnabled {
 	pod.Spec.Hostname = nifiutil.ComputeNodeName(id, r.NifiCluster.Name)
-	pod.Spec.Subdomain = nifiutil.ComputeAllNodeServiceName(r.NifiCluster.Name, r.NifiCluster.Spec.Service.HeadlessEnabled)
+	pod.Spec.Subdomain = nifiutil.ComputeRequestNiFiAllNodeService(r.NifiCluster.Name, r.NifiCluster.Spec.Service.HeadlessEnabled)
 	//}
 
 	if nodeConfig.NodeAffinity != nil {
@@ -382,12 +382,12 @@ func (r *Reconciler) createNifiNodeContainer(nodeConfig *v1alpha1.NodeConfig, id
 	}
 
 	requestClusterStatus := fmt.Sprintf("curl --fail -v http://%s/nifi-api/controller/cluster > $NIFI_BASE_DIR/cluster.state",
-		nifiutil.GenerateNiFiAddressFromCluster(r.NifiCluster))
+		nifiutil.GenerateRequestNiFiAllNodeAddressFromCluster(r.NifiCluster))
 
 	if nificlient.UseSSL(r.NifiCluster) {
 		requestClusterStatus = fmt.Sprintf(
 			"curl --fail -kv --cert /var/run/secrets/java.io/keystores/client/tls.crt --key /var/run/secrets/java.io/keystores/client/tls.key https://%s/nifi-api/controller/cluster > $NIFI_BASE_DIR/cluster.state",
-			nifiutil.GenerateNiFiAddressFromCluster(r.NifiCluster))
+			nifiutil.GenerateRequestNiFiAllNodeAddressFromCluster(r.NifiCluster))
 	}
 
 	removesFileAction := fmt.Sprintf(`if %s; then
@@ -407,7 +407,7 @@ rm -f $NIFI_BASE_DIR/cluster.state `,
 		"STATUS=$(jq -r \".cluster.nodes[] | select(.address==\\\"$(hostname -f)\\\") | .status\" $NIFI_BASE_DIR/cluster.state)",
 		failCondition)
 
-	nodeAddress := nifiutil.ComputeNodeAddress(
+	nodeAddress := nifiutil.ComputeHostListenerNodeAddress(
 		id, r.NifiCluster.Name, r.NifiCluster.Namespace, r.NifiCluster.Spec.Service.HeadlessEnabled,
 		r.NifiCluster.Spec.ListenersConfig.GetClusterDomain(), r.NifiCluster.Spec.ListenersConfig.UseExternalDNS,
 		r.NifiCluster.Spec.ListenersConfig.InternalListeners)
