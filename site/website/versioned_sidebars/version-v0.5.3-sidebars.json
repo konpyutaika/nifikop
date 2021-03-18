@@ -1,0 +1,193 @@
+{
+  "version-v0.5.3/docs": [
+    {
+      "collapsed": true,
+      "type": "category",
+      "label": "Concepts",
+      "items": [
+        {
+          "type": "doc",
+          "id": "version-v0.5.3/1_concepts/1_introduction"
+        },
+        {
+          "type": "doc",
+          "id": "version-v0.5.3/1_concepts/2_design_principes"
+        },
+        {
+          "type": "doc",
+          "id": "version-v0.5.3/1_concepts/3_features"
+        },
+        {
+          "type": "doc",
+          "id": "version-v0.5.3/1_concepts/4_roadmap"
+        }
+      ]
+    },
+    {
+      "collapsed": true,
+      "type": "category",
+      "label": "Setup",
+      "items": [
+        {
+          "type": "doc",
+          "id": "version-v0.5.3/2_setup/1_getting_started"
+        },
+        {
+          "collapsed": true,
+          "type": "category",
+          "label": "Platform Setup",
+          "items": [
+            {
+              "type": "doc",
+              "id": "version-v0.5.3/2_setup/2_platform_setup/1_gke"
+            },
+            {
+              "type": "doc",
+              "id": "version-v0.5.3/2_setup/2_platform_setup/2_minikube"
+            }
+          ]
+        },
+        {
+          "collapsed": true,
+          "type": "category",
+          "label": "Install",
+          "items": [
+            {
+              "type": "doc",
+              "id": "version-v0.5.3/2_setup/3_install/1_customizable_install_with_helm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "collapsed": true,
+      "type": "category",
+      "label": "Tasks",
+      "items": [
+        {
+          "collapsed": true,
+          "type": "category",
+          "label": "NiFi Cluster",
+          "items": [
+            {
+              "type": "doc",
+              "id": "version-v0.5.3/3_tasks/1_nifi_cluster/2_cluster_scaling"
+            }
+          ]
+        },
+        {
+          "collapsed": true,
+          "type": "category",
+          "label": "Security",
+          "items": [
+            {
+              "type": "doc",
+              "id": "version-v0.5.3/3_tasks/2_security/1_ssl"
+            },
+            {
+              "collapsed": true,
+              "type": "category",
+              "label": "Authentication",
+              "items": [
+                {
+                  "type": "doc",
+                  "id": "version-v0.5.3/3_tasks/2_security/2_authentication/1_oidc"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "doc",
+          "id": "version-v0.5.3/3_tasks/3_nifi_dataflow"
+        },
+        {
+          "type": "doc",
+          "id": "version-v0.5.3/3_tasks/4_nifi_user_group"
+        }
+      ]
+    },
+    {
+      "collapsed": true,
+      "type": "category",
+      "label": "Reference",
+      "items": [
+        {
+          "collapsed": true,
+          "type": "category",
+          "label": "NiFi Cluster",
+          "items": [
+            {
+              "type": "doc",
+              "id": "version-v0.5.3/5_references/1_nifi_cluster/1_nifi_cluster"
+            },
+            {
+              "type": "doc",
+              "id": "version-v0.5.3/5_references/1_nifi_cluster/2_read_only_config"
+            },
+            {
+              "type": "doc",
+              "id": "version-v0.5.3/5_references/1_nifi_cluster/3_node_config"
+            },
+            {
+              "type": "doc",
+              "id": "version-v0.5.3/5_references/1_nifi_cluster/4_node"
+            },
+            {
+              "type": "doc",
+              "id": "version-v0.5.3/5_references/1_nifi_cluster/5_node_state"
+            },
+            {
+              "type": "doc",
+              "id": "version-v0.5.3/5_references/1_nifi_cluster/6_listeners_config"
+            },
+            {
+              "type": "doc",
+              "id": "version-v0.5.3/5_references/1_nifi_cluster/7_external_service_config"
+            }
+          ]
+        },
+        {
+          "type": "doc",
+          "id": "version-v0.5.3/5_references/2_nifi_user"
+        },
+        {
+          "type": "doc",
+          "id": "version-v0.5.3/5_references/3_nifi_registry_client"
+        },
+        {
+          "type": "doc",
+          "id": "version-v0.5.3/5_references/4_nifi_parameter_context"
+        },
+        {
+          "type": "doc",
+          "id": "version-v0.5.3/5_references/5_nifi_dataflow"
+        },
+        {
+          "type": "doc",
+          "id": "version-v0.5.3/5_references/6_nifi_usergroup"
+        }
+      ]
+    },
+    {
+      "collapsed": true,
+      "type": "category",
+      "label": "Contributing",
+      "items": [
+        {
+          "type": "doc",
+          "id": "version-v0.5.3/6_contributing/1_developer_guide"
+        },
+        {
+          "type": "doc",
+          "id": "version-v0.5.3/6_contributing/2_reporting_bugs"
+        },
+        {
+          "type": "doc",
+          "id": "version-v0.5.3/6_contributing/3_credits"
+        }
+      ]
+    }
+  ]
+}
