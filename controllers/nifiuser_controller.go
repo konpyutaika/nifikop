@@ -93,15 +93,16 @@ func (r *NifiUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		}
 		return RequeueWithError(r.Log, "failed to lookup referenced cluster", err)
 	}
-	// Avoid panic if the user wants to create a nifi user but the cluster is in plaintext mode
-	// TODO: refactor this and use webhook to validate if the cluster is eligible to create a nifi user
-	if cluster.Spec.ListenersConfig.SSLSecrets == nil {
-		return RequeueWithError(r.Log, "could not create Nifi user since cluster does not use ssl", errors.New("failed to create Nifi user"))
-	}
-
-	pkiManager := pki.GetPKIManager(r.Client, cluster)
 
 	if instance.Spec.GetCreateCert() {
+
+		// Avoid panic if the user wants to create a nifi user but the cluster is in plaintext mode
+		// TODO: refactor this and use webhook to validate if the cluster is eligible to create a nifi user
+		if cluster.Spec.ListenersConfig.SSLSecrets == nil {
+			return RequeueWithError(r.Log, "could not create Nifi user since cluster does not use ssl", errors.New("failed to create Nifi user"))
+		}
+
+		pkiManager := pki.GetPKIManager(r.Client, cluster)
 
 		// Reconcile no matter what to get a user certificate instance for ACL management
 		// TODO (tinyzimmer): This can go wrong if the user made a mistake in their secret path
@@ -137,14 +138,19 @@ func (r *NifiUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 				return RequeueWithError(r.Log, "failed to reconcile user secret", err)
 			}
 		}
+		// check if marked for deletion
+		if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {
+			r.Log.Info("Nifi user is marked for deletion, revoking certificates")
+			if err = pkiManager.FinalizeUserCertificate(ctx, instance); err != nil {
+				return RequeueWithError(r.Log, "failed to finalize user certificate", err)
+			}
+			return r.checkFinalizers(ctx, instance, cluster)
+		}
+
 	}
 
 	// check if marked for deletion
 	if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {
-		r.Log.Info("Nifi user is marked for deletion, revoking certificates")
-		if err = pkiManager.FinalizeUserCertificate(ctx, instance); err != nil {
-			return RequeueWithError(r.Log, "failed to finalize user certificate", err)
-		}
 		return r.checkFinalizers(ctx, instance, cluster)
 	}
 

@@ -42,6 +42,8 @@ const (
 	// NodeControllerFQDNTemplate is combined with the above and cluster namespace
 	// to create a 'fake' full-name for the controller user
 	NodeControllerFQDNTemplate = "%s.%s.mgt.%s"
+	//
+	SpiffeIdTemplate = "spiffe://%s/ns/%s/nifiuser/%s"
 	// CAIntermediateTemplate is the template used for intermediate CA resources
 	CAIntermediateTemplate = "%s-intermediate.%s"
 	// CAFQDNTemplate is the template used for the FQDN of a CA

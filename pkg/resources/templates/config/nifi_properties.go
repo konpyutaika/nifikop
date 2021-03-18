@@ -169,7 +169,7 @@ nifi.security.keystore={{ .ServerKeystorePath }}/{{ .KeystoreFile }}
 nifi.security.keystoreType=JKS
 nifi.security.keystorePasswd={{ .ServerKeystorePassword }}
 nifi.security.keyPasswd={{ .ServerKeystorePassword }}
-nifi.security.truststore={{ .ServerKeystorePath }}/{{ .KeystoreFile }}
+nifi.security.truststore={{ .ServerKeystorePath }}/{{ .TrustStoreFile }}
 nifi.security.truststoreType=JKS
 nifi.security.truststorePasswd={{ .ServerKeystorePassword }}
 {{ end }}

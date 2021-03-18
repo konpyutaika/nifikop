@@ -11,6 +11,7 @@
 ### Fixed Bugs
 
 - [PR #82](https://github.com/Orange-OpenSource/nifikop/pull/82) - **[Operator/NifiParameterContext]** Enable empty value
+- [PR #83](https://github.com/Orange-OpenSource/nifikop/pull/83) - **[Operator/NiFiUser]** Rework the certificate secret creation, to prevent issues with JKS password creation.
 
 ## v0.5.2
 
