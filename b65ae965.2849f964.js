@@ -1,0 +1,1 @@
+(window.webpackJsonp=window.webpackJsonp||[]).push([[160],{223:function(e){e.exports=JSON.parse('{"allTagsPath":"/nifikop/blog/tags","slug":"kubernetes","name":"kubernetes","count":2,"permalink":"/nifikop/blog/tags/kubernetes"}')}}]);
