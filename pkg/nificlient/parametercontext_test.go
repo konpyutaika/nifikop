@@ -261,7 +261,7 @@ func map2Parameters(params map[string]string, sensitive bool) []nigoapi.Paramete
 				Name:        k,
 				Description: "",
 				Sensitive:   sensitive,
-				Value:       v,
+				Value:       &v,
 			},
 		})
 	}

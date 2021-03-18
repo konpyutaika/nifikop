@@ -130,6 +130,8 @@ github.com/envoyproxy/go-control-plane v0.9.1-0.20191026205805-5f8ba28d4473/go.m
 github.com/envoyproxy/protoc-gen-validate v0.1.0/go.mod h1:iSmxcyjqTsJpI2R4NaDN7+kN2VEUnK/pcBlmesArF7c=
 github.com/erdrix/nigoapi v0.0.0-20200824133217-ce90b74151a2 h1:WJ1tS9+ENB2z+sVgpt2pAOZbLIFxFLFzK87RL0uvx00=
 github.com/erdrix/nigoapi v0.0.0-20200824133217-ce90b74151a2/go.mod h1:owY+8fs8YXnST3ENM+ulVllYjTbzGaqKA+Y7HHJ0lZA=
+github.com/erdrix/nigoapi v0.0.0-20210301104455-ab202e217b78 h1:X63Z+rOVlAXl+GGCSN24yZDjEMRTtcDADzXSCLCJq/8=
+github.com/erdrix/nigoapi v0.0.0-20210301104455-ab202e217b78/go.mod h1:owY+8fs8YXnST3ENM+ulVllYjTbzGaqKA+Y7HHJ0lZA=
 github.com/evanphx/json-patch v4.2.0+incompatible/go.mod h1:50XU6AFN0ol/bzJsmQLiYLvXMP4fmwYFNcr97nuDLSk=
 github.com/evanphx/json-patch v4.5.0+incompatible/go.mod h1:50XU6AFN0ol/bzJsmQLiYLvXMP4fmwYFNcr97nuDLSk=
 github.com/evanphx/json-patch v4.9.0+incompatible h1:kLcOMZeuLAJvL2BPWLMIj5oaZQobrkAqrL+WFZwQses=

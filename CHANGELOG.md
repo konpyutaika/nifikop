@@ -10,6 +10,8 @@
 
 ### Fixed Bugs
 
+- [PR #82](https://github.com/Orange-OpenSource/nifikop/pull/82) - **[Operator/NifiParameterContext]** Enable empty value
+
 ## v0.5.2
 
 ### Fixed Bugs
