@@ -14,8 +14,8 @@ func (n *nifiClient) UpdateProcessorRunStatus(
 	}
 
 	// Request on Nifi Rest API to update the processor run status
-	processor, rsp, err := client.ProcessorsApi.UpdateRunStatus(nil, id, entity)
-	if err := errorUpdateOperation(rsp, err); err != nil {
+	processor, rsp, body, err := client.ProcessorsApi.UpdateRunStatus(nil, id, entity)
+	if err := errorUpdateOperation(rsp, body, err); err != nil {
 		return nil, err
 	}
 

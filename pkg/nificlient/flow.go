@@ -14,8 +14,8 @@ func (n *nifiClient) GetFlow(id string) (*nigoapi.ProcessGroupFlowEntity, error)
 	}
 
 	// Request on Nifi Rest API to get the process group flow informations
-	flowPGEntity, rsp, err := client.FlowApi.GetFlow(nil, id)
-	if err := errorGetOperation(rsp, err); err != nil {
+	flowPGEntity, rsp, body, err := client.FlowApi.GetFlow(nil, id)
+	if err := errorGetOperation(rsp, body, err); err != nil {
 		return nil, err
 	}
 
@@ -31,13 +31,13 @@ func (n *nifiClient) GetFlowControllerServices(id string) (*nigoapi.ControllerSe
 	}
 
 	// Request on Nifi Rest API to get the process group flow's controller services informations
-	csEntity, rsp, err := client.FlowApi.GetControllerServicesFromGroup(nil, id,
+	csEntity, rsp, body, err := client.FlowApi.GetControllerServicesFromGroup(nil, id,
 		&nigoapi.FlowApiGetControllerServicesFromGroupOpts{
 			IncludeAncestorGroups:   optional.NewBool(false),
 			IncludeDescendantGroups: optional.NewBool(true),
 		})
 
-	if err := errorGetOperation(rsp, err); err != nil {
+	if err := errorGetOperation(rsp, body, err); err != nil {
 		return nil, err
 	}
 
@@ -54,8 +54,8 @@ func (n *nifiClient) UpdateFlowControllerServices(entity nigoapi.ActivateControl
 	}
 
 	// Request on Nifi Rest API to enable or disable the controller services
-	csEntity, rsp, err := client.FlowApi.ActivateControllerServices(nil, entity.Id, entity)
-	if err := errorUpdateOperation(rsp, err); err != nil {
+	csEntity, rsp, body, err := client.FlowApi.ActivateControllerServices(nil, entity.Id, entity)
+	if err := errorUpdateOperation(rsp, body, err); err != nil {
 		return nil, err
 	}
 
@@ -72,8 +72,8 @@ func (n *nifiClient) UpdateFlowProcessGroup(entity nigoapi.ScheduleComponentsEnt
 	}
 
 	// Request on Nifi Rest API to enable or disable the controller services
-	csEntity, rsp, err := client.FlowApi.ScheduleComponents(nil, entity.Id, entity)
-	if err := errorUpdateOperation(rsp, err); err != nil {
+	csEntity, rsp, body, err := client.FlowApi.ScheduleComponents(nil, entity.Id, entity)
+	if err := errorUpdateOperation(rsp, body, err); err != nil {
 		return nil, err
 	}
 

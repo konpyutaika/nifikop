@@ -29,6 +29,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	policyv1beta1 "k8s.io/api/policy/v1beta1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"time"
 
@@ -50,6 +51,7 @@ type NifiClusterReconciler struct {
 	Log          logr.Logger
 	Scheme       *runtime.Scheme
 	Namespaces   []string
+	Recorder record.EventRecorder
 }
 
 // +kubebuilder:rbac:groups="",resources=persistentvolumeclaims,verbs=get;list;watch;create;update;patch;delete

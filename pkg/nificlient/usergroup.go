@@ -30,9 +30,9 @@ func (n *nifiClient) GetUserGroups() ([]nigoapi.UserGroupEntity, error) {
 	}
 
 	// Request on Nifi Rest API to get the user groups informations
-	userGroupsEntity, rsp, err := client.TenantsApi.GetUserGroups(nil)
+	userGroupsEntity, rsp, body, err := client.TenantsApi.GetUserGroups(nil)
 
-	if err := errorGetOperation(rsp, err); err != nil {
+	if err := errorGetOperation(rsp, body, err); err != nil {
 		return nil, err
 	}
 
@@ -48,9 +48,9 @@ func (n *nifiClient) GetUserGroup(id string) (*nigoapi.UserGroupEntity, error) {
 	}
 
 	// Request on Nifi Rest API to get the user groups informations
-	userGroupEntity, rsp, err := client.TenantsApi.GetUserGroup(nil, id)
+	userGroupEntity, rsp, body, err := client.TenantsApi.GetUserGroup(nil, id)
 
-	if err := errorGetOperation(rsp, err); err != nil {
+	if err := errorGetOperation(rsp, body, err); err != nil {
 		return nil, err
 	}
 
@@ -66,8 +66,8 @@ func (n *nifiClient) CreateUserGroup(entity nigoapi.UserGroupEntity) (*nigoapi.U
 	}
 
 	// Request on Nifi Rest API to create the user group
-	userGroupEntity, rsp, err := client.TenantsApi.CreateUserGroup(nil, entity)
-	if err := errorCreateOperation(rsp, err); err != nil {
+	userGroupEntity, rsp, body, err := client.TenantsApi.CreateUserGroup(nil, entity)
+	if err := errorCreateOperation(rsp, body, err); err != nil {
 		return nil, err
 	}
 	return &userGroupEntity, nil
@@ -82,8 +82,8 @@ func (n *nifiClient) UpdateUserGroup(entity nigoapi.UserGroupEntity) (*nigoapi.U
 	}
 
 	// Request on Nifi Rest API to update the user group
-	userGroupEntity, rsp, err := client.TenantsApi.UpdateUserGroup(nil, entity.Id, entity)
-	if err := errorUpdateOperation(rsp, err); err != nil {
+	userGroupEntity, rsp, body, err := client.TenantsApi.UpdateUserGroup(nil, entity.Id, entity)
+	if err := errorUpdateOperation(rsp, body, err); err != nil {
 		return nil, err
 	}
 
@@ -99,10 +99,10 @@ func (n *nifiClient) RemoveUserGroup(entity nigoapi.UserGroupEntity) error {
 	}
 
 	// Request on Nifi Rest API to remove the user group
-	_, rsp, err := client.TenantsApi.RemoveUserGroup(nil, entity.Id,
+	_, rsp, body, err := client.TenantsApi.RemoveUserGroup(nil, entity.Id,
 		&nigoapi.TenantsApiRemoveUserGroupOpts{
 			Version: optional.NewString(strconv.FormatInt(*entity.Revision.Version, 10)),
 		})
 
-	return errorDeleteOperation(rsp, err)
+	return errorDeleteOperation(rsp, body, err)
 }

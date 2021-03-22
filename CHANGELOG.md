@@ -2,6 +2,9 @@
 
 ### Added
 
+- [PR #86](https://github.com/Orange-OpenSource/nifikop/pull/86) - **[Operator/Debugging]** Add events and improve HTTP calls error message
+
+
 ### Changed
 
 - [PR #85](https://github.com/Orange-OpenSource/nifikop/pull/85) - **[Operator/Dependencies]** Upgrade cert-manager & operator sdk dependencies
