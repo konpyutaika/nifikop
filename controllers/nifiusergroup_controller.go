@@ -35,7 +35,7 @@ import (
 	"github.com/Orange-OpenSource/nifikop/api/v1alpha1"
 )
 
-var userGroupFinalizer = "finalizer.nifiusergroups.nifi.orange.com"
+var userGroupFinalizer = "nifiusergroups.nifi.orange.com/finalizer"
 
 // NifiUserGroupReconciler reconciles a NifiUserGroup object
 type NifiUserGroupReconciler struct {

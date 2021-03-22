@@ -58,7 +58,7 @@ The NiFiKop operator uses `cert-manager` for issuing certificates to users and a
 ```bash
 # Install the CustomResourceDefinitions and cert-manager itself
 kubectl apply -f \
-    https://github.com/jetstack/cert-manager/releases/download/v0.15.1/cert-manager.yaml
+    https://github.com/jetstack/cert-manager/releases/download/v1.2.0/cert-manager.yaml
 ```
 </TabItem>
 <TabItem value="helm3">
@@ -66,7 +66,7 @@ kubectl apply -f \
 ```bash
 # Install CustomResourceDefinitions first
 kubectl apply --validate=false -f \
-   https://github.com/jetstack/cert-manager/releases/download/v0.15.1/cert-manager.crds.yaml
+   https://github.com/jetstack/cert-manager/releases/download/v1.2.0/cert-manager.crds.yaml
 
 # Add the jetstack helm repo
 helm repo add jetstack https://charts.jetstack.io
@@ -75,7 +75,7 @@ helm repo update
 # You have to create the namespace before executing following command
 helm install cert-manager \
     --namespace cert-manager \
-    --version v0.15.1 jetstack/cert-manager
+    --version v1.2.0 jetstack/cert-manager
 ```
 
 </TabItem>

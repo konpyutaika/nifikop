@@ -31,7 +31,7 @@ orbs:
     executors:
       operator-build:
         docker:
-          - image: orangeopensource/nifikop-build:v0.18.0
+          - image: orangeopensource/nifikop-build:1.15
     # Define jobs list
     jobs:
       # Build job, which build operator docker image (with operator-sdk build)

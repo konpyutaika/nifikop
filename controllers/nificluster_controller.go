@@ -40,8 +40,8 @@ import (
 	"github.com/Orange-OpenSource/nifikop/api/v1alpha1"
 )
 
-var clusterFinalizer = "finalizer.nificlusters.nifi.orange.com"
-var clusterUsersFinalizer = "users.nificlusters.nifi.orange.com"
+var clusterFinalizer = "nificlusters.nifi.orange.com/finalizer"
+var clusterUsersFinalizer = "nificlusters.nifi.orange.com/users"
 
 // NifiClusterReconciler reconciles a NifiCluster object
 type NifiClusterReconciler struct {

@@ -4,7 +4,11 @@
 
 ### Changed
 
+- [PR #85](https://github.com/Orange-OpenSource/nifikop/pull/85) - **[Operator/Dependencies]** Upgrade cert-manager & operator sdk dependencies
+
 ### Deprecated
+
+- [PR #85](https://github.com/Orange-OpenSource/nifikop/pull/85) - **[Operator/Finalizers]** The finalizer name format suggested by [Kubernetes docs](https://kubernetes.io/docs/tasks/extend-kubernetes/custom-resources/custom-resource-definitions/#finalizers) is <qualified-group>/<finalizer-name>, while the format previously documented by Operator SDK docs was <finalizer-name>.<qualified-group>. If your operator uses any finalizers with names matching the incorrect format, change them to match the official format. For example, finalizer.nifiusergroups.nifi.orange.com should be changed to nifiusergroups.nifi.orange.com/finalizer.
 
 ### Removed
 
@@ -12,7 +16,7 @@
 
 ## v0.5.3
 
-### Fixed Bugs**
+### Fixed Bugs
 
 - [PR #82](https://github.com/Orange-OpenSource/nifikop/pull/82) - **[Operator/NifiParameterContext]** Enable empty value
 - [PR #83](https://github.com/Orange-OpenSource/nifikop/pull/83) - **[Operator/NiFiUser]** Rework the certificate secret creation, to prevent issues with JKS password creation.
