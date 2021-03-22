@@ -34,7 +34,7 @@ import (
 	"github.com/Orange-OpenSource/nifikop/api/v1alpha1"
 )
 
-var registryClientFinalizer = "finalizer.nifiregistryclients.nifi.orange.com"
+var registryClientFinalizer = "nifiregistryclients.nifi.orange.com/finalizer"
 
 // NifiRegistryClientReconciler reconciles a NifiRegistryClient object
 type NifiRegistryClientReconciler struct {

@@ -14,7 +14,7 @@ NiFiKop has been validated with :
 - [docker](https://docs.docker.com/get-docker/) version 18.09+
 - [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) version v1.16+
 - [Helm](https://helm.sh/) version v3.4.2
-- [Operator sdk](https://github.com/operator-framework/operator-sdk) version v1.3.0
+- [Operator sdk](https://github.com/operator-framework/operator-sdk) version v1.5.0
 
 ### Initial setup
 

@@ -3,12 +3,16 @@ SERVICE_NAME			:= nifikop
 DOCKER_REGISTRY_BASE 	?= orangeopensource
 IMAGE_TAG				?= $(shell git describe --tags --abbrev=0 --match '[0-9].*[0-9].*[0-9]' 2>/dev/null)
 IMAGE_NAME 				?= $(SERVICE_NAME)
+BUILD_IMAGE				?= orangeopensource/nifikop-build
+GOLANG_VERSION          ?= 1.15
 
 # workdir
 WORKDIR := /go/nifikop
 
 # Debug variables
 TELEPRESENCE_REGISTRY ?= datawire
+
+DEV_DIR := docker/build-image
 
 # Repository url for this project
 # in gitlab CI_REGISTRY_IMAGE=repo/path/name:tag
@@ -236,3 +240,25 @@ debug-telepresence:
 
 debug-telepresence-with-alias:
 	$(call debug_telepresence,--also-proxy,10.40.0.0/16)
+
+# Build the docker development environment
+build-ci-image:
+	docker build --cache-from $(BUILD_IMAGE):latest \
+	  --build-arg GOLANG_VERSION=$(GOLANG_VERSION) \
+		-t $(BUILD_IMAGE):latest \
+		-t $(BUILD_IMAGE):$(GOLANG_VERSION) \
+		-f $(DEV_DIR)/Dockerfile \
+		.
+
+push-ci-image:
+	docker push $(BUILD_IMAGE):$(GOLANG_VERSION)
+ifdef PUSHLATEST
+	docker push $(BUILD_IMAGE):latest
+endif
+
+## Test if the dependencies we need to run this Makefile are installed
+#deps-development:
+#ifndef DOCKER
+#	@echo "Docker is not available. Please install docker"
+#	@exit 1
+#endif

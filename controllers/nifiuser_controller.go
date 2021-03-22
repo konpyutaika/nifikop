@@ -38,7 +38,7 @@ import (
 	"github.com/Orange-OpenSource/nifikop/api/v1alpha1"
 )
 
-var userFinalizer = "finalizer.nifiusers.nifi.orange.com"
+var userFinalizer = "nifiusers.nifi.orange.com/finalizer"
 
 // NifiUserReconciler reconciles a NifiUser object
 type NifiUserReconciler struct {

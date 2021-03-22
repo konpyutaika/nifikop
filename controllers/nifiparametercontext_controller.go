@@ -37,7 +37,7 @@ import (
 	"github.com/Orange-OpenSource/nifikop/api/v1alpha1"
 )
 
-var parameterContextFinalizer = "finalizer.nifiparametercontexts.nifi.orange.com"
+var parameterContextFinalizer = "nifiparametercontexts.nifi.orange.com/finalizer"
 
 // NifiParameterContextReconciler reconciles a NifiParameterContext object
 type NifiParameterContextReconciler struct {

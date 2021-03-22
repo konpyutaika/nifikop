@@ -36,7 +36,7 @@ import (
 	"github.com/Orange-OpenSource/nifikop/api/v1alpha1"
 )
 
-var dataflowFinalizer = "finalizer.nifidataflows.nifi.orange.com"
+var dataflowFinalizer = "nifidataflows.nifi.orange.com/finalizer"
 
 // NifiDataflowReconciler reconciles a NifiDataflow object
 type NifiDataflowReconciler struct {
