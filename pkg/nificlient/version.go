@@ -11,8 +11,8 @@ func (n *nifiClient) CreateVersionUpdateRequest(pgId string, entity nigoapi.Vers
 	}
 
 	// Request on Nifi Rest API to create the version update request
-	request, rsp, err := client.VersionsApi.InitiateVersionControlUpdate(nil, pgId, entity)
-	if err := errorUpdateOperation(rsp, err); err != nil {
+	request, rsp, body, err := client.VersionsApi.InitiateVersionControlUpdate(nil, pgId, entity)
+	if err := errorUpdateOperation(rsp, body, err); err != nil {
 		return nil, err
 	}
 
@@ -28,8 +28,8 @@ func (n *nifiClient) GetVersionUpdateRequest(id string) (*nigoapi.VersionedFlowU
 	}
 
 	// Request on Nifi Rest API to get the update request information
-	request, rsp, err := client.VersionsApi.GetUpdateRequest(nil, id)
-	if err := errorGetOperation(rsp, err); err != nil {
+	request, rsp, body, err := client.VersionsApi.GetUpdateRequest(nil, id)
+	if err := errorGetOperation(rsp, body, err); err != nil {
 		return nil, err
 	}
 
@@ -45,8 +45,8 @@ func (n *nifiClient) CreateVersionRevertRequest(pgId string, entity nigoapi.Vers
 	}
 
 	// Request on Nifi Rest API to create the version revert request
-	request, rsp, err := client.VersionsApi.InitiateRevertFlowVersion(nil, pgId, entity)
-	if err := errorUpdateOperation(rsp, err); err != nil {
+	request, rsp, body, err := client.VersionsApi.InitiateRevertFlowVersion(nil, pgId, entity)
+	if err := errorUpdateOperation(rsp, body, err); err != nil {
 		return nil, err
 	}
 
@@ -62,8 +62,8 @@ func (n *nifiClient) GetVersionRevertRequest(id string) (*nigoapi.VersionedFlowU
 	}
 
 	// Request on Nifi Rest API to get the revert request information
-	request, rsp, err := client.VersionsApi.GetRevertRequest(nil, id)
-	if err := errorGetOperation(rsp, err); err != nil {
+	request, rsp, body, err := client.VersionsApi.GetRevertRequest(nil, id)
+	if err := errorGetOperation(rsp, body, err); err != nil {
 		return nil, err
 	}
 

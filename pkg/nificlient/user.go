@@ -30,9 +30,9 @@ func (n *nifiClient) GetUsers() ([]nigoapi.UserEntity, error) {
 	}
 
 	// Request on Nifi Rest API to get the users informations
-	usersEntity, rsp, err := client.TenantsApi.GetUsers(nil)
+	usersEntity, rsp, body, err := client.TenantsApi.GetUsers(nil)
 
-	if err := errorGetOperation(rsp, err); err != nil {
+	if err := errorGetOperation(rsp, body, err); err != nil {
 		return nil, err
 	}
 
@@ -48,9 +48,9 @@ func (n *nifiClient) GetUser(id string) (*nigoapi.UserEntity, error) {
 	}
 
 	// Request on Nifi Rest API to get the user informations
-	userEntity, rsp, err := client.TenantsApi.GetUser(nil, id)
+	userEntity, rsp, body, err := client.TenantsApi.GetUser(nil, id)
 
-	if err := errorGetOperation(rsp, err); err != nil {
+	if err := errorGetOperation(rsp, body, err); err != nil {
 		return nil, err
 	}
 
@@ -66,8 +66,8 @@ func (n *nifiClient) CreateUser(entity nigoapi.UserEntity) (*nigoapi.UserEntity,
 	}
 
 	// Request on Nifi Rest API to create the user
-	userEntity, rsp, err := client.TenantsApi.CreateUser(nil, entity)
-	if err := errorCreateOperation(rsp, err); err != nil {
+	userEntity, rsp, body, err := client.TenantsApi.CreateUser(nil, entity)
+	if err := errorCreateOperation(rsp, body, err); err != nil {
 		return nil, err
 	}
 
@@ -83,8 +83,8 @@ func (n *nifiClient) UpdateUser(entity nigoapi.UserEntity) (*nigoapi.UserEntity,
 	}
 
 	// Request on Nifi Rest API to update the user
-	userEntity, rsp, err := client.TenantsApi.UpdateUser(nil, entity.Id, entity)
-	if err := errorUpdateOperation(rsp, err); err != nil {
+	userEntity, rsp, body, err := client.TenantsApi.UpdateUser(nil, entity.Id, entity)
+	if err := errorUpdateOperation(rsp, body, err); err != nil {
 		return nil, err
 	}
 
@@ -100,10 +100,10 @@ func (n *nifiClient) RemoveUser(entity nigoapi.UserEntity) error {
 	}
 
 	// Request on Nifi Rest API to remove the user
-	_, rsp, err := client.TenantsApi.RemoveUser(nil, entity.Id,
+	_, rsp, body, err := client.TenantsApi.RemoveUser(nil, entity.Id,
 		&nigoapi.TenantsApiRemoveUserOpts{
 			Version: optional.NewString(strconv.FormatInt(*entity.Revision.Version, 10)),
 		})
 
-	return errorDeleteOperation(rsp, err)
+	return errorDeleteOperation(rsp, body, err)
 }

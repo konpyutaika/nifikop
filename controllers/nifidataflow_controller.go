@@ -19,13 +19,17 @@ package controllers
 import (
 	"context"
 	"emperror.dev/errors"
+	"fmt"
 	"github.com/Orange-OpenSource/nifikop/pkg/clientwrappers/dataflow"
 	"github.com/Orange-OpenSource/nifikop/pkg/errorfactory"
 	"github.com/Orange-OpenSource/nifikop/pkg/k8sutil"
 	"github.com/Orange-OpenSource/nifikop/pkg/util"
+	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/client-go/tools/record"
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"strconv"
 	"time"
 
 	"github.com/go-logr/logr"
@@ -43,6 +47,7 @@ type NifiDataflowReconciler struct {
 	client.Client
 	Log    logr.Logger
 	Scheme *runtime.Scheme
+	Recorder record.EventRecorder
 }
 
 // +kubebuilder:rbac:groups=nifi.orange.com,resources=nifidataflows,verbs=get;list;watch;create;update;patch;delete
@@ -127,6 +132,10 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 				return Reconciled()
 			}
 
+			r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceParameterContextError",
+				fmt.Sprintf("Failed to lookup reference parameter-context : %s in %s",
+					instance.Spec.ClusterRef.Name, parameterContextNamespace ))
+
 			// the cluster does not exist - should have been caught pre-flight
 			return RequeueWithError(r.Log, "failed to lookup referenced parameter-contest", err)
 		}
@@ -140,6 +149,10 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 			(parameterContext != nil &&
 				(parameterContextNamespace != clusterNamespace ||
 					parameterContext.Spec.ClusterRef.Name != instance.Spec.ClusterRef.Name))) {
+
+		r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceClusterError",
+			fmt.Sprintf("Failed to lookup reference cluster : %s in %s",
+				instance.Spec.ClusterRef.Name, clusterNamespace ))
 
 		return RequeueWithError(
 			r.Log,
@@ -171,6 +184,11 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		return Reconciled()
 	}
 
+	r.Recorder.Event(instance, corev1.EventTypeWarning, "Reconciling",
+		fmt.Sprintf("Reconciling failed dataflow %s based on flow {bucketId : %s, flowId: %s, version: %s}",
+			instance.Name, instance.Spec.BucketId,
+			instance.Spec.FlowId, strconv.FormatInt(int64(*instance.Spec.FlowVersion), 10)))
+
 	// Check if the dataflow already exist
 	existing, err := dataflow.DataflowExist(r.Client, instance, cluster)
 	if err != nil {
@@ -179,9 +197,17 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 
 	// Create dataflow if it doesn't already exist
 	if !existing {
+		r.Recorder.Event(instance, corev1.EventTypeNormal, "Creating",
+			fmt.Sprintf("Creating dataflow %s based on flow {bucketId : %s, flowId: %s, version: %s}",
+				instance.Name, instance.Spec.BucketId,
+				instance.Spec.FlowId, strconv.FormatInt(int64(*instance.Spec.FlowVersion), 10)))
 
 		processGroupStatus, err := dataflow.CreateDataflow(r.Client, instance, cluster, registryClient)
 		if err != nil {
+			r.Recorder.Event(instance, corev1.EventTypeWarning, "CreationFailed",
+				fmt.Sprintf("Creation failed dataflow %s based on flow {bucketId : %s, flowId: %s, version: %s}",
+					instance.Name, instance.Spec.BucketId,
+					instance.Spec.FlowId, strconv.FormatInt(int64(*instance.Spec.FlowVersion), 10)))
 			return RequeueWithError(r.Log, "failure creating dataflow", err)
 		}
 
@@ -193,11 +219,21 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 			return RequeueWithError(r.Log, "failed to update NifiDataflow status", err)
 		}
 
+		r.Recorder.Event(instance, corev1.EventTypeNormal, "Created",
+			fmt.Sprintf("Created dataflow %s based on flow {bucketId : %s, flowId: %s, version: %s}",
+				instance.Name, instance.Spec.BucketId,
+				instance.Spec.FlowId, strconv.FormatInt(int64(*instance.Spec.FlowVersion), 10)))
+
 		existing = true
 	}
 
 	// In case where the flow is not sync
 	if instance.Status.State == v1alpha1.DataflowStateOutOfSync {
+		r.Recorder.Event(instance, corev1.EventTypeNormal, "Synchronizing",
+			fmt.Sprintf("Syncing dataflow %s based on flow {bucketId : %s, flowId: %s, version: %s}",
+				instance.Name, instance.Spec.BucketId,
+				instance.Spec.FlowId, strconv.FormatInt(int64(*instance.Spec.FlowVersion), 10)))
+
 		status, err := dataflow.SyncDataflow(r.Client, instance, cluster, registryClient, parameterContext)
 		if status != nil {
 			instance.Status = *status
@@ -216,6 +252,10 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 					RequeueAfter: time.Duration(5) * time.Second,
 				}, nil
 			default:
+				r.Recorder.Event(instance, corev1.EventTypeWarning, "SynchronizingFailed",
+					fmt.Sprintf("Syncing dataflow %s based on flow {bucketId : %s, flowId: %s, version: %s} failed",
+						instance.Name, instance.Spec.BucketId,
+						instance.Spec.FlowId, strconv.FormatInt(int64(*instance.Spec.FlowVersion), 10)))
 				return RequeueWithError(r.Log, "failed to sync NiFiDataflow", err)
 			}
 		}
@@ -224,6 +264,11 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		if err := r.Client.Status().Update(ctx, instance); err != nil {
 			return RequeueWithError(r.Log, "failed to update NifiDataflow status", err)
 		}
+
+		r.Recorder.Event(instance, corev1.EventTypeNormal, "Synchronized",
+			fmt.Sprintf("Synchronized dataflow %s based on flow {bucketId : %s, flowId: %s, version: %s}",
+				instance.Name, instance.Spec.BucketId,
+				instance.Spec.FlowId, strconv.FormatInt(int64(*instance.Spec.FlowVersion), 10)))
 	}
 
 	// Check if the flow is out of sync
@@ -251,11 +296,20 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 			return RequeueWithError(r.Log, "failed to update NifiDataflow status", err)
 		}
 
+		r.Recorder.Event(instance, corev1.EventTypeNormal, "Starting",
+			fmt.Sprintf("Starting dataflow %s based on flow {bucketId : %s, flowId: %s, version: %s}",
+				instance.Name, instance.Spec.BucketId,
+				instance.Spec.FlowId, strconv.FormatInt(int64(*instance.Spec.FlowVersion), 10)))
+
 		if err := dataflow.ScheduleDataflow(r.Client, instance, cluster); err != nil {
 			switch errors.Cause(err).(type) {
 			case errorfactory.NifiFlowControllerServiceScheduling, errorfactory.NifiFlowScheduling:
 				return RequeueAfter(time.Duration(5) * time.Second)
 			default:
+				r.Recorder.Event(instance, corev1.EventTypeWarning, "StartingFailed",
+					fmt.Sprintf("Starting dataflow %s based on flow {bucketId : %s, flowId: %s, version: %s} failed.",
+						instance.Name, instance.Spec.BucketId,
+						instance.Spec.FlowId, strconv.FormatInt(int64(*instance.Spec.FlowVersion), 10)))
 				return RequeueWithError(r.Log, "failed to run NifiDataflow", err)
 			}
 		}
@@ -264,6 +318,11 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		if err := r.Client.Status().Update(ctx, instance); err != nil {
 			return RequeueWithError(r.Log, "failed to update NifiDataflow status", err)
 		}
+
+		r.Recorder.Event(instance, corev1.EventTypeNormal, "Ran",
+			fmt.Sprintf("Ran dataflow %s based on flow {bucketId : %s, flowId: %s, version: %s}",
+				instance.Name, instance.Spec.BucketId,
+				instance.Spec.FlowId, strconv.FormatInt(int64(*instance.Spec.FlowVersion), 10)))
 	}
 
 	// Ensure NifiCluster label
@@ -277,6 +336,11 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	}
 
 	r.Log.Info("Ensured Dataflow")
+
+	r.Recorder.Event(instance, corev1.EventTypeWarning, "Reconciled",
+		fmt.Sprintf("Reconciled failed dataflow %s based on flow {bucketId : %s, flowId: %s, version: %s}",
+			instance.Name, instance.Spec.BucketId,
+			instance.Spec.FlowId, strconv.FormatInt(int64(*instance.Spec.FlowVersion), 10)))
 
 	if instance.Spec.GetRunOnce() {
 		return Reconciled()
@@ -333,6 +397,7 @@ func (r *NifiDataflowReconciler) checkFinalizers(ctx context.Context, flow *v1al
 			return RequeueWithError(r.Log, "failed to remove finalizer from dataflow", err)
 		}
 	}
+
 	return Reconciled()
 }
 
@@ -350,10 +415,20 @@ func (r *NifiDataflowReconciler) finalizeNifiDataflow(flow *v1alpha1.NifiDataflo
 	}
 
 	if exists {
+		r.Recorder.Event(flow, corev1.EventTypeNormal, "Removing",
+			fmt.Sprintf("Removing dataflow %s based on flow {bucketId : %s, flowId: %s, version: %s}",
+				flow.Name, flow.Spec.BucketId,
+				flow.Spec.FlowId, strconv.FormatInt(int64(*flow.Spec.FlowVersion), 10)))
+
 		if _, err = dataflow.RemoveDataflow(r.Client, flow, cluster); err != nil {
 			return err
 		}
-		r.Log.Info("Delete dataflow")
+		r.Recorder.Event(flow, corev1.EventTypeNormal, "Removed",
+			fmt.Sprintf("Removed dataflow %s based on flow {bucketId : %s, flowId: %s, version: %s}",
+				flow.Name, flow.Spec.BucketId,
+				flow.Spec.FlowId, strconv.FormatInt(int64(*flow.Spec.FlowVersion), 10)))
+
+		r.Log.Info("Dataflow deleted")
 	}
 
 	return nil

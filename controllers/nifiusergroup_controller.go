@@ -19,10 +19,13 @@ package controllers
 import (
 	"context"
 	"emperror.dev/errors"
+	"fmt"
 	"github.com/Orange-OpenSource/nifikop/pkg/clientwrappers/usergroup"
 	"github.com/Orange-OpenSource/nifikop/pkg/k8sutil"
 	"github.com/Orange-OpenSource/nifikop/pkg/util"
+	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/client-go/tools/record"
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"time"
@@ -42,6 +45,7 @@ type NifiUserGroupReconciler struct {
 	client.Client
 	Log    logr.Logger
 	Scheme *runtime.Scheme
+	Recorder record.EventRecorder
 }
 
 // +kubebuilder:rbac:groups=nifi.orange.com,resources=nifiusergroups,verbs=get;list;watch;create;update;patch;delete
@@ -90,12 +94,20 @@ func (r *NifiUserGroupReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 				return Reconciled()
 			}
 
+			r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceUserError",
+				fmt.Sprintf("Failed to lookup reference user : %s in %s",
+					userRef.Name, userNamespace))
+
 			// the cluster does not exist - should have been caught pre-flight
 			return RequeueWithError(r.Log, "failed to lookup referenced user", err)
 		}
+
 		// Check if cluster references are the same
 		clusterNamespace := GetClusterRefNamespace(instance.Namespace, instance.Spec.ClusterRef)
 		if user != nil && (userNamespace != clusterNamespace || user.Spec.ClusterRef.Name != instance.Spec.ClusterRef.Name) {
+			r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceClusterError",
+				fmt.Sprintf("Failed to ensure consistency in cluster referece : %s in %s, with user : %s in %s",
+					instance.Spec.ClusterRef.Name, clusterNamespace, userRef.Name, userRef.Namespace ))
 			return RequeueWithError(
 				r.Log,
 				"failed to lookup referenced cluster, due to inconsistency",
@@ -118,6 +130,10 @@ func (r *NifiUserGroupReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 			return Reconciled()
 		}
 
+		r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceClusterError",
+			fmt.Sprintf("Failed to lookup reference cluster : %s in %s",
+				instance.Spec.ClusterRef.Name, clusterNamespace ))
+
 		// the cluster does not exist - should have been caught pre-flight
 		return RequeueWithError(r.Log, "failed to lookup referenced cluster", err)
 	}
@@ -127,6 +143,9 @@ func (r *NifiUserGroupReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		return r.checkFinalizers(ctx, instance, users, cluster)
 	}
 
+	r.Recorder.Event(instance, corev1.EventTypeNormal, "Reconciling",
+		fmt.Sprintf("Reconciling user group %s", instance.Name ))
+
 	// Check if the NiFi user group already exist
 	exist, err := usergroup.ExistUserGroup(r.Client, instance, cluster)
 	if err != nil {
@@ -134,6 +153,9 @@ func (r *NifiUserGroupReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	}
 
 	if !exist {
+		r.Recorder.Event(instance, corev1.EventTypeNormal, "Creating",
+			fmt.Sprintf("Creating registry client %s", instance.Name ))
+
 		// Create NiFi user group
 		status, err := usergroup.CreateUserGroup(r.Client, instance, users, cluster)
 		if err != nil {
@@ -144,11 +166,18 @@ func (r *NifiUserGroupReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		if err := r.Client.Status().Update(ctx, instance); err != nil {
 			return RequeueWithError(r.Log, "failed to update NifiUserGroup status", err)
 		}
+
+		r.Recorder.Event(instance, corev1.EventTypeNormal, "Created",
+			fmt.Sprintf("Created user group %s", instance.Name ))
 	}
 
 	// Sync UserGroup resource with NiFi side component
+	r.Recorder.Event(instance, corev1.EventTypeNormal, "Synchronizing",
+		fmt.Sprintf("Synchronizing user group %s", instance.Name ))
 	status, err := usergroup.SyncUserGroup(r.Client, instance, users, cluster)
 	if err != nil {
+		r.Recorder.Event(instance, corev1.EventTypeNormal, "SynchronizingFailed",
+			fmt.Sprintf("Synchronizing user group %s failed", instance.Name ))
 		return RequeueWithError(r.Log, "failed to sync NifiUserGroup", err)
 	}
 
@@ -156,6 +185,9 @@ func (r *NifiUserGroupReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	if err := r.Client.Status().Update(ctx, instance); err != nil {
 		return RequeueWithError(r.Log, "failed to update NifiUserGroup status", err)
 	}
+
+	r.Recorder.Event(instance, corev1.EventTypeNormal, "Synchronized",
+		fmt.Sprintf("Synchronized user group %s", instance.Name ))
 
 	// Ensure NifiCluster label
 	if instance, err = r.ensureClusterLabel(ctx, cluster, instance); err != nil {
@@ -172,6 +204,9 @@ func (r *NifiUserGroupReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	if instance, err = r.updateAndFetchLatest(ctx, instance); err != nil {
 		return RequeueWithError(r.Log, "failed to update NifiUserGroup", err)
 	}
+
+	r.Recorder.Event(instance, corev1.EventTypeNormal, "Reconciled",
+		fmt.Sprintf("Reconciling user group %s", instance.Name ))
 
 	r.Log.Info("Ensured User Group")
 

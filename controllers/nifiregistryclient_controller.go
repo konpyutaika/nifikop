@@ -18,10 +18,13 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"github.com/Orange-OpenSource/nifikop/pkg/clientwrappers/registryclient"
 	"github.com/Orange-OpenSource/nifikop/pkg/k8sutil"
 	"github.com/Orange-OpenSource/nifikop/pkg/util"
+	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/client-go/tools/record"
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"time"
@@ -41,6 +44,7 @@ type NifiRegistryClientReconciler struct {
 	client.Client
 	Log    logr.Logger
 	Scheme *runtime.Scheme
+	Recorder record.EventRecorder
 }
 
 // +kubebuilder:rbac:groups=nifi.orange.com,resources=nifiregistryclients,verbs=get;list;watch;create;update;patch;delete
@@ -85,6 +89,9 @@ func (r *NifiRegistryClientReconciler) Reconcile(ctx context.Context, req ctrl.R
 			return Reconciled()
 		}
 
+		r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceClusterError",
+			fmt.Sprintf("Failed to lookup reference cluster : %s in %s",
+				instance.Spec.ClusterRef.Name, clusterNamespace ))
 		// the cluster does not exist - should have been caught pre-flight
 		return RequeueWithError(r.Log, "failed to lookup referenced cluster", err)
 	}
@@ -94,6 +101,9 @@ func (r *NifiRegistryClientReconciler) Reconcile(ctx context.Context, req ctrl.R
 		return r.checkFinalizers(ctx, r.Log, instance, cluster)
 	}
 
+	r.Recorder.Event(instance, corev1.EventTypeNormal, "Reconciling",
+		fmt.Sprintf("Reconciling registry client %s", instance.Name ))
+
 	// Check if the NiFi registry client already exist
 	exist, err := registryclient.ExistRegistryClient(r.Client, instance, cluster)
 	if err != nil {
@@ -102,6 +112,8 @@ func (r *NifiRegistryClientReconciler) Reconcile(ctx context.Context, req ctrl.R
 
 	if !exist {
 		// Create NiFi registry client
+		r.Recorder.Event(instance, corev1.EventTypeNormal, "Creating",
+			fmt.Sprintf("Creating registry client %s", instance.Name ))
 		status, err := registryclient.CreateRegistryClient(r.Client, instance, cluster)
 		if err != nil {
 			return RequeueWithError(r.Log, "failure creating registry client", err)
@@ -111,11 +123,18 @@ func (r *NifiRegistryClientReconciler) Reconcile(ctx context.Context, req ctrl.R
 		if err := r.Client.Status().Update(ctx, instance); err != nil {
 			return RequeueWithError(r.Log, "failed to update NifiRegistryClient status", err)
 		}
+
+		r.Recorder.Event(instance, corev1.EventTypeNormal, "Created",
+			fmt.Sprintf("Created registry client %s", instance.Name ))
 	}
 
 	// Sync RegistryClient resource with NiFi side component
+	r.Recorder.Event(instance, corev1.EventTypeNormal, "Synchronizing",
+		fmt.Sprintf("Synchronizing registry client %s", instance.Name ))
 	status, err := registryclient.SyncRegistryClient(r.Client, instance, cluster)
 	if err != nil {
+		r.Recorder.Event(instance, corev1.EventTypeNormal, "SynchronizingFailed",
+			fmt.Sprintf("Synchronizing registry client %s failed", instance.Name ))
 		return RequeueWithError(r.Log, "failed to sync NifiRegistryClient", err)
 	}
 
@@ -124,6 +143,8 @@ func (r *NifiRegistryClientReconciler) Reconcile(ctx context.Context, req ctrl.R
 		return RequeueWithError(r.Log, "failed to update NifiRegistryClient status", err)
 	}
 
+	r.Recorder.Event(instance, corev1.EventTypeNormal, "Synchronized",
+		fmt.Sprintf("Synchronized registry client %s", instance.Name ))
 	// Ensure NifiCluster label
 	if instance, err = r.ensureClusterLabel(ctx, cluster, instance); err != nil {
 		return RequeueWithError(r.Log, "failed to ensure NifiCluster label on registry client", err)
@@ -139,6 +160,9 @@ func (r *NifiRegistryClientReconciler) Reconcile(ctx context.Context, req ctrl.R
 	if instance, err = r.updateAndFetchLatest(ctx, instance); err != nil {
 		return RequeueWithError(r.Log, "failed to update NifiRegistryClient", err)
 	}
+
+	r.Recorder.Event(instance, corev1.EventTypeNormal, "Reconciled",
+		fmt.Sprintf("Reconciling registry client %s", instance.Name ))
 
 	r.Log.Info("Ensured Registry Client")
 

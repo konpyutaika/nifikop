@@ -28,14 +28,14 @@ var ErrNifiClusterNodeNotFound = errors.New("The target node id doesn't exist in
 
 var ErrNoNodeClientsAvailable = errors.New("Cannot create a node client to perform actions")
 
-func errorGetOperation(rsp *http.Response, err error) error {
+func errorGetOperation(rsp *http.Response, body *string, err error) error {
 	if rsp != nil && rsp.StatusCode == 404 {
 		log.Info("404 response from nifi node: " + rsp.Status)
 		return ErrNifiClusterReturned404
 	}
 
 	if rsp != nil && rsp.StatusCode != 200 {
-		log.Error(errors.New("Non 200 response from nifi node: "+rsp.Status), "Error during talking to nifi node")
+		log.Error(errors.New("Non 200 response from nifi node: "+rsp.Status), *body)
 		return ErrNifiClusterNotReturned200
 	}
 
@@ -46,9 +46,9 @@ func errorGetOperation(rsp *http.Response, err error) error {
 	return nil
 }
 
-func errorCreateOperation(rsp *http.Response, err error) error {
+func errorCreateOperation(rsp *http.Response, body *string, err error) error {
 	if rsp != nil && rsp.StatusCode != 201 {
-		log.Error(errors.New("Non 201 response from nifi node: "+rsp.Status), "Error during talking to nifi node")
+		log.Error(errors.New("Non 201 response from nifi node: "+rsp.Status), *body)
 		return ErrNifiClusterNotReturned201
 	}
 
@@ -60,9 +60,9 @@ func errorCreateOperation(rsp *http.Response, err error) error {
 	return nil
 }
 
-func errorUpdateOperation(rsp *http.Response, err error) error {
+func errorUpdateOperation(rsp *http.Response, body *string, err error) error {
 	if rsp != nil && rsp.StatusCode != 200 && rsp.StatusCode != 202 {
-		log.Error(errors.New("Non 200 response from nifi node: "+rsp.Status), "Error during talking to nifi node")
+		log.Error(errors.New("Non 200 response from nifi node: "+rsp.Status), *body)
 		return ErrNifiClusterNotReturned200
 	}
 
@@ -74,14 +74,14 @@ func errorUpdateOperation(rsp *http.Response, err error) error {
 	return nil
 }
 
-func errorDeleteOperation(rsp *http.Response, err error) error {
+func errorDeleteOperation(rsp *http.Response, body *string, err error) error {
 	if rsp != nil && rsp.StatusCode == 404 {
-		log.Error(errors.New("404 response from nifi node: "+rsp.Status), "No registry client to remove found")
+		log.Error(errors.New("404 response from nifi node: "+rsp.Status), *body)
 		return nil
 	}
 
 	if rsp != nil && rsp.StatusCode != 200 {
-		log.Error(errors.New("Non 200 response from nifi node: "+rsp.Status), "Error during talking to nifi node")
+		log.Error(errors.New("Non 200 response from nifi node: "+rsp.Status), *body)
 		return ErrNifiClusterNotReturned200
 	}
 

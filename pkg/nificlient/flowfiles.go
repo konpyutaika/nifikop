@@ -13,8 +13,8 @@ func (n *nifiClient) GetDropRequest(connectionId, id string) (*nigoapi.DropReque
 	}
 
 	// Request on Nifi Rest API to get the drop request information
-	dropRequest, rsp, err := client.FlowfileQueuesApi.GetDropRequest(nil, connectionId, id)
-	if err := errorGetOperation(rsp, err); err != nil {
+	dropRequest, rsp, body, err := client.FlowfileQueuesApi.GetDropRequest(nil, connectionId, id)
+	if err := errorGetOperation(rsp, body, err); err != nil {
 		return nil, err
 	}
 
@@ -30,8 +30,8 @@ func (n *nifiClient) CreateDropRequest(connectionId string) (*nigoapi.DropReques
 	}
 
 	// Request on Nifi Rest API to create the drop Request
-	entity, rsp, err := client.FlowfileQueuesApi.CreateDropRequest(nil, connectionId)
-	if err := errorCreateOperation(rsp, err); err != nil {
+	entity, rsp, body, err := client.FlowfileQueuesApi.CreateDropRequest(nil, connectionId)
+	if err := errorCreateOperation(rsp, body, err); err != nil {
 		return nil, err
 	}
 

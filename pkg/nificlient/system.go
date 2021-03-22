@@ -27,8 +27,8 @@ func (n *nifiClient) DescribeCluster() (*nigoapi.ClusterEntity, error) {
 		return nil, ErrNoNodeClientsAvailable
 	}
 
-	clusterEntry, rsp, err := client.ControllerApi.GetCluster(nil)
-	if err := errorGetOperation(rsp, err); err != nil {
+	clusterEntry, rsp, body, err := client.ControllerApi.GetCluster(nil)
+	if err := errorGetOperation(rsp, body, err); err != nil {
 		return nil, err
 	}
 
@@ -51,9 +51,9 @@ func (n *nifiClient) GetClusterNode(nId int32) (*nigoapi.NodeEntity, error) {
 	}
 
 	// Request on Nifi Rest API to get the node information
-	nodeEntity, rsp, err := client.ControllerApi.GetNode(nil, targetedNode.NodeId)
+	nodeEntity, rsp, body, err := client.ControllerApi.GetNode(nil, targetedNode.NodeId)
 
-	if err := errorGetOperation(rsp, err); err != nil {
+	if err := errorGetOperation(rsp, body, err); err != nil {
 		return nil, err
 	}
 
@@ -97,9 +97,9 @@ func (n *nifiClient) RemoveClusterNode(nId int32) error {
 	}
 
 	// Request on Nifi Rest API to remove the node
-	_, rsp, err := client.ControllerApi.DeleteNode(nil, targetedNode.NodeId)
+	_, rsp, body, err := client.ControllerApi.DeleteNode(nil, targetedNode.NodeId)
 
-	return errorDeleteOperation(rsp, err)
+	return errorDeleteOperation(rsp, body, err)
 }
 
 func (n *nifiClient) RemoveClusterNodeFromClusterNodeId(nId string) error {
@@ -111,9 +111,9 @@ func (n *nifiClient) RemoveClusterNodeFromClusterNodeId(nId string) error {
 	}
 
 	// Request on Nifi Rest API to remove the node
-	_, rsp, err := client.ControllerApi.DeleteNode(nil, nId)
+	_, rsp, body, err := client.ControllerApi.DeleteNode(nil, nId)
 
-	return errorDeleteOperation(rsp, err)
+	return errorDeleteOperation(rsp, body, err)
 }
 
 func (n *nifiClient) setClusterNodeStatus(nId int32, status, expectedActionStatus v1alpha1.ActionStep) (*nigoapi.NodeEntity, error) {
@@ -144,8 +144,8 @@ func (n *nifiClient) setClusterNodeStatus(nId int32, status, expectedActionStatu
 	targetedNode.Status = string(status)
 
 	// Request on Nifi Rest API to update the node status
-	nodeEntity, rsp, err := client.ControllerApi.UpdateNode(nil, targetedNode.NodeId, nigoapi.NodeEntity{Node: targetedNode})
-	if err := errorUpdateOperation(rsp, err); err != nil {
+	nodeEntity, rsp, body, err := client.ControllerApi.UpdateNode(nil, targetedNode.NodeId, nigoapi.NodeEntity{Node: targetedNode})
+	if err := errorUpdateOperation(rsp, body, err); err != nil {
 		return nil, err
 	}
 

@@ -30,8 +30,8 @@ func (n *nifiClient) GetParameterContext(id string) (*nigoapi.ParameterContextEn
 	}
 
 	// Request on Nifi Rest API to get the parameter context informations
-	pcEntity, rsp, err := client.ParameterContextsApi.GetParameterContext(nil, id)
-	if err := errorGetOperation(rsp, err); err != nil {
+	pcEntity, rsp, body, err := client.ParameterContextsApi.GetParameterContext(nil, id)
+	if err := errorGetOperation(rsp, body, err); err != nil {
 		return nil, err
 	}
 
@@ -47,8 +47,8 @@ func (n *nifiClient) CreateParameterContext(entity nigoapi.ParameterContextEntit
 	}
 
 	// Request on Nifi Rest API to create the parameter context
-	pcEntity, rsp, err := client.ParameterContextsApi.CreateParameterContext(nil, entity)
-	if err := errorCreateOperation(rsp, err); err != nil {
+	pcEntity, rsp, body, err := client.ParameterContextsApi.CreateParameterContext(nil, entity)
+	if err := errorCreateOperation(rsp, body, err); err != nil {
 		return nil, err
 	}
 
@@ -64,12 +64,12 @@ func (n *nifiClient) RemoveParameterContext(entity nigoapi.ParameterContextEntit
 	}
 
 	// Request on Nifi Rest API to remove the parameter context
-	_, rsp, err := client.ParameterContextsApi.DeleteParameterContext(nil, entity.Id,
+	_, rsp, body, err := client.ParameterContextsApi.DeleteParameterContext(nil, entity.Id,
 		&nigoapi.ParameterContextsApiDeleteParameterContextOpts{
 			Version: optional.NewString(strconv.FormatInt(*entity.Revision.Version, 10)),
 		})
 
-	return errorDeleteOperation(rsp, err)
+	return errorDeleteOperation(rsp, body, err)
 }
 
 func (n *nifiClient) CreateParameterContextUpdateRequest(contextId string, entity nigoapi.ParameterContextEntity) (*nigoapi.ParameterContextUpdateRequestEntity, error) {
@@ -81,8 +81,8 @@ func (n *nifiClient) CreateParameterContextUpdateRequest(contextId string, entit
 	}
 
 	// Request on Nifi Rest API to create the parameter context update request
-	request, rsp, err := client.ParameterContextsApi.SubmitParameterContextUpdate(nil, contextId, entity)
-	if err := errorUpdateOperation(rsp, err); err != nil {
+	request, rsp, body, err := client.ParameterContextsApi.SubmitParameterContextUpdate(nil, contextId, entity)
+	if err := errorUpdateOperation(rsp, body, err); err != nil {
 		return nil, err
 	}
 
@@ -98,8 +98,8 @@ func (n *nifiClient) GetParameterContextUpdateRequest(contextId, id string) (*ni
 	}
 
 	// Request on Nifi Rest API to get the parameter context update request information
-	request, rsp, err := client.ParameterContextsApi.GetParameterContextUpdate(nil, contextId, id)
-	if err := errorGetOperation(rsp, err); err != nil {
+	request, rsp, body, err := client.ParameterContextsApi.GetParameterContextUpdate(nil, contextId, id)
+	if err := errorGetOperation(rsp, body, err); err != nil {
 		return nil, err
 	}
 

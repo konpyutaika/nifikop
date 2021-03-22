@@ -30,9 +30,9 @@ func (n *nifiClient) GetRegistryClient(id string) (*nigoapi.RegistryClientEntity
 	}
 
 	// Request on Nifi Rest API to get the registy client informations
-	regCliEntity, rsp, err := client.ControllerApi.GetRegistryClient(nil, id)
+	regCliEntity, rsp, body, err := client.ControllerApi.GetRegistryClient(nil, id)
 
-	if err := errorGetOperation(rsp, err); err != nil {
+	if err := errorGetOperation(rsp, body, err); err != nil {
 		return nil, err
 	}
 
@@ -48,8 +48,8 @@ func (n *nifiClient) CreateRegistryClient(entity nigoapi.RegistryClientEntity) (
 	}
 
 	// Request on Nifi Rest API to create the registry client
-	regCliEntity, rsp, err := client.ControllerApi.CreateRegistryClient(nil, entity)
-	if err := errorCreateOperation(rsp, err); err != nil {
+	regCliEntity, rsp, body, err := client.ControllerApi.CreateRegistryClient(nil, entity)
+	if err := errorCreateOperation(rsp, body, err); err != nil {
 		return nil, err
 	}
 
@@ -65,8 +65,8 @@ func (n *nifiClient) UpdateRegistryClient(entity nigoapi.RegistryClientEntity) (
 	}
 
 	// Request on Nifi Rest API to update the registry client
-	regCliEntity, rsp, err := client.ControllerApi.UpdateRegistryClient(nil, entity.Id, entity)
-	if err := errorUpdateOperation(rsp, err); err != nil {
+	regCliEntity, rsp, body, err := client.ControllerApi.UpdateRegistryClient(nil, entity.Id, entity)
+	if err := errorUpdateOperation(rsp, body, err); err != nil {
 		return nil, err
 	}
 
@@ -82,10 +82,10 @@ func (n *nifiClient) RemoveRegistryClient(entity nigoapi.RegistryClientEntity) e
 	}
 
 	// Request on Nifi Rest API to remove the registry client
-	_, rsp, err := client.ControllerApi.DeleteRegistryClient(nil, entity.Id,
+	_, rsp, body, err := client.ControllerApi.DeleteRegistryClient(nil, entity.Id,
 		&nigoapi.ControllerApiDeleteRegistryClientOpts{
 			Version: optional.NewString(strconv.FormatInt(*entity.Revision.Version, 10)),
 		})
 
-	return errorDeleteOperation(rsp, err)
+	return errorDeleteOperation(rsp, body, err)
 }

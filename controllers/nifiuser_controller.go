@@ -19,6 +19,7 @@ package controllers
 import (
 	"context"
 	"emperror.dev/errors"
+	"fmt"
 	usercli "github.com/Orange-OpenSource/nifikop/pkg/clientwrappers/user"
 	"github.com/Orange-OpenSource/nifikop/pkg/errorfactory"
 	"github.com/Orange-OpenSource/nifikop/pkg/k8sutil"
@@ -29,6 +30,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/tools/record"
 	"reflect"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -45,6 +47,7 @@ type NifiUserReconciler struct {
 	client.Client
 	Log    logr.Logger
 	Scheme *runtime.Scheme
+	Recorder record.EventRecorder
 }
 
 // +kubebuilder:rbac:groups=nifi.orange.com,resources=nifiusers,verbs=get;list;watch;create;update;patch;delete
@@ -91,6 +94,10 @@ func (r *NifiUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			}
 			return Reconciled()
 		}
+
+		r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceClusterError",
+			fmt.Sprintf("Failed to lookup reference cluster : %s in %s",
+				instance.Spec.ClusterRef.Name, clusterNamespace ))
 		return RequeueWithError(r.Log, "failed to lookup referenced cluster", err)
 	}
 
@@ -104,6 +111,8 @@ func (r *NifiUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 		pkiManager := pki.GetPKIManager(r.Client, cluster)
 
+		r.Recorder.Event(instance, corev1.EventTypeNormal, "ReconcilingCertificate",
+			fmt.Sprintf("Reconciling certificate for nifi user %s", instance.Name ))
 		// Reconcile no matter what to get a user certificate instance for ACL management
 		// TODO (tinyzimmer): This can go wrong if the user made a mistake in their secret path
 		// using the vault backend, then tried to delete and fix it. Should probably
@@ -138,6 +147,10 @@ func (r *NifiUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 				return RequeueWithError(r.Log, "failed to reconcile user secret", err)
 			}
 		}
+
+		r.Recorder.Event(instance, corev1.EventTypeNormal, "ReconciledCertificate",
+			fmt.Sprintf("Reconciled certificate for nifi user %s", instance.Name ))
+
 		// check if marked for deletion
 		if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {
 			r.Log.Info("Nifi user is marked for deletion, revoking certificates")
@@ -154,6 +167,9 @@ func (r *NifiUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return r.checkFinalizers(ctx, instance, cluster)
 	}
 
+	r.Recorder.Event(instance, corev1.EventTypeNormal, "Reconciling",
+		fmt.Sprintf("Reconciling user %s", instance.Name ))
+
 	// Check if the NiFi user already exist
 	exist, err := usercli.ExistUser(r.Client, instance, cluster)
 	if err != nil {
@@ -161,6 +177,9 @@ func (r *NifiUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	if !exist {
+		r.Recorder.Event(instance, corev1.EventTypeNormal, "Creating",
+			fmt.Sprintf("Creating user %s", instance.Name ))
+
 		var status *v1alpha1.NifiUserStatus
 
 		status, err = usercli.FindUserByIdentity(r.Client, instance, cluster)
@@ -180,9 +199,13 @@ func (r *NifiUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		if err := r.Client.Status().Update(ctx, instance); err != nil {
 			return RequeueWithError(r.Log, "failed to update NifiUser status", err)
 		}
+		r.Recorder.Event(instance, corev1.EventTypeNormal, "Created",
+			fmt.Sprintf("Created user %s", instance.Name ))
 	}
 
 	// Sync user resource with NiFi side component
+	r.Recorder.Event(instance, corev1.EventTypeNormal, "Synchronizing",
+		fmt.Sprintf("Synchronizing user %s", instance.Name ))
 	status, err := usercli.SyncUser(r.Client, instance, cluster)
 	if err != nil {
 		return RequeueWithError(r.Log, "failed to sync NifiUser", err)
@@ -192,6 +215,9 @@ func (r *NifiUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	if err := r.Client.Status().Update(ctx, instance); err != nil {
 		return RequeueWithError(r.Log, "failed to update NifiRegistryClient status", err)
 	}
+
+	r.Recorder.Event(instance, corev1.EventTypeNormal, "Synchronized",
+		fmt.Sprintf("Synchronized user %s", instance.Name ))
 
 	// ensure a NifiCluster label
 	if instance, err = r.ensureClusterLabel(ctx, cluster, instance); err != nil {
@@ -210,6 +236,9 @@ func (r *NifiUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	if instance, err = r.updateAndFetchLatest(ctx, instance); err != nil {
 		return RequeueWithError(r.Log, "failed to update NifiUser", err)
 	}
+
+	r.Recorder.Event(instance, corev1.EventTypeNormal, "Reconciled",
+		fmt.Sprintf("Reconciling user %s", instance.Name ))
 
 	r.Log.Info("Ensured user")
 
