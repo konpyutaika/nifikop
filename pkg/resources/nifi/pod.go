@@ -77,9 +77,11 @@ func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev
 		{
 			Name: nodeConfigMapVolumeMount,
 			VolumeSource: corev1.VolumeSource{
-				ConfigMap: &corev1.ConfigMapVolumeSource{
-					LocalObjectReference: corev1.LocalObjectReference{Name: fmt.Sprintf(templates.NodeConfigTemplate+"-%d", r.NifiCluster.Name, id)},
-					DefaultMode:          util.Int32Pointer(0644),
+				//ConfigMap: &corev1.ConfigMapVolumeSource{
+				Secret: &corev1.SecretVolumeSource{
+					//LocalObjectReference: corev1.LocalObjectReference{Name: fmt.Sprintf(templates.NodeConfigTemplate+"-%d", r.NifiCluster.Name, id)},
+					SecretName:  fmt.Sprintf(templates.NodeConfigTemplate+"-%d", r.NifiCluster.Name, id),
+					DefaultMode: util.Int32Pointer(0644),
 				},
 			},
 		},

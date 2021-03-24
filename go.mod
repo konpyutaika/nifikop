@@ -16,13 +16,10 @@ require (
 	github.com/onsi/gomega v1.10.2
 	github.com/pavel-v-chernykh/keystore-go v2.1.0+incompatible
 	github.com/stretchr/testify v1.6.1
-	golang.org/x/sys v0.0.0-20200625212154-ddb9806d33ae // indirect
 	golang.org/x/tools v0.0.0-20201014231627-1610a49f37af // indirect
-	google.golang.org/protobuf v1.25.0 // indirect
-	k8s.io/api v0.19.4
-	k8s.io/apiextensions-apiserver v0.19.4 // indirect
-	k8s.io/apimachinery v0.19.4
-	k8s.io/client-go v0.19.4
+	k8s.io/api v0.20.2
+	k8s.io/apimachinery v0.20.2
+	k8s.io/client-go v0.20.2
 	sigs.k8s.io/controller-runtime v0.7.2
 )
 

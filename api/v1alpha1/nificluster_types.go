@@ -148,13 +148,23 @@ type ReadOnlyConfig struct {
 	ZookeeperProperties ZookeeperProperties `json:"zookeeperProperties,omitempty"`
 	// BootstrapProperties configuration that will be applied to the node.
 	BootstrapProperties BootstrapProperties `json:"bootstrapProperties,omitempty"`
+	// Logback configuration that will be applied to the node.
+	LogbackConfig LogbackConfig `json:"logbackConfig,omitempty"`
+	// BootstrapNotificationServices configuration that will be applied to the node.
+	BootstrapNotificationServicesReplaceConfig BootstrapNotificationServicesConfig `json:"bootstrapNotificationServicesConfig,omitempty"`
 }
 
 // NifiProperties configuration that will be applied to the node.
 type NifiProperties struct {
+	// Additionnals nifi.properties configuration that will override the one produced based on template and
+	// configuration
+	OverrideConfigMap *ConfigmapReference `json:"overrideConfigMap,omitempty"`
 	// Additionnals nifi.properties configuration that will override the one produced based
-	// on template and configurations.
+	// on template, configurations and overrideConfigMap.
 	OverrideConfigs string `json:"overrideConfigs,omitempty"`
+	// Additionnals nifi.properties configuration that will override the one produced based
+	// on template, configurations, overrideConfigMap and overrideConfigs.
+	OverrideSecretConfig *SecretConfigReference `json:"overrideSecretConfig,omitempty"`
 	// A comma separated list of allowed HTTP Host header values to consider when NiFi
 	// is running securely and will be receiving requests to a different host[:port] than it is bound to.
 	// https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#web-properties
@@ -168,18 +178,45 @@ type NifiProperties struct {
 
 // ZookeeperProperties configuration that will be applied to the node.
 type ZookeeperProperties struct {
+	// Additionnals zookeeper.properties configuration that will override the one produced based on template and
+	// configuration
+	OverrideConfigMap *ConfigmapReference `json:"overrideConfigMap,omitempty"`
 	// Additionnals zookeeper.properties configuration that will override the one produced based
 	// on template and configurations.
 	OverrideConfigs string `json:"overrideConfigs,omitempty"`
+	// Additionnals zookeeper.properties configuration that will override the one produced based
+	// on template, configurations, overrideConfigMap and overrideConfigs.
+	OverrideSecretConfig *SecretConfigReference `json:"overrideSecretConfig,omitempty"`
 }
 
 // BootstrapProperties configuration that will be applied to the node.
 type BootstrapProperties struct {
 	// JVM memory settings
 	NifiJvmMemory string `json:"nifiJvmMemory,omitempty"`
+	// Additionnals bootstrap.properties configuration that will override the one produced based on template and
+	// configuration
+	OverrideConfigMap *ConfigmapReference `json:"overrideConfigMap,omitempty"`
 	// Additionnals bootstrap.properties configuration that will override the one produced based
 	// on template and configurations.
 	OverrideConfigs string `json:"overrideConfigs,omitempty"`
+	// Additionnals bootstrap.properties configuration that will override the one produced based
+	// on template, configurations, overrideConfigMap and overrideConfigs.
+	OverrideSecretConfig *SecretConfigReference `json:"overrideSecretConfig,omitempty"`
+}
+
+// Logback configuration that will be applied to the node.
+type LogbackConfig struct {
+	// logback.xml configuration that will replace the one produced based on template
+	ReplaceConfigMap *ConfigmapReference `json:"replaceConfigMap,omitempty"`
+	// logback.xml configuration that will replace the one produced based on template and overrideConfigMap
+	ReplaceSecretConfig *SecretConfigReference `json:"replaceSecretConfig,omitempty"`
+}
+
+type BootstrapNotificationServicesConfig struct {
+	// bootstrap_notifications_services.xml configuration that will replace the one produced based on template
+	ReplaceConfigMap *ConfigmapReference `json:"replaceConfigMap,omitempty"`
+	// bootstrap_notifications_services.xml configuration that will replace the one produced based on template and overrideConfigMap
+	ReplaceSecretConfig *SecretConfigReference `json:"replaceSecretConfig,omitempty"`
 }
 
 // NodeConfig defines the node configuration

@@ -51,7 +51,7 @@ type NifiClusterReconciler struct {
 	Log          logr.Logger
 	Scheme       *runtime.Scheme
 	Namespaces   []string
-	Recorder record.EventRecorder
+	Recorder     record.EventRecorder
 }
 
 // +kubebuilder:rbac:groups="",resources=persistentvolumeclaims,verbs=get;list;watch;create;update;patch;delete

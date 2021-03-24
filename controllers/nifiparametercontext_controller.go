@@ -44,8 +44,8 @@ var parameterContextFinalizer = "nifiparametercontexts.nifi.orange.com/finalizer
 // NifiParameterContextReconciler reconciles a NifiParameterContext object
 type NifiParameterContextReconciler struct {
 	client.Client
-	Log    logr.Logger
-	Scheme *runtime.Scheme
+	Log      logr.Logger
+	Scheme   *runtime.Scheme
 	Recorder record.EventRecorder
 }
 
@@ -114,7 +114,7 @@ func (r *NifiParameterContextReconciler) Reconcile(ctx context.Context, req ctrl
 
 		r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceClusterError",
 			fmt.Sprintf("Failed to lookup reference cluster : %s in %s",
-				instance.Spec.ClusterRef.Name, clusterNamespace ))
+				instance.Spec.ClusterRef.Name, clusterNamespace))
 
 		// the cluster does not exist - should have been caught pre-flight
 		return RequeueWithError(r.Log, "failed to lookup referenced cluster", err)
@@ -126,7 +126,7 @@ func (r *NifiParameterContextReconciler) Reconcile(ctx context.Context, req ctrl
 	}
 
 	r.Recorder.Event(instance, corev1.EventTypeNormal, "Reconciling",
-		fmt.Sprintf("Reconciling parameter context %s", instance.Name ))
+		fmt.Sprintf("Reconciling parameter context %s", instance.Name))
 
 	// Check if the NiFi registry client already exist
 	exist, err := parametercontext.ExistParameterContext(r.Client, instance, cluster)
@@ -137,7 +137,7 @@ func (r *NifiParameterContextReconciler) Reconcile(ctx context.Context, req ctrl
 	if !exist {
 		// Create NiFi parameter context
 		r.Recorder.Event(instance, corev1.EventTypeNormal, "Creating",
-			fmt.Sprintf("Creating parameter context %s", instance.Name ))
+			fmt.Sprintf("Creating parameter context %s", instance.Name))
 
 		status, err := parametercontext.CreateParameterContext(r.Client, instance, parameterSecrets, cluster)
 		if err != nil {
@@ -150,12 +150,12 @@ func (r *NifiParameterContextReconciler) Reconcile(ctx context.Context, req ctrl
 		}
 
 		r.Recorder.Event(instance, corev1.EventTypeNormal, "Created",
-			fmt.Sprintf("Created parameter context %s", instance.Name ))
+			fmt.Sprintf("Created parameter context %s", instance.Name))
 	}
 
 	// Sync ParameterContext resource with NiFi side component
 	r.Recorder.Event(instance, corev1.EventTypeNormal, "Synchronizing",
-		fmt.Sprintf("Synchronizing parameter context %s", instance.Name ))
+		fmt.Sprintf("Synchronizing parameter context %s", instance.Name))
 	status, err := parametercontext.SyncParameterContext(r.Client, instance, parameterSecrets, cluster)
 	if status != nil {
 		instance.Status = *status
@@ -169,13 +169,13 @@ func (r *NifiParameterContextReconciler) Reconcile(ctx context.Context, req ctrl
 			return RequeueAfter(time.Duration(5) * time.Second)
 		default:
 			r.Recorder.Event(instance, corev1.EventTypeNormal, "SynchronizingFailed",
-				fmt.Sprintf("Synchronizing parameter context %s failed", instance.Name ))
+				fmt.Sprintf("Synchronizing parameter context %s failed", instance.Name))
 			return RequeueWithError(r.Log, "failed to sync NifiParameterContext", err)
 		}
 	}
 
 	r.Recorder.Event(instance, corev1.EventTypeNormal, "Synchronized",
-		fmt.Sprintf("Synchronized parameter context %s", instance.Name ))
+		fmt.Sprintf("Synchronized parameter context %s", instance.Name))
 
 	// Ensure NifiCluster label
 	if instance, err = r.ensureClusterLabel(ctx, cluster, instance); err != nil {
@@ -194,7 +194,7 @@ func (r *NifiParameterContextReconciler) Reconcile(ctx context.Context, req ctrl
 	}
 
 	r.Recorder.Event(instance, corev1.EventTypeNormal, "Reconciled",
-		fmt.Sprintf("Reconciling parameter context %s", instance.Name ))
+		fmt.Sprintf("Reconciling parameter context %s", instance.Name))
 
 	r.Log.Info("Ensured Parameter Context")
 

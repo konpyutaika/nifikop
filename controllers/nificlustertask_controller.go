@@ -44,8 +44,8 @@ import (
 // NifiClusterTaskReconciler reconciles
 type NifiClusterTaskReconciler struct {
 	client.Client
-	Log    logr.Logger
-	Scheme *runtime.Scheme
+	Log      logr.Logger
+	Scheme   *runtime.Scheme
 	Recorder record.EventRecorder
 }
 
