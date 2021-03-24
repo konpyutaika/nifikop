@@ -35,7 +35,8 @@ import (
 // Reconcile reconciles K8S resources
 func Reconcile(log logr.Logger, client runtimeClient.Client, desired runtimeClient.Object, cr *v1alpha1.NifiCluster) error {
 	desiredType := reflect.TypeOf(desired)
-	var current = desired
+	current := desired.DeepCopyObject().(runtimeClient.Object)
+
 	var err error
 
 	switch desired.(type) {
@@ -98,9 +99,18 @@ func Reconcile(log logr.Logger, client runtimeClient.Client, desired runtimeClie
 						return errors.WrapIfWithDetails(err, "updating status for resource failed", "kind", desiredType)
 					}
 				}
+			case *corev1.Secret:
+				// Only update status when secret belongs to node
+				if id, ok := desired.(*corev1.Secret).Labels["nodeId"]; ok {
+					statusErr := UpdateNodeStatus(client, []string{id}, cr, v1alpha1.ConfigOutOfSync, log)
+					if statusErr != nil {
+						return errors.WrapIfWithDetails(err, "updating status for resource failed", "kind", desiredType)
+					}
+				}
 			}
-			log.Info("resource updated")
 		}
+
+		log.Info("resource updated")
 	}
 	return nil
 }

@@ -49,10 +49,46 @@ spec:
   # readOnlyConfig specifies the read-only type Nifi config cluster wide, all theses
   # will be merged with node specified readOnly configurations, so it can be overwritten per node.
   readOnlyConfig:
+    # Logback configuration that will be applied to the node
+    logbackConfig:
+      # logback.xml configuration that will replace the one produced based on template
+      replaceConfigMap:
+        # The key of the value,in data content, that we want use.
+        data: logback.xml
+        # Name of the configmap that we want to refer.
+        name: raw
+        # Namespace where is located the secret that we want to refer.
+        namespace: nifikop
+      # logback.xml configuration that will replace the one produced based on template and overrideConfigMap
+      replaceSecretConfig:
+        # The key of the value,in data content, that we want use.
+        data: logback.xml
+        # Name of the configmap that we want to refer.
+        name: raw
+        # Namespace where is located the secret that we want to refer.
+        namespace: nifikop
     # NifiProperties configuration that will be applied to the node.
     nifiProperties:
+      # Additionnals nifi.properties configuration that will override the one produced based on template and
+      # configuration
+      overrideConfigMap:
+        # The key of the value,in data content, that we want use.
+        data: nifi.properties
+        # Name of the configmap that we want to refer.
+        name: raw
+        # Namespace where is located the secret that we want to refer.
+        namespace: nifikop.
       # Additionnals nifi.properties configuration that will override the one produced based
-      # on template and configurations.
+      #	on template, configurations, overrideConfigMap and overrideConfigs.
+      overrideSecretConfig:
+        # The key of the value,in data content, that we want use.
+        data: nifi.properties
+        # Name of the configmap that we want to refer.
+        name: raw
+        # Namespace where is located the secret that we want to refer.
+        namespace: nifikop
+      # Additionnals nifi.properties configuration that will override the one produced based
+      #	on template, configurations and overrideConfigMap
       overrideConfigs: |
         nifi.ui.banner.text=NiFiKop by Orange
       # A comma separated list of allowed HTTP Host header values to consider when NiFi
@@ -66,6 +102,24 @@ spec:
     #      authorizer:
     # ZookeeperProperties configuration that will be applied to the node.
     zookeeperProperties:
+#      # Additionnals zookeeeper.properties configuration that will override the one produced based on template and
+#      # configuration
+#      overrideConfigMap:
+#        # The key of the value,in data content, that we want use.
+#        data: zookeeeper.properties
+#        # Name of the configmap that we want to refer.
+#        name: raw
+#        # Namespace where is located the secret that we want to refer.
+#        namespace: nifikop.
+#      # Additionnals zookeeeper.properties configuration that will override the one produced based
+#      #	on template, configurations, overrideConfigMap and overrideConfigs.
+#      overrideSecretConfig:
+#        # The key of the value,in data content, that we want use.
+#        data: zookeeeper.properties
+#        # Name of the configmap that we want to refer.
+#        name: raw
+#        # Namespace where is located the secret that we want to refer.
+#        namespace: nifikop
       # Additionnals zookeeper.properties configuration that will override the one produced based
       # on template and configurations.
       overrideConfigs: |
@@ -77,6 +131,24 @@ spec:
         autopurge.snapRetainCount=30
     # BootstrapProperties configuration that will be applied to the node.
     bootstrapProperties:
+#      # Additionnals bootstrap.properties configuration that will override the one produced based on template and
+#      # configuration
+#      overrideConfigMap:
+#        # The key of the value,in data content, that we want use.
+#        data: bootstrap.properties
+#        # Name of the configmap that we want to refer.
+#        name: raw
+#        # Namespace where is located the secret that we want to refer.
+#        namespace: nifikop.
+#      # Additionnals bootstrap.properties configuration that will override the one produced based
+#      #	on template, configurations, overrideConfigMap and overrideConfigs.
+#      overrideSecretConfig:
+#        # The key of the value,in data content, that we want use.
+#        data: bootstrap.properties
+#        # Name of the configmap that we want to refer.
+#        name: raw
+#        # Namespace where is located the secret that we want to refer.
+#        namespace: nifikop
       # JVM memory settings
       nifiJvmMemory: "512m"
       # Additionnals bootstrap.properties configuration that will override the one produced based

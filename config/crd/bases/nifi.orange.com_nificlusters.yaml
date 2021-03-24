@@ -1028,8 +1028,7 @@ spec:
                         can be used to provide different probe parameters at the beginning
                         of a Pod''s lifecycle, when it might take a long time to load
                         data or warm a cache, than during steady-state operation.
-                        This cannot be updated. This is a beta feature enabled by
-                        the StartupProbe feature flag. More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes'
+                        This cannot be updated. More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes'
                       properties:
                         exec:
                           description: One and only one of the following should be
@@ -1735,20 +1734,15 @@ spec:
                                 type: array
                               dataSource:
                                 description: 'This field can be used to specify either:
-                                  * An existing VolumeSnapshot object (snapshot.storage.k8s.io/VolumeSnapshot
-                                  - Beta) * An existing PVC (PersistentVolumeClaim)
-                                  * An existing custom resource/object that implements
-                                  data population (Alpha) In order to use VolumeSnapshot
-                                  object types, the appropriate feature gate must
-                                  be enabled (VolumeSnapshotDataSource or AnyVolumeDataSource)
-                                  If the provisioner or an external controller can
-                                  support the specified data source, it will create
-                                  a new volume based on the contents of the specified
-                                  data source. If the specified data source is not
-                                  supported, the volume will not be created and the
-                                  failure will be reported as an event. In the future,
-                                  we plan to support more data source types and the
-                                  behavior of the provisioner may change.'
+                                  * An existing VolumeSnapshot object (snapshot.storage.k8s.io/VolumeSnapshot)
+                                  * An existing PVC (PersistentVolumeClaim) * An existing
+                                  custom resource that implements data population
+                                  (Alpha) In order to use custom resource types that
+                                  implement data population, the AnyVolumeDataSource
+                                  feature gate must be enabled. If the provisioner
+                                  or an external controller can support the specified
+                                  data source, it will create a new volume based on
+                                  the contents of the specified data source.'
                                 properties:
                                   apiGroup:
                                     description: APIGroup is the group for the resource
@@ -2256,21 +2250,15 @@ spec:
                                   dataSource:
                                     description: 'This field can be used to specify
                                       either: * An existing VolumeSnapshot object
-                                      (snapshot.storage.k8s.io/VolumeSnapshot - Beta)
-                                      * An existing PVC (PersistentVolumeClaim) *
-                                      An existing custom resource/object that implements
-                                      data population (Alpha) In order to use VolumeSnapshot
-                                      object types, the appropriate feature gate must
-                                      be enabled (VolumeSnapshotDataSource or AnyVolumeDataSource)
-                                      If the provisioner or an external controller
-                                      can support the specified data source, it will
-                                      create a new volume based on the contents of
-                                      the specified data source. If the specified
-                                      data source is not supported, the volume will
-                                      not be created and the failure will be reported
-                                      as an event. In the future, we plan to support
-                                      more data source types and the behavior of the
-                                      provisioner may change.'
+                                      (snapshot.storage.k8s.io/VolumeSnapshot) * An
+                                      existing PVC (PersistentVolumeClaim) * An existing
+                                      custom resource that implements data population
+                                      (Alpha) In order to use custom resource types
+                                      that implement data population, the AnyVolumeDataSource
+                                      feature gate must be enabled. If the provisioner
+                                      or an external controller can support the specified
+                                      data source, it will create a new volume based
+                                      on the contents of the specified data source.'
                                     properties:
                                       apiGroup:
                                         description: APIGroup is the group for the
@@ -2448,6 +2436,40 @@ spec:
                         which has type read-only these config changes will trigger
                         rolling upgrade
                       properties:
+                        bootstrapNotificationServicesConfig:
+                          description: BootstrapNotificationServices configuration
+                            that will be applied to the node.
+                          properties:
+                            replaceConfigMap:
+                              description: bootstrap_notifications_services.xml configuration
+                                that will replace the one produced based on template
+                              properties:
+                                data:
+                                  type: string
+                                name:
+                                  type: string
+                                namespace:
+                                  type: string
+                              required:
+                              - data
+                              - name
+                              type: object
+                            replaceSecretConfig:
+                              description: bootstrap_notifications_services.xml configuration
+                                that will replace the one produced based on template
+                                and overrideConfigMap
+                              properties:
+                                data:
+                                  type: string
+                                name:
+                                  type: string
+                                namespace:
+                                  type: string
+                              required:
+                              - data
+                              - name
+                              type: object
+                          type: object
                         bootstrapProperties:
                           description: BootstrapProperties configuration that will
                             be applied to the node.
@@ -2455,11 +2477,74 @@ spec:
                             nifiJvmMemory:
                               description: JVM memory settings
                               type: string
+                            overrideConfigMap:
+                              description: Additionnals bootstrap.properties configuration
+                                that will override the one produced based on template
+                                and configuration
+                              properties:
+                                data:
+                                  type: string
+                                name:
+                                  type: string
+                                namespace:
+                                  type: string
+                              required:
+                              - data
+                              - name
+                              type: object
                             overrideConfigs:
                               description: Additionnals bootstrap.properties configuration
                                 that will override the one produced based on template
                                 and configurations.
                               type: string
+                            overrideSecretConfig:
+                              description: Additionnals bootstrap.properties configuration
+                                that will override the one produced based on template,
+                                configurations, overrideConfigMap and overrideConfigs.
+                              properties:
+                                data:
+                                  type: string
+                                name:
+                                  type: string
+                                namespace:
+                                  type: string
+                              required:
+                              - data
+                              - name
+                              type: object
+                          type: object
+                        logbackConfig:
+                          description: Logback configuration that will be applied
+                            to the node.
+                          properties:
+                            replaceConfigMap:
+                              description: logback.xml configuration that will replace
+                                the one produced based on template
+                              properties:
+                                data:
+                                  type: string
+                                name:
+                                  type: string
+                                namespace:
+                                  type: string
+                              required:
+                              - data
+                              - name
+                              type: object
+                            replaceSecretConfig:
+                              description: logback.xml configuration that will replace
+                                the one produced based on template and overrideConfigMap
+                              properties:
+                                data:
+                                  type: string
+                                name:
+                                  type: string
+                                namespace:
+                                  type: string
+                              required:
+                              - data
+                              - name
+                              type: object
                           type: object
                         nifiProperties:
                           description: NifiProperties configuration that will be applied
@@ -2472,11 +2557,41 @@ spec:
                             needClientAuth:
                               description: Nifi security client auth
                               type: boolean
-                            overrideConfigs:
+                            overrideConfigMap:
                               description: Additionnals nifi.properties configuration
                                 that will override the one produced based on template
-                                and configurations.
+                                and configuration
+                              properties:
+                                data:
+                                  type: string
+                                name:
+                                  type: string
+                                namespace:
+                                  type: string
+                              required:
+                              - data
+                              - name
+                              type: object
+                            overrideConfigs:
+                              description: Additionnals nifi.properties configuration
+                                that will override the one produced based on template,
+                                configurations and overrideConfigMap.
                               type: string
+                            overrideSecretConfig:
+                              description: Additionnals nifi.properties configuration
+                                that will override the one produced based on template,
+                                configurations, overrideConfigMap and overrideConfigs.
+                              properties:
+                                data:
+                                  type: string
+                                name:
+                                  type: string
+                                namespace:
+                                  type: string
+                              required:
+                              - data
+                              - name
+                              type: object
                             webProxyHosts:
                               description: A comma separated list of allowed HTTP
                                 Host header values to consider when NiFi is running
@@ -2490,11 +2605,41 @@ spec:
                           description: ZookeeperProperties configuration that will
                             be applied to the node.
                           properties:
+                            overrideConfigMap:
+                              description: Additionnals zookeeper.properties configuration
+                                that will override the one produced based on template
+                                and configuration
+                              properties:
+                                data:
+                                  type: string
+                                name:
+                                  type: string
+                                namespace:
+                                  type: string
+                              required:
+                              - data
+                              - name
+                              type: object
                             overrideConfigs:
                               description: Additionnals zookeeper.properties configuration
                                 that will override the one produced based on template
                                 and configurations.
                               type: string
+                            overrideSecretConfig:
+                              description: Additionnals zookeeper.properties configuration
+                                that will override the one produced based on template,
+                                configurations, overrideConfigMap and overrideConfigs.
+                              properties:
+                                data:
+                                  type: string
+                                name:
+                                  type: string
+                                namespace:
+                                  type: string
+                              required:
+                              - data
+                              - name
+                              type: object
                           type: object
                       type: object
                   required:
@@ -2527,6 +2672,40 @@ spec:
                   cluster wide, all theses will be merged with node specified readOnly
                   configurations, so it can be overwritten per node.
                 properties:
+                  bootstrapNotificationServicesConfig:
+                    description: BootstrapNotificationServices configuration that
+                      will be applied to the node.
+                    properties:
+                      replaceConfigMap:
+                        description: bootstrap_notifications_services.xml configuration
+                          that will replace the one produced based on template
+                        properties:
+                          data:
+                            type: string
+                          name:
+                            type: string
+                          namespace:
+                            type: string
+                        required:
+                        - data
+                        - name
+                        type: object
+                      replaceSecretConfig:
+                        description: bootstrap_notifications_services.xml configuration
+                          that will replace the one produced based on template and
+                          overrideConfigMap
+                        properties:
+                          data:
+                            type: string
+                          name:
+                            type: string
+                          namespace:
+                            type: string
+                        required:
+                        - data
+                        - name
+                        type: object
+                    type: object
                   bootstrapProperties:
                     description: BootstrapProperties configuration that will be applied
                       to the node.
@@ -2534,11 +2713,74 @@ spec:
                       nifiJvmMemory:
                         description: JVM memory settings
                         type: string
+                      overrideConfigMap:
+                        description: Additionnals bootstrap.properties configuration
+                          that will override the one produced based on template and
+                          configuration
+                        properties:
+                          data:
+                            type: string
+                          name:
+                            type: string
+                          namespace:
+                            type: string
+                        required:
+                        - data
+                        - name
+                        type: object
                       overrideConfigs:
                         description: Additionnals bootstrap.properties configuration
                           that will override the one produced based on template and
                           configurations.
                         type: string
+                      overrideSecretConfig:
+                        description: Additionnals bootstrap.properties configuration
+                          that will override the one produced based on template, configurations,
+                          overrideConfigMap and overrideConfigs.
+                        properties:
+                          data:
+                            type: string
+                          name:
+                            type: string
+                          namespace:
+                            type: string
+                        required:
+                        - data
+                        - name
+                        type: object
+                    type: object
+                  logbackConfig:
+                    description: Logback configuration that will be applied to the
+                      node.
+                    properties:
+                      replaceConfigMap:
+                        description: logback.xml configuration that will replace the
+                          one produced based on template
+                        properties:
+                          data:
+                            type: string
+                          name:
+                            type: string
+                          namespace:
+                            type: string
+                        required:
+                        - data
+                        - name
+                        type: object
+                      replaceSecretConfig:
+                        description: logback.xml configuration that will replace the
+                          one produced based on template and overrideConfigMap
+                        properties:
+                          data:
+                            type: string
+                          name:
+                            type: string
+                          namespace:
+                            type: string
+                        required:
+                        - data
+                        - name
+                        type: object
                     type: object
                   nifiProperties:
                     description: NifiProperties configuration that will be applied
@@ -2551,10 +2793,40 @@ spec:
                       needClientAuth:
                         description: Nifi security client auth
                         type: boolean
+                      overrideConfigMap:
+                        description: Additionnals nifi.properties configuration that
+                          will override the one produced based on template and configuration
+                        properties:
+                          data:
+                            type: string
+                          name:
+                            type: string
+                          namespace:
+                            type: string
+                        required:
+                        - data
+                        - name
+                        type: object
                       overrideConfigs:
                         description: Additionnals nifi.properties configuration that
-                          will override the one produced based on template and configurations.
+                          will override the one produced based on template, configurations
+                          and overrideConfigMap.
                         type: string
+                      overrideSecretConfig:
+                        description: Additionnals nifi.properties configuration that
+                          will override the one produced based on template, configurations,
+                          overrideConfigMap and overrideConfigs.
+                        properties:
+                          data:
+                            type: string
+                          name:
+                            type: string
+                          namespace:
+                            type: string
+                        required:
+                        - data
+                        - name
+                        type: object
                       webProxyHosts:
                         description: A comma separated list of allowed HTTP Host header
                           values to consider when NiFi is running securely and will
@@ -2568,11 +2840,41 @@ spec:
                     description: ZookeeperProperties configuration that will be applied
                       to the node.
                     properties:
+                      overrideConfigMap:
+                        description: Additionnals zookeeper.properties configuration
+                          that will override the one produced based on template and
+                          configuration
+                        properties:
+                          data:
+                            type: string
+                          name:
+                            type: string
+                          namespace:
+                            type: string
+                        required:
+                        - data
+                        - name
+                        type: object
                       overrideConfigs:
                         description: Additionnals zookeeper.properties configuration
                           that will override the one produced based on template and
                           configurations.
                         type: string
+                      overrideSecretConfig:
+                        description: Additionnals zookeeper.properties configuration
+                          that will override the one produced based on template, configurations,
+                          overrideConfigMap and overrideConfigs.
+                        properties:
+                          data:
+                            type: string
+                          name:
+                            type: string
+                          namespace:
+                            type: string
+                        required:
+                        - data
+                        - name
+                        type: object
                     type: object
                 type: object
               service:
@@ -3453,8 +3755,7 @@ spec:
                         can be used to provide different probe parameters at the beginning
                         of a Pod''s lifecycle, when it might take a long time to load
                         data or warm a cache, than during steady-state operation.
-                        This cannot be updated. This is a beta feature enabled by
-                        the StartupProbe feature flag. More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes'
+                        This cannot be updated. More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes'
                       properties:
                         exec:
                           description: One and only one of the following should be

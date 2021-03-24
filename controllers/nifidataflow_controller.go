@@ -45,8 +45,8 @@ var dataflowFinalizer = "nifidataflows.nifi.orange.com/finalizer"
 // NifiDataflowReconciler reconciles a NifiDataflow object
 type NifiDataflowReconciler struct {
 	client.Client
-	Log    logr.Logger
-	Scheme *runtime.Scheme
+	Log      logr.Logger
+	Scheme   *runtime.Scheme
 	Recorder record.EventRecorder
 }
 
@@ -134,7 +134,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 
 			r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceParameterContextError",
 				fmt.Sprintf("Failed to lookup reference parameter-context : %s in %s",
-					instance.Spec.ClusterRef.Name, parameterContextNamespace ))
+					instance.Spec.ClusterRef.Name, parameterContextNamespace))
 
 			// the cluster does not exist - should have been caught pre-flight
 			return RequeueWithError(r.Log, "failed to lookup referenced parameter-contest", err)
@@ -152,7 +152,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 
 		r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceClusterError",
 			fmt.Sprintf("Failed to lookup reference cluster : %s in %s",
-				instance.Spec.ClusterRef.Name, clusterNamespace ))
+				instance.Spec.ClusterRef.Name, clusterNamespace))
 
 		return RequeueWithError(
 			r.Log,

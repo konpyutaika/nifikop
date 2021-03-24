@@ -127,16 +127,16 @@ func main() {
 		Log:          ctrl.Log.WithName("controllers").WithName("NifiCluster"),
 		Scheme:       mgr.GetScheme(),
 		Namespaces:   namespaceList,
-		Recorder: mgr.GetEventRecorderFor("nifi-cluster"),
+		Recorder:     mgr.GetEventRecorderFor("nifi-cluster"),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "NifiCluster")
 		os.Exit(1)
 	}
 
 	if err = (&controllers.NifiClusterTaskReconciler{
-		Client: mgr.GetClient(),
-		Log:    ctrl.Log.WithName("controllers").WithName("NifiClusterTask"),
-		Scheme: mgr.GetScheme(),
+		Client:   mgr.GetClient(),
+		Log:      ctrl.Log.WithName("controllers").WithName("NifiClusterTask"),
+		Scheme:   mgr.GetScheme(),
 		Recorder: mgr.GetEventRecorderFor("nifi-cluster-task"),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "NifiClusterTask")
@@ -144,9 +144,9 @@ func main() {
 	}
 
 	if err = (&controllers.NifiUserReconciler{
-		Client: mgr.GetClient(),
-		Log:    ctrl.Log.WithName("controllers").WithName("NifiUser"),
-		Scheme: mgr.GetScheme(),
+		Client:   mgr.GetClient(),
+		Log:      ctrl.Log.WithName("controllers").WithName("NifiUser"),
+		Scheme:   mgr.GetScheme(),
 		Recorder: mgr.GetEventRecorderFor("nifi-user"),
 	}).SetupWithManager(mgr, certManagerEnabled); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "NifiUser")
@@ -154,9 +154,9 @@ func main() {
 	}
 
 	if err = (&controllers.NifiUserGroupReconciler{
-		Client: mgr.GetClient(),
-		Log:    ctrl.Log.WithName("controllers").WithName("NifiUserGroup"),
-		Scheme: mgr.GetScheme(),
+		Client:   mgr.GetClient(),
+		Log:      ctrl.Log.WithName("controllers").WithName("NifiUserGroup"),
+		Scheme:   mgr.GetScheme(),
 		Recorder: mgr.GetEventRecorderFor("nifi-user-group"),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "NifiUserGroup")
@@ -164,9 +164,9 @@ func main() {
 	}
 
 	if err = (&controllers.NifiDataflowReconciler{
-		Client: mgr.GetClient(),
-		Log:    ctrl.Log.WithName("controllers").WithName("NifiDataflow"),
-		Scheme: mgr.GetScheme(),
+		Client:   mgr.GetClient(),
+		Log:      ctrl.Log.WithName("controllers").WithName("NifiDataflow"),
+		Scheme:   mgr.GetScheme(),
 		Recorder: mgr.GetEventRecorderFor("nifi-dataflow"),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "NifiDataflow")
@@ -174,9 +174,9 @@ func main() {
 	}
 
 	if err = (&controllers.NifiParameterContextReconciler{
-		Client: mgr.GetClient(),
-		Log:    ctrl.Log.WithName("controllers").WithName("NifiParameterContext"),
-		Scheme: mgr.GetScheme(),
+		Client:   mgr.GetClient(),
+		Log:      ctrl.Log.WithName("controllers").WithName("NifiParameterContext"),
+		Scheme:   mgr.GetScheme(),
 		Recorder: mgr.GetEventRecorderFor("nifi-parameter-context"),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "NifiParameterContext")
@@ -184,9 +184,9 @@ func main() {
 	}
 
 	if err = (&controllers.NifiRegistryClientReconciler{
-		Client: mgr.GetClient(),
-		Log:    ctrl.Log.WithName("controllers").WithName("NifiRegistryClient"),
-		Scheme: mgr.GetScheme(),
+		Client:   mgr.GetClient(),
+		Log:      ctrl.Log.WithName("controllers").WithName("NifiRegistryClient"),
+		Scheme:   mgr.GetScheme(),
 		Recorder: mgr.GetEventRecorderFor("nifi-registry-client"),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "NifiRegistryClient")
