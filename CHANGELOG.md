@@ -2,27 +2,35 @@
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed Bugs
+
+## v0.6.0
+
+### Added
+
 - [PR #86](https://github.com/Orange-OpenSource/nifikop/pull/86) - **[Operator/Debugging]** Add events and improve HTTP calls error message
 - [PR #87](https://github.com/Orange-OpenSource/nifikop/pull/87) - **[Operator/Configuration]** Allow to override the `.properties` files using a config map and/or a secret.
 - [PR #87](https://github.com/Orange-OpenSource/nifikop/pull/87) - **[Operator/Configuration]** Allow to replace the `logback.xml` and `bootstrap_notification_service.xml` files using a config map or a secret.
 - [PR #88](https://github.com/Orange-OpenSource/nifikop/pull/88) - **[Operator/Monitoring]** By choosing `prometheus` as type for an internal service in a NiFiCluster resource, the operator automatically creates the associated `reporting task`.
-
 
 ### Changed
 
 - [PR #85](https://github.com/Orange-OpenSource/nifikop/pull/85) - **[Operator/Dependencies]** Upgrade cert-manager & operator sdk dependencies
 - [PR #87](https://github.com/Orange-OpenSource/nifikop/pull/87) - **[Operator/Configuration]** The node configuration files are no more stored in a configmap, but in a secret.
 
-
 ### Deprecated
 
 - [PR #85](https://github.com/Orange-OpenSource/nifikop/pull/85) - **[Operator/Finalizers]** The finalizer name format suggested by [Kubernetes docs](https://kubernetes.io/docs/tasks/extend-kubernetes/custom-resources/custom-resource-definitions/#finalizers) is <qualified-group>/<finalizer-name>, while the format previously documented by Operator SDK docs was <finalizer-name>.<qualified-group>. If your operator uses any finalizers with names matching the incorrect format, change them to match the official format. For example, finalizer.nifiusergroups.nifi.orange.com should be changed to nifiusergroups.nifi.orange.com/finalizer.
-- [PR #87](https://github.com/Orange-OpenSource/nifikop/pull/87) - **[Operator/Configuration]** Since the v0.5.0 the operator doesn't catch certain resource changes, due to bad copy of resource, this issue avoid rolling upgrage trigger when some configuration changes.
-
-
-### Removed
 
 ### Fixed Bugs
+
+- [PR #87](https://github.com/Orange-OpenSource/nifikop/pull/87) - **[Operator/Configuration]** Since the v0.5.0 the operator doesn't catch certain resource changes, due to bad copy of resource, this issue avoid rolling upgrage trigger when some configuration changes.
 
 ## v0.5.3
 

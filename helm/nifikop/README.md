@@ -23,7 +23,7 @@ The following tables lists the configurable parameters of the NiFi Operator Helm
 | Parameter                        | Description                                      | Default                                   |
 |----------------------------------|--------------------------------------------------|-------------------------------------------|
 | `image.repository`               | Image                                            | `orangeopensource/nifikop`                |
-| `image.tag`                      | Image tag                                        | `v0.5.3-release`                          |
+| `image.tag`                      | Image tag                                        | `v0.6.0-release`                          |
 | `image.pullPolicy`               | Image pull policy                                | `Always`                                  |
 | `image.imagePullSecrets.enabled` | Enable tue use of secret for docker image        | `false`                                   |
 | `image.imagePullSecrets.name`    | Name of the secret to connect to docker registry | -                                         |
