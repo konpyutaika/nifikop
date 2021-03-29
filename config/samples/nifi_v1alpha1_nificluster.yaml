@@ -311,6 +311,9 @@ spec:
         containerPort: 9020
       - name: "rsyslog"
         containerPort: 10001
+      - type: "prometheus"
+        name: "prometheus"
+        containerPort: 9090
       # sslSecrets contains information about ssl related kubernetes secrets if one of the
       # listener setting type set to ssl these fields must be populated to
       #    sslSecrets:

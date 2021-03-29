@@ -109,6 +109,13 @@ type NifiClient interface {
 	UpdateAccessPolicy(entity nigoapi.AccessPolicyEntity) (*nigoapi.AccessPolicyEntity, error)
 	RemoveAccessPolicy(entity nigoapi.AccessPolicyEntity) error
 
+	// Reportingtask func
+	GetReportingTask(id string) (*nigoapi.ReportingTaskEntity, error)
+	CreateReportingTask(entity nigoapi.ReportingTaskEntity) (*nigoapi.ReportingTaskEntity, error)
+	UpdateReportingTask(entity nigoapi.ReportingTaskEntity) (*nigoapi.ReportingTaskEntity, error)
+	UpdateRunStatusReportingTask(id string, entity nigoapi.ReportingTaskRunStatusEntity) (*nigoapi.ReportingTaskEntity, error)
+	RemoveReportingTask(entity nigoapi.ReportingTaskEntity) error
+
 	Build() error
 }
 

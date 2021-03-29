@@ -25,11 +25,11 @@ import (
 )
 
 const (
-	ClusterListenerType = "cluster"
-	HttpListenerType    = "http"
-	HttpsListenerType   = "https"
-	S2sListenerType     = "s2s"
-	MetricsPort         = 9020
+	ClusterListenerType    = "cluster"
+	HttpListenerType       = "http"
+	HttpsListenerType      = "https"
+	S2sListenerType        = "s2s"
+	prometheusListenerType = "prometheus"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
@@ -320,7 +320,7 @@ type SSLSecrets struct {
 
 // InternalListenerConfig defines the internal listener config for Nifi
 type InternalListenerConfig struct {
-	// +kubebuilder:validation:Enum={"cluster", "http", "https", "s2s"}
+	// +kubebuilder:validation:Enum={"cluster", "http", "https", "s2s", "prometheus"}
 	// (Optional field) Type allow to specify if we are in a specific nifi listener
 	// it's allowing to define some required information such as Cluster Port,
 	// Http Port, Https Port or S2S port
@@ -443,6 +443,15 @@ type NifiClusterStatus struct {
 	RollingUpgrade RollingUpgradeStatus `json:"rollingUpgradeStatus,omitempty"`
 	// RootProcessGroupId contains the uuid of the root process group for this cluster
 	RootProcessGroupId string `json:"rootProcessGroupId,omitempty"`
+	// PrometheusReportingTask contains the status of the prometheus reporting task managed by the operator
+	PrometheusReportingTask PrometheusReportingTaskStatus `json:"prometheusReportingTask,omitempty"`
+}
+
+type PrometheusReportingTaskStatus struct {
+	// The nifi reporting task's id
+	Id string `json:"id"`
+	// The last nifi reporting task revision version catched
+	Version int64 `json:"version"`
 }
 
 // +kubebuilder:object:root=true
@@ -619,4 +628,17 @@ func (nProperties NifiProperties) GetAuthorizer() string {
 		return nProperties.Authorizer
 	}
 	return "managed-authorizer"
+}
+
+//
+func (nSpec *NifiClusterSpec) GetMetricPort() *int {
+
+	for _, iListener := range nSpec.ListenersConfig.InternalListeners {
+		if iListener.Type == prometheusListenerType {
+			val := int(iListener.ContainerPort)
+			return &val
+		}
+	}
+
+	return nil
 }

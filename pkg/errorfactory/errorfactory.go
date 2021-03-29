@@ -85,6 +85,12 @@ type NifiFlowSyncing struct{ error }
 // NifiFlowScheduling states that the flow is still scheduling
 type NifiFlowScheduling struct{ error }
 
+// NifiReportingTasksValidating states that the reporting task is still validating
+type NifiReportingTasksValidating struct{ error }
+
+// NifiReportingTasksInvalid states that the reporting task is invalid
+type NifiReportingTasksInvalid struct{ error }
+
 // New creates a new error factory error
 func New(t interface{}, err error, msg string, wrapArgs ...interface{}) error {
 	wrapped := errors.WrapIfWithDetails(err, msg, wrapArgs...)
