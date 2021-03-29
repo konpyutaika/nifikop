@@ -106,6 +106,15 @@ func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev
 		return initContainers[i].Name < initContainers[j].Name
 	})
 
+	anntotationsToMerge := []map[string]string{
+		nodeConfig.GetNodeAnnotations(),
+		r.NifiCluster.Spec.Pod.Annotations,
+	}
+
+	if r.NifiCluster.Spec.GetMetricPort() != nil {
+		anntotationsToMerge = append(anntotationsToMerge, util.MonitoringAnnotations(*r.NifiCluster.Spec.GetMetricPort()))
+	}
+
 	// curl -kv --cert /var/run/secrets/java.io/keystores/client/tls.crt --key /var/run/secrets/java.io/keystores/client/tls.key https://nifi.trycatchlearn.fr:8433/nifi
 	// curl -kv --cert /var/run/secrets/java.io/keystores/client/tls.crt --key /var/run/secrets/java.io/keystores/client/tls.key https://securenc-headless.external-dns-test.gcp.trycatchlearn.fr:8443/nifi-api/controller/cluster
 	// keytool -import -noprompt -keystore /home/nifi/truststore.jks -file /var/run/secrets/java.io/keystores/server/ca.crt -storepass $(cat /var/run/secrets/java.io/keystores/server/password) -alias test1
@@ -117,11 +126,7 @@ func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev
 				LabelsForNifi(r.NifiCluster.Name),
 				map[string]string{"nodeId": fmt.Sprintf("%d", id)},
 			),
-			util.MergeAnnotations(
-				nodeConfig.GetNodeAnnotations(),
-				util.MonitoringAnnotations(v1alpha1.MetricsPort),
-				r.NifiCluster.Spec.Pod.Annotations,
-			), r.NifiCluster,
+			util.MergeAnnotations(anntotationsToMerge...), r.NifiCluster,
 		),
 		Spec: corev1.PodSpec{
 			SecurityContext: &corev1.PodSecurityContext{

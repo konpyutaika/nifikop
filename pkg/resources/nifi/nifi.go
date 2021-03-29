@@ -17,6 +17,7 @@ package nifi
 import (
 	"context"
 	"fmt"
+	"github.com/Orange-OpenSource/nifikop/pkg/clientwrappers/reportingtask"
 	"reflect"
 	"strings"
 
@@ -232,6 +233,12 @@ func (r *Reconciler) Reconcile(log logr.Logger) error {
 	if nificlient.UseSSL(r.NifiCluster) {
 		if err := r.reconcileNifiUsersAndGroups(log); err != nil {
 			return errors.WrapIf(err, "failed to reconcile resource")
+		}
+	}
+
+	if r.NifiCluster.Spec.GetMetricPort() != nil {
+		if err := r.reconcilePrometheusReportingTask(log); err != nil {
+			return errors.WrapIf(err, "failed to reconcile ressource")
 		}
 	}
 
@@ -802,5 +809,41 @@ func (r *Reconciler) reconcileNifiUsersAndGroups(log logr.Logger) error {
 		}
 	}
 
+	return nil
+}
+
+func (r *Reconciler) reconcilePrometheusReportingTask(log logr.Logger) error {
+
+	var err error
+
+	// Check if the NiFi reporting task already exist
+	exist, err := reportingtask.ExistReportingTaks(r.Client, r.NifiCluster)
+	if err != nil {
+		return errors.WrapIfWithDetails(err, "failure checking for existing prometheus reporting task")
+	}
+
+	if !exist {
+		// Create reporting task
+		status, err := reportingtask.CreateReportingTask(r.Client, r.NifiCluster)
+		if err != nil {
+			return errors.WrapIfWithDetails(err, "failure creating prometheus reporting task")
+		}
+
+		r.NifiCluster.Status.PrometheusReportingTask = *status
+		if err := r.Client.Status().Update(context.TODO(), r.NifiCluster); err != nil {
+			return errors.WrapIfWithDetails(err, "failed to update NifiRegistryClient status")
+		}
+	}
+
+	// Sync prometheus reporting task resource with NiFi side component
+	status, err := reportingtask.SyncReportingTask(r.Client, r.NifiCluster)
+	if err != nil {
+		return errors.WrapIfWithDetails(err, "failed to sync NifiRegistryClient")
+	}
+
+	r.NifiCluster.Status.PrometheusReportingTask = *status
+	if err := r.Client.Status().Update(context.TODO(), r.NifiCluster); err != nil {
+		return errors.WrapIfWithDetails(err, "failed to update NifiRegistryClient status")
+	}
 	return nil
 }
