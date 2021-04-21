@@ -41,7 +41,11 @@ spec:
         - name: {{ .Values.image.imagePullSecrets.name }}
       {{- end }}
       {{- if .Values.rbacEnable }}
+      {{- if .Values.serviceAccount }}
+      serviceAccountName: {{ .Values.serviceAccount.name }}      
+      {{- else }}
       serviceAccountName: {{ template "nifikop.name" . }}
+      {{- end }}
       {{- end }}
       {{- if .Values.vaultSecret }}
       volumes:
@@ -49,8 +53,15 @@ spec:
           secret:
             secretName: {{ .Values.vaultSecret }}
       {{- end }}
+      {{- if .Values.podSecurityContext }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- else }}
       securityContext:
         runAsUser: 1000
+      {{- end }}
       containers:
         - command:
             - /manager
