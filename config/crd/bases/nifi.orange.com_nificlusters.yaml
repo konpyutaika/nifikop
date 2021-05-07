@@ -2583,6 +2583,12 @@ spec:
                               - name
                               type: object
                           type: object
+                        maximumTimerDrivenThreadCount:
+                          description: MaximumTimerDrivenThreadCount define the maximum
+                            number of threads for timer driven processors available
+                            to the system.
+                          format: int32
+                          type: integer
                         nifiProperties:
                           description: NifiProperties configuration that will be applied
                             to the node.
@@ -2873,6 +2879,12 @@ spec:
                         - name
                         type: object
                     type: object
+                  maximumTimerDrivenThreadCount:
+                    description: MaximumTimerDrivenThreadCount define the maximum
+                      number of threads for timer driven processors available to the
+                      system.
+                    format: int32
+                    type: integer
                   nifiProperties:
                     description: NifiProperties configuration that will be applied
                       to the node.

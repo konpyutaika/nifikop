@@ -17,13 +17,16 @@ package nifi
 import (
 	"context"
 	"fmt"
-	"github.com/Orange-OpenSource/nifikop/pkg/clientwrappers/reportingtask"
+
 	"reflect"
 	"strings"
 
 	"emperror.dev/errors"
 	"github.com/Orange-OpenSource/nifikop/api/v1alpha1"
+	"github.com/Orange-OpenSource/nifikop/pkg/clientwrappers/controllersettings"
 	"github.com/Orange-OpenSource/nifikop/pkg/clientwrappers/dataflow"
+	"github.com/Orange-OpenSource/nifikop/pkg/clientwrappers/reportingtask"
+
 	"github.com/Orange-OpenSource/nifikop/pkg/clientwrappers/scale"
 	"github.com/Orange-OpenSource/nifikop/pkg/errorfactory"
 	"github.com/Orange-OpenSource/nifikop/pkg/k8sutil"
@@ -233,6 +236,12 @@ func (r *Reconciler) Reconcile(log logr.Logger) error {
 	if nificlient.UseSSL(r.NifiCluster) {
 		if err := r.reconcileNifiUsersAndGroups(log); err != nil {
 			return errors.WrapIf(err, "failed to reconcile resource")
+		}
+	}
+
+	if r.NifiCluster.Spec.ReadOnlyConfig.MaximumTimerDrivenThreadCount != nil {
+		if err := r.reconcileMaximumTimerDrivenThreadCount(log); err != nil {
+			return errors.WrapIf(err, "failed to reconcile ressource")
 		}
 	}
 
@@ -831,19 +840,30 @@ func (r *Reconciler) reconcilePrometheusReportingTask(log logr.Logger) error {
 
 		r.NifiCluster.Status.PrometheusReportingTask = *status
 		if err := r.Client.Status().Update(context.TODO(), r.NifiCluster); err != nil {
-			return errors.WrapIfWithDetails(err, "failed to update NifiRegistryClient status")
+			return errors.WrapIfWithDetails(err, "failed to update PrometheusReportingTask status")
 		}
 	}
 
 	// Sync prometheus reporting task resource with NiFi side component
 	status, err := reportingtask.SyncReportingTask(r.Client, r.NifiCluster)
 	if err != nil {
-		return errors.WrapIfWithDetails(err, "failed to sync NifiRegistryClient")
+		return errors.WrapIfWithDetails(err, "failed to sync PrometheusReportingTask")
 	}
 
 	r.NifiCluster.Status.PrometheusReportingTask = *status
 	if err := r.Client.Status().Update(context.TODO(), r.NifiCluster); err != nil {
-		return errors.WrapIfWithDetails(err, "failed to update NifiRegistryClient status")
+		return errors.WrapIfWithDetails(err, "failed to update PrometheusReportingTask status")
 	}
+	return nil
+}
+
+func (r *Reconciler) reconcileMaximumTimerDrivenThreadCount(log logr.Logger) error {
+
+	// Sync Maximum Timer Driven Thread Count with NiFi side component
+	err := controllersettings.SyncConfiguration(r.Client, r.NifiCluster)
+	if err != nil {
+		return errors.WrapIfWithDetails(err, "failed to sync MaximumTimerDrivenThreadCount")
+	}
+
 	return nil
 }
