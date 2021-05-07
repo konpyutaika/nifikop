@@ -3,6 +3,7 @@
 ### Added
 
 - [PR #97](https://github.com/Orange-OpenSource/nifikop/pull/97) - **[Operator/NifiCluster]** Add ability to o define the maximum number of threads for timer driven processors available to the system.
+- [PR #98](https://github.com/Orange-OpenSource/nifikop/pull/98) - **[Operator/NifiCluster]**  Add empty_dir volume for `/tmp` dir.
 
 ### Changed
 

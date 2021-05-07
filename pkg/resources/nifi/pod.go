@@ -85,12 +85,22 @@ func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev
 				},
 			},
 		},
+		{
+			Name: nodeTmp,
+			VolumeSource: corev1.VolumeSource{
+				EmptyDir: &corev1.EmptyDirVolumeSource{},
+			},
+		},
 	}...)
 
 	podVolumeMounts := append(volumeMount, []corev1.VolumeMount{
 		{
 			Name:      nodeConfigMapVolumeMount,
 			MountPath: "/opt/nifi/nifi-current/tmp",
+		},
+		{
+			Name:      nodeTmp,
+			MountPath: "/tmp",
 		},
 	}...)
 
