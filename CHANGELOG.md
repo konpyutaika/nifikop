@@ -2,6 +2,8 @@
 
 ### Added
 
+- [PR #97](https://github.com/Orange-OpenSource/nifikop/pull/97) - **[Operator/NifiCluster]** Add ability to o define the maximum number of threads for timer driven processors available to the system.
+
 ### Changed
 
 ### Deprecated

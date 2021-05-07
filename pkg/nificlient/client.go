@@ -116,6 +116,10 @@ type NifiClient interface {
 	UpdateRunStatusReportingTask(id string, entity nigoapi.ReportingTaskRunStatusEntity) (*nigoapi.ReportingTaskEntity, error)
 	RemoveReportingTask(entity nigoapi.ReportingTaskEntity) error
 
+	// ControllerConfig func
+	GetControllerConfig() (*nigoapi.ControllerConfigurationEntity, error)
+	UpdateControllerConfig(entity nigoapi.ControllerConfigurationEntity) (*nigoapi.ControllerConfigurationEntity, error)
+
 	Build() error
 }
 

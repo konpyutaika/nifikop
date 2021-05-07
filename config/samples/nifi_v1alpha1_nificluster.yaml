@@ -49,6 +49,8 @@ spec:
   # readOnlyConfig specifies the read-only type Nifi config cluster wide, all theses
   # will be merged with node specified readOnly configurations, so it can be overwritten per node.
   readOnlyConfig:
+    # MaximumTimerDrivenThreadCount define the maximum number of threads for timer driven processors available to the system.
+    maximumTimerDrivenThreadCount: 30
     # Logback configuration that will be applied to the node
     logbackConfig:
       # logback.xml configuration that will replace the one produced based on template

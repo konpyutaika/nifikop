@@ -142,6 +142,8 @@ type Node struct {
 }
 
 type ReadOnlyConfig struct {
+	// MaximumTimerDrivenThreadCount define the maximum number of threads for timer driven processors available to the system.
+	MaximumTimerDrivenThreadCount *int32 `json:"maximumTimerDrivenThreadCount,omitempty"`
 	// NifiProperties configuration that will be applied to the node.
 	NifiProperties NifiProperties `json:"nifiProperties,omitempty"`
 	// ZookeeperProperties configuration that will be applied to the node.
@@ -521,6 +523,13 @@ func (lConfig *ListenersConfig) GetClusterDomain() string {
 	}
 
 	return lConfig.ClusterDomain
+}
+
+func (nReadOnlyConfig *ReadOnlyConfig) GetMaximumTimerDrivenThreadCount() int32 {
+	if nReadOnlyConfig.MaximumTimerDrivenThreadCount == nil {
+		return 10
+	}
+	return *nReadOnlyConfig.MaximumTimerDrivenThreadCount
 }
 
 func (nTaskSpec *NifiClusterTaskSpec) GetDurationMinutes() float64 {

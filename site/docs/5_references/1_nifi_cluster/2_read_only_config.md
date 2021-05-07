@@ -8,6 +8,8 @@ ReadOnlyConfig object specifies the read-only type Nifi config cluster wide, all
 
 ```yaml
 readOnlyConfig:
+  # MaximumTimerDrivenThreadCount define the maximum number of threads for timer driven processors available to the system.
+  maximumTimerDrivenThreadCount: 30
   # Logback configuration that will be applied to the node
   logbackConfig:
     # logback.xml configuration that will replace the one produced based on template
@@ -121,6 +123,7 @@ readOnlyConfig:
 
 |Field|Type|Description|Required|Default|
 |-----|----|-----------|--------|--------|
+|maximumTimerDrivenThreadCount|int32|define the maximum number of threads for timer driven processors available to the system.|No|nil|
 |nifiProperties|[NifiProperties](#nifiproperties)|nifi.properties configuration that will be applied to the node.|No|nil|
 |zookeeperProperties|[ZookeeperProperties](#zookeeperproperties)|zookeeper.properties configuration that will be applied to the node.|No|nil|
 |bootstrapProperties|[BootstrapProperties](#bootstrapproperties)|bootstrap.conf configuration that will be applied to the node.|No|nil|
