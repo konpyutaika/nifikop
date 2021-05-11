@@ -30,7 +30,11 @@ createCustomResource: true
 ## If true, create & use RBAC resources
 ##
 rbacEnable: true
- 
+
+## If true, create serviceAccount
+##
+serviceAccount:
+  create: true 
 
 ## if true deploy service for metrics access
 metricService: false
