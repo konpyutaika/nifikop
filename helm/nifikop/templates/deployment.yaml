@@ -41,7 +41,7 @@ spec:
         - name: {{ .Values.image.imagePullSecrets.name }}
       {{- end }}
       {{- if .Values.rbacEnable }}
-      {{- if .Values.serviceAccount }}
+      {{- if and .Values.serviceAccount .Values.serviceAccount.name }}
       serviceAccountName: {{ .Values.serviceAccount.name }}      
       {{- else }}
       serviceAccountName: {{ template "nifikop.name" . }}
