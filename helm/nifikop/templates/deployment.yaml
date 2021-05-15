@@ -24,6 +24,18 @@ spec:
         operator: nifi
         release: {{ .Release.Name }}
     spec:
+    {{- with .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}
       {{- if .Values.image.imagePullSecrets.enabled }}
       imagePullSecrets:
         - name: {{ .Values.image.imagePullSecrets.name }}
