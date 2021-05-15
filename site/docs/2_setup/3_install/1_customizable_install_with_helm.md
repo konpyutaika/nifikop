@@ -43,6 +43,9 @@ The following tables lists the configurable parameters of the NiFi Operator Helm
 | `debug.enabled`                  | activate DEBUG log level                         | `false`                                   |
 | `certManager.clusterScoped`      | If true setup cluster scoped resources           | `false`                            |
 | `namespaces`                     | List of namespaces where Operator watches for custom resources. Make sure the operator ServiceAccount is granted `get` permissions on this `Node` resource when using limited RBACs.| `""` i.e. all namespaces |
+| `nodeSelector`                   | Node selector configuration for operator pod     | `{}`                                      |
+| `affinity`                       | Node affinity configuration for operator pod     | `{}`                                      |
+| `tolerations`                    | Toleration configuration for operator pod        | `{}`                                      |
 
 Specify each parameter using the `--set key=value[,key=value]` argument to `helm install`. For example,
 
