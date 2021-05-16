@@ -14,7 +14,11 @@ kind: NifiCluster
 ...
 spec:
   ...
-  initialAdminUser: aguitton.ext@orange.com
+spec:
+  ...
+  managedAdminUsers:
+    - identity : "alexandre.guitton@orange.com"
+      name: "aguitton"
   ...
   readOnlyConfig:
     # NifiProperties configuration that will be applied to the node.
@@ -39,7 +43,7 @@ spec:
       create: true
 ```
 
-- `initialAdminUser` : name of the user account which will be configured as initial admin into NiFi cluster : https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#initial-admin-identity
+- `managedAdminUsers` : list of users account which will be configured as admin into NiFi cluster, please check [](../4_nifi_user_group#managed-groups-for-simple-setup) for more information.
 - `readOnlyConfig.nifiProperties.webProxyHosts` : A list of allowed HTTP Host header values to consider when NiFi is running securely and will be receiving requests to a different host[:port] than it is bound to. [web-properties](https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#web-properties)
 
 If `listenersConfig.sslSecrets.create` is set to `false`, the operator will look for the secret at `listenersConfig.sslSecrets.tlsSecretName` and expect these values :
