@@ -23,7 +23,7 @@ The following tables lists the configurable parameters of the NiFi Operator Helm
 | Parameter                        | Description                                      | Default                                   |
 |----------------------------------|--------------------------------------------------|-------------------------------------------|
 | `image.repository`               | Image                                            | `orangeopensource/nifikop`                |
-| `image.tag`                      | Image tag                                        | `v0.6.0-release`                          |
+| `image.tag`                      | Image tag                                        | `v0.6.1-release`                          |
 | `image.pullPolicy`               | Image pull policy                                | `Always`                                  |
 | `image.imagePullSecrets.enabled` | Enable tue use of secret for docker image        | `false`                                   |
 | `image.imagePullSecrets.name`    | Name of the secret to connect to docker registry | -                                         |
@@ -34,6 +34,12 @@ The following tables lists the configurable parameters of the NiFi Operator Helm
 | `debug.enabled`                  | activate DEBUG log level                         | `false`                                   |
 | `certManager.clusterScoped`      | If true setup cluster scoped resources           | `false`                            |
 | `namespaces`                     | List of namespaces where Operator watches for custom resources. Make sure the operator ServiceAccount is granted `get` permissions on this `Node` resource when using limited RBACs.| `""` i.e. all namespaces |
+| `nodeSelector`                   | Node selector configuration for operator pod     | `{}`                                      |
+| `affinity`                       | Node affinity configuration for operator pod     | `{}`                                      |
+| `tolerations`                    | Toleration configuration for operator pod        | `{}`                                      |
+| `serviceAccount.create`          | Whether the SA creation is delegated to the chart or not       | `true`                                      |
+| `serviceAccount.name`            | Name of the SA used for NiFiKop deployment       | release name                                     |
+
 
 Specify each parameter using the `--set key=value[,key=value]` argument to `helm install`. For example,
 

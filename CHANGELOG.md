@@ -2,9 +2,6 @@
 
 ### Added
 
-- [PR #97](https://github.com/Orange-OpenSource/nifikop/pull/97) - **[Operator/NifiCluster]** Add ability to o define the maximum number of threads for timer driven processors available to the system.
-- [PR #98](https://github.com/Orange-OpenSource/nifikop/pull/98) - **[Operator/NifiCluster]**  Add empty_dir volume for `/tmp` dir.
-
 ### Changed
 
 ### Deprecated
@@ -12,6 +9,16 @@
 ### Removed
 
 ### Fixed Bugs
+
+## v0.6.1
+
+### Added
+
+- [PR #97](https://github.com/Orange-OpenSource/nifikop/pull/97) - **[Operator/NifiCluster]** Add ability to o define the maximum number of threads for timer driven processors available to the system.
+- [PR #98](https://github.com/Orange-OpenSource/nifikop/pull/98) - **[Operator/NifiCluster]** Add empty_dir volume for `/tmp` dir.
+- [PR #93](https://github.com/Orange-OpenSource/nifikop/pull/93) - **[Helm Chart]** Included securityContext and custom service account in helm chart for NiFiKop deployment.
+- [PR #100](https://github.com/Orange-OpenSource/nifikop/pull/100) - **[Helm Chart]** Add nodeSelector, affinty and toleration in helm chart for NiFiKop deployment.
+
 
 ## v0.6.0
 
