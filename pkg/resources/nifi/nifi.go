@@ -495,7 +495,16 @@ func (r *Reconciler) reconcileNifiPVC(log logr.Logger, desiredPVC *corev1.Persis
 			if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(desiredPVC); err != nil {
 				return errors.WrapIf(err, "could not apply last state to annotation")
 			}
-			desiredPVC = currentPVC
+
+			if isDesiredStorageValueInvalid(desiredPVC, currentPVC) {
+				return errorfactory.New(errorfactory.InternalError{}, errors.New("could not modify pvc size"),
+					"one can not reduce the size of a PVC", "kind", desiredType)
+			}
+			resReq := desiredPVC.Spec.Resources.Requests
+			labels := desiredPVC.Labels
+			desiredPVC = currentPVC.DeepCopy()
+			desiredPVC.Spec.Resources.Requests = resReq
+			desiredPVC.Labels = labels
 
 			if err := r.Client.Update(context.TODO(), desiredPVC); err != nil {
 				return errorfactory.New(errorfactory.APIFailure{}, err, "updating resource failed", "kind", desiredType)
@@ -504,6 +513,10 @@ func (r *Reconciler) reconcileNifiPVC(log logr.Logger, desiredPVC *corev1.Persis
 		}
 	}
 	return nil
+}
+
+func isDesiredStorageValueInvalid(desired, current *corev1.PersistentVolumeClaim) bool {
+	return desired.Spec.Resources.Requests.Storage().Value() < current.Spec.Resources.Requests.Storage().Value()
 }
 
 func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) error {
