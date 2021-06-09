@@ -10,8 +10,12 @@
 
 ### Fixed Bugs
 
-- [PR #109](https://github.com/Orange-OpenSource/nifikop/pull/109) - **[Operator/NifiCluster]** Change namespace watch configuration to manage single namespace deletion.
+## v0.6.2
 
+### Fixed Bugs
+
+- [PR #107](https://github.com/Orange-OpenSource/nifikop/pull/107) - **[Operator/NiFiCluster]** Correct the way to path PVCs.
+- [PR #109](https://github.com/Orange-OpenSource/nifikop/pull/109) - **[Operator/NifiCluster]** Change namespace watch configuration to manage single namespace deletion.
 
 ## v0.6.1
 
