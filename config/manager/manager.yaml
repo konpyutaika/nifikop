@@ -29,7 +29,7 @@ spec:
         - /manager
         args:
         - --leader-elect
-        image: orangeopensource/nifikop:v0.6.1-release
+        image: orangeopensource/nifikop:v0.6.2-release
         name: nifikop
         securityContext:
           allowPrivilegeEscalation: false
