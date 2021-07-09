@@ -2,13 +2,19 @@
 
 ### Added
 
-- [PR #114](https://github.com/Orange-OpenSource/nifikop/pull/114) - **[Fix/NiFiCluster]** Additionals environment variables.
-
 ### Changed
 
 ### Deprecated
 
 ### Removed
+
+### Fixed Bugs
+
+## v0.6.3
+
+### Added
+
+- [PR #114](https://github.com/Orange-OpenSource/nifikop/pull/114) - **[Fix/NiFiCluster]** Additionals environment variables.
 
 ### Fixed Bugs
 
