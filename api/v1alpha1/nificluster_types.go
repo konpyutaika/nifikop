@@ -144,6 +144,9 @@ type Node struct {
 type ReadOnlyConfig struct {
 	// MaximumTimerDrivenThreadCount define the maximum number of threads for timer driven processors available to the system.
 	MaximumTimerDrivenThreadCount *int32 `json:"maximumTimerDrivenThreadCount,omitempty"`
+	// AdditionalSharedEnvs define a set of additional env variables that will shared between all init containers and
+	// containers in the pod.
+	AdditionalSharedEnvs []corev1.EnvVar `json:"additionalSharedEnvs,omitempty"`
 	// NifiProperties configuration that will be applied to the node.
 	NifiProperties NifiProperties `json:"nifiProperties,omitempty"`
 	// ZookeeperProperties configuration that will be applied to the node.
