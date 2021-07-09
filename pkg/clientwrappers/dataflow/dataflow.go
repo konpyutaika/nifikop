@@ -1,15 +1,15 @@
 package dataflow
 
 import (
-	"github.com/Orange-OpenSource/nifikop/pkg/common"
-	ctrl "sigs.k8s.io/controller-runtime"
 	"strings"
 
 	"github.com/Orange-OpenSource/nifikop/api/v1alpha1"
 	"github.com/Orange-OpenSource/nifikop/pkg/clientwrappers"
+	"github.com/Orange-OpenSource/nifikop/pkg/common"
 	"github.com/Orange-OpenSource/nifikop/pkg/errorfactory"
 	"github.com/Orange-OpenSource/nifikop/pkg/nificlient"
 	nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -71,7 +71,8 @@ func CreateDataflow(
 	updateProcessGroupEntity(flow, registry, cluster, &scratchEntity)
 
 	entity, err := nClient.CreateProcessGroup(scratchEntity, flow.Spec.GetParentProcessGroupID(cluster))
-	if err := clientwrappers.ErrorCreateOperation(log, err, "Create registry-client"); err != nil {
+
+	if err := clientwrappers.ErrorCreateOperation(log, err, "Create process-group"); err != nil {
 		return nil, err
 	}
 
@@ -695,6 +696,8 @@ func updateProcessGroupEntity(
 	cluster *v1alpha1.NifiCluster,
 	entity *nigoapi.ProcessGroupEntity) {
 
+	stringFactory := func() string { return "" }
+
 	var defaultVersion int64 = 0
 	if entity == nil {
 		entity = &nigoapi.ProcessGroupEntity{}
@@ -718,10 +721,17 @@ func updateProcessGroupEntity(
 	entity.Component.Name = flow.Name
 	entity.Component.ParentGroupId = flow.Spec.GetParentProcessGroupID(cluster)
 	entity.Component.VersionControlInformation = &nigoapi.VersionControlInformationDto{
-		RegistryId: registry.Status.Id,
-		BucketId:   flow.Spec.BucketId,
-		FlowId:     flow.Spec.FlowId,
-		Version:    *flow.Spec.FlowVersion,
+		GroupId:          stringFactory(),
+		RegistryName:     stringFactory(),
+		BucketName:       stringFactory(),
+		FlowName:         stringFactory(),
+		FlowDescription:  stringFactory(),
+		State:            stringFactory(),
+		StateExplanation: stringFactory(),
+		RegistryId:       registry.Status.Id,
+		BucketId:         flow.Spec.BucketId,
+		FlowId:           flow.Spec.FlowId,
+		Version:          *flow.Spec.FlowVersion,
 	}
 }
 

@@ -43,8 +43,7 @@ func updateControllerConfigEntity(cluster *v1alpha1.NifiCluster, entity *nigoapi
 	}
 
 	if entity.Component == nil {
-		entity.Revision = &nigoapi.RevisionDto{
-		}
+		entity.Revision = &nigoapi.RevisionDto{}
 	}
 
 	if entity.Component == nil {
