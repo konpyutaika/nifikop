@@ -144,7 +144,7 @@ func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev
 				RunAsNonRoot: func(b bool) *bool { return &b }(true),
 				FSGroup:      nodeConfig.GetFSGroup(),
 			},
-			InitContainers: append(initContainers, []corev1.Container{
+			InitContainers: r.injectAdditionalEnvVars(append(initContainers, []corev1.Container{
 				{
 					Name:            "zookeeper",
 					Image:           r.NifiCluster.Spec.GetInitContainerImage(),
@@ -158,11 +158,11 @@ done`,
 						zkAddress, zkHostname, zkPort)},
 					Resources: generateInitContainerResources(),
 				},
-			}...),
+			}...)),
 			Affinity: &corev1.Affinity{
 				PodAntiAffinity: generatePodAntiAffinity(r.NifiCluster.Name, r.NifiCluster.Spec.OneNifiNodePerNode),
 			},
-			Containers:                    r.generateContainers(nodeConfig, id, podVolumeMounts, zkAddress),
+			Containers:                    r.injectAdditionalEnvVars(r.generateContainers(nodeConfig, id, podVolumeMounts, zkAddress)),
 			Volumes:                       podVolumes,
 			RestartPolicy:                 corev1.RestartPolicyNever,
 			TerminationGracePeriodSeconds: util.Int64Pointer(120),
@@ -518,4 +518,13 @@ exec bin/nifi.sh run`, resolveIp, removesFileAction)}
 		VolumeMounts: podVolumeMounts,
 		Resources:    *nodeConfig.GetResources(),
 	}
+}
+
+func (r *Reconciler) injectAdditionalEnvVars(containers []corev1.Container) (injectedContainers []corev1.Container) {
+
+	for _, container := range containers {
+		container.Env = append(container.Env, r.NifiCluster.Spec.ReadOnlyConfig.AdditionalSharedEnvs...)
+		injectedContainers = append(injectedContainers, container)
+	}
+	return
 }

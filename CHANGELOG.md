@@ -2,6 +2,8 @@
 
 ### Added
 
+- [PR #114](https://github.com/Orange-OpenSource/nifikop/pull/114) - **[Fix/NiFiCluster]** Additionals environment variables.
+
 ### Changed
 
 ### Deprecated
@@ -9,6 +11,8 @@
 ### Removed
 
 ### Fixed Bugs
+
+- [PR #113](https://github.com/Orange-OpenSource/nifikop/pull/113) - **[Fix/NiFiDataflow]** Simple work around to avoid null pointer dereferencing on nifi side.
 
 ## v0.6.2
 

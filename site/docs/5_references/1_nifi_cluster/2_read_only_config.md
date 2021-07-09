@@ -124,11 +124,14 @@ readOnlyConfig:
 |Field|Type|Description|Required|Default|
 |-----|----|-----------|--------|--------|
 |maximumTimerDrivenThreadCount|int32|define the maximum number of threads for timer driven processors available to the system.|No|nil|
+|additionalSharedEnvs|\[ \][corev1.EnvVar](https://pkg.go.dev/k8s.io/api/core/v1#EnvVar)|define a set of additional env variables that will shared between all init containers and ontainers in the pod..|No|\[ \]|
 |nifiProperties|[NifiProperties](#nifiproperties)|nifi.properties configuration that will be applied to the node.|No|nil|
 |zookeeperProperties|[ZookeeperProperties](#zookeeperproperties)|zookeeper.properties configuration that will be applied to the node.|No|nil|
 |bootstrapProperties|[BootstrapProperties](#bootstrapproperties)|bootstrap.conf configuration that will be applied to the node.|No|nil|
 |logbackConfig|[LogbackConfig](#logbackconfig)|logback.xml configuration that will be applied to the node.|No|nil|
 |bootstrapNotificationServicesConfig|[BootstrapNotificationServices](#bootstrapnotificationservices)|bootstrap_notification_services.xml configuration that will be applied to the node.|No|nil|
+
+
 
 ## NifiProperties
 
