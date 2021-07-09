@@ -51,7 +51,7 @@ const (
 	componentName = "nifi"
 
 	nodeConfigMapVolumeMount = "node-config"
-	nodeTmp                 = "node-tmp"
+	nodeTmp                  = "node-tmp"
 	nifiDataVolumeMount      = "nifi-data"
 
 	serverKeystoreVolume = "server-ks-files"
