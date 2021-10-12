@@ -16,6 +16,8 @@ package nifi
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/Orange-OpenSource/nifikop/api/v1alpha1"
 	"github.com/Orange-OpenSource/nifikop/pkg/resources/templates"
 	"github.com/Orange-OpenSource/nifikop/pkg/util"
@@ -25,7 +27,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	runtimeClient "sigs.k8s.io/controller-runtime/pkg/client"
-	"strings"
 )
 
 func (r *Reconciler) service(id int32, log logr.Logger) runtimeClient.Object {
@@ -54,21 +55,12 @@ func (r *Reconciler) externalServices(log logr.Logger) []runtimeClient.Object {
 	var services []runtimeClient.Object
 	for _, eService := range r.NifiCluster.Spec.ExternalServices {
 
-		var listeners []v1alpha1.InternalListenerConfig
-
-		for _, port := range eService.Spec.PortConfigs {
-			for _, iListener := range r.NifiCluster.Spec.ListenersConfig.InternalListeners {
-				if port.InternalListenerName == iListener.Name {
-					listeners = append(listeners, iListener)
-				}
-			}
-		}
 		annotations := &eService.ServiceAnnotations
 		if err := mergo.Merge(annotations, r.NifiCluster.Spec.Service.Annotations); err != nil {
 			log.Error(err, "error occurred during merging service annotations")
 		}
 
-		usedPorts := generateServicePortForInternalListeners(listeners)
+		usedPorts := r.generateServicePortForExternalListeners(eService)
 		services = append(services, &corev1.Service{
 			ObjectMeta: templates.ObjectMetaWithAnnotations(eService.Name, LabelsForNifi(r.NifiCluster.Name),
 				*annotations, r.NifiCluster),
@@ -99,6 +91,25 @@ func generateServicePortForInternalListeners(listeners []v1alpha1.InternalListen
 			TargetPort: intstr.FromInt(int(iListeners.ContainerPort)),
 			Protocol:   corev1.ProtocolTCP,
 		})
+	}
+
+	return usedPorts
+}
+
+func (r *Reconciler) generateServicePortForExternalListeners(eService v1alpha1.ExternalServiceConfig) []corev1.ServicePort {
+	var usedPorts []corev1.ServicePort
+
+	for _, port := range eService.Spec.PortConfigs {
+		for _, iListener := range r.NifiCluster.Spec.ListenersConfig.InternalListeners {
+			if port.InternalListenerName == iListener.Name {
+				usedPorts = append(usedPorts, corev1.ServicePort{
+					Name:       strings.ReplaceAll(iListener.Name, "_", ""),
+					Port:       port.Port,
+					TargetPort: intstr.FromInt(int(iListener.ContainerPort)),
+					Protocol:   corev1.ProtocolTCP,
+				})
+			}
+		}
 	}
 
 	return usedPorts
