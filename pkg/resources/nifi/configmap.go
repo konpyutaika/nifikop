@@ -52,13 +52,13 @@ func (r *Reconciler) configMap(id int32, nodeConfig *v1alpha1.NodeConfig, server
 			r.NifiCluster,
 		),
 		Data: map[string][]byte{
-			"nifi.properties":                    []byte(r.generateNifiPropertiesNodeConfig(id, nodeConfig, serverPass, clientPass, superUsers, log)),
-			"zookeeper.properties":               []byte(r.generateZookeeperPropertiesNodeConfig(id, nodeConfig, log)),
-			"state-management.xml":               []byte(r.getStateManagementConfigString(nodeConfig, id, log)),
-			"login-identity-providers.xml":       []byte(r.getLoginIdentityProvidersConfigString(nodeConfig, id, log)),
-			"logback.xml":                        []byte(r.getLogbackConfigString(nodeConfig, id, log)),
-			"bootstrap.conf":                     []byte(r.generateBootstrapPropertiesNodeConfig(id, nodeConfig, log)),
-			"bootstrap-notification-servces.xml": []byte(r.getBootstrapNotificationServicesConfigString(nodeConfig, id, log)),
+			"nifi.properties":                     []byte(r.generateNifiPropertiesNodeConfig(id, nodeConfig, serverPass, clientPass, superUsers, log)),
+			"zookeeper.properties":                []byte(r.generateZookeeperPropertiesNodeConfig(id, nodeConfig, log)),
+			"state-management.xml":                []byte(r.getStateManagementConfigString(nodeConfig, id, log)),
+			"login-identity-providers.xml":        []byte(r.getLoginIdentityProvidersConfigString(nodeConfig, id, log)),
+			"logback.xml":                         []byte(r.getLogbackConfigString(nodeConfig, id, log)),
+			"bootstrap.conf":                      []byte(r.generateBootstrapPropertiesNodeConfig(id, nodeConfig, log)),
+			"bootstrap-notification-services.xml": []byte(r.getBootstrapNotificationServicesConfigString(nodeConfig, id, log)),
 		},
 	}
 

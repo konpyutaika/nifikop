@@ -253,7 +253,7 @@ ZooKeeper.
 - Implement pod management lifecycle
 - Implement Graceful downscale pod lifecycle management
 - Implement Graceful upscale pod lifecycle management
-- Implement configuration lifecycle management for : nifi.properties, zookeeper.properties, state-management.xml, login-identity-providers.xml, logback.xml, bootstrap.conf, bootstrap-notification-servces.xml
+- Implement configuration lifecycle management for : nifi.properties, zookeeper.properties, state-management.xml, login-identity-providers.xml, logback.xml, bootstrap.conf, bootstrap-notification-services.xml
 - Initiate documentations
 - Implementation basic makefile for some actions (debug, build, deploy, run, push, unit-test)
 - Create helm chart for operator
