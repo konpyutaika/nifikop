@@ -59,14 +59,18 @@ orbs:
               command: |
                 make generate
                 [ "$(git ls-files -m | grep -c zz_generated)" -eq 0 ]
+          - run:
+              name: List
+              command: |
+                ls -la /home/circleci/<< parameters.operatorDir >>
           - persist_to_workspace: # Create artifacts
               root: /home/circleci
               paths:
                 - << parameters.operatorDir >>/build/_output
-                #- << parameters.operatorDir >>/vendor
+                - << parameters.operatorDir >>/vendor
           - save_cache:
               name: Save build artifacts in cache
-              key: << parameters.operatorName >>-generate-{{ .Branch }}-{{ checksum "go.sum" }}
+              key: << parameters.operatorName >>-generate-1-{{ .Branch }}-{{ checksum "go.sum" }}
               paths:
                 - build/_output
                 - vendor
