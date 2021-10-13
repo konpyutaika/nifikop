@@ -79,15 +79,15 @@ spec:
 
 ## NifiClusterSpec
 
-| Field              | Type                                                               | Description                                                                                 | Required         | Default    |
-| ------------------ | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------- | ---------------- | ---------- |
-| clientType         | Enum={"tls","basic"}                                               | defines if the operator will use basic or tls authentication to query the NiFi cluster.     | No               | `tls`      |
-| type               | Enum={"external","internal"}                                       | defines if the cluster is internal (i.e manager by the operator) or external.               | No               | `internal` |
-| nodeURITemplate    | string                                                             | used to dynamically compute node uri.                                                       | if external type | -          |
-| nifiURI            | stringused access through a LB uri.                                | if external type                                                                            | -                |
-| rootProcessGroupId | string                                                             | contains the uuid of the root process group for this cluster.                               | if external type | -          |
-| secretRef          | \[ \][SecretReference](./4_nifi_parameter_context#secretreference) | reference the secret containing the informations required to authentiticate to the cluster. | if external type | -          |
-| proxyUrl           | string                                                             | defines the proxy required to query the NiFi cluster.                                       | if external type | -          |
+| Field              | Type                                                                | Description                                                                                 | Required         | Default    |
+| ------------------ | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | ---------------- | ---------- |
+| clientType         | Enum={"tls","basic"}                                                | defines if the operator will use basic or tls authentication to query the NiFi cluster.     | No               | `tls`      |
+| type               | Enum={"external","internal"}                                        | defines if the cluster is internal (i.e manager by the operator) or external.               | No               | `internal` |
+| nodeURITemplate    | string                                                              | used to dynamically compute node uri.                                                       | if external type | -          |
+| nifiURI            | stringused access through a LB uri.                                 | if external type                                                                            | -                |
+| rootProcessGroupId | string                                                              | contains the uuid of the root process group for this cluster.                               | if external type | -          |
+| secretRef          | \[ \][SecretReference](../4_nifi_parameter_context#secretreference) | reference the secret containing the informations required to authentiticate to the cluster. | if external type | -          |
+| proxyUrl           | string                                                              | defines the proxy required to query the NiFi cluster.                                       | if external type | -          |
 
 |service|[ServicePolicy](#servicepolicy)| defines the policy for services owned by NiFiKop operator. |No| - |
 |pod|[PodPolicy](#podpolicy)| defines the policy for pod owned by NiFiKop operator. |No| - |
