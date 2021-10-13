@@ -44,7 +44,7 @@ orbs:
           - setup_remote_docker # Creates a separate environment for each build for security.
           - restore_cache: # If exist, restore dependencies libs download cache, from previous pipeline execution.
               keys: # Use checksum of go.sum to version cache.
-                - << parameters.operatorName >>-generate-{{ .Branch }}-{{ checksum "go.sum" }}
+                - << parameters.operatorName >>-generate-1-{{ .Branch }}-{{ checksum "go.sum" }}
           - attach_workspace: # Attach artifact from workdir
               at: /home/circleci
           # Build steps
