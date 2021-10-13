@@ -23,14 +23,14 @@ import (
 
 func (n *nifiClient) GetParameterContext(id string) (*nigoapi.ParameterContextEntity, error) {
 	// Get nigoapi client, favoring the one associated to the coordinator node.
-	client := n.privilegeCoordinatorClient()
+	client, context := n.privilegeCoordinatorClient()
 	if client == nil {
 		log.Error(ErrNoNodeClientsAvailable, "Error during creating node client")
 		return nil, ErrNoNodeClientsAvailable
 	}
 
 	// Request on Nifi Rest API to get the parameter context informations
-	pcEntity, rsp, body, err := client.ParameterContextsApi.GetParameterContext(nil, id)
+	pcEntity, rsp, body, err := client.ParameterContextsApi.GetParameterContext(context, id)
 	if err := errorGetOperation(rsp, body, err); err != nil {
 		return nil, err
 	}
@@ -40,14 +40,14 @@ func (n *nifiClient) GetParameterContext(id string) (*nigoapi.ParameterContextEn
 
 func (n *nifiClient) CreateParameterContext(entity nigoapi.ParameterContextEntity) (*nigoapi.ParameterContextEntity, error) {
 	// Get nigoapi client, favoring the one associated to the coordinator node.
-	client := n.privilegeCoordinatorClient()
+	client, context := n.privilegeCoordinatorClient()
 	if client == nil {
 		log.Error(ErrNoNodeClientsAvailable, "Error during creating node client")
 		return nil, ErrNoNodeClientsAvailable
 	}
 
 	// Request on Nifi Rest API to create the parameter context
-	pcEntity, rsp, body, err := client.ParameterContextsApi.CreateParameterContext(nil, entity)
+	pcEntity, rsp, body, err := client.ParameterContextsApi.CreateParameterContext(context, entity)
 	if err := errorCreateOperation(rsp, body, err); err != nil {
 		return nil, err
 	}
@@ -57,14 +57,14 @@ func (n *nifiClient) CreateParameterContext(entity nigoapi.ParameterContextEntit
 
 func (n *nifiClient) RemoveParameterContext(entity nigoapi.ParameterContextEntity) error {
 	// Get nigoapi client, favoring the one associated to the coordinator node.
-	client := n.privilegeCoordinatorClient()
+	client, context := n.privilegeCoordinatorClient()
 	if client == nil {
 		log.Error(ErrNoNodeClientsAvailable, "Error during creating node client")
 		return ErrNoNodeClientsAvailable
 	}
 
 	// Request on Nifi Rest API to remove the parameter context
-	_, rsp, body, err := client.ParameterContextsApi.DeleteParameterContext(nil, entity.Id,
+	_, rsp, body, err := client.ParameterContextsApi.DeleteParameterContext(context, entity.Id,
 		&nigoapi.ParameterContextsApiDeleteParameterContextOpts{
 			Version: optional.NewString(strconv.FormatInt(*entity.Revision.Version, 10)),
 		})
@@ -74,14 +74,14 @@ func (n *nifiClient) RemoveParameterContext(entity nigoapi.ParameterContextEntit
 
 func (n *nifiClient) CreateParameterContextUpdateRequest(contextId string, entity nigoapi.ParameterContextEntity) (*nigoapi.ParameterContextUpdateRequestEntity, error) {
 	// Get nigoapi client, favoring the one associated to the coordinator node.
-	client := n.privilegeCoordinatorClient()
+	client, context := n.privilegeCoordinatorClient()
 	if client == nil {
 		log.Error(ErrNoNodeClientsAvailable, "Error during creating node client")
 		return nil, ErrNoNodeClientsAvailable
 	}
 
 	// Request on Nifi Rest API to create the parameter context update request
-	request, rsp, body, err := client.ParameterContextsApi.SubmitParameterContextUpdate(nil, contextId, entity)
+	request, rsp, body, err := client.ParameterContextsApi.SubmitParameterContextUpdate(context, contextId, entity)
 	if err := errorUpdateOperation(rsp, body, err); err != nil {
 		return nil, err
 	}
@@ -91,14 +91,14 @@ func (n *nifiClient) CreateParameterContextUpdateRequest(contextId string, entit
 
 func (n *nifiClient) GetParameterContextUpdateRequest(contextId, id string) (*nigoapi.ParameterContextUpdateRequestEntity, error) {
 	// Get nigoapi client, favoring the one associated to the coordinator node.
-	client := n.privilegeCoordinatorClient()
+	client, context := n.privilegeCoordinatorClient()
 	if client == nil {
 		log.Error(ErrNoNodeClientsAvailable, "Error during creating node client")
 		return nil, ErrNoNodeClientsAvailable
 	}
 
 	// Request on Nifi Rest API to get the parameter context update request information
-	request, rsp, body, err := client.ParameterContextsApi.GetParameterContextUpdate(nil, contextId, id)
+	request, rsp, body, err := client.ParameterContextsApi.GetParameterContextUpdate(context, contextId, id)
 	if err := errorGetOperation(rsp, body, err); err != nil {
 		return nil, err
 	}

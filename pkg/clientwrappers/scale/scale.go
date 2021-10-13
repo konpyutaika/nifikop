@@ -16,6 +16,7 @@ package scale
 
 import (
 	"fmt"
+	"github.com/Orange-OpenSource/nifikop/pkg/util/clientconfig"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"time"
 
@@ -24,7 +25,6 @@ import (
 	"github.com/Orange-OpenSource/nifikop/pkg/common"
 	"github.com/Orange-OpenSource/nifikop/pkg/nificlient"
 	nifiutil "github.com/Orange-OpenSource/nifikop/pkg/util/nifi"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 var log = ctrl.Log.WithName("scale-methods")
@@ -39,7 +39,7 @@ func UpScaleCluster(nodeId, namespace, clusterName string) (v1alpha1.ActionStep,
 }
 
 // DisconnectClusterNode, perform a node disconnection
-func DisconnectClusterNode(client client.Client, cluster *v1alpha1.NifiCluster, nodeId string) (v1alpha1.ActionStep, string, error) {
+func DisconnectClusterNode(config *clientconfig.NifiConfig, nodeId string) (v1alpha1.ActionStep, string, error) {
 	var err error
 
 	// Extract nifi node Id, from nifi node address.
@@ -48,7 +48,7 @@ func DisconnectClusterNode(client client.Client, cluster *v1alpha1.NifiCluster, 
 		return "", "", err
 	}
 
-	nClient, err := common.NewNodeConnection(log, client, cluster)
+	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
 		return "", "", err
 	}
@@ -65,7 +65,7 @@ func DisconnectClusterNode(client client.Client, cluster *v1alpha1.NifiCluster, 
 }
 
 // OffloadCluster, perform offload data from a node.
-func OffloadClusterNode(client client.Client, cluster *v1alpha1.NifiCluster, nodeId string) (v1alpha1.ActionStep, string, error) {
+func OffloadClusterNode(config *clientconfig.NifiConfig, nodeId string) (v1alpha1.ActionStep, string, error) {
 	var err error
 
 	// Extract nifi node Id, from nifi node address.
@@ -74,7 +74,7 @@ func OffloadClusterNode(client client.Client, cluster *v1alpha1.NifiCluster, nod
 		return "", "", err
 	}
 
-	nClient, err := common.NewNodeConnection(log, client, cluster)
+	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
 		return "", "", err
 	}
@@ -91,7 +91,7 @@ func OffloadClusterNode(client client.Client, cluster *v1alpha1.NifiCluster, nod
 }
 
 // ConnectClusterNode, perform node connection.
-func ConnectClusterNode(client client.Client, cluster *v1alpha1.NifiCluster, nodeId string) (v1alpha1.ActionStep, string, error) {
+func ConnectClusterNode(config *clientconfig.NifiConfig, nodeId string) (v1alpha1.ActionStep, string, error) {
 	var err error
 
 	// Extract nifi node Id, from nifi node address.
@@ -100,7 +100,7 @@ func ConnectClusterNode(client client.Client, cluster *v1alpha1.NifiCluster, nod
 		return "", "", err
 	}
 
-	nClient, err := common.NewNodeConnection(log, client, cluster)
+	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
 		return "", "", err
 	}
@@ -117,7 +117,7 @@ func ConnectClusterNode(client client.Client, cluster *v1alpha1.NifiCluster, nod
 }
 
 // RemoveClusterNode, perform node connection.
-func RemoveClusterNode(client client.Client, cluster *v1alpha1.NifiCluster, nodeId string) (v1alpha1.ActionStep, string, error) {
+func RemoveClusterNode(config *clientconfig.NifiConfig, nodeId string) (v1alpha1.ActionStep, string, error) {
 	var err error
 
 	// Extract NiFi node Id, from NiFi node address.
@@ -126,7 +126,7 @@ func RemoveClusterNode(client client.Client, cluster *v1alpha1.NifiCluster, node
 		return "", "", err
 	}
 
-	nClient, err := common.NewNodeConnection(log, client, cluster)
+	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
 		return "", "", err
 	}
@@ -149,7 +149,7 @@ func RemoveClusterNode(client client.Client, cluster *v1alpha1.NifiCluster, node
 // TODO : rework to check if state is consistent (If waiting removing but disconnected ...
 // CheckIfCCTaskFinished checks whether the given CC Task ID finished or not
 // headlessServiceEnabled bool, availableNodes []v1alpha1.Node, serverPort int32, nodeId, namespace, clusterName string
-func CheckIfNCActionStepFinished(actionStep v1alpha1.ActionStep, client client.Client, cluster *v1alpha1.NifiCluster, nodeId string) (bool, error) {
+func CheckIfNCActionStepFinished(actionStep v1alpha1.ActionStep, config *clientconfig.NifiConfig, nodeId string) (bool, error) {
 	var err error
 
 	// Extract nifi node Id, from nifi node address.
@@ -158,7 +158,7 @@ func CheckIfNCActionStepFinished(actionStep v1alpha1.ActionStep, client client.C
 		return false, err
 	}
 
-	nClient, err := common.NewNodeConnection(log, client, cluster)
+	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
 		return false, err
 	}
@@ -195,10 +195,10 @@ func CheckIfNCActionStepFinished(actionStep v1alpha1.ActionStep, client client.C
 	return false, nil
 }
 
-func EnsureRemovedNodes(client client.Client, cluster *v1alpha1.NifiCluster) error {
+func EnsureRemovedNodes(config *clientconfig.NifiConfig, cluster *v1alpha1.NifiCluster) error {
 	var err error
 
-	nClient, err := common.NewNodeConnection(log, client, cluster)
+	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
 		return err
 	}

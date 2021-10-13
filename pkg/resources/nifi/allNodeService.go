@@ -27,13 +27,13 @@ func (r *Reconciler) allNodeService() runtimeClient.Object {
 
 	return &corev1.Service{
 		ObjectMeta: templates.ObjectMetaWithAnnotations(nifiutils.ComputeRequestNiFiAllNodeService(r.NifiCluster.Name, false),
-			LabelsForNifi(r.NifiCluster.Name),
+			nifiutils.LabelsForNifi(r.NifiCluster.Name),
 			r.NifiCluster.Spec.Service.Annotations,
 			r.NifiCluster),
 		Spec: corev1.ServiceSpec{
 			Type:            corev1.ServiceTypeClusterIP,
 			SessionAffinity: corev1.ServiceAffinityNone,
-			Selector:        LabelsForNifi(r.NifiCluster.Name),
+			Selector:        nifiutils.LabelsForNifi(r.NifiCluster.Name),
 			Ports:           usedPorts,
 		},
 	}

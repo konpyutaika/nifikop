@@ -36,6 +36,13 @@ spec:
           spec:
             description: NifiClusterSpec defines the desired state of NifiCluster
             properties:
+              clientType:
+                description: clientType defines if the operator will use basic or
+                  tls authentication to query the NiFi cluster.
+                enum:
+                - tls
+                - basic
+                type: string
               clusterImage:
                 description: clusterImage can specify the whole NiFi cluster image
                   in one place
@@ -1414,6 +1421,10 @@ spec:
                 required:
                 - retryDurationMinutes
                 type: object
+              nifiURI:
+                description: nifiURI used access through a LB uri (used if external
+                  type)
+                type: string
               nodeConfigGroups:
                 additionalProperties:
                   description: NodeConfig defines the node configuration
@@ -1908,6 +1919,10 @@ spec:
                 description: nodeConfigGroups specifies multiple node configs with
                   unique name
                 type: object
+              nodeURITemplate:
+                description: nodeURITemplate used to dynamically compute node uri
+                  (used if external type)
+                type: string
               nodes:
                 description: all node requires an image, unique id, and storageConfigs
                   settings
@@ -2849,6 +2864,10 @@ spec:
               propagateLabels:
                 description: propage
                 type: boolean
+              proxyUrl:
+                description: proxyUrl defines the proxy required to query the NiFi
+                  cluster (used if external type)
+                type: string
               readOnlyConfig:
                 description: readOnlyConfig specifies the read-only type Nifi config
                   cluster wide, all theses will be merged with node specified readOnly
@@ -3225,6 +3244,21 @@ spec:
                         - name
                         type: object
                     type: object
+                type: object
+              rootProcessGroupId:
+                description: rootProcessGroupId contains the uuid of the root process
+                  group for this cluster (used if external type)
+                type: string
+              secretRef:
+                description: secretRef reference the secret containing the informations
+                  required to authentiticate to the cluster (used if external type)
+                properties:
+                  name:
+                    type: string
+                  namespace:
+                    type: string
+                required:
+                - name
                 type: object
               service:
                 description: Service defines the policy for services owned by NiFiKop
@@ -4329,6 +4363,13 @@ spec:
                   - name
                   type: object
                 type: array
+              type:
+                description: type defines if the cluster is internal (i.e manager
+                  by the operator) or external.
+                enum:
+                - external
+                - internal
+                type: string
               zkAddress:
                 description: 'zKAddress specifies the ZooKeeper connection string
                   in the form hostname:port where host and port are those of a Zookeeper
@@ -4340,10 +4381,7 @@ spec:
                   in the global ZooKeeper namespace.
                 type: string
             required:
-            - listenersConfig
             - nodes
-            - oneNifiNodePerNode
-            - zkAddress
             type: object
           status:
             description: NifiClusterStatus defines the observed state of NifiCluster
@@ -4383,10 +4421,15 @@ spec:
                       description: InitClusterNode contains if this nodes was part
                         of the initial cluster
                       type: boolean
+                    podIsReady:
+                      description: PodIsReady whether or not the associated pod is
+                        ready
+                      type: boolean
                   required:
                   - configurationState
                   - gracefulActionState
                   - initClusterNode
+                  - podIsReady
                   type: object
                 description: Store the state of each nifi node
                 type: object

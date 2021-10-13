@@ -38,7 +38,6 @@ func Reconcile(log logr.Logger, client runtimeClient.Client, desired runtimeClie
 	current := desired.DeepCopyObject().(runtimeClient.Object)
 
 	var err error
-
 	switch desired.(type) {
 	default:
 		var key runtimeClient.ObjectKey
@@ -71,6 +70,17 @@ func Reconcile(log logr.Logger, client runtimeClient.Client, desired runtimeClie
 		}
 	}
 	if err == nil {
+		switch desired.(type) {
+		case *v1alpha1.NifiUser:
+			user := desired.(*v1alpha1.NifiUser)
+			user.Status = current.(*v1alpha1.NifiUser).Status
+			desired = user
+		case *v1alpha1.NifiUserGroup:
+			group := desired.(*v1alpha1.NifiUserGroup)
+			group.Status = current.(*v1alpha1.NifiUserGroup).Status
+			desired = group
+		}
+
 		if CheckIfObjectUpdated(log, desiredType, current, desired) {
 
 			if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(desired); err != nil {
@@ -90,21 +100,23 @@ func Reconcile(log logr.Logger, client runtimeClient.Client, desired runtimeClie
 			if err := client.Update(context.TODO(), desired); err != nil {
 				return errorfactory.New(errorfactory.APIFailure{}, err, "updating resource failed", "kind", desiredType)
 			}
-			switch desired.(type) {
-			case *corev1.ConfigMap:
-				// Only update status when configmap belongs to node
-				if id, ok := desired.(*corev1.ConfigMap).Labels["nodeId"]; ok {
-					statusErr := UpdateNodeStatus(client, []string{id}, cr, v1alpha1.ConfigOutOfSync, log)
-					if statusErr != nil {
-						return errors.WrapIfWithDetails(err, "updating status for resource failed", "kind", desiredType)
+			if cr != nil {
+				switch desired.(type) {
+				case *corev1.ConfigMap:
+					// Only update status when configmap belongs to node
+					if id, ok := desired.(*corev1.ConfigMap).Labels["nodeId"]; ok {
+						statusErr := UpdateNodeStatus(client, []string{id}, cr, v1alpha1.ConfigOutOfSync, log)
+						if statusErr != nil {
+							return errors.WrapIfWithDetails(err, "updating status for resource failed", "kind", desiredType)
+						}
 					}
-				}
-			case *corev1.Secret:
-				// Only update status when secret belongs to node
-				if id, ok := desired.(*corev1.Secret).Labels["nodeId"]; ok {
-					statusErr := UpdateNodeStatus(client, []string{id}, cr, v1alpha1.ConfigOutOfSync, log)
-					if statusErr != nil {
-						return errors.WrapIfWithDetails(err, "updating status for resource failed", "kind", desiredType)
+				case *corev1.Secret:
+					// Only update status when secret belongs to node
+					if id, ok := desired.(*corev1.Secret).Labels["nodeId"]; ok {
+						statusErr := UpdateNodeStatus(client, []string{id}, cr, v1alpha1.ConfigOutOfSync, log)
+						if statusErr != nil {
+							return errors.WrapIfWithDetails(err, "updating status for resource failed", "kind", desiredType)
+						}
 					}
 				}
 			}
@@ -132,6 +144,11 @@ func CheckIfObjectUpdated(log logr.Logger, desiredType reflect.Type, current, de
 			"original", string(patchResult.Original))
 		return true
 	}
+}
+
+func IsPodTerminatedOrShutdown(pod *corev1.Pod) bool {
+	return (pod.Status.Phase == corev1.PodFailed &&
+		(pod.Status.Reason == "Shutdown" || pod.Status.Reason == "Evicted")) || IsPodContainsTerminatedContainer(pod)
 }
 
 func IsPodContainsTerminatedContainer(pod *corev1.Pod) bool {

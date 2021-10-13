@@ -5,21 +5,20 @@ import (
 	"github.com/Orange-OpenSource/nifikop/pkg/clientwrappers"
 	"github.com/Orange-OpenSource/nifikop/pkg/common"
 	"github.com/Orange-OpenSource/nifikop/pkg/nificlient"
+	"github.com/Orange-OpenSource/nifikop/pkg/util/clientconfig"
 	nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 var log = ctrl.Log.WithName("registryclient-method")
 
-func ExistRegistryClient(client client.Client, registryClient *v1alpha1.NifiRegistryClient,
-	cluster *v1alpha1.NifiCluster) (bool, error) {
+func ExistRegistryClient(registryClient *v1alpha1.NifiRegistryClient, config *clientconfig.NifiConfig) (bool, error) {
 
 	if registryClient.Status.Id == "" {
 		return false, nil
 	}
 
-	nClient, err := common.NewNodeConnection(log, client, cluster)
+	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
 		return false, err
 	}
@@ -35,9 +34,9 @@ func ExistRegistryClient(client client.Client, registryClient *v1alpha1.NifiRegi
 	return entity != nil, nil
 }
 
-func CreateRegistryClient(client client.Client, registryClient *v1alpha1.NifiRegistryClient,
-	cluster *v1alpha1.NifiCluster) (*v1alpha1.NifiRegistryClientStatus, error) {
-	nClient, err := common.NewNodeConnection(log, client, cluster)
+func CreateRegistryClient(registryClient *v1alpha1.NifiRegistryClient,
+	config *clientconfig.NifiConfig) (*v1alpha1.NifiRegistryClientStatus, error) {
+	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
 		return nil, err
 	}
@@ -56,10 +55,10 @@ func CreateRegistryClient(client client.Client, registryClient *v1alpha1.NifiReg
 	}, nil
 }
 
-func SyncRegistryClient(client client.Client, registryClient *v1alpha1.NifiRegistryClient,
-	cluster *v1alpha1.NifiCluster) (*v1alpha1.NifiRegistryClientStatus, error) {
+func SyncRegistryClient(registryClient *v1alpha1.NifiRegistryClient,
+	config *clientconfig.NifiConfig) (*v1alpha1.NifiRegistryClientStatus, error) {
 
-	nClient, err := common.NewNodeConnection(log, client, cluster)
+	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
 		return nil, err
 	}
@@ -84,9 +83,9 @@ func SyncRegistryClient(client client.Client, registryClient *v1alpha1.NifiRegis
 	return &status, nil
 }
 
-func RemoveRegistryClient(client client.Client, registryClient *v1alpha1.NifiRegistryClient,
-	cluster *v1alpha1.NifiCluster) error {
-	nClient, err := common.NewNodeConnection(log, client, cluster)
+func RemoveRegistryClient(registryClient *v1alpha1.NifiRegistryClient,
+	config *clientconfig.NifiConfig) error {
+	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
 		return err
 	}

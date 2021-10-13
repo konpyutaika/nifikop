@@ -52,6 +52,9 @@ type FatalReconcileError struct{ error }
 // ReconcileRollingUpgrade states that rolling upgrade is reconciling
 type ReconcileRollingUpgrade struct{ error }
 
+// NilClientConfig states that the client config is nil
+type NilClientConfig struct{ error }
+
 // NifiClusterNotReady states that NC is not ready to receive actions
 type NifiClusterNotReady struct{ error }
 

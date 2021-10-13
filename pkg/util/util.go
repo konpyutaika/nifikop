@@ -205,6 +205,13 @@ func NifiUserSliceContains(list []*v1alpha1.NifiUser, u *v1alpha1.NifiUser) bool
 	return false
 }
 
+func NodesToIdList(nodes []v1alpha1.Node) (ids []int32) {
+	for _, node := range nodes {
+		ids = append(ids, node.Id)
+	}
+	return
+}
+
 // computes the max between 2 ints
 func Max(x, y int) int {
 	if x < y {

@@ -36,7 +36,7 @@ func newMockCluster() *v1alpha1.NifiCluster {
 	cluster.Name = "test"
 	cluster.Namespace = "test"
 	cluster.Spec = v1alpha1.NifiClusterSpec{}
-	cluster.Spec.ListenersConfig = v1alpha1.ListenersConfig{}
+	cluster.Spec.ListenersConfig = &v1alpha1.ListenersConfig{}
 	cluster.Spec.ListenersConfig.InternalListeners = []v1alpha1.InternalListenerConfig{
 		{ContainerPort: 80},
 	}

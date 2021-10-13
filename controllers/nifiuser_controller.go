@@ -19,12 +19,16 @@ package controllers
 import (
 	"context"
 	"emperror.dev/errors"
+	"encoding/json"
 	"fmt"
 	usercli "github.com/Orange-OpenSource/nifikop/pkg/clientwrappers/user"
 	"github.com/Orange-OpenSource/nifikop/pkg/errorfactory"
 	"github.com/Orange-OpenSource/nifikop/pkg/k8sutil"
+	"github.com/Orange-OpenSource/nifikop/pkg/nificlient/config"
 	"github.com/Orange-OpenSource/nifikop/pkg/pki"
 	"github.com/Orange-OpenSource/nifikop/pkg/util"
+	"github.com/Orange-OpenSource/nifikop/pkg/util/clientconfig"
+	"github.com/banzaicloud/k8s-objectmatcher/patch"
 	"github.com/go-logr/logr"
 	certv1 "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha2"
 	corev1 "k8s.io/api/core/v1"
@@ -82,10 +86,38 @@ func (r *NifiUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return RequeueWithError(r.Log, err.Error(), err)
 	}
 
-	// Get the referenced NifiCluster
-	clusterNamespace := GetClusterRefNamespace(instance.Namespace, instance.Spec.ClusterRef)
-	var cluster *v1alpha1.NifiCluster
-	if cluster, err = k8sutil.LookupNifiCluster(r.Client, instance.Spec.ClusterRef.Name, clusterNamespace); err != nil {
+	// Get the last configuration viewed by the operator.
+	o, err := patch.DefaultAnnotator.GetOriginalConfiguration(instance)
+	// Create it if not exist.
+	if o == nil {
+		if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(instance); err != nil {
+			return RequeueWithError(r.Log, "could not apply last state to annotation", err)
+		}
+		if err := r.Client.Update(ctx, instance); err != nil {
+			return RequeueWithError(r.Log, "failed to update NifiUser", err)
+		}
+		o, err = patch.DefaultAnnotator.GetOriginalConfiguration(instance)
+	}
+
+	// Check if the cluster reference changed.
+	original := &v1alpha1.NifiUser{}
+	current := instance.DeepCopy()
+	json.Unmarshal(o, original)
+	if !v1alpha1.ClusterRefsEquals([]v1alpha1.ClusterReference{original.Spec.ClusterRef, instance.Spec.ClusterRef}) {
+		instance.Spec.ClusterRef = original.Spec.ClusterRef
+	}
+
+	// Prepare cluster connection configurations
+	var clientConfig *clientconfig.NifiConfig
+	var clusterConnect clientconfig.ClusterConnect
+
+	// Get the client config manager associated to the cluster ref.
+	clusterRef := instance.Spec.ClusterRef
+	clusterRef.Namespace = GetClusterRefNamespace(instance.Namespace, instance.Spec.ClusterRef)
+	configManager := config.GetClientConfigManager(r.Client, clusterRef)
+
+	// Generate the connect object
+	if clusterConnect, err = configManager.BuildConnect(); err != nil {
 		// This shouldn't trigger anymore, but leaving it here as a safetybelt
 		if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {
 			r.Log.Info("Cluster is gone already, there is nothing we can do")
@@ -95,13 +127,38 @@ func (r *NifiUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			return Reconciled()
 		}
 
+		// If the referenced cluster no more exist, just skip the deletion requirement in cluster ref change case.
+		if !v1alpha1.ClusterRefsEquals([]v1alpha1.ClusterReference{instance.Spec.ClusterRef, current.Spec.ClusterRef}) {
+			if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(current); err != nil {
+				return RequeueWithError(r.Log, "could not apply last state to annotation", err)
+			}
+			if err := r.Client.Update(ctx, current); err != nil {
+					return RequeueWithError(r.Log, "failed to update NifiUser", err)
+				}
+			return RequeueAfter(time.Duration(15) * time.Second)
+		}
+
 		r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceClusterError",
 			fmt.Sprintf("Failed to lookup reference cluster : %s in %s",
-				instance.Spec.ClusterRef.Name, clusterNamespace))
+					instance.Spec.ClusterRef.Name, clusterRef.Namespace))
 		return RequeueWithError(r.Log, "failed to lookup referenced cluster", err)
 	}
 
-	if instance.Spec.GetCreateCert() {
+	// Get the referenced NifiCluster
+	var cluster *v1alpha1.NifiCluster
+	if cluster, err = k8sutil.LookupNifiCluster(r.Client, instance.Spec.ClusterRef.Name, clusterRef.Namespace); err != nil {
+		// This shouldn't trigger anymore, but leaving it here as a safetybelt
+		if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {
+			r.Log.Info("Cluster is gone already, there is nothing we can do")
+			if err = r.removeFinalizer(ctx, instance); err != nil {
+				return RequeueWithError(r.Log, "failed to remove finalizer from NifiUser", err)
+			}
+			return Reconciled()
+		}
+	}
+
+	if v1alpha1.ClusterRefsEquals([]v1alpha1.ClusterReference{instance.Spec.ClusterRef, current.Spec.ClusterRef}) &&
+		instance.Spec.GetCreateCert() && !clusterConnect.IsExternal(){
 
 		// Avoid panic if the user wants to create a nifi user but the cluster is in plaintext mode
 		// TODO: refactor this and use webhook to validate if the cluster is eligible to create a nifi user
@@ -157,21 +214,58 @@ func (r *NifiUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			if err = pkiManager.FinalizeUserCertificate(ctx, instance); err != nil {
 				return RequeueWithError(r.Log, "failed to finalize user certificate", err)
 			}
-			return r.checkFinalizers(ctx, instance, cluster)
 		}
+	}
 
+	// Generate the client configuration.
+	clientConfig, err = configManager.BuildConfig()
+	if err != nil {
+		r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceClusterError",
+			fmt.Sprintf("Failed to create HTTP client for the referenced cluster : %s in %s",
+				instance.Spec.ClusterRef.Name, clusterRef.Namespace))
+		// the cluster does not exist - should have been caught pre-flight
+		return RequeueWithError(r.Log, "failed to create HTTP client the for referenced cluster", err)
 	}
 
 	// check if marked for deletion
 	if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {
-		return r.checkFinalizers(ctx, instance, cluster)
+		return r.checkFinalizers(ctx, instance, clientConfig)
+	}
+
+	// Ensure the cluster is ready to receive actions
+	if !clusterConnect.IsReady(r.Log) {
+		r.Log.Info("Cluster is not ready yet, will wait until it is.")
+		r.Recorder.Event(instance, corev1.EventTypeNormal, "ReferenceClusterNotReady",
+			fmt.Sprintf("The referenced cluster is not ready yet : %s in %s",
+				instance.Spec.ClusterRef.Name, clusterConnect.Id()))
+		// the cluster does not exist - should have been caught pre-flight
+		return RequeueAfter(time.Duration(15) * time.Second)
+	}
+
+	// Ìn case of the cluster reference changed.
+	if !v1alpha1.ClusterRefsEquals([]v1alpha1.ClusterReference{instance.Spec.ClusterRef, current.Spec.ClusterRef}) {
+		// Delete the resource on the previous cluster.
+		if err := usercli.RemoveUser(instance, clientConfig); err != nil {
+			r.Recorder.Event(instance, corev1.EventTypeWarning, "RemoveError",
+				fmt.Sprintf("Failed to delete NifiUser %s from cluster %s before moving in %s",
+					instance.Name, original.Spec.ClusterRef.Name, original.Spec.ClusterRef.Name))
+			return RequeueWithError(r.Log, "Failed to delete NifiUser before moving", err)
+		}
+		// Update the last view configuration to the current one.
+		if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(current); err != nil {
+			return RequeueWithError(r.Log, "could not apply last state to annotation", err)
+		}
+		if err := r.Client.Update(ctx, current); err != nil {
+			return RequeueWithError(r.Log, "failed to update NifiUser", err)
+		}
+		return RequeueAfter(time.Duration(15) * time.Second)
 	}
 
 	r.Recorder.Event(instance, corev1.EventTypeNormal, "Reconciling",
 		fmt.Sprintf("Reconciling user %s", instance.Name))
 
 	// Check if the NiFi user already exist
-	exist, err := usercli.ExistUser(r.Client, instance, cluster)
+	exist, err := usercli.ExistUser(instance, clientConfig)
 	if err != nil {
 		return RequeueWithError(r.Log, "failure checking for existing registry client", err)
 	}
@@ -182,14 +276,14 @@ func (r *NifiUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 		var status *v1alpha1.NifiUserStatus
 
-		status, err = usercli.FindUserByIdentity(r.Client, instance, cluster)
+		status, err = usercli.FindUserByIdentity(instance, clientConfig)
 		if err != nil {
 			return RequeueWithError(r.Log, "failure finding user", err)
 		}
 
 		if status == nil {
 			// Create NiFi registry client
-			status, err = usercli.CreateUser(r.Client, instance, cluster)
+			status, err = usercli.CreateUser(instance, clientConfig)
 			if err != nil {
 				return RequeueWithError(r.Log, "failure creating user", err)
 			}
@@ -206,21 +300,21 @@ func (r *NifiUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	// Sync user resource with NiFi side component
 	r.Recorder.Event(instance, corev1.EventTypeNormal, "Synchronizing",
 		fmt.Sprintf("Synchronizing user %s", instance.Name))
-	status, err := usercli.SyncUser(r.Client, instance, cluster)
+	status, err := usercli.SyncUser(instance, clientConfig)
 	if err != nil {
 		return RequeueWithError(r.Log, "failed to sync NifiUser", err)
 	}
 
 	instance.Status = *status
 	if err := r.Client.Status().Update(ctx, instance); err != nil {
-		return RequeueWithError(r.Log, "failed to update NifiRegistryClient status", err)
+		return RequeueWithError(r.Log, "failed to update NifiUser status", err)
 	}
 
 	r.Recorder.Event(instance, corev1.EventTypeNormal, "Synchronized",
 		fmt.Sprintf("Synchronized user %s", instance.Name))
 
 	// ensure a NifiCluster label
-	if instance, err = r.ensureClusterLabel(ctx, cluster, instance); err != nil {
+	if instance, err = r.ensureClusterLabel(ctx, clusterConnect, instance); err != nil {
 		return RequeueWithError(r.Log, "failed to ensure NifiCluster label on user", err)
 	}
 
@@ -268,8 +362,8 @@ func (r *NifiUserReconciler) SetupWithManager(mgr ctrl.Manager, certManagerEnabl
 	return builder.Complete(r)
 }
 
-func (r *NifiUserReconciler) ensureClusterLabel(ctx context.Context, cluster *v1alpha1.NifiCluster, user *v1alpha1.NifiUser) (*v1alpha1.NifiUser, error) {
-	labels := ApplyClusterRefLabel(cluster, user.GetLabels())
+func (r *NifiUserReconciler) ensureClusterLabel(ctx context.Context, cluster clientconfig.ClusterConnect, user *v1alpha1.NifiUser) (*v1alpha1.NifiUser, error) {
+	labels := ApplyClusterReferenceLabel(cluster, user.GetLabels())
 	if !reflect.DeepEqual(labels, user.GetLabels()) {
 		user.SetLabels(labels)
 		return r.updateAndFetchLatest(ctx, user)
@@ -287,11 +381,11 @@ func (r *NifiUserReconciler) updateAndFetchLatest(ctx context.Context, user *v1a
 	return user, nil
 }
 
-func (r *NifiUserReconciler) checkFinalizers(ctx context.Context, user *v1alpha1.NifiUser, cluster *v1alpha1.NifiCluster) (reconcile.Result, error) {
+func (r *NifiUserReconciler) checkFinalizers(ctx context.Context, user *v1alpha1.NifiUser, config *clientconfig.NifiConfig) (reconcile.Result, error) {
 	r.Log.Info("NiFi user is marked for deletion")
 	var err error
 	if util.StringSliceContains(user.GetFinalizers(), userFinalizer) {
-		if err = r.finalizeNifiUser(user, cluster); err != nil {
+		if err = r.finalizeNifiUser(user, config); err != nil {
 			return RequeueWithError(r.Log, "failed to finalize nifiuser", err)
 		}
 		// remove finalizer
@@ -308,13 +402,8 @@ func (r *NifiUserReconciler) removeFinalizer(ctx context.Context, user *v1alpha1
 	return err
 }
 
-func (r *NifiUserReconciler) finalizeNifiUser(user *v1alpha1.NifiUser, cluster *v1alpha1.NifiCluster) error {
-	if k8sutil.IsMarkedForDeletion(cluster.ObjectMeta) {
-		r.Log.Info("Cluster is being deleted, skipping deletion")
-		return nil
-	}
-
-	if err := usercli.RemoveUser(r.Client, user, cluster); err != nil {
+func (r *NifiUserReconciler) finalizeNifiUser(user *v1alpha1.NifiUser, config *clientconfig.NifiConfig) error {
+	if err := usercli.RemoveUser(user, config); err != nil {
 		return err
 	}
 	r.Log.Info("Delete user")

@@ -6,6 +6,7 @@ require (
 	emperror.dev/errors v0.4.2
 	github.com/antihax/optional v1.0.0
 	github.com/banzaicloud/k8s-objectmatcher v1.4.1
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/erdrix/nigoapi v0.0.0-20210322100900-9bf87aec43d9
 	//	github.com/erdrix/nigoapi v0.0.0-20210301104455-ab202e217b78
 	github.com/go-logr/logr v0.3.0

@@ -12,7 +12,7 @@ spec:
   # the version of the flow to run, if not present or equals to -1, then the latest version of flow will be used.
   flowVersion: 2
   # if the flow will be ran once or continuously checked
-  runOnce: false
+  syncMode: always
   # whether the flow is considered as ran if some controller services are still invalid or not.
   skipInvalidControllerService: true
   #  whether the flow is considered as ran if some components are still invalid or not.

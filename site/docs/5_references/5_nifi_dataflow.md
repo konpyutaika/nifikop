@@ -16,7 +16,7 @@ spec:
   bucketId: "01ced6cc-0378-4893-9403-f6c70d080d4f"
   flowId: "9b2fb465-fb45-49e7-94fe-45b16b642ac9"
   flowVersion: 2
-  runOnce: false
+  syncMode: always
   skipInvalidControllerService: true
   skipInvalidComponent: true
   clusterRef:
@@ -48,7 +48,7 @@ spec:
 |bucketId|string|the UUID of the Bucket containing the flow. |Yes| - |
 |flowId|string|the UUID of the flow to run. |Yes| - |
 |flowVersion|*int32|the version of the flow to run, if not present or equals to -1, then the latest version of flow will be used. |Yes| - |
-|runOnce|bool|if the flow will be ran once or continuously checked. |Yes| true |
+|syncMode|Enum={"never","always","once"}|if the flow will be synchronized once, continuously or never. |No| always |
 |skipInvalidControllerService|bool|whether the flow is considered as ran if some controller services are still invalid or not. |Yes| false |
 |skipInvalidComponent|bool|whether the flow is considered as ran if some components are still invalid or not. |Yes| false |
 |updateStrategy|[DataflowUpdateStrategy](#dataflowupdatestrategy)|describes the way the operator will deal with data when a dataflow will be updated : Drop or Drain |Yes| drain |

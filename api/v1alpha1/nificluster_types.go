@@ -17,11 +17,12 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"strings"
+
 	cmmeta "github.com/jetstack/cert-manager/pkg/apis/meta/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"strings"
 )
 
 const (
@@ -37,6 +38,22 @@ const (
 
 // NifiClusterSpec defines the desired state of NifiCluster
 type NifiClusterSpec struct {
+	// clientType defines if the operator will use basic or tls authentication to query the NiFi cluster.
+	// +kubebuilder:validation:Enum={"tls","basic"}
+	ClientType ClientConfigType `json:"clientType,omitempty"`
+	// type defines if the cluster is internal (i.e manager by the operator) or external.
+	// +kubebuilder:validation:Enum={"external","internal"}
+	Type ClusterType `json:"type,omitempty"`
+	// nodeURITemplate used to dynamically compute node uri (used if external type)
+	NodeURITemplate string `json:"nodeURITemplate,omitempty"`
+	// nifiURI used access through a LB uri (used if external type)
+	NifiURI string `json:"nifiURI,omitempty"`
+	// rootProcessGroupId contains the uuid of the root process group for this cluster (used if external type)
+	RootProcessGroupId string `json:"rootProcessGroupId,omitempty"`
+	// secretRef reference the secret containing the informations required to authentiticate to the cluster (used if external type)
+	SecretRef SecretReference `json:"secretRef,omitempty"`
+	// proxyUrl defines the proxy required to query the NiFi cluster (used if external type)
+	ProxyUrl string `json:"proxyUrl,omitempty"`
 	// Service defines the policy for services owned by NiFiKop operator.
 	Service ServicePolicy `json:"service,omitempty"`
 	// Pod defines the policy for  pods owned by NiFiKop operator.
@@ -44,7 +61,7 @@ type NifiClusterSpec struct {
 	// zKAddress specifies the ZooKeeper connection string
 	// in the form hostname:port where host and port are those of a Zookeeper server.
 	// TODO: rework for nice zookeeper connect string =
-	ZKAddress string `json:"zkAddress"`
+	ZKAddress string `json:"zkAddress,omitempty"`
 	// zKPath specifies the Zookeeper chroot path as part
 	// of its Zookeeper connection string which puts its data under same path in the global ZooKeeper namespace.
 	ZKPath string `json:"zkPath,omitempty"`
@@ -58,7 +75,7 @@ type NifiClusterSpec struct {
 	// oneNifiNodePerNode if set to true every nifi node is started on a new node, if there is not enough node to do that
 	// it will stay in pending state. If set to false the operator also tries to schedule the nifi node to a unique node
 	// but if the node number is insufficient the nifi node will be scheduled to a node where a nifi node is already running.
-	OneNifiNodePerNode bool `json:"oneNifiNodePerNode"`
+	OneNifiNodePerNode bool `json:"oneNifiNodePerNode,omitempty"`
 	// propage
 	PropagateLabels bool `json:"propagateLabels,omitempty"`
 	// managedAdminUsers contains the list of users that will be added to the managed admin group (with all rights)
@@ -81,7 +98,7 @@ type NifiClusterSpec struct {
 	// TODO : add vault
 	//VaultConfig         	VaultConfig         `json:"vaultConfig,omitempty"`
 	// listenerConfig specifies nifi's listener specifig configs
-	ListenersConfig ListenersConfig `json:"listenersConfig"`
+	ListenersConfig *ListenersConfig `json:"listenersConfig,omitempty"`
 	// SidecarsConfig defines additional sidecar configurations
 	SidecarConfigs []corev1.Container `json:"sidecarConfigs,omitempty" patchStrategy:"merge" patchMergeKey:"name" protobuf:"bytes,2,rep,name=containers"`
 	// ExternalService specifies settings required to access nifi externally
@@ -653,4 +670,49 @@ func (nSpec *NifiClusterSpec) GetMetricPort() *int {
 	}
 
 	return nil
+}
+
+func (cluster *NifiCluster) RootProcessGroupId() string {
+	return cluster.Status.RootProcessGroupId
+}
+
+func (c *NifiCluster) GetClientType() ClientConfigType {
+	if c.Spec.ClientType == "" {
+		return ClientConfigTLS
+	}
+	return c.Spec.ClientType
+}
+
+func (c *NifiCluster) GetType() ClusterType {
+	if c.Spec.Type == "" {
+		return InternalCluster
+	}
+	return ExternalCluster
+}
+
+func (c *NifiCluster) IsSet() bool {
+	return (c.GetType() == InternalCluster && len(c.Name) != 0) ||
+		(c.GetType() != ExternalCluster && len(c.Spec.NodeURITemplate) != 0 && len(c.Spec.RootProcessGroupId) != 0)
+}
+
+func (c *NifiCluster) IsInternal() bool {
+	return c.GetType() == InternalCluster
+}
+
+func (c NifiCluster) IsExternal() bool {
+	return c.GetType() != InternalCluster
+}
+
+func (cluster NifiCluster) IsReady() bool {
+	for _, nodeState := range cluster.Status.NodesState {
+		if nodeState.ConfigurationState != ConfigInSync || nodeState.GracefulActionState.State != GracefulUpscaleSucceeded ||
+			!nodeState.PodIsReady {
+			return false
+		}
+	}
+	return cluster.Status.State.IsReady()
+}
+
+func (cluster *NifiCluster) Id() string {
+	return cluster.Name
 }

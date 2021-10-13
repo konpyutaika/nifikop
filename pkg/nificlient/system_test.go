@@ -327,8 +327,9 @@ func testRemoveClusterNodeFromClusterNodeId(t *testing.T, cluster *v1alpha1.Nifi
 func testClientFromCluster(cluster *v1alpha1.NifiCluster, empty bool) (NifiClient, error) {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
-
 	url := nifiAddress(cluster, "/controller/cluster")
+
+	cfg, _ := configFromCluster(cluster)
 	httpmock.RegisterResponder(http.MethodGet, url,
 		func(req *http.Request) (*http.Response, error) {
 			return httpmock.NewJsonResponse(
@@ -336,7 +337,8 @@ func testClientFromCluster(cluster *v1alpha1.NifiCluster, empty bool) (NifiClien
 				MockGetClusterResponse(cluster, empty))
 		})
 
-	return NewFromCluster(mockClient{}, cluster)
+	cli, err := NewFromConfig(cfg)
+	return cli, err
 }
 
 func nifiAddress(cluster *v1alpha1.NifiCluster, path string) string {

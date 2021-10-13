@@ -2,6 +2,7 @@ package nifi
 
 import (
 	"fmt"
+	nifiutil "github.com/Orange-OpenSource/nifikop/pkg/util/nifi"
 	"math"
 	runtimeClient "sigs.k8s.io/controller-runtime/pkg/client"
 	"strconv"
@@ -30,14 +31,14 @@ func (r *Reconciler) podDisruptionBudget(log logr.Logger) (runtimeClient.Object,
 		},
 		ObjectMeta: templates.ObjectMetaWithAnnotations(
 			fmt.Sprintf("%s-pdb", r.NifiCluster.Name),
-			util.MergeLabels(LabelsForNifi(r.NifiCluster.Name), r.NifiCluster.Labels),
+			util.MergeLabels(nifiutil.LabelsForNifi(r.NifiCluster.Name), r.NifiCluster.Labels),
 			r.NifiCluster.Spec.Service.Annotations,
 			r.NifiCluster,
 		),
 		Spec: policyv1beta1.PodDisruptionBudgetSpec{
 			MinAvailable: &minAvailable,
 			Selector: &metav1.LabelSelector{
-				MatchLabels: LabelsForNifi(r.NifiCluster.Name),
+				MatchLabels: nifiutil.LabelsForNifi(r.NifiCluster.Name),
 			},
 		},
 	}, nil

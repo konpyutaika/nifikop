@@ -84,9 +84,6 @@ spec:
                 required:
                 - name
                 type: object
-              runOnce:
-                description: if the flow will be ran once or continuously checked
-                type: boolean
               skipInvalidComponent:
                 description: whether the flow is considered as ran if some components
                   are still invalid or not.
@@ -95,6 +92,14 @@ spec:
                 description: whether the flow is considered as ran if some controller
                   services are still invalid or not.
                 type: boolean
+              syncMode:
+                description: if the flow will be synchronized once, continuously or
+                  never
+                enum:
+                - never
+                - always
+                - once
+                type: string
               updateStrategy:
                 description: 'describes the way the operator will deal with data when
                   a dataflow will be updated : drop or drain'

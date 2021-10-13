@@ -3,6 +3,7 @@ id: 1_getting_started
 title: Getting Started
 sidebar_label: Getting Started
 ---
+
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
@@ -16,7 +17,7 @@ As a pre-requisite it needs a Kubernetes cluster. Also, NiFi requires Zookeeper 
 
 > We believe in the `separation of concerns` principle, thus the NiFi operator does not install nor manage Zookeeper.
 
-## Prerequisites 
+## Prerequisites
 
 ### Install Zookeeper
 
@@ -35,7 +36,7 @@ helm install zookeeper bitnami/zookeeper \
     --set resources.limits.cpu=250m \
     --set global.storageClass=standard \
     --set networkPolicy.enabled=true \
-    --set replicaCount=3 
+    --set replicaCount=3
 ```
 
 :::warning
@@ -47,11 +48,11 @@ Replace the `storageClass` parameter value with your own.
 The NiFiKop operator uses `cert-manager` for issuing certificates to users and and nodes, so you'll need to have it setup in case you want to deploy a secured cluster with authentication enabled.
 
 <Tabs
-  defaultValue="directly"
-  values={[
-    { label: 'Directly', value: 'directly', },
-    { label: 'helm 3', value: 'helm3', },
-  ]
+defaultValue="directly"
+values={[
+{ label: 'Directly', value: 'directly', },
+{ label: 'helm 3', value: 'helm3', },
+]
 }>
 <TabItem value="directly">
 
@@ -60,6 +61,7 @@ The NiFiKop operator uses `cert-manager` for issuing certificates to users and a
 kubectl apply -f \
     https://github.com/jetstack/cert-manager/releases/download/v1.2.0/cert-manager.yaml
 ```
+
 </TabItem>
 <TabItem value="helm3">
 
@@ -114,8 +116,8 @@ Now deploy the helm chart :
 helm install nifikop \
     orange-incubator/nifikop \
     --namespace=nifi \
-    --version 0.6.3 \
-    --set image.tag=v0.6.3-release \
+    --version 0.7.0 \
+    --set image.tag=v0.7.0-release \
     --set resources.requests.memory=256Mi \
     --set resources.requests.cpu=250m \
     --set resources.limits.memory=256Mi \

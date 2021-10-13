@@ -92,7 +92,7 @@ spec:
   bucketId: "01ced6cc-0378-4893-9403-f6c70d080d4f"
   flowId: "9b2fb465-fb45-49e7-94fe-45b16b642ac9"
   flowVersion: 2
-  runOnce: false
+  syncMode: always
   skipInvalidControllerService: true
   skipInvalidComponent: true
   clusterRef:
@@ -111,9 +111,11 @@ To find details about the versioned flow information required check the [officia
 
 You have two modes of control from your dataflow by the operator : 
 
-1 - `Spec.RunOnce == true` : The operator will deploy the dataflow as described in the resource, run it once, and never control it again (unless you change the field to `false`). It is useful when you want to deploy your dataflow in a dev environment, and you want to update the dataflow.
+1 - `Spec.SyncMode == never` : The operator will deploy the dataflow as described in the resource, and never control it (unless you change the field to `always`). It is useful when you want to deploy your dataflow without starting it.
 
-2 - `Spec.RunOnce == false` : The operator will deploy and ensure the dataflow lifecycle, it will avoid all manual modification directly from the Cluster (e.g remove the process group, remove the versioning, update the parent process group, make some local changes ...). If you want to perform update, rollback or stuff like this, you have to simply update the [NifiDataflow] resource.
+2 - `Spec.SyncMode == once` : The operator will deploy the dataflow as described in the resource, run it once, and never control it again (unless you change the field to `always`). It is useful when you want to deploy your dataflow in a dev environment, and you want to update the dataflow.
+
+3 - `Spec.SyncMode == always` : The operator will deploy and ensure the dataflow lifecycle, it will avoid all manual modification directly from the Cluster (e.g remove the process group, remove the versioning, update the parent process group, make some local changes ...). If you want to perform update, rollback or stuff like this, you have to simply update the [NifiDataflow] resource.
 
 :::important
 More information about `Spec.UpdateStrategy` [here](../5_references/5_nifi_dataflow.md#dataflowupdatestrategy)

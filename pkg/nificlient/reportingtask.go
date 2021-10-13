@@ -23,14 +23,14 @@ import (
 
 func (n *nifiClient) GetReportingTask(id string) (*nigoapi.ReportingTaskEntity, error) {
 	// Get nigoapi client, favoring the one associated to the coordinator node.
-	client := n.privilegeCoordinatorClient()
+	client, context := n.privilegeCoordinatorClient()
 	if client == nil {
 		log.Error(ErrNoNodeClientsAvailable, "Error during creating node client")
 		return nil, ErrNoNodeClientsAvailable
 	}
 
 	// Request on Nifi Rest API to get the reporting task informations
-	out, rsp, body, err := client.ReportingTasksApi.GetReportingTask(nil, id)
+	out, rsp, body, err := client.ReportingTasksApi.GetReportingTask(context, id)
 
 	if err := errorGetOperation(rsp, body, err); err != nil {
 		return nil, err
@@ -41,14 +41,14 @@ func (n *nifiClient) GetReportingTask(id string) (*nigoapi.ReportingTaskEntity, 
 
 func (n *nifiClient) CreateReportingTask(entity nigoapi.ReportingTaskEntity) (*nigoapi.ReportingTaskEntity, error) {
 	// Get nigoapi client, favoring the one associated to the coordinator node.
-	client := n.privilegeCoordinatorClient()
+	client, context := n.privilegeCoordinatorClient()
 	if client == nil {
 		log.Error(ErrNoNodeClientsAvailable, "Error during creating node client")
 		return nil, ErrNoNodeClientsAvailable
 	}
 
 	// Request on Nifi Rest API to create the reporting task
-	out, rsp, body, err := client.ControllerApi.CreateReportingTask(nil, entity)
+	out, rsp, body, err := client.ControllerApi.CreateReportingTask(context, entity)
 	if err := errorCreateOperation(rsp, body, err); err != nil {
 		return nil, err
 	}
@@ -58,14 +58,14 @@ func (n *nifiClient) CreateReportingTask(entity nigoapi.ReportingTaskEntity) (*n
 
 func (n *nifiClient) UpdateReportingTask(entity nigoapi.ReportingTaskEntity) (*nigoapi.ReportingTaskEntity, error) {
 	// Get nigoapi client, favoring the one associated to the coordinator node.
-	client := n.privilegeCoordinatorClient()
+	client, context := n.privilegeCoordinatorClient()
 	if client == nil {
 		log.Error(ErrNoNodeClientsAvailable, "Error during creating node client")
 		return nil, ErrNoNodeClientsAvailable
 	}
 
 	// Request on Nifi Rest API to update the reporting task
-	out, rsp, body, err := client.ReportingTasksApi.UpdateReportingTask(nil, entity.Id, entity)
+	out, rsp, body, err := client.ReportingTasksApi.UpdateReportingTask(context, entity.Id, entity)
 	if err := errorUpdateOperation(rsp, body, err); err != nil {
 		return nil, err
 	}
@@ -75,14 +75,14 @@ func (n *nifiClient) UpdateReportingTask(entity nigoapi.ReportingTaskEntity) (*n
 
 func (n *nifiClient) UpdateRunStatusReportingTask(id string, entity nigoapi.ReportingTaskRunStatusEntity) (*nigoapi.ReportingTaskEntity, error) {
 	// Get nigoapi client, favoring the one associated to the coordinator node.
-	client := n.privilegeCoordinatorClient()
+	client, context := n.privilegeCoordinatorClient()
 	if client == nil {
 		log.Error(ErrNoNodeClientsAvailable, "Error during creating node client")
 		return nil, ErrNoNodeClientsAvailable
 	}
 
 	// Request on Nifi Rest API to update the reporting task
-	out, rsp, body, err := client.ReportingTasksApi.UpdateRunStatus(nil, id, entity)
+	out, rsp, body, err := client.ReportingTasksApi.UpdateRunStatus(context, id, entity)
 	if err := errorUpdateOperation(rsp, body, err); err != nil {
 		return nil, err
 	}
@@ -92,14 +92,14 @@ func (n *nifiClient) UpdateRunStatusReportingTask(id string, entity nigoapi.Repo
 
 func (n *nifiClient) RemoveReportingTask(entity nigoapi.ReportingTaskEntity) error {
 	// Get nigoapi client, favoring the one associated to the coordinator node.
-	client := n.privilegeCoordinatorClient()
+	client, context := n.privilegeCoordinatorClient()
 	if client == nil {
 		log.Error(ErrNoNodeClientsAvailable, "Error during creating node client")
 		return ErrNoNodeClientsAvailable
 	}
 
 	// Request on Nifi Rest API to remove the reporting task
-	_, rsp, body, err := client.ReportingTasksApi.RemoveReportingTask(nil, entity.Id,
+	_, rsp, body, err := client.ReportingTasksApi.RemoveReportingTask(context, entity.Id,
 		&nigoapi.ReportingTasksApiRemoveReportingTaskOpts{
 			Version: optional.NewString(strconv.FormatInt(*entity.Revision.Version, 10)),
 		})

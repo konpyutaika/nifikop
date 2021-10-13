@@ -37,14 +37,14 @@ func (r *Reconciler) service(id int32, log logr.Logger) runtimeClient.Object {
 		ObjectMeta: templates.ObjectMeta(nifiutil.ComputeNodeName(id, r.NifiCluster.Name),
 			//fmt.Sprintf("%s-%d", r.NifiCluster.Name, id),
 			util.MergeLabels(
-				LabelsForNifi(r.NifiCluster.Name),
+				nifiutil.LabelsForNifi(r.NifiCluster.Name),
 				map[string]string{"nodeId": fmt.Sprintf("%d", id)},
 			),
 			r.NifiCluster),
 		Spec: corev1.ServiceSpec{
 			Type:            corev1.ServiceTypeClusterIP,
 			SessionAffinity: corev1.ServiceAffinityNone,
-			Selector:        util.MergeLabels(LabelsForNifi(r.NifiCluster.Name), map[string]string{"nodeId": fmt.Sprintf("%d", id)}),
+			Selector:        util.MergeLabels(nifiutil.LabelsForNifi(r.NifiCluster.Name), map[string]string{"nodeId": fmt.Sprintf("%d", id)}),
 			Ports:           usedPorts,
 		},
 	}
@@ -62,12 +62,12 @@ func (r *Reconciler) externalServices(log logr.Logger) []runtimeClient.Object {
 
 		usedPorts := r.generateServicePortForExternalListeners(eService)
 		services = append(services, &corev1.Service{
-			ObjectMeta: templates.ObjectMetaWithAnnotations(eService.Name, LabelsForNifi(r.NifiCluster.Name),
+			ObjectMeta: templates.ObjectMetaWithAnnotations(eService.Name, nifiutil.LabelsForNifi(r.NifiCluster.Name),
 				*annotations, r.NifiCluster),
 			Spec: corev1.ServiceSpec{
 				Type:                     eService.Spec.Type,
 				SessionAffinity:          corev1.ServiceAffinityClientIP,
-				Selector:                 LabelsForNifi(r.NifiCluster.Name),
+				Selector:                 nifiutil.LabelsForNifi(r.NifiCluster.Name),
 				Ports:                    usedPorts,
 				ClusterIP:                eService.Spec.ClusterIP,
 				ExternalIPs:              eService.Spec.ExternalIPs,

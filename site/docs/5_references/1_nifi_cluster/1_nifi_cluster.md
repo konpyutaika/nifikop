@@ -81,14 +81,23 @@ spec:
 
 |Field|Type|Description|Required|Default|
 |-----|----|-----------|--------|--------|
+|clientType|Enum={"tls","basic"}| defines if the operator will use basic or tls authentication to query the NiFi cluster. |No| `tls` |
+|type|Enum={"external","internal"}| defines if the cluster is internal (i.e manager by the operator) or external. |No| `internal` |
+|nodeURITemplate|string| used to dynamically compute node uri. |if external type| - |
+|nifiURI|stringused access through a LB uri. |if external type| - |
+|rootProcessGroupId|string|contains the uuid of the root process group for this cluster. |if external type| - |
+|secretRef|\[ \][SecretReference](./4_nifi_parameter_context#secretreference)|reference the secret containing the informations required to authentiticate to the cluster. |if external type| - |
+|proxyUrl|string|defines the proxy required to query the NiFi cluster. |if external type| - |
+
+
 |service|[ServicePolicy](#servicepolicy)| defines the policy for services owned by NiFiKop operator. |No| - |
 |pod|[PodPolicy](#podpolicy)| defines the policy for pod owned by NiFiKop operator. |No| - |
-|zkAddress|string| specifies the ZooKeeper connection string in the form hostname:port where host and port are those of a Zookeeper server.|Yes|""|
+|zkAddress|string| specifies the ZooKeeper connection string in the form hostname:port where host and port are those of a Zookeeper server.|No|""|
 |zkPath|string| specifies the Zookeeper chroot path as part of its Zookeeper connection string which puts its data under same path in the global ZooKeeper namespace.|Yes|"/"|
 |initContainerImage|string|  can override the default image used into the init container to check if ZoooKeeper server is reachable.. |Yes|"busybox"|
 |initContainers|\[ \]string| defines additional initContainers configurations. |No|\[ \]|
 |clusterImage|string| can specify the whole nificluster image in one place. |No|""|
-|oneNifiNodePerNode|boolean|if set to true every nifi node is started on a new node, if there is not enough node to do that it will stay in pending state. If set to false the operator also tries to schedule the nifi node to a unique node but if the node number is insufficient the nifi node will be scheduled to a node where a nifi node is already running.|Yes| nil |
+|oneNifiNodePerNode|boolean|if set to true every nifi node is started on a new node, if there is not enough node to do that it will stay in pending state. If set to false the operator also tries to schedule the nifi node to a unique node but if the node number is insufficient the nifi node will be scheduled to a node where a nifi node is already running.|No| nil |
 |propagateLabels|boolean| - |Yes|false|
 |managedAdminUsers|\[  \][ManagedUser](#managedusers)| contains the list of users that will be added to the managed admin group (with all rights). |No|[]|
 |managedReaderUsers|\[  \][ManagedUser](#managedusers)| contains the list of users that will be added to the managed admin group (with all rights). |No|[]|
@@ -98,7 +107,7 @@ spec:
 |disruptionBudget|[DisruptionBudget](#disruptionbudget)| defines the configuration for PodDisruptionBudget.|No| nil |
 |ldapConfiguration|[LdapConfiguration](#ldapconfiguration)| specifies the configuration if you want to use LDAP.|No| nil |
 |nifiClusterTaskSpec|[NifiClusterTaskSpec](#nificlustertaskspec)| specifies the configuration of the nifi cluster Tasks.|No| nil |
-|listenersConfig|[ListenersConfig](./6_listeners_config.md)| specifies nifi's listener specifig configs.|Yes| - |
+|listenersConfig|[ListenersConfig](./6_listeners_config.md)| specifies nifi's listener specifig configs.|No| - |
 |sidecarConfigs|\[  \][Container](https://godoc.org/k8s.io/api/core/v1#Container)|Defines additional sidecar configurations. [Check documentation for more informations]|
 |externalServices|\[  \][ExternalServiceConfigs](./7_external_service_config.md)| specifies settings required to access nifi externally.|No| - |
 

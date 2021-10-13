@@ -14,15 +14,17 @@
 package nificlient
 
 import (
+	"context"
+	"emperror.dev/errors"
 	"fmt"
+	"github.com/Orange-OpenSource/nifikop/pkg/util/clientconfig"
 	"net/http"
+	"net/url"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"time"
 
-	"github.com/Orange-OpenSource/nifikop/api/v1alpha1"
 	"github.com/Orange-OpenSource/nifikop/pkg/errorfactory"
 	nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 var log = ctrl.Log.WithName("nifi_client")
@@ -30,12 +32,32 @@ var log = ctrl.Log.WithName("nifi_client")
 const (
 	PRIMARY_NODE        = "Primary Node"
 	CLUSTER_COORDINATOR = "Cluster Coordinator"
+	// ConnectNodeAction states that the NiFi node is connecting to the NiFi Cluster
+	CONNECTING_STATUS = "CONNECTING"
+	// ConnectStatus states that the NiFi node is connected to the NiFi Cluster
+	CONNECTED_STATUS = "CONNECTED"
+	// DisconnectNodeAction states that the NiFi node is disconnecting from NiFi Cluster
+	DISCONNECTING_STATUS = "DISCONNECTING"
+	// DisconnectStatus states that the NiFi node is disconnected from NiFi Cluster
+	DISCONNECTED_STATUS = "DISCONNECTED"
+	// OffloadNodeAction states that the NiFi node is offloading data to NiFi Cluster
+	OFFLOADING_STATUS = "OFFLOADING"
+	// OffloadStatus states that the NiFi node offloaded data to NiFi Cluster
+	OFFLOADED_STATUS = "OFFLOADED"
+	// RemoveNodeAction states that the NiFi node is removing from NiFi Cluster
+	REMOVING_STATUS = "REMOVING"
+	// RemoveStatus states that the NiFi node is removed from NiFi Cluster
+	REMOVED_STATUS = "REMOVED"
 )
 
 // NiFiClient is the exported interface for NiFi operations
 type NifiClient interface {
+	// Access func
+	CreateAccessTokenUsingBasicAuth(username, password string, nodeId int32) (*string, error)
+
 	// System func
 	DescribeCluster() (*nigoapi.ClusterEntity, error)
+	DescribeClusterFromNodeId(nodeId int32) (*nigoapi.ClusterEntity, error)
 	DisconnectClusterNode(nId int32) (*nigoapi.NodeEntity, error)
 	ConnectClusterNode(nId int32) (*nigoapi.NodeEntity, error)
 	OffloadClusterNode(nId int32) (*nigoapi.NodeEntity, error)
@@ -125,7 +147,7 @@ type NifiClient interface {
 
 type nifiClient struct {
 	NifiClient
-	opts       *NifiConfig
+	opts       *clientconfig.NifiConfig
 	client     *nigoapi.APIClient
 	nodeClient map[int32]*nigoapi.APIClient
 	timeout    time.Duration
@@ -135,7 +157,7 @@ type nifiClient struct {
 	newClient func(*nigoapi.Configuration) *nigoapi.APIClient
 }
 
-func New(opts *NifiConfig) NifiClient {
+func New(opts *clientconfig.NifiConfig) NifiClient {
 	nClient := &nifiClient{
 		opts:    opts,
 		timeout: time.Duration(opts.OperationTimeout) * time.Second,
@@ -155,27 +177,27 @@ func (n *nifiClient) Build() error {
 		n.nodeClient[nodeId] = n.newClient(nodeConfig)
 	}
 
-	clusterEntity, err := n.DescribeCluster()
-	if err != nil || clusterEntity == nil || clusterEntity.Cluster == nil {
-		err = errorfactory.New(errorfactory.NodesUnreachable{}, err, fmt.Sprintf("could not connect to nifi nodes: %s", n.opts.NifiURI))
-		return err
-	}
+	if !n.opts.SkipDescribeCluster {
+		clusterEntity, err := n.DescribeCluster()
+		if err != nil || clusterEntity == nil || clusterEntity.Cluster == nil {
+			err = errorfactory.New(errorfactory.NodesUnreachable{}, err, fmt.Sprintf("could not connect to nifi nodes: %s", n.opts.NifiURI))
+			return err
+		}
 
-	n.nodes = clusterEntity.Cluster.Nodes
+		n.nodes = clusterEntity.Cluster.Nodes
+	}
 
 	return nil
 }
 
-// NewFromCluster is a convenient wrapper around New() and ClusterConfig()
-func NewFromCluster(k8sclient client.Client, cluster *v1alpha1.NifiCluster) (NifiClient, error) {
+// NewFromConfig is a convenient wrapper around New() and ClusterConfig()
+func NewFromConfig(opts *clientconfig.NifiConfig) (NifiClient, error) {
 	var client NifiClient
 	var err error
 
-	opts, err := ClusterConfig(k8sclient, cluster)
-	if err != nil {
-		return nil, err
+	if opts == nil {
+		return nil, errorfactory.New(errorfactory.NilClientConfig{}, errors.New("The NiFi client config is nil"), "The NiFi client config is nil")
 	}
-
 	client = New(opts)
 	err = client.Build()
 	if err != nil {
@@ -189,16 +211,38 @@ func (n *nifiClient) getNifiGoApiConfig() (config *nigoapi.Configuration) {
 	config = nigoapi.NewConfiguration()
 
 	protocol := "http"
+	var transport *http.Transport = nil
 	if n.opts.UseSSL {
+		transport = &http.Transport{}
 		config.Scheme = "HTTPS"
 		n.opts.TLSConfig.BuildNameToCertificate()
-		transport := &http.Transport{TLSClientConfig: n.opts.TLSConfig}
-		config.HTTPClient = &http.Client{Transport: transport}
+		transport.TLSClientConfig = n.opts.TLSConfig
 		protocol = "https"
 	}
+
+	if len(n.opts.ProxyUrl) > 0 {
+		proxyUrl, err := url.Parse(n.opts.ProxyUrl)
+		if err == nil {
+			if transport == nil {
+				transport = &http.Transport{}
+			}
+			transport.Proxy = http.ProxyURL(proxyUrl)
+		}
+	}
+
+	config.HTTPClient = &http.Client{}
+	if transport != nil {
+		config.HTTPClient = &http.Client{Transport: transport}
+	}
+
 	config.BasePath = fmt.Sprintf("%s://%s/nifi-api", protocol, n.opts.NifiURI)
 	config.Host = n.opts.NifiURI
-
+	if len(n.opts.NifiURI) == 0 {
+		for nodeId, _ := range n.opts.NodesURI {
+			config.BasePath = fmt.Sprintf("%s://%s/nifi-api", protocol, n.opts.NodesURI[nodeId].RequestHost)
+			config.Host = n.opts.NodesURI[nodeId].RequestHost
+		}
+	}
 	return
 }
 
@@ -207,36 +251,55 @@ func (n *nifiClient) getNiNodeGoApiConfig(nodeId int32) (config *nigoapi.Configu
 	config.HTTPClient = &http.Client{}
 	protocol := "http"
 
+	var transport *http.Transport = nil
 	if n.opts.UseSSL {
+		transport = &http.Transport{}
 		config.Scheme = "HTTPS"
 		n.opts.TLSConfig.BuildNameToCertificate()
-		transport := &http.Transport{TLSClientConfig: n.opts.TLSConfig}
-		config.HTTPClient = &http.Client{Transport: transport}
+		transport.TLSClientConfig = n.opts.TLSConfig
 		protocol = "https"
 	}
+
+	if n.opts.ProxyUrl != "" {
+		proxyUrl, err := url.Parse(n.opts.ProxyUrl)
+		if err == nil {
+			if transport == nil {
+				transport = &http.Transport{}
+			}
+			transport.Proxy = http.ProxyURL(proxyUrl)
+		}
+	}
+	config.HTTPClient = &http.Client{}
+	if transport != nil {
+		config.HTTPClient = &http.Client{Transport: transport}
+	}
+
 	config.BasePath = fmt.Sprintf("%s://%s/nifi-api", protocol, n.opts.NodesURI[nodeId].RequestHost)
-	config.Host = n.opts.NifiURI
+	config.Host = n.opts.NodesURI[nodeId].RequestHost
+	if len(n.opts.NifiURI) != 0 {
+		config.Host = n.opts.NifiURI
+	}
 
 	return
 }
 
-func (n *nifiClient) privilegeCoordinatorClient() *nigoapi.APIClient {
+func (n *nifiClient) privilegeCoordinatorClient() (*nigoapi.APIClient, context.Context) {
 	if clientId := n.coordinatorNodeId(); clientId != nil {
-		return n.nodeClient[*clientId]
+		return n.nodeClient[*clientId], n.opts.NodesContext[*clientId]
 	}
 
 	if clientId := n.privilegeNodeClient(); clientId != nil {
-		return n.nodeClient[*clientId]
+		return n.nodeClient[*clientId], n.opts.NodesContext[*clientId]
 	}
 
-	return n.client
+	return n.client, nil
 }
 
-func (n *nifiClient) privilegeCoordinatorExceptNodeIdClient(nId int32) *nigoapi.APIClient {
+func (n *nifiClient) privilegeCoordinatorExceptNodeIdClient(nId int32) (*nigoapi.APIClient, context.Context) {
 	nodeDto := n.nodeDtoByNodeId(nId)
 	if nodeDto == nil || isCoordinator(nodeDto) {
 		if clientId := n.firstConnectedNodeId(nId); clientId != nil {
-			return n.nodeClient[*clientId]
+			return n.nodeClient[*clientId], n.opts.NodesContext[*clientId]
 		}
 	}
 
@@ -290,14 +353,14 @@ func isCoordinator(node *nigoapi.NodeDto) bool {
 }
 
 func isConnected(node *nigoapi.NodeDto) bool {
-	return node.Status == string(v1alpha1.ConnectStatus)
+	return node.Status == CONNECTED_STATUS
 }
 
 func (n *nifiClient) nodeDtoByNodeId(nId int32) *nigoapi.NodeDto {
 	for id := range n.nodes {
 		nodeDto := n.nodes[id]
 		// Check if the Cluster Node uri match with the one associated to the NifiCluster nodeId searched
-		if fmt.Sprintf("%s:%d", nodeDto.Address, nodeDto.ApiPort) == fmt.Sprintf(n.opts.nodeURITemplate, nId) {
+		if fmt.Sprintf("%s:%d", nodeDto.Address, nodeDto.ApiPort) == fmt.Sprintf(n.opts.NodeURITemplate, nId) {
 			return &nodeDto
 		}
 	}

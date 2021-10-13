@@ -6,9 +6,9 @@ import (
 	"github.com/Orange-OpenSource/nifikop/pkg/common"
 	"github.com/Orange-OpenSource/nifikop/pkg/errorfactory"
 	"github.com/Orange-OpenSource/nifikop/pkg/nificlient"
+	"github.com/Orange-OpenSource/nifikop/pkg/util/clientconfig"
 	nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	"strconv"
 )
 
@@ -24,13 +24,13 @@ const (
 	reportingTaskSendJVM             = "true"
 )
 
-func ExistReportingTaks(client client.Client, cluster *v1alpha1.NifiCluster) (bool, error) {
+func ExistReportingTaks(config *clientconfig.NifiConfig, cluster *v1alpha1.NifiCluster) (bool, error) {
 
 	if cluster.Status.PrometheusReportingTask.Id == "" {
 		return false, nil
 	}
 
-	nClient, err := common.NewNodeConnection(log, client, cluster)
+	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
 		return false, err
 	}
@@ -46,8 +46,8 @@ func ExistReportingTaks(client client.Client, cluster *v1alpha1.NifiCluster) (bo
 	return entity != nil, nil
 }
 
-func CreateReportingTask(client client.Client, cluster *v1alpha1.NifiCluster) (*v1alpha1.PrometheusReportingTaskStatus, error) {
-	nClient, err := common.NewNodeConnection(log, client, cluster)
+func CreateReportingTask(config *clientconfig.NifiConfig, cluster *v1alpha1.NifiCluster) (*v1alpha1.PrometheusReportingTaskStatus, error) {
+	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
 		return nil, err
 	}
@@ -66,9 +66,9 @@ func CreateReportingTask(client client.Client, cluster *v1alpha1.NifiCluster) (*
 	}, nil
 }
 
-func SyncReportingTask(client client.Client, cluster *v1alpha1.NifiCluster) (*v1alpha1.PrometheusReportingTaskStatus, error) {
+func SyncReportingTask(config *clientconfig.NifiConfig, cluster *v1alpha1.NifiCluster) (*v1alpha1.PrometheusReportingTaskStatus, error) {
 
-	nClient, err := common.NewNodeConnection(log, client, cluster)
+	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
 		return nil, err
 	}
@@ -124,8 +124,8 @@ func SyncReportingTask(client client.Client, cluster *v1alpha1.NifiCluster) (*v1
 	return &status, nil
 }
 
-func RemoveReportingTaks(client client.Client, cluster *v1alpha1.NifiCluster) error {
-	nClient, err := common.NewNodeConnection(log, client, cluster)
+func RemoveReportingTaks(config *clientconfig.NifiConfig, cluster *v1alpha1.NifiCluster) error {
+	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
 		return err
 	}

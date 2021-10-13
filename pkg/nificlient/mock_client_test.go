@@ -15,6 +15,8 @@
 package nificlient
 
 import (
+	"github.com/Orange-OpenSource/nifikop/pkg/nificlient/config/common"
+	"github.com/Orange-OpenSource/nifikop/pkg/util/clientconfig"
 	"testing"
 
 	"github.com/Orange-OpenSource/nifikop/api/v1alpha1"
@@ -29,7 +31,7 @@ var (
 
 type mockNiFiClient struct {
 	NifiClient
-	opts       *NifiConfig
+	opts       *clientconfig.NifiConfig
 	client     *nigoapi.APIClient
 	nodeClient map[int32]*nigoapi.APIClient
 	nodes      []nigoapi.NodeDto
@@ -38,8 +40,8 @@ type mockNiFiClient struct {
 	failOpts  bool
 }
 
-func newMockOpts() *NifiConfig {
-	return &NifiConfig{}
+func newMockOpts() *clientconfig.NifiConfig {
+	return &clientconfig.NifiConfig{}
 }
 
 func newMockHttpClient(c *nigoapi.Configuration) *nigoapi.APIClient {
@@ -144,6 +146,7 @@ func testClusterMock(t *testing.T) *v1alpha1.NifiCluster {
 	cluster.Name = clusterName
 	cluster.Namespace = clusterNamespace
 	cluster.Spec = v1alpha1.NifiClusterSpec{}
+	cluster.Spec.ListenersConfig = &v1alpha1.ListenersConfig{}
 
 	cluster.Spec.Nodes = []v1alpha1.Node{
 		{Id: 0},
@@ -157,4 +160,9 @@ func testClusterMock(t *testing.T) *v1alpha1.NifiCluster {
 		{Type: "s2s", ContainerPort: 8085},
 	}
 	return cluster
+}
+
+func configFromCluster(cluster *v1alpha1.NifiCluster) (*clientconfig.NifiConfig, error) {
+	conf := common.ClusterConfig(cluster)
+	return conf, nil
 }

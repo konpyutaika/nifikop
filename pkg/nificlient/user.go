@@ -23,14 +23,14 @@ import (
 
 func (n *nifiClient) GetUsers() ([]nigoapi.UserEntity, error) {
 	// Get nigoapi client, favoring the one associated to the coordinator node.
-	client := n.privilegeCoordinatorClient()
+	client, context := n.privilegeCoordinatorClient()
 	if client == nil {
 		log.Error(ErrNoNodeClientsAvailable, "Error during creating node client")
 		return nil, ErrNoNodeClientsAvailable
 	}
 
 	// Request on Nifi Rest API to get the users informations
-	usersEntity, rsp, body, err := client.TenantsApi.GetUsers(nil)
+	usersEntity, rsp, body, err := client.TenantsApi.GetUsers(context)
 
 	if err := errorGetOperation(rsp, body, err); err != nil {
 		return nil, err
@@ -41,14 +41,14 @@ func (n *nifiClient) GetUsers() ([]nigoapi.UserEntity, error) {
 
 func (n *nifiClient) GetUser(id string) (*nigoapi.UserEntity, error) {
 	// Get nigoapi client, favoring the one associated to the coordinator node.
-	client := n.privilegeCoordinatorClient()
+	client, context := n.privilegeCoordinatorClient()
 	if client == nil {
 		log.Error(ErrNoNodeClientsAvailable, "Error during creating node client")
 		return nil, ErrNoNodeClientsAvailable
 	}
 
 	// Request on Nifi Rest API to get the user informations
-	userEntity, rsp, body, err := client.TenantsApi.GetUser(nil, id)
+	userEntity, rsp, body, err := client.TenantsApi.GetUser(context, id)
 
 	if err := errorGetOperation(rsp, body, err); err != nil {
 		return nil, err
@@ -59,14 +59,14 @@ func (n *nifiClient) GetUser(id string) (*nigoapi.UserEntity, error) {
 
 func (n *nifiClient) CreateUser(entity nigoapi.UserEntity) (*nigoapi.UserEntity, error) {
 	// Get nigoapi client, favoring the one associated to the coordinator node.
-	client := n.privilegeCoordinatorClient()
+	client, context := n.privilegeCoordinatorClient()
 	if client == nil {
 		log.Error(ErrNoNodeClientsAvailable, "Error during creating node client")
 		return nil, ErrNoNodeClientsAvailable
 	}
 
 	// Request on Nifi Rest API to create the user
-	userEntity, rsp, body, err := client.TenantsApi.CreateUser(nil, entity)
+	userEntity, rsp, body, err := client.TenantsApi.CreateUser(context, entity)
 	if err := errorCreateOperation(rsp, body, err); err != nil {
 		return nil, err
 	}
@@ -76,14 +76,14 @@ func (n *nifiClient) CreateUser(entity nigoapi.UserEntity) (*nigoapi.UserEntity,
 
 func (n *nifiClient) UpdateUser(entity nigoapi.UserEntity) (*nigoapi.UserEntity, error) {
 	// Get nigoapi client, favoring the one associated to the coordinator node.
-	client := n.privilegeCoordinatorClient()
+	client, context := n.privilegeCoordinatorClient()
 	if client == nil {
 		log.Error(ErrNoNodeClientsAvailable, "Error during creating node client")
 		return nil, ErrNoNodeClientsAvailable
 	}
 
 	// Request on Nifi Rest API to update the user
-	userEntity, rsp, body, err := client.TenantsApi.UpdateUser(nil, entity.Id, entity)
+	userEntity, rsp, body, err := client.TenantsApi.UpdateUser(context, entity.Id, entity)
 	if err := errorUpdateOperation(rsp, body, err); err != nil {
 		return nil, err
 	}
@@ -93,14 +93,14 @@ func (n *nifiClient) UpdateUser(entity nigoapi.UserEntity) (*nigoapi.UserEntity,
 
 func (n *nifiClient) RemoveUser(entity nigoapi.UserEntity) error {
 	// Get nigoapi client, favoring the one associated to the coordinator node.
-	client := n.privilegeCoordinatorClient()
+	client, context := n.privilegeCoordinatorClient()
 	if client == nil {
 		log.Error(ErrNoNodeClientsAvailable, "Error during creating node client")
 		return ErrNoNodeClientsAvailable
 	}
 
 	// Request on Nifi Rest API to remove the user
-	_, rsp, body, err := client.TenantsApi.RemoveUser(nil, entity.Id,
+	_, rsp, body, err := client.TenantsApi.RemoveUser(context, entity.Id,
 		&nigoapi.TenantsApiRemoveUserOpts{
 			Version: optional.NewString(strconv.FormatInt(*entity.Revision.Version, 10)),
 		})

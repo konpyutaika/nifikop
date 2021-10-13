@@ -39,7 +39,7 @@ spec:
             properties:
               clusterRef:
                 description: contains the reference to the NifiCluster with the one
-                  the user is linked.
+                  the dataflow is linked.
                 properties:
                   name:
                     type: string
@@ -84,7 +84,6 @@ spec:
                   type: object
                 type: array
             required:
-            - clusterRef
             - parameters
             type: object
           status:

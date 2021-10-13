@@ -16,12 +16,12 @@ package nifi
 
 import (
 	"fmt"
+	configcommon "github.com/Orange-OpenSource/nifikop/pkg/nificlient/config/common"
 	runtimeClient "sigs.k8s.io/controller-runtime/pkg/client"
 	"sort"
 	"strings"
 
 	"github.com/Orange-OpenSource/nifikop/api/v1alpha1"
-	"github.com/Orange-OpenSource/nifikop/pkg/nificlient"
 	"github.com/Orange-OpenSource/nifikop/pkg/resources/templates"
 	"github.com/Orange-OpenSource/nifikop/pkg/util"
 	nifiutil "github.com/Orange-OpenSource/nifikop/pkg/util/nifi"
@@ -75,7 +75,7 @@ func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev
 
 	podVolumes := append(volume, []corev1.Volume{
 		{
-			Name: nodeConfigMapVolumeMount,
+			Name: nodeSecretVolumeMount,
 			VolumeSource: corev1.VolumeSource{
 				//ConfigMap: &corev1.ConfigMapVolumeSource{
 				Secret: &corev1.SecretVolumeSource{
@@ -95,7 +95,7 @@ func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev
 
 	podVolumeMounts := append(volumeMount, []corev1.VolumeMount{
 		{
-			Name:      nodeConfigMapVolumeMount,
+			Name:      nodeSecretVolumeMount,
 			MountPath: "/opt/nifi/nifi-current/tmp",
 		},
 		{
@@ -133,7 +133,7 @@ func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev
 		ObjectMeta: templates.ObjectMetaWithGeneratedNameAndAnnotations(
 			nifiutil.ComputeNodeName(id, r.NifiCluster.Name),
 			util.MergeLabels(
-				LabelsForNifi(r.NifiCluster.Name),
+				nifiutil.LabelsForNifi(r.NifiCluster.Name),
 				map[string]string{"nodeId": fmt.Sprintf("%d", id)},
 			),
 			util.MergeAnnotations(anntotationsToMerge...), r.NifiCluster,
@@ -219,7 +219,7 @@ func generatePodAntiAffinity(clusterName string, hardRuleEnabled bool) *corev1.P
 			RequiredDuringSchedulingIgnoredDuringExecution: []corev1.PodAffinityTerm{
 				{
 					LabelSelector: &metav1.LabelSelector{
-						MatchLabels: LabelsForNifi(clusterName),
+						MatchLabels: nifiutil.LabelsForNifi(clusterName),
 					},
 					TopologyKey: "kubernetes.io/hostname",
 				},
@@ -232,7 +232,7 @@ func generatePodAntiAffinity(clusterName string, hardRuleEnabled bool) *corev1.P
 					Weight: int32(100),
 					PodAffinityTerm: corev1.PodAffinityTerm{
 						LabelSelector: &metav1.LabelSelector{
-							MatchLabels: LabelsForNifi(clusterName),
+							MatchLabels: nifiutil.LabelsForNifi(clusterName),
 						},
 						TopologyKey: "kubernetes.io/hostname",
 					},
@@ -376,7 +376,7 @@ func (r *Reconciler) createNifiNodeContainer(nodeConfig *v1alpha1.NodeConfig, id
 	nifiNodeContainersPorts = append(nifiNodeContainersPorts, r.generateDefaultContainerPort()...)
 
 	readinessCommand := fmt.Sprintf(`curl -kv http://$(hostname -f):%d/nifi-api`,
-		GetServerPort(&r.NifiCluster.Spec.ListenersConfig))
+		GetServerPort(r.NifiCluster.Spec.ListenersConfig))
 
 	if r.NifiCluster.Spec.ListenersConfig.SSLSecrets != nil {
 		readinessCommand = fmt.Sprintf(`curl -kv --cert  %s/%s --key %s/%s https://$(hostname -f):%d/nifi`,
@@ -384,7 +384,7 @@ func (r *Reconciler) createNifiNodeContainer(nodeConfig *v1alpha1.NodeConfig, id
 			v1alpha1.TLSCert,
 			serverKeystorePath,
 			v1alpha1.TLSKey,
-			GetServerPort(&r.NifiCluster.Spec.ListenersConfig))
+			GetServerPort(r.NifiCluster.Spec.ListenersConfig))
 	}
 
 	failCondition := ""
@@ -401,7 +401,7 @@ func (r *Reconciler) createNifiNodeContainer(nodeConfig *v1alpha1.NodeConfig, id
 	requestClusterStatus := fmt.Sprintf("curl --fail -v http://%s/nifi-api/controller/cluster > $NIFI_BASE_DIR/cluster.state",
 		nifiutil.GenerateRequestNiFiAllNodeAddressFromCluster(r.NifiCluster))
 
-	if nificlient.UseSSL(r.NifiCluster) {
+	if configcommon.UseSSL(r.NifiCluster) {
 		requestClusterStatus = fmt.Sprintf(
 			"curl --fail -kv --cert /var/run/secrets/java.io/keystores/client/tls.crt --key /var/run/secrets/java.io/keystores/client/tls.key https://%s/nifi-api/controller/cluster > $NIFI_BASE_DIR/cluster.state",
 			nifiutil.GenerateRequestNiFiAllNodeAddressFromCluster(r.NifiCluster))
@@ -494,7 +494,7 @@ exec bin/nifi.sh run`, resolveIp, removesFileAction)}
 			FailureThreshold:    livenessHealthCheckThreshold,
 			Handler: corev1.Handler{
 				TCPSocket: &corev1.TCPSocketAction{
-					Port: *util.IntstrPointer(int(GetServerPort(&r.NifiCluster.Spec.ListenersConfig))),
+					Port: *util.IntstrPointer(int(GetServerPort(r.NifiCluster.Spec.ListenersConfig))),
 				},
 			},
 		},
