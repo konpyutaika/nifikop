@@ -19,11 +19,15 @@ package controllers
 import (
 	"context"
 	"emperror.dev/errors"
+	"encoding/json"
 	"fmt"
 	"github.com/Orange-OpenSource/nifikop/pkg/clientwrappers/dataflow"
 	"github.com/Orange-OpenSource/nifikop/pkg/errorfactory"
 	"github.com/Orange-OpenSource/nifikop/pkg/k8sutil"
+	"github.com/Orange-OpenSource/nifikop/pkg/nificlient/config"
 	"github.com/Orange-OpenSource/nifikop/pkg/util"
+	"github.com/Orange-OpenSource/nifikop/pkg/util/clientconfig"
+	"github.com/banzaicloud/k8s-objectmatcher/patch"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/client-go/tools/record"
@@ -79,15 +83,25 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		return RequeueWithError(r.Log, err.Error(), err)
 	}
 
-	// Ensure finalizer for cleanup on deletion
-	if !util.StringSliceContains(instance.GetFinalizers(), dataflowFinalizer) {
-		r.Log.Info("Adding Finalizer for NifiDataflow")
-		instance.SetFinalizers(append(instance.GetFinalizers(), dataflowFinalizer))
+	// Get the last configuration viewed by the operator.
+	o, err := patch.DefaultAnnotator.GetOriginalConfiguration(instance)
+	// Create it if not exist.
+	if o == nil {
+		if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(instance); err != nil {
+			return RequeueWithError(r.Log, "could not apply last state to annotation", err)
+		}
+		if err := r.Client.Update(ctx, instance); err != nil {
+			return RequeueWithError(r.Log, "failed to update NifiRegistryClient", err)
+		}
+		o, err = patch.DefaultAnnotator.GetOriginalConfiguration(instance)
 	}
 
-	// Push any changes
-	if instance, err = r.updateAndFetchLatest(ctx, instance); err != nil {
-		return RequeueWithError(r.Log, "failed to update NifiDataflow", err)
+	// Check if the cluster reference changed.
+	original := &v1alpha1.NifiDataflow{}
+	current := instance.DeepCopy()
+	json.Unmarshal(o, original)
+	if !v1alpha1.ClusterRefsEquals([]v1alpha1.ClusterReference{original.Spec.ClusterRef, instance.Spec.ClusterRef}) {
+		instance.Spec.ClusterRef = original.Spec.ClusterRef
 	}
 
 	// Get the referenced NifiRegistryClient
@@ -95,14 +109,14 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	var registryClientNamespace string
 	if instance.Spec.RegistryClientRef != nil {
 		registryClientNamespace =
-			GetRegistryClientRefNamespace(instance.Namespace, *instance.Spec.RegistryClientRef)
+			GetRegistryClientRefNamespace(current.Namespace, *current.Spec.RegistryClientRef)
 
 		if registryClient, err = k8sutil.LookupNifiRegistryClient(r.Client,
-			instance.Spec.RegistryClientRef.Name, registryClientNamespace); err != nil {
+			current.Spec.RegistryClientRef.Name, registryClientNamespace); err != nil {
 
 			// This shouldn't trigger anymore, but leaving it here as a safetybelt
 			if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {
-				r.Log.Info("Registry client is already gone, there is nothing we can do")
+				r.Log.Info("Dataflow is already gone, there is nothing we can do")
 				if err = r.removeFinalizer(ctx, instance); err != nil {
 					return RequeueWithError(r.Log, "failed to remove finalizer", err)
 				}
@@ -116,16 +130,16 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 
 	var parameterContext *v1alpha1.NifiParameterContext
 	var parameterContextNamespace string
-	if instance.Spec.ParameterContextRef != nil {
+	if current.Spec.ParameterContextRef != nil {
 		parameterContextNamespace =
-			GetParameterContextRefNamespace(instance.Namespace, *instance.Spec.ParameterContextRef)
+			GetParameterContextRefNamespace(current.Namespace, *current.Spec.ParameterContextRef)
 
 		if parameterContext, err = k8sutil.LookupNifiParameterContext(r.Client,
-			instance.Spec.ParameterContextRef.Name, parameterContextNamespace); err != nil {
+			current.Spec.ParameterContextRef.Name, parameterContextNamespace); err != nil {
 
 			// This shouldn't trigger anymore, but leaving it here as a safetybelt
 			if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {
-				r.Log.Info("Parameter context is already gone, there is nothing we can do")
+				r.Log.Info("Dataflow context is already gone, there is nothing we can do")
 				if err = r.removeFinalizer(ctx, instance); err != nil {
 					return RequeueWithError(r.Log, "failed to remove finalizer", err)
 				}
@@ -142,17 +156,21 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	}
 
 	// Check if cluster references are the same
-	clusterNamespace := GetClusterRefNamespace(instance.Namespace, instance.Spec.ClusterRef)
-	if registryClient != nil &&
-		(registryClientNamespace != clusterNamespace ||
-			registryClient.Spec.ClusterRef.Name != instance.Spec.ClusterRef.Name ||
-			(parameterContext != nil &&
-				(parameterContextNamespace != clusterNamespace ||
-					parameterContext.Spec.ClusterRef.Name != instance.Spec.ClusterRef.Name))) {
+	registryClusterRef := registryClient.Spec.ClusterRef
+	registryClusterRef.Namespace = registryClientNamespace
+
+	parameterContextClusterRef := parameterContext.Spec.ClusterRef
+	parameterContextClusterRef.Namespace = parameterContextNamespace
+
+	currentClusterRef := current.Spec.ClusterRef
+	currentClusterRef.Namespace = GetClusterRefNamespace(current.Namespace, current.Spec.ClusterRef)
+
+	if !v1alpha1.ClusterRefsEquals(
+		[]v1alpha1.ClusterReference{registryClusterRef, parameterContextClusterRef, currentClusterRef}) {
 
 		r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceClusterError",
 			fmt.Sprintf("Failed to lookup reference cluster : %s in %s",
-				instance.Spec.ClusterRef.Name, clusterNamespace))
+				instance.Spec.ClusterRef.Name, currentClusterRef.Namespace))
 
 		return RequeueWithError(
 			r.Log,
@@ -160,27 +178,91 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 			errors.New("inconsistent cluster references"))
 	}
 
-	var cluster *v1alpha1.NifiCluster
-	if cluster, err = k8sutil.LookupNifiCluster(r.Client, instance.Spec.ClusterRef.Name, clusterNamespace); err != nil {
+	// Prepare cluster connection configurations
+	var clientConfig *clientconfig.NifiConfig
+	var clusterConnect clientconfig.ClusterConnect
+
+	// Get the client config manager associated to the cluster ref.
+	clusterRef := instance.Spec.ClusterRef
+	clusterRef.Namespace = currentClusterRef.Namespace
+	configManager := config.GetClientConfigManager(r.Client, clusterRef)
+
+	// Generate the connect object
+	if clusterConnect, err = configManager.BuildConnect(); err != nil {
 		// This shouldn't trigger anymore, but leaving it here as a safetybelt
 		if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {
 			r.Log.Info("Cluster is already gone, there is nothing we can do")
 			if err = r.removeFinalizer(ctx, instance); err != nil {
-				return RequeueWithError(r.Log, "failed to remove finalizer", err)
-			}
+					return RequeueWithError(r.Log, "failed to remove finalizer", err)
+				}
 			return Reconciled()
 		}
+
+		// If the referenced cluster no more exist, just skip the deletion requirement in cluster ref change case.
+		if !v1alpha1.ClusterRefsEquals([]v1alpha1.ClusterReference{instance.Spec.ClusterRef, current.Spec.ClusterRef}) {
+			if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(current); err != nil {
+				return RequeueWithError(r.Log, "could not apply last state to annotation", err)
+			}
+			if err := r.Client.Update(ctx, current); err != nil {
+					return RequeueWithError(r.Log, "failed to update NifiDataflow", err)
+				}
+				return RequeueAfter(time.Duration(15) * time.Second)
+		}
+		r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceClusterError",
+			fmt.Sprintf("Failed to lookup reference cluster : %s in %s",
+					instance.Spec.ClusterRef.Name, currentClusterRef.Namespace))
 
 		// the cluster does not exist - should have been caught pre-flight
 		return RequeueWithError(r.Log, "failed to lookup referenced cluster", err)
 	}
 
-	// Check if marked for deletion and if so run finalizers
-	if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {
-		return r.checkFinalizers(ctx, instance, cluster)
+	// Generate the client configuration.
+	clientConfig, err = configManager.BuildConfig()
+	if err != nil {
+		r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceClusterError",
+			fmt.Sprintf("Failed to create HTTP client for the referenced cluster : %s in %s",
+				instance.Spec.ClusterRef.Name, currentClusterRef.Namespace))
+		// the cluster does not exist - should have been caught pre-flight
+		return RequeueWithError(r.Log, "failed to create HTTP client the for referenced cluster", err)
 	}
 
-	if instance.Spec.GetRunOnce() && instance.Status.State == v1alpha1.DataflowStateRan {
+	// Check if marked for deletion and if so run finalizers
+	if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {
+		return r.checkFinalizers(ctx, instance, clientConfig)
+	}
+
+	// Ensure the cluster is ready to receive actions
+	if !clusterConnect.IsReady(r.Log) {
+		r.Log.Info("Cluster is not ready yet, will wait until it is.")
+		r.Recorder.Event(instance, corev1.EventTypeNormal, "ReferenceClusterNotReady",
+			fmt.Sprintf("The referenced cluster is not ready yet : %s in %s",
+				instance.Spec.ClusterRef.Name, clusterConnect.Id()))
+
+		// the cluster does not exist - should have been caught pre-flight
+		return RequeueAfter(time.Duration(15) * time.Second)
+	}
+
+	// Ìn case of the cluster reference changed.
+	if !v1alpha1.ClusterRefsEquals([]v1alpha1.ClusterReference{instance.Spec.ClusterRef, current.Spec.ClusterRef}) {
+		// Delete the resource on the previous cluster.
+		if _, err := dataflow.RemoveDataflow(instance, clientConfig); err != nil {
+			r.Recorder.Event(instance, corev1.EventTypeWarning, "RemoveError",
+				fmt.Sprintf("Failed to delete NifiDataflow %s from cluster %s before moving in %s",
+					instance.Name, original.Spec.ClusterRef.Name, original.Spec.ClusterRef.Name))
+			return RequeueWithError(r.Log, "Failed to delete NifiDataflow before moving", err)
+		}
+		// Update the last view configuration to the current one.
+		if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(current); err != nil {
+			return RequeueWithError(r.Log, "could not apply last state to annotation", err)
+		}
+		if err := r.Client.Update(ctx, current); err != nil {
+			return RequeueWithError(r.Log, "failed to update NifiDatafllow", err)
+		}
+		return RequeueAfter(time.Duration(15) * time.Second)
+	}
+
+	if (instance.Spec.SyncNever() && len(instance.Status.State) > 0) ||
+		(instance.Spec.SyncOnce() && instance.Status.State == v1alpha1.DataflowStateRan) {
 		return Reconciled()
 	}
 
@@ -190,7 +272,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 			instance.Spec.FlowId, strconv.FormatInt(int64(*instance.Spec.FlowVersion), 10)))
 
 	// Check if the dataflow already exist
-	existing, err := dataflow.DataflowExist(r.Client, instance, cluster)
+	existing, err := dataflow.DataflowExist(instance, clientConfig)
 	if err != nil {
 		return RequeueWithError(r.Log, "failure checking for existing dataflow", err)
 	}
@@ -202,7 +284,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 				instance.Name, instance.Spec.BucketId,
 				instance.Spec.FlowId, strconv.FormatInt(int64(*instance.Spec.FlowVersion), 10)))
 
-		processGroupStatus, err := dataflow.CreateDataflow(r.Client, instance, cluster, registryClient)
+		processGroupStatus, err := dataflow.CreateDataflow(instance, clientConfig, registryClient)
 		if err != nil {
 			r.Recorder.Event(instance, corev1.EventTypeWarning, "CreationFailed",
 				fmt.Sprintf("Creation failed dataflow %s based on flow {bucketId : %s, flowId: %s, version: %s}",
@@ -227,6 +309,21 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		existing = true
 	}
 
+	// Ensure finalizer for cleanup on deletion
+	if !util.StringSliceContains(instance.GetFinalizers(), dataflowFinalizer) {
+		r.Log.Info("Adding Finalizer for NifiDataflow")
+		instance.SetFinalizers(append(instance.GetFinalizers(), dataflowFinalizer))
+	}
+
+	// Push any changes
+	if instance, err = r.updateAndFetchLatest(ctx, instance); err != nil {
+		return RequeueWithError(r.Log, "failed to update NifiDataflow", err)
+	}
+
+	if instance.Spec.SyncNever(){
+		return Reconciled()
+	}
+
 	// In case where the flow is not sync
 	if instance.Status.State == v1alpha1.DataflowStateOutOfSync {
 		r.Recorder.Event(instance, corev1.EventTypeNormal, "Synchronizing",
@@ -234,7 +331,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 				instance.Name, instance.Spec.BucketId,
 				instance.Spec.FlowId, strconv.FormatInt(int64(*instance.Spec.FlowVersion), 10)))
 
-		status, err := dataflow.SyncDataflow(r.Client, instance, cluster, registryClient, parameterContext)
+		status, err := dataflow.SyncDataflow(instance, clientConfig, registryClient, parameterContext)
 		if status != nil {
 			instance.Status = *status
 			if err := r.Client.Status().Update(ctx, instance); err != nil {
@@ -272,7 +369,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	}
 
 	// Check if the flow is out of sync
-	isOutOfSink, err := dataflow.IsOutOfSyncDataflow(r.Client, instance, cluster, registryClient, parameterContext)
+	isOutOfSink, err := dataflow.IsOutOfSyncDataflow(instance, clientConfig, registryClient, parameterContext)
 	if err != nil {
 		return RequeueWithError(r.Log, "failed to check NifiDataflow sync", err)
 	}
@@ -289,7 +386,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	if instance.Status.State == v1alpha1.DataflowStateCreated ||
 		instance.Status.State == v1alpha1.DataflowStateStarting ||
 		instance.Status.State == v1alpha1.DataflowStateInSync ||
-		(!instance.Spec.GetRunOnce() && instance.Status.State == v1alpha1.DataflowStateRan) {
+		(!instance.Spec.SyncOnce() && instance.Status.State == v1alpha1.DataflowStateRan) {
 
 		instance.Status.State = v1alpha1.DataflowStateStarting
 		if err := r.Client.Status().Update(ctx, instance); err != nil {
@@ -301,7 +398,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 				instance.Name, instance.Spec.BucketId,
 				instance.Spec.FlowId, strconv.FormatInt(int64(*instance.Spec.FlowVersion), 10)))
 
-		if err := dataflow.ScheduleDataflow(r.Client, instance, cluster); err != nil {
+		if err := dataflow.ScheduleDataflow(instance, clientConfig); err != nil {
 			switch errors.Cause(err).(type) {
 			case errorfactory.NifiFlowControllerServiceScheduling, errorfactory.NifiFlowScheduling:
 				return RequeueAfter(time.Duration(5) * time.Second)
@@ -326,7 +423,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	}
 
 	// Ensure NifiCluster label
-	if instance, err = r.ensureClusterLabel(ctx, cluster, instance); err != nil {
+	if instance, err = r.ensureClusterLabel(ctx, clusterConnect, instance); err != nil {
 		return RequeueWithError(r.Log, "failed to ensure NifiCluster label on dataflow", err)
 	}
 
@@ -342,7 +439,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 			instance.Name, instance.Spec.BucketId,
 			instance.Spec.FlowId, strconv.FormatInt(int64(*instance.Spec.FlowVersion), 10)))
 
-	if instance.Spec.GetRunOnce() {
+	if instance.Spec.SyncOnce() {
 		return Reconciled()
 	}
 
@@ -356,10 +453,10 @@ func (r *NifiDataflowReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
-func (r *NifiDataflowReconciler) ensureClusterLabel(ctx context.Context, cluster *v1alpha1.NifiCluster,
+func (r *NifiDataflowReconciler) ensureClusterLabel(ctx context.Context, cluster clientconfig.ClusterConnect,
 	flow *v1alpha1.NifiDataflow) (*v1alpha1.NifiDataflow, error) {
 
-	labels := ApplyClusterRefLabel(cluster, flow.GetLabels())
+	labels := ApplyClusterReferenceLabel(cluster, flow.GetLabels())
 	if !reflect.DeepEqual(labels, flow.GetLabels()) {
 		flow.SetLabels(labels)
 		return r.updateAndFetchLatest(ctx, flow)
@@ -380,12 +477,12 @@ func (r *NifiDataflowReconciler) updateAndFetchLatest(ctx context.Context,
 }
 
 func (r *NifiDataflowReconciler) checkFinalizers(ctx context.Context, flow *v1alpha1.NifiDataflow,
-	cluster *v1alpha1.NifiCluster) (reconcile.Result, error) {
+	config *clientconfig.NifiConfig) (reconcile.Result, error) {
 
 	r.Log.Info("NiFi dataflow is marked for deletion")
 	var err error
 	if util.StringSliceContains(flow.GetFinalizers(), dataflowFinalizer) {
-		if err = r.finalizeNifiDataflow(flow, cluster); err != nil {
+		if err = r.finalizeNifiDataflow(flow, config); err != nil {
 			switch errors.Cause(err).(type) {
 			case errorfactory.NifiConnectionDropping, errorfactory.NifiFlowDraining:
 				return RequeueAfter(time.Duration(5) * time.Second)
@@ -407,9 +504,9 @@ func (r *NifiDataflowReconciler) removeFinalizer(ctx context.Context, flow *v1al
 	return err
 }
 
-func (r *NifiDataflowReconciler) finalizeNifiDataflow(flow *v1alpha1.NifiDataflow, cluster *v1alpha1.NifiCluster) error {
+func (r *NifiDataflowReconciler) finalizeNifiDataflow(flow *v1alpha1.NifiDataflow, config *clientconfig.NifiConfig) error {
 
-	exists, err := dataflow.DataflowExist(r.Client, flow, cluster)
+	exists, err := dataflow.DataflowExist(flow, config)
 	if err != nil {
 		return err
 	}
@@ -420,7 +517,7 @@ func (r *NifiDataflowReconciler) finalizeNifiDataflow(flow *v1alpha1.NifiDataflo
 				flow.Name, flow.Spec.BucketId,
 				flow.Spec.FlowId, strconv.FormatInt(int64(*flow.Spec.FlowVersion), 10)))
 
-		if _, err = dataflow.RemoveDataflow(r.Client, flow, cluster); err != nil {
+		if _, err = dataflow.RemoveDataflow(flow, config); err != nil {
 			return err
 		}
 		r.Recorder.Event(flow, corev1.EventTypeNormal, "Removed",

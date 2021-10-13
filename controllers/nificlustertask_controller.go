@@ -23,6 +23,8 @@ import (
 	"github.com/Orange-OpenSource/nifikop/pkg/clientwrappers/scale"
 	"github.com/Orange-OpenSource/nifikop/pkg/errorfactory"
 	"github.com/Orange-OpenSource/nifikop/pkg/k8sutil"
+	"github.com/Orange-OpenSource/nifikop/pkg/nificlient/config"
+	"github.com/Orange-OpenSource/nifikop/pkg/util/clientconfig"
 	nifiutil "github.com/Orange-OpenSource/nifikop/pkg/util/nifi"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
@@ -218,6 +220,20 @@ func (r *NifiClusterTaskReconciler) handlePodAddCCTask(nifiCluster *v1alpha1.Nif
 }
 
 func (r *NifiClusterTaskReconciler) handlePodDeleteNCTask(nifiCluster *v1alpha1.NifiCluster, nodeIds []string) error {
+	// Prepare cluster connection configurations
+	var clientConfig *clientconfig.NifiConfig
+	var err error
+
+	// Get the client config manager associated to the cluster ref.
+	clusterRef := v1alpha1.ClusterReference{
+		Name:      nifiCluster.Name,
+		Namespace: nifiCluster.Namespace,
+	}
+	configManager := config.GetClientConfigManager(r.Client, clusterRef)
+	if clientConfig, err = configManager.BuildConfig(); err != nil {
+		return err
+	}
+
 	for _, nodeId := range nodeIds {
 		if nifiCluster.Status.NodesState[nodeId].GracefulActionState.ActionStep == v1alpha1.ConnectNodeAction {
 			err := r.checkNCActionStep(nodeId, nifiCluster, v1alpha1.ConnectStatus, nil)
@@ -226,7 +242,7 @@ func (r *NifiClusterTaskReconciler) handlePodDeleteNCTask(nifiCluster *v1alpha1.
 			}
 		}
 
-		actionStep, taskStartTime, err := scale.DisconnectClusterNode(r.Client, nifiCluster, nodeId)
+		actionStep, taskStartTime, err := scale.DisconnectClusterNode(clientConfig, nodeId)
 		if err != nil {
 			r.Log.Info(fmt.Sprintf("nifi cluster communication error during downscaling node(s) id(s): %s", nodeId))
 			return errorfactory.New(errorfactory.NifiClusterNotReady{}, err, fmt.Sprintf("node(s) id(s): %s", nodeId))
@@ -244,6 +260,19 @@ func (r *NifiClusterTaskReconciler) handlePodDeleteNCTask(nifiCluster *v1alpha1.
 
 // TODO: Review logic to simplify it through generic method
 func (r *NifiClusterTaskReconciler) handlePodRunningTask(nifiCluster *v1alpha1.NifiCluster, nodeIds []string, log logr.Logger) error {
+	// Prepare cluster connection configurations
+	var clientConfig *clientconfig.NifiConfig
+	var err error
+
+	// Get the client config manager associated to the cluster ref.
+	clusterRef := v1alpha1.ClusterReference{
+		Name:      nifiCluster.Name,
+		Namespace: nifiCluster.Namespace,
+	}
+	configManager := config.GetClientConfigManager(r.Client, clusterRef)
+	if clientConfig, err = configManager.BuildConfig(); err != nil {
+		return err
+	}
 
 	for _, nodeId := range nodeIds {
 		// Check if node finished to connect
@@ -264,7 +293,7 @@ func (r *NifiClusterTaskReconciler) handlePodRunningTask(nifiCluster *v1alpha1.N
 
 		// If node is disconnected, performing offload
 		if nifiCluster.Status.NodesState[nodeId].GracefulActionState.ActionStep == v1alpha1.DisconnectStatus {
-			actionStep, taskStartTime, err := scale.OffloadClusterNode(r.Client, nifiCluster, nodeId)
+			actionStep, taskStartTime, err := scale.OffloadClusterNode(clientConfig, nodeId)
 			if err != nil {
 				r.Log.Info(fmt.Sprintf("nifi cluster communication error during removing node id: %s", nodeId))
 				return errorfactory.New(errorfactory.NifiClusterNotReady{}, err, fmt.Sprintf("node id: %s", nodeId))
@@ -292,7 +321,7 @@ func (r *NifiClusterTaskReconciler) handlePodRunningTask(nifiCluster *v1alpha1.N
 		// If pod finished deletion
 		// TODO : work here to manage node Status and state (If disconnected && Removing)
 		if nifiCluster.Status.NodesState[nodeId].GracefulActionState.ActionStep == v1alpha1.RemovePodStatus {
-			actionStep, taskStartTime, err := scale.RemoveClusterNode(r.Client, nifiCluster, nodeId)
+			actionStep, taskStartTime, err := scale.RemoveClusterNode(clientConfig, nodeId)
 			if err != nil {
 				r.Log.Info(fmt.Sprintf("nifi cluster communication error during removing node id: %s", nodeId))
 				return errorfactory.New(errorfactory.NifiClusterNotReady{}, err, fmt.Sprintf("node id: %s", nodeId))
@@ -318,10 +347,24 @@ func (r *NifiClusterTaskReconciler) handlePodRunningTask(nifiCluster *v1alpha1.N
 }
 
 func (r *NifiClusterTaskReconciler) checkNCActionStep(nodeId string, nifiCluster *v1alpha1.NifiCluster, actionStep v1alpha1.ActionStep, state *v1alpha1.State) error {
+	// Prepare cluster connection configurations
+	var clientConfig *clientconfig.NifiConfig
+	var err error
+
+	// Get the client config manager associated to the cluster ref.
+	clusterRef := v1alpha1.ClusterReference{
+		Name:      nifiCluster.Name,
+		Namespace: nifiCluster.Namespace,
+	}
+	configManager := config.GetClientConfigManager(r.Client, clusterRef)
+	if clientConfig, err = configManager.BuildConfig(); err != nil {
+		return err
+	}
+
 	nodeState := nifiCluster.Status.NodesState[nodeId]
 
 	// Check Nifi cluster action status
-	finished, err := scale.CheckIfNCActionStepFinished(nodeState.GracefulActionState.ActionStep, r.Client, nifiCluster, nodeId)
+	finished, err := scale.CheckIfNCActionStepFinished(nodeState.GracefulActionState.ActionStep, clientConfig, nodeId)
 	if err != nil {
 		r.Log.Info(fmt.Sprintf("Nifi cluster communication error checking running task: %s", nodeState.GracefulActionState.ActionStep))
 		return errorfactory.New(errorfactory.NifiClusterNotReady{}, err, "nifi cluster communication error")
@@ -361,7 +404,7 @@ func (r *NifiClusterTaskReconciler) checkNCActionStep(nodeId string, nifiCluster
 
 			r.Log.Info(fmt.Sprintf("Rollback nifi cluster task: %s", nodeState.GracefulActionState.ActionStep))
 
-			actionStep, taskStartTime, err := scale.ConnectClusterNode(r.Client, nifiCluster, nodeId)
+			actionStep, taskStartTime, err := scale.ConnectClusterNode(clientConfig, nodeId)
 
 			timedOutNodeNCState := v1alpha1.GracefulActionState{
 				State:        requiredNCState,

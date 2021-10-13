@@ -29,8 +29,8 @@ type NifiRegistryClientSpec struct {
 	Uri string `json:"uri"`
 	// The Description of the Registry client.
 	Description string `json:"description,omitempty"`
-	// Contains the reference to the NifiCluster with the one the registry client is linked.
-	ClusterRef ClusterReference `json:"clusterRef"`
+	// contains the reference to the NifiCluster with the one the registry client is linked.
+	ClusterRef ClusterReference `json:"clusterRef,omitempty"`
 }
 
 // NifiRegistryClientStatus defines the observed state of NifiRegistryClient

@@ -38,8 +38,8 @@ spec:
             description: NifiRegistryClientSpec defines the desired state of NifiRegistryClient
             properties:
               clusterRef:
-                description: Contains the reference to the NifiCluster with the one
-                  the registry client is linked.
+                description: contains the reference to the NifiCluster with the one
+                  the dataflow is linked.
                 properties:
                   name:
                     type: string
@@ -56,7 +56,6 @@ spec:
                   pulling the flow.
                 type: string
             required:
-            - clusterRef
             - uri
             type: object
           status:

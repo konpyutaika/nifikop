@@ -19,6 +19,7 @@ import (
 	"github.com/Orange-OpenSource/nifikop/api/v1alpha1"
 	"github.com/Orange-OpenSource/nifikop/pkg/resources/templates"
 	"github.com/Orange-OpenSource/nifikop/pkg/util"
+	nifiutil "github.com/Orange-OpenSource/nifikop/pkg/util/nifi"
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -29,7 +30,7 @@ func (r *Reconciler) pvc(id int32, storage v1alpha1.StorageConfig, log logr.Logg
 		ObjectMeta: templates.ObjectMetaWithGeneratedNameAndAnnotations(
 			fmt.Sprintf(templates.NodeStorageTemplate, r.NifiCluster.Name, id),
 			util.MergeLabels(
-				LabelsForNifi(r.NifiCluster.Name),
+				nifiutil.LabelsForNifi(r.NifiCluster.Name),
 				map[string]string{"nodeId": fmt.Sprintf("%d", id)},
 			),
 			map[string]string{"mountPath": storage.MountPath, "storageName": storage.Name}, r.NifiCluster),

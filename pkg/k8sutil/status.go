@@ -54,7 +54,8 @@ func UpdateNodeStatus(c client.Client, nodeIds []string, cluster *v1alpha1.NifiC
 				cluster.Status.NodesState = map[string]v1alpha1.NodeState{nodeId: {ConfigurationState: s}}
 			case v1alpha1.InitClusterNode:
 				cluster.Status.NodesState = map[string]v1alpha1.NodeState{nodeId: {InitClusterNode: s}}
-
+			case bool:
+				cluster.Status.NodesState = map[string]v1alpha1.NodeState{nodeId: {PodIsReady: s}}
 			}
 		} else if val, ok := cluster.Status.NodesState[nodeId]; ok {
 			switch s := state.(type) {
@@ -64,6 +65,8 @@ func UpdateNodeStatus(c client.Client, nodeIds []string, cluster *v1alpha1.NifiC
 				val.ConfigurationState = s
 			case v1alpha1.InitClusterNode:
 				val.InitClusterNode = s
+			case bool:
+				val.PodIsReady = s
 			}
 			cluster.Status.NodesState[nodeId] = val
 		} else {
@@ -74,6 +77,8 @@ func UpdateNodeStatus(c client.Client, nodeIds []string, cluster *v1alpha1.NifiC
 				cluster.Status.NodesState[nodeId] = v1alpha1.NodeState{ConfigurationState: s}
 			case v1alpha1.InitClusterNode:
 				cluster.Status.NodesState[nodeId] = v1alpha1.NodeState{InitClusterNode: s}
+			case bool:
+				cluster.Status.NodesState[nodeId] = v1alpha1.NodeState{PodIsReady: s}
 			}
 		}
 	}
@@ -104,6 +109,8 @@ func UpdateNodeStatus(c client.Client, nodeIds []string, cluster *v1alpha1.NifiC
 					cluster.Status.NodesState = map[string]v1alpha1.NodeState{nodeId: {ConfigurationState: s}}
 				case v1alpha1.InitClusterNode:
 					cluster.Status.NodesState = map[string]v1alpha1.NodeState{nodeId: {InitClusterNode: s}}
+				case bool:
+					cluster.Status.NodesState = map[string]v1alpha1.NodeState{nodeId: {PodIsReady: s}}
 				}
 			} else if val, ok := cluster.Status.NodesState[nodeId]; ok {
 				switch s := state.(type) {
@@ -113,6 +120,8 @@ func UpdateNodeStatus(c client.Client, nodeIds []string, cluster *v1alpha1.NifiC
 					val.ConfigurationState = s
 				case v1alpha1.InitClusterNode:
 					val.InitClusterNode = s
+				case bool:
+					val.PodIsReady = s
 				}
 				cluster.Status.NodesState[nodeId] = val
 			} else {
@@ -123,6 +132,8 @@ func UpdateNodeStatus(c client.Client, nodeIds []string, cluster *v1alpha1.NifiC
 					cluster.Status.NodesState[nodeId] = v1alpha1.NodeState{ConfigurationState: s}
 				case v1alpha1.InitClusterNode:
 					cluster.Status.NodesState[nodeId] = v1alpha1.NodeState{InitClusterNode: s}
+				case bool:
+					cluster.Status.NodesState[nodeId] = v1alpha1.NodeState{PodIsReady: s}
 				}
 			}
 		}

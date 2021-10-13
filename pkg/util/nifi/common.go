@@ -277,3 +277,9 @@ func determineInternalListenerForComm(internalListeners []v1alpha1.InternalListe
 	}
 	return httpServerPortId
 }
+
+// LabelsForNifi returns the labels for selecting the resources
+// belonging to the given Nifi CR name.
+func LabelsForNifi(name string) map[string]string {
+	return map[string]string{"app": "nifi", "nifi_cr": name}
+}

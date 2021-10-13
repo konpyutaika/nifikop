@@ -31,6 +31,7 @@ func testCluster(t *testing.T) *v1alpha1.NifiCluster {
 	cluster.Name = "test-cluster"
 	cluster.Namespace = "test-namespace"
 	cluster.Spec = v1alpha1.NifiClusterSpec{}
+	cluster.Spec.ListenersConfig = &v1alpha1.ListenersConfig{}
 
 	cluster.Spec.Nodes = []v1alpha1.Node{
 		{Id: 0},

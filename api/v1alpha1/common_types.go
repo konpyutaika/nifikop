@@ -14,7 +14,9 @@
 
 package v1alpha1
 
-import "fmt"
+import (
+	"fmt"
+)
 
 // DataflowState defines the state of a NifiDataflow
 type DataflowState string
@@ -45,6 +47,12 @@ type InitClusterNode bool
 
 // PKIBackend represents an interface implementing the PKIManager
 type PKIBackend string
+
+// ClientConfigType represents an interface implementing the ClientConfigManager
+type ClientConfigType string
+
+// ClusterType represents an interface implementing the  ClientConfigManager
+type ClusterType string
 
 // AccessPolicyType represents the type of access policy
 type AccessPolicyType string
@@ -80,6 +88,10 @@ func (r State) Complete() State {
 	default:
 		return r
 	}
+}
+
+func (r ClusterState) IsReady() bool {
+	return r == NifiClusterRunning || r == NifiClusterReconciling
 }
 
 // NifiAccessType hold info about Nifi ACL
@@ -162,13 +174,13 @@ type AccessPolicy struct {
 	ComponentId string `json:"componentId,omitempty"`
 }
 
-func (a *AccessPolicy) GetResource(cluster *NifiCluster) string {
+func (a *AccessPolicy) GetResource(rootProcessGroupId string) string {
 	if a.Type == GlobalAccessPolicyType {
 		return string(a.Resource)
 	}
 	componentId := a.ComponentId
 	if a.ComponentType == "process-groups" && componentId == "" {
-		componentId = cluster.Status.RootProcessGroupId
+		componentId = rootProcessGroupId
 	}
 	resource := a.Resource
 	if a.Resource == ComponentsAccessPolicyResource {
@@ -245,6 +257,16 @@ const (
 )
 
 const (
+	ClientConfigTLS   ClientConfigType = "tls"
+	ClientConfigBasic ClientConfigType = "basic"
+)
+
+const (
+	ExternalCluster ClusterType = "external"
+	InternalCluster ClusterType = "internal"
+)
+
+const (
 	// DataflowStateCreated describes the status of a NifiDataflow as created
 	DataflowStateCreated DataflowState = "Created"
 	// DataflowStateStarting describes the status of a NifiDataflow as starting
@@ -315,6 +337,8 @@ type NodeState struct {
 	ConfigurationState ConfigurationState `json:"configurationState"`
 	// InitClusterNode contains if this nodes was part of the initial cluster
 	InitClusterNode InitClusterNode `json:"initClusterNode"`
+	// PodIsReady whether or not the associated pod is ready
+	PodIsReady bool `json:"podIsReady"`
 }
 
 // RackAwarenessState holds info about rack awareness status
@@ -380,4 +404,37 @@ const (
 	IsInitClusterNode InitClusterNode = true
 	// NotInitClusterNode states the node is not part of initial cluster setup
 	NotInitClusterNode InitClusterNode = false
+)
+
+func ClusterRefsEquals(clusterRefs []ClusterReference) bool {
+	c1 := clusterRefs[0]
+	name := c1.Name
+	ns := c1.Namespace
+
+	for _, cluster := range clusterRefs {
+		if name != cluster.Name || ns != cluster.Namespace {
+			return false
+		}
+	}
+
+	return true
+}
+
+func SecretRefsEquals(secretRefs []SecretReference) bool {
+	name := secretRefs[0].Name
+	ns := secretRefs[0].Namespace
+	for _, secretRef := range secretRefs {
+		if name != secretRef.Name || ns != secretRef.Namespace {
+			return false
+		}
+	}
+	return true
+}
+
+type DataflowSyncMode string
+
+const (
+	SyncNever DataflowSyncMode  = "never"
+	SyncOnce DataflowSyncMode   = "once"
+	SyncAlways DataflowSyncMode = "always"
 )

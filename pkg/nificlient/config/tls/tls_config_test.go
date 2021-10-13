@@ -1,18 +1,4 @@
-// Copyright 2020 Orange SA
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.package apis
-
-package nificlient
+package tls
 
 import (
 	"fmt"
@@ -43,6 +29,7 @@ func testCluster(t *testing.T) *v1alpha1.NifiCluster {
 	cluster.Name = clusterName
 	cluster.Namespace = clusterNamespace
 	cluster.Spec = v1alpha1.NifiClusterSpec{}
+	cluster.Spec.ListenersConfig = &v1alpha1.ListenersConfig{}
 
 	cluster.Status.NodesState = make(map[string]v1alpha1.NodeState)
 	cluster.Status.NodesState["1"] = v1alpha1.NodeState{
@@ -96,7 +83,7 @@ func TestClusterConfig(t *testing.T) {
 
 func testClusterConfig(t *testing.T, cluster *v1alpha1.NifiCluster, expectedUseSSL bool) {
 	assert := assert.New(t)
-	conf, err := ClusterConfig(mockClient{}, cluster)
+	conf, err := clusterConfig(mockClient{}, cluster)
 	assert.Nil(err)
 	assert.Equal(expectedUseSSL, conf.UseSSL)
 
@@ -109,7 +96,7 @@ func testClusterConfig(t *testing.T, cluster *v1alpha1.NifiCluster, expectedUseS
 	assert.Equal(
 		fmt.Sprintf("%s-%s-node.%s.svc.cluster.local:%d",
 			clusterName, "%d", clusterNamespace, httpContainerPort),
-		conf.nodeURITemplate)
+		conf.NodeURITemplate)
 
 	assert.Equal(1, len(conf.NodesURI))
 	assert.NotNil(conf.NodesURI[succeededNodeId])
@@ -122,38 +109,4 @@ func testClusterConfig(t *testing.T, cluster *v1alpha1.NifiCluster, expectedUseS
 		fmt.Sprintf("%s-all-node.%s.svc.cluster.local:%d",
 			clusterName, clusterNamespace, httpContainerPort),
 		conf.NifiURI)
-}
-
-func TestUseSSL(t *testing.T) {
-	assert := assert.New(t)
-
-	cluster := testCluster(t)
-	assert.Equal(false, UseSSL(cluster))
-	cluster = testSecuredCluster(t)
-	assert.Equal(true, UseSSL(cluster))
-}
-
-func TestGenerateNodesAddress(t *testing.T) {
-	assert := assert.New(t)
-
-	cluster := testCluster(t)
-	nodesURI := generateNodesAddress(cluster)
-
-	assert.Equal(1, len(nodesURI))
-	assert.NotNil(nodesURI[succeededNodeId])
-	assert.Equal(
-		fmt.Sprintf("%s-%d-node.%s.svc.cluster.local:%d",
-			clusterName, succeededNodeId, clusterNamespace, httpContainerPort),
-		nodesURI[succeededNodeId].RequestHost)
-}
-
-func TestGenerateNodesURITemplate(t *testing.T) {
-	assert := assert.New(t)
-
-	cluster := testCluster(t)
-
-	assert.Equal(
-		fmt.Sprintf("%s-%s-node.%s.svc.cluster.local:%d",
-			clusterName, "%d", clusterNamespace, httpContainerPort),
-		generateNodesURITemplate(cluster))
 }

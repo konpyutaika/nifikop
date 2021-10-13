@@ -19,9 +19,7 @@
       {
         "type": "category",
         "label": "Install",
-        "items": [
-          "2_setup/3_install/1_customizable_install_with_helm"
-        ]
+        "items": ["2_setup/3_install/1_customizable_install_with_helm"]
       }
     ],
     "Tasks": [
@@ -29,7 +27,8 @@
         "type": "category",
         "label": "NiFi Cluster",
         "items": [
-          "3_tasks/1_nifi_cluster/2_cluster_scaling"
+          "3_tasks/1_nifi_cluster/2_cluster_scaling",
+          "3_tasks/1_nifi_cluster/4_external_cluster"
         ]
       },
       {
@@ -40,9 +39,7 @@
           {
             "type": "category",
             "label": "Authentication",
-            "items": [
-              "3_tasks/2_security/2_authentication/1_oidc"
-            ]
+            "items": ["3_tasks/2_security/2_authentication/1_oidc"]
           }
         ]
       },

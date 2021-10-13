@@ -19,6 +19,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"strings"
 
 	"github.com/Orange-OpenSource/nifikop/api/v1alpha1"
@@ -32,12 +33,20 @@ import (
 // GetControllerTLSConfig creates a TLS config from the user secret created for
 // cruise control and manager operations
 func (c *certManager) GetControllerTLSConfig() (config *tls.Config, err error) {
+	config, err = GetControllerTLSConfigFromSecret(c.client, v1alpha1.SecretReference{
+		Namespace: c.cluster.Namespace,
+		Name:      fmt.Sprintf(pkicommon.NodeControllerTemplate, c.cluster.Name),
+	})
+	return
+}
+
+func GetControllerTLSConfigFromSecret(client client.Client, ref v1alpha1.SecretReference) (config *tls.Config, err error) {
 	config = &tls.Config{}
 	tlsKeys := &corev1.Secret{}
-	err = c.client.Get(context.TODO(),
+	err = client.Get(context.TODO(),
 		types.NamespacedName{
-			Namespace: c.cluster.Namespace,
-			Name:      fmt.Sprintf(pkicommon.NodeControllerTemplate, c.cluster.Name),
+			Namespace: ref.Namespace,
+			Name:      ref.Name,
 		},
 		tlsKeys,
 	)

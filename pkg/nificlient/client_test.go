@@ -16,16 +16,29 @@ package nificlient
 
 import (
 	"fmt"
+	"github.com/Orange-OpenSource/nifikop/pkg/util/clientconfig"
 	"net/http"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"testing"
 
 	"github.com/Orange-OpenSource/nifikop/api/v1alpha1"
 	"github.com/Orange-OpenSource/nifikop/pkg/errorfactory"
-	nifiutil "github.com/Orange-OpenSource/nifikop/pkg/util/nifi"
 	nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
 )
+
+const (
+	httpContainerPort int32 = 80
+	succeededNodeId   int32 = 4
+
+	clusterName      = "test-cluster"
+	clusterNamespace = "test-namespace"
+)
+
+type mockClient struct {
+	client.Client
+}
 
 var (
 	nodeURITemplate = fmt.Sprintf("%s-%s-node.%s.svc.cluster.local:%s",
@@ -44,12 +57,12 @@ func TestBuild(t *testing.T) {
 	assert := assert.New(t)
 	client := newMockClient()
 
-	client.opts.NodesURI = make(map[int32]nodeUri)
-	client.opts.NodesURI[1] = nodeUri{
+	client.opts.NodesURI = make(map[int32]clientconfig.NodeUri)
+	client.opts.NodesURI[1] = clientconfig.NodeUri{
 		HostListener: fmt.Sprintf(nodeURITemplate, 1, httpContainerPort),
 		RequestHost:  fmt.Sprintf(nodeURITemplate, 1, httpContainerPort),
 	}
-	client.opts.nodeURITemplate = nodeURITemplate
+	client.opts.NodeURITemplate = nodeURITemplate
 	client.opts.NifiURI = fmt.Sprintf(nifiURITemplate, httpContainerPort)
 
 	url := "http://" + fmt.Sprintf(nodeURITemplate, 1, httpContainerPort) + "/nifi-api/controller/cluster"
@@ -81,27 +94,4 @@ func TestBuild(t *testing.T) {
 
 	err = client.Build()
 	assert.IsType(errorfactory.NodesUnreachable{}, err)
-}
-
-func TestNewFromCluster(t *testing.T) {
-	httpmock.Activate()
-	assert := assert.New(t)
-
-	cluster := testClusterMock(t)
-
-	url := fmt.Sprintf("http://%s/nifi-api/controller/cluster", nifiutil.GenerateRequestNiFiAllNodeAddressFromCluster(cluster))
-	httpmock.RegisterResponder(http.MethodGet, url,
-		func(req *http.Request) (*http.Response, error) {
-			return httpmock.NewJsonResponse(
-				200,
-				MockGetClusterResponse(cluster, false))
-		})
-
-	_, err := NewFromCluster(mockClient{}, cluster)
-	assert.Nil(err)
-
-	httpmock.DeactivateAndReset()
-	_, err = NewFromCluster(mockClient{}, cluster)
-	assert.IsType(errorfactory.NodesUnreachable{}, err)
-
 }

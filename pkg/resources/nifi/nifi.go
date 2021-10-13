@@ -17,7 +17,9 @@ package nifi
 import (
 	"context"
 	"fmt"
-
+	"github.com/Orange-OpenSource/nifikop/pkg/nificlient/config"
+	"github.com/Orange-OpenSource/nifikop/pkg/pki"
+	nifiutil "github.com/Orange-OpenSource/nifikop/pkg/util/nifi"
 	"reflect"
 	"strings"
 
@@ -30,8 +32,6 @@ import (
 	"github.com/Orange-OpenSource/nifikop/pkg/clientwrappers/scale"
 	"github.com/Orange-OpenSource/nifikop/pkg/errorfactory"
 	"github.com/Orange-OpenSource/nifikop/pkg/k8sutil"
-	"github.com/Orange-OpenSource/nifikop/pkg/nificlient"
-	"github.com/Orange-OpenSource/nifikop/pkg/pki"
 	"github.com/Orange-OpenSource/nifikop/pkg/resources"
 	"github.com/Orange-OpenSource/nifikop/pkg/resources/templates"
 	"github.com/Orange-OpenSource/nifikop/pkg/util"
@@ -50,9 +50,9 @@ import (
 const (
 	componentName = "nifi"
 
-	nodeConfigMapVolumeMount = "node-config"
-	nodeTmp                  = "node-tmp"
-	nifiDataVolumeMount      = "nifi-data"
+	nodeSecretVolumeMount = "node-config"
+	nodeTmp               = "node-tmp"
+	nifiDataVolumeMount   = "nifi-data"
 
 	serverKeystoreVolume = "server-ks-files"
 	serverKeystorePath   = "/var/run/secrets/java.io/keystores/server"
@@ -64,12 +64,6 @@ const (
 type Reconciler struct {
 	resources.Reconciler
 	Scheme *runtime.Scheme
-}
-
-// LabelsForNifi returns the labels for selecting the resources
-// belonging to the given Nifi CR name.
-func LabelsForNifi(name string) map[string]string {
-	return map[string]string{"app": "nifi", "nifi_cr": name}
 }
 
 // New creates a new reconciler for Nifi
@@ -107,6 +101,10 @@ func (r *Reconciler) Reconcile(log logr.Logger) error {
 
 	log.V(1).Info("Reconciling")
 
+	if r.NifiCluster.IsExternal() {
+		log.V(1).Info("Reconciled")
+		return nil
+	}
 	// TODO : manage external LB
 	uniqueHostnamesMap := make(map[string]struct{})
 
@@ -165,7 +163,7 @@ func (r *Reconciler) Reconcile(log logr.Logger) error {
 
 		}
 
-		o := r.configMap(node.Id, nodeConfig, serverPass, clientPass, superUsers, log)
+		o := r.secretConfig(node.Id, nodeConfig, serverPass, clientPass, superUsers, log)
 		err = k8sutil.Reconcile(log, r.Client, o, r.NifiCluster)
 		if err != nil {
 			return errors.WrapIfWithDetails(err, "failed to reconcile resource", "resource", o.GetObjectKind().GroupVersionKind())
@@ -184,9 +182,16 @@ func (r *Reconciler) Reconcile(log logr.Logger) error {
 			}
 		}
 		o = r.pod(node.Id, nodeConfig, pvcs, log)
-		err = r.reconcileNifiPod(log, o.(*corev1.Pod))
+		err, isReady := r.reconcileNifiPod(log, o.(*corev1.Pod))
 		if err != nil {
 			return err
+		}
+		if nodeState, ok := r.NifiCluster.Status.NodesState[o.(*corev1.Pod).Labels["nodeId"]]; ok &&
+			nodeState.PodIsReady != isReady {
+			if err = k8sutil.UpdateNodeStatus(r.Client, []string{o.(*corev1.Pod).Labels["nodeId"]}, r.NifiCluster, isReady, log); err != nil {
+				return errors.WrapIfWithDetails(err, "could not update status for node(s)",
+					"id(s)", o.(*corev1.Pod).Labels["nodeId"])
+			}
 		}
 	}
 
@@ -218,14 +223,23 @@ func (r *Reconciler) Reconcile(log logr.Logger) error {
 		return errors.WrapIf(err, "failed to reconcile resource")
 	}
 
+	configManager := config.GetClientConfigManager(r.Client, v1alpha1.ClusterReference{
+		Namespace: r.NifiCluster.Namespace,
+		Name:      r.NifiCluster.Name,
+	})
+	clientConfig, err := configManager.BuildConfig()
+	if err != nil {
+		// the cluster does not exist - should have been caught pre-flight
+		return errors.WrapIf(err, "Failed to create HTTP client the for referenced cluster")
+	}
+
 	// TODO: Ensure usage and needing
-	err = scale.EnsureRemovedNodes(r.Client, r.NifiCluster)
+	err = scale.EnsureRemovedNodes(clientConfig, r.NifiCluster)
 	if err != nil && len(r.NifiCluster.Status.NodesState) > 0 {
 		return err
 	}
 
-	// Reconcile cluster communications
-	pgRootId, err := dataflow.RootProcessGroup(r.Client, r.NifiCluster)
+	pgRootId, err := dataflow.RootProcessGroup(clientConfig)
 	if err != nil {
 		return err
 	}
@@ -234,7 +248,7 @@ func (r *Reconciler) Reconcile(log logr.Logger) error {
 		return err
 	}
 
-	if nificlient.UseSSL(r.NifiCluster) {
+	if clientConfig.UseSSL {
 		if err := r.reconcileNifiUsersAndGroups(log); err != nil {
 			return errors.WrapIf(err, "failed to reconcile resource")
 		}
@@ -260,7 +274,7 @@ func (r *Reconciler) Reconcile(log logr.Logger) error {
 func (r *Reconciler) reconcileNifiPodDelete(log logr.Logger) error {
 
 	podList := &corev1.PodList{}
-	matchingLabels := client.MatchingLabels(LabelsForNifi(r.NifiCluster.Name))
+	matchingLabels := client.MatchingLabels(nifiutil.LabelsForNifi(r.NifiCluster.Name))
 
 	err := r.Client.List(context.TODO(), podList,
 		client.ListOption(client.InNamespace(r.NifiCluster.Namespace)), client.ListOption(matchingLabels))
@@ -337,13 +351,13 @@ OUTERLOOP:
 				return errors.WrapIfWithDetails(err, "could not delete node", "id", node.Labels["nodeId"])
 			}
 
-			err = r.Client.Delete(context.TODO(), &corev1.ConfigMap{ObjectMeta: templates.ObjectMeta(fmt.Sprintf(templates.NodeConfigTemplate+"-%s", r.NifiCluster.Name, node.Labels["nodeId"]), LabelsForNifi(r.NifiCluster.Name), r.NifiCluster)})
+			err = r.Client.Delete(context.TODO(), &corev1.Secret{ObjectMeta: templates.ObjectMeta(fmt.Sprintf(templates.NodeConfigTemplate+"-%s", r.NifiCluster.Name, node.Labels["nodeId"]), nifiutil.LabelsForNifi(r.NifiCluster.Name), r.NifiCluster)})
 			if err != nil {
-				return errors.WrapIfWithDetails(err, "could not delete configmap for node", "id", node.Labels["nodeId"])
+				return errors.WrapIfWithDetails(err, "could not delete secret config for node", "id", node.Labels["nodeId"])
 			}
 
 			if !r.NifiCluster.Spec.Service.HeadlessEnabled {
-				err = r.Client.Delete(context.TODO(), &corev1.Service{ObjectMeta: templates.ObjectMeta(fmt.Sprintf("%s-%s", r.NifiCluster.Name, node.Labels["nodeId"]), LabelsForNifi(r.NifiCluster.Name), r.NifiCluster)})
+				err = r.Client.Delete(context.TODO(), &corev1.Service{ObjectMeta: templates.ObjectMeta(fmt.Sprintf("%s-%s", r.NifiCluster.Name, node.Labels["nodeId"]), nifiutil.LabelsForNifi(r.NifiCluster.Name), r.NifiCluster)})
 				if err != nil {
 					if apierrors.IsNotFound(err) {
 						// can happen when node was not fully initialized and now is deleted
@@ -519,7 +533,7 @@ func isDesiredStorageValueInvalid(desired, current *corev1.PersistentVolumeClaim
 	return desired.Spec.Resources.Requests.Storage().Value() < current.Spec.Resources.Requests.Storage().Value()
 }
 
-func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) error {
+func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) (error, bool) {
 	currentPod := desiredPod.DeepCopy()
 	desiredType := reflect.TypeOf(desiredPod)
 
@@ -533,22 +547,25 @@ func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) e
 	}
 	err := r.Client.List(context.TODO(), podList, client.InNamespace(currentPod.Namespace), matchingLabels)
 	if err != nil && len(podList.Items) == 0 {
-		return errorfactory.New(errorfactory.APIFailure{}, err, "getting resource failed", "kind", desiredType)
+		return errorfactory.New(errorfactory.APIFailure{},
+			err, "getting resource failed", "kind", desiredType), false
 	}
 
 	if len(podList.Items) == 0 {
 		if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(desiredPod); err != nil {
-			return errors.WrapIf(err, "could not apply last state to annotation")
+			return errors.WrapIf(err, "could not apply last state to annotation"), false
 		}
 
 		if err := r.Client.Create(context.TODO(), desiredPod); err != nil {
-			return errorfactory.New(errorfactory.APIFailure{}, err, "creating resource failed", "kind", desiredType)
+			return errorfactory.New(errorfactory.APIFailure{},
+				err, "creating resource failed", "kind", desiredType), false
 		}
 
 		// Update status to Config InSync because node is configured to go
 		statusErr := k8sutil.UpdateNodeStatus(r.Client, []string{desiredPod.Labels["nodeId"]}, r.NifiCluster, v1alpha1.ConfigInSync, log)
 		if statusErr != nil {
-			return errorfactory.New(errorfactory.StatusUpdateError{}, statusErr, "updating status for resource failed", "kind", desiredType)
+			return errorfactory.New(errorfactory.StatusUpdateError{},
+				statusErr, "updating status for resource failed", "kind", desiredType), false
 		}
 
 		if val, ok := r.NifiCluster.Status.NodesState[desiredPod.Labels["nodeId"]]; ok &&
@@ -561,11 +578,12 @@ func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) e
 
 			statusErr = k8sutil.UpdateNodeStatus(r.Client, []string{desiredPod.Labels["nodeId"]}, r.NifiCluster, gracefulActionState, log)
 			if statusErr != nil {
-				return errorfactory.New(errorfactory.StatusUpdateError{}, statusErr, "could not update node graceful action state")
+				return errorfactory.New(errorfactory.StatusUpdateError{},
+					statusErr, "could not update node graceful action state"), false
 			}
 		}
 		log.Info("resource created")
-		return nil
+		return nil, false
 	} else if len(podList.Items) == 1 {
 		currentPod = podList.Items[0].DeepCopy()
 		nodeId := currentPod.Labels["nodeId"]
@@ -574,10 +592,12 @@ func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) e
 				log.Info(fmt.Sprintf("pod for NodeId %s does not scheduled to node yet", nodeId))
 			}
 		} else {
-			return errorfactory.New(errorfactory.InternalError{}, errors.New("reconcile failed"), fmt.Sprintf("could not find status for the given node id, %s", nodeId))
+			return errorfactory.New(errorfactory.InternalError{}, errors.New("reconcile failed"),
+				fmt.Sprintf("could not find status for the given node id, %s", nodeId)), false
 		}
 	} else {
-		return errorfactory.New(errorfactory.TooManyResources{}, errors.New("reconcile failed"), "more then one matching pod found", "labels", matchingLabels)
+		return errorfactory.New(errorfactory.TooManyResources{}, errors.New("reconcile failed"),
+			"more then one matching pod found", "labels", matchingLabels), false
 	}
 
 	// TODO check if this err == nil check necessary (baluchicken)
@@ -601,7 +621,7 @@ func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) e
 		if err != nil {
 			log.Error(err, "could not match objects", "kind", desiredType)
 		} else if patchResult.IsEmpty() {
-			if !k8sutil.IsPodContainsTerminatedContainer(currentPod) && r.NifiCluster.Status.NodesState[currentPod.Labels["nodeId"]].ConfigurationState == v1alpha1.ConfigInSync {
+			if !k8sutil.IsPodTerminatedOrShutdown(currentPod) && r.NifiCluster.Status.NodesState[currentPod.Labels["nodeId"]].ConfigurationState == v1alpha1.ConfigInSync {
 				if val, found := r.NifiCluster.Status.NodesState[desiredPod.Labels["nodeId"]]; found &&
 					val.GracefulActionState.State == v1alpha1.GracefulUpscaleRunning &&
 					val.GracefulActionState.ActionStep == v1alpha1.ConnectStatus &&
@@ -609,11 +629,12 @@ func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) e
 
 					if err := k8sutil.UpdateNodeStatus(r.Client, []string{desiredPod.Labels["nodeId"]}, r.NifiCluster,
 						v1alpha1.GracefulActionState{ErrorMessage: "", State: v1alpha1.GracefulUpscaleSucceeded}, log); err != nil {
-						return errorfactory.New(errorfactory.StatusUpdateError{}, err, "could not update node graceful action state")
+						return errorfactory.New(errorfactory.StatusUpdateError{},
+							err, "could not update node graceful action state"), false
 					}
 				}
 				log.V(1).Info("resource is in sync")
-				return nil
+				return nil, k8sutil.PodReady(currentPod)
 			}
 		} else {
 			log.Info("resource diffs",
@@ -624,35 +645,39 @@ func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) e
 		}
 
 		if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(desiredPod); err != nil {
-			return errors.WrapIf(err, "could not apply last state to annotation")
+			return errors.WrapIf(err, "could not apply last state to annotation"), false
 		}
 
-		if !k8sutil.IsPodContainsTerminatedContainer(currentPod) {
+		if !k8sutil.IsPodTerminatedOrShutdown(currentPod) {
 
 			if r.NifiCluster.Status.State != v1alpha1.NifiClusterRollingUpgrading {
 				if err := k8sutil.UpdateCRStatus(r.Client, r.NifiCluster, v1alpha1.NifiClusterRollingUpgrading, log); err != nil {
-					return errorfactory.New(errorfactory.StatusUpdateError{}, err, "setting state to rolling upgrade failed")
+					return errorfactory.New(errorfactory.StatusUpdateError{},
+						err, "setting state to rolling upgrade failed"), false
 				}
 			}
 
 			if r.NifiCluster.Status.State == v1alpha1.NifiClusterRollingUpgrading {
 				// Check if any nifi pod is in terminating, pending or not ready state
 				podList := &corev1.PodList{}
-				matchingLabels := client.MatchingLabels(LabelsForNifi(r.NifiCluster.Name))
+				matchingLabels := client.MatchingLabels(nifiutil.LabelsForNifi(r.NifiCluster.Name))
 				err := r.Client.List(context.TODO(), podList, client.ListOption(client.InNamespace(r.NifiCluster.Namespace)), client.ListOption(matchingLabels))
 				if err != nil {
-					return errors.WrapIf(err, "failed to reconcile resource")
+					return errors.WrapIf(err, "failed to reconcile resource"), false
 				}
 				for _, pod := range podList.Items {
 					if k8sutil.IsMarkedForDeletion(pod.ObjectMeta) {
-						return errorfactory.New(errorfactory.ReconcileRollingUpgrade{}, errors.New("pod is still terminating"), "rolling upgrade in progress")
+						return errorfactory.New(errorfactory.ReconcileRollingUpgrade{},
+							errors.New("pod is still terminating"), "rolling upgrade in progress"), false
 					}
 					if k8sutil.IsPodContainsPendingContainer(&pod) {
-						return errorfactory.New(errorfactory.ReconcileRollingUpgrade{}, errors.New("pod is still creating"), "rolling upgrade in progress")
+						return errorfactory.New(errorfactory.ReconcileRollingUpgrade{},
+							errors.New("pod is still creating"), "rolling upgrade in progress"), false
 					}
 
 					if !k8sutil.PodReady(&pod) {
-						return errorfactory.New(errorfactory.ReconcileRollingUpgrade{}, errors.New("pod is still not ready"), "rolling upgrade in progress")
+						return errorfactory.New(errorfactory.ReconcileRollingUpgrade{},
+							errors.New("pod is still not ready"), "rolling upgrade in progress"), false
 					}
 				}
 			}
@@ -660,11 +685,12 @@ func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) e
 
 		err = r.Client.Delete(context.TODO(), currentPod)
 		if err != nil {
-			return errorfactory.New(errorfactory.APIFailure{}, err, "deleting resource failed", "kind", desiredType)
+			return errorfactory.New(errorfactory.APIFailure{},
+				err, "deleting resource failed", "kind", desiredType), false
 		}
 	}
 
-	return nil
+	return nil, k8sutil.PodReady(currentPod)
 }
 
 func (r *Reconciler) reconcileNifiUsersAndGroups(log logr.Logger) error {
@@ -839,15 +865,24 @@ func (r *Reconciler) reconcilePrometheusReportingTask(log logr.Logger) error {
 
 	var err error
 
+	configManager := config.GetClientConfigManager(r.Client, v1alpha1.ClusterReference{
+		Namespace: r.NifiCluster.Namespace,
+		Name:      r.NifiCluster.Name,
+	})
+	clientConfig, err := configManager.BuildConfig()
+	if err != nil {
+		return err
+	}
+
 	// Check if the NiFi reporting task already exist
-	exist, err := reportingtask.ExistReportingTaks(r.Client, r.NifiCluster)
+	exist, err := reportingtask.ExistReportingTaks(clientConfig, r.NifiCluster)
 	if err != nil {
 		return errors.WrapIfWithDetails(err, "failure checking for existing prometheus reporting task")
 	}
 
 	if !exist {
 		// Create reporting task
-		status, err := reportingtask.CreateReportingTask(r.Client, r.NifiCluster)
+		status, err := reportingtask.CreateReportingTask(clientConfig, r.NifiCluster)
 		if err != nil {
 			return errors.WrapIfWithDetails(err, "failure creating prometheus reporting task")
 		}
@@ -859,7 +894,7 @@ func (r *Reconciler) reconcilePrometheusReportingTask(log logr.Logger) error {
 	}
 
 	// Sync prometheus reporting task resource with NiFi side component
-	status, err := reportingtask.SyncReportingTask(r.Client, r.NifiCluster)
+	status, err := reportingtask.SyncReportingTask(clientConfig, r.NifiCluster)
 	if err != nil {
 		return errors.WrapIfWithDetails(err, "failed to sync PrometheusReportingTask")
 	}
@@ -872,9 +907,17 @@ func (r *Reconciler) reconcilePrometheusReportingTask(log logr.Logger) error {
 }
 
 func (r *Reconciler) reconcileMaximumTimerDrivenThreadCount(log logr.Logger) error {
+	configManager := config.GetClientConfigManager(r.Client, v1alpha1.ClusterReference{
+		Namespace: r.NifiCluster.Namespace,
+		Name:      r.NifiCluster.Name,
+	})
+	clientConfig, err := configManager.BuildConfig()
+	if err != nil {
+		return err
+	}
 
 	// Sync Maximum Timer Driven Thread Count with NiFi side component
-	err := controllersettings.SyncConfiguration(r.Client, r.NifiCluster)
+	err = controllersettings.SyncConfiguration(clientConfig, r.NifiCluster)
 	if err != nil {
 		return errors.WrapIfWithDetails(err, "failed to sync MaximumTimerDrivenThreadCount")
 	}

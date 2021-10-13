@@ -5,22 +5,21 @@ import (
 	"github.com/Orange-OpenSource/nifikop/pkg/clientwrappers"
 	"github.com/Orange-OpenSource/nifikop/pkg/common"
 	"github.com/Orange-OpenSource/nifikop/pkg/nificlient"
+	"github.com/Orange-OpenSource/nifikop/pkg/util/clientconfig"
 	nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 var log = ctrl.Log.WithName("accesspolicies-method")
 
-func ExistAccessPolicies(client client.Client, accessPolicy *v1alpha1.AccessPolicy,
-	cluster *v1alpha1.NifiCluster) (bool, error) {
+func ExistAccessPolicies(accessPolicy *v1alpha1.AccessPolicy, config *clientconfig.NifiConfig) (bool, error) {
 
-	nClient, err := common.NewNodeConnection(log, client, cluster)
+	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
 		return false, err
 	}
 
-	entity, err := nClient.GetAccessPolicy(string(accessPolicy.Action), accessPolicy.GetResource(cluster))
+	entity, err := nClient.GetAccessPolicy(string(accessPolicy.Action), accessPolicy.GetResource(config.RootProcessGroupId))
 	if err := clientwrappers.ErrorGetOperation(log, err, "Get access policy"); err != nil {
 		if err == nificlient.ErrNifiClusterReturned404 {
 			return false, nil
@@ -31,10 +30,9 @@ func ExistAccessPolicies(client client.Client, accessPolicy *v1alpha1.AccessPoli
 	return entity != nil, nil
 }
 
-func CreateAccessPolicy(client client.Client, accessPolicy *v1alpha1.AccessPolicy,
-	cluster *v1alpha1.NifiCluster) (string, error) {
+func CreateAccessPolicy(accessPolicy *v1alpha1.AccessPolicy, config *clientconfig.NifiConfig) (string, error) {
 
-	nClient, err := common.NewNodeConnection(log, client, cluster)
+	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
 		return "", err
 	}
@@ -44,7 +42,7 @@ func CreateAccessPolicy(client client.Client, accessPolicy *v1alpha1.AccessPolic
 		accessPolicy,
 		[]*v1alpha1.NifiUser{}, []*v1alpha1.NifiUser{},
 		[]*v1alpha1.NifiUserGroup{}, []*v1alpha1.NifiUserGroup{},
-		cluster,
+		config,
 		&scratchEntity)
 
 	entity, err := nClient.CreateAccessPolicy(scratchEntity)
@@ -56,52 +54,50 @@ func CreateAccessPolicy(client client.Client, accessPolicy *v1alpha1.AccessPolic
 }
 
 func UpdateAccessPolicy(
-	client client.Client,
 	accessPolicy *v1alpha1.AccessPolicy,
 	addUsers []*v1alpha1.NifiUser,
 	removeUsers []*v1alpha1.NifiUser,
 	addUserGroups []*v1alpha1.NifiUserGroup,
 	removeUserGroups []*v1alpha1.NifiUserGroup,
-	cluster *v1alpha1.NifiCluster) error {
+	config *clientconfig.NifiConfig) error {
 
-	nClient, err := common.NewNodeConnection(log, client, cluster)
+	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
 		return err
 	}
 
 	// Check if the access policy  exist
-	exist, err := ExistAccessPolicies(client, accessPolicy, cluster)
+	exist, err := ExistAccessPolicies(accessPolicy, config)
 	if err != nil {
 		return err
 	}
 
 	if !exist {
-		_, err := CreateAccessPolicy(client, accessPolicy, cluster)
+		_, err := CreateAccessPolicy(accessPolicy, config)
 		if err != nil {
 			return err
 		}
 	}
 
-	entity, err := nClient.GetAccessPolicy(string(accessPolicy.Action), accessPolicy.GetResource(cluster))
+	entity, err := nClient.GetAccessPolicy(string(accessPolicy.Action), accessPolicy.GetResource(config.RootProcessGroupId))
 	if err := clientwrappers.ErrorGetOperation(log, err, "Get access policy"); err != nil {
 		return err
 	}
 
-	updateAccessPolicyEntity(accessPolicy, addUsers, removeUsers, addUserGroups, removeUserGroups, cluster, entity)
+	updateAccessPolicyEntity(accessPolicy, addUsers, removeUsers, addUserGroups, removeUserGroups, config, entity)
 	entity, err = nClient.UpdateAccessPolicy(*entity)
 	return clientwrappers.ErrorUpdateOperation(log, err, "Update user")
 }
 
 func UpdateAccessPolicyEntity(
-	client client.Client,
 	entity *nigoapi.AccessPolicyEntity,
 	addUsers []*v1alpha1.NifiUser,
 	removeUsers []*v1alpha1.NifiUser,
 	addUserGroups []*v1alpha1.NifiUserGroup,
 	removeUserGroups []*v1alpha1.NifiUserGroup,
-	cluster *v1alpha1.NifiCluster) error {
+	config *clientconfig.NifiConfig) error {
 
-	nClient, err := common.NewNodeConnection(log, client, cluster)
+	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
 		return err
 	}
@@ -124,7 +120,7 @@ func updateAccessPolicyEntity(
 	removeUsers []*v1alpha1.NifiUser,
 	addUserGroups []*v1alpha1.NifiUserGroup,
 	removeUserGroups []*v1alpha1.NifiUserGroup,
-	cluster *v1alpha1.NifiCluster,
+	config *clientconfig.NifiConfig,
 	entity *nigoapi.AccessPolicyEntity) {
 
 	var defaultVersion int64 = 0
@@ -144,7 +140,7 @@ func updateAccessPolicyEntity(
 	}
 
 	entity.Component.Action = string(accessPolicy.Action)
-	entity.Component.Resource = accessPolicy.GetResource(cluster)
+	entity.Component.Resource = accessPolicy.GetResource(config.RootProcessGroupId)
 
 	addRemoveUsersFromAccessPolicyEntity(addUsers, removeUsers, entity)
 	addRemoveUserGroupsFromAccessPolicyEntity(addUserGroups, removeUserGroups, entity)

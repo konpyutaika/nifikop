@@ -29,8 +29,8 @@ type NifiParameterContextSpec struct {
 	Description string `json:"description,omitempty"`
 	// a list of non-sensitive Parameters.
 	Parameters []Parameter `json:"parameters"`
-	// contains the reference to the NifiCluster with the one the user is linked.
-	ClusterRef ClusterReference `json:"clusterRef"`
+	// contains the reference to the NifiCluster with the one the parameter context is linked.
+	ClusterRef ClusterReference `json:"clusterRef,omitempty"`
 	// a list of secret containing sensitive parameters (the key will name of the parameter).
 	SecretRefs []SecretReference `json:"secretRefs,omitempty"`
 }

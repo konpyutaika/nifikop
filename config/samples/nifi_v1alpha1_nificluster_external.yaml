@@ -1,0 +1,24 @@
+apiVersion: nifi.orange.com/v1alpha1
+kind: NifiCluster
+metadata:
+  name: externalcluster
+spec:
+  # rootProcessGroupId contains the uuid of the root process group for this cluster.
+  rootProcessGroupId: "d37bee03-017a-1000-cff7-4eaaa82266b7"
+  # nodeURITemplate used to dynamically compute node uri.
+  nodeURITemplate: "nifi0%d.integ.mapreduce.m0.p.fti.net:9090"
+  # all node requiresunique id
+  nodes:
+    - id: 1
+    - id: 2
+    - id: 3
+  # type defines if the cluster is internal (i.e manager by the operator) or external.
+  # :Enum={"external","internal"}
+  type: "external"
+  # clientType defines if the operator will use basic or tls authentication to query the NiFi cluster.
+  # Enum={"tls","basic"}
+  clientType: "basic"
+  # secretRef reference the secret containing the informations required to authentiticate to the cluster.
+  secretRef:
+    name: nifikop-credentials
+    namespace: nifikop-nifi

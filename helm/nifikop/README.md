@@ -1,16 +1,16 @@
 # NiFiKop - Nifi Kubernetes operator Helm chart
 
-This Helm chart install NiFiKop the Orange's Nifi Kubernetes operator to create/configure/manage NiFi 
+This Helm chart install NiFiKop the Orange's Nifi Kubernetes operator to create/configure/manage NiFi
 clusters in a Kubernetes Namespace.
 
 It will use Custom Ressources Definition CRDs:
- 
-- `nificlusters.nifi.orange.com`, 
-- `nifiusers.nifi.orange.com`, 
-- `nifiusergroups.nifi.orange.com`, 
-- `nifiregistryclients.nifi.orange.com`, 
-- `nifiparametercontexts.nifi.orange.com`, 
-- `nifidataflows.nifi.orange.com`, 
+
+- `nificlusters.nifi.orange.com`,
+- `nifiusers.nifi.orange.com`,
+- `nifiusergroups.nifi.orange.com`,
+- `nifiregistryclients.nifi.orange.com`,
+- `nifiparametercontexts.nifi.orange.com`,
+- `nifidataflows.nifi.orange.com`,
 
 which implements kubernetes custom ressource definition.
 
@@ -20,26 +20,25 @@ which implements kubernetes custom ressource definition.
 
 The following tables lists the configurable parameters of the NiFi Operator Helm chart and their default values.
 
-| Parameter                        | Description                                      | Default                                   |
-|----------------------------------|--------------------------------------------------|-------------------------------------------|
-| `image.repository`               | Image                                            | `orangeopensource/nifikop`                |
-| `image.tag`                      | Image tag                                        | `v0.6.3-release`                          |
-| `image.pullPolicy`               | Image pull policy                                | `Always`                                  |
-| `image.imagePullSecrets.enabled` | Enable tue use of secret for docker image        | `false`                                   |
-| `image.imagePullSecrets.name`    | Name of the secret to connect to docker registry | -                                         |
-| `certManager.enabled`            | Enable cert-manager integration                  | `true`                                    |
-| `rbacEnable`                     | If true, create & use RBAC resources             | `true`                                    |
-| `resources`                      | Pod resource requests & limits                   | `{}`                                      |
-| `metricService`                  | deploy service for metrics                       | `false`                                   |
-| `debug.enabled`                  | activate DEBUG log level                         | `false`                                   |
-| `certManager.clusterScoped`      | If true setup cluster scoped resources           | `false`                            |
-| `namespaces`                     | List of namespaces where Operator watches for custom resources. Make sure the operator ServiceAccount is granted `get` permissions on this `Node` resource when using limited RBACs.| `""` i.e. all namespaces |
-| `nodeSelector`                   | Node selector configuration for operator pod     | `{}`                                      |
-| `affinity`                       | Node affinity configuration for operator pod     | `{}`                                      |
-| `tolerations`                    | Toleration configuration for operator pod        | `{}`                                      |
-| `serviceAccount.create`          | Whether the SA creation is delegated to the chart or not       | `true`                                      |
-| `serviceAccount.name`            | Name of the SA used for NiFiKop deployment       | release name                                     |
-
+| Parameter                        | Description                                                                                                                                                                          | Default                    |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------- |
+| `image.repository`               | Image                                                                                                                                                                                | `orangeopensource/nifikop` |
+| `image.tag`                      | Image tag                                                                                                                                                                            | `v0.7.0-release`           |
+| `image.pullPolicy`               | Image pull policy                                                                                                                                                                    | `Always`                   |
+| `image.imagePullSecrets.enabled` | Enable tue use of secret for docker image                                                                                                                                            | `false`                    |
+| `image.imagePullSecrets.name`    | Name of the secret to connect to docker registry                                                                                                                                     | -                          |
+| `certManager.enabled`            | Enable cert-manager integration                                                                                                                                                      | `true`                     |
+| `rbacEnable`                     | If true, create & use RBAC resources                                                                                                                                                 | `true`                     |
+| `resources`                      | Pod resource requests & limits                                                                                                                                                       | `{}`                       |
+| `metricService`                  | deploy service for metrics                                                                                                                                                           | `false`                    |
+| `debug.enabled`                  | activate DEBUG log level                                                                                                                                                             | `false`                    |
+| `certManager.clusterScoped`      | If true setup cluster scoped resources                                                                                                                                               | `false`                    |
+| `namespaces`                     | List of namespaces where Operator watches for custom resources. Make sure the operator ServiceAccount is granted `get` permissions on this `Node` resource when using limited RBACs. | `""` i.e. all namespaces   |
+| `nodeSelector`                   | Node selector configuration for operator pod                                                                                                                                         | `{}`                       |
+| `affinity`                       | Node affinity configuration for operator pod                                                                                                                                         | `{}`                       |
+| `tolerations`                    | Toleration configuration for operator pod                                                                                                                                            | `{}`                       |
+| `serviceAccount.create`          | Whether the SA creation is delegated to the chart or not                                                                                                                             | `true`                     |
+| `serviceAccount.name`            | Name of the SA used for NiFiKop deployment                                                                                                                                           | release name               |
 
 Specify each parameter using the `--set key=value[,key=value]` argument to `helm install`. For example,
 
@@ -66,7 +65,7 @@ kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/mas
 
 You can make a dry run of the chart before deploying :
 
-```console 
+```console
 helm install nifikop orange-incubator/nifikop \
     --dry-run \
     --debug.enabled \
@@ -83,11 +82,10 @@ $ helm install nifikop orange-incubator/nifikop --set namespaces={"nifikop"}
 We can surcharge default parameters using `--set` flag :
 
 ```console
-$ helm install nifikop orange-incubator/nifikop --replace --set image.tag=asyncronous 
+$ helm install nifikop orange-incubator/nifikop --replace --set image.tag=asyncronous
 ```
 
 > the `--replace` flag allow you to reuses a charts release name
-
 
 ### Listing deployed charts
 
@@ -103,7 +101,7 @@ helm status nifikop
 
 ## Uninstaling the Charts
 
-If you want to delete the operator from your Kubernetes cluster, the operator deployment 
+If you want to delete the operator from your Kubernetes cluster, the operator deployment
 should be deleted.
 
 ```
@@ -133,7 +131,6 @@ kubectl delete crd nifidataflows.nifi.orange.com
 >
 > Please never delete a CRD without very very good care
 
-
 Helm always keeps records of what releases happened. Need to see the deleted releases? `helm ls --deleted`
 shows those, and `helm ls --all` shows all of the releases (deleted and currently deployed, as well as releases that
 failed):
@@ -143,8 +140,6 @@ release name, you can use the `--replace` flag, but it will simply re-use the ex
 resources.)
 
 Note that because releases are preserved in this way, you can rollback a deleted resource, and have it re-activate.
-
-
 
 To purge a release
 

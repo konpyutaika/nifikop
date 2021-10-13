@@ -97,6 +97,11 @@ func (r *NifiClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return r.checkFinalizers(ctx, instance)
 	}
 
+	if instance.IsExternal() {
+		return reconcile.Result{
+			RequeueAfter: time.Duration(15) * time.Second,
+		}, nil
+	}
 	//
 	if len(instance.Status.State) == 0 || instance.Status.State == v1alpha1.NifiClusterInitializing {
 		if err := k8sutil.UpdateCRStatus(r.Client, instance, v1alpha1.NifiClusterInitializing, r.Log); err != nil {
@@ -220,7 +225,7 @@ func (r *NifiClusterReconciler) checkFinalizers(ctx context.Context,
 		namespaces = r.Namespaces
 	}
 
-	if cluster.Spec.ListenersConfig.SSLSecrets != nil {
+	if cluster.IsInternal() && cluster.Spec.ListenersConfig.SSLSecrets != nil {
 		// If we haven't deleted all nifiusers yet, iterate namespaces and delete all nifiusers
 		// with the matching label.
 		if util.StringSliceContains(cluster.GetFinalizers(), clusterUsersFinalizer) {
@@ -297,7 +302,7 @@ func (r *NifiClusterReconciler) ensureFinalizers(ctx context.Context,
 	cluster *v1alpha1.NifiCluster) (updated *v1alpha1.NifiCluster, err error) {
 
 	finalizers := []string{clusterFinalizer}
-	if cluster.Spec.ListenersConfig.SSLSecrets != nil {
+	if cluster.IsInternal() && cluster.Spec.ListenersConfig.SSLSecrets != nil {
 		finalizers = append(finalizers, clusterUsersFinalizer)
 	}
 	for _, finalizer := range finalizers {

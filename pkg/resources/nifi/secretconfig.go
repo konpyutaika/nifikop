@@ -19,6 +19,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/Orange-OpenSource/nifikop/pkg/errorfactory"
+	configcommon "github.com/Orange-OpenSource/nifikop/pkg/nificlient/config/common"
+	nifiutil "github.com/Orange-OpenSource/nifikop/pkg/util/nifi"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 	runtimeClient "sigs.k8s.io/controller-runtime/pkg/client"
@@ -27,7 +29,6 @@ import (
 	"text/template"
 
 	"github.com/Orange-OpenSource/nifikop/api/v1alpha1"
-	"github.com/Orange-OpenSource/nifikop/pkg/nificlient"
 	"github.com/Orange-OpenSource/nifikop/pkg/resources/templates"
 	"github.com/Orange-OpenSource/nifikop/pkg/resources/templates/config"
 	"github.com/Orange-OpenSource/nifikop/pkg/util"
@@ -41,12 +42,12 @@ import (
 //func encodeBase64(toEncode string) []byte {
 //	return []byte(base64.StdEncoding.EncodeToString([]byte(toEncode)))
 //}
-func (r *Reconciler) configMap(id int32, nodeConfig *v1alpha1.NodeConfig, serverPass, clientPass string, superUsers []string, log logr.Logger) runtimeClient.Object {
-	configMap := &corev1.Secret{
+func (r *Reconciler) secretConfig(id int32, nodeConfig *v1alpha1.NodeConfig, serverPass, clientPass string, superUsers []string, log logr.Logger) runtimeClient.Object {
+	secret := &corev1.Secret{
 		ObjectMeta: templates.ObjectMeta(
 			fmt.Sprintf(templates.NodeConfigTemplate+"-%d", r.NifiCluster.Name, id),
 			util.MergeLabels(
-				LabelsForNifi(r.NifiCluster.Name),
+				nifiutil.LabelsForNifi(r.NifiCluster.Name),
 				map[string]string{"nodeId": fmt.Sprintf("%d", id)},
 			),
 			r.NifiCluster,
@@ -62,10 +63,10 @@ func (r *Reconciler) configMap(id int32, nodeConfig *v1alpha1.NodeConfig, server
 		},
 	}
 
-	if nificlient.UseSSL(r.NifiCluster) {
-		configMap.Data["authorizers.xml"] = []byte(r.getAuthorizersConfigString(nodeConfig, id, log))
+	if configcommon.UseSSL(r.NifiCluster) {
+		secret.Data["authorizers.xml"] = []byte(r.getAuthorizersConfigString(nodeConfig, id, log))
 	}
-	return configMap
+	return secret
 }
 
 ////////////////////////////////////
@@ -129,7 +130,7 @@ func (r *Reconciler) getNifiPropertiesConfigString(nConfig *v1alpha1.NodeConfig,
 	base := r.GetNifiPropertiesBase(id)
 	var dnsNames []string
 	for _, dnsName := range utilpki.ClusterDNSNames(r.NifiCluster, id) {
-		dnsNames = append(dnsNames, fmt.Sprintf("%s:%d", dnsName, GetServerPort(&r.NifiCluster.Spec.ListenersConfig)))
+		dnsNames = append(dnsNames, fmt.Sprintf("%s:%d", dnsName, GetServerPort(r.NifiCluster.Spec.ListenersConfig)))
 	}
 
 	webProxyHosts := strings.Join(dnsNames, ",")
@@ -137,14 +138,14 @@ func (r *Reconciler) getNifiPropertiesConfigString(nConfig *v1alpha1.NodeConfig,
 		webProxyHosts = strings.Join(append(dnsNames, base.WebProxyHosts...), ",")
 	}
 
-	useSSL := nificlient.UseSSL(r.NifiCluster)
+	useSSL := configcommon.UseSSL(r.NifiCluster)
 	var out bytes.Buffer
 	t := template.Must(template.New("nConfig-config").Parse(config.NifiPropertiesTemplate))
 	if err := t.Execute(&out, map[string]interface{}{
 		"NifiCluster": r.NifiCluster,
 		"Id":          id,
 		"ListenerConfig": config.GenerateListenerSpecificConfig(
-			&r.NifiCluster.Spec.ListenersConfig,
+			r.NifiCluster.Spec.ListenersConfig,
 			id,
 			r.NifiCluster.Namespace,
 			r.NifiCluster.Name,

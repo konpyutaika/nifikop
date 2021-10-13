@@ -2,7 +2,7 @@
 ##
 image:
   repository: orangeopensource/nifikop
-  tag: v0.6.3-release
+  tag: v0.7.0-release
   pullPolicy: Always
   imagePullSecrets:
     enabled: false
@@ -34,7 +34,7 @@ rbacEnable: true
 ## If true, create serviceAccount
 ##
 serviceAccount:
-  create: true 
+  create: true
 
 ## if true deploy service for metrics access
 metricService: false
