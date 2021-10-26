@@ -219,7 +219,7 @@ func userContainsAccessPolicy(user *v1alpha1.NifiUser, entity nigoapi.AccessPoli
 	return false
 }
 
-func userEntityContainsAccessPolicy(entity *nigoapi.UserEntity, accessPolicy v1alpha1.AccessPolicy, rootPGId string)  bool {
+func userEntityContainsAccessPolicy(entity *nigoapi.UserEntity, accessPolicy v1alpha1.AccessPolicy, rootPGId string) bool {
 	for _, entity := range entity.Component.AccessPolicies {
 		if entity.Component.Action == string(accessPolicy.Action) &&
 			entity.Component.Resource == accessPolicy.GetResource(rootPGId) {
@@ -238,4 +238,3 @@ func userGroupEntityContainsAccessPolicyEntity(entity *nigoapi.UserGroupEntity, 
 	}
 	return false
 }
-

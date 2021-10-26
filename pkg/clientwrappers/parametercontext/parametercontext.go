@@ -146,8 +146,9 @@ func parameterContextIsSync(
 		for _, param := range entity.Component.Parameters {
 			if expected.Parameter.Name == param.Parameter.Name {
 				notFound = false
-
-				if (!param.Parameter.Sensitive && *expected.Parameter.Value != *param.Parameter.Value) ||
+				if (!param.Parameter.Sensitive && ((expected.Parameter.Value == nil && param.Parameter.Value == nil) ||
+					((expected.Parameter.Value != nil && param.Parameter.Value != nil) &&
+						*expected.Parameter.Value != *param.Parameter.Value))) ||
 					expected.Parameter.Description != param.Parameter.Description {
 
 					return false
@@ -193,8 +194,9 @@ func updateRequestPrepare(
 		for _, param := range tmp {
 			if expected.Parameter.Name == param.Parameter.Name {
 				notFound = false
-
-				if (!param.Parameter.Sensitive && *expected.Parameter.Value != *param.Parameter.Value) ||
+				if (!param.Parameter.Sensitive && ((expected.Parameter.Value == nil && param.Parameter.Value == nil) ||
+					((expected.Parameter.Value != nil && param.Parameter.Value != nil) &&
+						*expected.Parameter.Value != *param.Parameter.Value))) ||
 					expected.Parameter.Description != param.Parameter.Description {
 					notFound = false
 					parameters = append(parameters, expected)
@@ -252,13 +254,12 @@ func updateParameterContextEntity(parameterContext *v1alpha1.NifiParameterContex
 	}
 
 	for _, parameter := range parameterContext.Spec.Parameters {
-		value := parameter.Value
 		parameters = append(parameters, nigoapi.ParameterEntity{
 			Parameter: &nigoapi.ParameterDto{
 				Name:        parameter.Name,
 				Description: parameter.Description,
 				Sensitive:   false,
-				Value:       &value,
+				Value:       parameter.Value,
 			},
 		})
 	}

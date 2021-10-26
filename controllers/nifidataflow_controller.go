@@ -193,8 +193,8 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {
 			r.Log.Info("Cluster is already gone, there is nothing we can do")
 			if err = r.removeFinalizer(ctx, instance); err != nil {
-					return RequeueWithError(r.Log, "failed to remove finalizer", err)
-				}
+				return RequeueWithError(r.Log, "failed to remove finalizer", err)
+			}
 			return Reconciled()
 		}
 
@@ -204,13 +204,13 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 				return RequeueWithError(r.Log, "could not apply last state to annotation", err)
 			}
 			if err := r.Client.Update(ctx, current); err != nil {
-					return RequeueWithError(r.Log, "failed to update NifiDataflow", err)
-				}
-				return RequeueAfter(time.Duration(15) * time.Second)
+				return RequeueWithError(r.Log, "failed to update NifiDataflow", err)
+			}
+			return RequeueAfter(time.Duration(15) * time.Second)
 		}
 		r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceClusterError",
 			fmt.Sprintf("Failed to lookup reference cluster : %s in %s",
-					instance.Spec.ClusterRef.Name, currentClusterRef.Namespace))
+				instance.Spec.ClusterRef.Name, currentClusterRef.Namespace))
 
 		// the cluster does not exist - should have been caught pre-flight
 		return RequeueWithError(r.Log, "failed to lookup referenced cluster", err)
@@ -320,7 +320,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		return RequeueWithError(r.Log, "failed to update NifiDataflow", err)
 	}
 
-	if instance.Spec.SyncNever(){
+	if instance.Spec.SyncNever() {
 		return Reconciled()
 	}
 
