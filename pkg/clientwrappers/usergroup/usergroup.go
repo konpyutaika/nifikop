@@ -198,7 +198,6 @@ func updateUserGroupEntity(userGroup *v1alpha1.NifiUserGroup, users []*v1alpha1.
 	}
 }
 
-
 func userGroupContainsAccessPolicy(userGroup *v1alpha1.NifiUserGroup, entity nigoapi.AccessPolicyEntity, rootPGId string) bool {
 	for _, accessPolicy := range userGroup.Spec.AccessPolicies {
 		if entity.Component.Action == string(accessPolicy.Action) &&

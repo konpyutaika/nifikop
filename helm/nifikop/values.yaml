@@ -2,7 +2,7 @@
 ##
 image:
   repository: orangeopensource/nifikop
-  tag: v0.7.0-release
+  tag: v0.7.1-release
   pullPolicy: Always
   imagePullSecrets:
     enabled: false

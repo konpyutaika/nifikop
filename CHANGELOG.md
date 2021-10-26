@@ -10,6 +10,12 @@
 
 ### Fixed Bugs
 
+## v0.7.1
+
+### Added
+
+- [PR #144](https://github.com/Orange-OpenSource/nifikop/pull/144) - **[Operator/Parameter]** Support empty string and no value set.
+
 ## v0.7.0
 
 ### Added

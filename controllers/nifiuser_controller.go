@@ -133,14 +133,14 @@ func (r *NifiUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 				return RequeueWithError(r.Log, "could not apply last state to annotation", err)
 			}
 			if err := r.Client.Update(ctx, current); err != nil {
-					return RequeueWithError(r.Log, "failed to update NifiUser", err)
-				}
+				return RequeueWithError(r.Log, "failed to update NifiUser", err)
+			}
 			return RequeueAfter(time.Duration(15) * time.Second)
 		}
 
 		r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceClusterError",
 			fmt.Sprintf("Failed to lookup reference cluster : %s in %s",
-					instance.Spec.ClusterRef.Name, clusterRef.Namespace))
+				instance.Spec.ClusterRef.Name, clusterRef.Namespace))
 		return RequeueWithError(r.Log, "failed to lookup referenced cluster", err)
 	}
 
@@ -158,7 +158,7 @@ func (r *NifiUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	if v1alpha1.ClusterRefsEquals([]v1alpha1.ClusterReference{instance.Spec.ClusterRef, current.Spec.ClusterRef}) &&
-		instance.Spec.GetCreateCert() && !clusterConnect.IsExternal(){
+		instance.Spec.GetCreateCert() && !clusterConnect.IsExternal() {
 
 		// Avoid panic if the user wants to create a nifi user but the cluster is in plaintext mode
 		// TODO: refactor this and use webhook to validate if the cluster is eligible to create a nifi user

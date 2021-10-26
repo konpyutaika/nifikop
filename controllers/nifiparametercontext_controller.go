@@ -135,12 +135,12 @@ func (r *NifiParameterContextReconciler) Reconcile(ctx context.Context, req ctrl
 
 	// Generate the connect object
 	if clusterConnect, err = configManager.BuildConnect(); err != nil {
-			// This shouldn't trigger anymore, but leaving it here as a safetybelt
+		// This shouldn't trigger anymore, but leaving it here as a safetybelt
 		if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {
 			r.Log.Info("Cluster is already gone, there is nothing we can do")
 			if err = r.removeFinalizer(ctx, instance); err != nil {
-					return RequeueWithError(r.Log, "failed to remove finalizer", err)
-				}
+				return RequeueWithError(r.Log, "failed to remove finalizer", err)
+			}
 			return Reconciled()
 		}
 		// If the referenced cluster no more exist, just skip the deletion requirement in cluster ref change case.
@@ -156,12 +156,11 @@ func (r *NifiParameterContextReconciler) Reconcile(ctx context.Context, req ctrl
 
 		r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceClusterError",
 			fmt.Sprintf("Failed to lookup reference cluster : %s in %s",
-					instance.Spec.ClusterRef.Name, clusterRef.Namespace))
+				instance.Spec.ClusterRef.Name, clusterRef.Namespace))
 
 		// the cluster does not exist - should have been caught pre-flight
 		return RequeueWithError(r.Log, "failed to lookup referenced cluster", err)
 	}
-
 
 	// Generate the client configuration.
 	clientConfig, err = configManager.BuildConfig()

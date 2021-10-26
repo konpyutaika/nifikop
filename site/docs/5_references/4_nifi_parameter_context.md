@@ -24,7 +24,6 @@ spec:
       value: toto
       description: tutu
     - name: test2
-      value: toto
       description: toto
 ```
 
@@ -59,7 +58,7 @@ spec:
 |Field|Type|Description|Required|Default|
 |-----|----|-----------|--------|--------|
 |name|string| the name of the Parameter. |Yes| - |
-|value|string| the value of the Parameter. |Yes| - |
+|value|string| the value of the Parameter. |No| - |
 |description|string| the description of the Parameter. |No| - |
 
 ## SecretReference

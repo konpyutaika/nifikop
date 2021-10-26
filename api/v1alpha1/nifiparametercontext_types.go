@@ -39,7 +39,7 @@ type Parameter struct {
 	// the name of the Parameter.
 	Name string `json:"name"`
 	// the value of the Parameter.
-	Value string `json:"value,omitempty"`
+	Value *string `json:"value,omitempty"`
 	// the description of the Parameter.
 	Description string `json:"description,omitempty"`
 }
