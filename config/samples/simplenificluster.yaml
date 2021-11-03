@@ -9,6 +9,13 @@ spec:
   zkPath: "/simplenifi"
   clusterImage: "apache/nifi:1.12.1"
   oneNifiNodePerNode: false
+  volumes:
+    - name: secret-params-volume
+      secret:
+        secretName: secret-params
+  volumeMounts:
+    - mountPath: /params
+      name: secret-params-volume
   nodeConfigGroups:
     default_group:
       isNode: true

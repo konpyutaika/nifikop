@@ -72,6 +72,10 @@ type NifiClusterSpec struct {
 	InitContainers []corev1.Container `json:"initContainers,omitempty" patchStrategy:"merge" patchMergeKey:"name" protobuf:"bytes,2,rep,name=containers"`
 	// clusterImage can specify the whole NiFi cluster image in one place
 	ClusterImage string `json:"clusterImage,omitempty"`
+	// Additional volume mounts to attach to the NiFi cluster container
+	VolumeMounts []corev1.VolumeMount `json:"volumeMounts,omitempty"`
+	// Additional volumes to attach to the NiFi cluster container
+	Volumes []corev1.Volume `json:"volumes,omitempty"`
 	// oneNifiNodePerNode if set to true every nifi node is started on a new node, if there is not enough node to do that
 	// it will stay in pending state. If set to false the operator also tries to schedule the nifi node to a unique node
 	// but if the node number is insufficient the nifi node will be scheduled to a node where a nifi node is already running.
