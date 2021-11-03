@@ -2,6 +2,8 @@
 
 ### Added
 
+- [PR #148](https://github.com/Orange-OpenSource/nifikop/pull/148) - **[Operator/NiFiCluster]** Add ability to attach additional volumes & volumeMounts to NiFi container.
+
 ### Changed
 
 ### Deprecated

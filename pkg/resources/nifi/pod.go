@@ -73,6 +73,14 @@ func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev
 		volumeMount = append(volumeMount, generateVolumeMountForSSL()...)
 	}
 
+	if r.NifiCluster.Spec.Volumes != nil {
+		volume = append(volume, r.NifiCluster.Spec.Volumes...)
+	}
+
+	if r.NifiCluster.Spec.VolumeMounts != nil {
+		volumeMount = append(volumeMount, r.NifiCluster.Spec.VolumeMounts...)
+	}
+
 	podVolumes := append(volume, []corev1.Volume{
 		{
 			Name: nodeSecretVolumeMount,

@@ -93,6 +93,8 @@ spec:
 |zkAddress|string| specifies the ZooKeeper connection string in the form hostname:port where host and port are those of a Zookeeper server.|No|""|
 |zkPath|string| specifies the Zookeeper chroot path as part of its Zookeeper connection string which puts its data under same path in the global ZooKeeper namespace.|Yes|"/"|
 |initContainerImage|string| can override the default image used into the init container to check if ZoooKeeper server is reachable.. |Yes|"busybox"|
+|volumes|\[ \][Volume](https://godoc.org/k8s.io/api/core/v1#Volume)| defines additional volumes to attach to the NiFi container. |No|\[ \]|
+|volumeMounts|\[ \][VolumeMount](https://godoc.org/k8s.io/api/core/v1#VolumeMount)| defines additional volume mounts to attach to the NiFi container. |No|\[ \]|
 |initContainers|\[ \]string| defines additional initContainers configurations. |No|\[ \]|
 |clusterImage|string| can specify the whole nificluster image in one place. |No|""|
 |oneNifiNodePerNode|boolean|if set to true every nifi node is started on a new node, if there is not enough node to do that it will stay in pending state. If set to false the operator also tries to schedule the nifi node to a unique node but if the node number is insufficient the nifi node will be scheduled to a node where a nifi node is already running.|No| nil |

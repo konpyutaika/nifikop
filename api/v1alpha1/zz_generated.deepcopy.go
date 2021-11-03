@@ -411,6 +411,20 @@ func (in *NifiClusterSpec) DeepCopyInto(out *NifiClusterSpec) {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
+	if in.VolumeMounts != nil {
+		in, out := &in.VolumeMounts, &out.VolumeMounts
+		*out = make([]v1.VolumeMount, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
+	}
+	if in.Volumes != nil {
+		in, out := &in.Volumes, &out.Volumes
+		*out = make([]v1.Volume, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
+	}
 	if in.ManagedAdminUsers != nil {
 		in, out := &in.ManagedAdminUsers, &out.ManagedAdminUsers
 		*out = make([]ManagedUser, len(*in))
