@@ -49,9 +49,11 @@ var dataflowFinalizer = "nifidataflows.nifi.orange.com/finalizer"
 // NifiDataflowReconciler reconciles a NifiDataflow object
 type NifiDataflowReconciler struct {
 	client.Client
-	Log      logr.Logger
-	Scheme   *runtime.Scheme
-	Recorder record.EventRecorder
+	Log             logr.Logger
+	Scheme          *runtime.Scheme
+	Recorder        record.EventRecorder
+	RequeueInterval int
+	RequeueOffset   int
 }
 
 // +kubebuilder:rbac:groups=nifi.orange.com,resources=nifidataflows,verbs=get;list;watch;create;update;patch;delete
@@ -71,7 +73,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	_ = r.Log.WithValues("nifidataflow", req.NamespacedName)
 
 	var err error
-
+	interval := util.GetRequeueInterval(r.RequeueInterval, r.RequeueOffset)
 	// Fetch the NifiDataflow instance
 	instance := &v1alpha1.NifiDataflow{}
 	if err = r.Client.Get(ctx, req.NamespacedName, instance); err != nil {
@@ -239,7 +241,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 				instance.Spec.ClusterRef.Name, clusterConnect.Id()))
 
 		// the cluster does not exist - should have been caught pre-flight
-		return RequeueAfter(time.Duration(15) * time.Second)
+		return RequeueAfter(interval)
 	}
 
 	// Ìn case of the cluster reference changed.
@@ -258,7 +260,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		if err := r.Client.Update(ctx, current); err != nil {
 			return RequeueWithError(r.Log, "failed to update NifiDatafllow", err)
 		}
-		return RequeueAfter(time.Duration(15) * time.Second)
+		return RequeueAfter(interval)
 	}
 
 	if (instance.Spec.SyncNever() && len(instance.Status.State) > 0) ||
@@ -346,7 +348,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 				errorfactory.NifiFlowControllerServiceScheduling,
 				errorfactory.NifiFlowScheduling, errorfactory.NifiFlowSyncing:
 				return reconcile.Result{
-					RequeueAfter: time.Duration(5) * time.Second,
+					RequeueAfter: interval/3,
 				}, nil
 			default:
 				r.Recorder.Event(instance, corev1.EventTypeWarning, "SynchronizingFailed",
@@ -401,7 +403,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		if err := dataflow.ScheduleDataflow(instance, clientConfig); err != nil {
 			switch errors.Cause(err).(type) {
 			case errorfactory.NifiFlowControllerServiceScheduling, errorfactory.NifiFlowScheduling:
-				return RequeueAfter(time.Duration(5) * time.Second)
+				return RequeueAfter(interval/3)
 			default:
 				r.Recorder.Event(instance, corev1.EventTypeWarning, "StartingFailed",
 					fmt.Sprintf("Starting dataflow %s based on flow {bucketId : %s, flowId: %s, version: %s} failed.",
@@ -443,7 +445,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		return Reconciled()
 	}
 
-	return RequeueAfter(time.Duration(5) * time.Second)
+	return RequeueAfter(interval/3)
 }
 
 // SetupWithManager sets up the controller with the Manager.
@@ -485,7 +487,7 @@ func (r *NifiDataflowReconciler) checkFinalizers(ctx context.Context, flow *v1al
 		if err = r.finalizeNifiDataflow(flow, config); err != nil {
 			switch errors.Cause(err).(type) {
 			case errorfactory.NifiConnectionDropping, errorfactory.NifiFlowDraining:
-				return RequeueAfter(time.Duration(5) * time.Second)
+				return RequeueAfter(util.GetRequeueInterval(r.RequeueInterval/3, r.RequeueOffset))
 			default:
 				return RequeueWithError(r.Log, "failed to finalize NiFiDataflow", err)
 			}

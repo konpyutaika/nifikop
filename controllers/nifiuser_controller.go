@@ -49,9 +49,11 @@ var userFinalizer = "nifiusers.nifi.orange.com/finalizer"
 // NifiUserReconciler reconciles a NifiUser object
 type NifiUserReconciler struct {
 	client.Client
-	Log      logr.Logger
-	Scheme   *runtime.Scheme
-	Recorder record.EventRecorder
+	Log             logr.Logger
+	Scheme          *runtime.Scheme
+	Recorder        record.EventRecorder
+	RequeueInterval int
+	RequeueOffset   int
 }
 
 // +kubebuilder:rbac:groups=nifi.orange.com,resources=nifiusers,verbs=get;list;watch;create;update;patch;delete
@@ -72,7 +74,7 @@ type NifiUserReconciler struct {
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.7.0/pkg/reconcile
 func (r *NifiUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = r.Log.WithValues("nifiuser", req.NamespacedName)
-
+	interval := util.GetRequeueInterval(r.RequeueInterval, r.RequeueOffset)
 	var err error
 
 	// Fetch the NifiUser instance
@@ -182,7 +184,7 @@ func (r *NifiUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 				r.Log.Info("generated secret not found, may not be ready")
 				return ctrl.Result{
 					Requeue:      true,
-					RequeueAfter: time.Duration(5) * time.Second,
+					RequeueAfter: interval/3,
 				}, nil
 			case errorfactory.FatalReconcileError:
 				// TODO: (tinyzimmer) - Sleep for longer for now to give user time to see the error
@@ -191,14 +193,14 @@ func (r *NifiUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 				r.Log.Error(err, "Fatal error attempting to reconcile the user certificate. If using vault perhaps a permissions issue or improperly configured PKI?")
 				return ctrl.Result{
 					Requeue:      true,
-					RequeueAfter: time.Duration(15) * time.Second,
+					RequeueAfter: interval,
 				}, nil
 			case errorfactory.VaultAPIFailure:
 				// Same as above in terms of things that could be checked pre-flight on the cluster
 				r.Log.Error(err, "Vault API error attempting to reconcile the user certificate. If using vault perhaps a permissions issue or improperly configured PKI?")
 				return ctrl.Result{
 					Requeue:      true,
-					RequeueAfter: time.Duration(15) * time.Second,
+					RequeueAfter: interval,
 				}, nil
 			default:
 				return RequeueWithError(r.Log, "failed to reconcile user secret", err)
@@ -239,7 +241,7 @@ func (r *NifiUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			fmt.Sprintf("The referenced cluster is not ready yet : %s in %s",
 				instance.Spec.ClusterRef.Name, clusterConnect.Id()))
 		// the cluster does not exist - should have been caught pre-flight
-		return RequeueAfter(time.Duration(15) * time.Second)
+		return RequeueAfter(interval)
 	}
 
 	// Ìn case of the cluster reference changed.
@@ -258,7 +260,7 @@ func (r *NifiUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		if err := r.Client.Update(ctx, current); err != nil {
 			return RequeueWithError(r.Log, "failed to update NifiUser", err)
 		}
-		return RequeueAfter(time.Duration(15) * time.Second)
+		return RequeueAfter(interval)
 	}
 
 	r.Recorder.Event(instance, corev1.EventTypeNormal, "Reconciling",
@@ -336,7 +338,7 @@ func (r *NifiUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	r.Log.Info("Ensured user")
 
-	return RequeueAfter(time.Duration(15) * time.Second)
+	return RequeueAfter(interval)
 
 	// set user status
 	//instance.Status = v1alpha1.NifiUserStatus{
