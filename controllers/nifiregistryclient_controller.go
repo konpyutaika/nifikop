@@ -46,9 +46,11 @@ var registryClientFinalizer = "nifiregistryclients.nifi.orange.com/finalizer"
 // NifiRegistryClientReconciler reconciles a NifiRegistryClient object
 type NifiRegistryClientReconciler struct {
 	client.Client
-	Log      logr.Logger
-	Scheme   *runtime.Scheme
-	Recorder record.EventRecorder
+	Log             logr.Logger
+	Scheme          *runtime.Scheme
+	Recorder        record.EventRecorder
+	RequeueInterval int
+	RequeueOffset   int
 }
 
 // +kubebuilder:rbac:groups=nifi.orange.com,resources=nifiregistryclients,verbs=get;list;watch;create;update;patch;delete
@@ -66,7 +68,7 @@ type NifiRegistryClientReconciler struct {
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.7.0/pkg/reconcile
 func (r *NifiRegistryClientReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = r.Log.WithValues("nifiregistryclient", req.NamespacedName)
-
+	interval := util.GetRequeueInterval(r.RequeueInterval, r.RequeueOffset)
 	var err error
 
 	// Fetch the NifiRegistryClient instance
@@ -160,7 +162,7 @@ func (r *NifiRegistryClientReconciler) Reconcile(ctx context.Context, req ctrl.R
 			fmt.Sprintf("The referenced cluster is not ready yet : %s in %s",
 				instance.Spec.ClusterRef.Name, clusterConnect.Id()))
 		// the cluster does not exist - should have been caught pre-flight
-		return RequeueAfter(time.Duration(15) * time.Second)
+		return RequeueAfter(interval)
 	}
 
 	// Ìn case of the cluster reference changed.
@@ -179,7 +181,7 @@ func (r *NifiRegistryClientReconciler) Reconcile(ctx context.Context, req ctrl.R
 		if err := r.Client.Update(ctx, current); err != nil {
 			return RequeueWithError(r.Log, "failed to update NifiRegistryClient", err)
 		}
-		return RequeueAfter(time.Duration(15) * time.Second)
+		return RequeueAfter(interval)
 	}
 
 	r.Recorder.Event(instance, corev1.EventTypeNormal, "Reconciling",
@@ -254,7 +256,7 @@ func (r *NifiRegistryClientReconciler) Reconcile(ctx context.Context, req ctrl.R
 
 	r.Log.Info("Ensured Registry Client")
 
-	return RequeueAfter(time.Duration(15) * time.Second)
+	return RequeueAfter(interval)
 }
 
 // SetupWithManager sets up the controller with the Manager.

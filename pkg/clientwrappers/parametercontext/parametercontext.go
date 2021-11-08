@@ -100,11 +100,14 @@ func SyncParameterContext(parameterContext *v1alpha1.NifiParameterContext, param
 		return &parameterContext.Status, errorfactory.NifiParameterContextUpdateRequestRunning{}
 	}
 
-	status := parameterContext.Status
-	status.Version = *entity.Revision.Version
-	status.Id = entity.Id
+	var status *v1alpha1.NifiParameterContextStatus
+	if parameterContext.Status.Version != *entity.Revision.Version || parameterContext.Status.Id != entity.Id {
+		status := &parameterContext.Status
+		status.Version = *entity.Revision.Version
+		status.Id = entity.Id
+	}
 
-	return &status, nil
+	return status, nil
 }
 
 func RemoveParameterContext(parameterContext *v1alpha1.NifiParameterContext, parameterSecrets []*corev1.Secret,
@@ -146,9 +149,11 @@ func parameterContextIsSync(
 		for _, param := range entity.Component.Parameters {
 			if expected.Parameter.Name == param.Parameter.Name {
 				notFound = false
-				if (!param.Parameter.Sensitive && ((expected.Parameter.Value == nil && param.Parameter.Value == nil) ||
-					((expected.Parameter.Value != nil && param.Parameter.Value != nil) &&
-						*expected.Parameter.Value != *param.Parameter.Value))) ||
+
+				if (!param.Parameter.Sensitive &&
+					!((expected.Parameter.Value == nil && param.Parameter.Value == nil) ||
+						((expected.Parameter.Value != nil && param.Parameter.Value != nil) &&
+							(*expected.Parameter.Value == *param.Parameter.Value))))||
 					expected.Parameter.Description != param.Parameter.Description {
 
 					return false
@@ -194,10 +199,11 @@ func updateRequestPrepare(
 		for _, param := range tmp {
 			if expected.Parameter.Name == param.Parameter.Name {
 				notFound = false
-				if (!param.Parameter.Sensitive && ((expected.Parameter.Value == nil && param.Parameter.Value == nil) ||
-					((expected.Parameter.Value != nil && param.Parameter.Value != nil) &&
-						*expected.Parameter.Value != *param.Parameter.Value))) ||
-					expected.Parameter.Description != param.Parameter.Description {
+				if (!param.Parameter.Sensitive &&
+					!((expected.Parameter.Value == nil && param.Parameter.Value == nil) ||
+						((expected.Parameter.Value != nil && param.Parameter.Value != nil) &&
+							(*expected.Parameter.Value == *param.Parameter.Value))))||
+					expected.Parameter.Description != param.Parameter.Description  {
 					notFound = false
 					parameters = append(parameters, expected)
 					break

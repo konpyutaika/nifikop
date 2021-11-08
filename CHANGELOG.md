@@ -10,11 +10,21 @@
 
 ### Fixed Bugs
 
+## v0.7.2
+
+### Added
+
+- [PR #152](https://github.com/Orange-OpenSource/nifikop/pull/152) - **[Operator]** Configurable requeue interval (#124)
+
+### Fixed Bugs
+
+- [PR #152](https://github.com/Orange-OpenSource/nifikop/pull/152) - **[Operator/NiFiParameterContext]** Fix is sync control in nil value case.
+
 ## v0.7.1
 
 ### Added
 
-- [PR #144](https://github.com/Orange-OpenSource/nifikop/pull/144) - **[Operator/Parameter]** Support empty string and no value set.
+- [PR #144](https://github.com/Orange-OpenSource/nifikop/pull/144) - **[Operator/NiFiParameterContext]** Support empty string and no value set.
 
 ## v0.7.0
 

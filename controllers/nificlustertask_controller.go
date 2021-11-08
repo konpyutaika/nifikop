@@ -24,6 +24,7 @@ import (
 	"github.com/Orange-OpenSource/nifikop/pkg/errorfactory"
 	"github.com/Orange-OpenSource/nifikop/pkg/k8sutil"
 	"github.com/Orange-OpenSource/nifikop/pkg/nificlient/config"
+	"github.com/Orange-OpenSource/nifikop/pkg/util"
 	"github.com/Orange-OpenSource/nifikop/pkg/util/clientconfig"
 	nifiutil "github.com/Orange-OpenSource/nifikop/pkg/util/nifi"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -46,9 +47,11 @@ import (
 // NifiClusterTaskReconciler reconciles
 type NifiClusterTaskReconciler struct {
 	client.Client
-	Log      logr.Logger
-	Scheme   *runtime.Scheme
-	Recorder record.EventRecorder
+	Log             logr.Logger
+	Scheme          *runtime.Scheme
+	Recorder        record.EventRecorder
+	RequeueIntervals map[string]int
+	RequeueOffset    int
 }
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
@@ -63,6 +66,9 @@ type NifiClusterTaskReconciler struct {
 func (r *NifiClusterTaskReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = r.Log.WithValues("nificlustertask", req.NamespacedName)
 
+	intervalNotReady := util.GetRequeueInterval(r.RequeueIntervals["CLUSTER_TASK_NOT_READY_REQUEUE_INTERVAL"], r.RequeueOffset)
+	intervalRunning  := util.GetRequeueInterval(r.RequeueIntervals["CLUSTER_TASK_RUNNING_REQUEUE_INTERVAL"], r.RequeueOffset)
+	intervalTimeout  := util.GetRequeueInterval(r.RequeueIntervals["CLUSTER_TASK_TIMEOUT_REQUEUE_INTERVAL"], r.RequeueOffset)
 	// Fetch the NifiCluster instance
 	instance := &v1alpha1.NifiCluster{}
 	err := r.Client.Get(ctx, req.NamespacedName, instance)
@@ -95,15 +101,16 @@ func (r *NifiClusterTaskReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		switch errors.Cause(err).(type) {
 		case errorfactory.NifiClusterNotReady, errorfactory.ResourceNotReady:
 			return reconcile.Result{
-				RequeueAfter: time.Duration(15) * time.Second,
+				RequeueAfter: intervalNotReady,
 			}, nil
 		case errorfactory.NifiClusterTaskRunning:
 			return reconcile.Result{
-				RequeueAfter: time.Duration(20) * time.Second,
+				RequeueAfter: intervalRunning,
 			}, nil
 		case errorfactory.NifiClusterTaskTimeout, errorfactory.NifiClusterTaskFailure:
+
 			return reconcile.Result{
-				RequeueAfter: time.Duration(20) * time.Second,
+				RequeueAfter: intervalTimeout,
 			}, nil
 		default:
 			return RequeueWithError(r.Log, err.Error(), err)
@@ -131,15 +138,15 @@ func (r *NifiClusterTaskReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		switch errors.Cause(err).(type) {
 		case errorfactory.NifiClusterNotReady:
 			return reconcile.Result{
-				RequeueAfter: time.Duration(15) * time.Second,
+				RequeueAfter: intervalNotReady,
 			}, nil
 		case errorfactory.NifiClusterTaskRunning:
 			return reconcile.Result{
-				RequeueAfter: time.Duration(20) * time.Second,
+				RequeueAfter: intervalRunning,
 			}, nil
 		case errorfactory.NifiClusterTaskTimeout, errorfactory.NifiClusterTaskFailure:
 			return reconcile.Result{
-				RequeueAfter: time.Duration(20) * time.Second,
+				RequeueAfter: intervalTimeout,
 			}, nil
 		default:
 			return RequeueWithError(r.Log, err.Error(), err)

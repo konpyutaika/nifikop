@@ -4,8 +4,8 @@ name: nifikop
 home: https://github.com/Orange-OpenSource/nifikop
 sources:
   - https://github.com/Orange-OpenSource/nifikop
-version: 0.7.1
-appVersion: 0.7.1-release
+version: 0.7.2
+appVersion: 0.7.2-release
 icon:
 maintainers:
   - name: erdrix
