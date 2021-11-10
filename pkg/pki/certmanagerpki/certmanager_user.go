@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	certv1 "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha2"
+	certv1 "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1"
 	certmeta "github.com/jetstack/cert-manager/pkg/apis/meta/v1"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
@@ -148,15 +148,19 @@ func (c *certManager) clusterCertificateForUser(user *v1alpha1.NifiUser, scheme 
 			Namespace: user.GetNamespace(),
 		},
 		Spec: certv1.CertificateSpec{
-			SecretName:  user.Spec.SecretName,
-			KeyEncoding: certv1.PKCS8,
-			CommonName:  user.GetName(),
-			URISANs:     []string{fmt.Sprintf(pkicommon.SpiffeIdTemplate, c.cluster.Name, user.GetNamespace(), user.GetName())},
-			Usages:      []certv1.KeyUsage{certv1.UsageClientAuth, certv1.UsageServerAuth},
+			SecretName: user.Spec.SecretName,
+			CommonName: user.GetName(),
+			URIs:       []string{fmt.Sprintf(pkicommon.SpiffeIdTemplate, c.cluster.Name, user.GetNamespace(), user.GetName())},
+			Usages:     []certv1.KeyUsage{certv1.UsageClientAuth, certv1.UsageServerAuth},
 			IssuerRef: certmeta.ObjectReference{
 				Name:  caName,
 				Kind:  caKind,
 				Group: caGroup,
+			},
+			PrivateKey: &certv1.CertificatePrivateKey{
+				Encoding:  certv1.PKCS8,
+				Algorithm: certv1.RSAKeyAlgorithm,
+				Size:      4096,
 			},
 		},
 	}

@@ -4,6 +4,8 @@
 
 ### Changed
 
+- [PR #154](https://github.com/Orange-OpenSource/nifikop/pull/154) - **[Operator]** Update cert-manager dep to v1.6.1 and all Certificate references to v1.
+
 ### Deprecated
 
 ### Removed

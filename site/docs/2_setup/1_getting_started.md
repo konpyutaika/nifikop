@@ -45,7 +45,7 @@ Replace the `storageClass` parameter value with your own.
 
 ### Install cert-manager
 
-The NiFiKop operator uses `cert-manager` for issuing certificates to users and and nodes, so you'll need to have it setup in case you want to deploy a secured cluster with authentication enabled.
+The NiFiKop operator uses `cert-manager` for issuing certificates to users and and nodes, so you'll need to have it setup in case you want to deploy a secured cluster with authentication enabled. The minimum supported cert-manager version is v1.0.
 
 <Tabs
 defaultValue="directly"
@@ -59,7 +59,7 @@ values={[
 ```bash
 # Install the CustomResourceDefinitions and cert-manager itself
 kubectl apply -f \
-    https://github.com/jetstack/cert-manager/releases/download/v1.2.0/cert-manager.yaml
+    https://github.com/jetstack/cert-manager/releases/download/v1.7.2/cert-manager.yaml
 ```
 
 </TabItem>
@@ -68,7 +68,7 @@ kubectl apply -f \
 ```bash
 # Install CustomResourceDefinitions first
 kubectl apply --validate=false -f \
-   https://github.com/jetstack/cert-manager/releases/download/v1.2.0/cert-manager.crds.yaml
+   https://github.com/jetstack/cert-manager/releases/download/v1.7.2/cert-manager.crds.yaml
 
 # Add the jetstack helm repo
 helm repo add jetstack https://charts.jetstack.io
@@ -77,7 +77,7 @@ helm repo update
 # You have to create the namespace before executing following command
 helm install cert-manager \
     --namespace cert-manager \
-    --version v1.2.0 jetstack/cert-manager
+    --version v1.7.2 jetstack/cert-manager
 ```
 
 </TabItem>
