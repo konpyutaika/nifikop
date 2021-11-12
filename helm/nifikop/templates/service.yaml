@@ -1,4 +1,4 @@
-{{- if .Values.metricService }}
+{{- if .Values.metrics.enabled }}
 apiVersion: v1
 kind: Service
 metadata:
@@ -14,6 +14,6 @@ spec:
     app: {{ template "nifikop.name" . }}
   ports:
   - name: metrics
-    port: 9710
+    port: {{ .Values.metrics.port }}
     protocol: TCP
 {{- end }}

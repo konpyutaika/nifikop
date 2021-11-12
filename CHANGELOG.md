@@ -10,6 +10,8 @@
 
 ### Fixed Bugs
 
+- [PR #156](https://github.com/Orange-OpenSource/nifikop/pull/156) - **[Helm chart]** Operator metrics port configuration
+
 ## v0.7.2
 
 ### Added
