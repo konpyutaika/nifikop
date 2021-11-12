@@ -10,7 +10,12 @@
 
 ### Fixed Bugs
 
-- [PR #156](https://github.com/Orange-OpenSource/nifikop/pull/156) - **[Helm chart]** Operator metrics port configuration
+## v0.7.3
+
+### Fixed Bugs
+
+- [PR #156](https://github.com/Orange-OpenSource/nifikop/pull/156) - **[Helm chart]** Operator metrics port configuration.
+- [PR #157](https://github.com/Orange-OpenSource/nifikop/pull/157) - **[Operator/NiFiParameterContext]** Support optional parametere context and empty slice.
 
 ## v0.7.2
 

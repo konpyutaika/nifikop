@@ -158,17 +158,23 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	}
 
 	// Check if cluster references are the same
+	var clusterRefs []v1alpha1.ClusterReference
+
 	registryClusterRef := registryClient.Spec.ClusterRef
 	registryClusterRef.Namespace = registryClientNamespace
+	clusterRefs = append(clusterRefs, registryClusterRef)
 
-	parameterContextClusterRef := parameterContext.Spec.ClusterRef
-	parameterContextClusterRef.Namespace = parameterContextNamespace
+	if parameterContext !=nil {
+		parameterContextClusterRef := parameterContext.Spec.ClusterRef
+		parameterContextClusterRef.Namespace = parameterContextNamespace
+		clusterRefs = append(clusterRefs, parameterContextClusterRef)
+	}
 
 	currentClusterRef := current.Spec.ClusterRef
 	currentClusterRef.Namespace = GetClusterRefNamespace(current.Namespace, current.Spec.ClusterRef)
+	clusterRefs = append(clusterRefs, currentClusterRef)
 
-	if !v1alpha1.ClusterRefsEquals(
-		[]v1alpha1.ClusterReference{registryClusterRef, parameterContextClusterRef, currentClusterRef}) {
+	if !v1alpha1.ClusterRefsEquals(clusterRefs) {
 
 		r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceClusterError",
 			fmt.Sprintf("Failed to lookup reference cluster : %s in %s",

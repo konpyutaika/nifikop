@@ -243,7 +243,7 @@ func updateParameterContextEntity(parameterContext *v1alpha1.NifiParameterContex
 		entity.Component = &nigoapi.ParameterContextDto{}
 	}
 
-	var parameters []nigoapi.ParameterEntity
+	parameters := make([]nigoapi.ParameterEntity, 0)
 
 	for _, secret := range parameterSecrets {
 		for k, v := range secret.Data {

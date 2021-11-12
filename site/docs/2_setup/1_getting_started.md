@@ -116,8 +116,8 @@ Now deploy the helm chart :
 helm install nifikop \
     orange-incubator/nifikop \
     --namespace=nifi \
-    --version 0.7.2 \
-    --set image.tag=v0.7.2-release \
+    --version 0.7.3 \
+    --set image.tag=v0.7.3-release \
     --set resources.requests.memory=256Mi \
     --set resources.requests.cpu=250m \
     --set resources.limits.memory=256Mi \
