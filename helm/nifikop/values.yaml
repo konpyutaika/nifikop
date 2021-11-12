@@ -36,8 +36,10 @@ rbacEnable: true
 serviceAccount:
   create: true
 
-## if true deploy service for metrics access
-metricService: false
+metrics:
+  ## if true deploy service for metrics access
+  enabled: false
+  port: 8081
 
 debug:
   enabled: false

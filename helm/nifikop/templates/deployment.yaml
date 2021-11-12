@@ -66,6 +66,7 @@ spec:
         - command:
             - /manager
           args:
+            - metrics-bind-address={{.Values.metrics.port}}
             - --leader-elect
             {{- if .Values.certManager.enabled }}
             - --cert-manager-enabled={{ .Values.certManager.enabled }}
