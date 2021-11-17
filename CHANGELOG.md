@@ -10,6 +10,12 @@
 
 ### Fixed Bugs
 
+## v0.7.4
+
+### Fixed Bugs
+
+- [PR #160](https://github.com/Orange-OpenSource/nifikop/pull/160) - **[Dataflow]** Mandatory Position x and y.
+
 ## v0.7.3
 
 ### Fixed Bugs

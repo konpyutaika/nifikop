@@ -161,8 +161,8 @@ github.com/emicklei/go-restful v0.0.0-20170410110728-ff4f55a20633/go.mod h1:otzb
 github.com/emicklei/go-restful v2.9.5+incompatible/go.mod h1:otzb+WCGbkyDHkqmQmT5YD2WR4BBwUdeQoFo8l/7tVs=
 github.com/envoyproxy/go-control-plane v0.9.1-0.20191026205805-5f8ba28d4473/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
 github.com/envoyproxy/protoc-gen-validate v0.1.0/go.mod h1:iSmxcyjqTsJpI2R4NaDN7+kN2VEUnK/pcBlmesArF7c=
-github.com/erdrix/nigoapi v0.0.0-20211112150537-d8047033a68a h1:isV4zYi8OKvV7XK4tPDJQ+i383uDZ/wTqzjqAMu/FpM=
-github.com/erdrix/nigoapi v0.0.0-20211112150537-d8047033a68a/go.mod h1:owY+8fs8YXnST3ENM+ulVllYjTbzGaqKA+Y7HHJ0lZA=
+github.com/erdrix/nigoapi v0.0.0-20211117113337-5c8957d8be51 h1:NRUQIRX+cezoNs12maIay9CmeDjfLBiXdNHkoaggzgo=
+github.com/erdrix/nigoapi v0.0.0-20211117113337-5c8957d8be51/go.mod h1:owY+8fs8YXnST3ENM+ulVllYjTbzGaqKA+Y7HHJ0lZA=
 github.com/evanphx/json-patch v4.2.0+incompatible/go.mod h1:50XU6AFN0ol/bzJsmQLiYLvXMP4fmwYFNcr97nuDLSk=
 github.com/evanphx/json-patch v4.5.0+incompatible/go.mod h1:50XU6AFN0ol/bzJsmQLiYLvXMP4fmwYFNcr97nuDLSk=
 github.com/evanphx/json-patch v4.9.0+incompatible h1:kLcOMZeuLAJvL2BPWLMIj5oaZQobrkAqrL+WFZwQses=
