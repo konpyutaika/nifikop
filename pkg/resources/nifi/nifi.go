@@ -17,6 +17,8 @@ package nifi
 import (
 	"context"
 	"fmt"
+	"github.com/Orange-OpenSource/nifikop/pkg/clientwrappers/dataflow"
+	"github.com/Orange-OpenSource/nifikop/pkg/clientwrappers/scale"
 	"github.com/Orange-OpenSource/nifikop/pkg/nificlient/config"
 	"github.com/Orange-OpenSource/nifikop/pkg/pki"
 	nifiutil "github.com/Orange-OpenSource/nifikop/pkg/util/nifi"
@@ -26,10 +28,8 @@ import (
 	"emperror.dev/errors"
 	"github.com/Orange-OpenSource/nifikop/api/v1alpha1"
 	"github.com/Orange-OpenSource/nifikop/pkg/clientwrappers/controllersettings"
-	"github.com/Orange-OpenSource/nifikop/pkg/clientwrappers/dataflow"
 	"github.com/Orange-OpenSource/nifikop/pkg/clientwrappers/reportingtask"
 
-	"github.com/Orange-OpenSource/nifikop/pkg/clientwrappers/scale"
 	"github.com/Orange-OpenSource/nifikop/pkg/errorfactory"
 	"github.com/Orange-OpenSource/nifikop/pkg/k8sutil"
 	"github.com/Orange-OpenSource/nifikop/pkg/resources"
@@ -621,7 +621,9 @@ func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) (
 		if err != nil {
 			log.Error(err, "could not match objects", "kind", desiredType)
 		} else if patchResult.IsEmpty() {
-			if !k8sutil.IsPodTerminatedOrShutdown(currentPod) && r.NifiCluster.Status.NodesState[currentPod.Labels["nodeId"]].ConfigurationState == v1alpha1.ConfigInSync {
+			if !k8sutil.IsPodTerminatedOrShutdown(currentPod) &&
+				r.NifiCluster.Status.NodesState[currentPod.Labels["nodeId"]].ConfigurationState == v1alpha1.ConfigInSync {
+
 				if val, found := r.NifiCluster.Status.NodesState[desiredPod.Labels["nodeId"]]; found &&
 					val.GracefulActionState.State == v1alpha1.GracefulUpscaleRunning &&
 					val.GracefulActionState.ActionStep == v1alpha1.ConnectStatus &&
@@ -633,6 +635,8 @@ func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) (
 							err, "could not update node graceful action state"), false
 					}
 				}
+
+
 				log.V(1).Info("resource is in sync")
 				return nil, k8sutil.PodReady(currentPod)
 			}
