@@ -164,7 +164,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	registryClusterRef.Namespace = registryClientNamespace
 	clusterRefs = append(clusterRefs, registryClusterRef)
 
-	if parameterContext !=nil {
+	if parameterContext != nil {
 		parameterContextClusterRef := parameterContext.Spec.ClusterRef
 		parameterContextClusterRef.Namespace = parameterContextNamespace
 		clusterRefs = append(clusterRefs, parameterContextClusterRef)
@@ -354,7 +354,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 				errorfactory.NifiFlowControllerServiceScheduling,
 				errorfactory.NifiFlowScheduling, errorfactory.NifiFlowSyncing:
 				return reconcile.Result{
-					RequeueAfter: interval/3,
+					RequeueAfter: interval / 3,
 				}, nil
 			default:
 				r.Recorder.Event(instance, corev1.EventTypeWarning, "SynchronizingFailed",
@@ -409,7 +409,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		if err := dataflow.ScheduleDataflow(instance, clientConfig); err != nil {
 			switch errors.Cause(err).(type) {
 			case errorfactory.NifiFlowControllerServiceScheduling, errorfactory.NifiFlowScheduling:
-				return RequeueAfter(interval/3)
+				return RequeueAfter(interval / 3)
 			default:
 				r.Recorder.Event(instance, corev1.EventTypeWarning, "StartingFailed",
 					fmt.Sprintf("Starting dataflow %s based on flow {bucketId : %s, flowId: %s, version: %s} failed.",
@@ -451,7 +451,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		return Reconciled()
 	}
 
-	return RequeueAfter(interval/3)
+	return RequeueAfter(interval / 3)
 }
 
 // SetupWithManager sets up the controller with the Manager.

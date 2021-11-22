@@ -42,6 +42,8 @@ type Parameter struct {
 	Value *string `json:"value,omitempty"`
 	// the description of the Parameter.
 	Description string `json:"description,omitempty"`
+	// Whether the parameter is sensitive or not.
+	Sensitive bool `json:"sensitive,omitempty"`
 }
 
 // NifiParameterContextStatus defines the observed state of NifiParameterContext

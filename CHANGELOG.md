@@ -10,6 +10,17 @@
 
 ### Fixed Bugs
 
+## v0.7.5
+
+### Added
+
+- [PR #161](https://github.com/Orange-OpenSource/nifikop/pull/162) - **[Operator/NiFiParameterContext]** Support declarative sensitive value out of secret.
+
+### Fixed Bugs
+
+- [PR #161](https://github.com/Orange-OpenSource/nifikop/pull/162) - **[Documentation]** NiFiCluster reference.
+- [PR #161](https://github.com/Orange-OpenSource/nifikop/pull/162) - **[Operator/NiFiParameterContext]** Fix remove parameter and update set value to "no value set".
+
 ## v0.7.4
 
 ### Fixed Bugs

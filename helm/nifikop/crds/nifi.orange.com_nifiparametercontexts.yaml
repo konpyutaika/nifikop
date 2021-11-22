@@ -61,6 +61,9 @@ spec:
                     name:
                       description: the name of the Parameter.
                       type: string
+                    sensitive:
+                      description: Whether the parameter is sensitive or not.
+                      type: boolean
                     value:
                       description: the value of the Parameter.
                       type: string

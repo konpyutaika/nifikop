@@ -149,7 +149,7 @@ func (r *NifiClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 				r.Log.Info("A new resource was not found or may not be ready")
 				r.Log.Info(err.Error())
 				return reconcile.Result{
-					RequeueAfter: intervalNotReady/2,
+					RequeueAfter: intervalNotReady / 2,
 				}, nil
 			case errorfactory.ReconcileRollingUpgrade:
 				r.Log.Info("Rolling Upgrade in Progress")

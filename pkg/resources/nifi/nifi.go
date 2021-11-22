@@ -636,7 +636,6 @@ func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) (
 					}
 				}
 
-
 				log.V(1).Info("resource is in sync")
 				return nil, k8sutil.PodReady(currentPod)
 			}

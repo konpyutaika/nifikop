@@ -255,11 +255,12 @@ func MockParameterContext(
 
 func map2Parameters(params map[string]string, sensitive bool) []nigoapi.ParameterEntity {
 	var parameters []nigoapi.ParameterEntity
+	emptyString := ""
 	for k, v := range params {
 		parameters = append(parameters, nigoapi.ParameterEntity{
 			Parameter: &nigoapi.ParameterDto{
 				Name:        k,
-				Description: "",
+				Description: &emptyString,
 				Sensitive:   sensitive,
 				Value:       &v,
 			},

@@ -153,8 +153,8 @@ func parameterContextIsSync(
 				if (!param.Parameter.Sensitive &&
 					!((expected.Parameter.Value == nil && param.Parameter.Value == nil) ||
 						((expected.Parameter.Value != nil && param.Parameter.Value != nil) &&
-							(*expected.Parameter.Value == *param.Parameter.Value))))||
-					expected.Parameter.Description != param.Parameter.Description {
+							(*expected.Parameter.Value == *param.Parameter.Value)))) ||
+					*expected.Parameter.Description != *param.Parameter.Description {
 
 					return false
 				}
@@ -202,9 +202,13 @@ func updateRequestPrepare(
 				if (!param.Parameter.Sensitive &&
 					!((expected.Parameter.Value == nil && param.Parameter.Value == nil) ||
 						((expected.Parameter.Value != nil && param.Parameter.Value != nil) &&
-							(*expected.Parameter.Value == *param.Parameter.Value))))||
-					expected.Parameter.Description != param.Parameter.Description  {
+							(*expected.Parameter.Value == *param.Parameter.Value)))) ||
+					*expected.Parameter.Description != *param.Parameter.Description {
 					notFound = false
+					if expected.Parameter.Value == nil && param.Parameter.Value != nil {
+						toRemove = append(toRemove, expected.Parameter.Name)
+						break
+					}
 					parameters = append(parameters, expected)
 					break
 				}
@@ -245,13 +249,14 @@ func updateParameterContextEntity(parameterContext *v1alpha1.NifiParameterContex
 
 	parameters := make([]nigoapi.ParameterEntity, 0)
 
+	emptyString := ""
 	for _, secret := range parameterSecrets {
 		for k, v := range secret.Data {
 			value := string(v)
 			parameters = append(parameters, nigoapi.ParameterEntity{
 				Parameter: &nigoapi.ParameterDto{
 					Name:        k,
-					Description: "",
+					Description: &emptyString,
 					Sensitive:   true,
 					Value:       &value,
 				},
@@ -260,11 +265,12 @@ func updateParameterContextEntity(parameterContext *v1alpha1.NifiParameterContex
 	}
 
 	for _, parameter := range parameterContext.Spec.Parameters {
+		desc := parameter.Description
 		parameters = append(parameters, nigoapi.ParameterEntity{
 			Parameter: &nigoapi.ParameterDto{
 				Name:        parameter.Name,
-				Description: parameter.Description,
-				Sensitive:   false,
+				Description: &desc,
+				Sensitive:   parameter.Sensitive,
 				Value:       parameter.Value,
 			},
 		})
