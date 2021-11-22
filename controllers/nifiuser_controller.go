@@ -184,7 +184,7 @@ func (r *NifiUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 				r.Log.Info("generated secret not found, may not be ready")
 				return ctrl.Result{
 					Requeue:      true,
-					RequeueAfter: interval/3,
+					RequeueAfter: interval / 3,
 				}, nil
 			case errorfactory.FatalReconcileError:
 				// TODO: (tinyzimmer) - Sleep for longer for now to give user time to see the error

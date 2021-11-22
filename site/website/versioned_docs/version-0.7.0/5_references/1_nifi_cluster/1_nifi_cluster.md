@@ -88,7 +88,6 @@ spec:
 | rootProcessGroupId | string                                                              | contains the uuid of the root process group for this cluster.                               | if external type | -          |
 | secretRef          | \[ \][SecretReference](../4_nifi_parameter_context#secretreference) | reference the secret containing the informations required to authentiticate to the cluster. | if external type | -          |
 | proxyUrl           | string                                                              | defines the proxy required to query the NiFi cluster.                                       | if external type | -          |
-
 |service|[ServicePolicy](#servicepolicy)| defines the policy for services owned by NiFiKop operator. |No| - |
 |pod|[PodPolicy](#podpolicy)| defines the policy for pod owned by NiFiKop operator. |No| - |
 |zkAddress|string| specifies the ZooKeeper connection string in the form hostname:port where host and port are those of a Zookeeper server.|No|""|

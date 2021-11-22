@@ -47,9 +47,9 @@ import (
 // NifiClusterTaskReconciler reconciles
 type NifiClusterTaskReconciler struct {
 	client.Client
-	Log             logr.Logger
-	Scheme          *runtime.Scheme
-	Recorder        record.EventRecorder
+	Log              logr.Logger
+	Scheme           *runtime.Scheme
+	Recorder         record.EventRecorder
 	RequeueIntervals map[string]int
 	RequeueOffset    int
 }
@@ -67,8 +67,8 @@ func (r *NifiClusterTaskReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 	_ = r.Log.WithValues("nificlustertask", req.NamespacedName)
 
 	intervalNotReady := util.GetRequeueInterval(r.RequeueIntervals["CLUSTER_TASK_NOT_READY_REQUEUE_INTERVAL"], r.RequeueOffset)
-	intervalRunning  := util.GetRequeueInterval(r.RequeueIntervals["CLUSTER_TASK_RUNNING_REQUEUE_INTERVAL"], r.RequeueOffset)
-	intervalTimeout  := util.GetRequeueInterval(r.RequeueIntervals["CLUSTER_TASK_TIMEOUT_REQUEUE_INTERVAL"], r.RequeueOffset)
+	intervalRunning := util.GetRequeueInterval(r.RequeueIntervals["CLUSTER_TASK_RUNNING_REQUEUE_INTERVAL"], r.RequeueOffset)
+	intervalTimeout := util.GetRequeueInterval(r.RequeueIntervals["CLUSTER_TASK_TIMEOUT_REQUEUE_INTERVAL"], r.RequeueOffset)
 	// Fetch the NifiCluster instance
 	instance := &v1alpha1.NifiCluster{}
 	err := r.Client.Get(ctx, req.NamespacedName, instance)
