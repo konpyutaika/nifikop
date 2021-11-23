@@ -214,7 +214,7 @@ orbs:
                 if [[ $(echo "$CIRCLE_BRANCH" | grep -c "pull") -gt 0 ]]; then
                   echo "This is a PR, we don't publish to helm repo."
                 else
-                  CHART_VERSION=$(cat helm/nifikop/Chart.yaml| grep version | awk -F"version: " '{print $2}') GCP_SA_CREDS=${GCP_POC_RTC_SA_KEY} /home/circleci/nifikop/tools/publish_helm_gcs.sh
+                  CHART_VERSION=$(cat helm/nifikop/Chart.yaml| grep version | awk -F"version: " '{print $2}') GCP_SA_CREDS=${GCP_SQUIDFLOW_SBX_SA_KEY} /home/circleci/nifikop/tools/publish_helm_gcs.sh
                 fi
 jobs:
   deploy-website:
