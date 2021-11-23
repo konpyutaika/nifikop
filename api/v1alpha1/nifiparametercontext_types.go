@@ -41,7 +41,7 @@ type Parameter struct {
 	// the value of the Parameter.
 	Value *string `json:"value,omitempty"`
 	// the description of the Parameter.
-	Description string `json:"description,omitempty"`
+	Description string `json:"description"`
 	// Whether the parameter is sensitive or not.
 	Sensitive bool `json:"sensitive,omitempty"`
 }
