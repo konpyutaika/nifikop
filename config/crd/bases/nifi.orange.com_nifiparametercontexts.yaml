@@ -68,7 +68,6 @@ spec:
                       description: the value of the Parameter.
                       type: string
                   required:
-                  - description
                   - name
                   type: object
                 type: array
