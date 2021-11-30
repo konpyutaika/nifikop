@@ -315,7 +315,8 @@ func SyncDataflow(
 				updateRequest2Status(updateRequest, t)
 		}
 
-		if err := clientwrappers.ErrorGetOperation(log, err, "Get version-request"); err != nificlient.ErrNifiClusterReturned404 || !updateRequest.Request.Complete {
+		if err := clientwrappers.ErrorGetOperation(log, err, "Get version-request"); err != nificlient.ErrNifiClusterReturned404 ||
+			(updateRequest != nil && updateRequest.Request != nil && !updateRequest.Request.Complete) {
 			if err != nil {
 				return &flow.Status, err
 			}

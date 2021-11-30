@@ -10,11 +10,13 @@
 
 ### Fixed Bugs
 
+- [PR #167](https://github.com/Orange-OpenSource/nifikop/pull/167) - **[Operator/NiFiDataflow]** Fix nil pointer exception case whe sync Dataflow.
+
 ## v0.7.5
 
 ### Added
 
-- [PR #161](https://github.com/Orange-OpenSource/nifikop/pull/162) - **[Operator/NiFiParameterContext]** Support declarative sensitive value out of secret.
+- [PR #162](https://github.com/Orange-OpenSource/nifikop/pull/162) - **[Operator/NiFiParameterContext]** Support declarative sensitive value out of secret.
 
 ### Fixed Bugs
 

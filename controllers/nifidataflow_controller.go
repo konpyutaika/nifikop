@@ -443,7 +443,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	r.Log.Info("Ensured Dataflow")
 
 	r.Recorder.Event(instance, corev1.EventTypeWarning, "Reconciled",
-		fmt.Sprintf("Reconciled failed dataflow %s based on flow {bucketId : %s, flowId: %s, version: %s}",
+		fmt.Sprintf("Success fully ensured dataflow %s based on flow {bucketId : %s, flowId: %s, version: %s}",
 			instance.Name, instance.Spec.BucketId,
 			instance.Spec.FlowId, strconv.FormatInt(int64(*instance.Spec.FlowVersion), 10)))
 
