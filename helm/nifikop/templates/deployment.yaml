@@ -66,7 +66,7 @@ spec:
         - command:
             - /manager
           args:
-            - metrics-bind-address={{.Values.metrics.port}}
+            - metrics-bind-address={{ .Values.metrics.port }}
             - --leader-elect
             {{- if .Values.certManager.enabled }}
             - --cert-manager-enabled={{ .Values.certManager.enabled }}
@@ -74,6 +74,10 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: "{{ .Values.image.pullPolicy }}"
           name: {{ template "nifikop.name" . }}
+          ports:
+            - name: metrics
+              containerPort: {{ .Values.metrics.port }}
+              protocol: TCP
           securityContext:
             allowPrivilegeEscalation: false
           env:
