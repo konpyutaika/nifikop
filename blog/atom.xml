@@ -7,7 +7,7 @@
     <link rel="alternate" href="https://orange-opensource.github.io/blog"/>
     <subtitle>NiFiKop Blog</subtitle>
     <icon>https://orange-opensource.github.io/img/nifikop.ico</icon>
-    <rights>Copyright © 2021 Orange, Inc. Built with Docusaurus.</rights>
+    <rights>Copyright © 2022 Orange, Inc. Built with Docusaurus.</rights>
     <entry>
         <title type="html"><![CDATA[Secured NiFi cluster with NiFiKop with external dns on the Google Cloud Platform]]></title>
         <id>Secured NiFi cluster with NiFiKop with external dns on the Google Cloud Platform</id>

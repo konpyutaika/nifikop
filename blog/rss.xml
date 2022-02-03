@@ -7,7 +7,7 @@
         <lastBuildDate>Tue, 30 Jun 2020 00:00:00 GMT</lastBuildDate>
         <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
         <generator>https://github.com/jpmonette/feed</generator>
-        <copyright>Copyright © 2021 Orange, Inc. Built with Docusaurus.</copyright>
+        <copyright>Copyright © 2022 Orange, Inc. Built with Docusaurus.</copyright>
         <item>
             <title><![CDATA[Secured NiFi cluster with NiFiKop with external dns on the Google Cloud Platform]]></title>
             <link>https://orange-opensource.github.io/nifikop/blog/2020/06/30/secured_nifi_cluster_on_gcp_with_external_dns</link>
