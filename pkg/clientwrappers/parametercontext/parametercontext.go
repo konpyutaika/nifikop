@@ -154,7 +154,9 @@ func parameterContextIsSync(
 					!((expected.Parameter.Value == nil && param.Parameter.Value == nil) ||
 						((expected.Parameter.Value != nil && param.Parameter.Value != nil) &&
 							(*expected.Parameter.Value == *param.Parameter.Value)))) ||
-					*expected.Parameter.Description != *param.Parameter.Description {
+					!((expected.Parameter.Description == nil || *expected.Parameter.Description == "") &&
+						((param.Parameter.Description == nil || *param.Parameter.Description == "") ||
+							(expected.Parameter.Description == param.Parameter.Description))) {
 
 					return false
 				}
@@ -203,7 +205,9 @@ func updateRequestPrepare(
 					!((expected.Parameter.Value == nil && param.Parameter.Value == nil) ||
 						((expected.Parameter.Value != nil && param.Parameter.Value != nil) &&
 							(*expected.Parameter.Value == *param.Parameter.Value)))) ||
-					*expected.Parameter.Description != *param.Parameter.Description {
+					!((expected.Parameter.Description == nil || *expected.Parameter.Description == "") &&
+						((param.Parameter.Description == nil || *param.Parameter.Description == "") ||
+							(expected.Parameter.Description == param.Parameter.Description))) {
 					notFound = false
 					if expected.Parameter.Value == nil && param.Parameter.Value != nil {
 						toRemove = append(toRemove, expected.Parameter.Name)
