@@ -18,9 +18,13 @@ package controllers
 
 import (
 	"context"
-	"emperror.dev/errors"
 	"encoding/json"
 	"fmt"
+	"reflect"
+	"strconv"
+	"time"
+
+	"emperror.dev/errors"
 	"github.com/Orange-OpenSource/nifikop/pkg/clientwrappers/dataflow"
 	"github.com/Orange-OpenSource/nifikop/pkg/errorfactory"
 	"github.com/Orange-OpenSource/nifikop/pkg/k8sutil"
@@ -31,10 +35,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/client-go/tools/record"
-	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"strconv"
-	"time"
 
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -124,6 +125,10 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 				}
 				return Reconciled()
 			}
+
+			r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceRegistryClientError",
+				fmt.Sprintf("Failed to lookup reference registry client : %s in %s",
+					current.Spec.RegistryClientRef.Name, registryClientNamespace))
 
 			// the cluster does not exist - should have been caught pre-flight
 			return RequeueWithError(r.Log, "failed to lookup referenced registry client", err)
