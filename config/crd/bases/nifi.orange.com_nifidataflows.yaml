@@ -54,8 +54,8 @@ spec:
                 description: the UUID of the flow to run.
                 type: string
               flowVersion:
-                description: the version of the flow to run, if not present or equals
-                  to -1, then the latest version of flow will be used.
+                description: the version of the flow to run, then the latest version
+                  of flow will be used.
                 format: int32
                 type: integer
               parameterContextRef:
