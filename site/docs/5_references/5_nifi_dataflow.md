@@ -47,7 +47,7 @@ spec:
 |parentProcessGroupID|string|the UUID of the parent process group where you want to deploy your dataflow, if not set deploy at root level. |No| - |
 |bucketId|string|the UUID of the Bucket containing the flow. |Yes| - |
 |flowId|string|the UUID of the flow to run. |Yes| - |
-|flowVersion|*int32|the version of the flow to run, if not present or equals to -1, then the latest version of flow will be used. |Yes| - |
+|flowVersion|*int32|the version of the flow to run, then the latest version of flow will be used. |Yes| - |
 |syncMode|Enum={"never","always","once"}|if the flow will be synchronized once, continuously or never. |No| always |
 |skipInvalidControllerService|bool|whether the flow is considered as ran if some controller services are still invalid or not. |Yes| false |
 |skipInvalidComponent|bool|whether the flow is considered as ran if some components are still invalid or not. |Yes| false |
@@ -79,7 +79,7 @@ spec:
 |DataflowStateCreated|Created|describes the status of a NifiDataflow as created.|
 |DataflowStateStarting|Starting|describes the status of a NifiDataflow as starting.|
 |DataflowStateRan|Ran|describes the status of a NifiDataflow as running.|
-|DataflowStateOutOfSync|OutOfSync|ddescribes the status of a NifiDataflow as out of sync.|
+|DataflowStateOutOfSync|OutOfSync|describes the status of a NifiDataflow as out of sync.|
 |DataflowStateInSync|InSync|describes the status of a NifiDataflow as in sync.|
 
 ## UpdateRequest

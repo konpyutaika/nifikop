@@ -41,7 +41,7 @@ spec:
 |Field|Type|Description|Required|Default|
 |-----|----|-----------|--------|--------|
 |description|string| describes the Parameter Context. |No| - |
-|parameters|\[ \][Parameter](#parameter)| a list of non-sensitive Parameters. |No| - |
+|parameters|\[ \][Parameter](#parameter)| a list of non-sensitive Parameters. |Yes| - |
 |secretRefs|\[ \][SecretReference](#secretreference)| a list of secret containing sensitive parameters (the key will name of the parameter) |No| - |
 |clusterRef|[ClusterReference](./2_nifi_user.md#clusterreference)| contains the reference to the NifiCluster with the one the user is linked. |Yes| - |
 
