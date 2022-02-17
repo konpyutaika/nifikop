@@ -33,6 +33,8 @@ type NifiDataflowSpec struct {
 	FlowId string `json:"flowId"`
 	// the version of the flow to run, then the latest version of flow will be used.
 	FlowVersion *int32 `json:"flowVersion,omitempty"`
+	// the position of your dataflow in the canvas.
+	FlowPosition *FlowPosition `json:"flowPosition,omitempty"`
 	// contains the reference to the ParameterContext with the one the dataflow is linked.
 	ParameterContextRef *ParameterContextReference `json:"parameterContextRef,omitempty"`
 	// if the flow will be synchronized once, continuously or never
@@ -49,6 +51,13 @@ type NifiDataflowSpec struct {
 	// describes the way the operator will deal with data when a dataflow will be updated : drop or drain
 	// +kubebuilder:validation:Enum={"drop","drain"}
 	UpdateStrategy DataflowUpdateStrategy `json:"updateStrategy"`
+}
+
+type FlowPosition struct {
+	// The x coordinate.
+	X *int64 `json:"posX,omitempty"`
+	// The y coordinate.
+	Y *int64 `json:"posY,omitempty"`
 }
 
 type UpdateRequest struct {

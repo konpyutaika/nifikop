@@ -3,6 +3,7 @@
 ### Added
 
 - [PR #191](https://github.com/Orange-OpenSource/nifikop/pull/191) - **[Operator/NiFiDataflow]** Add event on registry client reference error.
+- [PR #190](https://github.com/Orange-OpenSource/nifikop/pull/190) - **[Operator/NiFiDataflow]** New parameter: `flowPosition`.
 
 ### Changed
 
