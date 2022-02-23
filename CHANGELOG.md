@@ -2,16 +2,24 @@
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed Bugs
+
+## v0.7.6
+
+### Added
+
 - [PR #191](https://github.com/Orange-OpenSource/nifikop/pull/191) - **[Operator/NiFiDataflow]** Add event on registry client reference error.
 - [PR #190](https://github.com/Orange-OpenSource/nifikop/pull/190) - **[Operator/NiFiDataflow]** New parameter: `flowPosition`.
 
 ### Changed
 
 - [PR #188](https://github.com/Orange-OpenSource/nifikop/pull/188) - **[Operator/NiFiCluster]** Support all pod status as terminating if the pod phase is `failed`.
-
-### Deprecated
-
-### Removed
 
 ### Fixed Bugs
 
