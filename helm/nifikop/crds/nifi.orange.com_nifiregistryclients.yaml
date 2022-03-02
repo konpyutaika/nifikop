@@ -39,7 +39,7 @@ spec:
             properties:
               clusterRef:
                 description: contains the reference to the NifiCluster with the one
-                  the dataflow is linked.
+                  the registry client is linked.
                 properties:
                   name:
                     type: string
