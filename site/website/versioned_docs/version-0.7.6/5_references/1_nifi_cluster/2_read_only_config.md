@@ -111,7 +111,7 @@ readOnlyConfig:
     #        # Namespace where is located the secret that we want to refer.
     #        namespace: nifikop
     # JVM memory settings
-    nifiJvmMemory: '512m'
+    nifiJvmMemory: "512m"
     # Additionnals bootstrap.properties configuration that will override the one produced based
     # on template and configurations.
     # https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#bootstrap_properties
@@ -121,70 +121,73 @@ readOnlyConfig:
 
 ## ReadOnlyConfig
 
-| Field                               | Type                                                               | Description                                                                                                      | Required | Default |
-| ----------------------------------- | ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- | -------- | ------- |
-| maximumTimerDrivenThreadCount       | int32                                                              | define the maximum number of threads for timer driven processors available to the system.                        | No       | nil     |
-| additionalSharedEnvs                | \[ \][corev1.EnvVar](https://pkg.go.dev/k8s.io/api/core/v1#EnvVar) | define a set of additional env variables that will shared between all init containers and ontainers in the pod.. | No       | \[ \]   |
-| nifiProperties                      | [NifiProperties](#nifiproperties)                                  | nifi.properties configuration that will be applied to the node.                                                  | No       | nil     |
-| zookeeperProperties                 | [ZookeeperProperties](#zookeeperproperties)                        | zookeeper.properties configuration that will be applied to the node.                                             | No       | nil     |
-| bootstrapProperties                 | [BootstrapProperties](#bootstrapproperties)                        | bootstrap.conf configuration that will be applied to the node.                                                   | No       | nil     |
-| logbackConfig                       | [LogbackConfig](#logbackconfig)                                    | logback.xml configuration that will be applied to the node.                                                      | No       | nil     |
-| bootstrapNotificationServicesConfig | [BootstrapNotificationServices](#bootstrapnotificationservices)    | bootstrap_notification_services.xml configuration that will be applied to the node.                              | No       | nil     |
+|Field|Type|Description|Required|Default|
+|-----|----|-----------|--------|--------|
+|maximumTimerDrivenThreadCount|int32|define the maximum number of threads for timer driven processors available to the system.|No|nil|
+|additionalSharedEnvs|\[ \][corev1.EnvVar](https://pkg.go.dev/k8s.io/api/core/v1#EnvVar)|define a set of additional env variables that will shared between all init containers and ontainers in the pod..|No|\[ \]|
+|nifiProperties|[NifiProperties](#nifiproperties)|nifi.properties configuration that will be applied to the node.|No|nil|
+|zookeeperProperties|[ZookeeperProperties](#zookeeperproperties)|zookeeper.properties configuration that will be applied to the node.|No|nil|
+|bootstrapProperties|[BootstrapProperties](#bootstrapproperties)|bootstrap.conf configuration that will be applied to the node.|No|nil|
+|logbackConfig|[LogbackConfig](#logbackconfig)|logback.xml configuration that will be applied to the node.|No|nil|
+|bootstrapNotificationServicesConfig|[BootstrapNotificationServices](#bootstrapnotificationservices)|bootstrap_notification_services.xml configuration that will be applied to the node.|No|nil|
+
+
 
 ## NifiProperties
 
-| Field                | Type                                            | Description                                                                                                                                                                                                                                                               | Required | Default              |
-| -------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | -------------------- |
-| overrideConfigMap    | [ConfigmapReference](#configmapreference)       | Additionnals nifi.properties configuration that will override the one produced based on template and configuration.                                                                                                                                                       | No       | nil                  |
-| overrideConfigs      | string                                          | Additionnals nifi.properties configuration that will override the one produced based on template, configurations and overrideConfigMap.                                                                                                                                   | No       | ""                   |
-| overrideSecretConfig | [SecretConfigReference](#secretconfigreference) | Additionnals nifi.properties configuration that will override the one produced based on template, configurations, overrideConfigMap and overrideConfigs.                                                                                                                  | No       | nil                  |
-| webProxyHosts        | \[ \]string                                     | A list of allowed HTTP Host header values to consider when NiFi is running securely and will be receiving requests to a different host[:port] than it is bound to. [web-properties](https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#web-properties) | No       | ""                   |
-| needClientAuth       | boolean                                         | Nifi security client auth.                                                                                                                                                                                                                                                | No       | false                |
-| authorizer           | string                                          | Indicates which of the configured authorizers in the authorizers.xml file to use [authorizer-configuration](https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#authorizer-configuration)                                                               | No       | "managed-authorizer" |
+|Field|Type|Description|Required|Default|
+|-----|----|-----------|--------|--------|
+|overrideConfigMap|[ConfigmapReference](#configmapreference)|Additionnals nifi.properties configuration that will override the one produced based on template and configuration.|No|nil|
+|overrideConfigs|string|Additionnals nifi.properties configuration that will override the one produced based on template, configurations and overrideConfigMap.|No|""|
+|overrideSecretConfig|[SecretConfigReference](#secretconfigreference)|Additionnals nifi.properties configuration that will override the one produced based on template, configurations, overrideConfigMap and overrideConfigs.|No|nil|
+|webProxyHosts|\[ \]string| A list of allowed HTTP Host header values to consider when NiFi is running securely and will be receiving requests to a different host[:port] than it is bound to. [web-properties](https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#web-properties)|No|""|
+|needClientAuth|boolean|Nifi security client auth.|No|false|
+|authorizer|string|Indicates which of the configured authorizers in the authorizers.xml file to use [authorizer-configuration](https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#authorizer-configuration)|No|"managed-authorizer"|
+
 
 ## ZookeeperProperties
 
-| Field                | Type                                            | Description                                                                                                                                                   | Required | Default |
-| -------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------- |
-| overrideConfigMap    | [ConfigmapReference](#configmapreference)       | Additionnals zookeeper.properties configuration that will override the one produced based on template and configuration.                                      | No       | nil     |
-| overrideConfigs      | string                                          | Additionnals zookeeper.properties configuration that will override the one produced based on template, configurations and overrideConfigMap.                  | No       | ""      |
-| overrideSecretConfig | [SecretConfigReference](#secretconfigreference) | Additionnals zookeeper.properties configuration that will override the one produced based on template, configurations, overrideConfigMap and overrideConfigs. | No       | nil     |
+|Field|Type|Description|Required|Default|
+|-----|----|-----------|--------|--------|
+|overrideConfigMap|[ConfigmapReference](#configmapreference)|Additionnals zookeeper.properties configuration that will override the one produced based on template and configuration.|No|nil|
+|overrideConfigs|string|Additionnals zookeeper.properties configuration that will override the one produced based on template, configurations and overrideConfigMap.|No|""|
+|overrideSecretConfig|[SecretConfigReference](#secretconfigreference)|Additionnals zookeeper.properties configuration that will override the one produced based on template, configurations, overrideConfigMap and overrideConfigs.|No|nil|
 
 ## BootstrapProperties
 
-| Field                | Type                                            | Description                                                                                                                                                   | Required | Default |
-| -------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------- |
-| overrideConfigMap    | [ConfigmapReference](#configmapreference)       | Additionnals bootstrap.properties configuration that will override the one produced based on template and configuration.                                      | No       | nil     |
-| overrideConfigs      | string                                          | Additionnals bootstrap.properties configuration that will override the one produced based on template, configurations and overrideConfigMap.                  | No       | ""      |
-| overrideSecretConfig | [SecretConfigReference](#secretconfigreference) | Additionnals bootstrap.properties configuration that will override the one produced based on template, configurations, overrideConfigMap and overrideConfigs. | No       | nil     |
-| NifiJvmMemory        | string                                          | JVM memory settings.                                                                                                                                          | No       | "512m"  |
+|Field|Type|Description|Required|Default|
+|-----|----|-----------|--------|--------|
+|overrideConfigMap|[ConfigmapReference](#configmapreference)|Additionnals bootstrap.properties configuration that will override the one produced based on template and configuration.|No|nil|
+|overrideConfigs|string|Additionnals bootstrap.properties configuration that will override the one produced based on template, configurations and overrideConfigMap.|No|""|
+|overrideSecretConfig|[SecretConfigReference](#secretconfigreference)|Additionnals bootstrap.properties configuration that will override the one produced based on template, configurations, overrideConfigMap and overrideConfigs.|No|nil|
+|NifiJvmMemory|string|JVM memory settings.|No|"512m"|
 
 ## LogbackConfig
 
-| Field               | Type                                            | Description                                                                                           | Required | Default |
-| ------------------- | ----------------------------------------------- | ----------------------------------------------------------------------------------------------------- | -------- | ------- |
-| replaceConfigMap    | [ConfigmapReference](#configmapreference)       | logback.xml configuration that will replace the one produced based on template.                       | No       | nil     |
-| replaceSecretConfig | [SecretConfigReference](#secretconfigreference) | logback.xml configuration that will replace the one produced based on template and overrideConfigMap. | No       | nil     |
+|Field|Type|Description|Required|Default|
+|-----|----|-----------|--------|--------|
+|replaceConfigMap|[ConfigmapReference](#configmapreference)|logback.xml configuration that will replace the one produced based on template.|No|nil|
+|replaceSecretConfig|[SecretConfigReference](#secretconfigreference)|logback.xml configuration that will replace the one produced based on template and overrideConfigMap.|No|nil|
 
 ## BootstrapNotificationServicesConfig
 
-| Field               | Type                                            | Description                                                                                                                    | Required | Default |
-| ------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | -------- | ------- |
-| replaceConfigMap    | [ConfigmapReference](#configmapreference)       | bootstrap_notifications_services.xml configuration that will replace the one produced based on template.                       | No       | nil     |
-| replaceSecretConfig | [SecretConfigReference](#secretconfigreference) | bootstrap_notifications_services.xml configuration that will replace the one produced based on template and overrideConfigMap. | No       | nil     |
+|Field|Type|Description|Required|Default|
+|-----|----|-----------|--------|--------|
+|replaceConfigMap|[ConfigmapReference](#configmapreference)|bootstrap_notifications_services.xml configuration that will replace the one produced based on template.|No|nil|
+|replaceSecretConfig|[SecretConfigReference](#secretconfigreference)|bootstrap_notifications_services.xml configuration that will replace the one produced based on template and overrideConfigMap.|No|nil|
 
 ## ConfigmapReference
 
-| Field     | Type   | Description                                                     | Required | Default |
-| --------- | ------ | --------------------------------------------------------------- | -------- | ------- |
-| name      | string | Name of the configmap that we want to refer.                    | Yes      | ""      |
-| namespace | string | Namespace where is located the configmap that we want to refer. | No       | ""      |
-| data      | string | The key of the value,in data content, that we want use.         | Yes      | ""      |
+|Field|Type|Description|Required|Default|
+|-----|----|-----------|--------|--------|
+|name|string|Name of the configmap that we want to refer.|Yes|""|
+|namespace|string|Namespace where is located the configmap that we want to refer.|No|""|
+|data|string|The key of the value,in data content, that we want use.|Yes|""|
 
 ## SecretConfigReference
 
-| Field     | Type   | Description                                                  | Required | Default |
-| --------- | ------ | ------------------------------------------------------------ | -------- | ------- |
-| name      | string | Name of the secret that we want to refer.                    | Yes      | ""      |
-| namespace | string | Namespace where is located the secret that we want to refer. | No       | ""      |
-| data      | string | The key of the value,in data content, that we want use.      | Yes      | ""      |
+|Field|Type|Description|Required|Default|
+|-----|----|-----------|--------|--------|
+|name|string|Name of the secret that we want to refer.|Yes|""|
+|namespace|string|Namespace where is located the secret that we want to refer.|No|""|
+|data|string|The key of the value,in data content, that we want use.|Yes|""|

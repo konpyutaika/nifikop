@@ -25,7 +25,7 @@ git clone https://github.com/Orange-OpenSource/nifikop.git
 cd nifikop
 ```
 
-### Operator sdk
+### Operator sdk 
 
 The full list of command is available here : https://sdk.operatorframework.io/docs/upgrading-sdk-version/v1.0.0/#cli-changes
 
@@ -136,7 +136,7 @@ skeleton-nifikop-8946b89dc-4cfs9   1/1     Running   0          7m45s
 
 The NiFiKop operator is released in the `orange-incubator` helm repository.
 
-In order to package the chart you need to run the following command.
+In order to package the chart you need to run the following command. 
 
 ```bash
 make helm-package
