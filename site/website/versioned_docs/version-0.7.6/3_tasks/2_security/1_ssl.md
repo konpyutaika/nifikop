@@ -6,7 +6,7 @@ sidebar_label: SSL
 
 The `NiFi operator` makes securing your NiFi cluster with SSL. You may provide your own certificates, or instruct the operator to create them for from your cluster configuration.
 
-Below this is an example configuration required to secure your cluster with SSL : 
+Below this is an example configuration required to secure your cluster with SSL :
 
 ```yaml
 apiVersion: nifi.orange.com/v1alpha1
@@ -46,26 +46,26 @@ spec:
 
 If `listenersConfig.sslSecrets.create` is set to `false`, the operator will look for the secret at `listenersConfig.sslSecrets.tlsSecretName` and expect these values :
 
-| key | value |
-|-----|-------|
-| caCert | The CA certificate |
-| caKey | The CA private key |
+| key        | value                                                                    |
+| ---------- | ------------------------------------------------------------------------ |
+| caCert     | The CA certificate                                                       |
+| caKey      | The CA private key                                                       |
 | clientCert | A client certificate (this will be used by operator for NiFI operations) |
-| clientKey | The private key for clientCert |
+| clientKey  | The private key for clientCert                                           |
 
 ## Using an existing Issuer
 
 As described in the [Reference section](../../5_references/1_nifi_cluster/6_listeners_config.md#sslsecrets), instead of using a self-signed certificate as CA, you can use an existing one.
-In order to do so, you only have to refer it into your `Spec.ListenerConfig.SslSecrets.IssuerRef` field. 
+In order to do so, you only have to refer it into your `Spec.ListenerConfig.SslSecrets.IssuerRef` field.
 
-### Example : Let's encrypt 
+### Example : Let's encrypt
 
 Let's say you have an existing DNS server, with [external dns](https://github.com/kubernetes-sigs/external-dns) deployed into your cluster's namespace.
-You can easily use Let's encrypt as authority for your certificate. 
+You can easily use Let's encrypt as authority for your certificate.
 
-To do this, you have to : 
+To do this, you have to :
 
-1. Create an issuer : 
+1. Create an issuer :
 
 ```yaml
 apiVersion: cert-manager.io/v1alpha2
@@ -89,12 +89,12 @@ spec:
             ingressTemplate:
               metadata:
                 annotations:
-                  "external-dns.alpha.kubernetes.io/ttl": "5"
+                  'external-dns.alpha.kubernetes.io/ttl': '5'
 ```
 
-2. Setup External dns and correctly create your issuer into your cluster configuration : 
+2. Setup External dns and correctly create your issuer into your cluster configuration :
 
-```yaml 
+```yaml
 apiVersion: nifi.orange.com/v1alpha1
 kind: NifiCluster
 ...
@@ -119,7 +119,7 @@ spec:
 
 You may use `NifiUser` resource to create new certificates for your applications, allowing them to query your Nifi cluster.
 
-To create a new client you will need to generate new certificates sign by the CA. The operator can automate this for you using the `NifiUser` CRD : 
+To create a new client you will need to generate new certificates sign by the CA. The operator can automate this for you using the `NifiUser` CRD :
 
 ```console
 cat << EOF | kubectl apply -n nifi -f -
@@ -135,11 +135,11 @@ spec:
 EOF
 ```
 
-This will create a user and store its credentials in the secret `example-client-secret`. The secret contains these fields : 
+This will create a user and store its credentials in the secret `example-client-secret`. The secret contains these fields :
 
-| key | value |
-|-----|-------|
-| ca.crt | The CA certificate |
+| key     | value                |
+| ------- | -------------------- |
+| ca.crt  | The CA certificate   |
 | tls.crt | The user certificate |
 | tls.key | The user private key |
 
@@ -153,7 +153,7 @@ kubectl get secret example-client-secret -o jsonpath="{['data']['tls\.key']}" | 
 
 The operator can also include a Java keystore format (JKS) with your user secret if you'd like. Add `includeJKS`: `true` to the `spec` like shown above, and then the user-secret will gain these additional fields :
 
-| key | value |
-|-----|-------|
-| tls.jks | The java keystore containing both the user keys and the CA (use this for your keystore AND truststore) |
-| pass.txt | The password to decrypt the JKS (this will be randomly generated) |
+| key      | value                                                                                                  |
+| -------- | ------------------------------------------------------------------------------------------------------ |
+| tls.jks  | The java keystore containing both the user keys and the CA (use this for your keystore AND truststore) |
+| pass.txt | The password to decrypt the JKS (this will be randomly generated)                                      |

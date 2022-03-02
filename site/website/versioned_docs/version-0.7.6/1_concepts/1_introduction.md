@@ -8,7 +8,7 @@ The Orange NiFi operator is a Kubernetes operator to automate provisioning, mana
 
 ## Overview
 
-Apache NiFi is an open-source solution that support powerful and scalable directed graphs of data routing, transformation, and system mediation logic. 
+Apache NiFi is an open-source solution that support powerful and scalable directed graphs of data routing, transformation, and system mediation logic.
 Some of the high-level capabilities and objectives of Apache NiFi include, and some of the main features of the **NiFiKop** are:
 
 - **Fine grained** node configuration support
