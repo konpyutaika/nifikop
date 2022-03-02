@@ -28,6 +28,7 @@
 - [PR #193](https://github.com/Orange-OpenSource/nifikop/pull/193) - **[Documentation]** Fix some missinformation.
 - [PR #196](https://github.com/Orange-OpenSource/nifikop/pull/196) - **[Operator/NiFiParameterContext]** Fix non-update of parameter context.
 - [PR #197](https://github.com/Orange-OpenSource/nifikop/pull/197) - **[Operator/NiFiDataflow]** Keep Helm chart CRDs inline with baseline.
+- [PR #198](https://github.com/Orange-OpenSource/nifikop/pull/198) - **[Documentation]** Fix versionned doc.
 
 ## v0.7.5
 
