@@ -10,6 +10,8 @@
 
 ### Fixed Bugs
 
+- [PR #197](https://github.com/Orange-OpenSource/nifikop/pull/197) - **[Operator/NiFiDataflow]** Keep Helm chart CRDs inline with baseline.
+
 ## v0.7.6
 
 ### Added
