@@ -9,7 +9,7 @@ spec:
   bucketId: "01ced6cc-0378-4893-9403-f6c70d080d4f"
   # the UUID of the flow to run.
   flowId: "9b2fb465-fb45-49e7-94fe-45b16b642ac9"
-  # the version of the flow to run, if not present or equals to -1, then the latest version of flow will be used.
+  # the version of the flow to run.
   flowVersion: 2
   # if the flow will be ran once or continuously checked
   syncMode: always
