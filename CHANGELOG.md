@@ -10,8 +10,6 @@
 
 ### Fixed Bugs
 
-- [PR #197](https://github.com/Orange-OpenSource/nifikop/pull/197) - **[Operator/NiFiDataflow]** Keep Helm chart CRDs inline with baseline.
-
 ## v0.7.6
 
 ### Added
@@ -29,6 +27,7 @@
 - [PR #189](https://github.com/Orange-OpenSource/nifikop/pull/189) - **[Operator/NiFiParameterContext]** Fix nil pointer exception case on empty description.
 - [PR #193](https://github.com/Orange-OpenSource/nifikop/pull/193) - **[Documentation]** Fix some missinformation.
 - [PR #196](https://github.com/Orange-OpenSource/nifikop/pull/196) - **[Operator/NiFiParameterContext]** Fix non-update of parameter context.
+- [PR #197](https://github.com/Orange-OpenSource/nifikop/pull/197) - **[Operator/NiFiDataflow]** Keep Helm chart CRDs inline with baseline.
 
 ## v0.7.5
 
