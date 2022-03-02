@@ -27,7 +27,7 @@ gcloud container clusters create $CLUSTER_NAME \
 
 3. Retrieve your credentials for `kubectl`.
 
-```sh
+```sh 
 cloud container clusters get-credentials $CLUSTER_NAME \
     --zone $GCP_ZONE \
     --project $GCP_PROJECT
@@ -35,7 +35,7 @@ cloud container clusters get-credentials $CLUSTER_NAME \
 
 4. Grant cluster administrator (admin) permissions to the current user. To create the necessary RBAC rules for NiFiKop, the current user requires admin permissions.
 
-```sh
+```sh 
 kubectl create clusterrolebinding cluster-admin-binding \
     --clusterrole=cluster-admin \
     --user=$(gcloud config get-value core/account)

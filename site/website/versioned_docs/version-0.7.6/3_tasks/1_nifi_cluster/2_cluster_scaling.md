@@ -10,26 +10,27 @@ This tasks shows you how to perform a gracefull cluster scale up and scale down.
 
 - Setup NiFiKop by following the instructions in the [Installation guide](../../2_setup/1_getting_started.md).
 - Deploy the [Simple NiFi](../../2_setup/1_getting_started.md#easy-way-installing-with-helm) sample cluster.
-- Review the [Node](../../5_references/1_nifi_cluster/4_node.md) references doc.
+- Review the [Node](../../5_references/1_nifi_cluster/4_node.md) references doc. 
 
 ## About this task
 
-The [Simple NiFi](../../2_setup/1_getting_started.md#easy-way-installing-with-helm) example consists of a three nodes NiFi cluster.
-A node decommission must follow a strict procedure, described in the [NiFi documentation](https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#decommission-nodes) :
+The [Simple NiFi](../../2_setup/1_getting_started.md#easy-way-installing-with-helm) example consists of a three nodes NiFi cluster. 
+A node decommission must follow a strict procedure, described in the [NiFi documentation](https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#decommission-nodes) : 
 
 1. Disconnect the node
 2. Once disconnect completes, offload the node.
 3. Once offload completes, delete the node.
 4. Once the delete request has finished, stop/remove the NiFi service on the host.
 
+
 For the moment, we have implemented it as follows in the operator :
 
-1.  Disconnect the node
-2.  Once disconnect completes, offload the node.
-3.  Once offload completes, delete the pod.
-4.  Once the pod deletion completes, delete the node.
-5.  Once the delete request has finished, remove the node from the NifiCluster status.
-
+ 1. Disconnect the node
+ 2. Once disconnect completes, offload the node.
+ 3. Once offload completes, delete the pod.
+ 4. Once the pod deletion completes, delete the node.
+ 5. Once the delete request has finished, remove the node from the NifiCluster status.
+ 
 In addition, we have a regular check that ensure that all nodes have been removed.
 
 In this task, you will first perform a scale up, in adding an new node. Then, you will remove another node that the one created, and observe the decommission's steps.
@@ -38,7 +39,7 @@ In this task, you will first perform a scale up, in adding an new node. Then, yo
 
 For this task, we will simply add a node with the same configuration than the other ones, if you want to know more about how to add a node with an other configuration let's have a look to the [Node configuration](./1_nodes_configuration.md) documentation page.
 
-1. Add and run a dataflow as the example :
+1. Add and run a dataflow as the example : 
 
 ![Scaling dataflow](/img/3_tasks/1_nifi_cluster/2_cluster_scaling/scaling_dataflow.png)
 
@@ -52,55 +53,55 @@ metadata:
 spec:
   service:
     headlessEnabled: true
-  zkAddress: 'zookeepercluster-client.zookeeper:2181'
-  zkPath: '/simplenifi'
-  clusterImage: 'apache/nifi:1.12.1'
+  zkAddress: "zookeepercluster-client.zookeeper:2181"
+  zkPath: "/simplenifi"
+  clusterImage: "apache/nifi:1.12.1"
   oneNifiNodePerNode: false
   nodeConfigGroups:
     default_group:
       isNode: true
       storageConfigs:
-        - mountPath: '/opt/nifi/nifi-current/logs'
+        - mountPath: "/opt/nifi/nifi-current/logs"
           name: logs
           pvcSpec:
             accessModes:
               - ReadWriteOnce
-            storageClassName: 'standard'
+            storageClassName: "standard"
             resources:
               requests:
                 storage: 10Gi
-      serviceAccountName: 'default'
+      serviceAccountName: "default"
       resourcesRequirements:
         limits:
-          cpu: '2'
+          cpu: "2"
           memory: 3Gi
         requests:
-          cpu: '1'
+          cpu: "1"
           memory: 1Gi
   nodes:
     - id: 0
-      nodeConfigGroup: 'default_group'
+      nodeConfigGroup: "default_group"
     - id: 1
-      nodeConfigGroup: 'default_group'
+      nodeConfigGroup: "default_group"
     - id: 2
-      nodeConfigGroup: 'default_group'
-    # >>>> START: The new node
+      nodeConfigGroup: "default_group"
+# >>>> START: The new node
     - id: 25
-      nodeConfigGroup: 'default_group'
-  # <<<< END
+      nodeConfigGroup: "default_group"
+# <<<< END
   propagateLabels: true
   nifiClusterTaskSpec:
     retryDurationMinutes: 10
   listenersConfig:
     internalListeners:
-      - type: 'http'
-        name: 'http'
+      - type: "http"
+        name: "http"
         containerPort: 8080
-      - type: 'cluster'
-        name: 'cluster'
+      - type: "cluster"
+        name: "cluster"
         containerPort: 6007
-      - type: 's2s'
-        name: 's2s'
+      - type: "s2s"
+        name: "s2s"
         containerPort: 10000
 ```
 
@@ -108,15 +109,15 @@ spec:
 **Note :** The `Node.Id` field must be unique in the `NifiCluster.Spec.Nodes` list.
 :::
 
-3. Apply the new `NifiCluster` configuration :
+3. Apply the new `NifiCluster` configuration : 
 
-```sh
+```sh 
 kubectl -n nifi apply -f config/samples/simplenificluster.yaml
 ```
 
-4. You should now have the following resources into kubernetes :
+4. You should now have the following resources into kubernetes : 
 
-```console
+```console 
 kubectl get pods,configmap,pvc -l nodeId=25
 NAME                          READY   STATUS    RESTARTS   AGE
 pod/simplenifi-25-nodem5jh4   1/1     Running   0          11m
@@ -128,11 +129,11 @@ NAME                                               STATUS   VOLUME              
 persistentvolumeclaim/simplenifi-25-storagehwn24   Bound    pvc-7da86076-728e-11ea-846d-42010a8400f2   10Gi       RWO            standard       11m
 ```
 
-And if you go on the NiFi UI, in the cluster administration page :
+And if you go on the NiFi UI, in the cluster administration page : 
 
 ![Scale up, cluster list](/img/3_tasks/1_nifi_cluster/2_cluster_scaling/scaleup_cluster_list.png)
 
-5. You now have data on the new node :
+5. You now have data on the new node : 
 
 ![Scale up, cluster distribution](/img/3_tasks/1_nifi_cluster/2_cluster_scaling/scaleup_distribution.png)
 
@@ -149,67 +150,67 @@ metadata:
   name: simplenifi
 spec:
   headlessServiceEnabled: true
-  zkAddresse: 'zookeepercluster-client.zookeeper:2181'
-  zkPath: '/simplenifi'
-  clusterImage: 'apache/nifi:1.11.3'
+  zkAddresse: "zookeepercluster-client.zookeeper:2181"
+  zkPath: "/simplenifi"
+  clusterImage: "apache/nifi:1.11.3"
   oneNifiNodePerNode: false
   nodeConfigGroups:
     default_group:
       isNode: true
       storageConfigs:
-        - mountPath: '/opt/nifi/nifi-current/logs'
+        - mountPath: "/opt/nifi/nifi-current/logs"
           name: logs
           pvcSpec:
             accessModes:
               - ReadWriteOnce
-            storageClassName: 'standard'
+            storageClassName: "standard"
             resources:
               requests:
                 storage: 10Gi
-      serviceAccountName: 'default'
+      serviceAccountName: "default"
       resourcesRequirements:
         limits:
-          cpu: '2'
+          cpu: "2"
           memory: 3Gi
         requests:
-          cpu: '1'
+          cpu: "1"
           memory: 1Gi
   nodes:
     - id: 0
-      nodeConfigGroup: 'default_group'
+      nodeConfigGroup: "default_group"
     - id: 1
-      nodeConfigGroup: 'default_group'
-    # >>>> START: node removed
-    #    - id: 2
-    #      nodeConfigGroup: "default_group"
-    # <<<< END
+      nodeConfigGroup: "default_group"
+# >>>> START: node removed
+#    - id: 2
+#      nodeConfigGroup: "default_group"
+# <<<< END
     - id: 25
-      nodeConfigGroup: 'default_group'
+      nodeConfigGroup: "default_group"
   propagateLabels: true
   nifiClusterTaskSpec:
     retryDurationMinutes: 10
   listenersConfig:
     internalListeners:
-      - type: 'http'
-        name: 'http'
+      - type: "http"
+        name: "http"
         containerPort: 8080
-      - type: 'cluster'
-        name: 'cluster'
+      - type: "cluster"
+        name: "cluster"
         containerPort: 6007
-      - type: 's2s'
-        name: 's2s'
+      - type: "s2s"
+        name: "s2s"
         containerPort: 10000
 ```
 
-2.  Apply the new `NifiCluster` configuration :
-
-```sh
+2.  Apply the new `NifiCluster` configuration : 
+   
+```sh 
 kubectl -n nifi apply -f config/samples/simplenificluster.yaml
 ```
 
-3. You can follow the node's action step status in the `NifiCluster.Status` description :
+3. You can follow the node's action step status in the `NifiCluster.Status` description : 
 
-```console
+```console 
 kubectl describe nificluster simplenifi
 
 ...
