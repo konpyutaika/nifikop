@@ -31,7 +31,11 @@ orbs:
     executors:
       operator-build:
         docker:
+<<<<<<< HEAD
           - image: ghcr.io/konpyutaika/docker-images/nifikop-build:1.17
+=======
+          - image: cimg/go:1.16
+>>>>>>> 0db3da2e (change build image to build with go 1.16)
     # Define jobs list
     jobs:
       # Build job, which build operator docker image (with operator-sdk build)
