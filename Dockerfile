@@ -23,16 +23,16 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -a -o manager 
 # Use distroless as minimal base image to package the manager binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
 FROM gcr.io/distroless/static:nonroot
-LABEL org.opencontainers.image.documentation="https://github.com/Orange-OpenSource/nifikop/blob/master/README.md"
-LABEL org.opencontainers.image.authors="Alexandre Guitton <aguitton.ext@orange.com>"
-LABEL org.opencontainers.image.source="https://github.com/Orange-OpenSource/nifikop"
-LABEL org.opencontainers.image.vendor="Orange France - Digital Factory"
+LABEL org.opencontainers.image.documentation="https://github.com/konpyutaika/nifikop/blob/master/README.md"
+LABEL org.opencontainers.image.authors="Alexandre Guitton <alexandreguittont@outlook.fr>"
+LABEL org.opencontainers.image.source="https://github.com/konpyutaika/nifikop"
+LABEL org.opencontainers.image.vendor="Konpyūtāika"
 LABEL org.opencontainers.image.version="0.1"
-LABEL org.opencontainers.image.description="Operateur des Gestion de Clusters Nifi"
-LABEL org.opencontainers.image.url="https://github.com/Orange-OpenSource/nifikop"
-LABEL org.opencontainers.image.title="Operateur NiFi"
+LABEL org.opencontainers.image.description="NiFi cluster operator"
+LABEL org.opencontainers.image.url="https://github.com/konpyutaika/nifikop"
+LABEL org.opencontainers.image.title="NiFi operator"
 
-LABEL org.label-schema.usage="https://github.com/Orange-OpenSource/nifikop/blob/master/README.md"
+LABEL org.label-schema.usage="https://github.com/konpyutaika/nifikop/blob/master/README.md"
 LABEL org.label-schema.docker.cmd="/usr/local/bin/nifikop"
 LABEL org.label-schema.docker.cmd.devel="N/A"
 LABEL org.label-schema.docker.cmd.test="N/A"

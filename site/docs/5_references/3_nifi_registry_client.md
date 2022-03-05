@@ -7,7 +7,7 @@ sidebar_label: NiFi Registry Client
 `NifiRegistryClient` is the Schema for the NiFi registry client API.
 
 ```yaml
-apiVersion: nifi.orange.com/v1alpha1
+apiVersion: nifi.konpyutaika.com/v1alpha1
 kind: NifiRegistryClient
 metadata:
   name: squidflow

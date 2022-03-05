@@ -7,7 +7,7 @@ sidebar_label: NiFi cluster
 `NifiCluster` describes the desired state of the NiFi cluster we want to setup through the operator.
 
 ```yaml
-apiVersion: nifi.orange.com/v1alpha1
+apiVersion: nifi.konpyutaika.com/v1alpha1
 kind: NifiCluster
 metadata:
   name: simplenifi

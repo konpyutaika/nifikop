@@ -2,13 +2,13 @@
 # since it depends on service name and namespace that are out of this kustomize package.
 # It should be run by config/default
 resources:
-- bases/nifi.orange.com_nificlusters.yaml
-- bases/nifi.orange.com_nifiusers.yaml
-- bases/nifi.orange.com_nifiusergroups.yaml
-- bases/nifi.orange.com_nifidataflows.yaml
-- bases/nifi.orange.com_nifiparametercontexts.yaml
+- bases/nifi.konpyutaika.com_nificlusters.yaml
+- bases/nifi.konpyutaika.com_nifiusers.yaml
+- bases/nifi.konpyutaika.com_nifiusergroups.yaml
+- bases/nifi.konpyutaika.com_nifidataflows.yaml
+- bases/nifi.konpyutaika.com_nifiparametercontexts.yaml
 
-- bases/nifi.orange.com_nifiregistryclients.yaml
+- bases/nifi.konpyutaika.com_nifiregistryclients.yaml
 # +kubebuilder:scaffold:crdkustomizeresource
 
 patchesStrategicMerge:

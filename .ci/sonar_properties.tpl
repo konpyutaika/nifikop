@@ -1,6 +1,6 @@
 #----- INFO DEFINISSANT LE PROJET DANS SONAR ----
-sonar.projectName=cda_analytics_${APPNAME}
-sonar.projectKey=com.orange:cda_analytics-${APPNAME}
+sonar.projectName=${APPNAME}
+sonar.projectKey=com.konpyutaika:${APPNAME}
 sonar.branch=${CI_COMMIT_REF_NAME}
 #sonar.organization=${SONAR_ORGANIZATION}
 #sonar.host.url=${SONAR_HOST_URL}
@@ -18,7 +18,7 @@ sonar.go.coverage.reportPaths=coverage.out
 sonar.go.tests.reportPaths=test-report.out
 sonar.coverage.dtdVerification=false
 sonar.log.level=INFO
-sonar.links.ci=https://github.com/Orange-OpenSource/nifikop/pipelines
+sonar.links.ci=https://github.com/konpyutaika/nifikop/pipelines
 sonar.dynamicAnalysis = reuseReports
 sonar.scm.enabled = false
 

@@ -5,7 +5,7 @@ metadata:
   name: nifiparametercontext-viewer-role
 rules:
 - apiGroups:
-  - nifi.orange.com
+  - nifi.konpyutaika.com
   resources:
   - nifiparametercontexts
   verbs:
@@ -13,7 +13,7 @@ rules:
   - list
   - watch
 - apiGroups:
-  - nifi.orange.com
+  - nifi.konpyutaika.com
   resources:
   - nifiparametercontexts/status
   verbs:

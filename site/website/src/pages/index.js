@@ -112,7 +112,7 @@ function Home() {
                         <span className={styles.indexCtasGitHubButtonWrapper}>
                             <iframe
                                 className={styles.indexCtasGitHubButton}
-                                src="https://ghbtns.com/github-btn.html?user=Orange-OpenSource&amp;repo=nifikop&amp;type=star&amp;count=true&amp;size=large"
+                                src="https://ghbtns.com/github-btn.html?user=konpyutaika&amp;repo=nifikop&amp;type=star&amp;count=true&amp;size=large"
                                 width={160}
                                 height={30}
                                 title="GitHub Stars"

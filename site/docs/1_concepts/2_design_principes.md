@@ -25,10 +25,10 @@ Using StatefulSet we **lose**  the ability to :
 - remove a specific Node from a cluster (StatefulSet always removes the most recently created Node)
 - use multiple, different Persistent Volumes for each Node
 
-The Orange NiFi Operator uses `simple` Pods, ConfigMaps, and PersistentVolumeClaims, instead of StatefulSet (based on the design used by [Banzai Cloud Kafka Operator](https://github.com/banzaicloud/kafka-operator)). 
+The NiFi Operator uses `simple` Pods, ConfigMaps, and PersistentVolumeClaims, instead of StatefulSet (based on the design used by [Banzai Cloud Kafka Operator](https://github.com/banzaicloud/kafka-operator)). 
 Using these resources allows us to build an Operator which is better suited to NiFi.
 
-With the Orange NiFi operator we can:
+With the NiFi operator we can:
 
 - modify the configuration of unique Nodes
 - remove specific Nodes from clusters

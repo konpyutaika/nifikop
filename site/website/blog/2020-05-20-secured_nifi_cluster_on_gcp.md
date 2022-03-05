@@ -61,7 +61,7 @@ Once you have completed the above prerequisites, deploying you NiFi cluster will
 Open your Google Cloud Console in your GCP project and run : 
 
 ```sh
-git clone https://github.com/Orange-OpenSource/nifikop/nifikop.git
+git clone https://github.com/konpyutaika/nifikop/nifikop.git
 cd nifikop/docs/tutorials/secured_nifi_cluster_on_gcp
 ```
 
@@ -126,7 +126,7 @@ In the `cert-manager` namespace we deployed a `cert-manager` stack in a cluster-
 
 :::note
 in this post, we will let `cert-manager` create a self-signed CA. 
-For more information check [documentation page](https://orange-opensource.github.io/nifikop/docs/3_tasks/2_security/1_ssl)
+For more information check [documentation page](https://konpyutaika.github.io/nifikop/docs/3_tasks/2_security/1_ssl)
 :::
 
 ```console
@@ -236,7 +236,7 @@ Here is my 5-nodes secured NiFi cluster up and running :
 You can now update the authorizations and add additionnal users/groups.
 
 :::note
-Just have a look on [documentation's page](https://orange-opensource.github.io/nifikop/docs/3_tasks/2_security/1_ssl#operator-access-policies) to finish cleaning setup.
+Just have a look on [documentation's page](https://konpyutaika.github.io/nifikop/docs/3_tasks/2_security/1_ssl#operator-access-policies) to finish cleaning setup.
 :::
 
 ## Cleaning

@@ -15,7 +15,7 @@ Node defines the nifi node basic configuration
       readOnlyConfig:
         nifiProperties:
           overrideConfigs: |
-            nifi.ui.banner.text=NiFiKop by Orange - Node 0
+            nifi.ui.banner.text=NiFiKop - Node 0
       # node configuration
 #       nodeConfig:
     - id: 2
@@ -23,7 +23,7 @@ Node defines the nifi node basic configuration
       # which has type read-only these config changes will trigger rolling upgrade
       readOnlyConfig:
         overrideConfigs: |
-          nifi.ui.banner.text=NiFiKop by Orange - Node 2
+          nifi.ui.banner.text=NiFiKop - Node 2
       # node configuration
       nodeConfig:
         resourcesRequirements:
