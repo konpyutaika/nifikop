@@ -2,9 +2,9 @@ package nificluster
 
 import (
 	"fmt"
-	"github.com/Orange-OpenSource/nifikop/pkg/common"
-	"github.com/Orange-OpenSource/nifikop/pkg/nificlient"
-	"github.com/Orange-OpenSource/nifikop/pkg/util/clientconfig"
+	"github.com/konpyutaika/nifikop/pkg/common"
+	"github.com/konpyutaika/nifikop/pkg/nificlient"
+	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
 	"github.com/go-logr/logr"
 )
 

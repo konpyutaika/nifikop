@@ -87,7 +87,7 @@ helm install cert-manager \
 
 ## Installing with Helm
 
-You can deploy the operator using a Helm chart [Helm chart](https://github.com/Orange-OpenSource/nifikop/tree/master/helm):
+You can deploy the operator using a Helm chart [Helm chart](https://github.com/konpyutaika/nifikop/tree/master/helm):
 
 > To install an other version of the operator use `helm install --name=nifikop --namespace=nifi --set operator.image.tag=x.y.z orange-incubator/nifikop`
 

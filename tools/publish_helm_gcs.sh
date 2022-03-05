@@ -23,10 +23,10 @@ HELM_TARGET_DIR=$(pwd)/tmp/incubator
 readonly HELM_URL=https://get.helm.sh
 readonly HELM_TARBALL=helm-v3.4.2-linux-amd64.tar.gz
 #readonly HELM_TARBALL=helm-v2.9.1-darwin-amd64.tar.gz
-#readonly STABLE_REPO_URL=https://orange-kubernetes-charts.storage.googleapis.com/
-readonly INCUBATOR_REPO_URL=https://orange-kubernetes-charts-incubator.storage.googleapis.com/
-#readonly GCS_BUCKET_STABLE=gs://orange-kubernetes-charts
-readonly GCS_BUCKET_INCUBATOR=gs://orange-kubernetes-charts-incubator
+#readonly STABLE_REPO_URL=https://konpyutaika-kubernetes-charts.storage.googleapis.com/
+readonly INCUBATOR_REPO_URL=https://konpyutaika-kubernetes-charts-incubator.storage.googleapis.com/
+#readonly GCS_BUCKET_STABLE=gs://konpyutaika-kubernetes-charts
+readonly GCS_BUCKET_INCUBATOR=gs://konpyutaika-kubernetes-charts-incubator
 
 main() {
     mkdir -p tmp
@@ -52,7 +52,7 @@ setup_helm_client() {
     PATH="$(pwd)/tmp/linux-amd64/:$PATH"
 
 #    helm init --client-only
-    helm repo add orange-incubator "$INCUBATOR_REPO_URL"
+    helm repo add konpyutaika-incubator "$INCUBATOR_REPO_URL"
 }
 
 authenticate() {

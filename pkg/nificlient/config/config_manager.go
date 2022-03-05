@@ -1,11 +1,11 @@
 package config
 
 import (
-	"github.com/Orange-OpenSource/nifikop/api/v1alpha1"
-	"github.com/Orange-OpenSource/nifikop/pkg/k8sutil"
-	"github.com/Orange-OpenSource/nifikop/pkg/nificlient/config/basic"
-	"github.com/Orange-OpenSource/nifikop/pkg/nificlient/config/tls"
-	"github.com/Orange-OpenSource/nifikop/pkg/util/clientconfig"
+	"github.com/konpyutaika/nifikop/api/v1alpha1"
+	"github.com/konpyutaika/nifikop/pkg/k8sutil"
+	"github.com/konpyutaika/nifikop/pkg/nificlient/config/basic"
+	"github.com/konpyutaika/nifikop/pkg/nificlient/config/tls"
+	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 

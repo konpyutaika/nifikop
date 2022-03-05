@@ -6,9 +6,9 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.4.1
   creationTimestamp: null
-  name: nifiregistryclients.nifi.orange.com
+  name: nifiregistryclients.nifi.konpyutaika.com
 spec:
-  group: nifi.orange.com
+  group: nifi.konpyutaika.com
   names:
     kind: NifiRegistryClient
     listKind: NifiRegistryClientList

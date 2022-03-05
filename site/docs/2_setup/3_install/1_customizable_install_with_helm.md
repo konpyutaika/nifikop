@@ -14,17 +14,17 @@ import TabItem from '@theme/TabItem';
 
 ## Introduction
 
-This Helm chart install NiFiKop the Orange's Nifi Kubernetes operator to create/configure/manage NiFi
+This Helm chart install NiFiKop the Nifi Kubernetes operator to create/configure/manage NiFi
 clusters in a Kubernetes Namespace.
 
 It will use Custom Ressources Definition CRDs:
 
-- `nificlusters.nifi.orange.com`,
-- `nifiusers.nifi.orange.com`,
-- `nifiusergroups.nifi.orange.com`,
-- `nifiregistryclients.nifi.orange.com`,
-- `nifiparametercontexts.nifi.orange.com`,
-- `nifidataflows.nifi.orange.com`,
+- `nificlusters.nifi.konpyutaika.com`,
+- `nifiusers.nifi.konpyutaika.com`,
+- `nifiusergroups.nifi.konpyutaika.com`,
+- `nifiregistryclients.nifi.konpyutaika.com`,
+- `nifiparametercontexts.nifi.konpyutaika.com`,
+- `nifidataflows.nifi.konpyutaika.com`,
 
 ### Configuration
 
@@ -32,7 +32,7 @@ The following tables lists the configurable parameters of the NiFi Operator Helm
 
 | Parameter                        | Description                                                                                                                                                                          | Default                    |
 | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------- |
-| `image.repository`               | Image                                                                                                                                                                                | `orangeopensource/nifikop` |
+| `image.repository`               | Image                                                                                                                                                                                | `ghcr.io/konpyutaika/nifikop` |
 | `image.tag`                      | Image tag                                                                                                                                                                            | `v0.7.6-release`           |
 | `image.pullPolicy`               | Image pull policy                                                                                                                                                                    | `Always`                   |
 | `image.imagePullSecrets.enabled` | Enable tue use of secret for docker image                                                                                                                                            | `false`                    |
@@ -57,7 +57,7 @@ Alternatively, a YAML file that specifies the values for the above parameters ca
 
 ```console
 $ helm install nifikop \
-      orange-incubator/nifikop \
+      konpyutaika/nifikop \
       -f values.yaml
 ```
 
@@ -67,12 +67,12 @@ $ helm install nifikop \
 In the case where you don't want to deploy the crds using helm (`--skip-crds`) you need to deploy manually the crds beforehand:
 
 ```bash
-kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/config/crd/bases/nifi.orange.com_nificlusters.yaml
-kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/config/crd/bases/nifi.orange.com_nifiusers.yaml
-kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/config/crd/bases/nifi.orange.com_nifiusergroups.yaml
-kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/config/crd/bases/nifi.orange.com_nifidataflows.yaml
-kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/config/crd/bases/nifi.orange.com_nifiparametercontexts.yaml
-kubectl apply -f https://raw.githubusercontent.com/Orange-OpenSource/nifikop/master/config/crd/bases/nifi.orange.com_nifiregistryclients.yaml
+kubectl apply -f https://raw.githubusercontent.com/konpyutaika/nifikop/master/config/crd/bases/nifi.konpyutaika.com_nificlusters.yaml
+kubectl apply -f https://raw.githubusercontent.com/konpyutaika/nifikop/master/config/crd/bases/nifi.konpyutaika.com_nifiusers.yaml
+kubectl apply -f https://raw.githubusercontent.com/konpyutaika/nifikop/master/config/crd/bases/nifi.konpyutaika.com_nifiusergroups.yaml
+kubectl apply -f https://raw.githubusercontent.com/konpyutaika/nifikop/master/config/crd/bases/nifi.konpyutaika.com_nifidataflows.yaml
+kubectl apply -f https://raw.githubusercontent.com/konpyutaika/nifikop/master/config/crd/bases/nifi.konpyutaika.com_nifiparametercontexts.yaml
+kubectl apply -f https://raw.githubusercontent.com/konpyutaika/nifikop/master/config/crd/bases/nifi.konpyutaika.com_nifiregistryclients.yaml
 ```
 
 :::
@@ -88,7 +88,7 @@ values={[
 <TabItem value="dryrun">
 
 ```bash
-helm install nifikop orange-incubator/nifikop \
+helm install nifikop konpyutaika/nifikop \
     --dry-run \
     --debug.enabled \
     --set debug.enabled=true \
@@ -99,7 +99,7 @@ helm install nifikop orange-incubator/nifikop \
 <TabItem value="rn">
 
 ```bash
-helm install <release name> orange-incubator/nifikop
+helm install <release name> konpyutaika/nifikop
 ```
 
 </TabItem>
@@ -107,7 +107,7 @@ helm install <release name> orange-incubator/nifikop
 <TabItem value="set-params">
 
 ```bash
-helm install nifikop orange-incubator/nifikop --set namespaces={"nifikop"}
+helm install nifikop konpyutaika/nifikop --set namespaces={"nifikop"}
 ```
 
 </TabItem>
@@ -145,12 +145,12 @@ The CRD created by the chart are not removed by default and should be manually c
 Manually delete the CRD:
 
 ```
-kubectl delete crd nificlusters.nifi.orange.com
-kubectl delete crd nifiusers.nifi.orange.com
-kubectl delete crd nifiusergroups.nifi.orange.com
-kubectl delete crd nifiregistryclients.nifi.orange.com
-kubectl delete crd nifiparametercontexts.nifi.orange.com
-kubectl delete crd nifidataflows.nifi.orange.com
+kubectl delete crd nificlusters.nifi.konpyutaika.com
+kubectl delete crd nifiusers.nifi.konpyutaika.com
+kubectl delete crd nifiusergroups.nifi.konpyutaika.com
+kubectl delete crd nifiregistryclients.nifi.konpyutaika.com
+kubectl delete crd nifiparametercontexts.nifi.konpyutaika.com
+kubectl delete crd nifidataflows.nifi.konpyutaika.com
 ```
 
 :::warning

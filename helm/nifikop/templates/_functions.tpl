@@ -28,6 +28,6 @@ If release name contains chart name it will be used as a full name.
 Return the appropriate apiVersion value to use for the capi-operator managed k8s resources
 */}}
 {{- define "nifikop.apiVersion" -}}
-{{- printf "%s" "nificlusters.nifi.orange.com/v1alpha1" -}}
+{{- printf "%s" "nificlusters.nifi.konpyutaika.com/v1alpha1" -}}
 {{- end -}}
 
