@@ -1,8 +1,8 @@
 package basic
 
 import (
-	"github.com/Orange-OpenSource/nifikop/api/v1alpha1"
-	"github.com/Orange-OpenSource/nifikop/pkg/util/clientconfig"
+	"github.com/konpyutaika/nifikop/api/v1alpha1"
+	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 

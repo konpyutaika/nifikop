@@ -1,4 +1,4 @@
-module github.com/Orange-OpenSource/nifikop
+module github.com/konpyutaika/nifikop
 
 go 1.15
 

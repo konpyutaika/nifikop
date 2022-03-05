@@ -1,9 +1,9 @@
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
-  name: nifiusers.nifi.orange.com
+  name: nifiusers.nifi.konpyutaika.com
 spec:
-  group: nifi.orange.com
+  group: nifi.konpyutaika.com
   names:
     kind: NifiUser
     listKind: NifiUserList
