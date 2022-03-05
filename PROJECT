@@ -1,7 +1,7 @@
-domain: orange.com
+domain: konpyutaika.com
 layout: go.kubebuilder.io/v3
 projectName: nifikop
-repo: github.com/Orange-OpenSource/nifikop
+repo: github.com/konpyutaika/nifikop
 resources:
 - api:
     crdVersion: v1
@@ -9,11 +9,11 @@ resources:
     # namespaced: true
   # TODO(user): Uncomment the below line if this resource implements a controller, else delete it.
   # controller: true
-  domain: orange.com
+  domain: konpyutaika.com
   group: nifi
   kind: NifiCluster
   # TODO(user): Update the package path for your API if the below value is incorrect.
-  path: github.com/Orange-OpenSource/nifikop/api/v1alpha1
+  path: github.com/konpyutaika/nifikop/api/v1alpha1
   version: v1alpha1
 - api:
     crdVersion: v1
@@ -21,11 +21,11 @@ resources:
     # namespaced: true
   # TODO(user): Uncomment the below line if this resource implements a controller, else delete it.
   # controller: true
-  domain: orange.com
+  domain: konpyutaika.com
   group: nifi
   kind: NifiUserGroup
   # TODO(user): Update the package path for your API if the below value is incorrect.
-  path: github.com/Orange-OpenSource/nifikop/api/v1alpha1
+  path: github.com/konpyutaika/nifikop/api/v1alpha1
   version: v1alpha1
 - api:
     crdVersion: v1
@@ -33,11 +33,11 @@ resources:
     # namespaced: true
   # TODO(user): Uncomment the below line if this resource implements a controller, else delete it.
   # controller: true
-  domain: orange.com
+  domain: konpyutaika.com
   group: nifi
   kind: NifiUser
   # TODO(user): Update the package path for your API if the below value is incorrect.
-  path: github.com/Orange-OpenSource/nifikop/api/v1alpha1
+  path: github.com/Okonpyutaika/nifikop/api/v1alpha1
   version: v1alpha1
 - api:
     crdVersion: v1
@@ -45,11 +45,11 @@ resources:
     # namespaced: true
   # TODO(user): Uncomment the below line if this resource implements a controller, else delete it.
   # controller: true
-  domain: orange.com
+  domain: konpyutaika.com
   group: nifi
   kind: NifiRegistryClient
   # TODO(user): Update the package path for your API if the below value is incorrect.
-  path: github.com/Orange-OpenSource/nifikop/api/v1alpha1
+  path: github.com/Okonpyutaika/nifikop/api/v1alpha1
   version: v1alpha1
 - api:
     crdVersion: v1
@@ -57,11 +57,11 @@ resources:
     # namespaced: true
   # TODO(user): Uncomment the below line if this resource implements a controller, else delete it.
   # controller: true
-  domain: orange.com
+  domain: konpyutaika.com
   group: nifi
   kind: NifiDataflow
   # TODO(user): Update the package path for your API if the below value is incorrect.
-  path: github.com/Orange-OpenSource/nifikop/api/v1alpha1
+  path: github.com/konpyutaika/nifikop/api/v1alpha1
   version: v1alpha1
 - api:
     crdVersion: v1
@@ -69,11 +69,11 @@ resources:
     # namespaced: true
   # TODO(user): Uncomment the below line if this resource implements a controller, else delete it.
   # controller: true
-  domain: orange.com
+  domain: konpyutaika.com
   group: nifi
   kind: NifiParameterContext
   # TODO(user): Update the package path for your API if the below value is incorrect.
-  path: github.com/Orange-OpenSource/nifikop/api/v1alpha1
+  path: github.com/konpyutaika/nifikop/api/v1alpha1
   version: v1alpha1
 version: "3"
 plugins:

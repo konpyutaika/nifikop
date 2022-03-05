@@ -10,7 +10,7 @@ NiFiKop is Apache 2.0 licensed and accepts contributions via GitHub pull request
 ## Getting started
 
 - Fork the repository on GitHub
-- See the [developer guide](https://orange-opensource.github.io/nifikop/docs/6_contributing/1_developer_guide) for build instructions
+- See the [developer guide](https://konpyutaika.github.io/nifikop/docs/6_contributing/1_developer_guide) for build instructions
 
 ## Reporting bugs and creating issues
 
@@ -117,4 +117,4 @@ Source: https://developercertificate.org/
 If the contribution changes the existing APIs or user interface it must include sufficient documentation to explain the use of the new or updated feature. Likewise the [CHANGELOG][changelog] should be updated with a summary of the change and link to the pull request.
 
 [nifikop]: 
-[changelog]: https://github.com/Orange-OpenSource/nifikop/blob/master/CHANGELOG.md
+[changelog]: https://github.com/konpyutaika/nifikop/blob/master/CHANGELOG.md

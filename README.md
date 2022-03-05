@@ -1,28 +1,32 @@
 <p align="center"><img src="docs/img/nifikop.png" width="160"></p>
 
 <p align="center">
-  <a href="https://hub.docker.com/r/orangeopensource/nifikop/">
-    <img src="https://img.shields.io/docker/v/orangeopensource/nifikop.svg?sort=date" alt="Docker Automated build">
+  <a href="https://ghcr.io/konpyutaika/nifi-operator/">
+    <img src="https://img.shields.io/github/v/release/konpyutaika/nifi-operator?style=shield&logo=docker" alt="Docker Automated build">
   </a>
 
-  <a href="https://circleci.com/gh/Orange-OpenSource/nifikop">
-    <img src="https://circleci.com/gh/Orange-OpenSource/nifikop/tree/master.svg?style=shield" alt="CircleCI">
+  <a href="https://github.com/konpyutaika/nifi-operator">
+    <img src="https://img.shields.io/github/v/release/konpyutaika/nifi-operator?style=shield&logo=github" alt="Docker Automated build">
   </a>
 
-  <a href="https://goreportcard.com/report/github.com/Orange-OpenSource/nifikop">
-    <img src="https://goreportcard.com/badge/github.com/Orange-OpenSource/nifikop" alt="Go Report Card">
+  <a href="https://circleci.com/gh/konpyutaika/nifi-operator">
+    <img src="https://circleci.com/gh/konpyutaika/nifi-operator/tree/master.svg?style=shield" alt="CircleCI">
   </a>
 
-  <a href="https://github.com/Orange-OpenSource/nifikop/">
-    <img src="https://img.shields.io/badge/license-Apache%20v2-orange.svg" alt="license">
+  <a href="https://goreportcard.com/report/github.com/konpyutaika/nifi-operator">
+    <img src="https://goreportcard.com/badge/github.com/konpyutaika/nifi-operator?style=shield" alt="Go Report Card">
+  </a>
+
+  <a href="https://github.com/konpyutaika/nifi-operator/">
+    <img src="https://img.shields.io/badge/license-Apache%20v2-orange.svg?style=shield" alt="license">
   </a>
 </p>
 
 # NiFiKop
 
-You can access to the full documentation on the [NiFiKop Documentation](https://orange-opensource.github.io/nifikop/)
+You can access to the full documentation on the [NiFiKop Documentation](https://konpyutaika.github.io/nifikop/)
 
-The Orange NiFi operator is a Kubernetes operator to automate provisioning, management, autoscaling and operations of [Apache NiFi](https://nifi.apache.org/) clusters deployed to K8s.
+The Konpyūtāika NiFi operator is a Kubernetes operator to automate provisioning, management, autoscaling and operations of [Apache NiFi](https://nifi.apache.org/) clusters deployed to K8s.
 
 ## Overview
 
@@ -44,8 +48,6 @@ Some of the roadmap features :
 
 ## Motivation
 
-At [Orange](https://opensource.orange.com/fr/accueil/) we are building some [Kubernetes operator](https://https://github.com/Orange-OpenSource/nifikop?utf8=%E2%9C%93&q=operator&type=&language=), that operate NiFi and Cassandra clusters (among other types) for our business cases.
-
 There are already some approaches to operating NiFi on Kubernetes, however, we did not find them appropriate for use in a highly dynamic environment, nor capable of meeting our needs.
 
 - [Helm chart](https://github.com/cetic/helm-nifi)
@@ -55,21 +57,21 @@ Finally, our motivation is to build an open source solution and a community whic
 
 ## Installation
 
-To get up and running quickly, check our [Getting Started page](https://orange-opensource.github.io/nifikop/docs/2_setup/1_getting_started)
+To get up and running quickly, check our [Getting Started page](https://konpyutaika.github.io/nifikop/docs/2_setup/1_getting_started)
 
 ## Development
 
-Checkout out the [Developer page](https://orange-opensource.github.io/nifikop/docs/6_contributing/1_developer_guide)
+Checkout out the [Developer page](https://konpyutaika.github.io/nifikop/docs/6_contributing/1_developer_guide)
 
 ## Features
 
-Check out the [Supported Features Page](https://orange-opensource.github.io/nifikop/docs/1_concepts/3_features)
+Check out the [Supported Features Page](https://konpyutaika.github.io/nifikop/docs/1_concepts/3_features)
 
 ## Issues, feature requests and roadmap
 
-Please note that the NiFi operator is constantly under development and new releases might introduce breaking changes. We are striving to keep backward compatibility as much as possible while adding new features at a fast pace. Issues, new features or bugs are tracked on the projects [GitHub page](https://github.com/Orange-OpenSource/nifikop/issues) - please feel free to add yours!
+Please note that the NiFi operator is constantly under development and new releases might introduce breaking changes. We are striving to keep backward compatibility as much as possible while adding new features at a fast pace. Issues, new features or bugs are tracked on the projects [GitHub page](https://github.com/konpyutaika/nifikop/issues) - please feel free to add yours!
 
-To track some of the significant features and future items from the roadmap please visit the [roadmap doc](https://orange-opensource.github.io/nifikop/docs/1_concepts/4_roadmap).
+To track some of the significant features and future items from the roadmap please visit the [roadmap doc](https://konpyutaika.github.io/nifikop/docs/1_concepts/4_roadmap).
 
 ## Contributing 
 
@@ -97,8 +99,6 @@ If you find this project useful, help us:
 - Implementation is based on [Operator SDK](https://github.com/operator-framework/operator-sdk)
 
 ## License
-
-Copyright (c) 2020 [Orange, Inc.](https://opensource.orange.com)
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

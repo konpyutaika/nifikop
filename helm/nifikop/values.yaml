@@ -1,7 +1,7 @@
 ## NiFi Operator Image
 ##
 image:
-  repository: orangeopensource/nifikop
+  repository: ghcr.io/konpyutaika/nifikop
   tag: v0.7.6-release
   pullPolicy: Always
   imagePullSecrets:

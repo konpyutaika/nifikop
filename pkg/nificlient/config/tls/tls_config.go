@@ -1,12 +1,12 @@
 package tls
 
 import (
-	"github.com/Orange-OpenSource/nifikop/api/v1alpha1"
-	"github.com/Orange-OpenSource/nifikop/pkg/k8sutil"
-	"github.com/Orange-OpenSource/nifikop/pkg/nificlient/config/common"
-	"github.com/Orange-OpenSource/nifikop/pkg/nificlient/config/nificluster"
-	"github.com/Orange-OpenSource/nifikop/pkg/util"
-	"github.com/Orange-OpenSource/nifikop/pkg/util/clientconfig"
+	"github.com/konpyutaika/nifikop/api/v1alpha1"
+	"github.com/konpyutaika/nifikop/pkg/k8sutil"
+	"github.com/konpyutaika/nifikop/pkg/nificlient/config/common"
+	"github.com/konpyutaika/nifikop/pkg/nificlient/config/nificluster"
+	"github.com/konpyutaika/nifikop/pkg/util"
+	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )

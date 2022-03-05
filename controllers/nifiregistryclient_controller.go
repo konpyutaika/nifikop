@@ -20,12 +20,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/Orange-OpenSource/nifikop/pkg/clientwrappers/registryclient"
-	"github.com/Orange-OpenSource/nifikop/pkg/k8sutil"
-	"github.com/Orange-OpenSource/nifikop/pkg/nificlient/config"
-	"github.com/Orange-OpenSource/nifikop/pkg/util"
-	"github.com/Orange-OpenSource/nifikop/pkg/util/clientconfig"
 	"github.com/banzaicloud/k8s-objectmatcher/patch"
+	"github.com/konpyutaika/nifikop/pkg/clientwrappers/registryclient"
+	"github.com/konpyutaika/nifikop/pkg/k8sutil"
+	"github.com/konpyutaika/nifikop/pkg/nificlient/config"
+	"github.com/konpyutaika/nifikop/pkg/util"
+	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/client-go/tools/record"
@@ -38,10 +38,10 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/Orange-OpenSource/nifikop/api/v1alpha1"
+	"github.com/konpyutaika/nifikop/api/v1alpha1"
 )
 
-var registryClientFinalizer = "nifiregistryclients.nifi.orange.com/finalizer"
+var registryClientFinalizer = "nifiregistryclients.nifi.konpyutaika.com/finalizer"
 
 // NifiRegistryClientReconciler reconciles a NifiRegistryClient object
 type NifiRegistryClientReconciler struct {
@@ -53,9 +53,9 @@ type NifiRegistryClientReconciler struct {
 	RequeueOffset   int
 }
 
-// +kubebuilder:rbac:groups=nifi.orange.com,resources=nifiregistryclients,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=nifi.orange.com,resources=nifiregistryclients/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=nifi.orange.com,resources=nifiregistryclients/finalizers,verbs=update
+// +kubebuilder:rbac:groups=nifi.konpyutaika.com,resources=nifiregistryclients,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=nifi.konpyutaika.com,resources=nifiregistryclients/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=nifi.konpyutaika.com,resources=nifiregistryclients/finalizers,verbs=update
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
