@@ -1,1 +1,0 @@
-(window.webpackJsonp=window.webpackJsonp||[]).push([[260],{323:function(o){o.exports=JSON.parse('{"allTagsPath":"/nifikop/blog/tags","slug":"oidc","name":"oidc","count":2,"permalink":"/nifikop/blog/tags/oidc"}')}}]);
