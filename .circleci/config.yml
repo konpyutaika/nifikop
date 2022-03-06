@@ -296,7 +296,7 @@ workflows:
       #          <<: *canonical_repo_filter
 
       - operator/release-helm:
-          name: release-helm-orange-incubator-nifikop
+          name: release-helm-incubator-nifikop
           requires:
             - build-nifikop
           <<: *only_on_release_tag
