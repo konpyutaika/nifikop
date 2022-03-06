@@ -71,7 +71,7 @@ RUN curl -L https://storage.googleapis.com/kubernetes-release/release/$(curl -s 
     && chmod +x /usr/local/bin/kubectl
 
 # Install helm client
-RUN curl -L https://storage.googleapis.com/kubernetes-helm/helm-v2.12.2-linux-amd64.tar.gz -o helm.tar.gz \
+RUN curl -L https://get.helm.sh/helm-v3.8.0-linux-amd64.tar.gz -o helm.tar.gz \
     && tar zxf helm.tar.gz \
     && mv linux-amd64/helm /usr/local/bin \
     && rm -rf helm.tar.gz linux-amd64
