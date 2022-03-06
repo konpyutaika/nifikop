@@ -5,9 +5,9 @@ metadata:
 spec:
   service:
     headlessEnabled: true
-  zkAddress: "zookeeper.dlice:2181"
+  zkAddress: "zookeeper.zookeeeper:2181"
   zkPath: "/simplenifi"
-  clusterImage: "apache/nifi:1.12.1"
+  clusterImage: "apache/nifi:1.15.3"
   oneNifiNodePerNode: false
   volumes:
     - name: secret-params-volume
