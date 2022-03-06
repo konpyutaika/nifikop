@@ -1,23 +1,23 @@
 <p align="center"><img src="docs/img/nifikop.png" width="160"></p>
 
 <p align="center">
-  <a href="https://ghcr.io/konpyutaika/nifi-operator/">
-    <img src="https://img.shields.io/github/v/release/konpyutaika/nifi-operator?style=shield&logo=docker" alt="Docker Automated build">
+  <a href="https://ghcr.io/konpyutaika/nifikop/">
+    <img src="https://img.shields.io/github/v/release/konpyutaika/nifikop?style=shield&logo=docker" alt="Docker Automated build">
   </a>
 
-  <a href="https://github.com/konpyutaika/nifi-operator">
-    <img src="https://img.shields.io/github/v/release/konpyutaika/nifi-operator?style=shield&logo=github" alt="Docker Automated build">
+  <a href="https://github.com/konpyutaika/nifikop">
+    <img src="https://img.shields.io/github/v/release/konpyutaika/nifikop?style=shield&logo=github" alt="Docker Automated build">
   </a>
 
-  <a href="https://circleci.com/gh/konpyutaika/nifi-operator">
-    <img src="https://circleci.com/gh/konpyutaika/nifi-operator/tree/master.svg?style=shield" alt="CircleCI">
+  <a href="https://circleci.com/gh/konpyutaika/nifikop">
+    <img src="https://circleci.com/gh/konpyutaika/nifikop/tree/master.svg?style=shield" alt="CircleCI">
   </a>
 
-  <a href="https://goreportcard.com/report/github.com/konpyutaika/nifi-operator">
-    <img src="https://goreportcard.com/badge/github.com/konpyutaika/nifi-operator?style=shield" alt="Go Report Card">
+  <a href="https://goreportcard.com/report/github.com/konpyutaika/nifikop">
+    <img src="https://goreportcard.com/badge/github.com/konpyutaika/nifikop?style=shield" alt="Go Report Card">
   </a>
 
-  <a href="https://github.com/konpyutaika/nifi-operator/">
+  <a href="https://github.com/konpyutaika/nifikop/">
     <img src="https://img.shields.io/badge/license-Apache%20v2-orange.svg?style=shield" alt="license">
   </a>
 </p>
