@@ -120,7 +120,7 @@ module.exports = {
           items: [
             {
               label: 'Slack',
-              href: 'https://nifikop.slack.com',
+              href: 'https://join.slack.com/t/konpytika/shared_invite/zt-14md072lv-Jr8mqYoeUrqzfZF~YGUpXA',
             },
             {
               label: 'Blog',
