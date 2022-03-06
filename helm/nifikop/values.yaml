@@ -1,7 +1,7 @@
 ## NiFi Operator Image
 ##
 image:
-  repository: ghcr.io/konpyutaika/nifikop
+  repository: ghcr.io/konpyutaika/docker-images/nifikop
   tag: v0.8.0-release
   pullPolicy: Always
   imagePullSecrets:
