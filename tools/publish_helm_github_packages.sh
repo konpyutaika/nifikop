@@ -44,9 +44,6 @@ setup_helm_client() {
 
 #    PATH="$(pwd)/tmp/darwin-amd64/:$PATH"
     PATH="$(pwd)/tmp/linux-amd64/:$PATH"
-
-#    helm init --client-only
-    helm repo add konpyutaika-incubator "$INCUBATOR_REPO_URL"
 }
 
 authenticate() {
