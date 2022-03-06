@@ -53,8 +53,8 @@ authenticate() {
 
 sync_repo() {
     local target_dir="${1?Specify repo dir}"
-    local repo_url="${3?Specify repo url}"
-    local chart_version="${4?Specify chart version}"
+    local repo_url="${2?Specify repo url}"
+    local chart_version="${3?Specify chart version}"
     local index_dir="${target_dir}-index"
 
 
