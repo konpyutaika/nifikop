@@ -15,7 +15,7 @@ When you create a `NifiUser` resource the operator will :
 2. If no user is found, the operator will create and manage it (i.e it will ensure the synchronisation with the NiFi Cluster).
 
 ```yaml
-apiVersion: nifi.orange.com/v1alpha1
+apiVersion: nifi.konpyutaika.com/v1alpha1
 kind: NifiUser
 metadata:
   name: aguitton
@@ -65,7 +65,7 @@ This part is supported by the operator using the `NifiUserGroup` resource :
 
 
 ```yaml
-apiVersion: nifi.orange.com/v1alpha1
+apiVersion: nifi.konpyutaika.com/v1alpha1
 kind: NifiUserGroup
 metadata:
   name: group-test
@@ -120,7 +120,7 @@ To simplify this, we implement in the operator 2 `managed groups` :
 You can directly define the list of users who belong to each of them in the `NifiCluster.Spec` field : 
 
 ```yaml
-apiVersion: nifi.orange.com/v1alpha1
+apiVersion: nifi.konpyutaika.com/v1alpha1
 kind: NifiCluster
 metadata:
   name: mynifi
@@ -159,7 +159,7 @@ There is one more group that is created and managed by the operator, this is the
 To get the list of managed groups just check the list of `NifiUserGroup` : 
 
 ```console
-kubectl get -n nifikop nifiusergroups.nifi.orange.com 
+kubectl get -n nifikop nifiusergroups.nifi.konpyutaika.com 
 NAME              AGE
 managed-admins    6d7h
 managed-nodes     6d7h

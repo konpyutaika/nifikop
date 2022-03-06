@@ -21,16 +21,16 @@ import (
 	"emperror.dev/errors"
 	"encoding/json"
 	"fmt"
-	usercli "github.com/Orange-OpenSource/nifikop/pkg/clientwrappers/user"
-	"github.com/Orange-OpenSource/nifikop/pkg/errorfactory"
-	"github.com/Orange-OpenSource/nifikop/pkg/k8sutil"
-	"github.com/Orange-OpenSource/nifikop/pkg/nificlient/config"
-	"github.com/Orange-OpenSource/nifikop/pkg/pki"
-	"github.com/Orange-OpenSource/nifikop/pkg/util"
-	"github.com/Orange-OpenSource/nifikop/pkg/util/clientconfig"
 	"github.com/banzaicloud/k8s-objectmatcher/patch"
 	"github.com/go-logr/logr"
 	certv1 "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha2"
+	usercli "github.com/konpyutaika/nifikop/pkg/clientwrappers/user"
+	"github.com/konpyutaika/nifikop/pkg/errorfactory"
+	"github.com/konpyutaika/nifikop/pkg/k8sutil"
+	"github.com/konpyutaika/nifikop/pkg/nificlient/config"
+	"github.com/konpyutaika/nifikop/pkg/pki"
+	"github.com/konpyutaika/nifikop/pkg/util"
+	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -41,10 +41,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"time"
 
-	"github.com/Orange-OpenSource/nifikop/api/v1alpha1"
+	"github.com/konpyutaika/nifikop/api/v1alpha1"
 )
 
-var userFinalizer = "nifiusers.nifi.orange.com/finalizer"
+var userFinalizer = "nifiusers.nifi.konpyutaika.com/finalizer"
 
 // NifiUserReconciler reconciles a NifiUser object
 type NifiUserReconciler struct {
@@ -56,9 +56,9 @@ type NifiUserReconciler struct {
 	RequeueOffset   int
 }
 
-// +kubebuilder:rbac:groups=nifi.orange.com,resources=nifiusers,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=nifi.orange.com,resources=nifiusers/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=nifi.orange.com,resources=nifiusers/finalizers,verbs=update
+// +kubebuilder:rbac:groups=nifi.konpyutaika.com,resources=nifiusers,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=nifi.konpyutaika.com,resources=nifiusers/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=nifi.konpyutaika.com,resources=nifiusers/finalizers,verbs=update
 // +kubebuilder:rbac:groups=cert-manager.io,resources=certificates,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=cert-manager.io,resources=issuers,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=cert-manager.io,resources=clusterissuers,verbs=get;list;watch;create;update;patch;delete

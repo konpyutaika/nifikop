@@ -75,7 +75,7 @@ rules:
   verbs:
   - get
 - apiGroups:
-  - nifi.orange.com
+  - nifi.konpyutaika.com
   resources:
   - "nifiusers"
   - "nifiusergroups"
@@ -109,7 +109,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - nifi.orange.com
+  - nifi.konpyutaika.com
   resources:
   - nifiusers/status
   - nifiusergroups/status

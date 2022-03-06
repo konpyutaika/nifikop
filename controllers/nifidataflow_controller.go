@@ -25,13 +25,13 @@ import (
 	"time"
 
 	"emperror.dev/errors"
-	"github.com/Orange-OpenSource/nifikop/pkg/clientwrappers/dataflow"
-	"github.com/Orange-OpenSource/nifikop/pkg/errorfactory"
-	"github.com/Orange-OpenSource/nifikop/pkg/k8sutil"
-	"github.com/Orange-OpenSource/nifikop/pkg/nificlient/config"
-	"github.com/Orange-OpenSource/nifikop/pkg/util"
-	"github.com/Orange-OpenSource/nifikop/pkg/util/clientconfig"
 	"github.com/banzaicloud/k8s-objectmatcher/patch"
+	"github.com/konpyutaika/nifikop/pkg/clientwrappers/dataflow"
+	"github.com/konpyutaika/nifikop/pkg/errorfactory"
+	"github.com/konpyutaika/nifikop/pkg/k8sutil"
+	"github.com/konpyutaika/nifikop/pkg/nificlient/config"
+	"github.com/konpyutaika/nifikop/pkg/util"
+	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/client-go/tools/record"
@@ -42,10 +42,10 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/Orange-OpenSource/nifikop/api/v1alpha1"
+	"github.com/konpyutaika/nifikop/api/v1alpha1"
 )
 
-var dataflowFinalizer = "nifidataflows.nifi.orange.com/finalizer"
+var dataflowFinalizer = "nifidataflows.nifi.konpyutaika.com/finalizer"
 
 // NifiDataflowReconciler reconciles a NifiDataflow object
 type NifiDataflowReconciler struct {
@@ -57,9 +57,9 @@ type NifiDataflowReconciler struct {
 	RequeueOffset   int
 }
 
-// +kubebuilder:rbac:groups=nifi.orange.com,resources=nifidataflows,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=nifi.orange.com,resources=nifidataflows/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=nifi.orange.com,resources=nifidataflows/finalizers,verbs=update
+// +kubebuilder:rbac:groups=nifi.konpyutaika.com,resources=nifidataflows,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=nifi.konpyutaika.com,resources=nifidataflows/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=nifi.konpyutaika.com,resources=nifidataflows/finalizers,verbs=update
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.

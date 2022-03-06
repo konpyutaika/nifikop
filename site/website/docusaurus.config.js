@@ -1,9 +1,9 @@
 module.exports = {
   title: 'NiFiKop',
   tagline: 'Open-Source, Apache NiFi operator for Kubernetes',
-  organizationName: 'Orange-OpenSource',
+  organizationName: 'Konpyūtāika',
   projectName: 'nifikop',
-  url: 'https://orange-opensource.github.io',
+  url: 'https://konpyutaika.github.io',
   baseUrl: '/nifikop/',
   clientModules: [require.resolve('./snackPlayerInitializer.js')],
 
@@ -26,7 +26,7 @@ module.exports = {
           showLastUpdateAuthor: true,
           showLastUpdateTime: true,
           editUrl:
-            'https://github.com/Orange-OpenSource/nifikop/edit/master/site/website/',
+            'https://github.com/konpyutaika/nifikop/edit/master/site/website/',
           path: '../docs',
           sidebarPath: require.resolve('./sidebars.json'),
           // remarkPlugins: [require('@react-native-website/remark-snackplayer')],
@@ -37,7 +37,7 @@ module.exports = {
           blogSidebarTitle: 'All Blog Posts',
           feedOptions: {
             type: 'all',
-            copyright: `Copyright © ${new Date().getFullYear()} Orange, Inc. Built with Docusaurus.`,
+            copyright: `Copyright © ${new Date().getFullYear()} Konpyūtāika, Inc. Built with Docusaurus.`,
           },
         },
         theme: {
@@ -80,7 +80,7 @@ module.exports = {
         {to: 'docs/1_concepts/1_introduction', className: 'header-doc-link', 'aria-label': 'Documentation', position: 'right'},
         {to: 'blog', className: 'header-blog-link', 'aria-label': 'Blog', position: 'right'},
         {
-          href: 'https://github.com/Orange-OpenSource/nifikop',
+          href: 'https://github.com/konpyutaika/nifikop',
           position: 'right',
           className: 'header-github-link',
           'aria-label': 'GitHub repository',
@@ -111,7 +111,7 @@ module.exports = {
             },
             {
               label: 'GitHub',
-              href: 'https://github.com/Orange-OpenSource/nifikop',
+              href: 'https://github.com/konpyutaika/nifikop',
             },
           ],
         },
@@ -133,7 +133,7 @@ module.exports = {
           items: [
             {
               label: 'Feature request',
-              href: 'https://github.com/Orange-OpenSource/nifikop/issues',
+              href: 'https://github.com/konpyutaika/nifikop/issues',
             },
           ],
         },

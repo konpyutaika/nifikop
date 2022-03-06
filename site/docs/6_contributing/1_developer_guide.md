@@ -21,7 +21,7 @@ NiFiKop has been validated with :
 Checkout the project.
 
 ```bash
-git clone https://github.com/Orange-OpenSource/nifikop.git
+git clone https://github.com/konpyutaika/nifikop.git
 cd nifikop
 ```
 
@@ -72,11 +72,11 @@ Set the name of the operator in an environment variable
 Deploy the CRDs.
 
 ```bash
-kubectl apply -f config/crd/bases/nifi.orange.com_nificlusters.yaml
-kubectl apply -f config/crd/bases/nifi.orange.com_nifidataflows.yaml
-kubectl apply -f config/crd/bases/nifi.orange.com_nifiparametercontexts.yaml
-kubectl apply -f config/crd/bases/nifi.orange.com_nifiregistryclients.yaml
-kubectl apply -f config/crd/bases/nifi.orange.com_nifiusers.yaml
+kubectl apply -f config/crd/bases/nifi.konpyutaika.com_nificlusters.yaml
+kubectl apply -f config/crd/bases/nifi.konpyutaika.com_nifidataflows.yaml
+kubectl apply -f config/crd/bases/nifi.konpyutaika.com_nifiparametercontexts.yaml
+kubectl apply -f config/crd/bases/nifi.konpyutaika.com_nifiregistryclients.yaml
+kubectl apply -f config/crd/bases/nifi.konpyutaika.com_nifiusers.yaml
 ```
 
 And deploy the operator.
@@ -134,7 +134,7 @@ skeleton-nifikop-8946b89dc-4cfs9   1/1     Running   0          7m45s
 
 ## Helm
 
-The NiFiKop operator is released in the `orange-incubator` helm repository.
+The NiFiKop operator is released in the `konpyutaika-incubator` helm repository.
 
 In order to package the chart you need to run the following command. 
 

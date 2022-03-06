@@ -46,7 +46,7 @@ For this task, we will simply add a node with the same configuration than the ot
 2. Add a new node to the list of `NifiCluster.Spec.Nodes` field, by following the [Node object definition](../../5_references/1_nifi_cluster/4_node.md) documentation:
 
 ```yaml
-apiVersion: nifi.orange.com/v1alpha1
+apiVersion: nifi.konpyutaika.com/v1alpha1
 kind: NifiCluster
 metadata:
   name: simplenifi
@@ -144,7 +144,7 @@ For this task, we will simply remove a node and look at that the decommission's 
 1. Remove the node from the list of `NifiCluster.Spec.Nodes` field :
 
 ```yaml
-apiVersion: nifi.orange.com/v1alpha1
+apiVersion: nifi.konpyutaika.com/v1alpha1
 kind: NifiCluster
 metadata:
   name: simplenifi
