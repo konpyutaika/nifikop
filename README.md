@@ -1,7 +1,7 @@
 <p align="center"><img src="docs/img/nifikop.png" width="160"></p>
 
 <p align="center">
-  <a href="https://ghcr.io/konpyutaika/nifikop/">
+  <a href="https://ghcr.io/konpyutaika/docker-images/nifikop/">
     <img src="https://img.shields.io/github/v/release/konpyutaika/nifikop?style=shield&logo=docker" alt="Docker Automated build">
   </a>
 
