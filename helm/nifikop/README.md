@@ -47,7 +47,7 @@ Alternatively, a YAML file that specifies the values for the above parameters ca
 
 ```console
 $ helm install nifikop \
-    konpyutaika-incubator/nifikop \
+    oci://ghcr.io/konpyutaika/helm-charts/nifikop \
     -f values.yaml
 ```
 
