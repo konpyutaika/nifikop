@@ -2,7 +2,7 @@ package nificluster
 
 import (
 	"fmt"
-	"github.com/Orange-OpenSource/nifikop/api/v1alpha1"
+	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/go-logr/logr"
 )
 

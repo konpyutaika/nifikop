@@ -1,17 +1,15 @@
 apiVersion: v1
-description: A Helm chart for NiFiKop - the Orange NiFi Kubernetes operator
+description: A Helm chart for NiFiKop - the Konpyūtāika NiFi Kubernetes operator
 name: nifikop
-home: https://github.com/Orange-OpenSource/nifikop
+home: https://github.com/konpyutaika/nifikop
 sources:
-  - https://github.com/Orange-OpenSource/nifikop
+  - https://github.com/konpyutaika/nifikop
 version: 0.7.6
 appVersion: 0.7.6-release
 icon:
 maintainers:
   - name: erdrix
-    email: aguitton.ext@orange.com
-  - name: fdehay
-    email: franck.dehay@orange.com
+    email: guittonalexandre@outlook.fr
 keywords:
   - operator
   - nifi

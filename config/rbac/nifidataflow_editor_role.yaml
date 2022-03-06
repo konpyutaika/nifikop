@@ -5,7 +5,7 @@ metadata:
   name: nifidataflow-editor-role
 rules:
 - apiGroups:
-  - nifi.orange.com
+  - nifi.konpyutaika.com
   resources:
   - nifidataflows
   verbs:
@@ -17,7 +17,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - nifi.orange.com
+  - nifi.konpyutaika.com
   resources:
   - nifidataflows/status
   verbs:

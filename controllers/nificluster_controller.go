@@ -20,12 +20,12 @@ import (
 	"context"
 	"emperror.dev/errors"
 	"fmt"
-	"github.com/Orange-OpenSource/nifikop/pkg/errorfactory"
-	"github.com/Orange-OpenSource/nifikop/pkg/k8sutil"
-	"github.com/Orange-OpenSource/nifikop/pkg/pki"
-	"github.com/Orange-OpenSource/nifikop/pkg/resources"
-	"github.com/Orange-OpenSource/nifikop/pkg/resources/nifi"
-	"github.com/Orange-OpenSource/nifikop/pkg/util"
+	"github.com/konpyutaika/nifikop/pkg/errorfactory"
+	"github.com/konpyutaika/nifikop/pkg/k8sutil"
+	"github.com/konpyutaika/nifikop/pkg/pki"
+	"github.com/konpyutaika/nifikop/pkg/resources"
+	"github.com/konpyutaika/nifikop/pkg/resources/nifi"
+	"github.com/konpyutaika/nifikop/pkg/util"
 	corev1 "k8s.io/api/core/v1"
 	policyv1beta1 "k8s.io/api/policy/v1beta1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -38,11 +38,11 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/Orange-OpenSource/nifikop/api/v1alpha1"
+	"github.com/konpyutaika/nifikop/api/v1alpha1"
 )
 
-var clusterFinalizer = "nificlusters.nifi.orange.com/finalizer"
-var clusterUsersFinalizer = "nificlusters.nifi.orange.com/users"
+var clusterFinalizer = "nificlusters.nifi.konpyutaika.com/finalizer"
+var clusterUsersFinalizer = "nificlusters.nifi.konpyutaika.com/users"
 
 // NifiClusterReconciler reconciles a NifiCluster object
 type NifiClusterReconciler struct {
@@ -64,9 +64,9 @@ type NifiClusterReconciler struct {
 // +kubebuilder:rbac:groups="",resources=nodes,verbs=get;list;watch
 // +kubebuilder:rbac:groups="",resources=namespaces,verbs=get;list;watch
 // +kubebuilder:rbac:groups="policy",resources=poddisruptionbudgets,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=nifi.orange.com,resources=nificlusters,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=nifi.orange.com,resources=nificlusters/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=nifi.orange.com,resources=nificlusters/finalizers,verbs=update
+// +kubebuilder:rbac:groups=nifi.konpyutaika.com,resources=nificlusters,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=nifi.konpyutaika.com,resources=nificlusters/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=nifi.konpyutaika.com,resources=nificlusters/finalizers,verbs=update
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.

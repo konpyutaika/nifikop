@@ -1,42 +1,28 @@
-// Copyright 2020 Orange SA
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.package apis
-
 package nifi
 
 import (
 	"context"
 	"fmt"
-	"github.com/Orange-OpenSource/nifikop/pkg/clientwrappers/dataflow"
-	"github.com/Orange-OpenSource/nifikop/pkg/clientwrappers/scale"
-	"github.com/Orange-OpenSource/nifikop/pkg/nificlient/config"
-	"github.com/Orange-OpenSource/nifikop/pkg/pki"
-	nifiutil "github.com/Orange-OpenSource/nifikop/pkg/util/nifi"
+	"github.com/konpyutaika/nifikop/pkg/clientwrappers/dataflow"
+	"github.com/konpyutaika/nifikop/pkg/clientwrappers/scale"
+	"github.com/konpyutaika/nifikop/pkg/nificlient/config"
+	"github.com/konpyutaika/nifikop/pkg/pki"
+	nifiutil "github.com/konpyutaika/nifikop/pkg/util/nifi"
 	"reflect"
 	"strings"
 
 	"emperror.dev/errors"
-	"github.com/Orange-OpenSource/nifikop/api/v1alpha1"
-	"github.com/Orange-OpenSource/nifikop/pkg/clientwrappers/controllersettings"
-	"github.com/Orange-OpenSource/nifikop/pkg/clientwrappers/reportingtask"
+	"github.com/konpyutaika/nifikop/api/v1alpha1"
+	"github.com/konpyutaika/nifikop/pkg/clientwrappers/controllersettings"
+	"github.com/konpyutaika/nifikop/pkg/clientwrappers/reportingtask"
 
-	"github.com/Orange-OpenSource/nifikop/pkg/errorfactory"
-	"github.com/Orange-OpenSource/nifikop/pkg/k8sutil"
-	"github.com/Orange-OpenSource/nifikop/pkg/resources"
-	"github.com/Orange-OpenSource/nifikop/pkg/resources/templates"
-	"github.com/Orange-OpenSource/nifikop/pkg/util"
-	certutil "github.com/Orange-OpenSource/nifikop/pkg/util/cert"
-	pkicommon "github.com/Orange-OpenSource/nifikop/pkg/util/pki"
+	"github.com/konpyutaika/nifikop/pkg/errorfactory"
+	"github.com/konpyutaika/nifikop/pkg/k8sutil"
+	"github.com/konpyutaika/nifikop/pkg/resources"
+	"github.com/konpyutaika/nifikop/pkg/resources/templates"
+	"github.com/konpyutaika/nifikop/pkg/util"
+	certutil "github.com/konpyutaika/nifikop/pkg/util/cert"
+	pkicommon "github.com/konpyutaika/nifikop/pkg/util/pki"
 	"github.com/banzaicloud/k8s-objectmatcher/patch"
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"

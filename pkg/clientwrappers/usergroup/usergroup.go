@@ -1,12 +1,12 @@
 package usergroup
 
 import (
-	"github.com/Orange-OpenSource/nifikop/api/v1alpha1"
-	"github.com/Orange-OpenSource/nifikop/pkg/clientwrappers"
-	"github.com/Orange-OpenSource/nifikop/pkg/clientwrappers/accesspolicies"
-	"github.com/Orange-OpenSource/nifikop/pkg/common"
-	"github.com/Orange-OpenSource/nifikop/pkg/nificlient"
-	"github.com/Orange-OpenSource/nifikop/pkg/util/clientconfig"
+	"github.com/konpyutaika/nifikop/api/v1alpha1"
+	"github.com/konpyutaika/nifikop/pkg/clientwrappers"
+	"github.com/konpyutaika/nifikop/pkg/clientwrappers/accesspolicies"
+	"github.com/konpyutaika/nifikop/pkg/common"
+	"github.com/konpyutaika/nifikop/pkg/nificlient"
+	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
 	nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
 	ctrl "sigs.k8s.io/controller-runtime"
 )

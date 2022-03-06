@@ -1,9 +1,9 @@
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
-  name: nificlusters.nifi.orange.com
+  name: nificlusters.nifi.konpyutaika.com
 spec:
-  group: nifi.orange.com
+  group: nifi.konpyutaika.com
   names:
     kind: NifiCluster
     listKind: NifiClusterList

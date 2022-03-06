@@ -7,7 +7,7 @@ sidebar_label: NiFi Dataflow
 `NifiDataflow` is the Schema for the NiFi dataflow API.
 
 ```yaml
-apiVersion: nifi.orange.com/v1alpha1
+apiVersion: nifi.konpyutaika.com/v1alpha1
 kind: NifiDataflow
 metadata:
   name: dataflow-lifecycle
