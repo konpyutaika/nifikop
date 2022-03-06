@@ -102,19 +102,12 @@ kubectl apply -f https://raw.githubusercontent.com/konpyutaika/nifikop/master/co
 kubectl apply -f https://raw.githubusercontent.com/konpyutaika/nifikop/master/config/crd/bases/nifi.konpyutaika.com_nifiregistryclients.yaml
 ```
 
-Add the Konpyūtāika incubator repository :
-
-```bash
-
-helm repo add konpyutaika-incubator <@TODO: to configure>
-```
-
 Now deploy the helm chart :
 
 ```bash
 # You have to create the namespace before executing following command
 helm install nifikop \
-    v-incubator/nifikop \
+    oci://ghcr.io/konpyutaika/helm-charts/nifikop \
     --namespace=nifi \
     --version 0.7.6 \
     --set image.tag=v0.7.6-release \
