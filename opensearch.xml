@@ -4,8 +4,8 @@
   <ShortName>NiFiKop</ShortName>
   <Description>Search NiFiKop</Description>
   <InputEncoding>UTF-8</InputEncoding>
-  <Image width="16" height="16" type="image/x-icon">https://orange-opensource.github.io/img/nifikop.ico</Image>
-  <Url type="text/html" method="get" template="https://orange-opensource.github.io/search?q={searchTerms}"/>
-  <Url type="application/opensearchdescription+xml" rel="self" template="https://orange-opensource.github.io/opensearch.xml" />
-  <moz:SearchForm>https://orange-opensource.github.io</moz:SearchForm>
+  <Image width="16" height="16" type="image/x-icon">https://konpyutaika.github.io/img/nifikop.ico</Image>
+  <Url type="text/html" method="get" template="https://konpyutaika.github.io/search?q={searchTerms}"/>
+  <Url type="application/opensearchdescription+xml" rel="self" template="https://konpyutaika.github.io/opensearch.xml" />
+  <moz:SearchForm>https://konpyutaika.github.io</moz:SearchForm>
 </OpenSearchDescription>

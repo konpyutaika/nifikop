@@ -1,24 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
-    <id>https://orange-opensource.github.io/blog</id>
+    <id>https://konpyutaika.github.io/blog</id>
     <title>NiFiKop Blog</title>
     <updated>2020-06-30T00:00:00.000Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
-    <link rel="alternate" href="https://orange-opensource.github.io/blog"/>
+    <link rel="alternate" href="https://konpyutaika.github.io/blog"/>
     <subtitle>NiFiKop Blog</subtitle>
-    <icon>https://orange-opensource.github.io/img/nifikop.ico</icon>
-    <rights>Copyright © 2022 Orange, Inc. Built with Docusaurus.</rights>
+    <icon>https://konpyutaika.github.io/img/nifikop.ico</icon>
+    <rights>Copyright © 2022 Konpyūtāika, Inc. Built with Docusaurus.</rights>
     <entry>
         <title type="html"><![CDATA[Secured NiFi cluster with NiFiKop with external dns on the Google Cloud Platform]]></title>
         <id>Secured NiFi cluster with NiFiKop with external dns on the Google Cloud Platform</id>
-        <link href="https://orange-opensource.github.io/nifikop/blog/2020/06/30/secured_nifi_cluster_on_gcp_with_external_dns"/>
+        <link href="https://konpyutaika.github.io/nifikop/blog/2020/06/30/secured_nifi_cluster_on_gcp_with_external_dns"/>
         <updated>2020-06-30T00:00:00.000Z</updated>
         <summary type="html"><![CDATA[Objectives]]></summary>
     </entry>
     <entry>
         <title type="html"><![CDATA[Secured NiFi cluster with NiFiKop on the Google Cloud Platform]]></title>
         <id>Secured NiFi cluster with NiFiKop on the Google Cloud Platform</id>
-        <link href="https://orange-opensource.github.io/nifikop/blog/2020/05/20/secured_nifi_cluster_on_gcp"/>
+        <link href="https://konpyutaika.github.io/nifikop/blog/2020/05/20/secured_nifi_cluster_on_gcp"/>
         <updated>2020-05-20T00:00:00.000Z</updated>
         <summary type="html"><![CDATA[Credits]]></summary>
     </entry>
