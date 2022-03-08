@@ -293,10 +293,7 @@ func SyncDataflow(
 			X: xPos,
 			Y: yPos,
 		}
-		pGEntity.Position = &nigoapi.PositionDto{
-			X: xPos,
-			Y: yPos,
-		}
+
 		_, err := nClient.UpdateProcessGroup(*pGEntity)
 		if err := clientwrappers.ErrorUpdateOperation(log, err, "Stop flow"); err != nil {
 			return nil, err
@@ -753,10 +750,6 @@ func updateProcessGroupEntity(
 	}
 
 	entity.Component.Position = &nigoapi.PositionDto{
-		X: xPos,
-		Y: yPos,
-	}
-	entity.Position = &nigoapi.PositionDto{
 		X: xPos,
 		Y: yPos,
 	}
