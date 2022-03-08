@@ -2,7 +2,7 @@ package nificlient
 
 import (
 	"github.com/antihax/optional"
-	nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
+	nigoapi "github.com/juldrixx/nigoapi/pkg/nifi"
 )
 
 func (n *nifiClient) CreateAccessTokenUsingBasicAuth(username, password string, nodeId int32) (*string, error) {

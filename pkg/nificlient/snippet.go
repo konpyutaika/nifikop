@@ -1,6 +1,6 @@
 package nificlient
 
-import nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
+import nigoapi "github.com/juldrixx/nigoapi/pkg/nifi"
 
 func (n *nifiClient) CreateSnippet(entity nigoapi.SnippetEntity) (*nigoapi.SnippetEntity, error) {
 	// Get nigoapi client, favoring the one associated to the coordinator node.

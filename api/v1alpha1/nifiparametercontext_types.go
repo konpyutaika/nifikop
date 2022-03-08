@@ -17,6 +17,8 @@ type NifiParameterContextSpec struct {
 	ClusterRef ClusterReference `json:"clusterRef,omitempty"`
 	// a list of secret containing sensitive parameters (the key will name of the parameter).
 	SecretRefs []SecretReference `json:"secretRefs,omitempty"`
+	// a list of references to NiFiParameterContext
+	ParameterContextRefs []ParameterContextReference `json:"parameterContextRefs,omitempty"`
 }
 
 type Parameter struct {

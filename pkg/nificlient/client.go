@@ -2,16 +2,17 @@ package nificlient
 
 import (
 	"context"
-	"emperror.dev/errors"
 	"fmt"
-	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
 	"net/http"
 	"net/url"
-	ctrl "sigs.k8s.io/controller-runtime"
 	"time"
 
+	"emperror.dev/errors"
+	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
+	ctrl "sigs.k8s.io/controller-runtime"
+
+	nigoapi "github.com/juldrixx/nigoapi/pkg/nifi"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
-	nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
 )
 
 var log = ctrl.Log.WithName("nifi_client")

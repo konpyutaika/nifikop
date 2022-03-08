@@ -1,7 +1,7 @@
 package nificlient
 
 import (
-	nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
+	nigoapi "github.com/juldrixx/nigoapi/pkg/nifi"
 )
 
 func (n *nifiClient) GetControllerConfig() (*nigoapi.ControllerConfigurationEntity, error) {

@@ -1,15 +1,16 @@
 package reportingtask
 
 import (
+	"strconv"
+
+	nigoapi "github.com/juldrixx/nigoapi/pkg/nifi"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers"
 	"github.com/konpyutaika/nifikop/pkg/common"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	"github.com/konpyutaika/nifikop/pkg/nificlient"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
-	nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"strconv"
 )
 
 var log = ctrl.Log.WithName("reportingtaks-method")

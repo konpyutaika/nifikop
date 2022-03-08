@@ -4,8 +4,14 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
-	"emperror.dev/errors"
 	"fmt"
+	"strconv"
+	"strings"
+	"time"
+
+	"emperror.dev/errors"
+	"github.com/dgrijalva/jwt-go"
+	nigoapi "github.com/juldrixx/nigoapi/pkg/nifi"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/common"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
@@ -16,16 +22,11 @@ import (
 	"github.com/konpyutaika/nifikop/pkg/util"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
 	nifiutil "github.com/konpyutaika/nifikop/pkg/util/nifi"
-	"github.com/dgrijalva/jwt-go"
-	nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"strconv"
-	"strings"
-	"time"
 )
 
 var log = ctrl.Log.WithName("basic_config")

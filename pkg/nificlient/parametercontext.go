@@ -4,7 +4,7 @@ import (
 	"strconv"
 
 	"github.com/antihax/optional"
-	nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
+	nigoapi "github.com/juldrixx/nigoapi/pkg/nifi"
 )
 
 func (n *nifiClient) GetParameterContext(id string) (*nigoapi.ParameterContextEntity, error) {
@@ -16,7 +16,7 @@ func (n *nifiClient) GetParameterContext(id string) (*nigoapi.ParameterContextEn
 	}
 
 	// Request on Nifi Rest API to get the parameter context informations
-	pcEntity, rsp, body, err := client.ParameterContextsApi.GetParameterContext(context, id)
+	pcEntity, rsp, body, err := client.ParameterContextsApi.GetParameterContext(context, id, nil)
 	if err := errorGetOperation(rsp, body, err); err != nil {
 		return nil, err
 	}

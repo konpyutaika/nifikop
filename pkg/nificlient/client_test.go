@@ -2,15 +2,16 @@ package nificlient
 
 import (
 	"fmt"
-	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
 	"net/http"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	"testing"
 
+	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/jarcoal/httpmock"
+	nigoapi "github.com/juldrixx/nigoapi/pkg/nifi"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
-	nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
-	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -1,6 +1,6 @@
 package nificlient
 
-import nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
+import nigoapi "github.com/juldrixx/nigoapi/pkg/nifi"
 
 func (n *nifiClient) UpdateProcessorRunStatus(
 	id string,

@@ -1,13 +1,13 @@
 package parametercontext
 
 import (
+	nigoapi "github.com/juldrixx/nigoapi/pkg/nifi"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers"
 	"github.com/konpyutaika/nifikop/pkg/common"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	"github.com/konpyutaika/nifikop/pkg/nificlient"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
-	nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
 	corev1 "k8s.io/api/core/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
@@ -36,7 +36,10 @@ func ExistParameterContext(parameterContext *v1alpha1.NifiParameterContext, conf
 	return entity != nil, nil
 }
 
-func CreateParameterContext(parameterContext *v1alpha1.NifiParameterContext, parameterSecrets []*corev1.Secret,
+func CreateParameterContext(
+	parameterContext *v1alpha1.NifiParameterContext,
+	parameterSecrets []*corev1.Secret,
+	parameterContextRefs []*v1alpha1.NifiParameterContext,
 	config *clientconfig.NifiConfig) (*v1alpha1.NifiParameterContextStatus, error) {
 
 	nClient, err := common.NewClusterConnection(log, config)
@@ -45,7 +48,7 @@ func CreateParameterContext(parameterContext *v1alpha1.NifiParameterContext, par
 	}
 
 	scratchEntity := nigoapi.ParameterContextEntity{}
-	updateParameterContextEntity(parameterContext, parameterSecrets, &scratchEntity)
+	updateParameterContextEntity(parameterContext, parameterSecrets, parameterContextRefs, &scratchEntity)
 
 	entity, err := nClient.CreateParameterContext(scratchEntity)
 	if err := clientwrappers.ErrorCreateOperation(log, err, "Create parameter-context"); err != nil {
@@ -58,7 +61,10 @@ func CreateParameterContext(parameterContext *v1alpha1.NifiParameterContext, par
 	return &parameterContext.Status, nil
 }
 
-func SyncParameterContext(parameterContext *v1alpha1.NifiParameterContext, parameterSecrets []*corev1.Secret,
+func SyncParameterContext(
+	parameterContext *v1alpha1.NifiParameterContext,
+	parameterSecrets []*corev1.Secret,
+	parameterContextRefs []*v1alpha1.NifiParameterContext,
 	config *clientconfig.NifiConfig) (*v1alpha1.NifiParameterContextStatus, error) {
 
 	nClient, err := common.NewClusterConnection(log, config)
@@ -86,9 +92,9 @@ func SyncParameterContext(parameterContext *v1alpha1.NifiParameterContext, param
 		}
 	}
 
-	if !parameterContextIsSync(parameterContext, parameterSecrets, entity) {
+	if !parameterContextIsSync(parameterContext, parameterSecrets, parameterContextRefs, entity) {
 
-		entity.Component.Parameters = updateRequestPrepare(parameterContext, parameterSecrets, entity)
+		entity.Component.Parameters = updateRequestPrepare(parameterContext, parameterSecrets, parameterContextRefs, entity)
 
 		updateRequest, err := nClient.CreateParameterContextUpdateRequest(entity.Id, *entity)
 		if err := clientwrappers.ErrorCreateOperation(log, err, "Create parameter-context update-request"); err != nil {
@@ -110,7 +116,10 @@ func SyncParameterContext(parameterContext *v1alpha1.NifiParameterContext, param
 	return status, nil
 }
 
-func RemoveParameterContext(parameterContext *v1alpha1.NifiParameterContext, parameterSecrets []*corev1.Secret,
+func RemoveParameterContext(
+	parameterContext *v1alpha1.NifiParameterContext,
+	parameterSecrets []*corev1.Secret,
+	parameterContextRefs []*v1alpha1.NifiParameterContext,
 	config *clientconfig.NifiConfig) error {
 
 	nClient, err := common.NewClusterConnection(log, config)
@@ -126,7 +135,7 @@ func RemoveParameterContext(parameterContext *v1alpha1.NifiParameterContext, par
 		return err
 	}
 
-	updateParameterContextEntity(parameterContext, parameterSecrets, entity)
+	updateParameterContextEntity(parameterContext, parameterSecrets, parameterContextRefs, entity)
 	err = nClient.RemoveParameterContext(*entity)
 
 	return clientwrappers.ErrorRemoveOperation(log, err, "Remove parameter-context")
@@ -135,10 +144,11 @@ func RemoveParameterContext(parameterContext *v1alpha1.NifiParameterContext, par
 func parameterContextIsSync(
 	parameterContext *v1alpha1.NifiParameterContext,
 	parameterSecrets []*corev1.Secret,
+	parameterContextRefs []*v1alpha1.NifiParameterContext,
 	entity *nigoapi.ParameterContextEntity) bool {
 
 	e := nigoapi.ParameterContextEntity{}
-	updateParameterContextEntity(parameterContext, parameterSecrets, &e)
+	updateParameterContextEntity(parameterContext, parameterSecrets, parameterContextRefs, &e)
 
 	if len(e.Component.Parameters) != len(entity.Component.Parameters) {
 		return false
@@ -154,9 +164,7 @@ func parameterContextIsSync(
 					!((expected.Parameter.Value == nil && param.Parameter.Value == nil) ||
 						((expected.Parameter.Value != nil && param.Parameter.Value != nil) &&
 							(*expected.Parameter.Value == *param.Parameter.Value)))) ||
-					!((expected.Parameter.Description == nil && param.Parameter.Description == nil) ||
-						((expected.Parameter.Description != nil && param.Parameter.Description != nil) &&
-							(*expected.Parameter.Description == *param.Parameter.Description))) {
+					(expected.Parameter.Description != param.Parameter.Description) {
 
 					return false
 				}
@@ -173,10 +181,11 @@ func parameterContextIsSync(
 func updateRequestPrepare(
 	parameterContext *v1alpha1.NifiParameterContext,
 	parameterSecrets []*corev1.Secret,
+	parameterContextRefs []*v1alpha1.NifiParameterContext,
 	entity *nigoapi.ParameterContextEntity) []nigoapi.ParameterEntity {
 
 	tmp := entity.Component.Parameters
-	updateParameterContextEntity(parameterContext, parameterSecrets, entity)
+	updateParameterContextEntity(parameterContext, parameterSecrets, parameterContextRefs, entity)
 
 	// List all parameter to remove
 	var toRemove []string
@@ -205,9 +214,7 @@ func updateRequestPrepare(
 					!((expected.Parameter.Value == nil && param.Parameter.Value == nil) ||
 						((expected.Parameter.Value != nil && param.Parameter.Value != nil) &&
 							(*expected.Parameter.Value == *param.Parameter.Value)))) ||
-					!((expected.Parameter.Description == nil && param.Parameter.Description == nil) ||
-						((expected.Parameter.Description != nil && param.Parameter.Description != nil) &&
-							(*expected.Parameter.Description == *param.Parameter.Description))) {
+					(expected.Parameter.Description != param.Parameter.Description) {
 
 					notFound = false
 					if expected.Parameter.Value == nil && param.Parameter.Value != nil {
@@ -235,7 +242,11 @@ func updateRequestPrepare(
 	return parameters
 }
 
-func updateParameterContextEntity(parameterContext *v1alpha1.NifiParameterContext, parameterSecrets []*corev1.Secret, entity *nigoapi.ParameterContextEntity) {
+func updateParameterContextEntity(
+	parameterContext *v1alpha1.NifiParameterContext,
+	parameterSecrets []*corev1.Secret,
+	parameterContextRefs []*v1alpha1.NifiParameterContext,
+	entity *nigoapi.ParameterContextEntity) {
 
 	var defaultVersion int64 = 0
 	if entity == nil {
@@ -261,7 +272,7 @@ func updateParameterContextEntity(parameterContext *v1alpha1.NifiParameterContex
 			parameters = append(parameters, nigoapi.ParameterEntity{
 				Parameter: &nigoapi.ParameterDto{
 					Name:        k,
-					Description: &emptyString,
+					Description: emptyString,
 					Sensitive:   true,
 					Value:       &value,
 				},
@@ -274,15 +285,29 @@ func updateParameterContextEntity(parameterContext *v1alpha1.NifiParameterContex
 		parameters = append(parameters, nigoapi.ParameterEntity{
 			Parameter: &nigoapi.ParameterDto{
 				Name:        parameter.Name,
-				Description: &desc,
+				Description: desc,
 				Sensitive:   parameter.Sensitive,
 				Value:       parameter.Value,
 			},
 		})
 	}
+
+	inheritedParameterContexts := make([]nigoapi.ParameterContextReferenceEntity, 0)
+	for _, parameterContextRef := range parameterContextRefs {
+		inheritedParameterContexts = append(inheritedParameterContexts,
+			nigoapi.ParameterContextReferenceEntity{
+				Id: parameterContextRef.Status.Id,
+				Component: &nigoapi.ParameterContextReferenceDto{
+					Id:   parameterContextRef.Status.Id,
+					Name: parameterContextRef.Name,
+				},
+			})
+	}
+
 	entity.Component.Name = parameterContext.Name
 	entity.Component.Description = parameterContext.Spec.Description
 	entity.Component.Parameters = parameters
+	entity.Component.InheritedParameterContexts = inheritedParameterContexts
 }
 
 func updateRequest2Status(updateRequest *nigoapi.ParameterContextUpdateRequestEntity) *v1alpha1.ParameterContextUpdateRequest {
