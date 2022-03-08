@@ -187,3 +187,17 @@ func (d *NifiDataflowSpec) GetParentProcessGroupID(rootProcessGroupId string) st
 	}
 	return d.ParentProcessGroupID
 }
+
+func (p *FlowPosition) GetX() int64 {
+	if p.X == nil || *p.X == 0 {
+		return 1
+	}
+	return *p.X
+}
+
+func (p *FlowPosition) GetY() int64 {
+	if p.Y == nil || *p.Y == 0 {
+		return 1
+	}
+	return *p.Y
+}
