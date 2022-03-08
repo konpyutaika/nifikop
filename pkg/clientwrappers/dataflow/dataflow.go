@@ -215,8 +215,8 @@ func isVersioningChanged(
 // isPostionChanged check if the position of the process group is out of sync.
 func isPostionChanged(flow *v1alpha1.NifiDataflow, pgFlowEntity *nigoapi.ProcessGroupEntity) bool {
 	return flow.Spec.FlowPosition != nil &&
-		((flow.Spec.FlowPosition.X != nil && float64(*flow.Spec.FlowPosition.X) != pgFlowEntity.Component.Position.X) ||
-			(flow.Spec.FlowPosition.Y != nil && float64(*flow.Spec.FlowPosition.Y) != pgFlowEntity.Component.Position.Y))
+		((flow.Spec.FlowPosition.X != nil && float64(flow.Spec.FlowPosition.GetX()) != pgFlowEntity.Component.Position.X) ||
+			(flow.Spec.FlowPosition.Y != nil && float64(flow.Spec.FlowPosition.GetY()) != pgFlowEntity.Component.Position.Y))
 }
 
 // SyncDataflow implements the logic to sync a NifiDataflow with the deployed flow.
@@ -280,13 +280,13 @@ func SyncDataflow(
 		if flow.Spec.FlowPosition == nil || flow.Spec.FlowPosition.X == nil {
 			xPos = pGEntity.Component.Position.X
 		} else {
-			xPos = float64(*flow.Spec.FlowPosition.X)
+			xPos = float64(flow.Spec.FlowPosition.GetX())
 		}
 
 		if flow.Spec.FlowPosition == nil || flow.Spec.FlowPosition.Y == nil {
 			yPos = pGEntity.Component.Position.Y
 		} else {
-			yPos = float64(*flow.Spec.FlowPosition.Y)
+			yPos = float64(flow.Spec.FlowPosition.GetY())
 		}
 
 		pGEntity.Component.Position = &nigoapi.PositionDto{
@@ -738,13 +738,13 @@ func updateProcessGroupEntity(
 		if flow.Spec.FlowPosition == nil || flow.Spec.FlowPosition.X == nil {
 			xPos = float64(1)
 		} else {
-			xPos = float64(*flow.Spec.FlowPosition.X)
+			xPos = float64(flow.Spec.FlowPosition.GetX())
 		}
 
 		if flow.Spec.FlowPosition == nil || flow.Spec.FlowPosition.Y == nil {
 			yPos = float64(1)
 		} else {
-			yPos = float64(*flow.Spec.FlowPosition.Y)
+			yPos = float64(flow.Spec.FlowPosition.GetY())
 		}
 	}
 
