@@ -2,6 +2,8 @@
 
 ### Added
 
+- [PR #206](https://github.com/Orange-OpenSource/nifikop/pull/206) - **[Operator/NifiCluster]** New properites that allow for overriting default user identities and service names.
+
 ### Changed
 
 ### Deprecated
