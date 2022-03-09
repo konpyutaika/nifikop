@@ -486,6 +486,7 @@ func (in *NifiClusterSpec) DeepCopyInto(out *NifiClusterSpec) {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
+<<<<<<< HEAD
 	if in.TopologySpreadConstraints != nil {
 		in, out := &in.TopologySpreadConstraints, &out.TopologySpreadConstraints
 		*out = make([]v1.TopologySpreadConstraint, len(*in))
@@ -500,6 +501,25 @@ func (in *NifiClusterSpec) DeepCopyInto(out *NifiClusterSpec) {
 	}
 	if in.ControllerUserIdentity != nil {
 		in, out := &in.ControllerUserIdentity, &out.ControllerUserIdentity
+=======
+	if in.RemoveFlowFileOnStartup != nil {
+		in, out := &in.RemoveFlowFileOnStartup, &out.RemoveFlowFileOnStartup
+		*out = new(bool)
+		**out = **in
+	}
+	if in.AdminUserIdentity != nil {
+		in, out := &in.AdminUserIdentity, &out.AdminUserIdentity
+		*out = new(string)
+		**out = **in
+	}
+	if in.NodeUserIdentityTemplate != nil {
+		in, out := &in.NodeUserIdentityTemplate, &out.NodeUserIdentityTemplate
+		*out = new(string)
+		**out = **in
+	}
+	if in.NodeControllerTemplate != nil {
+		in, out := &in.NodeControllerTemplate, &out.NodeControllerTemplate
+>>>>>>> 49546877 (Merge pull request #21 from influxdata/genehynson/configurable-identities-service-suffix)
 		*out = new(string)
 		**out = **in
 	}

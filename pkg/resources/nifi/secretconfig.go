@@ -134,6 +134,11 @@ func (r *Reconciler) getNifiPropertiesConfigString(nConfig *v1alpha1.NodeConfig,
 			id,
 			r.NifiCluster.Namespace,
 			r.NifiCluster.Name,
+<<<<<<< HEAD
+=======
+			r.NifiCluster.Spec.Service.HeadlessEnabled,
+			r.NifiCluster.Spec.Service.GetHeadlessServiceTemplate(),
+>>>>>>> 49546877 (Merge pull request #21 from influxdata/genehynson/configurable-identities-service-suffix)
 			r.NifiCluster.Spec.ListenersConfig.GetClusterDomain(),
 			r.NifiCluster.Spec.ListenersConfig.UseExternalDNS,
 			r.NifiCluster.Spec.Service.GetServiceTemplate(),
@@ -415,6 +420,7 @@ func (r *Reconciler) getAuthorizersConfigString(nConfig *v1alpha1.NodeConfig, id
 	var out bytes.Buffer
 	t := template.Must(template.New("nConfig-config").Parse(authorizersTemplate))
 
+<<<<<<< HEAD
 	/*nifiControllerName := fmt.Sprintf(
 		pkicommon.NodeControllerFQDNTemplate,
 		r.NifiCluster.GetNifiControllerUserIdentity(),
@@ -425,6 +431,15 @@ func (r *Reconciler) getAuthorizersConfigString(nConfig *v1alpha1.NodeConfig, id
 	if r.NifiCluster.Spec.ControllerUserIdentity != nil {
 		nifiControllerName = *r.NifiCluster.Spec.ControllerUserIdentity
 	}*/
+=======
+	adminUserName := fmt.Sprintf(pkicommon.NodeControllerFQDNTemplate,
+		fmt.Sprintf(r.NifiCluster.Spec.GetNodeControllerTemplate(), r.NifiCluster.Name),
+		r.NifiCluster.Namespace,
+		r.NifiCluster.Spec.ListenersConfig.GetClusterDomain())
+	if r.NifiCluster.Spec.AdminUserIdentity != nil {
+		adminUserName = *r.NifiCluster.Spec.AdminUserIdentity
+	}
+>>>>>>> 49546877 (Merge pull request #21 from influxdata/genehynson/configurable-identities-service-suffix)
 
 	if err := t.Execute(&out, map[string]interface{}{
 		"NifiCluster":    r.NifiCluster,
@@ -432,7 +447,11 @@ func (r *Reconciler) getAuthorizersConfigString(nConfig *v1alpha1.NodeConfig, id
 		"ClusterName":    r.NifiCluster.Name,
 		"Namespace":      r.NifiCluster.Namespace,
 		"NodeList":       nodeList,
+<<<<<<< HEAD
 		"ControllerUser": r.NifiCluster.GetNifiControllerUserIdentity(),
+=======
+		"ControllerUser": adminUserName,
+>>>>>>> 49546877 (Merge pull request #21 from influxdata/genehynson/configurable-identities-service-suffix)
 	}); err != nil {
 		log.Error(err, "error occurred during parsing the config template")
 	}

@@ -249,6 +249,11 @@ func GenerateListenerSpecificConfig(
 	nodeId int32,
 	namespace,
 	crName string,
+<<<<<<< HEAD
+=======
+	headlessServiceEnabled bool,
+	headlessServiceTemplate string,
+>>>>>>> 49546877 (Merge pull request #21 from influxdata/genehynson/configurable-identities-service-suffix)
 	clusterDomain string,
 	useExternalDNS bool,
 	serviceTemplate string,
@@ -257,7 +262,11 @@ func GenerateListenerSpecificConfig(
 	var nifiConfig string
 
 	hostListener := nifi.ComputeHostListenerNodeHostname(nodeId, crName, namespace,
+<<<<<<< HEAD
 		clusterDomain, useExternalDNS, serviceTemplate)
+=======
+		headlessServiceEnabled, headlessServiceTemplate, clusterDomain, useExternalDNS)
+>>>>>>> 49546877 (Merge pull request #21 from influxdata/genehynson/configurable-identities-service-suffix)
 
 	clusterPortConfig := "nifi.cluster.node.protocol.port=\n"
 	httpPortConfig := "nifi.web.http.port=\n"

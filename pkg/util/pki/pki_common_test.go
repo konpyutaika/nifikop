@@ -135,8 +135,13 @@ func TestNodeUsersForCluster(t *testing.T) {
 func TestControllerUserForCluster(t *testing.T) {
 	cluster := testCluster(t)
 	user := ControllerUserForCluster(cluster)
+<<<<<<< HEAD
 	/*	nodeControllerName := fmt.Sprintf(NodeControllerFQDNTemplate,
 		cluster.GetNifiControllerUserIdentity(),
+=======
+	nodeControllerName := fmt.Sprintf(NodeControllerFQDNTemplate,
+		fmt.Sprintf(cluster.Spec.GetNodeControllerTemplate(), cluster.Name),
+>>>>>>> 49546877 (Merge pull request #21 from influxdata/genehynson/configurable-identities-service-suffix)
 		cluster.Namespace,
 		cluster.Spec.ListenersConfig.GetClusterDomain())*/
 
@@ -146,8 +151,13 @@ func TestControllerUserForCluster(t *testing.T) {
 			LabelsForNifiPKI(cluster.Name), cluster,
 		),
 		Spec: v1alpha1.NifiUserSpec{
+<<<<<<< HEAD
 			DNSNames:   []string{cluster.GetNifiControllerUserIdentity()},
 			SecretName: cluster.GetNifiControllerUserIdentity(),
+=======
+			DNSNames:   []string{nodeControllerName},
+			SecretName: fmt.Sprintf(cluster.Spec.GetNodeControllerTemplate(), cluster.Name),
+>>>>>>> 49546877 (Merge pull request #21 from influxdata/genehynson/configurable-identities-service-suffix)
 			IncludeJKS: true,
 			ClusterRef: v1alpha1.ClusterReference{
 				Name:      cluster.Name,

@@ -412,7 +412,11 @@ func (r *Reconciler) getServerAndClientDetails(nodeId int32) (string, string, []
 	}
 	serverPass := string(serverSecret.Data[v1alpha1.PasswordKey])
 
+<<<<<<< HEAD
 	clientName := types.NamespacedName{Name: r.NifiCluster.GetNifiControllerUserIdentity(), Namespace: r.NifiCluster.Namespace}
+=======
+	clientName := types.NamespacedName{Name: fmt.Sprintf(r.NifiCluster.Spec.GetNodeControllerTemplate(), r.NifiCluster.Name), Namespace: r.NifiCluster.Namespace}
+>>>>>>> 49546877 (Merge pull request #21 from influxdata/genehynson/configurable-identities-service-suffix)
 	clientSecret := &corev1.Secret{}
 	if err := r.Client.Get(context.TODO(), clientName, clientSecret); err != nil {
 		if apierrors.IsNotFound(err) {
@@ -685,6 +689,7 @@ func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) (
 }
 
 func (r *Reconciler) reconcileNifiUsersAndGroups(log logr.Logger) error {
+<<<<<<< HEAD
 	/*	nifiControllerName := fmt.Sprintf(
 			pkicommon.NodeControllerFQDNTemplate,
 			r.NifiCluster.GetNifiControllerUserIdentity(),
@@ -698,6 +703,17 @@ func (r *Reconciler) reconcileNifiUsersAndGroups(log logr.Logger) error {
 
 	controllerNamespacedName := types.NamespacedName{
 		Name: r.NifiCluster.GetNifiControllerUserIdentity(), Namespace: r.NifiCluster.Namespace}
+=======
+	adminUserName := fmt.Sprintf(pkicommon.NodeControllerFQDNTemplate,
+		fmt.Sprintf(r.NifiCluster.Spec.GetNodeControllerTemplate(), r.NifiCluster.Name),
+		r.NifiCluster.Namespace,
+		r.NifiCluster.Spec.ListenersConfig.GetClusterDomain())
+	if r.NifiCluster.Spec.AdminUserIdentity != nil {
+		adminUserName = *r.NifiCluster.Spec.AdminUserIdentity
+	}
+
+	controllerName := types.NamespacedName{Name: adminUserName, Namespace: r.NifiCluster.Namespace}
+>>>>>>> 49546877 (Merge pull request #21 from influxdata/genehynson/configurable-identities-service-suffix)
 
 	managedUsers := append(r.NifiCluster.Spec.ManagedAdminUsers, r.NifiCluster.Spec.ManagedReaderUsers...)
 	var users []*v1alpha1.NifiUser

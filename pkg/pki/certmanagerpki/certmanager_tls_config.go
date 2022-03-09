@@ -7,8 +7,13 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"strings"
 
+<<<<<<< HEAD
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
+=======
+	"github.com/Orange-OpenSource/nifikop/api/v1alpha1"
+	"github.com/Orange-OpenSource/nifikop/pkg/errorfactory"
+>>>>>>> 49546877 (Merge pull request #21 from influxdata/genehynson/configurable-identities-service-suffix)
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
@@ -19,7 +24,11 @@ import (
 func (c *certManager) GetControllerTLSConfig() (config *tls.Config, err error) {
 	config, err = GetControllerTLSConfigFromSecret(c.client, v1alpha1.SecretReference{
 		Namespace: c.cluster.Namespace,
+<<<<<<< HEAD
 		Name:      c.cluster.GetNifiControllerUserIdentity(),
+=======
+		Name:      fmt.Sprintf(c.cluster.Spec.GetNodeControllerTemplate(), c.cluster.Name),
+>>>>>>> 49546877 (Merge pull request #21 from influxdata/genehynson/configurable-identities-service-suffix)
 	})
 	return
 }
