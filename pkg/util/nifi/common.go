@@ -13,6 +13,11 @@ const (
 	SuffixNodeNameTemplate = "-node"
 	RootNodeNameTemplate   = "%d"
 	NodeNameTemplate       = PrefixNodeNameTemplate + RootNodeNameTemplate + SuffixNodeNameTemplate
+<<<<<<< HEAD
+=======
+	// AllNodeServiceTemplate template for Nifi all nodes service
+	AllNodeServiceTemplate = "%s-all-node"
+>>>>>>> 49546877 (Merge pull request #21 from influxdata/genehynson/configurable-identities-service-suffix)
 
 	// TimeStampLayout defines the date format used.
 	TimeStampLayout = "Mon, 2 Jan 2006 15:04:05 GMT"
@@ -41,17 +46,26 @@ func ComputeNodeName(nodeId int32, clusterName string) string {
 	return fmt.Sprintf(NodeNameTemplate, clusterName, nodeId)
 }
 
+<<<<<<< HEAD
 func ComputeRequestNiFiNodeService(nodeId int32, clusterName string,
 	headlessServiceEnabled bool, serviceTemplate string) string {
 	if headlessServiceEnabled {
 		return fmt.Sprintf("%s.%s",
 			ComputeNodeName(nodeId, clusterName),
 			fmt.Sprintf(serviceTemplate, clusterName))
+=======
+func ComputeRequestNiFiNodeService(nodeId int32, clusterName string, headlessServiceEnabled bool, headlessServiceTemplate string) string {
+	if headlessServiceEnabled {
+		return fmt.Sprintf("%s.%s",
+			ComputeNodeName(nodeId, clusterName),
+			fmt.Sprintf(headlessServiceTemplate, clusterName))
+>>>>>>> 49546877 (Merge pull request #21 from influxdata/genehynson/configurable-identities-service-suffix)
 	}
 
 	return ComputeNodeName(nodeId, clusterName)
 }
 
+<<<<<<< HEAD
 func ComputeRequestNiFiNodeNamespace(nodeId int32, clusterName, namespace string, headlessServiceEnabled,
 	useExternalDNS bool, serviceTemplate string) string {
 	if useExternalDNS {
@@ -59,11 +73,20 @@ func ComputeRequestNiFiNodeNamespace(nodeId int32, clusterName, namespace string
 	}
 	return fmt.Sprintf("%s.%s",
 		ComputeRequestNiFiNodeService(nodeId, clusterName, headlessServiceEnabled, serviceTemplate), namespace)
+=======
+func ComputeRequestNiFiNodeNamespace(nodeId int32, clusterName, namespace string, headlessServiceEnabled bool, headlessServiceTemplate string, useExternalDNS bool) string {
+	if useExternalDNS {
+		return ComputeRequestNiFiNodeService(nodeId, clusterName, headlessServiceEnabled, headlessServiceTemplate)
+	}
+	return fmt.Sprintf("%s.%s",
+		ComputeRequestNiFiNodeService(nodeId, clusterName, headlessServiceEnabled, headlessServiceTemplate), namespace)
+>>>>>>> 49546877 (Merge pull request #21 from influxdata/genehynson/configurable-identities-service-suffix)
 }
 
 func ComputeRequestNiFiNodeNamespaceFull(
 	nodeId int32,
 	clusterName, namespace string,
+<<<<<<< HEAD
 	headlessServiceEnabled, useExternalDNS bool,
 	serviceTemplate string) string {
 
@@ -74,19 +97,33 @@ func ComputeRequestNiFiNodeNamespaceFull(
 	return fmt.Sprintf("%s.svc",
 		ComputeRequestNiFiNodeNamespace(nodeId, clusterName, namespace, headlessServiceEnabled,
 			useExternalDNS, serviceTemplate))
+=======
+	headlessServiceEnabled bool, headlessServiceTemplate string, useExternalDNS bool) string {
+
+	if useExternalDNS {
+		return ComputeRequestNiFiNodeNamespace(nodeId, clusterName, namespace, headlessServiceEnabled, headlessServiceTemplate, useExternalDNS)
+	}
+	return fmt.Sprintf("%s.svc",
+		ComputeRequestNiFiNodeNamespace(nodeId, clusterName, namespace, headlessServiceEnabled, headlessServiceTemplate, useExternalDNS))
+>>>>>>> 49546877 (Merge pull request #21 from influxdata/genehynson/configurable-identities-service-suffix)
 }
 
 func ComputeRequestNiFiNodeHostname(
 	nodeId int32,
 	clusterName, namespace string,
 	headlessServiceEnabled bool,
+	headlessServiceTemplate string,
 	clusterDomain string,
 	useExternalDNS bool,
 	serviceTemplate string) string {
 
 	return fmt.Sprintf("%s.%s",
+<<<<<<< HEAD
 		ComputeRequestNiFiNodeNamespaceFull(nodeId, clusterName, namespace,
 			headlessServiceEnabled, useExternalDNS, serviceTemplate),
+=======
+		ComputeRequestNiFiNodeNamespaceFull(nodeId, clusterName, namespace, headlessServiceEnabled, headlessServiceTemplate, useExternalDNS),
+>>>>>>> 49546877 (Merge pull request #21 from influxdata/genehynson/configurable-identities-service-suffix)
 		clusterDomain)
 }
 
@@ -94,14 +131,19 @@ func ComputeRequestNiFiNodeAddress(
 	nodeId int32,
 	clusterName, namespace string,
 	headlessServiceEnabled bool,
+	headlessServiceTemplate string,
 	clusterDomain string,
 	useExternalDNS bool,
 	internalListeners []v1alpha1.InternalListenerConfig,
 	serviceTemplate string) string {
 
 	return fmt.Sprintf("%s:%d",
+<<<<<<< HEAD
 		ComputeRequestNiFiNodeHostname(nodeId, clusterName, namespace,
 			headlessServiceEnabled, clusterDomain, useExternalDNS, serviceTemplate),
+=======
+		ComputeRequestNiFiNodeHostname(nodeId, clusterName, namespace, headlessServiceEnabled, headlessServiceTemplate, clusterDomain, useExternalDNS),
+>>>>>>> 49546877 (Merge pull request #21 from influxdata/genehynson/configurable-identities-service-suffix)
 		InternalListenerForComm(internalListeners).ContainerPort)
 }
 
@@ -111,6 +153,7 @@ func GenerateRequestNiFiNodeAddressFromCluster(nodeId int32, cluster *v1alpha1.N
 		cluster.Name,
 		cluster.Namespace,
 		cluster.Spec.Service.HeadlessEnabled,
+		cluster.Spec.Service.GetHeadlessServiceTemplate(),
 		cluster.Spec.ListenersConfig.GetClusterDomain(),
 		cluster.Spec.ListenersConfig.UseExternalDNS,
 		cluster.Spec.ListenersConfig.InternalListeners,
@@ -124,6 +167,7 @@ func GenerateRequestNiFiNodeHostnameFromCluster(nodeId int32, cluster *v1alpha1.
 		cluster.Name,
 		cluster.Namespace,
 		cluster.Spec.Service.HeadlessEnabled,
+		cluster.Spec.Service.GetHeadlessServiceTemplate(),
 		cluster.Spec.ListenersConfig.GetClusterDomain(),
 		cluster.Spec.ListenersConfig.UseExternalDNS,
 		cluster.Spec.Service.GetServiceTemplate(),
@@ -131,6 +175,7 @@ func GenerateRequestNiFiNodeHostnameFromCluster(nodeId int32, cluster *v1alpha1.
 }
 
 // >> All node
+<<<<<<< HEAD
 func ComputeRequestNiFiAllNodeService(
 	clusterName string, serviceTemplate string) string {
 	return fmt.Sprintf(serviceTemplate, clusterName)
@@ -153,28 +198,73 @@ func ComputeRequestNiFiAllNodeNamespaceFull(
 	}
 	return fmt.Sprintf("%s.svc",
 		ComputeRequestNiFiAllNodeNamespace(clusterName, namespace, useExternalDNS, serviceTemplate))
+=======
+func ComputeRequestNiFiAllNodeService(clusterName string, headlessServiceEnabled bool, headlessServiceTemplate string) string {
+	if headlessServiceEnabled {
+		return fmt.Sprintf(headlessServiceTemplate, clusterName)
+	}
+
+	return fmt.Sprintf(AllNodeServiceTemplate, clusterName)
+}
+
+func ComputeRequestNiFiAllNodeNamespace(clusterName, namespace string, headlessServiceEnabled bool, headlessServiceTemplate string, useExternalDNS bool) string {
+	if useExternalDNS {
+		return ComputeRequestNiFiAllNodeService(clusterName, headlessServiceEnabled, headlessServiceTemplate)
+	}
+	return fmt.Sprintf("%s.%s",
+		ComputeRequestNiFiAllNodeService(clusterName, headlessServiceEnabled, headlessServiceTemplate), namespace)
+}
+
+func ComputeRequestNiFiAllNodeNamespaceFull(
+	clusterName, namespace string,
+	headlessServiceEnabled bool, headlessServiceTemplate string, useExternalDNS bool) string {
+
+	if useExternalDNS {
+		return ComputeRequestNiFiAllNodeNamespace(clusterName, namespace, headlessServiceEnabled, headlessServiceTemplate, useExternalDNS)
+	}
+	return fmt.Sprintf("%s.svc",
+		ComputeRequestNiFiAllNodeNamespace(clusterName, namespace, headlessServiceEnabled, headlessServiceTemplate, useExternalDNS))
+>>>>>>> 49546877 (Merge pull request #21 from influxdata/genehynson/configurable-identities-service-suffix)
 }
 
 func ComputeRequestNiFiAllNodeHostname(
 	clusterName, namespace string,
+<<<<<<< HEAD
+=======
+	headlessServiceEnabled bool,
+	headlessServiceTemplate string,
+>>>>>>> 49546877 (Merge pull request #21 from influxdata/genehynson/configurable-identities-service-suffix)
 	clusterDomain string,
 	useExternalDNS bool,
 	serviceTemplate string) string {
 
 	return fmt.Sprintf("%s.%s",
+<<<<<<< HEAD
 		ComputeRequestNiFiAllNodeNamespaceFull(clusterName, namespace, useExternalDNS, serviceTemplate),
+=======
+		ComputeRequestNiFiAllNodeNamespaceFull(clusterName, namespace, headlessServiceEnabled, headlessServiceTemplate, useExternalDNS),
+>>>>>>> 49546877 (Merge pull request #21 from influxdata/genehynson/configurable-identities-service-suffix)
 		clusterDomain)
 }
 
 func ComputeRequestNiFiAllNodeAddress(
 	clusterName, namespace string,
+<<<<<<< HEAD
+=======
+	headlessServiceEnabled bool,
+	headlessServiceTemplate string,
+>>>>>>> 49546877 (Merge pull request #21 from influxdata/genehynson/configurable-identities-service-suffix)
 	clusterDomain string,
 	useExternalDNS bool,
 	internalListeners []v1alpha1.InternalListenerConfig,
 	serviceTemplate string) string {
 
 	return fmt.Sprintf("%s:%d",
+<<<<<<< HEAD
 		ComputeRequestNiFiAllNodeHostname(clusterName, namespace, clusterDomain, useExternalDNS, serviceTemplate),
+=======
+		ComputeRequestNiFiAllNodeHostname(clusterName, namespace, headlessServiceEnabled, headlessServiceTemplate, clusterDomain, useExternalDNS),
+>>>>>>> 49546877 (Merge pull request #21 from influxdata/genehynson/configurable-identities-service-suffix)
 		InternalListenerForComm(internalListeners).ContainerPort)
 }
 
@@ -182,6 +272,11 @@ func GenerateRequestNiFiAllNodeAddressFromCluster(cluster *v1alpha1.NifiCluster)
 	return ComputeRequestNiFiAllNodeAddress(
 		cluster.Name,
 		cluster.Namespace,
+<<<<<<< HEAD
+=======
+		cluster.Spec.Service.HeadlessEnabled,
+		cluster.Spec.Service.GetHeadlessServiceTemplate(),
+>>>>>>> 49546877 (Merge pull request #21 from influxdata/genehynson/configurable-identities-service-suffix)
 		cluster.Spec.ListenersConfig.GetClusterDomain(),
 		cluster.Spec.ListenersConfig.UseExternalDNS,
 		cluster.Spec.ListenersConfig.InternalListeners,
@@ -193,6 +288,11 @@ func GenerateRequestNiFiAllNodeHostnameFromCluster(cluster *v1alpha1.NifiCluster
 	return ComputeRequestNiFiAllNodeHostname(
 		cluster.Name,
 		cluster.Namespace,
+<<<<<<< HEAD
+=======
+		cluster.Spec.Service.HeadlessEnabled,
+		cluster.Spec.Service.GetHeadlessServiceTemplate(),
+>>>>>>> 49546877 (Merge pull request #21 from influxdata/genehynson/configurable-identities-service-suffix)
 		cluster.Spec.ListenersConfig.GetClusterDomain(),
 		cluster.Spec.ListenersConfig.UseExternalDNS,
 		cluster.Spec.Service.GetServiceTemplate(),
@@ -204,24 +304,42 @@ func GenerateRequestNiFiAllNodeHostnameFromCluster(cluster *v1alpha1.NifiCluster
 func ComputeHostListenerNodeHostname(
 	nodeId int32,
 	clusterName, namespace string,
+<<<<<<< HEAD
+=======
+	headlessServiceEnabled bool,
+	headlessServiceTemplate string,
+>>>>>>> 49546877 (Merge pull request #21 from influxdata/genehynson/configurable-identities-service-suffix)
 	clusterDomain string,
 	useExternalDNS bool,
 	serviceTemplate string) string {
 
 	return fmt.Sprintf("%s.%s", ComputeNodeName(nodeId, clusterName),
+<<<<<<< HEAD
 		ComputeRequestNiFiAllNodeHostname(clusterName, namespace, clusterDomain, useExternalDNS, serviceTemplate))
+=======
+		ComputeRequestNiFiAllNodeHostname(clusterName, namespace, headlessServiceEnabled, headlessServiceTemplate, clusterDomain, useExternalDNS))
+>>>>>>> 49546877 (Merge pull request #21 from influxdata/genehynson/configurable-identities-service-suffix)
 }
 
 func ComputeHostListenerNodeAddress(
 	nodeId int32,
 	clusterName, namespace string,
+<<<<<<< HEAD
+=======
+	headlessServiceEnabled bool,
+	headlessServiceTemplate string,
+>>>>>>> 49546877 (Merge pull request #21 from influxdata/genehynson/configurable-identities-service-suffix)
 	clusterDomain string,
 	useExternalDNS bool,
 	internalListeners []v1alpha1.InternalListenerConfig,
 	serviceTemplate string) string {
 
 	return fmt.Sprintf("%s:%d",
+<<<<<<< HEAD
 		ComputeHostListenerNodeHostname(nodeId, clusterName, namespace, clusterDomain, useExternalDNS, serviceTemplate),
+=======
+		ComputeHostListenerNodeHostname(nodeId, clusterName, namespace, headlessServiceEnabled, headlessServiceTemplate, clusterDomain, useExternalDNS),
+>>>>>>> 49546877 (Merge pull request #21 from influxdata/genehynson/configurable-identities-service-suffix)
 		InternalListenerForComm(internalListeners).ContainerPort)
 }
 
@@ -230,6 +348,11 @@ func GenerateHostListenerNodeAddressFromCluster(nodeId int32, cluster *v1alpha1.
 		nodeId,
 		cluster.Name,
 		cluster.Namespace,
+<<<<<<< HEAD
+=======
+		cluster.Spec.Service.HeadlessEnabled,
+		cluster.Spec.Service.GetHeadlessServiceTemplate(),
+>>>>>>> 49546877 (Merge pull request #21 from influxdata/genehynson/configurable-identities-service-suffix)
 		cluster.Spec.ListenersConfig.GetClusterDomain(),
 		cluster.Spec.ListenersConfig.UseExternalDNS,
 		cluster.Spec.ListenersConfig.InternalListeners,
@@ -242,6 +365,11 @@ func GenerateHostListenerNodeHostnameFromCluster(nodeId int32, cluster *v1alpha1
 		nodeId,
 		cluster.Name,
 		cluster.Namespace,
+<<<<<<< HEAD
+=======
+		cluster.Spec.Service.HeadlessEnabled,
+		cluster.Spec.Service.GetHeadlessServiceTemplate(),
+>>>>>>> 49546877 (Merge pull request #21 from influxdata/genehynson/configurable-identities-service-suffix)
 		cluster.Spec.ListenersConfig.GetClusterDomain(),
 		cluster.Spec.ListenersConfig.UseExternalDNS,
 		cluster.Spec.Service.GetServiceTemplate(),

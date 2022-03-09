@@ -31,7 +31,11 @@ func (c *certManager) FinalizePKI(ctx context.Context, logger logr.Logger) error
 	if c.cluster.Spec.ListenersConfig.SSLSecrets.Create {
 		// Names of our certificates and secrets
 		objNames := []types.NamespacedName{
+<<<<<<< HEAD
 			{Name: c.cluster.GetNifiControllerUserIdentity(), Namespace: c.cluster.Namespace},
+=======
+			{Name: fmt.Sprintf(c.cluster.Spec.GetNodeControllerTemplate(), c.cluster.Name), Namespace: c.cluster.Namespace},
+>>>>>>> 49546877 (Merge pull request #21 from influxdata/genehynson/configurable-identities-service-suffix)
 		}
 
 		for _, node := range c.cluster.Spec.Nodes {
