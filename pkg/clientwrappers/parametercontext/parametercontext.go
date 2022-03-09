@@ -175,6 +175,16 @@ func parameterContextIsSync(
 		}
 	}
 
+	if len(e.Component.InheritedParameterContexts) != len(entity.Component.InheritedParameterContexts) {
+		return false
+	}
+
+	for idx, expected := range e.Component.InheritedParameterContexts {
+		if expected.Id != entity.Component.InheritedParameterContexts[idx].Id {
+			return false
+		}
+	}
+
 	return e.Component.Description == entity.Component.Description && e.Component.Name == entity.Component.Name
 }
 
