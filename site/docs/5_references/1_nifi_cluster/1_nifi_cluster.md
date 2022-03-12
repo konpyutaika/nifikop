@@ -21,6 +21,11 @@ spec:
   nodeConfigGroups:
     default_group:
       isNode: true
+      externalVolumeConfigs:
+        - name: example-volume
+          mountPath: "/opt/nifi/example"
+          secret:
+            secretName: "raw-controller"
       storageConfigs:
         - mountPath: '/opt/nifi/nifi-current/logs'
           name: logs

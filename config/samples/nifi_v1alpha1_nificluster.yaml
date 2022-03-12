@@ -178,6 +178,12 @@ spec:
       #      nodeAffinity:
       # imagePullPolicy define the pull policy for NiFi cluster docker image
       imagePullPolicy: IfNotPresent
+      # externalVolumeConfigs specifies a list of volume to mount into the main container.
+      externalVolumeConfigs:
+        - name: example-volume
+          mountPath: "/opt/nifi/example"
+          secret:
+            secretName: "raw-controller"
       # storageConfigs specifies the node related configs
       storageConfigs:
         # Name of the storage config, used to name PV to reuse into sidecars for example.

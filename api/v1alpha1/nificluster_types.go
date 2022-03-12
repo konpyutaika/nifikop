@@ -248,6 +248,8 @@ type NodeConfig struct {
 	NodeAffinity *corev1.NodeAffinity `json:"nodeAffinity,omitempty"`
 	// storageConfigs specifies the node related configs
 	StorageConfigs []StorageConfig `json:"storageConfigs,omitempty"`
+	// externalVolumeConfigs specifies a list of volume to mount into the main container.
+	ExternalVolumeConfigs []VolumeConfig `json:"externalVolumeConfigs,omitempty"`
 	// serviceAccountName specifies the serviceAccount used for this specific node
 	ServiceAccountName string `json:"serviceAccountName,omitempty"`
 	// resourceRequirements works exactly like Container resources, the user can specify the limit and the requests
@@ -279,7 +281,19 @@ type StorageConfig struct {
 	PVCSpec *corev1.PersistentVolumeClaimSpec `json:"pvcSpec"`
 }
 
-//ListenersConfig defines the Nifi listener types
+type VolumeConfig struct {
+	// VolumeMount describes a mounting of a Volume within a container
+	corev1.VolumeMount `json:",inline" protobuf:"bytes,2,opt,name=volumeMount"`
+	// VolumeSource represents the location and type of the mounted volume.
+	// If not specified, the Volume is implied to be an EmptyDir.
+	// This implied behavior is deprecated and will be removed in a future version.
+	corev1.VolumeSource `json:",inline" protobuf:"bytes,2,opt,name=volumeSource"`
+}
+
+func (vc *VolumeConfig) GenerateVolumeAndVolumeMount() (corev1.Volume, corev1.VolumeMount) {
+	return corev1.Volume{Name: vc.Name, VolumeSource: vc.VolumeSource}, vc.VolumeMount
+}
+
 type ListenersConfig struct {
 	// internalListeners specifies settings required to access nifi internally
 	InternalListeners []InternalListenerConfig `json:"internalListeners"`
