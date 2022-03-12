@@ -7,13 +7,13 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/go-logr/logr"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/resources/templates"
 	"github.com/konpyutaika/nifikop/pkg/util"
 	nifiutil "github.com/konpyutaika/nifikop/pkg/util/nifi"
 	pkicommon "github.com/konpyutaika/nifikop/pkg/util/pki"
 	zk "github.com/konpyutaika/nifikop/pkg/util/zookeeper"
-	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -54,17 +54,17 @@ func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev
 	volume = append(volume, dataVolume...)
 	volumeMount = append(volumeMount, dataVolumeMount...)
 
+	if len(nodeConfig.ExternalVolumeConfigs) > 0 {
+		for _, volumeConfig := range nodeConfig.ExternalVolumeConfigs {
+			v, vM := volumeConfig.GenerateVolumeAndVolumeMount()
+			volume = append(volume, v)
+			volumeMount = append(volumeMount, vM)
+		}
+	}
+
 	if r.NifiCluster.Spec.ListenersConfig.SSLSecrets != nil {
 		volume = append(volume, generateVolumesForSSL(r.NifiCluster, id)...)
 		volumeMount = append(volumeMount, generateVolumeMountForSSL()...)
-	}
-
-	if r.NifiCluster.Spec.Volumes != nil {
-		volume = append(volume, r.NifiCluster.Spec.Volumes...)
-	}
-
-	if r.NifiCluster.Spec.VolumeMounts != nil {
-		volumeMount = append(volumeMount, r.NifiCluster.Spec.VolumeMounts...)
 	}
 
 	podVolumes := append(volume, []corev1.Volume{
