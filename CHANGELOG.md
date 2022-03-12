@@ -2,6 +2,8 @@
 
 ### Added
 
+- [PR #6](https://github.com/konpyutaika/nifikop/pull/6) - **[Operator/NiFiCluster]** Add ability to attach additional volumes & volumeMounts to NiFi container.
+
 ### Changed
 
 - [PR #5](https://github.com/konpyutaika/nifikop/pull/5) - **[Documentation]** Change minikube by k3d.
