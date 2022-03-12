@@ -13,7 +13,7 @@
         "label": "Platform Setup",
         "items": [
           "2_setup/2_platform_setup/1_gke",
-          "2_setup/2_platform_setup/2_minikube"
+          "2_setup/2_platform_setup/2_k3d"
         ]
       },
       {
