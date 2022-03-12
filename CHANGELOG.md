@@ -6,11 +6,15 @@
 
 ### Changed
 
+- [PR #5](https://github.com/konpyutaika/nifikop/pull/5) - **[Documentation]** Change minikube by k3d.
+
 ### Deprecated
 
 ### Removed
 
 ### Fixed Bugs
+
+## v0.8.0
 
 ## v0.7.6
 
