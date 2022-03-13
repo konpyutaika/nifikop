@@ -164,7 +164,9 @@ func parameterContextIsSync(
 					!((expected.Parameter.Value == nil && param.Parameter.Value == nil) ||
 						((expected.Parameter.Value != nil && param.Parameter.Value != nil) &&
 							(*expected.Parameter.Value == *param.Parameter.Value)))) ||
-					(expected.Parameter.Description != param.Parameter.Description) {
+					!((expected.Parameter.Description == nil && param.Parameter.Description == nil) ||
+						((expected.Parameter.Description != nil && param.Parameter.Description != nil) &&
+							(*expected.Parameter.Description == *param.Parameter.Description))) {
 
 					return false
 				}
@@ -214,7 +216,7 @@ func updateRequestPrepare(
 	}
 
 	// List all parameter to upsert
-	var parameters []nigoapi.ParameterEntity
+	parameters := make([]nigoapi.ParameterEntity, 0)
 	for _, expected := range entity.Component.Parameters {
 		notFound := true
 		for _, param := range tmp {
@@ -224,7 +226,9 @@ func updateRequestPrepare(
 					!((expected.Parameter.Value == nil && param.Parameter.Value == nil) ||
 						((expected.Parameter.Value != nil && param.Parameter.Value != nil) &&
 							(*expected.Parameter.Value == *param.Parameter.Value)))) ||
-					(expected.Parameter.Description != param.Parameter.Description) {
+					!((expected.Parameter.Description == nil && param.Parameter.Description == nil) ||
+						((expected.Parameter.Description != nil && param.Parameter.Description != nil) &&
+							(*expected.Parameter.Description == *param.Parameter.Description))) {
 
 					notFound = false
 					if expected.Parameter.Value == nil && param.Parameter.Value != nil {
@@ -282,7 +286,7 @@ func updateParameterContextEntity(
 			parameters = append(parameters, nigoapi.ParameterEntity{
 				Parameter: &nigoapi.ParameterDto{
 					Name:        k,
-					Description: emptyString,
+					Description: &emptyString,
 					Sensitive:   true,
 					Value:       &value,
 				},
@@ -295,7 +299,7 @@ func updateParameterContextEntity(
 		parameters = append(parameters, nigoapi.ParameterEntity{
 			Parameter: &nigoapi.ParameterDto{
 				Name:        parameter.Name,
-				Description: desc,
+				Description: &desc,
 				Sensitive:   parameter.Sensitive,
 				Value:       parameter.Value,
 			},

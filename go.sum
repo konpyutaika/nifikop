@@ -398,6 +398,14 @@ github.com/jstemmer/go-junit-report v0.9.1/go.mod h1:Brl9GWCQeLvo8nXZwPNNblvFj/X
 github.com/jtolds/gls v4.20.0+incompatible/go.mod h1:QJZ7F/aHp+rZTRtaJ1ow/lLfFfVYBRgL+9YlvaHOwJU=
 github.com/juldrixx/nigoapi v0.0.0-20220308202701-8cb739e95558 h1:NrOpPBOqou7yIVT4fE0+3UdmUZ9RZ9eTM16dsFachJo=
 github.com/juldrixx/nigoapi v0.0.0-20220308202701-8cb739e95558/go.mod h1:SmF2cJyO5mwSsYX3RvYi5TrkYdWl+mRnMLbryj5Ll4Y=
+github.com/juldrixx/nigoapi v0.0.0-20220312181121-65ad648ebc4f h1:i3bfqBcC7vDLN7fqz/iAGi+I+FmW3KTgQJUuF49zM2c=
+github.com/juldrixx/nigoapi v0.0.0-20220312181121-65ad648ebc4f/go.mod h1:SmF2cJyO5mwSsYX3RvYi5TrkYdWl+mRnMLbryj5Ll4Y=
+github.com/juldrixx/nigoapi v0.0.0-20220313105121-529c0676109e h1:hvgO9BPvIQLknZW6zxJl2w/dOKOZLvpV5XlLtRmkH0E=
+github.com/juldrixx/nigoapi v0.0.0-20220313105121-529c0676109e/go.mod h1:SmF2cJyO5mwSsYX3RvYi5TrkYdWl+mRnMLbryj5Ll4Y=
+github.com/juldrixx/nigoapi v0.0.0-20220313111635-607c1844c79f h1:+kkvvXl8Nou2yp7/oTQnraWaQBIC0URMvcTyFlc25Pk=
+github.com/juldrixx/nigoapi v0.0.0-20220313111635-607c1844c79f/go.mod h1:SmF2cJyO5mwSsYX3RvYi5TrkYdWl+mRnMLbryj5Ll4Y=
+github.com/juldrixx/nigoapi v0.0.0-20220313144608-1dd82b38c825 h1:2IZrZHDktUzGq0c4H/PBGG87pwUifGnBO28IunBbtsw=
+github.com/juldrixx/nigoapi v0.0.0-20220313144608-1dd82b38c825/go.mod h1:SmF2cJyO5mwSsYX3RvYi5TrkYdWl+mRnMLbryj5Ll4Y=
 github.com/julienschmidt/httprouter v1.2.0/go.mod h1:SYymIcj16QtmaHHD7aYtjjsJG7VTCxuUUipMqKk8s4w=
 github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0/go.mod h1:1NbS8ALrpOvjt0rHPNLyCIeMtbizbir8U//inJ+zuB8=
 github.com/kisielk/errcheck v1.1.0/go.mod h1:EZBBE59ingxPouuu3KfxchcWSUPOHkagtvWXihfKN4Q=
