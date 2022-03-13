@@ -260,7 +260,7 @@ func map2Parameters(params map[string]string, sensitive bool) []nigoapi.Paramete
 		parameters = append(parameters, nigoapi.ParameterEntity{
 			Parameter: &nigoapi.ParameterDto{
 				Name:        k,
-				Description: emptyString,
+				Description: &emptyString,
 				Sensitive:   sensitive,
 				Value:       &v,
 			},
