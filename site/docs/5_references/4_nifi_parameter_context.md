@@ -109,4 +109,4 @@ spec:
 |Field|Type|Description|Required|Default|
 |-----|----|-----------|--------|--------|
 |name|string| name of the NifiParameterContext. |Yes| - |
-|namespace|string| the NifiParameterContext namespace location. |Yes| - |
+|namespace|string| the NifiParameterContext namespace location. |No| - |

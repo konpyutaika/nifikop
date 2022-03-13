@@ -51,6 +51,20 @@ spec:
               description:
                 description: the Description of the Parameter Context.
                 type: string
+              parameterContextRefs:
+                description: a list of references to NiFiParameterContext
+                items:
+                  description: ParameterContextReference states a reference to a parameter
+                    context for dataflow provisioning
+                  properties:
+                    name:
+                      type: string
+                    namespace:
+                      type: string
+                  required:
+                  - name
+                  type: object
+                type: array
               parameters:
                 description: a list of non-sensitive Parameters.
                 items:
