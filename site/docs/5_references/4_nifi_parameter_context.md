@@ -26,6 +26,25 @@ spec:
     - name: test2
       description: toto
       sensistive: true
+---
+apiVersion: nifi.konpyutaika.com/v1alpha1
+kind: NifiParameterContext
+metadata:
+  name: dataflow-lifecycle-child
+spec:
+  description: "It is a child test"
+  clusterRef:
+    name: nc
+    namespace: nifikop
+  secretRefs:
+    - name: secret-params
+      namespace: nifikop
+  parameterContextRefs:
+    - name: dataflow-lifecycle
+  parameters:
+    - name: test
+      value: toto-child
+      description: tutu (child)
 ```
 
 ## NifiParameterContext
@@ -44,6 +63,7 @@ spec:
 |parameters|\[ \][Parameter](#parameter)| a list of non-sensitive Parameters. |Yes| - |
 |secretRefs|\[ \][SecretReference](#secretreference)| a list of secret containing sensitive parameters (the key will name of the parameter) |No| - |
 |clusterRef|[ClusterReference](./2_nifi_user.md#clusterreference)| contains the reference to the NifiCluster with the one the user is linked. |Yes| - |
+|parameterContextRefs|[ParameterContextReference](#parametercontextreference)| contains the reference to the NiFiParameterContexts it should inherit from. |No| - |
 
 ## NifiParameterContextStatus
 
@@ -67,8 +87,8 @@ spec:
 
 |Field|Type|Description|Required|Default|
 |-----|----|-----------|--------|--------|
-|name|string|  name of the secret. |Yes| - |
-|namespace|string|  the secret namespace location. |Yes| - |
+|name|string| name of the secret. |Yes| - |
+|namespace|string| the secret namespace location. |Yes| - |
 
 
 ## ParameterContextUpdateRequest
@@ -83,3 +103,10 @@ spec:
 |failureReason|string| an explication of why the request failed, or null if this request has not failed. |Yes| - |
 |percentCompleted|int32| the percentage complete of the request, between 0 and 100. |Yes| - |
 |state|string| the state of the request. |Yes| - |
+
+## ParameterContextReference
+
+|Field|Type|Description|Required|Default|
+|-----|----|-----------|--------|--------|
+|name|string| name of the NifiParameterContext. |Yes| - |
+|namespace|string| the NifiParameterContext namespace location. |Yes| - |
