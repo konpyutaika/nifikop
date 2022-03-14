@@ -92,6 +92,7 @@ type NifiClusterSpec struct {
 	ExternalServices []ExternalServiceConfig `json:"externalServices,omitempty"`
 	// TopologySpreadConstraints specifies any TopologySpreadConstraint objects to be applied to all nodes
 	TopologySpreadConstraints []corev1.TopologySpreadConstraint `json:"topologySpreadConstraints,omitempty"`
+<<<<<<< HEAD
 	// NifiControllerTemplate specifies the template to be used when naming the node controller (e.g. %s-mysuffix)
 	// Warning: once defined don't change this value either the operator will no longer be able to manage the cluster
 	NifiControllerTemplate *string `json:"nifiControllerTemplate,omitempty"`
@@ -100,6 +101,8 @@ type NifiClusterSpec struct {
 	ControllerUserIdentity *string `json:"controllerUserIdentity,omitempty"`
 
 	// @TODO: Block Controller change
+=======
+>>>>>>> 3953288d (Merge pull request #26 from influxdata/genehynson/pod-topology-constraints)
 }
 
 // DisruptionBudget defines the configuration for PodDisruptionBudget
