@@ -167,7 +167,10 @@ spec:
 |sidecarConfigs|\[ \][Container](https://godoc.org/k8s.io/api/core/v1#Container)|Defines additional sidecar configurations. [Check documentation for more informations]|
 |externalServices|\[ \][ExternalServiceConfigs](./7_external_service_config.md)| specifies settings required to access nifi externally.|No| - |
 |topologySpreadConstraints|\[ \][TopologySpreadConstraint](https://godoc.org/k8s.io/api/core/v1#TopologySpreadConstraint)| specifies any TopologySpreadConstraint objects to be applied to all nodes.|No| nil |
+<<<<<<< HEAD
 >>>>>>> 837c46cdf63912b2bd19b25066db9a41b05030e4
+=======
+>>>>>>> 3953288d (Merge pull request #26 from influxdata/genehynson/pod-topology-constraints)
 
 ## NifiClusterStatus
 
