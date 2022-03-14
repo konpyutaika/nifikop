@@ -103,6 +103,8 @@ type NifiClusterSpec struct {
 	SidecarConfigs []corev1.Container `json:"sidecarConfigs,omitempty" patchStrategy:"merge" patchMergeKey:"name" protobuf:"bytes,2,rep,name=containers"`
 	// ExternalService specifies settings required to access nifi externally
 	ExternalServices []ExternalServiceConfig `json:"externalServices,omitempty"`
+	// TopologySpreadConstraints specifies any TopologySpreadConstraint objects to be applied to all nodes
+	TopologySpreadConstraints []corev1.TopologySpreadConstraint `json:"topologySpreadConstraints,omitempty"`
 }
 
 // DisruptionBudget defines the configuration for PodDisruptionBudget

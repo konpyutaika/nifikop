@@ -162,6 +162,7 @@ done`,
 			Affinity: &corev1.Affinity{
 				PodAntiAffinity: generatePodAntiAffinity(r.NifiCluster.Name, r.NifiCluster.Spec.OneNifiNodePerNode),
 			},
+			TopologySpreadConstraints:     r.NifiCluster.Spec.TopologySpreadConstraints,
 			Containers:                    r.injectAdditionalEnvVars(r.generateContainers(nodeConfig, id, podVolumeMounts, zkAddress)),
 			Volumes:                       podVolumes,
 			RestartPolicy:                 corev1.RestartPolicyNever,
