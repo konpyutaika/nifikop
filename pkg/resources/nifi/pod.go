@@ -2,10 +2,11 @@ package nifi
 
 import (
 	"fmt"
-	configcommon "github.com/konpyutaika/nifikop/pkg/nificlient/config/common"
-	runtimeClient "sigs.k8s.io/controller-runtime/pkg/client"
 	"sort"
 	"strings"
+
+	configcommon "github.com/konpyutaika/nifikop/pkg/nificlient/config/common"
+	runtimeClient "sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/go-logr/logr"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
@@ -156,6 +157,7 @@ done`,
 			Affinity: &corev1.Affinity{
 				PodAntiAffinity: generatePodAntiAffinity(r.NifiCluster.Name, r.NifiCluster.Spec.OneNifiNodePerNode),
 			},
+			TopologySpreadConstraints:     r.NifiCluster.Spec.TopologySpreadConstraints,
 			Containers:                    r.injectAdditionalEnvVars(r.generateContainers(nodeConfig, id, podVolumeMounts, zkAddress)),
 			Volumes:                       podVolumes,
 			RestartPolicy:                 corev1.RestartPolicyNever,
