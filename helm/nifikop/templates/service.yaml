@@ -3,6 +3,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: {{ template "nifikop.name" . }}-metrics
+  namespace: {{ $.Release.Namespace }}
   labels:
     component: app
     app: {{ template "nifikop.name" . }}-metrics
