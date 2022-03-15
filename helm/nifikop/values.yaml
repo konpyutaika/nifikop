@@ -41,8 +41,7 @@ metrics:
   enabled: false
   port: 8081
 
-debug:
-  enabled: false
+logLevel: Info
 
 certManager:
   enabled: true

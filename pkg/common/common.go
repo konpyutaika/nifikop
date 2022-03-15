@@ -1,10 +1,11 @@
 package common
 
 import (
+	"github.com/go-logr/logr"
 	"github.com/konpyutaika/nifikop/pkg/nificlient"
 	"github.com/konpyutaika/nifikop/pkg/util"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
-	"github.com/go-logr/logr"
+	"go.uber.org/zap/zapcore"
 )
 
 //// NewFromCluster is a convenient wrapper around New() and ClusterConfig()
@@ -82,5 +83,26 @@ func NewRequeueConfig() *RequeueConfig {
 		UserGroupRequeueInterval:        util.MustConvertToInt(util.GetEnvWithDefault("USER_GROUP_REQUEUE_INTERVAL", "15"), "USER_GROUP_REQUEUE_INTERVAL"),
 		DataFlowRequeueInterval:         util.MustConvertToInt(util.GetEnvWithDefault("DATAFLOW_REQUEUE_INTERVAL", "15"), "DATAFLOW_REQUEUE_INTERVAL"),
 		RequeueOffset:                   util.MustConvertToInt(util.GetEnvWithDefault("REQUEUE_OFFSET", "0"), "REQUEUE_OFFSET"),
+	}
+}
+
+func NewLogLevel(lvl string) (zapcore.LevelEnabler, bool) {
+	switch lvl {
+	case "Debug":
+		return zapcore.DebugLevel, true
+	case "Info":
+		return zapcore.InfoLevel, false
+	case "Warn":
+		return zapcore.WarnLevel, false
+	case "Error":
+		return zapcore.ErrorLevel, false
+	case "DPanic":
+		return zapcore.DPanicLevel, false
+	case "Panic":
+		return zapcore.PanicLevel, false
+	case "Fatal":
+		return zapcore.FatalLevel, false
+	default:
+		return zapcore.DebugLevel, true
 	}
 }
