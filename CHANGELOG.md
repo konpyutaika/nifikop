@@ -2,6 +2,7 @@
 
 ### Added
 
+- [PR #17](https://github.com/konpyutaika/nifikop/pull/17) - **[Operator/NiFiCluster]** Add ability to set max event driven thread count to NiFi Cluster.
 - [PR #6](https://github.com/konpyutaika/nifikop/pull/6) - **[Operator/NiFiCluster]** Add ability to attach additional volumes & volumeMounts to NiFi container.
 
 ### Changed
