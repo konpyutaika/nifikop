@@ -145,6 +145,8 @@ type Node struct {
 type ReadOnlyConfig struct {
 	// MaximumTimerDrivenThreadCount define the maximum number of threads for timer driven processors available to the system.
 	MaximumTimerDrivenThreadCount *int32 `json:"maximumTimerDrivenThreadCount,omitempty"`
+	// MaximumEventDrivenThreadCount define the maximum number of threads for event driven processors available to the system.
+	MaximumEventDrivenThreadCount *int32 `json:"maximumEventDrivenThreadCount,omitempty"`
 	// AdditionalSharedEnvs define a set of additional env variables that will shared between all init containers and
 	// containers in the pod.
 	AdditionalSharedEnvs []corev1.EnvVar `json:"additionalSharedEnvs,omitempty"`
@@ -548,6 +550,13 @@ func (nReadOnlyConfig *ReadOnlyConfig) GetMaximumTimerDrivenThreadCount() int32 
 		return 10
 	}
 	return *nReadOnlyConfig.MaximumTimerDrivenThreadCount
+}
+
+func (nReadOnlyConfig *ReadOnlyConfig) GetMaximumEventDrivenThreadCount() int32 {
+	if nReadOnlyConfig.MaximumEventDrivenThreadCount == nil {
+		return 1
+	}
+	return *nReadOnlyConfig.MaximumEventDrivenThreadCount
 }
 
 func (nTaskSpec *NifiClusterTaskSpec) GetDurationMinutes() float64 {
