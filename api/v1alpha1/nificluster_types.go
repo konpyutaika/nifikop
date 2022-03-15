@@ -87,6 +87,10 @@ type NifiClusterSpec struct {
 	SidecarConfigs []corev1.Container `json:"sidecarConfigs,omitempty" patchStrategy:"merge" patchMergeKey:"name" protobuf:"bytes,2,rep,name=containers"`
 	// ExternalService specifies settings required to access nifi externally
 	ExternalServices []ExternalServiceConfig `json:"externalServices,omitempty"`
+	// NodeUserIdentityTemplate specifies the template to be used when naming the node user identity (e.g. node-%d-mysuffix)
+	NodeUserIdentityTemplate *string `json:"nodeUserIdentityTemplate,omitempty"`
+	// NodeControllerTemplate specifies the template to be used when naming the node controller (e.g. %s-mysuffix)
+	NodeControllerTemplate *string `json:"nodeControllerTemplate,omitempty"`
 }
 
 // DisruptionBudget defines the configuration for PodDisruptionBudget
@@ -101,8 +105,10 @@ type DisruptionBudget struct {
 
 type ServicePolicy struct {
 	// HeadlessEnabled specifies if the cluster should use headlessService for Nifi or individual services
-	// using service per nodes may come an handy case of service mesh.
+	// using service per nodes may come a handy case of service mesh.
 	HeadlessEnabled bool `json:"headlessEnabled"`
+	// ServiceTemplate specifies the template to be used when naming the service (e.g. %s-mysuffix)
+	ServiceTemplate string `json:"serviceTemplate,omitempty"`
 	// Annotations specifies the annotations to attach to services the operator creates
 	Annotations map[string]string `json:"annotations,omitempty"`
 }
@@ -668,6 +674,20 @@ func (nSpec *NifiClusterSpec) GetMetricPort() *int {
 	}
 
 	return nil
+}
+
+func (nSpec *NifiClusterSpec) GetNodeControllerTemplate() string {
+	if nSpec.NodeControllerTemplate != nil {
+		return *nSpec.NodeControllerTemplate
+	}
+	return "%s-controller"
+}
+
+func (service *ServicePolicy) GetHeadlessServiceTemplate() string {
+	if service.HeadlessServiceTemplate != "" {
+		return service.HeadlessServiceTemplate
+	}
+	return "%s-headless"
 }
 
 func (cluster *NifiCluster) RootProcessGroupId() string {
