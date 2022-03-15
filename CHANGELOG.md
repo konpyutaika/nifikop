@@ -2,6 +2,8 @@
 
 ### Added
 
+- [PR #210](https://github.com/Orange-OpenSource/nifikop/pull/210) -- **[Operator/NiFiCluster]** Support `topologySpreadConstraint`
+
 ### Changed
 
 ### Deprecated
