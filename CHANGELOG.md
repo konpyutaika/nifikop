@@ -3,6 +3,7 @@
 ### Added
 
 - [PR #21](https://github.com/konpyutaika/nifikop/pull/21) - **[Operator]** Propagate user provided issuerRef Group for custom CertManager Issuer.
+- [PR #20](https://github.com/konpyutaika/nifikop/pull/20) - **[Operator]** Configurable log levels
 - [PR #19](https://github.com/konpyutaika/nifikop/pull/19) - **[Helm chart]** Support --namespace helm arg
 - [PR #18](https://github.com/konpyutaika/nifikop/pull/18) - **[Operator/NiFiCluster]** Support `topologySpreadConstraint`
 - [PR #17](https://github.com/konpyutaika/nifikop/pull/17) - **[Operator/NiFiCluster]** Add ability to set max event driven thread count to NiFi Cluster.
