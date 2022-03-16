@@ -3,12 +3,14 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
+	"strings"
+
 	certv1 "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha2"
 	"github.com/konpyutaika/nifikop/pkg/common"
+	"github.com/konpyutaika/nifikop/pkg/util"
 	"github.com/konpyutaika/nifikop/version"
-	"os"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
-	"strings"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
@@ -56,8 +58,10 @@ func main() {
 			"Enabling this will ensure there is only one active controller manager.")
 	flag.BoolVar(&certManagerEnabled, "cert-manager-enabled", false, "Enable cert-manager integration")
 
+	logLvl, isDevelopment := common.NewLogLevel(util.GetEnvWithDefault("LOG_LEVEL", "Debug"))
 	opts := zap.Options{
-		Development: true,
+		Development: isDevelopment,
+		Level:       logLvl,
 	}
 	opts.BindFlags(flag.CommandLine)
 	flag.Parse()

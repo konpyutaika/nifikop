@@ -104,10 +104,8 @@ spec:
             - name: VAULT_CACERT
               value: /etc/vault/certs/ca.crt
             {{- end }}
-            {{- if .Values.debug.enabled }}
             - name: LOG_LEVEL
-              value: Debug
-            {{- end }}
+              value: {{ default "Info" .Values.logLevel }}
           livenessProbe:
             httpGet:
               path: /healthz
