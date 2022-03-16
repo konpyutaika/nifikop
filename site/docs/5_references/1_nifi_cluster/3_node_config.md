@@ -17,6 +17,12 @@ NodeConfig defines the node configuration
       # Set this to true if the instance is a node in a cluster.
       # https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#basic-cluster-setup
       isNode: true
+      # Additionnal metadata to merge to the pod associated
+      podMetadata:
+        annotations:
+          node-annotation: "node-annotation-value"
+        labels:
+          node-label: "node-label-value"
       # Docker image used by the operator to create the node associated
       # https://hub.docker.com/r/apache/nifi/
 #      image: "apache/nifi:1.11.2"

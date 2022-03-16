@@ -71,13 +71,13 @@ spec:
                         annotations:
                           additionalProperties:
                             type: string
-                          description: Additionnal annotation to attach to the ressource
+                          description: Additionnal annotation to merge to the resource
                             associated https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#syntax-and-character-set
                           type: object
                         labels:
                           additionalProperties:
                             type: string
-                          description: Additionnal labels to attach to the ressource
+                          description: Additionnal labels to merge to the resource
                             associated https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#syntax-and-character-set
                           type: object
                       type: object
@@ -3229,13 +3229,13 @@ spec:
                         annotations:
                           additionalProperties:
                             type: string
-                          description: Additionnal annotation to attach to the ressource
+                          description: Additionnal annotation to merge to the resource
                             associated https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#syntax-and-character-set
                           type: object
                         labels:
                           additionalProperties:
                             type: string
-                          description: Additionnal labels to attach to the ressource
+                          description: Additionnal labels to merge to the resource
                             associated https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#syntax-and-character-set
                           type: object
                       type: object
@@ -5371,13 +5371,13 @@ spec:
                             annotations:
                               additionalProperties:
                                 type: string
-                              description: Additionnal annotation to attach to the
-                                ressource associated https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#syntax-and-character-set
+                              description: Additionnal annotation to merge to the
+                                resource associated https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#syntax-and-character-set
                               type: object
                             labels:
                               additionalProperties:
                                 type: string
-                              description: Additionnal labels to attach to the ressource
+                              description: Additionnal labels to merge to the resource
                                 associated https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#syntax-and-character-set
                               type: object
                           type: object

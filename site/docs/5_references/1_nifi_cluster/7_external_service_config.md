@@ -14,8 +14,11 @@ ListenersConfig defines the Nifi listener types :
         portConfigs:
           - port: 8080
             internalListenerName: "http"
-      serviceAnnotations:
-        toto: tata
+      metadata:
+        annotations:
+          toto: tata
+        labels:
+          titi: tutu
 ```
 
 ## ExternalServiceConfig
