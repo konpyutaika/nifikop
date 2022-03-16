@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/go-logr/logr"
+	"github.com/imdario/mergo"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/resources/templates"
 	"github.com/konpyutaika/nifikop/pkg/util"
 	nifiutil "github.com/konpyutaika/nifikop/pkg/util/nifi"
-	"github.com/go-logr/logr"
-	"github.com/imdario/mergo"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	runtimeClient "sigs.k8s.io/controller-runtime/pkg/client"
@@ -20,12 +20,14 @@ func (r *Reconciler) service(id int32, log logr.Logger) runtimeClient.Object {
 	usedPorts := generateServicePortForInternalListeners(r.NifiCluster.Spec.ListenersConfig.InternalListeners)
 
 	return &corev1.Service{
-		ObjectMeta: templates.ObjectMeta(nifiutil.ComputeNodeName(id, r.NifiCluster.Name),
+		ObjectMeta: templates.ObjectMetaWithAnnotations(nifiutil.ComputeNodeName(id, r.NifiCluster.Name),
 			//fmt.Sprintf("%s-%d", r.NifiCluster.Name, id),
 			util.MergeLabels(
+				r.NifiCluster.Spec.Service.Labels,
 				nifiutil.LabelsForNifi(r.NifiCluster.Name),
 				map[string]string{"nodeId": fmt.Sprintf("%d", id)},
 			),
+			r.NifiCluster.Spec.Service.Annotations,
 			r.NifiCluster),
 		Spec: corev1.ServiceSpec{
 			Type:            corev1.ServiceTypeClusterIP,
@@ -41,15 +43,22 @@ func (r *Reconciler) externalServices(log logr.Logger) []runtimeClient.Object {
 	var services []runtimeClient.Object
 	for _, eService := range r.NifiCluster.Spec.ExternalServices {
 
-		annotations := &eService.ServiceAnnotations
+		annotations := &eService.Metadata.Annotations
 		if err := mergo.Merge(annotations, r.NifiCluster.Spec.Service.Annotations); err != nil {
 			log.Error(err, "error occurred during merging service annotations")
 		}
 
 		usedPorts := r.generateServicePortForExternalListeners(eService)
 		services = append(services, &corev1.Service{
-			ObjectMeta: templates.ObjectMetaWithAnnotations(eService.Name, nifiutil.LabelsForNifi(r.NifiCluster.Name),
-				*annotations, r.NifiCluster),
+			ObjectMeta: templates.ObjectMetaWithAnnotations(
+				eService.Name,
+				util.MergeLabels(
+					r.NifiCluster.Spec.Service.Labels,
+					eService.Metadata.Labels,
+					nifiutil.LabelsForNifi(r.NifiCluster.Name),
+				),
+				*annotations,
+				r.NifiCluster),
 			Spec: corev1.ServiceSpec{
 				Type:                     eService.Spec.Type,
 				SessionAffinity:          corev1.ServiceAffinityClientIP,

@@ -129,12 +129,14 @@ spec:
 | --------------- | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------- |
 | headlessEnabled | boolean             | specifies if the cluster should use headlessService for Nifi or individual services using service per nodes may come an handy case of service mesh. | Yes      | false   |
 | annotations     | map\[string\]string | Annotations specifies the annotations to attach to services the NiFiKop operator creates                                                            | No       | -       |
+| labels          | map\[string\]string | Labels specifies the labels to attach to services the NiFiKop operator creates                                                            | No       | -       |
 
 ## PodPolicy
 
 | Field       | Type                | Description                                                                          | Required | Default |
 | ----------- | ------------------- | ------------------------------------------------------------------------------------ | -------- | ------- |
 | annotations | map\[string\]string | Annotations specifies the annotations to attach to pods the NiFiKop operator creates | No       | -       |
+| labels      | map\[string\]string | Labels specifies the Labels to attach to pods the NiFiKop operator creates           | No       | -       |
 
 ## ManagedUsers
 

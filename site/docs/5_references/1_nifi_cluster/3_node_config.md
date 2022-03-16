@@ -75,7 +75,7 @@ NodeConfig defines the node configuration
 | imagePullSecrets      | \[  \][LocalObjectReference](https://godoc.org/k8s.io/api/core/v1#TypedLocalObjectReference) |specifies the secret to use when using private registry.|No|nil|
 | nodeSelector          | map\[string\]string                                                                          |nodeSelector can be specified, which set the pod to fit on a node [nodeselector](https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#nodeselector)|No|nil|
 | tolerations           | \[  \][Toleration](https://godoc.org/k8s.io/api/core/v1#Toleration)                          |tolerations can be specified, which set the pod's tolerations [taint-and-toleration](https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/#concepts).|No|nil|
-| nodeAnnotations       | map\[string\]string                                                                          |Additionnal annotation to attach to the pod associated [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#syntax-and-character-set).|No|nil|
+| podMetadata           | [Metadata](#metadata)                                                                        |define additionnal metadata to merge to the pod associated.|No|nil|
 
 ## StorageConfig
 
@@ -91,3 +91,8 @@ NodeConfig defines the node configuration
 |-------------------------------------------------------------------|----|-------------|--------|--------|
 || [VolueMount](https://pkg.go.dev/k8s.io/api/core/v1#VolumeMount)   |describes a mounting of a Volume within a container.| Yes         | - |
 || [VolumeSource](https://pkg.go.dev/k8s.io/api/core/v1#VolumeSource) | VolumeSource represents the location and type of the mounted volume. | Yes         | - |
+
+## Metadata
+
+| annotations | map\[string\]string | Additionnal annotation to merge to the pod associated [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#syntax-and-character-set). |No|nil|
+| nodeLabels  | map\[string\]string | Additionnal labels to merge to the pod associated [labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#syntax-and-character-set).               |No|nil|

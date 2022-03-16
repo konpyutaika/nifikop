@@ -23,7 +23,7 @@ ListenersConfig defines the Nifi listener types :
 |Field|Type|Description|Required|Default|
 |-----|----|-----------|--------|--------|
 |name|string| must be unique within a namespace. Name is primarily intended for creation idempotence and configuration.| Yes | - |
-|serviceAnnotations|map\[string\]string| Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadat| No | - |
+|metadata|[Metadata](#metadata)|define additionnal metadata to merge to the service associated.| No | - |
 |spec|[ExternalServiceSpec](#externalservicespec)| defines the behavior of a service.| Yes |  |
 
 ## ExternalServiceSpec
@@ -45,3 +45,7 @@ Field|Type|Description|Required|Default|
 |port|int32| The port that will be exposed by this service. | Yes | - |
 |internalListenerName| string| The name of the listener which will be used as target container. | Yes | - |
 
+## Metadata
+
+| annotations | map\[string\]string | Additionnal annotation to merge to the service associated [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#syntax-and-character-set). |No|nil|
+| nodeLabels  | map\[string\]string | Additionnal labels to merge to the service associated [labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#syntax-and-character-set).               |No|nil|
