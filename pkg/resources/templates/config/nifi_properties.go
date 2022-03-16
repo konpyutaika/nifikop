@@ -3,9 +3,9 @@ package config
 import (
 	"fmt"
 
+	"github.com/go-logr/logr"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/util/nifi"
-	"github.com/go-logr/logr"
 )
 
 var NifiPropertiesTemplate = `# Licensed to the Apache Software Foundation (ASF) under one or more
@@ -249,15 +249,15 @@ func GenerateListenerSpecificConfig(
 	nodeId int32,
 	namespace,
 	crName string,
-	headlessServiceEnabled bool,
 	clusterDomain string,
 	useExternalDNS bool,
+	serviceTemplate string,
 	log logr.Logger) string {
 
 	var nifiConfig string
 
 	hostListener := nifi.ComputeHostListenerNodeHostname(nodeId, crName, namespace,
-		headlessServiceEnabled, clusterDomain, useExternalDNS)
+		clusterDomain, useExternalDNS, serviceTemplate)
 
 	clusterPortConfig := "nifi.cluster.node.protocol.port=\n"
 	httpPortConfig := "nifi.web.http.port=\n"

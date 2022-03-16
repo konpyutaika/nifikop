@@ -93,43 +93,50 @@ func GetInternalDNSNames(cluster *v1alpha1.NifiCluster, nodeId int32) (dnsNames 
 
 func GetNodeUserName(cluster *v1alpha1.NifiCluster, nodeId int32) string {
 	return nifi.ComputeRequestNiFiNodeHostname(nodeId, cluster.Name, cluster.Namespace,
-		cluster.Spec.Service.HeadlessEnabled, cluster.Spec.ListenersConfig.GetClusterDomain(), cluster.Spec.ListenersConfig.UseExternalDNS)
+		cluster.Spec.Service.HeadlessEnabled, cluster.Spec.ListenersConfig.GetClusterDomain(),
+		cluster.Spec.ListenersConfig.UseExternalDNS, cluster.Spec.Service.GetServiceTemplate())
 }
 
-// clusterDNSNames returns all the possible DNS Names for a NiFi Cluster
+// ClusterDNSNames returns all the possible DNS Names for a NiFi Cluster
 func ClusterDNSNames(cluster *v1alpha1.NifiCluster, nodeId int32) (names []string) {
 	names = make([]string, 0)
 
 	// FQDN
 	names = append(names,
-		nifi.ComputeRequestNiFiAllNodeHostname(cluster.Name, cluster.Namespace, cluster.Spec.Service.HeadlessEnabled,
-			cluster.Spec.ListenersConfig.GetClusterDomain(), cluster.Spec.ListenersConfig.UseExternalDNS))
+		nifi.ComputeRequestNiFiAllNodeHostname(cluster.Name, cluster.Namespace,
+			cluster.Spec.ListenersConfig.GetClusterDomain(), cluster.Spec.ListenersConfig.UseExternalDNS,
+			cluster.Spec.Service.GetServiceTemplate()))
+
 	names = append(names,
-		nifi.ComputeRequestNiFiNodeHostname(nodeId, cluster.Name, cluster.Namespace, cluster.Spec.Service.HeadlessEnabled,
-			cluster.Spec.ListenersConfig.GetClusterDomain(), cluster.Spec.ListenersConfig.UseExternalDNS))
+		nifi.ComputeRequestNiFiNodeHostname(nodeId, cluster.Name, cluster.Namespace,
+			cluster.Spec.Service.HeadlessEnabled, cluster.Spec.ListenersConfig.GetClusterDomain(),
+			cluster.Spec.ListenersConfig.UseExternalDNS, cluster.Spec.Service.GetServiceTemplate()))
 
 	if !cluster.Spec.ListenersConfig.UseExternalDNS {
 		// SVC notation
 		names = append(names,
 			nifi.ComputeRequestNiFiAllNodeNamespaceFull(cluster.Name, cluster.Namespace,
-				cluster.Spec.Service.HeadlessEnabled, cluster.Spec.ListenersConfig.UseExternalDNS))
+				cluster.Spec.ListenersConfig.UseExternalDNS, cluster.Spec.Service.GetServiceTemplate()))
 		names = append(names,
 			nifi.ComputeRequestNiFiNodeNamespaceFull(nodeId, cluster.Name, cluster.Namespace,
-				cluster.Spec.Service.HeadlessEnabled, cluster.Spec.ListenersConfig.UseExternalDNS))
+				cluster.Spec.Service.HeadlessEnabled, cluster.Spec.ListenersConfig.UseExternalDNS,
+				cluster.Spec.Service.GetServiceTemplate()))
 
 		// Namespace notation
 		names = append(names,
 			nifi.ComputeRequestNiFiAllNodeNamespace(cluster.Name, cluster.Namespace,
-				cluster.Spec.Service.HeadlessEnabled, cluster.Spec.ListenersConfig.UseExternalDNS))
+				cluster.Spec.ListenersConfig.UseExternalDNS, cluster.Spec.Service.GetServiceTemplate()))
 		names = append(names,
 			nifi.ComputeRequestNiFiNodeNamespace(nodeId, cluster.Name, cluster.Namespace,
-				cluster.Spec.Service.HeadlessEnabled, cluster.Spec.ListenersConfig.UseExternalDNS))
+				cluster.Spec.Service.HeadlessEnabled, cluster.Spec.ListenersConfig.UseExternalDNS,
+				cluster.Spec.Service.GetServiceTemplate()))
 
 		// Service name only
 		names = append(names,
-			nifi.ComputeRequestNiFiAllNodeService(cluster.Name, cluster.Spec.Service.HeadlessEnabled))
+			nifi.ComputeRequestNiFiAllNodeService(cluster.Name, cluster.Spec.Service.GetServiceTemplate()))
 		names = append(names,
-			nifi.ComputeRequestNiFiNodeService(nodeId, cluster.Name, cluster.Spec.Service.HeadlessEnabled))
+			nifi.ComputeRequestNiFiNodeService(nodeId, cluster.Name, cluster.Spec.Service.HeadlessEnabled,
+				cluster.Spec.Service.GetServiceTemplate()))
 
 		// Pod name only
 		if cluster.Spec.Service.HeadlessEnabled {
@@ -137,8 +144,8 @@ func ClusterDNSNames(cluster *v1alpha1.NifiCluster, nodeId int32) (names []strin
 				nifi.ComputeNodeName(nodeId, cluster.Name))
 		} else {
 			names = append(names, nifi.ComputeHostListenerNodeHostname(
-				nodeId, cluster.Name, cluster.Namespace, cluster.Spec.Service.HeadlessEnabled,
-				cluster.Spec.ListenersConfig.GetClusterDomain(), cluster.Spec.ListenersConfig.UseExternalDNS))
+				nodeId, cluster.Name, cluster.Namespace, cluster.Spec.ListenersConfig.GetClusterDomain(),
+				cluster.Spec.ListenersConfig.UseExternalDNS, cluster.Spec.Service.GetServiceTemplate()))
 		}
 	}
 	return

@@ -172,7 +172,8 @@ done`,
 
 	//if r.NifiCluster.Spec.Service.HeadlessEnabled {
 	pod.Spec.Hostname = nifiutil.ComputeNodeName(id, r.NifiCluster.Name)
-	pod.Spec.Subdomain = nifiutil.ComputeRequestNiFiAllNodeService(r.NifiCluster.Name, r.NifiCluster.Spec.Service.HeadlessEnabled)
+	pod.Spec.Subdomain = nifiutil.ComputeRequestNiFiAllNodeService(r.NifiCluster.Name,
+		r.NifiCluster.Spec.Service.GetServiceTemplate())
 	//}
 
 	if nodeConfig.NodeAffinity != nil {
@@ -419,9 +420,9 @@ rm -f $NIFI_BASE_DIR/cluster.state `,
 		failCondition)
 
 	nodeAddress := nifiutil.ComputeHostListenerNodeAddress(
-		id, r.NifiCluster.Name, r.NifiCluster.Namespace, r.NifiCluster.Spec.Service.HeadlessEnabled,
-		r.NifiCluster.Spec.ListenersConfig.GetClusterDomain(), r.NifiCluster.Spec.ListenersConfig.UseExternalDNS,
-		r.NifiCluster.Spec.ListenersConfig.InternalListeners)
+		id, r.NifiCluster.Name, r.NifiCluster.Namespace, r.NifiCluster.Spec.ListenersConfig.GetClusterDomain(),
+		r.NifiCluster.Spec.ListenersConfig.UseExternalDNS, r.NifiCluster.Spec.ListenersConfig.InternalListeners,
+		r.NifiCluster.Spec.Service.GetServiceTemplate())
 
 	resolveIp := ""
 

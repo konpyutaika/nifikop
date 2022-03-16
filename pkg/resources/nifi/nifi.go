@@ -683,10 +683,14 @@ func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) (
 }
 
 func (r *Reconciler) reconcileNifiUsersAndGroups(log logr.Logger) error {
-	controllerName := types.NamespacedName{Name: fmt.Sprintf(pkicommon.NodeControllerFQDNTemplate,
-		r.NifiCluster.GetNodeControllerName(),
-		r.NifiCluster.Namespace,
-		r.NifiCluster.Spec.ListenersConfig.GetClusterDomain()), Namespace: r.NifiCluster.Namespace}
+	controllerName := types.NamespacedName{
+		Name: fmt.Sprintf(
+			pkicommon.NodeControllerFQDNTemplate,
+			r.NifiCluster.GetNodeControllerName(),
+			r.NifiCluster.Namespace,
+			r.NifiCluster.Spec.ListenersConfig.GetClusterDomain(),
+		),
+		Namespace: r.NifiCluster.Namespace}
 
 	managedUsers := append(r.NifiCluster.Spec.ManagedAdminUsers, r.NifiCluster.Spec.ManagedReaderUsers...)
 	var users []*v1alpha1.NifiUser
