@@ -5,9 +5,6 @@ metadata:
 spec:
   service:
     headlessEnabled: true
-  pod:
-    labels:
-      pod-label: "pod-label-value"
   zkAddress: "zookeeper.zookeeeper:2181"
   zkPath: "/simplenifi"
   clusterImage: "apache/nifi:1.15.3"
@@ -15,11 +12,6 @@ spec:
   nodeConfigGroups:
     default_group:
       isNode: true
-      podMetadata:
-        annotations:
-          node-annotation: "node-annotation-value"
-        labels:
-          node-label: "node-label-value"
       storageConfigs:
         - mountPath: "/opt/nifi/nifi-current/logs"
           name: logs
@@ -67,8 +59,9 @@ spec:
         portConfigs:
           - port: 8080
             internalListenerName: "http"
-      serviceAnnotations:
-        toto: tata
+      metadata:
+        annotations:
+          toto: tata
     - name: "loadbalancer"
       spec:
         type: LoadBalancer
