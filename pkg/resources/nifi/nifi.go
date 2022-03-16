@@ -3,13 +3,14 @@ package nifi
 import (
 	"context"
 	"fmt"
+	"reflect"
+	"strings"
+
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/dataflow"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/scale"
 	"github.com/konpyutaika/nifikop/pkg/nificlient/config"
 	"github.com/konpyutaika/nifikop/pkg/pki"
 	nifiutil "github.com/konpyutaika/nifikop/pkg/util/nifi"
-	"reflect"
-	"strings"
 
 	"emperror.dev/errors"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
@@ -240,8 +241,9 @@ func (r *Reconciler) Reconcile(log logr.Logger) error {
 		}
 	}
 
-	if r.NifiCluster.Spec.ReadOnlyConfig.MaximumTimerDrivenThreadCount != nil {
-		if err := r.reconcileMaximumTimerDrivenThreadCount(log); err != nil {
+	if r.NifiCluster.Spec.ReadOnlyConfig.MaximumTimerDrivenThreadCount != nil ||
+		r.NifiCluster.Spec.ReadOnlyConfig.MaximumEventDrivenThreadCount != nil {
+		if err := r.reconcileMaximumThreadCounts(log); err != nil {
 			return errors.WrapIf(err, "failed to reconcile ressource")
 		}
 	}
@@ -899,7 +901,7 @@ func (r *Reconciler) reconcilePrometheusReportingTask(log logr.Logger) error {
 	return nil
 }
 
-func (r *Reconciler) reconcileMaximumTimerDrivenThreadCount(log logr.Logger) error {
+func (r *Reconciler) reconcileMaximumThreadCounts(log logr.Logger) error {
 	configManager := config.GetClientConfigManager(r.Client, v1alpha1.ClusterReference{
 		Namespace: r.NifiCluster.Namespace,
 		Name:      r.NifiCluster.Name,
@@ -909,10 +911,10 @@ func (r *Reconciler) reconcileMaximumTimerDrivenThreadCount(log logr.Logger) err
 		return err
 	}
 
-	// Sync Maximum Timer Driven Thread Count with NiFi side component
+	// Sync Maximum Timer Driven Thread Count and Maximum Event Driven Thread Count with NiFi side component
 	err = controllersettings.SyncConfiguration(clientConfig, r.NifiCluster)
 	if err != nil {
-		return errors.WrapIfWithDetails(err, "failed to sync MaximumTimerDrivenThreadCount")
+		return errors.WrapIfWithDetails(err, "failed to sync MaximumThreadCount configuration")
 	}
 
 	return nil

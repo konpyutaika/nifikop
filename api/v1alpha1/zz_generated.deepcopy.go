@@ -459,6 +459,13 @@ func (in *NifiClusterSpec) DeepCopyInto(out *NifiClusterSpec) {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
+	if in.TopologySpreadConstraints != nil {
+		in, out := &in.TopologySpreadConstraints, &out.TopologySpreadConstraints
+		*out = make([]v1.TopologySpreadConstraint, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
+	}
 	if in.NodeUserIdentityTemplate != nil {
 		in, out := &in.NodeUserIdentityTemplate, &out.NodeUserIdentityTemplate
 		*out = new(string)
@@ -1305,6 +1312,11 @@ func (in *ReadOnlyConfig) DeepCopyInto(out *ReadOnlyConfig) {
 	*out = *in
 	if in.MaximumTimerDrivenThreadCount != nil {
 		in, out := &in.MaximumTimerDrivenThreadCount, &out.MaximumTimerDrivenThreadCount
+		*out = new(int32)
+		**out = **in
+	}
+	if in.MaximumEventDrivenThreadCount != nil {
+		in, out := &in.MaximumEventDrivenThreadCount, &out.MaximumEventDrivenThreadCount
 		*out = new(int32)
 		**out = **in
 	}

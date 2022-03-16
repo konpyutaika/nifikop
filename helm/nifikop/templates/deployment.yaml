@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ template "nifikop.fullname" . }}
+  namespace: {{ $.Release.Namespace }}
   labels:
     app: {{ template "nifikop.name" . }}
     chart: {{ .Chart.Name }}-{{ .Chart.Version }}
@@ -103,10 +104,8 @@ spec:
             - name: VAULT_CACERT
               value: /etc/vault/certs/ca.crt
             {{- end }}
-            {{- if .Values.debug.enabled }}
             - name: LOG_LEVEL
-              value: Debug
-            {{- end }}
+              value: {{ default "Info" .Values.logLevel }}
           livenessProbe:
             httpGet:
               path: /healthz
