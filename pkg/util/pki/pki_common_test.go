@@ -136,7 +136,7 @@ func TestControllerUserForCluster(t *testing.T) {
 	cluster := testCluster(t)
 	user := ControllerUserForCluster(cluster)
 	nodeControllerName := fmt.Sprintf(NodeControllerFQDNTemplate,
-		fmt.Sprintf(NodeControllerTemplate, cluster.Name),
+		cluster.GetNodeControllerName(),
 		cluster.Namespace,
 		cluster.Spec.ListenersConfig.GetClusterDomain())
 
@@ -147,7 +147,7 @@ func TestControllerUserForCluster(t *testing.T) {
 		),
 		Spec: v1alpha1.NifiUserSpec{
 			DNSNames:   []string{nodeControllerName},
-			SecretName: fmt.Sprintf(NodeControllerTemplate, cluster.Name),
+			SecretName: cluster.GetNodeControllerName(),
 			IncludeJKS: true,
 			ClusterRef: v1alpha1.ClusterReference{
 				Name:      cluster.Name,

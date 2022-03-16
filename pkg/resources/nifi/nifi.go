@@ -16,6 +16,8 @@ import (
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/controllersettings"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/reportingtask"
 
+	"github.com/banzaicloud/k8s-objectmatcher/patch"
+	"github.com/go-logr/logr"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	"github.com/konpyutaika/nifikop/pkg/k8sutil"
 	"github.com/konpyutaika/nifikop/pkg/resources"
@@ -23,8 +25,6 @@ import (
 	"github.com/konpyutaika/nifikop/pkg/util"
 	certutil "github.com/konpyutaika/nifikop/pkg/util/cert"
 	pkicommon "github.com/konpyutaika/nifikop/pkg/util/pki"
-	"github.com/banzaicloud/k8s-objectmatcher/patch"
-	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -410,7 +410,7 @@ func (r *Reconciler) getServerAndClientDetails(nodeId int32) (string, string, []
 	}
 	serverPass := string(serverSecret.Data[v1alpha1.PasswordKey])
 
-	clientName := types.NamespacedName{Name: fmt.Sprintf(pkicommon.NodeControllerTemplate, r.NifiCluster.Name), Namespace: r.NifiCluster.Namespace}
+	clientName := types.NamespacedName{Name: r.NifiCluster.GetNodeControllerName(), Namespace: r.NifiCluster.Namespace}
 	clientSecret := &corev1.Secret{}
 	if err := r.Client.Get(context.TODO(), clientName, clientSecret); err != nil {
 		if apierrors.IsNotFound(err) {
@@ -684,7 +684,7 @@ func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) (
 
 func (r *Reconciler) reconcileNifiUsersAndGroups(log logr.Logger) error {
 	controllerName := types.NamespacedName{Name: fmt.Sprintf(pkicommon.NodeControllerFQDNTemplate,
-		fmt.Sprintf(pkicommon.NodeControllerTemplate, r.NifiCluster.Name),
+		r.NifiCluster.GetNodeControllerName(),
 		r.NifiCluster.Namespace,
 		r.NifiCluster.Spec.ListenersConfig.GetClusterDomain()), Namespace: r.NifiCluster.Namespace}
 

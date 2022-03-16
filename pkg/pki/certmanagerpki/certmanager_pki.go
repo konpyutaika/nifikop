@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/go-logr/logr"
+	certv1 "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha2"
+	certmeta "github.com/jetstack/cert-manager/pkg/apis/meta/v1"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	"github.com/konpyutaika/nifikop/pkg/resources/templates"
 	pkicommon "github.com/konpyutaika/nifikop/pkg/util/pki"
-	"github.com/go-logr/logr"
-	certv1 "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha2"
-	certmeta "github.com/jetstack/cert-manager/pkg/apis/meta/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -31,7 +31,7 @@ func (c *certManager) FinalizePKI(ctx context.Context, logger logr.Logger) error
 	if c.cluster.Spec.ListenersConfig.SSLSecrets.Create {
 		// Names of our certificates and secrets
 		objNames := []types.NamespacedName{
-			{Name: fmt.Sprintf(pkicommon.NodeControllerTemplate, c.cluster.Name), Namespace: c.cluster.Namespace},
+			{Name: c.cluster.GetNodeControllerName(), Namespace: c.cluster.Namespace},
 		}
 
 		for _, node := range c.cluster.Spec.Nodes {
