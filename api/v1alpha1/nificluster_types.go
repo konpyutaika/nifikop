@@ -1,6 +1,7 @@
 package v1alpha1
 
 import (
+	"fmt"
 	"strings"
 
 	cmmeta "github.com/jetstack/cert-manager/pkg/apis/meta/v1"
@@ -676,18 +677,26 @@ func (nSpec *NifiClusterSpec) GetMetricPort() *int {
 	return nil
 }
 
-func (nSpec *NifiClusterSpec) GetNodeControllerTemplate() string {
-	if nSpec.NodeControllerTemplate != nil {
-		return *nSpec.NodeControllerTemplate
+func (cluster *NifiCluster) GetNodeControllerName() string {
+	template := "%s-controller"
+	if cluster.Spec.NodeControllerTemplate != nil {
+		template = *cluster.Spec.NodeControllerTemplate
 	}
-	return "%s-controller"
+	return fmt.Sprintf(template, cluster.Name)
 }
 
-func (service *ServicePolicy) GetHeadlessServiceTemplate() string {
-	if service.HeadlessServiceTemplate != "" {
-		return service.HeadlessServiceTemplate
+func (cluster *NifiCluster) GetNodeServiceName() string {
+	return fmt.Sprintf(cluster.Spec.Service.GetServiceTemplate(), cluster.Name)
+}
+
+func (service *ServicePolicy) GetServiceTemplate() string {
+	if service.ServiceTemplate != "" {
+		return service.ServiceTemplate
 	}
-	return "%s-headless"
+	if service.HeadlessEnabled {
+		return "%s-headless"
+	}
+	return "%s-all-node"
 }
 
 func (cluster *NifiCluster) RootProcessGroupId() string {

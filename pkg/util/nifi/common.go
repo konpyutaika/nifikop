@@ -45,34 +45,39 @@ func ComputeNodeName(nodeId int32, clusterName string) string {
 	return fmt.Sprintf(NodeNameTemplate, clusterName, nodeId)
 }
 
-func ComputeRequestNiFiNodeService(nodeId int32, clusterName string, headlessServiceEnabled bool) string {
+func ComputeRequestNiFiNodeService(nodeId int32, clusterName string,
+	headlessServiceEnabled bool, headlessServiceTemplate string) string {
 	if headlessServiceEnabled {
 		return fmt.Sprintf("%s.%s",
 			ComputeNodeName(nodeId, clusterName),
-			fmt.Sprintf(HeadlessServiceTemplate, clusterName))
+			fmt.Sprintf(headlessServiceTemplate, clusterName))
 	}
 
 	return ComputeNodeName(nodeId, clusterName)
 }
 
-func ComputeRequestNiFiNodeNamespace(nodeId int32, clusterName, namespace string, headlessServiceEnabled, useExternalDNS bool) string {
+func ComputeRequestNiFiNodeNamespace(nodeId int32, clusterName, namespace string, headlessServiceEnabled,
+	useExternalDNS bool, headlessServiceTemplate string) string {
 	if useExternalDNS {
-		return ComputeRequestNiFiNodeService(nodeId, clusterName, headlessServiceEnabled)
+		return ComputeRequestNiFiNodeService(nodeId, clusterName, headlessServiceEnabled, headlessServiceTemplate)
 	}
 	return fmt.Sprintf("%s.%s",
-		ComputeRequestNiFiNodeService(nodeId, clusterName, headlessServiceEnabled), namespace)
+		ComputeRequestNiFiNodeService(nodeId, clusterName, headlessServiceEnabled, headlessServiceTemplate), namespace)
 }
 
 func ComputeRequestNiFiNodeNamespaceFull(
 	nodeId int32,
 	clusterName, namespace string,
-	headlessServiceEnabled, useExternalDNS bool) string {
+	headlessServiceEnabled, useExternalDNS bool,
+	headlessServiceTemplate string) string {
 
 	if useExternalDNS {
-		return ComputeRequestNiFiNodeNamespace(nodeId, clusterName, namespace, headlessServiceEnabled, useExternalDNS)
+		return ComputeRequestNiFiNodeNamespace(nodeId, clusterName, namespace, headlessServiceEnabled,
+			useExternalDNS, headlessServiceTemplate)
 	}
 	return fmt.Sprintf("%s.svc",
-		ComputeRequestNiFiNodeNamespace(nodeId, clusterName, namespace, headlessServiceEnabled, useExternalDNS))
+		ComputeRequestNiFiNodeNamespace(nodeId, clusterName, namespace, headlessServiceEnabled,
+			useExternalDNS, headlessServiceTemplate))
 }
 
 func ComputeRequestNiFiNodeHostname(
@@ -80,7 +85,8 @@ func ComputeRequestNiFiNodeHostname(
 	clusterName, namespace string,
 	headlessServiceEnabled bool,
 	clusterDomain string,
-	useExternalDNS bool) string {
+	useExternalDNS bool,
+	serviceTemplate string) string {
 
 	return fmt.Sprintf("%s.%s",
 		ComputeRequestNiFiNodeNamespaceFull(nodeId, clusterName, namespace, headlessServiceEnabled, useExternalDNS),
@@ -93,7 +99,8 @@ func ComputeRequestNiFiNodeAddress(
 	headlessServiceEnabled bool,
 	clusterDomain string,
 	useExternalDNS bool,
-	internalListeners []v1alpha1.InternalListenerConfig) string {
+	internalListeners []v1alpha1.InternalListenerConfig,
+	sServiceTemplate string) string {
 
 	return fmt.Sprintf("%s:%d",
 		ComputeRequestNiFiNodeHostname(nodeId, clusterName, namespace, headlessServiceEnabled, clusterDomain, useExternalDNS),
@@ -109,6 +116,7 @@ func GenerateRequestNiFiNodeAddressFromCluster(nodeId int32, cluster *v1alpha1.N
 		cluster.Spec.ListenersConfig.GetClusterDomain(),
 		cluster.Spec.ListenersConfig.UseExternalDNS,
 		cluster.Spec.ListenersConfig.InternalListeners,
+		cluster.Spec.Service.GetServiceTemplate(),
 	)
 }
 
@@ -124,53 +132,50 @@ func GenerateRequestNiFiNodeHostnameFromCluster(nodeId int32, cluster *v1alpha1.
 }
 
 // >> All node
-func ComputeRequestNiFiAllNodeService(clusterName string, headlessServiceEnabled bool) string {
-	if headlessServiceEnabled {
-		return fmt.Sprintf(HeadlessServiceTemplate, clusterName)
-	}
-
-	return fmt.Sprintf(AllNodeServiceTemplate, clusterName)
+func ComputeRequestNiFiAllNodeService(
+	clusterName string, serviceTemplate string) string {
+	return fmt.Sprintf(serviceTemplate, clusterName)
 }
 
-func ComputeRequestNiFiAllNodeNamespace(clusterName, namespace string, headlessServiceEnabled, useExternalDNS bool) string {
+func ComputeRequestNiFiAllNodeNamespace(
+	clusterName, namespace string, useExternalDNS bool, serviceTemplate string) string {
 	if useExternalDNS {
-		return ComputeRequestNiFiAllNodeService(clusterName, headlessServiceEnabled)
+		return ComputeRequestNiFiAllNodeService(clusterName, serviceTemplate)
 	}
 	return fmt.Sprintf("%s.%s",
-		ComputeRequestNiFiAllNodeService(clusterName, headlessServiceEnabled), namespace)
+		ComputeRequestNiFiAllNodeService(clusterName, serviceTemplate), namespace)
 }
 
 func ComputeRequestNiFiAllNodeNamespaceFull(
-	clusterName, namespace string,
-	headlessServiceEnabled, useExternalDNS bool) string {
+	clusterName, namespace string, useExternalDNS bool, serviceTemplate string) string {
 
 	if useExternalDNS {
-		return ComputeRequestNiFiAllNodeNamespace(clusterName, namespace, headlessServiceEnabled, useExternalDNS)
+		return ComputeRequestNiFiAllNodeNamespace(clusterName, namespace, useExternalDNS, serviceTemplate)
 	}
 	return fmt.Sprintf("%s.svc",
-		ComputeRequestNiFiAllNodeNamespace(clusterName, namespace, headlessServiceEnabled, useExternalDNS))
+		ComputeRequestNiFiAllNodeNamespace(clusterName, namespace, useExternalDNS, serviceTemplate))
 }
 
 func ComputeRequestNiFiAllNodeHostname(
 	clusterName, namespace string,
-	headlessServiceEnabled bool,
 	clusterDomain string,
-	useExternalDNS bool) string {
+	useExternalDNS bool,
+	serviceTemplate string) string {
 
 	return fmt.Sprintf("%s.%s",
-		ComputeRequestNiFiAllNodeNamespaceFull(clusterName, namespace, headlessServiceEnabled, useExternalDNS),
+		ComputeRequestNiFiAllNodeNamespaceFull(clusterName, namespace, useExternalDNS, serviceTemplate),
 		clusterDomain)
 }
 
 func ComputeRequestNiFiAllNodeAddress(
 	clusterName, namespace string,
-	headlessServiceEnabled bool,
 	clusterDomain string,
 	useExternalDNS bool,
-	internalListeners []v1alpha1.InternalListenerConfig) string {
+	internalListeners []v1alpha1.InternalListenerConfig,
+	serviceTemplate string) string {
 
 	return fmt.Sprintf("%s:%d",
-		ComputeRequestNiFiAllNodeHostname(clusterName, namespace, headlessServiceEnabled, clusterDomain, useExternalDNS),
+		ComputeRequestNiFiAllNodeHostname(clusterName, namespace, clusterDomain, useExternalDNS, serviceTemplate),
 		InternalListenerForComm(internalListeners).ContainerPort)
 }
 
@@ -178,10 +183,10 @@ func GenerateRequestNiFiAllNodeAddressFromCluster(cluster *v1alpha1.NifiCluster)
 	return ComputeRequestNiFiAllNodeAddress(
 		cluster.Name,
 		cluster.Namespace,
-		cluster.Spec.Service.HeadlessEnabled,
 		cluster.Spec.ListenersConfig.GetClusterDomain(),
 		cluster.Spec.ListenersConfig.UseExternalDNS,
 		cluster.Spec.ListenersConfig.InternalListeners,
+		cluster.Spec.Service.GetServiceTemplate(),
 	)
 }
 
@@ -189,9 +194,9 @@ func GenerateRequestNiFiAllNodeHostnameFromCluster(cluster *v1alpha1.NifiCluster
 	return ComputeRequestNiFiAllNodeHostname(
 		cluster.Name,
 		cluster.Namespace,
-		cluster.Spec.Service.HeadlessEnabled,
 		cluster.Spec.ListenersConfig.GetClusterDomain(),
 		cluster.Spec.ListenersConfig.UseExternalDNS,
+		cluster.Spec.Service.GetServiceTemplate(),
 	)
 }
 
@@ -200,24 +205,24 @@ func GenerateRequestNiFiAllNodeHostnameFromCluster(cluster *v1alpha1.NifiCluster
 func ComputeHostListenerNodeHostname(
 	nodeId int32,
 	clusterName, namespace string,
-	headlessServiceEnabled bool,
 	clusterDomain string,
-	useExternalDNS bool) string {
+	useExternalDNS bool,
+	serviceTemplate string) string {
 
 	return fmt.Sprintf("%s.%s", ComputeNodeName(nodeId, clusterName),
-		ComputeRequestNiFiAllNodeHostname(clusterName, namespace, headlessServiceEnabled, clusterDomain, useExternalDNS))
+		ComputeRequestNiFiAllNodeHostname(clusterName, namespace, clusterDomain, useExternalDNS, serviceTemplate))
 }
 
 func ComputeHostListenerNodeAddress(
 	nodeId int32,
 	clusterName, namespace string,
-	headlessServiceEnabled bool,
 	clusterDomain string,
 	useExternalDNS bool,
-	internalListeners []v1alpha1.InternalListenerConfig) string {
+	internalListeners []v1alpha1.InternalListenerConfig,
+	serviceTemplate string) string {
 
 	return fmt.Sprintf("%s:%d",
-		ComputeHostListenerNodeHostname(nodeId, clusterName, namespace, headlessServiceEnabled, clusterDomain, useExternalDNS),
+		ComputeHostListenerNodeHostname(nodeId, clusterName, namespace, clusterDomain, useExternalDNS, serviceTemplate),
 		InternalListenerForComm(internalListeners).ContainerPort)
 }
 
@@ -226,10 +231,10 @@ func GenerateHostListenerNodeAddressFromCluster(nodeId int32, cluster *v1alpha1.
 		nodeId,
 		cluster.Name,
 		cluster.Namespace,
-		cluster.Spec.Service.HeadlessEnabled,
 		cluster.Spec.ListenersConfig.GetClusterDomain(),
 		cluster.Spec.ListenersConfig.UseExternalDNS,
 		cluster.Spec.ListenersConfig.InternalListeners,
+		cluster.Spec.Service.GetServiceTemplate(),
 	)
 }
 
@@ -238,9 +243,9 @@ func GenerateHostListenerNodeHostnameFromCluster(nodeId int32, cluster *v1alpha1
 		nodeId,
 		cluster.Name,
 		cluster.Namespace,
-		cluster.Spec.Service.HeadlessEnabled,
 		cluster.Spec.ListenersConfig.GetClusterDomain(),
 		cluster.Spec.ListenersConfig.UseExternalDNS,
+		cluster.Spec.Service.GetServiceTemplate(),
 	)
 }
 

@@ -5,11 +5,11 @@ import (
 	"crypto/tls"
 	"fmt"
 
+	"github.com/go-logr/logr"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/resources/templates"
 	certutil "github.com/konpyutaika/nifikop/pkg/util/cert"
 	"github.com/konpyutaika/nifikop/pkg/util/nifi"
-	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -23,8 +23,6 @@ const (
 	NodeServerCertTemplate = "%s-%d-server-certificate"
 	// NodeIssuerTemplate is the template used for node issuer resources
 	NodeIssuerTemplate = "%s-issuer"
-	// NodeControllerTemplate is the template used for operator certificate resources
-	NodeControllerTemplate = "%s-controller"
 	// NodeControllerFQDNTemplate is combined with the above and cluster namespace
 	// to create a 'fake' full-name for the controller user
 	NodeControllerFQDNTemplate = "%s.%s.mgt.%s"
@@ -188,7 +186,7 @@ func nodeUserForClusterNode(cluster *v1alpha1.NifiCluster, nodeId int32, additio
 // ControllerUserForCluster returns a NifiUser CR for the controller/cc certificates in a NifiCluster
 func ControllerUserForCluster(cluster *v1alpha1.NifiCluster) *v1alpha1.NifiUser {
 	nodeControllerName := fmt.Sprintf(NodeControllerFQDNTemplate,
-		fmt.Sprintf(NodeControllerTemplate, cluster.Name),
+		cluster.GetNodeControllerName(),
 		cluster.Namespace,
 		cluster.Spec.ListenersConfig.GetClusterDomain())
 	return &v1alpha1.NifiUser{
@@ -198,7 +196,7 @@ func ControllerUserForCluster(cluster *v1alpha1.NifiCluster) *v1alpha1.NifiUser 
 		),
 		Spec: v1alpha1.NifiUserSpec{
 			DNSNames:   []string{nodeControllerName},
-			SecretName: fmt.Sprintf(NodeControllerTemplate, cluster.Name),
+			SecretName: cluster.GetNodeControllerName(),
 			IncludeJKS: true,
 			ClusterRef: v1alpha1.ClusterReference{
 				Name:      cluster.Name,

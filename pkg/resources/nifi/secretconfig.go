@@ -14,14 +14,14 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/go-logr/logr"
+	"github.com/imdario/mergo"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/resources/templates"
 	"github.com/konpyutaika/nifikop/pkg/resources/templates/config"
 	"github.com/konpyutaika/nifikop/pkg/util"
 	pkicommon "github.com/konpyutaika/nifikop/pkg/util/pki"
 	utilpki "github.com/konpyutaika/nifikop/pkg/util/pki"
-	"github.com/go-logr/logr"
-	"github.com/imdario/mergo"
 	corev1 "k8s.io/api/core/v1"
 )
 
@@ -423,7 +423,7 @@ func (r *Reconciler) getAuthorizersConfigString(nConfig *v1alpha1.NodeConfig, id
 		"Namespace":   r.NifiCluster.Namespace,
 		"NodeList":    nodeList,
 		"ControllerUser": fmt.Sprintf(pkicommon.NodeControllerFQDNTemplate,
-			fmt.Sprintf(pkicommon.NodeControllerTemplate, r.NifiCluster.Name),
+			r.NifiCluster.GetNodeControllerName(),
 			r.NifiCluster.Namespace,
 			r.NifiCluster.Spec.ListenersConfig.GetClusterDomain()),
 	}); err != nil {
