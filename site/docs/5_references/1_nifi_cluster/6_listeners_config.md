@@ -51,6 +51,6 @@ Field|Type|Description|Required|Default|
 |tlsSecretName|string| should contain all ssl certs required by nifi including: caCert, caKey, clientCert, clientKey serverCert, serverKey, peerCert, peerKey. | Yes | - |
 |create|boolean| tells the installed cert manager to create the required certs keys. | Yes | - |
 |clusterScoped|boolean| defines if the Issuer created is cluster or namespace scoped. | Yes | - |
-|issuerRef|[ObjectReference](https://docs.cert-manager.io/en/release-0.9/reference/api-docs/index.html#objectreference-v1alpha1)| cIssuerRef allow to use an existing issuer to act as CA: https://cert-manager.io/docs/concepts/issuer/ | No | - |
+|issuerRef|[ObjectReference](https://docs.cert-manager.io/en/release-0.9/reference/api-docs/index.html#objectreference-v1alpha1)| IssuerRef allow to use an existing issuer to act as CA: https://cert-manager.io/docs/concepts/issuer/ | No | - |
 |pkiBackend|enum{"cert-manager"}| | Yes | - |
 

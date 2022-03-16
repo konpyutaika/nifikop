@@ -88,6 +88,8 @@ type NifiClusterSpec struct {
 	SidecarConfigs []corev1.Container `json:"sidecarConfigs,omitempty" patchStrategy:"merge" patchMergeKey:"name" protobuf:"bytes,2,rep,name=containers"`
 	// ExternalService specifies settings required to access nifi externally
 	ExternalServices []ExternalServiceConfig `json:"externalServices,omitempty"`
+	// TopologySpreadConstraints specifies any TopologySpreadConstraint objects to be applied to all nodes
+	TopologySpreadConstraints []corev1.TopologySpreadConstraint `json:"topologySpreadConstraints,omitempty"`
 	// NodeUserIdentityTemplate specifies the template to be used when naming the node user identity (e.g. node-%d-mysuffix)
 	NodeUserIdentityTemplate *string `json:"nodeUserIdentityTemplate,omitempty"`
 	// NodeControllerTemplate specifies the template to be used when naming the node controller (e.g. %s-mysuffix)
@@ -152,6 +154,8 @@ type Node struct {
 type ReadOnlyConfig struct {
 	// MaximumTimerDrivenThreadCount define the maximum number of threads for timer driven processors available to the system.
 	MaximumTimerDrivenThreadCount *int32 `json:"maximumTimerDrivenThreadCount,omitempty"`
+	// MaximumEventDrivenThreadCount define the maximum number of threads for event driven processors available to the system.
+	MaximumEventDrivenThreadCount *int32 `json:"maximumEventDrivenThreadCount,omitempty"`
 	// AdditionalSharedEnvs define a set of additional env variables that will shared between all init containers and
 	// containers in the pod.
 	AdditionalSharedEnvs []corev1.EnvVar `json:"additionalSharedEnvs,omitempty"`
@@ -555,6 +559,13 @@ func (nReadOnlyConfig *ReadOnlyConfig) GetMaximumTimerDrivenThreadCount() int32 
 		return 10
 	}
 	return *nReadOnlyConfig.MaximumTimerDrivenThreadCount
+}
+
+func (nReadOnlyConfig *ReadOnlyConfig) GetMaximumEventDrivenThreadCount() int32 {
+	if nReadOnlyConfig.MaximumEventDrivenThreadCount == nil {
+		return 1
+	}
+	return *nReadOnlyConfig.MaximumEventDrivenThreadCount
 }
 
 func (nTaskSpec *NifiClusterTaskSpec) GetDurationMinutes() float64 {
