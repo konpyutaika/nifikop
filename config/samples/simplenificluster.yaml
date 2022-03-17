@@ -59,8 +59,9 @@ spec:
         portConfigs:
           - port: 8080
             internalListenerName: "http"
-      serviceAnnotations:
-        toto: tata
+      metadata:
+        annotations:
+          toto: tata
     - name: "loadbalancer"
       spec:
         type: LoadBalancer
