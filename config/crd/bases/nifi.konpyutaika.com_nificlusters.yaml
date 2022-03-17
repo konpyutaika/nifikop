@@ -64,6 +64,23 @@ spec:
                   nifi externally
                 items:
                   properties:
+                    metadata:
+                      description: metadata allows to add additionnal metadata to
+                        the service
+                      properties:
+                        annotations:
+                          additionalProperties:
+                            type: string
+                          description: Additionnal annotation to merge to the resource
+                            associated https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#syntax-and-character-set
+                          type: object
+                        labels:
+                          additionalProperties:
+                            type: string
+                          description: Additionnal labels to merge to the resource
+                            associated https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#syntax-and-character-set
+                          type: object
+                      type: object
                     name:
                       description: 'Name must be unique within a namespace. Is required
                         when creating resources, although some resources may allow
@@ -72,14 +89,6 @@ spec:
                         and configuration definition. Cannot be updated. More info:
                         http://kubernetes.io/docs/user-guide/identifiers#names'
                       type: string
-                    serviceAnnotations:
-                      additionalProperties:
-                        type: string
-                      description: 'Annotations is an unstructured key value map stored
-                        with a resource that may be set by external tools to store
-                        and retrieve arbitrary metadata. They are not queryable and
-                        should be preserved when modifying objects. More info: http://kubernetes.io/docs/user-guide/annotations'
-                      type: object
                     spec:
                       description: Spec defines the behavior of a service.
                       properties:
@@ -3002,12 +3011,6 @@ spec:
                       description: Set this to true if the instance is a node in a
                         cluster. https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#basic-cluster-setup
                       type: boolean
-                    nifiAnnotations:
-                      additionalProperties:
-                        type: string
-                      description: Additionnal annotation to attach to the pod associated
-                        https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#syntax-and-character-set
-                      type: object
                     nodeAffinity:
                       description: nodeAffinity can be specified, operator populates
                         this value if new pvc added later to node
@@ -3218,6 +3221,23 @@ spec:
                         type: string
                       description: nodeSelector can be specified, which set the pod
                         to fit on a node https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#nodeselector
+                      type: object
+                    podMetadata:
+                      description: podMetadata allows to add additionnal metadata
+                        to the node pods
+                      properties:
+                        annotations:
+                          additionalProperties:
+                            type: string
+                          description: Additionnal annotation to merge to the resource
+                            associated https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#syntax-and-character-set
+                          type: object
+                        labels:
+                          additionalProperties:
+                            type: string
+                          description: Additionnal labels to merge to the resource
+                            associated https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#syntax-and-character-set
+                          type: object
                       type: object
                     provenanceStorage:
                       description: provenanceStorage allow to specify the maximum
@@ -5124,12 +5144,6 @@ spec:
                           description: Set this to true if the instance is a node
                             in a cluster. https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#basic-cluster-setup
                           type: boolean
-                        nifiAnnotations:
-                          additionalProperties:
-                            type: string
-                          description: Additionnal annotation to attach to the pod
-                            associated https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#syntax-and-character-set
-                          type: object
                         nodeAffinity:
                           description: nodeAffinity can be specified, operator populates
                             this value if new pvc added later to node
@@ -5349,6 +5363,23 @@ spec:
                             type: string
                           description: nodeSelector can be specified, which set the
                             pod to fit on a node https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#nodeselector
+                          type: object
+                        podMetadata:
+                          description: podMetadata allows to add additionnal metadata
+                            to the node pods
+                          properties:
+                            annotations:
+                              additionalProperties:
+                                type: string
+                              description: Additionnal annotation to merge to the
+                                resource associated https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#syntax-and-character-set
+                              type: object
+                            labels:
+                              additionalProperties:
+                                type: string
+                              description: Additionnal labels to merge to the resource
+                                associated https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#syntax-and-character-set
+                              type: object
                           type: object
                         provenanceStorage:
                           description: provenanceStorage allow to specify the maximum
@@ -6021,6 +6052,12 @@ spec:
                     description: Annotations specifies the annotations to attach to
                       pods the operator creates
                     type: object
+                  labels:
+                    additionalProperties:
+                      type: string
+                    description: Labels specifies additional labels to attach to the
+                      pods the operator creates
+                    type: object
                 type: object
               propagateLabels:
                 description: propage
@@ -6442,6 +6479,12 @@ spec:
                       headlessService for Nifi or individual services using service
                       per nodes may come an handy case of service mesh.
                     type: boolean
+                  labels:
+                    additionalProperties:
+                      type: string
+                    description: Labels specifies the labels to attach to services
+                      the operator creates
+                    type: object
                 required:
                 - headlessEnabled
                 type: object

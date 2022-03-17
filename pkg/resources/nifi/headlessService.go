@@ -2,6 +2,7 @@ package nifi
 
 import (
 	"fmt"
+
 	"github.com/konpyutaika/nifikop/pkg/resources/templates"
 	"github.com/konpyutaika/nifikop/pkg/util"
 	nifiutils "github.com/konpyutaika/nifikop/pkg/util/nifi"
@@ -17,7 +18,11 @@ func (r *Reconciler) headlessService() runtimeClient.Object {
 	return &corev1.Service{
 		ObjectMeta: templates.ObjectMetaWithAnnotations(
 			fmt.Sprintf(nifiutils.HeadlessServiceTemplate, r.NifiCluster.Name),
-			util.MergeLabels(nifiutils.LabelsForNifi(r.NifiCluster.Name), r.NifiCluster.Labels),
+			util.MergeLabels(
+				r.NifiCluster.Spec.Service.Labels,
+				nifiutils.LabelsForNifi(r.NifiCluster.Name),
+				r.NifiCluster.Labels,
+			),
 			r.NifiCluster.Spec.Service.Annotations,
 			r.NifiCluster,
 		),

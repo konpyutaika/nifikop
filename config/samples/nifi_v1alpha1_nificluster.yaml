@@ -8,10 +8,14 @@ spec:
     # using service per nodes may come an handy case of service mesh.
     headlessEnabled: true
     # Annotations specifies the annotations to attach to services the operator creates
-#   annotations:
-    #  pod:
+    # annotations:
+    # Labels specifies the labels to attach to services the operator creates
+    # labels:
+  # pod:
     # Annotations specifies the annotations to attach to pods the operator creates
-  #    annotations:
+    # annotations:    
+    # Labels specifies the labels to attach to pods the operator creates
+    # labels:
   # zKAddress specifies the ZooKeeper connection string
   # in the form hostname:port where host and port are those of a Zookeeper server.
   zkAddress: "zookeepercluster-client.zookeeper:2181"
@@ -170,6 +174,10 @@ spec:
       # Set this to true if the instance is a node in a cluster.
       # https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#basic-cluster-setup
       isNode: true
+      # Additionnal metadata to merge to the pod associated
+      # podMetadata:
+      #   annotations:
+      #   labels:
       # Docker image used by the operator to create the node associated
       # https://hub.docker.com/r/apache/nifi/
       #      image: "apache/nifi:1.11.2"
@@ -344,24 +352,33 @@ spec:
         portConfigs:
           - port: 8080
             internalListenerName: "http"
-      serviceAnnotations:
-        toto: tata
+      metadata:
+        annotations:
+          toto: tata
+        labels:
+          titi: tutu
     - name: "loadbalancer"
       spec:
         type: LoadBalancer
         portConfigs:
           - port: 8080
             internalListenerName: "http"
-      serviceAnnotations:
-        toto: tata
+      metadata:
+        annotations:
+          toto: tata
+        labels:
+          titi: tutu
     - name: "nodepart"
       spec:
         type: NodePort
         portConfigs:
           - port: 8080
             internalListenerName: "http"
-      serviceAnnotations:
-        toto: tata
+      metadata:
+        annotations:
+          toto: tata
+        labels:
+          titi: tutu
   sidecarConfigs:
     - name: app-log
       image: "busybox:1.32.0"

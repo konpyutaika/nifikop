@@ -14,6 +14,15 @@ metadata:
 spec:
   service:
     headlessEnabled: true
+    annotations:
+      tyty: ytyt
+    labels:
+      tete: titi  
+  pod:
+    annotations:
+      toto: tata
+    labels:
+      titi: tutu
   zkAddress: 'zookeepercluster-client.zookeeper:2181'
   zkPath: '/simplenifi'
   clusterImage: 'apache/nifi:1.11.3'
@@ -21,6 +30,11 @@ spec:
   nodeConfigGroups:
     default_group:
       isNode: true
+      podMetadata:
+        annotations:
+          node-annotation: "node-annotation-value"
+        labels:
+          node-label: "node-label-value"
       externalVolumeConfigs:
         - name: example-volume
           mountPath: "/opt/nifi/example"
@@ -70,8 +84,11 @@ spec:
         portConfigs:
           - port: 8080
             internalListenerName: 'http'
-      serviceAnnotations:
-        toto: tata
+      metadata:
+        annotations:
+          toto: tata
+        labels:
+          titi: tutu
 ```
 
 ## NifiCluster
@@ -129,12 +146,14 @@ spec:
 | --------------- | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------- |
 | headlessEnabled | boolean             | specifies if the cluster should use headlessService for Nifi or individual services using service per nodes may come an handy case of service mesh. | Yes      | false   |
 | annotations     | map\[string\]string | Annotations specifies the annotations to attach to services the NiFiKop operator creates                                                            | No       | -       |
+| labels          | map\[string\]string | Labels specifies the labels to attach to services the NiFiKop operator creates                                                            | No       | -       |
 
 ## PodPolicy
 
 | Field       | Type                | Description                                                                          | Required | Default |
 | ----------- | ------------------- | ------------------------------------------------------------------------------------ | -------- | ------- |
 | annotations | map\[string\]string | Annotations specifies the annotations to attach to pods the NiFiKop operator creates | No       | -       |
+| labels      | map\[string\]string | Labels specifies the Labels to attach to pods the NiFiKop operator creates           | No       | -       |
 
 ## ManagedUsers
 
