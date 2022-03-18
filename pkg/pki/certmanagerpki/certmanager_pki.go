@@ -31,7 +31,7 @@ func (c *certManager) FinalizePKI(ctx context.Context, logger logr.Logger) error
 	if c.cluster.Spec.ListenersConfig.SSLSecrets.Create {
 		// Names of our certificates and secrets
 		objNames := []types.NamespacedName{
-			{Name: c.cluster.GetNodeControllerName(), Namespace: c.cluster.Namespace},
+			{Name: c.cluster.GetNifiControllerName(), Namespace: c.cluster.Namespace},
 		}
 
 		for _, node := range c.cluster.Spec.Nodes {

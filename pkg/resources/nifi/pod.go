@@ -317,7 +317,7 @@ func generateVolumesForSSL(cluster *v1alpha1.NifiCluster, nodeId int32) []corev1
 			Name: clientKeystoreVolume,
 			VolumeSource: corev1.VolumeSource{
 				Secret: &corev1.SecretVolumeSource{
-					SecretName:  cluster.GetNodeControllerName(),
+					SecretName:  cluster.GetNifiControllerName(),
 					DefaultMode: util.Int32Pointer(0644),
 				},
 			},

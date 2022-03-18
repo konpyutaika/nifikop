@@ -92,6 +92,9 @@ func GetInternalDNSNames(cluster *v1alpha1.NifiCluster, nodeId int32) (dnsNames 
 //}
 
 func GetNodeUserName(cluster *v1alpha1.NifiCluster, nodeId int32) string {
+	if cluster.Spec.NodeUserIdentityTemplate != nil {
+		return fmt.Sprintf(*cluster.Spec.NodeUserIdentityTemplate, nodeId)
+	}
 	return nifi.ComputeRequestNiFiNodeHostname(nodeId, cluster.Name, cluster.Namespace,
 		cluster.Spec.Service.HeadlessEnabled, cluster.Spec.ListenersConfig.GetClusterDomain(),
 		cluster.Spec.ListenersConfig.UseExternalDNS, cluster.Spec.Service.GetServiceTemplate())
@@ -193,7 +196,7 @@ func nodeUserForClusterNode(cluster *v1alpha1.NifiCluster, nodeId int32, additio
 // ControllerUserForCluster returns a NifiUser CR for the controller/cc certificates in a NifiCluster
 func ControllerUserForCluster(cluster *v1alpha1.NifiCluster) *v1alpha1.NifiUser {
 	nodeControllerName := fmt.Sprintf(NodeControllerFQDNTemplate,
-		cluster.GetNodeControllerName(),
+		cluster.GetNifiControllerName(),
 		cluster.Namespace,
 		cluster.Spec.ListenersConfig.GetClusterDomain())
 	return &v1alpha1.NifiUser{
@@ -203,7 +206,7 @@ func ControllerUserForCluster(cluster *v1alpha1.NifiCluster) *v1alpha1.NifiUser 
 		),
 		Spec: v1alpha1.NifiUserSpec{
 			DNSNames:   []string{nodeControllerName},
-			SecretName: cluster.GetNodeControllerName(),
+			SecretName: cluster.GetNifiControllerName(),
 			IncludeJKS: true,
 			ClusterRef: v1alpha1.ClusterReference{
 				Name:      cluster.Name,
