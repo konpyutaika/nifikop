@@ -19,7 +19,7 @@ import (
 func (c *certManager) GetControllerTLSConfig() (config *tls.Config, err error) {
 	config, err = GetControllerTLSConfigFromSecret(c.client, v1alpha1.SecretReference{
 		Namespace: c.cluster.Namespace,
-		Name:      c.cluster.GetNodeControllerName(),
+		Name:      c.cluster.GetNifiControllerName(),
 	})
 	return
 }

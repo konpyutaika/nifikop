@@ -72,6 +72,8 @@ type NifiClusterSpec struct {
 	ReadOnlyConfig ReadOnlyConfig `json:"readOnlyConfig,omitempty"`
 	// nodeConfigGroups specifies multiple node configs with unique name
 	NodeConfigGroups map[string]NodeConfig `json:"nodeConfigGroups,omitempty"`
+	// NodeUserIdentityTemplate specifies the template to be used when naming the node user identity (e.g. node-%d-mysuffix)
+	NodeUserIdentityTemplate *string `json:"nodeUserIdentityTemplate,omitempty"`
 	// all node requires an image, unique id, and storageConfigs settings
 	Nodes []Node `json:"nodes"`
 	// Defines the configuration for PodDisruptionBudget
@@ -90,10 +92,10 @@ type NifiClusterSpec struct {
 	ExternalServices []ExternalServiceConfig `json:"externalServices,omitempty"`
 	// TopologySpreadConstraints specifies any TopologySpreadConstraint objects to be applied to all nodes
 	TopologySpreadConstraints []corev1.TopologySpreadConstraint `json:"topologySpreadConstraints,omitempty"`
-	// NodeUserIdentityTemplate specifies the template to be used when naming the node user identity (e.g. node-%d-mysuffix)
-	NodeUserIdentityTemplate *string `json:"nodeUserIdentityTemplate,omitempty"`
-	// NodeControllerTemplate specifies the template to be used when naming the node controller (e.g. %s-mysuffix)
-	NodeControllerTemplate *string `json:"nodeControllerTemplate,omitempty"`
+	// NifiControllerTemplate specifies the template to be used when naming the node controller (e.g. %s-mysuffix)
+	NifiControllerTemplate *string `json:"nifiControllerTemplate,omitempty"`
+	// AdminUserIdentity specifies what to call the static admin user's identity
+	AdminUserIdentity *string `json:"adminUserIdentity,omitempty"`
 }
 
 // DisruptionBudget defines the configuration for PodDisruptionBudget
@@ -688,10 +690,10 @@ func (nSpec *NifiClusterSpec) GetMetricPort() *int {
 	return nil
 }
 
-func (cluster *NifiCluster) GetNodeControllerName() string {
+func (cluster *NifiCluster) GetNifiControllerName() string {
 	template := "%s-controller"
-	if cluster.Spec.NodeControllerTemplate != nil {
-		template = *cluster.Spec.NodeControllerTemplate
+	if cluster.Spec.NifiControllerTemplate != nil {
+		template = *cluster.Spec.NifiControllerTemplate
 	}
 	return fmt.Sprintf(template, cluster.Name)
 }

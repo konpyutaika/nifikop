@@ -412,7 +412,7 @@ func (r *Reconciler) getServerAndClientDetails(nodeId int32) (string, string, []
 	}
 	serverPass := string(serverSecret.Data[v1alpha1.PasswordKey])
 
-	clientName := types.NamespacedName{Name: r.NifiCluster.GetNodeControllerName(), Namespace: r.NifiCluster.Namespace}
+	clientName := types.NamespacedName{Name: r.NifiCluster.GetNifiControllerName(), Namespace: r.NifiCluster.Namespace}
 	clientSecret := &corev1.Secret{}
 	if err := r.Client.Get(context.TODO(), clientName, clientSecret); err != nil {
 		if apierrors.IsNotFound(err) {
@@ -685,14 +685,18 @@ func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) (
 }
 
 func (r *Reconciler) reconcileNifiUsersAndGroups(log logr.Logger) error {
-	controllerName := types.NamespacedName{
-		Name: fmt.Sprintf(
-			pkicommon.NodeControllerFQDNTemplate,
-			r.NifiCluster.GetNodeControllerName(),
-			r.NifiCluster.Namespace,
-			r.NifiCluster.Spec.ListenersConfig.GetClusterDomain(),
-		),
-		Namespace: r.NifiCluster.Namespace}
+	nifiControllerName := fmt.Sprintf(
+		pkicommon.NodeControllerFQDNTemplate,
+		r.NifiCluster.GetNifiControllerName(),
+		r.NifiCluster.Namespace,
+		r.NifiCluster.Spec.ListenersConfig.GetClusterDomain(),
+	)
+
+	if r.NifiCluster.Spec.AdminUserIdentity != nil {
+		nifiControllerName = *r.NifiCluster.Spec.AdminUserIdentity
+	}
+
+	controllerNamespacedName := types.NamespacedName{Name: nifiControllerName, Namespace: r.NifiCluster.Namespace}
 
 	managedUsers := append(r.NifiCluster.Spec.ManagedAdminUsers, r.NifiCluster.Spec.ManagedReaderUsers...)
 	var users []*v1alpha1.NifiUser
@@ -742,8 +746,8 @@ func (r *Reconciler) reconcileNifiUsersAndGroups(log logr.Logger) error {
 					Namespace: r.NifiCluster.Namespace,
 				},
 				UsersRef: append(managedAdminUserRef, v1alpha1.UserReference{
-					Name:      controllerName.Name,
-					Namespace: controllerName.Namespace,
+					Name:      controllerNamespacedName.Name,
+					Namespace: controllerNamespacedName.Namespace,
 				},
 				),
 				AccessPolicies: []v1alpha1.AccessPolicy{
