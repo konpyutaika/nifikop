@@ -94,8 +94,8 @@ type NifiClusterSpec struct {
 	TopologySpreadConstraints []corev1.TopologySpreadConstraint `json:"topologySpreadConstraints,omitempty"`
 	// NifiControllerTemplate specifies the template to be used when naming the node controller (e.g. %s-mysuffix)
 	NifiControllerTemplate *string `json:"nifiControllerTemplate,omitempty"`
-	// AdminUserIdentity specifies what to call the static admin user's identity
-	AdminUserIdentity *string `json:"adminUserIdentity,omitempty"`
+	// ControllerUserIdentity specifies what to call the static admin user's identity
+	ControllerUserIdentity *string `json:"controllerUserIdentity,omitempty"`
 }
 
 // DisruptionBudget defines the configuration for PodDisruptionBudget
@@ -690,7 +690,10 @@ func (nSpec *NifiClusterSpec) GetMetricPort() *int {
 	return nil
 }
 
-func (cluster *NifiCluster) GetNifiControllerName() string {
+func (cluster *NifiCluster) GetNifiControllerUserIdentity() string {
+	if cluster.Spec.ControllerUserIdentity != nil {
+		return *cluster.Spec.ControllerUserIdentity
+	}
 	template := "%s-controller"
 	if cluster.Spec.NifiControllerTemplate != nil {
 		template = *cluster.Spec.NifiControllerTemplate
