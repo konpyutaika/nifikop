@@ -2,10 +2,11 @@ package nifi
 
 import (
 	"fmt"
-	configcommon "github.com/konpyutaika/nifikop/pkg/nificlient/config/common"
-	runtimeClient "sigs.k8s.io/controller-runtime/pkg/client"
 	"sort"
 	"strings"
+
+	configcommon "github.com/konpyutaika/nifikop/pkg/nificlient/config/common"
+	runtimeClient "sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/go-logr/logr"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
@@ -111,8 +112,15 @@ func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev
 	})
 
 	anntotationsToMerge := []map[string]string{
-		nodeConfig.GetNodeAnnotations(),
 		r.NifiCluster.Spec.Pod.Annotations,
+		nodeConfig.GetPodAnnotations(),
+	}
+
+	labelsToMerge := []map[string]string{
+		r.NifiCluster.Spec.Pod.Labels,
+		nodeConfig.GetPodLabels(),
+		nifiutil.LabelsForNifi(r.NifiCluster.Name),
+		{"nodeId": fmt.Sprintf("%d", id)},
 	}
 
 	if r.NifiCluster.Spec.GetMetricPort() != nil {
@@ -126,10 +134,7 @@ func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev
 		//ObjectMeta: templates.ObjectMetaWithAnnotations(
 		ObjectMeta: templates.ObjectMetaWithGeneratedNameAndAnnotations(
 			nifiutil.ComputeNodeName(id, r.NifiCluster.Name),
-			util.MergeLabels(
-				nifiutil.LabelsForNifi(r.NifiCluster.Name),
-				map[string]string{"nodeId": fmt.Sprintf("%d", id)},
-			),
+			util.MergeLabels(labelsToMerge...),
 			util.MergeAnnotations(anntotationsToMerge...), r.NifiCluster,
 		),
 		Spec: corev1.PodSpec{
@@ -156,6 +161,7 @@ done`,
 			Affinity: &corev1.Affinity{
 				PodAntiAffinity: generatePodAntiAffinity(r.NifiCluster.Name, r.NifiCluster.Spec.OneNifiNodePerNode),
 			},
+			TopologySpreadConstraints:     r.NifiCluster.Spec.TopologySpreadConstraints,
 			Containers:                    r.injectAdditionalEnvVars(r.generateContainers(nodeConfig, id, podVolumeMounts, zkAddress)),
 			Volumes:                       podVolumes,
 			RestartPolicy:                 corev1.RestartPolicyNever,

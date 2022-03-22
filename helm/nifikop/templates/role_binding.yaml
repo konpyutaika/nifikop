@@ -11,11 +11,11 @@ metadata:
     heritage: {{ $.Release.Service }}
     release: {{ $.Release.Name }}
   name: {{ template "nifikop.name" $ }}
-  namespace: {{$namespace}}
+  namespace: {{ $namespace }}
 subjects:
 - kind: ServiceAccount
   name: {{ template "nifikop.name" $ }}
-  namespace: {{$.Release.Namespace}}
+  namespace: {{ $.Release.Namespace }}
 roleRef:
   kind: Role
   name: {{ template "nifikop.name" $ }}

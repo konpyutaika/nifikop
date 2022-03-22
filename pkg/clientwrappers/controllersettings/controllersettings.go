@@ -12,7 +12,8 @@ import (
 var log = ctrl.Log.WithName("controllersettings-method")
 
 func controllerConfigIsSync(cluster *v1alpha1.NifiCluster, entity *nigoapi.ControllerConfigurationEntity) bool {
-	return cluster.Spec.ReadOnlyConfig.GetMaximumTimerDrivenThreadCount() == entity.Component.MaxTimerDrivenThreadCount
+	return cluster.Spec.ReadOnlyConfig.GetMaximumTimerDrivenThreadCount() == entity.Component.MaxTimerDrivenThreadCount &&
+		cluster.Spec.ReadOnlyConfig.GetMaximumEventDrivenThreadCount() == entity.Component.MaxEventDrivenThreadCount
 }
 
 func SyncConfiguration(config *clientconfig.NifiConfig, cluster *v1alpha1.NifiCluster) error {
@@ -50,4 +51,5 @@ func updateControllerConfigEntity(cluster *v1alpha1.NifiCluster, entity *nigoapi
 		entity.Component = &nigoapi.ControllerConfigurationDto{}
 	}
 	entity.Component.MaxTimerDrivenThreadCount = cluster.Spec.ReadOnlyConfig.GetMaximumTimerDrivenThreadCount()
+	entity.Component.MaxEventDrivenThreadCount = cluster.Spec.ReadOnlyConfig.GetMaximumEventDrivenThreadCount()
 }

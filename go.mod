@@ -16,6 +16,7 @@ require (
 	github.com/onsi/gomega v1.10.2
 	github.com/pavel-v-chernykh/keystore-go v2.1.0+incompatible
 	github.com/stretchr/testify v1.6.1
+	go.uber.org/zap v1.15.0
 	golang.org/x/tools v0.0.0-20201014231627-1610a49f37af // indirect
 	k8s.io/api v0.20.2
 	k8s.io/apimachinery v0.20.2
