@@ -47,6 +47,10 @@ spec:
                 description: clusterImage can specify the whole NiFi cluster image
                   in one place
                 type: string
+              controllerUserIdentity:
+                description: ControllerUserIdentity specifies what to call the static
+                  admin user's identity
+                type: string
               disruptionBudget:
                 description: Defines the configuration for PodDisruptionBudget
                 properties:
@@ -1421,6 +1425,10 @@ spec:
                 required:
                 - retryDurationMinutes
                 type: object
+              nifiControllerTemplate:
+                description: NifiControllerTemplate specifies the template to be used
+                  when naming the node controller (e.g. %s-mysuffix)
+                type: string
               nifiURI:
                 description: nifiURI used access through a LB uri (used if external
                   type)
@@ -3460,10 +3468,6 @@ spec:
                 description: nodeConfigGroups specifies multiple node configs with
                   unique name
                 type: object
-              nodeControllerTemplate:
-                description: NodeControllerTemplate specifies the template to be used
-                  when naming the node controller (e.g. %s-mysuffix)
-                type: string
               nodeURITemplate:
                 description: nodeURITemplate used to dynamically compute node uri
                   (used if external type)

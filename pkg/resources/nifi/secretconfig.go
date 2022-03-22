@@ -20,7 +20,6 @@ import (
 	"github.com/konpyutaika/nifikop/pkg/resources/templates"
 	"github.com/konpyutaika/nifikop/pkg/resources/templates/config"
 	"github.com/konpyutaika/nifikop/pkg/util"
-	pkicommon "github.com/konpyutaika/nifikop/pkg/util/pki"
 	utilpki "github.com/konpyutaika/nifikop/pkg/util/pki"
 	corev1 "k8s.io/api/core/v1"
 )
@@ -416,16 +415,16 @@ func (r *Reconciler) getAuthorizersConfigString(nConfig *v1alpha1.NodeConfig, id
 	var out bytes.Buffer
 	t := template.Must(template.New("nConfig-config").Parse(authorizersTemplate))
 
-	nifiControllerName := fmt.Sprintf(
+	/*nifiControllerName := fmt.Sprintf(
 		pkicommon.NodeControllerFQDNTemplate,
-		r.NifiCluster.GetNifiControllerName(),
+		r.NifiCluster.GetNifiControllerUserIdentity(),
 		r.NifiCluster.Namespace,
 		r.NifiCluster.Spec.ListenersConfig.GetClusterDomain(),
 	)
 
-	if r.NifiCluster.Spec.AdminUserIdentity != nil {
-		nifiControllerName = *r.NifiCluster.Spec.AdminUserIdentity
-	}
+	if r.NifiCluster.Spec.ControllerUserIdentity != nil {
+		nifiControllerName = *r.NifiCluster.Spec.ControllerUserIdentity
+	}*/
 
 	if err := t.Execute(&out, map[string]interface{}{
 		"NifiCluster":    r.NifiCluster,
@@ -433,7 +432,7 @@ func (r *Reconciler) getAuthorizersConfigString(nConfig *v1alpha1.NodeConfig, id
 		"ClusterName":    r.NifiCluster.Name,
 		"Namespace":      r.NifiCluster.Namespace,
 		"NodeList":       nodeList,
-		"ControllerUser": nifiControllerName,
+		"ControllerUser": r.NifiCluster.GetNifiControllerUserIdentity(),
 	}); err != nil {
 		log.Error(err, "error occurred during parsing the config template")
 	}
