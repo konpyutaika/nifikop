@@ -12,6 +12,7 @@
 ### Changed
 
 - [PR #5](https://github.com/konpyutaika/nifikop/pull/5) - **[Documentation]** Change minikube by k3d.
+- [PR #24](https://github.com/konpyutaika/nifikop/pull/24) - **[Operator/NiFiCluster]** Configurable node services and users template
 
 ### Deprecated
 
