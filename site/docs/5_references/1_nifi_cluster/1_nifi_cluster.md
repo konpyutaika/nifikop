@@ -135,7 +135,6 @@ spec:
 |nifiControllerTemplate| string                                                                                       | NifiControllerTemplate specifies the template to be used when naming the node controller (e.g. %s-mysuffix) **Warning: once defined don't change this value either the operator will no longer be able to manage the cluster**                                                                                                           |Yes| "%s-controller"          |
 |controllerUserIdentity| string                                                                                       | ControllerUserIdentity specifies what to call the static admin user's identity **Warning: once defined don't change this value either the operator will no longer be able to manage the cluster**                                                                                                                                        |Yes| false                    |
 
-
 ## NifiClusterStatus
 
 | Field              | Type                                        | Description                                                   | Required | Default |
@@ -146,7 +145,6 @@ spec:
 
 ## ServicePolicy
 
-<<<<<<< HEAD
 | Field           | Type                | Description                                                                                                                                         | Required | Default                                                   |
 | --------------- |---------------------| --------------------------------------------------------------------------------------------------------------------------------------------------- |----------|-----------------------------------------------------------|
 | headlessEnabled | boolean             | specifies if the cluster should use headlessService for Nifi or individual services using service per nodes may come an handy case of service mesh. | Yes      | false                                                     |
