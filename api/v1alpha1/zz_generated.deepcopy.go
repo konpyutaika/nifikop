@@ -452,6 +452,11 @@ func (in *NifiClusterSpec) DeepCopyInto(out *NifiClusterSpec) {
 			(*out)[key] = *val.DeepCopy()
 		}
 	}
+	if in.NodeUserIdentityTemplate != nil {
+		in, out := &in.NodeUserIdentityTemplate, &out.NodeUserIdentityTemplate
+		*out = new(string)
+		**out = **in
+	}
 	if in.Nodes != nil {
 		in, out := &in.Nodes, &out.Nodes
 		*out = make([]Node, len(*in))
@@ -487,6 +492,16 @@ func (in *NifiClusterSpec) DeepCopyInto(out *NifiClusterSpec) {
 		for i := range *in {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
+	}
+	if in.NifiControllerTemplate != nil {
+		in, out := &in.NifiControllerTemplate, &out.NifiControllerTemplate
+		*out = new(string)
+		**out = **in
+	}
+	if in.ControllerUserIdentity != nil {
+		in, out := &in.ControllerUserIdentity, &out.ControllerUserIdentity
+		*out = new(string)
+		**out = **in
 	}
 }
 

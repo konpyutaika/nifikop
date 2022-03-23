@@ -178,7 +178,8 @@ done`,
 
 	//if r.NifiCluster.Spec.Service.HeadlessEnabled {
 	pod.Spec.Hostname = nifiutil.ComputeNodeName(id, r.NifiCluster.Name)
-	pod.Spec.Subdomain = nifiutil.ComputeRequestNiFiAllNodeService(r.NifiCluster.Name, r.NifiCluster.Spec.Service.HeadlessEnabled)
+	pod.Spec.Subdomain = nifiutil.ComputeRequestNiFiAllNodeService(r.NifiCluster.Name,
+		r.NifiCluster.Spec.Service.GetServiceTemplate())
 	//}
 
 	if nodeConfig.NodeAffinity != nil {
@@ -320,7 +321,7 @@ func generateVolumesForSSL(cluster *v1alpha1.NifiCluster, nodeId int32) []corev1
 			Name: clientKeystoreVolume,
 			VolumeSource: corev1.VolumeSource{
 				Secret: &corev1.SecretVolumeSource{
-					SecretName:  fmt.Sprintf(pkicommon.NodeControllerTemplate, cluster.Name),
+					SecretName:  cluster.GetNifiControllerUserIdentity(),
 					DefaultMode: util.Int32Pointer(0644),
 				},
 			},
@@ -425,9 +426,9 @@ rm -f $NIFI_BASE_DIR/cluster.state `,
 		failCondition)
 
 	nodeAddress := nifiutil.ComputeHostListenerNodeAddress(
-		id, r.NifiCluster.Name, r.NifiCluster.Namespace, r.NifiCluster.Spec.Service.HeadlessEnabled,
-		r.NifiCluster.Spec.ListenersConfig.GetClusterDomain(), r.NifiCluster.Spec.ListenersConfig.UseExternalDNS,
-		r.NifiCluster.Spec.ListenersConfig.InternalListeners)
+		id, r.NifiCluster.Name, r.NifiCluster.Namespace, r.NifiCluster.Spec.ListenersConfig.GetClusterDomain(),
+		r.NifiCluster.Spec.ListenersConfig.UseExternalDNS, r.NifiCluster.Spec.ListenersConfig.InternalListeners,
+		r.NifiCluster.Spec.Service.GetServiceTemplate())
 
 	resolveIp := ""
 

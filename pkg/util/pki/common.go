@@ -5,11 +5,11 @@ import (
 	"crypto/tls"
 	"fmt"
 
+	"github.com/go-logr/logr"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/resources/templates"
 	certutil "github.com/konpyutaika/nifikop/pkg/util/cert"
 	"github.com/konpyutaika/nifikop/pkg/util/nifi"
-	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -23,8 +23,6 @@ const (
 	NodeServerCertTemplate = "%s-%d-server-certificate"
 	// NodeIssuerTemplate is the template used for node issuer resources
 	NodeIssuerTemplate = "%s-issuer"
-	// NodeControllerTemplate is the template used for operator certificate resources
-	NodeControllerTemplate = "%s-controller"
 	// NodeControllerFQDNTemplate is combined with the above and cluster namespace
 	// to create a 'fake' full-name for the controller user
 	NodeControllerFQDNTemplate = "%s.%s.mgt.%s"
@@ -94,44 +92,54 @@ func GetInternalDNSNames(cluster *v1alpha1.NifiCluster, nodeId int32) (dnsNames 
 //}
 
 func GetNodeUserName(cluster *v1alpha1.NifiCluster, nodeId int32) string {
+	if cluster.Spec.NodeUserIdentityTemplate != nil {
+		return fmt.Sprintf(*cluster.Spec.NodeUserIdentityTemplate, nodeId)
+	}
 	return nifi.ComputeRequestNiFiNodeHostname(nodeId, cluster.Name, cluster.Namespace,
-		cluster.Spec.Service.HeadlessEnabled, cluster.Spec.ListenersConfig.GetClusterDomain(), cluster.Spec.ListenersConfig.UseExternalDNS)
+		cluster.Spec.Service.HeadlessEnabled, cluster.Spec.ListenersConfig.GetClusterDomain(),
+		cluster.Spec.ListenersConfig.UseExternalDNS, cluster.Spec.Service.GetServiceTemplate())
 }
 
-// clusterDNSNames returns all the possible DNS Names for a NiFi Cluster
+// ClusterDNSNames returns all the possible DNS Names for a NiFi Cluster
 func ClusterDNSNames(cluster *v1alpha1.NifiCluster, nodeId int32) (names []string) {
 	names = make([]string, 0)
 
 	// FQDN
 	names = append(names,
-		nifi.ComputeRequestNiFiAllNodeHostname(cluster.Name, cluster.Namespace, cluster.Spec.Service.HeadlessEnabled,
-			cluster.Spec.ListenersConfig.GetClusterDomain(), cluster.Spec.ListenersConfig.UseExternalDNS))
+		nifi.ComputeRequestNiFiAllNodeHostname(cluster.Name, cluster.Namespace,
+			cluster.Spec.ListenersConfig.GetClusterDomain(), cluster.Spec.ListenersConfig.UseExternalDNS,
+			cluster.Spec.Service.GetServiceTemplate()))
+
 	names = append(names,
-		nifi.ComputeRequestNiFiNodeHostname(nodeId, cluster.Name, cluster.Namespace, cluster.Spec.Service.HeadlessEnabled,
-			cluster.Spec.ListenersConfig.GetClusterDomain(), cluster.Spec.ListenersConfig.UseExternalDNS))
+		nifi.ComputeRequestNiFiNodeHostname(nodeId, cluster.Name, cluster.Namespace,
+			cluster.Spec.Service.HeadlessEnabled, cluster.Spec.ListenersConfig.GetClusterDomain(),
+			cluster.Spec.ListenersConfig.UseExternalDNS, cluster.Spec.Service.GetServiceTemplate()))
 
 	if !cluster.Spec.ListenersConfig.UseExternalDNS {
 		// SVC notation
 		names = append(names,
 			nifi.ComputeRequestNiFiAllNodeNamespaceFull(cluster.Name, cluster.Namespace,
-				cluster.Spec.Service.HeadlessEnabled, cluster.Spec.ListenersConfig.UseExternalDNS))
+				cluster.Spec.ListenersConfig.UseExternalDNS, cluster.Spec.Service.GetServiceTemplate()))
 		names = append(names,
 			nifi.ComputeRequestNiFiNodeNamespaceFull(nodeId, cluster.Name, cluster.Namespace,
-				cluster.Spec.Service.HeadlessEnabled, cluster.Spec.ListenersConfig.UseExternalDNS))
+				cluster.Spec.Service.HeadlessEnabled, cluster.Spec.ListenersConfig.UseExternalDNS,
+				cluster.Spec.Service.GetServiceTemplate()))
 
 		// Namespace notation
 		names = append(names,
 			nifi.ComputeRequestNiFiAllNodeNamespace(cluster.Name, cluster.Namespace,
-				cluster.Spec.Service.HeadlessEnabled, cluster.Spec.ListenersConfig.UseExternalDNS))
+				cluster.Spec.ListenersConfig.UseExternalDNS, cluster.Spec.Service.GetServiceTemplate()))
 		names = append(names,
 			nifi.ComputeRequestNiFiNodeNamespace(nodeId, cluster.Name, cluster.Namespace,
-				cluster.Spec.Service.HeadlessEnabled, cluster.Spec.ListenersConfig.UseExternalDNS))
+				cluster.Spec.Service.HeadlessEnabled, cluster.Spec.ListenersConfig.UseExternalDNS,
+				cluster.Spec.Service.GetServiceTemplate()))
 
 		// Service name only
 		names = append(names,
-			nifi.ComputeRequestNiFiAllNodeService(cluster.Name, cluster.Spec.Service.HeadlessEnabled))
+			nifi.ComputeRequestNiFiAllNodeService(cluster.Name, cluster.Spec.Service.GetServiceTemplate()))
 		names = append(names,
-			nifi.ComputeRequestNiFiNodeService(nodeId, cluster.Name, cluster.Spec.Service.HeadlessEnabled))
+			nifi.ComputeRequestNiFiNodeService(nodeId, cluster.Name, cluster.Spec.Service.HeadlessEnabled,
+				cluster.Spec.Service.GetServiceTemplate()))
 
 		// Pod name only
 		if cluster.Spec.Service.HeadlessEnabled {
@@ -139,8 +147,8 @@ func ClusterDNSNames(cluster *v1alpha1.NifiCluster, nodeId int32) (names []strin
 				nifi.ComputeNodeName(nodeId, cluster.Name))
 		} else {
 			names = append(names, nifi.ComputeHostListenerNodeHostname(
-				nodeId, cluster.Name, cluster.Namespace, cluster.Spec.Service.HeadlessEnabled,
-				cluster.Spec.ListenersConfig.GetClusterDomain(), cluster.Spec.ListenersConfig.UseExternalDNS))
+				nodeId, cluster.Name, cluster.Namespace, cluster.Spec.ListenersConfig.GetClusterDomain(),
+				cluster.Spec.ListenersConfig.UseExternalDNS, cluster.Spec.Service.GetServiceTemplate()))
 		}
 	}
 	return
@@ -187,18 +195,19 @@ func nodeUserForClusterNode(cluster *v1alpha1.NifiCluster, nodeId int32, additio
 
 // ControllerUserForCluster returns a NifiUser CR for the controller/cc certificates in a NifiCluster
 func ControllerUserForCluster(cluster *v1alpha1.NifiCluster) *v1alpha1.NifiUser {
-	nodeControllerName := fmt.Sprintf(NodeControllerFQDNTemplate,
-		fmt.Sprintf(NodeControllerTemplate, cluster.Name),
-		cluster.Namespace,
-		cluster.Spec.ListenersConfig.GetClusterDomain())
+	/*nodeControllerName := fmt.Sprintf(NodeControllerFQDNTemplate,
+	cluster.GetNifiControllerUserIdentity(),
+	cluster.Namespace,
+	cluster.Spec.ListenersConfig.GetClusterDomain())*/
+
 	return &v1alpha1.NifiUser{
 		ObjectMeta: templates.ObjectMeta(
-			nodeControllerName,
+			cluster.GetNifiControllerUserIdentity(),
 			LabelsForNifiPKI(cluster.Name), cluster,
 		),
 		Spec: v1alpha1.NifiUserSpec{
-			DNSNames:   []string{nodeControllerName},
-			SecretName: fmt.Sprintf(NodeControllerTemplate, cluster.Name),
+			DNSNames:   []string{cluster.GetNifiControllerUserIdentity()},
+			SecretName: cluster.GetNifiControllerUserIdentity(),
 			IncludeJKS: true,
 			ClusterRef: v1alpha1.ClusterReference{
 				Name:      cluster.Name,

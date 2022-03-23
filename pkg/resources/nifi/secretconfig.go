@@ -14,14 +14,13 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/go-logr/logr"
+	"github.com/imdario/mergo"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/resources/templates"
 	"github.com/konpyutaika/nifikop/pkg/resources/templates/config"
 	"github.com/konpyutaika/nifikop/pkg/util"
-	pkicommon "github.com/konpyutaika/nifikop/pkg/util/pki"
 	utilpki "github.com/konpyutaika/nifikop/pkg/util/pki"
-	"github.com/go-logr/logr"
-	"github.com/imdario/mergo"
 	corev1 "k8s.io/api/core/v1"
 )
 
@@ -135,9 +134,9 @@ func (r *Reconciler) getNifiPropertiesConfigString(nConfig *v1alpha1.NodeConfig,
 			id,
 			r.NifiCluster.Namespace,
 			r.NifiCluster.Name,
-			r.NifiCluster.Spec.Service.HeadlessEnabled,
 			r.NifiCluster.Spec.ListenersConfig.GetClusterDomain(),
 			r.NifiCluster.Spec.ListenersConfig.UseExternalDNS,
+			r.NifiCluster.Spec.Service.GetServiceTemplate(),
 			log),
 		"ProvenanceStorage":                  nConfig.GetProvenanceStorage(),
 		"SiteToSiteSecure":                   useSSL,
@@ -416,16 +415,24 @@ func (r *Reconciler) getAuthorizersConfigString(nConfig *v1alpha1.NodeConfig, id
 	var out bytes.Buffer
 	t := template.Must(template.New("nConfig-config").Parse(authorizersTemplate))
 
+	/*nifiControllerName := fmt.Sprintf(
+		pkicommon.NodeControllerFQDNTemplate,
+		r.NifiCluster.GetNifiControllerUserIdentity(),
+		r.NifiCluster.Namespace,
+		r.NifiCluster.Spec.ListenersConfig.GetClusterDomain(),
+	)
+
+	if r.NifiCluster.Spec.ControllerUserIdentity != nil {
+		nifiControllerName = *r.NifiCluster.Spec.ControllerUserIdentity
+	}*/
+
 	if err := t.Execute(&out, map[string]interface{}{
-		"NifiCluster": r.NifiCluster,
-		"Id":          id,
-		"ClusterName": r.NifiCluster.Name,
-		"Namespace":   r.NifiCluster.Namespace,
-		"NodeList":    nodeList,
-		"ControllerUser": fmt.Sprintf(pkicommon.NodeControllerFQDNTemplate,
-			fmt.Sprintf(pkicommon.NodeControllerTemplate, r.NifiCluster.Name),
-			r.NifiCluster.Namespace,
-			r.NifiCluster.Spec.ListenersConfig.GetClusterDomain()),
+		"NifiCluster":    r.NifiCluster,
+		"Id":             id,
+		"ClusterName":    r.NifiCluster.Name,
+		"Namespace":      r.NifiCluster.Namespace,
+		"NodeList":       nodeList,
+		"ControllerUser": r.NifiCluster.GetNifiControllerUserIdentity(),
 	}); err != nil {
 		log.Error(err, "error occurred during parsing the config template")
 	}

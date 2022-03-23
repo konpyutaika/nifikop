@@ -47,6 +47,11 @@ spec:
                 description: clusterImage can specify the whole NiFi cluster image
                   in one place
                 type: string
+              controllerUserIdentity:
+                description: 'ControllerUserIdentity specifies what to call the static
+                  admin user''s identity Warning: once defined don''t change this
+                  value either the operator will no longer be able to manage the cluster'
+                type: string
               disruptionBudget:
                 description: Defines the configuration for PodDisruptionBudget
                 properties:
@@ -1430,6 +1435,12 @@ spec:
                 required:
                 - retryDurationMinutes
                 type: object
+              nifiControllerTemplate:
+                description: 'NifiControllerTemplate specifies the template to be
+                  used when naming the node controller (e.g. %s-mysuffix) Warning:
+                  once defined don''t change this value either the operator will no
+                  longer be able to manage the cluster'
+                type: string
               nifiURI:
                 description: nifiURI used access through a LB uri (used if external
                   type)
@@ -3483,6 +3494,10 @@ spec:
               nodeURITemplate:
                 description: nodeURITemplate used to dynamically compute node uri
                   (used if external type)
+                type: string
+              nodeUserIdentityTemplate:
+                description: NodeUserIdentityTemplate specifies the template to be
+                  used when naming the node user identity (e.g. node-%d-mysuffix)
                 type: string
               nodes:
                 description: all node requires an image, unique id, and storageConfigs
@@ -6477,7 +6492,7 @@ spec:
                   headlessEnabled:
                     description: HeadlessEnabled specifies if the cluster should use
                       headlessService for Nifi or individual services using service
-                      per nodes may come an handy case of service mesh.
+                      per nodes may come a handy case of service mesh.
                     type: boolean
                   labels:
                     additionalProperties:
@@ -6485,6 +6500,10 @@ spec:
                     description: Labels specifies the labels to attach to services
                       the operator creates
                     type: object
+                  serviceTemplate:
+                    description: ServiceTemplate specifies the template to be used
+                      when naming the service (e.g. %s-mysuffix)
+                    type: string
                 required:
                 - headlessEnabled
                 type: object
