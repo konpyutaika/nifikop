@@ -93,9 +93,13 @@ type NifiClusterSpec struct {
 	// TopologySpreadConstraints specifies any TopologySpreadConstraint objects to be applied to all nodes
 	TopologySpreadConstraints []corev1.TopologySpreadConstraint `json:"topologySpreadConstraints,omitempty"`
 	// NifiControllerTemplate specifies the template to be used when naming the node controller (e.g. %s-mysuffix)
+	// Warning: once defined don't change this value either the operator will no longer be able to manage the cluster
 	NifiControllerTemplate *string `json:"nifiControllerTemplate,omitempty"`
 	// ControllerUserIdentity specifies what to call the static admin user's identity
+	// Warning: once defined don't change this value either the operator will no longer be able to manage the cluster
 	ControllerUserIdentity *string `json:"controllerUserIdentity,omitempty"`
+
+	// @TODO: Block Controller change
 }
 
 // DisruptionBudget defines the configuration for PodDisruptionBudget
