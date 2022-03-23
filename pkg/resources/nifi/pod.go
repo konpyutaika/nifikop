@@ -460,7 +460,7 @@ exec bin/nifi.sh run`, resolveIp, removesFileAction)}
 		Image:           util.GetNodeImage(nodeConfig, r.NifiCluster.Spec.ClusterImage),
 		ImagePullPolicy: nodeConfig.GetImagePullPolicy(),
 		Lifecycle: &corev1.Lifecycle{
-			PreStop: &corev1.Handler{
+			PreStop: &corev1.LifecycleHandler{
 				Exec: &corev1.ExecAction{
 					Command: []string{"bash", "-c", "$NIFI_HOME/bin/nifi.sh stop"},
 				},
@@ -472,7 +472,7 @@ exec bin/nifi.sh run`, resolveIp, removesFileAction)}
 			TimeoutSeconds:      readinessHealthCheckTimeout,
 			PeriodSeconds:       readinessHealthCheckPeriod,
 			FailureThreshold:    readinessHealthCheckThreshold,
-			Handler: corev1.Handler{
+			ProbeHandler: corev1.ProbeHandler{
 				/*HTTPGet: &corev1.HTTPGetAction{
 					Path: "/nifi-api",
 					Port: intstr.FromInt(int(GetServerPort(&r.NifiCluster.Spec.ListenersConfig))),
@@ -493,7 +493,7 @@ exec bin/nifi.sh run`, resolveIp, removesFileAction)}
 			TimeoutSeconds:      livenessHealthCheckTimeout,
 			PeriodSeconds:       livenessHealthCheckPeriod,
 			FailureThreshold:    livenessHealthCheckThreshold,
-			Handler: corev1.Handler{
+			ProbeHandler: corev1.ProbeHandler{
 				TCPSocket: &corev1.TCPSocketAction{
 					Port: *util.IntstrPointer(int(GetServerPort(r.NifiCluster.Spec.ListenersConfig))),
 				},

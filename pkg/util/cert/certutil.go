@@ -13,8 +13,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	certv1 "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha2"
+	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	keystore "github.com/pavel-v-chernykh/keystore-go"
 	corev1 "k8s.io/api/core/v1"
 )

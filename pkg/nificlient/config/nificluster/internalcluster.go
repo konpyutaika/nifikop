@@ -2,8 +2,8 @@ package nificluster
 
 import (
 	"fmt"
-	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/go-logr/logr"
+	"github.com/konpyutaika/nifikop/api/v1alpha1"
 )
 
 type InternalCluster struct {

@@ -8,9 +8,9 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/go-logr/logr"
 	"github.com/konpyutaika/nifikop/pkg/resources/templates"
 	"github.com/konpyutaika/nifikop/pkg/util"
-	"github.com/go-logr/logr"
 	policyv1beta1 "k8s.io/api/policy/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
