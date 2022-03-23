@@ -178,12 +178,8 @@ done`,
 
 	//if r.NifiCluster.Spec.Service.HeadlessEnabled {
 	pod.Spec.Hostname = nifiutil.ComputeNodeName(id, r.NifiCluster.Name)
-<<<<<<< HEAD
 	pod.Spec.Subdomain = nifiutil.ComputeRequestNiFiAllNodeService(r.NifiCluster.Name,
 		r.NifiCluster.Spec.Service.GetServiceTemplate())
-=======
-	pod.Spec.Subdomain = nifiutil.ComputeRequestNiFiAllNodeService(r.NifiCluster.Name, r.NifiCluster.Spec.Service.HeadlessEnabled, r.NifiCluster.Spec.Service.GetHeadlessServiceTemplate())
->>>>>>> 49546877 (Merge pull request #21 from influxdata/genehynson/configurable-identities-service-suffix)
 	//}
 
 	if nodeConfig.NodeAffinity != nil {
@@ -325,11 +321,7 @@ func generateVolumesForSSL(cluster *v1alpha1.NifiCluster, nodeId int32) []corev1
 			Name: clientKeystoreVolume,
 			VolumeSource: corev1.VolumeSource{
 				Secret: &corev1.SecretVolumeSource{
-<<<<<<< HEAD
 					SecretName:  cluster.GetNifiControllerUserIdentity(),
-=======
-					SecretName:  fmt.Sprintf(cluster.Spec.GetNodeControllerTemplate(), cluster.Name),
->>>>>>> 49546877 (Merge pull request #21 from influxdata/genehynson/configurable-identities-service-suffix)
 					DefaultMode: util.Int32Pointer(0644),
 				},
 			},
@@ -434,15 +426,9 @@ rm -f $NIFI_BASE_DIR/cluster.state `,
 		failCondition)
 
 	nodeAddress := nifiutil.ComputeHostListenerNodeAddress(
-<<<<<<< HEAD
 		id, r.NifiCluster.Name, r.NifiCluster.Namespace, r.NifiCluster.Spec.ListenersConfig.GetClusterDomain(),
 		r.NifiCluster.Spec.ListenersConfig.UseExternalDNS, r.NifiCluster.Spec.ListenersConfig.InternalListeners,
 		r.NifiCluster.Spec.Service.GetServiceTemplate())
-=======
-		id, r.NifiCluster.Name, r.NifiCluster.Namespace, r.NifiCluster.Spec.Service.HeadlessEnabled, r.NifiCluster.Spec.Service.GetHeadlessServiceTemplate(),
-		r.NifiCluster.Spec.ListenersConfig.GetClusterDomain(), r.NifiCluster.Spec.ListenersConfig.UseExternalDNS,
-		r.NifiCluster.Spec.ListenersConfig.InternalListeners)
->>>>>>> 49546877 (Merge pull request #21 from influxdata/genehynson/configurable-identities-service-suffix)
 
 	resolveIp := ""
 

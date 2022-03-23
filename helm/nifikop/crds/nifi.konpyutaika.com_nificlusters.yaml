@@ -36,10 +36,6 @@ spec:
           spec:
             description: NifiClusterSpec defines the desired state of NifiCluster
             properties:
-              adminUserIdentity:
-                description: AdminUserIdentity specifies what to call the static admin
-                  user's identity
-                type: string
               clientType:
                 description: clientType defines if the operator will use basic or
                   tls authentication to query the NiFi cluster.
@@ -5129,88 +5125,7 @@ spec:
                             - mountPath
                             - name
                             type: object
-<<<<<<< HEAD:helm/nifikop/crds/nifi.konpyutaika.com_nificlusters.yaml
                           type: array
-=======
-                        required:
-                        - mountPath
-                        - name
-                        - pvcSpec
-                        type: object
-                      type: array
-                    tolerations:
-                      description: tolerations can be specified, which set the pod's
-                        tolerations https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/#concepts
-                      items:
-                        description: The pod this Toleration is attached to tolerates
-                          any taint that matches the triple <key,value,effect> using
-                          the matching operator <operator>.
-                        properties:
-                          effect:
-                            description: Effect indicates the taint effect to match.
-                              Empty means match all taint effects. When specified,
-                              allowed values are NoSchedule, PreferNoSchedule and
-                              NoExecute.
-                            type: string
-                          key:
-                            description: Key is the taint key that the toleration
-                              applies to. Empty means match all taint keys. If the
-                              key is empty, operator must be Exists; this combination
-                              means to match all values and all keys.
-                            type: string
-                          operator:
-                            description: Operator represents a key's relationship
-                              to the value. Valid operators are Exists and Equal.
-                              Defaults to Equal. Exists is equivalent to wildcard
-                              for value, so that a pod can tolerate all taints of
-                              a particular category.
-                            type: string
-                          tolerationSeconds:
-                            description: TolerationSeconds represents the period of
-                              time the toleration (which must be of effect NoExecute,
-                              otherwise this field is ignored) tolerates the taint.
-                              By default, it is not set, which means tolerate the
-                              taint forever (do not evict). Zero and negative values
-                              will be treated as 0 (evict immediately) by the system.
-                            format: int64
-                            type: integer
-                          value:
-                            description: Value is the taint value the toleration matches
-                              to. If the operator is Exists, the value should be empty,
-                              otherwise just a regular string.
-                            type: string
-                        type: object
-                      type: array
-                  type: object
-                description: nodeConfigGroups specifies multiple node configs with
-                  unique name
-                type: object
-              nodeControllerTemplate:
-                description: NodeControllerTemplate specifies the template to be used
-                  when naming the node controller (e.g. %s-mysuffix)
-                type: string
-              nodeURITemplate:
-                description: nodeURITemplate used to dynamically compute node uri
-                  (used if external type)
-                type: string
-              nodeUserIdentityTemplate:
-                description: NodeUserIdentityTemplate specifies the template to be
-                  used when naming the node user identity (e.g. node-%d-mysuffix)
-                type: string
-              nodes:
-                description: all node requires an image, unique id, and storageConfigs
-                  settings
-                items:
-                  description: Node defines the nifi node basic configuration
-                  properties:
-                    id:
-                      description: Unique Node id
-                      format: int32
-                      type: integer
-                    nodeConfig:
-                      description: node configuration
-                      properties:
->>>>>>> 49546877 (Merge pull request #21 from influxdata/genehynson/configurable-identities-service-suffix):helm/nifikop/crds/nifi.orange.com_nificlusters.yaml
                         fsGroup:
                           description: FSGroup define the id of the group for each
                             volumes in Nifi image
@@ -6579,7 +6494,6 @@ spec:
                       headlessService for Nifi or individual services using service
                       per nodes may come a handy case of service mesh.
                     type: boolean
-<<<<<<< HEAD:helm/nifikop/crds/nifi.konpyutaika.com_nificlusters.yaml
                   labels:
                     additionalProperties:
                       type: string
@@ -6589,11 +6503,6 @@ spec:
                   serviceTemplate:
                     description: ServiceTemplate specifies the template to be used
                       when naming the service (e.g. %s-mysuffix)
-=======
-                  headlessServiceTemplate:
-                    description: HeadlessServiceTemplate specifies the template to
-                      be used when naming the headless service (e.g. %s-mysuffix)
->>>>>>> 49546877 (Merge pull request #21 from influxdata/genehynson/configurable-identities-service-suffix):helm/nifikop/crds/nifi.orange.com_nificlusters.yaml
                     type: string
                 required:
                 - headlessEnabled

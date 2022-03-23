@@ -12,12 +12,8 @@ func (r *Reconciler) allNodeService() runtimeClient.Object {
 	usedPorts := generateServicePortForInternalListeners(r.NifiCluster.Spec.ListenersConfig.InternalListeners)
 
 	return &corev1.Service{
-<<<<<<< HEAD
 		ObjectMeta: templates.ObjectMetaWithAnnotations(
 			r.NifiCluster.GetNodeServiceName(),
-=======
-		ObjectMeta: templates.ObjectMetaWithAnnotations(nifiutils.ComputeRequestNiFiAllNodeService(r.NifiCluster.Name, false, ""),
->>>>>>> 49546877 (Merge pull request #21 from influxdata/genehynson/configurable-identities-service-suffix)
 			nifiutils.LabelsForNifi(r.NifiCluster.Name),
 			r.NifiCluster.Spec.Service.Annotations,
 			r.NifiCluster),
