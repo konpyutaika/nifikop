@@ -90,7 +90,6 @@ type NifiClusterSpec struct {
 	SidecarConfigs []corev1.Container `json:"sidecarConfigs,omitempty" patchStrategy:"merge" patchMergeKey:"name" protobuf:"bytes,2,rep,name=containers"`
 	// ExternalService specifies settings required to access nifi externally
 	ExternalServices []ExternalServiceConfig `json:"externalServices,omitempty"`
-<<<<<<< HEAD
 	// TopologySpreadConstraints specifies any TopologySpreadConstraint objects to be applied to all nodes
 	TopologySpreadConstraints []corev1.TopologySpreadConstraint `json:"topologySpreadConstraints,omitempty"`
 	// NifiControllerTemplate specifies the template to be used when naming the node controller (e.g. %s-mysuffix)
@@ -101,16 +100,6 @@ type NifiClusterSpec struct {
 	ControllerUserIdentity *string `json:"controllerUserIdentity,omitempty"`
 
 	// @TODO: Block Controller change
-=======
-	// RemoveFlowFileOnStartup specifies if flow.xml.gz should be removed on startup
-	RemoveFlowFileOnStartup *bool `json:"removeFlowFileOnStartup,omitempty"`
-	// AdminUserIdentity specifies what to call the static admin user's identity
-	AdminUserIdentity *string `json:"adminUserIdentity,omitempty"`
-	// NodeUserIdentityTemplate specifies the template to be used when naming the node user identity (e.g. node-%d-mysuffix)
-	NodeUserIdentityTemplate *string `json:"nodeUserIdentityTemplate,omitempty"`
-	// NodeControllerTemplate specifies the template to be used when naming the node controller (e.g. %s-mysuffix)
-	NodeControllerTemplate *string `json:"nodeControllerTemplate,omitempty"`
->>>>>>> 49546877 (Merge pull request #21 from influxdata/genehynson/configurable-identities-service-suffix)
 }
 
 // DisruptionBudget defines the configuration for PodDisruptionBudget
@@ -127,13 +116,8 @@ type ServicePolicy struct {
 	// HeadlessEnabled specifies if the cluster should use headlessService for Nifi or individual services
 	// using service per nodes may come a handy case of service mesh.
 	HeadlessEnabled bool `json:"headlessEnabled"`
-<<<<<<< HEAD
 	// ServiceTemplate specifies the template to be used when naming the service (e.g. %s-mysuffix)
 	ServiceTemplate string `json:"serviceTemplate,omitempty"`
-=======
-	// HeadlessServiceTemplate specifies the template to be used when naming the headless service (e.g. %s-mysuffix)
-	HeadlessServiceTemplate string `json:"headlessServiceTemplate,omitempty"`
->>>>>>> 49546877 (Merge pull request #21 from influxdata/genehynson/configurable-identities-service-suffix)
 	// Annotations specifies the annotations to attach to services the operator creates
 	Annotations map[string]string `json:"annotations,omitempty"`
 	// Labels specifies the labels to attach to services the operator creates
@@ -724,7 +708,6 @@ func (nSpec *NifiClusterSpec) GetMetricPort() *int {
 	return nil
 }
 
-<<<<<<< HEAD
 func (cluster *NifiCluster) GetNifiControllerUserIdentity() string {
 	if cluster.Spec.ControllerUserIdentity != nil {
 		return *cluster.Spec.ControllerUserIdentity
@@ -748,20 +731,6 @@ func (service *ServicePolicy) GetServiceTemplate() string {
 		return "%s-headless"
 	}
 	return "%s-all-node"
-=======
-func (nSpec *NifiClusterSpec) GetRemoveFlowFileOnStartup() bool {
-	if nSpec.RemoveFlowFileOnStartup != nil {
-		return *nSpec.RemoveFlowFileOnStartup
-	}
-	return true
-}
-
-func (nSpec *NifiClusterSpec) GetNodeControllerTemplate() string {
-	if nSpec.NodeControllerTemplate != nil {
-		return *nSpec.NodeControllerTemplate
-	}
-	return "%s-controller"
->>>>>>> 49546877 (Merge pull request #21 from influxdata/genehynson/configurable-identities-service-suffix)
 }
 
 func (cluster *NifiCluster) RootProcessGroupId() string {
@@ -807,11 +776,4 @@ func (cluster NifiCluster) IsReady() bool {
 
 func (cluster *NifiCluster) Id() string {
 	return cluster.Name
-}
-
-func (service *ServicePolicy) GetHeadlessServiceTemplate() string {
-	if service.HeadlessServiceTemplate != "" {
-		return service.HeadlessServiceTemplate
-	}
-	return "%s-headless"
 }

@@ -15,16 +15,11 @@ func (r *Reconciler) headlessService() runtimeClient.Object {
 
 	return &corev1.Service{
 		ObjectMeta: templates.ObjectMetaWithAnnotations(
-<<<<<<< HEAD
 			r.NifiCluster.GetNodeServiceName(),
 			util.MergeLabels(
 				r.NifiCluster.Spec.Service.Labels,
 				nifiutils.LabelsForNifi(r.NifiCluster.Name),
 				r.NifiCluster.Labels),
-=======
-			fmt.Sprintf(r.NifiCluster.Spec.Service.GetHeadlessServiceTemplate(), r.NifiCluster.Name),
-			util.MergeLabels(nifiutils.LabelsForNifi(r.NifiCluster.Name), r.NifiCluster.Labels),
->>>>>>> 49546877 (Merge pull request #21 from influxdata/genehynson/configurable-identities-service-suffix)
 			r.NifiCluster.Spec.Service.Annotations,
 			r.NifiCluster,
 		),
