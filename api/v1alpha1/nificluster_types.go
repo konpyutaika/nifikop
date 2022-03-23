@@ -120,11 +120,15 @@ type ServicePolicy struct {
 	ServiceTemplate string `json:"serviceTemplate,omitempty"`
 	// Annotations specifies the annotations to attach to services the operator creates
 	Annotations map[string]string `json:"annotations,omitempty"`
+	// Labels specifies the labels to attach to services the operator creates
+	Labels map[string]string `json:"labels,omitempty"`
 }
 
 type PodPolicy struct {
 	// Annotations specifies the annotations to attach to pods the operator creates
 	Annotations map[string]string `json:"annotations,omitempty"`
+	// Labels specifies additional labels to attach to the pods the operator creates
+	Labels map[string]string `json:"labels,omitempty"`
 }
 
 // rollingUpgradeConfig specifies the rolling upgrade config for the cluster
@@ -282,9 +286,17 @@ type NodeConfig struct {
 	// tolerations can be specified, which set the pod's tolerations
 	// https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/#concepts
 	Tolerations []corev1.Toleration `json:"tolerations,omitempty"`
-	// Additionnal annotation to attach to the pod associated
+	// podMetadata allows to add additionnal metadata to the node pods
+	PodMetadata Metadata `json:"podMetadata,omitempty"`
+}
+
+type Metadata struct {
+	// Additionnal annotation to merge to the resource associated
 	// https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#syntax-and-character-set
-	NodeAnnotations map[string]string `json:"nifiAnnotations,omitempty"`
+	Annotations map[string]string `json:"annotations,omitempty"`
+	// Additionnal labels to merge to the resource associated
+	// https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#syntax-and-character-set
+	Labels map[string]string `json:"labels,omitempty"`
 }
 
 // StorageConfig defines the node storage configuration
@@ -377,11 +389,8 @@ type ExternalServiceConfig struct {
 	// More info: http://kubernetes.io/docs/user-guide/identifiers#names
 	// +optional
 	Name string `json:"name"`
-	// Annotations is an unstructured key value map stored with a resource that may be
-	// set by external tools to store and retrieve arbitrary metadata. They are not
-	// queryable and should be preserved when modifying objects.
-	// More info: http://kubernetes.io/docs/user-guide/annotations
-	ServiceAnnotations map[string]string `json:"serviceAnnotations,omitempty"`
+	// metadata allows to add additionnal metadata to the service
+	Metadata Metadata `json:"metadata,omitempty"`
 	// Spec defines the behavior of a service.
 	Spec ExternalServiceSpec `json:"spec"`
 }
@@ -610,8 +619,13 @@ func (nConfig *NodeConfig) GetImagePullPolicy() corev1.PullPolicy {
 }
 
 //
-func (nConfig *NodeConfig) GetNodeAnnotations() map[string]string {
-	return nConfig.NodeAnnotations
+func (nConfig *NodeConfig) GetPodAnnotations() map[string]string {
+	return nConfig.PodMetadata.Annotations
+}
+
+// GetNodeLabels returns additional labels configured to be applied to each nifi node
+func (nConfig *NodeConfig) GetPodLabels() map[string]string {
+	return nConfig.PodMetadata.Labels
 }
 
 // GetResources returns the nifi node specific Kubernetes resource
