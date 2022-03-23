@@ -146,7 +146,6 @@ spec:
 
 ## ServicePolicy
 
-<<<<<<< HEAD
 | Field           | Type                | Description                                                                                                                                         | Required | Default                                                   |
 | --------------- |---------------------| --------------------------------------------------------------------------------------------------------------------------------------------------- |----------|-----------------------------------------------------------|
 | headlessEnabled | boolean             | specifies if the cluster should use headlessService for Nifi or individual services using service per nodes may come an handy case of service mesh. | Yes      | false                                                     |
