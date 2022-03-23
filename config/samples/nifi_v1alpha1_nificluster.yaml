@@ -7,6 +7,8 @@ spec:
     # headlessEnabled specifies if the cluster should use headlessService for Nifi or individual services
     # using service per nodes may come an handy case of service mesh.
     headlessEnabled: true
+    # serviceTemplate specifies the template to be used when naming the service (e.g. %s-mysuffix)
+    serviceTemplate:  "%s-svc"
     # Annotations specifies the annotations to attach to services the operator creates
     # annotations:
     # Labels specifies the labels to attach to services the operator creates
@@ -162,6 +164,8 @@ spec:
       # https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#bootstrap_properties
       overrideConfigs: |
         # java.arg.4=-Djava.net.preferIPv4Stack=true
+  # nodeUserIdentityTemplate specifies the template to be used when naming the node user identity (e.g. node-%d-mysuffix)
+  nodeUserIdentityTemplate: "n-%d"
   # nodeConfigGroups specifies multiple node configs with unique name
   nodeConfigGroups:
     default_group:

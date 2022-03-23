@@ -1,6 +1,7 @@
 package v1alpha1
 
 import (
+	"fmt"
 	"strings"
 
 	cmmeta "github.com/jetstack/cert-manager/pkg/apis/meta/v1"
@@ -71,6 +72,8 @@ type NifiClusterSpec struct {
 	ReadOnlyConfig ReadOnlyConfig `json:"readOnlyConfig,omitempty"`
 	// nodeConfigGroups specifies multiple node configs with unique name
 	NodeConfigGroups map[string]NodeConfig `json:"nodeConfigGroups,omitempty"`
+	// NodeUserIdentityTemplate specifies the template to be used when naming the node user identity (e.g. node-%d-mysuffix)
+	NodeUserIdentityTemplate *string `json:"nodeUserIdentityTemplate,omitempty"`
 	// all node requires an image, unique id, and storageConfigs settings
 	Nodes []Node `json:"nodes"`
 	// Defines the configuration for PodDisruptionBudget
@@ -89,6 +92,14 @@ type NifiClusterSpec struct {
 	ExternalServices []ExternalServiceConfig `json:"externalServices,omitempty"`
 	// TopologySpreadConstraints specifies any TopologySpreadConstraint objects to be applied to all nodes
 	TopologySpreadConstraints []corev1.TopologySpreadConstraint `json:"topologySpreadConstraints,omitempty"`
+	// NifiControllerTemplate specifies the template to be used when naming the node controller (e.g. %s-mysuffix)
+	// Warning: once defined don't change this value either the operator will no longer be able to manage the cluster
+	NifiControllerTemplate *string `json:"nifiControllerTemplate,omitempty"`
+	// ControllerUserIdentity specifies what to call the static admin user's identity
+	// Warning: once defined don't change this value either the operator will no longer be able to manage the cluster
+	ControllerUserIdentity *string `json:"controllerUserIdentity,omitempty"`
+
+	// @TODO: Block Controller change
 }
 
 // DisruptionBudget defines the configuration for PodDisruptionBudget
@@ -103,8 +114,10 @@ type DisruptionBudget struct {
 
 type ServicePolicy struct {
 	// HeadlessEnabled specifies if the cluster should use headlessService for Nifi or individual services
-	// using service per nodes may come an handy case of service mesh.
+	// using service per nodes may come a handy case of service mesh.
 	HeadlessEnabled bool `json:"headlessEnabled"`
+	// ServiceTemplate specifies the template to be used when naming the service (e.g. %s-mysuffix)
+	ServiceTemplate string `json:"serviceTemplate,omitempty"`
 	// Annotations specifies the annotations to attach to services the operator creates
 	Annotations map[string]string `json:"annotations,omitempty"`
 	// Labels specifies the labels to attach to services the operator creates
@@ -693,6 +706,31 @@ func (nSpec *NifiClusterSpec) GetMetricPort() *int {
 	}
 
 	return nil
+}
+
+func (cluster *NifiCluster) GetNifiControllerUserIdentity() string {
+	if cluster.Spec.ControllerUserIdentity != nil {
+		return *cluster.Spec.ControllerUserIdentity
+	}
+	template := "%s-controller"
+	if cluster.Spec.NifiControllerTemplate != nil {
+		template = *cluster.Spec.NifiControllerTemplate
+	}
+	return fmt.Sprintf(template, cluster.Name)
+}
+
+func (cluster *NifiCluster) GetNodeServiceName() string {
+	return fmt.Sprintf(cluster.Spec.Service.GetServiceTemplate(), cluster.Name)
+}
+
+func (service *ServicePolicy) GetServiceTemplate() string {
+	if service.ServiceTemplate != "" {
+		return service.ServiceTemplate
+	}
+	if service.HeadlessEnabled {
+		return "%s-headless"
+	}
+	return "%s-all-node"
 }
 
 func (cluster *NifiCluster) RootProcessGroupId() string {

@@ -2,6 +2,18 @@
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed Bugs
+
+## v0.9.0
+
+### Added
+
 - [PR #23](https://github.com/konpyutaika/nifikop/pull/23) - **[Operator/NiFiCluster]** Add ability to set services and pods labels
 - [PR #21](https://github.com/konpyutaika/nifikop/pull/21) - **[Operator]** Propagate user provided issuerRef Group for custom CertManager Issuer.
 - [PR #20](https://github.com/konpyutaika/nifikop/pull/20) - **[Operator]** Configurable log levels
@@ -13,6 +25,7 @@
 ### Changed
 
 - [PR #5](https://github.com/konpyutaika/nifikop/pull/5) - **[Documentation]** Change minikube by k3d.
+- [PR #24](https://github.com/konpyutaika/nifikop/pull/24) - **[Operator/NiFiCluster]** Configurable node services and users template
 
 ### Deprecated
 

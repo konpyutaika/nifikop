@@ -4,13 +4,11 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
-	"fmt"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"strings"
 
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
-	pkicommon "github.com/konpyutaika/nifikop/pkg/util/pki"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
@@ -21,7 +19,7 @@ import (
 func (c *certManager) GetControllerTLSConfig() (config *tls.Config, err error) {
 	config, err = GetControllerTLSConfigFromSecret(c.client, v1alpha1.SecretReference{
 		Namespace: c.cluster.Namespace,
-		Name:      fmt.Sprintf(pkicommon.NodeControllerTemplate, c.cluster.Name),
+		Name:      c.cluster.GetNifiControllerUserIdentity(),
 	})
 	return
 }
