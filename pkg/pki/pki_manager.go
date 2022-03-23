@@ -4,10 +4,10 @@ import (
 	"context"
 	"crypto/tls"
 
+	"github.com/go-logr/logr"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/pki/certmanagerpki"
 	"github.com/konpyutaika/nifikop/pkg/util/pki"
-	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )

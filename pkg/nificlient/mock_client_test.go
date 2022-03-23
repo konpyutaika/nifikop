@@ -5,10 +5,10 @@ import (
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
 	"testing"
 
-	"github.com/konpyutaika/nifikop/api/v1alpha1"
-	nifiutil "github.com/konpyutaika/nifikop/pkg/util/nifi"
 	nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
 	"github.com/jarcoal/httpmock"
+	"github.com/konpyutaika/nifikop/api/v1alpha1"
+	nifiutil "github.com/konpyutaika/nifikop/pkg/util/nifi"
 )
 
 var (

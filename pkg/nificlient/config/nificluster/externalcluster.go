@@ -2,10 +2,10 @@ package nificluster
 
 import (
 	"fmt"
+	"github.com/go-logr/logr"
 	"github.com/konpyutaika/nifikop/pkg/common"
 	"github.com/konpyutaika/nifikop/pkg/nificlient"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
-	"github.com/go-logr/logr"
 )
 
 type ExternalCluster struct {
