@@ -10,8 +10,8 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"time"
 
-	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
+	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 )
 
 var log = ctrl.Log.WithName("nifi_client")
