@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"emperror.dev/errors"
+	"github.com/go-logr/logr"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
-	"github.com/go-logr/logr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )

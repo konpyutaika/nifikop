@@ -2,11 +2,11 @@ package nifi
 
 import (
 	"fmt"
+	"github.com/go-logr/logr"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/resources/templates"
 	"github.com/konpyutaika/nifikop/pkg/util"
 	nifiutil "github.com/konpyutaika/nifikop/pkg/util/nifi"
-	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )

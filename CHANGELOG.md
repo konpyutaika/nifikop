@@ -4,6 +4,8 @@
 
 ### Changed
 
+- [PR #29](https://github.com/konpyutaika/nifikop/pull/29) - **[Operator]** Update operator-sdk to v1.18.1.
+
 ### Deprecated
 
 ### Removed

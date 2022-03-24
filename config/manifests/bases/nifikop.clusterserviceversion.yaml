@@ -1,0 +1,75 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: ClusterServiceVersion
+metadata:
+  annotations:
+    alm-examples: "[]"
+    capabilities: Basic Install
+  name: nifikop.v0.0.0
+  namespace: placeholder
+spec:
+  apiservicedefinitions: {}
+  customresourcedefinitions:
+    owned:
+      - description: NifiCluster is the Schema for the nificlusters API
+        displayName: Nifi Cluster
+        kind: NifiCluster
+        name: nificlusters.nifi.konpyutaika.com
+        version: v1alpha1
+      - description: NifiDataflow is the Schema for the nifidataflows API
+        displayName: Nifi Dataflow
+        kind: NifiDataflow
+        name: nifidataflows.nifi.konpyutaika.com
+        version: v1alpha1
+      - description:
+          NifiParameterContext is the Schema for the nifiparametercontexts
+          API
+        displayName: Nifi Parameter Context
+        kind: NifiParameterContext
+        name: nifiparametercontexts.nifi.konpyutaika.com
+        version: v1alpha1
+      - description: NifiRegistryClient is the Schema for the nifiregistryclients API
+        displayName: Nifi Registry Client
+        kind: NifiRegistryClient
+        name: nifiregistryclients.nifi.konpyutaika.com
+        version: v1alpha1
+      - description: NifiUserGroup is the Schema for the nifiusergroups API
+        displayName: Nifi User Group
+        kind: NifiUserGroup
+        name: nifiusergroups.nifi.konpyutaika.com
+        version: v1alpha1
+      - description: NifiUser is the Schema for the nifiusers API
+        displayName: Nifi User
+        kind: NifiUser
+        name: nifiusers.nifi.konpyutaika.com
+        version: v1alpha1
+  description: Nifikop description. TODO.
+  displayName: Nifikop
+  icon:
+    - base64data: ""
+      mediatype: ""
+  install:
+    spec:
+      deployments: null
+    strategy: ""
+  installModes:
+    - supported: false
+      type: OwnNamespace
+    - supported: false
+      type: SingleNamespace
+    - supported: false
+      type: MultiNamespace
+    - supported: true
+      type: AllNamespaces
+  keywords:
+    - nifikop
+  links:
+    - name: Nifikop
+      url: https://nifikop.domain
+  maintainers:
+    - email: your@email.com
+      name: Maintainer Name
+  maturity: alpha
+  provider:
+    name: Provider Name
+    url: https://your.domain
+  version: 0.0.0

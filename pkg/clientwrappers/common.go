@@ -3,8 +3,8 @@ package clientwrappers
 import (
 	"fmt"
 
-	"github.com/konpyutaika/nifikop/pkg/nificlient"
 	"github.com/go-logr/logr"
+	"github.com/konpyutaika/nifikop/pkg/nificlient"
 )
 
 func ErrorUpdateOperation(log logr.Logger, err error, action string) error {
