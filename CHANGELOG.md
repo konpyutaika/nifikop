@@ -5,6 +5,7 @@
 ### Changed
 
 - [PR #71](https://github.com/konpyutaika/nifikop/pull/71) - **[Operator]** Update cert-manager dep to v1.7.2 and all Certificate references to v1.
+- [PR #29](https://github.com/konpyutaika/nifikop/pull/29) - **[Operator]** Update operator-sdk to v1.18.1.
 
 ### Deprecated
 
