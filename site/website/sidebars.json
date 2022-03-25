@@ -67,6 +67,7 @@
       "5_references/6_nifi_usergroup"
     ],
     "Contributing": [
+      "6_contributing/0_contribution_organization",
       "6_contributing/1_developer_guide",
       "6_contributing/2_reporting_bugs",
       "6_contributing/3_credits"
