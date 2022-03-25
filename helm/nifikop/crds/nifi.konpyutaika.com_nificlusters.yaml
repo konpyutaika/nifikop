@@ -6093,6 +6093,54 @@ spec:
                             - name
                             type: object
                           type: array
+                        authorizerConfig:
+                          description: Authorizer configuration that will be applied
+                            to the node.
+                          properties:
+                            replaceTemplateConfigMap:
+                              description: 'A replacement authorizers.xml template
+                                configuration that will replace the default template.
+                                NOTE: this is a template as seen in authorizers.go.'
+                              properties:
+                                data:
+                                  description: The key of the value,in data content,
+                                    that we want use.
+                                  type: string
+                                name:
+                                  description: Name of the configmap that we want
+                                    to refer.
+                                  type: string
+                                namespace:
+                                  description: Namespace where is located the secret
+                                    that we want to refer.
+                                  type: string
+                              required:
+                              - data
+                              - name
+                              type: object
+                            replaceTemplateSecretConfig:
+                              description: 'a replacement authorizers.xml template
+                                configuration that will replace the default template
+                                and replaceConfigMap. NOTE: this is a template as
+                                seen in authorizers.go.'
+                              properties:
+                                data:
+                                  description: The key of the value,in data content,
+                                    that we want use.
+                                  type: string
+                                name:
+                                  description: Name of the configmap that we want
+                                    to refer.
+                                  type: string
+                                namespace:
+                                  description: Namespace where is located the secret
+                                    that we want to refer.
+                                  type: string
+                              required:
+                              - data
+                              - name
+                              type: object
+                          type: object
                         bootstrapNotificationServicesConfig:
                           description: BootstrapNotificationServices configuration
                             that will be applied to the node.
@@ -6523,6 +6571,51 @@ spec:
                       - name
                       type: object
                     type: array
+                  authorizerConfig:
+                    description: Authorizer configuration that will be applied to
+                      the node.
+                    properties:
+                      replaceTemplateConfigMap:
+                        description: 'A replacement authorizers.xml template configuration
+                          that will replace the default template. NOTE: this is a
+                          template as seen in authorizers.go.'
+                        properties:
+                          data:
+                            description: The key of the value,in data content, that
+                              we want use.
+                            type: string
+                          name:
+                            description: Name of the configmap that we want to refer.
+                            type: string
+                          namespace:
+                            description: Namespace where is located the secret that
+                              we want to refer.
+                            type: string
+                        required:
+                        - data
+                        - name
+                        type: object
+                      replaceTemplateSecretConfig:
+                        description: 'a replacement authorizers.xml template configuration
+                          that will replace the default template and replaceConfigMap.
+                          NOTE: this is a template as seen in authorizers.go.'
+                        properties:
+                          data:
+                            description: The key of the value,in data content, that
+                              we want use.
+                            type: string
+                          name:
+                            description: Name of the configmap that we want to refer.
+                            type: string
+                          namespace:
+                            description: Namespace where is located the secret that
+                              we want to refer.
+                            type: string
+                        required:
+                        - data
+                        - name
+                        type: object
+                    type: object
                   bootstrapNotificationServicesConfig:
                     description: BootstrapNotificationServices configuration that
                       will be applied to the node.
