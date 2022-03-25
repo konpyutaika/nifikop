@@ -405,6 +405,25 @@ func (r *Reconciler) getAuthorizersConfigString(nConfig *v1alpha1.NodeConfig, id
 	authorizersTemplate := config.EmptyAuthorizersTemplate
 	if r.NifiCluster.Status.NodesState[fmt.Sprint(id)].InitClusterNode {
 		authorizersTemplate = config.AuthorizersTemplate
+
+		// Check for secret/configmap overrides. If there aren't any, then use the default template.
+		if r.NifiCluster.Spec.ReadOnlyConfig.AuthorizerConfig.ReplaceTemplateConfigMap != nil {
+			conf, err := r.getConfigMap(context.TODO(), *r.NifiCluster.Spec.ReadOnlyConfig.AuthorizerConfig.ReplaceTemplateConfigMap)
+			if err == nil {
+				authorizersTemplate = conf
+			}
+			log.Error(err, "error occurred during getting authorizer readonly configmap")
+		}
+
+		// The secret takes precedence over the ConfigMap, if it exists.
+		if r.NifiCluster.Spec.ReadOnlyConfig.AuthorizerConfig.ReplaceTemplateSecretConfig != nil {
+			conf, err := r.getSecrectConfig(context.TODO(), *r.NifiCluster.Spec.ReadOnlyConfig.AuthorizerConfig.ReplaceTemplateSecretConfig)
+			if err == nil {
+				authorizersTemplate = conf
+			}
+			log.Error(err, "error occurred during getting authorizer readonly secret config")
+		}
+
 		for nId, nodeState := range r.NifiCluster.Status.NodesState {
 			if nodeState.InitClusterNode {
 				nodeList[nId] = utilpki.GetNodeUserName(r.NifiCluster, util.ConvertStringToInt32(nId))
