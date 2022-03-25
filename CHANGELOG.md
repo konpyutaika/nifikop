@@ -10,6 +10,8 @@
 
 ### Removed
 
+- [PR #74](https://github.com/konpyutaika/nifikop/pull/74) - **[Operator]** Removed legacy orange CRDs.
+
 ### Fixed Bugs
 
 ## v0.10.0
