@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	cmmeta "github.com/jetstack/cert-manager/pkg/apis/meta/v1"
+	autoscalingv2 "k8s.io/api/autoscaling/v2"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -75,7 +76,9 @@ type NifiClusterSpec struct {
 	// NodeUserIdentityTemplate specifies the template to be used when naming the node user identity (e.g. node-%d-mysuffix)
 	NodeUserIdentityTemplate *string `json:"nodeUserIdentityTemplate,omitempty"`
 	// all node requires an image, unique id, and storageConfigs settings
-	Nodes []Node `json:"nodes"`
+	Nodes []Node `json:"nodes,omitempty"`
+	// node replica configuration
+	AutoScalingConfig AutoScalingConfig `json:"autoScalingConfig,omitempty"`
 	// Defines the configuration for PodDisruptionBudget
 	DisruptionBudget DisruptionBudget `json:"disruptionBudget,omitempty"`
 	// LdapConfiguration specifies the configuration if you want to use LDAP
@@ -100,6 +103,48 @@ type NifiClusterSpec struct {
 	ControllerUserIdentity *string `json:"controllerUserIdentity,omitempty"`
 
 	// @TODO: Block Controller change
+}
+
+// configuration to be used if replica-style deployment is used.
+type AutoScalingConfig struct {
+	Enabled bool `json:"enabled"`
+	// The number of replicas to create. This should not be specified if Nodes is specified. This will be set by the Kubernetes scale controller
+	Replicas int32 `json:"replicas,omitempty"`
+	// The id of the node config group to apply to each replica.
+	ReplicaNodeConfigGroup string `json:"replicaNodeConfigGroup,omitempty"`
+	// the replica node readOnlyConfig
+	ReadOnlyConfig ReadOnlyConfig `json:"replicaNodeReadOnlyConfig,omitempty"`
+	// The strategy to use when scaling up the nifi cluster
+	// +kubebuilder:validation:Enum={"graceful","simple"}
+	UpscaleStrategy ClusterScalingStrategy `json:"upscaleStrategy,omitempty"`
+	// The strategy to use when scaling down the nifi cluster
+	// +kubebuilder:validation:Enum={"lifo","nonprimary","leastbusy"}
+	DownscaleStrategy ClusterScalingStrategy `json:"downscaleStrategy,omitempty"`
+	// Configuration for the HorizontalPodAutoscaler
+	HorizontalAutoscaler HorizontalAutoscaler `json:"horizontalAutoscaler"`
+}
+
+// configuration for a k8s HorizontalPodAutoscaler
+type HorizontalAutoscaler struct {
+	// maxReplicas is the upper limit for the number of replicas to which the autoscaler can scale up.
+	// It cannot be less that minReplicas.
+	MaxReplicas int32 `json:"maxReplicas"`
+	// minReplicas is the lower limit for the number of replicas to which the autoscaler
+	// can scale down.
+	MinReplicas int32 `json:"minReplicas,omitempty"`
+	// metrics contains the specifications for which to use to calculate the
+	// desired replica count (the maximum replica count across all metrics will
+	// be used).  The desired replica count is calculated multiplying the
+	// ratio between the target value and the current value by the current
+	// number of pods.  Ergo, metrics used must decrease as the pod count is
+	// increased, and vice-versa.  See the individual metric source types for
+	// more information about how each type of metric must respond.
+	// If not set, the default metric will be set to 80% average CPU utilization.
+	Metrics []autoscalingv2.MetricSpec `json:"metrics,omitempty"`
+	// behavior configures the scaling behavior of the target
+	// in both Up and Down directions (scaleUp and scaleDown fields respectively).
+	// If not set, the default HPAScalingRules for scale up and scale down are used.
+	Behavior *autoscalingv2.HorizontalPodAutoscalerBehavior `json:"behavior,omitempty"`
 }
 
 // DisruptionBudget defines the configuration for PodDisruptionBudget
@@ -491,6 +536,10 @@ type NifiClusterStatus struct {
 	RootProcessGroupId string `json:"rootProcessGroupId,omitempty"`
 	// PrometheusReportingTask contains the status of the prometheus reporting task managed by the operator
 	PrometheusReportingTask PrometheusReportingTaskStatus `json:"prometheusReportingTask,omitempty"`
+	// the current number of replicas in this cluster
+	Replicas ClusterReplicas `json:"replicas"`
+	// label selectors for cluster child pods. HPA uses this to identify pod replicas
+	Selector ClusterReplicaSelector `json:"selector"`
 }
 
 type PrometheusReportingTaskStatus struct {
@@ -502,6 +551,7 @@ type PrometheusReportingTaskStatus struct {
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
+// +kubebuilder:subresource:scale:specpath=.spec.autoScalingConfig.replicas,statuspath=.status.replicas,selectorpath=.status.selector
 
 // NifiCluster is the Schema for the nificlusters API
 type NifiCluster struct {

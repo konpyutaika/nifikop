@@ -275,6 +275,18 @@ rules:
 - apiGroups:
   - policy
   resources:
+  - horizontalpodautoscalers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - policy
+  resources:
   - poddisruptionbudgets
   verbs:
   - create

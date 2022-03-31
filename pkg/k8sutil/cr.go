@@ -17,7 +17,7 @@ func AddNewNodeToCr(node v1alpha1.Node, crName, namespace string, client runtime
 	}
 	cr.Spec.Nodes = append(cr.Spec.Nodes, node)
 
-	return updateCr(cr, client)
+	return UpdateCr(cr, client)
 }
 
 // RemoveNodeFromCr modifies the CR and removes the given node from the cluster
@@ -35,7 +35,7 @@ func RemoveNodeFromCr(nodeId, crName, namespace string, client runtimeClient.Cli
 		}
 	}
 	cr.Spec.Nodes = tmpNodes
-	return updateCr(cr, client)
+	return UpdateCr(cr, client)
 }
 
 // AddPvToSpecificNode adds a new PV to a specific node
@@ -53,7 +53,7 @@ func AddPvToSpecificNode(nodeId, crName, namespace string, storageConfig *v1alph
 	}
 
 	cr.Spec.Nodes = tempConfigs
-	return updateCr(cr, client)
+	return UpdateCr(cr, client)
 }
 
 // Cr returns the given cr object
@@ -67,7 +67,7 @@ func Cr(name, namespace string, client runtimeClient.Client) (*v1alpha1.NifiClus
 	return cr, nil
 }
 
-func updateCr(cr *v1alpha1.NifiCluster, client runtimeClient.Client) error {
+func UpdateCr(cr *v1alpha1.NifiCluster, client runtimeClient.Client) error {
 	typeMeta := cr.TypeMeta
 	err := client.Update(context.TODO(), cr)
 	if err != nil {
@@ -82,5 +82,5 @@ func updateCr(cr *v1alpha1.NifiCluster, client runtimeClient.Client) error {
 func UpdateCrWithRollingUpgrade(errorCount int, cr *v1alpha1.NifiCluster, client runtimeClient.Client) error {
 
 	cr.Status.RollingUpgrade.ErrorCount = errorCount
-	return updateCr(cr, client)
+	return UpdateCr(cr, client)
 }

@@ -7,10 +7,11 @@ import (
 	"strings"
 
 	certv1 "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1"
+	"sigs.k8s.io/controller-runtime/pkg/cache"
+
 	"github.com/konpyutaika/nifikop/pkg/common"
 	"github.com/konpyutaika/nifikop/pkg/util"
 	"github.com/konpyutaika/nifikop/version"
-	"sigs.k8s.io/controller-runtime/pkg/cache"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
@@ -112,6 +113,7 @@ func main() {
 		os.Exit(1)
 	}
 
+	// setup controllers
 	multipliers := *common.NewRequeueConfig()
 	if err = (&controllers.NifiClusterReconciler{
 		Client:           mgr.GetClient(),
@@ -199,6 +201,10 @@ func main() {
 		os.Exit(1)
 	}
 
+	if err = (&v1alpha1.NifiCluster{}).SetupWebhookWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create webhook", "webhook", "NifiCluster")
+		os.Exit(1)
+	}
 	// +kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("health", healthz.Ping); err != nil {

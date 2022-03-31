@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"sort"
 	"strings"
 
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/dataflow"
@@ -95,6 +96,61 @@ func (r *Reconciler) Reconcile(log logr.Logger) error {
 	// TODO : manage external LB
 	uniqueHostnamesMap := make(map[string]struct{})
 
+	// Autoscaling modifies the spec.nodes based purely on the number of replicas its told to deploy
+	if r.NifiCluster.Spec.AutoScalingConfig.Enabled {
+		// create the horizontalPodAutoscaler
+		o, err := r.horizontalPodAutoscaler(log)
+		if err != nil {
+			return errors.WrapIfWithDetails(err, "failed to compute horizontalPodAutoscaler")
+		}
+		err = k8sutil.Reconcile(log, r.Client, o, r.NifiCluster)
+		if err != nil {
+			return errors.WrapIfWithDetails(err, "failed to reconcile resource", "resource", o.GetObjectKind().GroupVersionKind())
+		}
+
+		log.Info(fmt.Sprintf("Autoscaling enabled. Replica setting is %d", r.NifiCluster.Spec.AutoScalingConfig.Replicas))
+		// generate nodeIds based on number of replicas
+		nodeIds := util.NodesToIdList(r.NifiCluster.Spec.Nodes)
+		// sort the nodeIds in increasing order so we can determine highest node id
+		sort.Slice(nodeIds, func(i, j int) bool { return nodeIds[i] < nodeIds[j] })
+
+		// offset the replica node ids by 100_000 in case we continue to allow static deployments _and_ autoscale pools.
+		// Offset the IDs so its clear which group is which. Or we can change the pod names for the replicas to make it more clear.
+		highestNodeId := nodeIds[len(nodeIds)-1] + 100_000
+
+		numDesiredReplicas := r.NifiCluster.Spec.AutoScalingConfig.Replicas
+		numStaticNodes := int32(len(nodeIds))
+
+		// TODO: We could change the logic here to not touch the static nodes, but instead only add/remove replicas if desired.
+		// TOOD: The challenge this introduces is that the HPA configuration may not agree with the actual deployment. This is an argument for using either spec.Nodes or autoscaling, but not both
+
+		if numDesiredReplicas > numStaticNodes {
+			numReplicasToCreate := numDesiredReplicas - numStaticNodes
+			log.Info(fmt.Sprintf("Adding %d more nodes to cluster spec.nodes configuration per autoscale replica setting", numReplicasToCreate))
+
+			for i := int32(0); i < numReplicasToCreate; i++ {
+				r.NifiCluster.Spec.Nodes = append(r.NifiCluster.Spec.Nodes, v1alpha1.Node{
+					Id:              highestNodeId + i,
+					NodeConfigGroup: r.NifiCluster.Spec.AutoScalingConfig.ReplicaNodeConfigGroup,
+					ReadOnlyConfig:  &r.NifiCluster.Spec.AutoScalingConfig.ReadOnlyConfig,
+				})
+			}
+		} else if numDesiredReplicas < numStaticNodes {
+			numReplicasToRemove := numStaticNodes - numDesiredReplicas
+			log.Info(fmt.Sprintf("Removing %d nodes from cluster spec.nodes configuration per autoscale replica setting", numReplicasToRemove))
+
+			switch r.NifiCluster.Spec.AutoScalingConfig.DownscaleStrategy {
+			// right now all downscale strategies are treated the same, which is LIFO
+			case v1alpha1.LIFOClusterDownscaleStrategy, v1alpha1.NonPrimaryClusterDownscaleStrategy, v1alpha1.LeastBusyClusterDownscaleStrategy:
+				// remove the last n nodes from the node list
+				r.NifiCluster.Spec.Nodes = r.NifiCluster.Spec.Nodes[:len(r.NifiCluster.Spec.Nodes)-int(numReplicasToRemove)]
+			}
+		}
+		if err := k8sutil.UpdateCr(r.NifiCluster, r.Client); err != nil {
+			return errors.WrapIf(err, "Failed to add new nodes to NiFiCluster CR")
+		}
+	}
+
 	// TODO: review design
 	for _, node := range r.NifiCluster.Spec.Nodes {
 		for _, webProxyHost := range r.GetNifiPropertiesBase(node.Id).WebProxyHosts {
@@ -180,6 +236,10 @@ func (r *Reconciler) Reconcile(log logr.Logger) error {
 					"id(s)", o.(*corev1.Pod).Labels["nodeId"])
 			}
 		}
+
+		if isReady {
+			r.updateClusterReplicaStatus(log)
+		}
 	}
 
 	var err error
@@ -255,6 +315,36 @@ func (r *Reconciler) Reconcile(log logr.Logger) error {
 	}
 
 	log.V(1).Info("Reconciled")
+
+	return nil
+}
+
+// update cluster replica status to inform k8s scale subresource
+func (r *Reconciler) updateClusterReplicaStatus(log logr.Logger) error {
+	podList := &corev1.PodList{}
+	matchingLabels := client.MatchingLabels(nifiutil.LabelsForNifi(r.NifiCluster.Name))
+
+	err := r.Client.List(context.TODO(), podList,
+		client.ListOption(client.InNamespace(r.NifiCluster.Namespace)), client.ListOption(matchingLabels))
+	if err != nil {
+		return errors.WrapIf(err, "failed to reconcile resource")
+	}
+
+	replicas := v1alpha1.ClusterReplicas(int32(podList.Size()))
+	selector, err := metav1.LabelSelectorAsSelector(&metav1.LabelSelector{
+		MatchLabels: matchingLabels,
+	})
+	if err != nil {
+		return errors.WrapIf(err, "Failed to get label selector to update CR")
+	}
+	replicaSelector := v1alpha1.ClusterReplicaSelector(selector.String())
+
+	if err := k8sutil.UpdateCRStatus(r.Client, r.NifiCluster, replicas, log); err != nil {
+		return err
+	}
+	if err := k8sutil.UpdateCRStatus(r.Client, r.NifiCluster, replicaSelector, log); err != nil {
+		return err
+	}
 
 	return nil
 }

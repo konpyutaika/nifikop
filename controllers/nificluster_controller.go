@@ -26,6 +26,7 @@ import (
 	"github.com/konpyutaika/nifikop/pkg/resources"
 	"github.com/konpyutaika/nifikop/pkg/resources/nifi"
 	"github.com/konpyutaika/nifikop/pkg/util"
+	autoscalingv2 "k8s.io/api/autoscaling/v2"
 	corev1 "k8s.io/api/core/v1"
 	policyv1 "k8s.io/api/policy/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -64,6 +65,7 @@ type NifiClusterReconciler struct {
 // +kubebuilder:rbac:groups="",resources=nodes,verbs=get;list;watch
 // +kubebuilder:rbac:groups="",resources=namespaces,verbs=get;list;watch
 // +kubebuilder:rbac:groups="policy",resources=poddisruptionbudgets,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups="policy",resources=horizontalpodautoscalers,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=nifi.konpyutaika.com,resources=nificlusters,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=nifi.konpyutaika.com,resources=nificlusters/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=nifi.konpyutaika.com,resources=nificlusters/finalizers,verbs=update
@@ -194,6 +196,7 @@ func (r *NifiClusterReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&v1alpha1.NifiCluster{}).
 		Owns(&policyv1.PodDisruptionBudget{}).
+		Owns(&autoscalingv2.HorizontalPodAutoscaler{}).
 		Owns(&corev1.Service{}).
 		Owns(&corev1.Pod{}).
 		Owns(&corev1.ConfigMap{}).
