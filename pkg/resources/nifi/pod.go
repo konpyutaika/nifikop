@@ -40,7 +40,7 @@ const (
 	ContainerName string = "nifi"
 )
 
-func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev1.PersistentVolumeClaim, log logr.Logger) runtimeClient.Object {
+func (r *Reconciler) pod(id int32, isReplica bool, nodeConfig *v1alpha1.NodeConfig, pvcs []corev1.PersistentVolumeClaim, log logr.Logger) runtimeClient.Object {
 
 	zkAddress := r.NifiCluster.Spec.ZKAddress
 	zkHostname := zk.GetHostnameAddress(zkAddress)
@@ -123,8 +123,21 @@ func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev
 		{"nodeId": fmt.Sprintf("%d", id)},
 	}
 
+	if isReplica {
+		labelsToMerge = append(labelsToMerge, nifiutil.LabelsForNifiReplica())
+	}
+
 	if r.NifiCluster.Spec.GetMetricPort() != nil {
 		anntotationsToMerge = append(anntotationsToMerge, util.MonitoringAnnotations(*r.NifiCluster.Spec.GetMetricPort()))
+	}
+
+	// the node name is different for replicas just so it's clear which node is a replica when inspecting the deployment
+	// the pod hostname is still based on the nodeId
+	var nodeName string
+	if isReplica {
+		nodeName = nifiutil.ComputeReplicaNodeName(id, r.NifiCluster.Name)
+	} else {
+		nodeName = nifiutil.ComputeNodeName(id, r.NifiCluster.Name)
 	}
 
 	// curl -kv --cert /var/run/secrets/java.io/keystores/client/tls.crt --key /var/run/secrets/java.io/keystores/client/tls.key https://nifi.trycatchlearn.fr:8433/nifi
@@ -133,7 +146,8 @@ func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev
 	pod := &corev1.Pod{
 		//ObjectMeta: templates.ObjectMetaWithAnnotations(
 		ObjectMeta: templates.ObjectMetaWithGeneratedNameAndAnnotations(
-			nifiutil.ComputeNodeName(id, r.NifiCluster.Name),
+			// append a hyphen since the node name will be appended with a hash
+			nodeName+"-",
 			util.MergeLabels(labelsToMerge...),
 			util.MergeAnnotations(anntotationsToMerge...), r.NifiCluster,
 		),
@@ -394,9 +408,9 @@ func (r *Reconciler) createNifiNodeContainer(nodeConfig *v1alpha1.NodeConfig, id
 		(val.GracefulActionState.State == v1alpha1.GracefulUpscaleRequired ||
 			val.GracefulActionState.State == v1alpha1.GracefulUpscaleRunning)) {
 		failCondition = `else
-	echo fail to request cluster
-	exit 1
-`
+		echo fail to request cluster
+		exit 1
+	`
 	}
 
 	requestClusterStatus := fmt.Sprintf("curl --fail -v http://%s/nifi-api/controller/cluster > $NIFI_BASE_DIR/cluster.state",
@@ -448,7 +462,7 @@ do
 		notMatchedIp=false
 	fi
 done
-echo "Hostname is successfully binded withy IP adress"`, nodeAddress, nodeAddress)
+echo "Hostname is successfully bound to IP address"`, nodeAddress, nodeAddress)
 	}
 	command := []string{"bash", "-ce", fmt.Sprintf(`cp ${NIFI_HOME}/tmp/* ${NIFI_HOME}/conf/
 %s

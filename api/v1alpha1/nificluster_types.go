@@ -107,13 +107,13 @@ type NifiClusterSpec struct {
 
 // configuration to be used if replica-style deployment is used.
 type AutoScalingConfig struct {
-	Enabled bool `json:"enabled"`
+	Enabled bool `json:"enabled,omitempty"`
 	// The number of replicas to create. This should not be specified if Nodes is specified. This will be set by the Kubernetes scale controller
-	Replicas int32 `json:"replicas,omitempty"`
-	// The id of the node config group to apply to each replica.
-	ReplicaNodeConfigGroup string `json:"replicaNodeConfigGroup,omitempty"`
+	Replicas int32 `json:"replicas"`
+	// The id of the node config group to apply to each replica. Required.
+	ReplicaNodeConfigGroup string `json:"replicaNodeConfigGroup"`
 	// the replica node readOnlyConfig
-	ReadOnlyConfig ReadOnlyConfig `json:"replicaNodeReadOnlyConfig,omitempty"`
+	ReadOnlyConfig *ReadOnlyConfig `json:"replicaNodeReadOnlyConfig,omitempty"`
 	// The strategy to use when scaling up the nifi cluster
 	// +kubebuilder:validation:Enum={"graceful","simple"}
 	UpscaleStrategy ClusterScalingStrategy `json:"upscaleStrategy,omitempty"`
@@ -199,6 +199,8 @@ type Node struct {
 	Id int32 `json:"id"`
 	// nodeConfigGroup can be used to ease the node configuration, if set only the id is required
 	NodeConfigGroup string `json:"nodeConfigGroup,omitempty"`
+	// whether or not this node is an auto-scaled replica or whether it is a static node. Defaults to false, which is considered a "static" node
+	IsReplica bool `json:"isReplica,omitempty"`
 	// readOnlyConfig can be used to pass Nifi node config https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html
 	// which has type read-only these config changes will trigger rolling upgrade
 	ReadOnlyConfig *ReadOnlyConfig `json:"readOnlyConfig,omitempty"`

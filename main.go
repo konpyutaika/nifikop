@@ -201,10 +201,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&v1alpha1.NifiCluster{}).SetupWebhookWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create webhook", "webhook", "NifiCluster")
-		os.Exit(1)
-	}
+	// For now webhooks are disabled until certs are figured out.
+
+	// if err = (&v1alpha1.NifiCluster{}).SetupWebhookWithManager(mgr); err != nil {
+	// 	setupLog.Error(err, "unable to create webhook", "webhook", "NifiCluster")
+	// 	os.Exit(1)
+	// }
 	// +kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("health", healthz.Ping); err != nil {

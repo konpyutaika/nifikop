@@ -93,11 +93,12 @@ func (r *Reconciler) Reconcile(log logr.Logger) error {
 		log.V(1).Info("Reconciled")
 		return nil
 	}
-	// TODO : manage external LB
-	uniqueHostnamesMap := make(map[string]struct{})
 
 	// Autoscaling modifies the spec.nodes based purely on the number of replicas its told to deploy
 	if r.NifiCluster.Spec.AutoScalingConfig.Enabled {
+		log.Info("Horizontal pod autoscaler enabled. Configuring...")
+		r.updateClusterReplicaStatus(log)
+
 		// create the horizontalPodAutoscaler
 		o, err := r.horizontalPodAutoscaler(log)
 		if err != nil {
@@ -110,46 +111,63 @@ func (r *Reconciler) Reconcile(log logr.Logger) error {
 
 		log.Info(fmt.Sprintf("Autoscaling enabled. Replica setting is %d", r.NifiCluster.Spec.AutoScalingConfig.Replicas))
 		// generate nodeIds based on number of replicas
-		nodeIds := util.NodesToIdList(r.NifiCluster.Spec.Nodes)
+		nodeIds := util.ReplicaNodeIds(r.NifiCluster.Spec.Nodes)
+		currentNumReplicas := int32(len(nodeIds))
 		// sort the nodeIds in increasing order so we can determine highest node id
 		sort.Slice(nodeIds, func(i, j int) bool { return nodeIds[i] < nodeIds[j] })
 
-		// offset the replica node ids by 100_000 in case we continue to allow static deployments _and_ autoscale pools.
-		// Offset the IDs so its clear which group is which. Or we can change the pod names for the replicas to make it more clear.
-		highestNodeId := nodeIds[len(nodeIds)-1] + 100_000
-
+		var highestNodeId int32
+		if currentNumReplicas > 0 {
+			highestNodeId = nodeIds[len(nodeIds)-1]
+		} else {
+			highestNodeId = nifiutil.ReplicaStartingNodeId
+		}
 		numDesiredReplicas := r.NifiCluster.Spec.AutoScalingConfig.Replicas
-		numStaticNodes := int32(len(nodeIds))
 
-		// TODO: We could change the logic here to not touch the static nodes, but instead only add/remove replicas if desired.
-		// TOOD: The challenge this introduces is that the HPA configuration may not agree with the actual deployment. This is an argument for using either spec.Nodes or autoscaling, but not both
-
-		if numDesiredReplicas > numStaticNodes {
-			numReplicasToCreate := numDesiredReplicas - numStaticNodes
+		if numDesiredReplicas > currentNumReplicas {
+			numReplicasToCreate := numDesiredReplicas - currentNumReplicas
 			log.Info(fmt.Sprintf("Adding %d more nodes to cluster spec.nodes configuration per autoscale replica setting", numReplicasToCreate))
 
 			for i := int32(0); i < numReplicasToCreate; i++ {
-				r.NifiCluster.Spec.Nodes = append(r.NifiCluster.Spec.Nodes, v1alpha1.Node{
-					Id:              highestNodeId + i,
-					NodeConfigGroup: r.NifiCluster.Spec.AutoScalingConfig.ReplicaNodeConfigGroup,
-					ReadOnlyConfig:  &r.NifiCluster.Spec.AutoScalingConfig.ReadOnlyConfig,
-				})
+				switch r.NifiCluster.Spec.AutoScalingConfig.UpscaleStrategy {
+
+				// Right now Simple is the only option and the default
+				case v1alpha1.SimpleClusterUpscaleStrategy:
+					fallthrough
+				default:
+					r.NifiCluster.Spec.Nodes = append(r.NifiCluster.Spec.Nodes, v1alpha1.Node{
+						Id:              highestNodeId + i,
+						IsReplica:       true,
+						NodeConfigGroup: r.NifiCluster.Spec.AutoScalingConfig.ReplicaNodeConfigGroup,
+						ReadOnlyConfig:  r.NifiCluster.Spec.AutoScalingConfig.ReadOnlyConfig,
+					})
+				}
+
 			}
-		} else if numDesiredReplicas < numStaticNodes {
-			numReplicasToRemove := numStaticNodes - numDesiredReplicas
+		} else if numDesiredReplicas < currentNumReplicas {
+			numReplicasToRemove := currentNumReplicas - numDesiredReplicas
 			log.Info(fmt.Sprintf("Removing %d nodes from cluster spec.nodes configuration per autoscale replica setting", numReplicasToRemove))
 
 			switch r.NifiCluster.Spec.AutoScalingConfig.DownscaleStrategy {
-			// right now all downscale strategies are treated the same, which is LIFO
-			case v1alpha1.LIFOClusterDownscaleStrategy, v1alpha1.NonPrimaryClusterDownscaleStrategy, v1alpha1.LeastBusyClusterDownscaleStrategy:
+
+			// Right now LIFO is the only option and the default
+			case v1alpha1.LIFOClusterDownscaleStrategy:
+				fallthrough
+			default:
 				// remove the last n nodes from the node list
 				r.NifiCluster.Spec.Nodes = r.NifiCluster.Spec.Nodes[:len(r.NifiCluster.Spec.Nodes)-int(numReplicasToRemove)]
 			}
+		} else {
+			log.Info("Not updating number of replicas since replica setting did not change.")
+			r.NifiCluster.Spec.AutoScalingConfig.Replicas = currentNumReplicas
 		}
 		if err := k8sutil.UpdateCr(r.NifiCluster, r.Client); err != nil {
 			return errors.WrapIf(err, "Failed to add new nodes to NiFiCluster CR")
 		}
 	}
+
+	// TODO : manage external LB
+	uniqueHostnamesMap := make(map[string]struct{})
 
 	// TODO: review design
 	for _, node := range r.NifiCluster.Spec.Nodes {
@@ -203,7 +221,6 @@ func (r *Reconciler) Reconcile(log logr.Logger) error {
 			if err != nil {
 				return errors.WrapIfWithDetails(err, "failed to reconcile resource", "resource", o.GetObjectKind().GroupVersionKind())
 			}
-
 		}
 
 		o := r.secretConfig(node.Id, nodeConfig, serverPass, clientPass, superUsers, log)
@@ -224,7 +241,7 @@ func (r *Reconciler) Reconcile(log logr.Logger) error {
 				return errors.WrapIfWithDetails(err, "failed to reconcile resource", "resource", o.GetObjectKind().GroupVersionKind())
 			}
 		}
-		o = r.pod(node.Id, nodeConfig, pvcs, log)
+		o = r.pod(node.Id, node.IsReplica, nodeConfig, pvcs, log)
 		err, isReady := r.reconcileNifiPod(log, o.(*corev1.Pod))
 		if err != nil {
 			return err
@@ -237,9 +254,7 @@ func (r *Reconciler) Reconcile(log logr.Logger) error {
 			}
 		}
 
-		if isReady {
-			r.updateClusterReplicaStatus(log)
-		}
+		r.updateClusterReplicaStatus(log)
 	}
 
 	var err error
@@ -322,15 +337,22 @@ func (r *Reconciler) Reconcile(log logr.Logger) error {
 // update cluster replica status to inform k8s scale subresource
 func (r *Reconciler) updateClusterReplicaStatus(log logr.Logger) error {
 	podList := &corev1.PodList{}
-	matchingLabels := client.MatchingLabels(nifiutil.LabelsForNifi(r.NifiCluster.Name))
+	// find replica pods
+	labelsToMatch := []map[string]string{
+		nifiutil.LabelsForNifi(r.NifiCluster.Name),
+		nifiutil.LabelsForNifiReplica(),
+	}
+	matchingLabels := client.MatchingLabels(util.MergeLabels(labelsToMatch...))
 
 	err := r.Client.List(context.TODO(), podList,
 		client.ListOption(client.InNamespace(r.NifiCluster.Namespace)), client.ListOption(matchingLabels))
 	if err != nil {
-		return errors.WrapIf(err, "failed to reconcile resource")
+		return errors.WrapIf(err, "failed to query for replica podList")
 	}
 
-	replicas := v1alpha1.ClusterReplicas(int32(podList.Size()))
+	log.Info(fmt.Sprintf("podList: %+v\n", podList))
+
+	replicas := v1alpha1.ClusterReplicas(int32(len(podList.Items)))
 	selector, err := metav1.LabelSelectorAsSelector(&metav1.LabelSelector{
 		MatchLabels: matchingLabels,
 	})
@@ -516,7 +538,7 @@ func (r *Reconciler) getServerAndClientDetails(nodeId int32) (string, string, []
 	for _, secret := range []*corev1.Secret{serverSecret, clientSecret} {
 		cert, err := certutil.DecodeCertificate(secret.Data[corev1.TLSCertKey])
 		if err != nil {
-			return "", "", nil, errors.WrapIfWithDetails(err, "failed to decode certificate")
+			return "", "", nil, errors.WrapIfWithDetails(err, fmt.Sprintf("failed to decode certificate for nodeId %d", nodeId))
 		}
 		superUsers = append(superUsers, cert.Subject.String())
 	}

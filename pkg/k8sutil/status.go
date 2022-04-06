@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
+	"reflect"
 	"strings"
 	"time"
 
@@ -184,6 +185,10 @@ func UpdateCRStatus(c client.Client, cluster *v1alpha1.NifiCluster, state interf
 	switch s := state.(type) {
 	case v1alpha1.ClusterState:
 		cluster.Status.State = s
+	case v1alpha1.ClusterReplicas:
+		cluster.Status.Replicas = s
+	case v1alpha1.ClusterReplicaSelector:
+		cluster.Status.Selector = s
 	}
 
 	err := c.Status().Update(context.Background(), cluster)
@@ -204,6 +209,10 @@ func UpdateCRStatus(c client.Client, cluster *v1alpha1.NifiCluster, state interf
 		switch s := state.(type) {
 		case v1alpha1.ClusterState:
 			cluster.Status.State = s
+		case v1alpha1.ClusterReplicas:
+			cluster.Status.Replicas = s
+		case v1alpha1.ClusterReplicaSelector:
+			cluster.Status.Selector = s
 		}
 
 		err = updateClusterStatus(c, cluster)
@@ -213,7 +222,7 @@ func UpdateCRStatus(c client.Client, cluster *v1alpha1.NifiCluster, state interf
 	}
 	// update loses the typeMeta of the config that's used later when setting ownerrefs
 	cluster.TypeMeta = typeMeta
-	logger.Info("CR status updated", "status", state)
+	logger.Info("CR status updated", reflect.TypeOf(state).String(), state)
 	return nil
 }
 

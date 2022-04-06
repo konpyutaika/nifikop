@@ -18,21 +18,23 @@ package controllers
 
 import (
 	"context"
-	"emperror.dev/errors"
 	"fmt"
+	"time"
+
+	"emperror.dev/errors"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	"github.com/konpyutaika/nifikop/pkg/k8sutil"
 	"github.com/konpyutaika/nifikop/pkg/pki"
 	"github.com/konpyutaika/nifikop/pkg/resources"
 	"github.com/konpyutaika/nifikop/pkg/resources/nifi"
 	"github.com/konpyutaika/nifikop/pkg/util"
+	nifiutil "github.com/konpyutaika/nifikop/pkg/util/nifi"
 	autoscalingv2 "k8s.io/api/autoscaling/v2beta2"
 	corev1 "k8s.io/api/core/v1"
 	policyv1 "k8s.io/api/policy/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"time"
 
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -111,6 +113,22 @@ func (r *NifiClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		if err := k8sutil.UpdateCRStatus(r.Client, instance, v1alpha1.NifiClusterInitializing, r.Log); err != nil {
 			return RequeueWithError(r.Log, err.Error(), err)
 		}
+
+		// add initial autoscale nodes
+		if instance.Spec.AutoScalingConfig.Enabled {
+			for i := int32(0); i < instance.Spec.AutoScalingConfig.Replicas; i++ {
+				instance.Spec.Nodes = append(instance.Spec.Nodes, v1alpha1.Node{
+					Id:              nifiutil.ReplicaStartingNodeId,
+					IsReplica:       true,
+					NodeConfigGroup: instance.Spec.AutoScalingConfig.ReplicaNodeConfigGroup,
+					ReadOnlyConfig:  instance.Spec.AutoScalingConfig.ReadOnlyConfig,
+				})
+			}
+			if err := k8sutil.UpdateCr(instance, r.Client); err != nil {
+				return RequeueWithError(r.Log, err.Error(), err)
+			}
+		}
+
 		for nId := range instance.Spec.Nodes {
 			if err := k8sutil.UpdateNodeStatus(r.Client, []string{fmt.Sprint(instance.Spec.Nodes[nId].Id)}, instance, v1alpha1.IsInitClusterNode, r.Log); err != nil {
 				return RequeueWithError(r.Log, err.Error(), err)

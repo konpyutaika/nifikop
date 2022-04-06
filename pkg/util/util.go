@@ -195,6 +195,24 @@ func NifiUserSliceContains(list []*v1alpha1.NifiUser, u *v1alpha1.NifiUser) bool
 	return false
 }
 
+func StaticNodeIds(nodes []v1alpha1.Node) (ids []int32) {
+	for _, node := range nodes {
+		if !node.IsReplica {
+			ids = append(ids, node.Id)
+		}
+	}
+	return
+}
+
+func ReplicaNodeIds(nodes []v1alpha1.Node) (ids []int32) {
+	for _, node := range nodes {
+		if node.IsReplica {
+			ids = append(ids, node.Id)
+		}
+	}
+	return
+}
+
 func NodesToIdList(nodes []v1alpha1.Node) (ids []int32) {
 	for _, node := range nodes {
 		ids = append(ids, node.Id)

@@ -14,6 +14,9 @@ const (
 	RootNodeNameTemplate   = "%d"
 	NodeNameTemplate       = PrefixNodeNameTemplate + RootNodeNameTemplate + SuffixNodeNameTemplate
 
+	// replica node Ids start at 100_000. They will be named differently than static nodes, but the id further distinguishes them.
+	ReplicaStartingNodeId = 100_000
+
 	// TimeStampLayout defines the date format used.
 	TimeStampLayout = "Mon, 2 Jan 2006 15:04:05 GMT"
 )
@@ -39,6 +42,10 @@ func ParseStringToInt32(nodeId string) (int32, error) {
 // >> Node
 func ComputeNodeName(nodeId int32, clusterName string) string {
 	return fmt.Sprintf(NodeNameTemplate, clusterName, nodeId)
+}
+
+func ComputeReplicaNodeName(nodeId int32, clusterName string) string {
+	return ComputeNodeName(nodeId, clusterName) + "-replica"
 }
 
 func ComputeRequestNiFiNodeService(nodeId int32, clusterName string,
@@ -272,4 +279,9 @@ func determineInternalListenerForComm(internalListeners []v1alpha1.InternalListe
 // belonging to the given Nifi CR name.
 func LabelsForNifi(name string) map[string]string {
 	return map[string]string{"app": "nifi", "nifi_cr": name}
+}
+
+// Simple label to apply to resources that represent nifi replicas
+func LabelsForNifiReplica() map[string]string {
+	return map[string]string{"replica": "true"}
 }

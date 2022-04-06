@@ -693,7 +693,7 @@ spec:
                     type: object
                   replicaNodeConfigGroup:
                     description: The id of the node config group to apply to each
-                      replica.
+                      replica. Required.
                     type: string
                   replicaNodeReadOnlyConfig:
                     description: the replica node readOnlyConfig
@@ -1105,8 +1105,9 @@ spec:
                     - simple
                     type: string
                 required:
-                - enabled
                 - horizontalAutoscaler
+                - replicaNodeConfigGroup
+                - replicas
                 type: object
               clientType:
                 description: clientType defines if the operator will use basic or
@@ -4805,6 +4806,11 @@ spec:
                       description: Unique Node id
                       format: int32
                       type: integer
+                    isReplica:
+                      description: whether or not this node is an auto-scaled replica
+                        or whether it is a static node. Defaults to false, which is
+                        considered a "static" node
+                      type: boolean
                     nodeConfig:
                       description: node configuration
                       properties:
