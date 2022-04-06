@@ -279,8 +279,8 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		return Reconciled()
 	}
 
-	r.Recorder.Event(instance, corev1.EventTypeWarning, "Reconciling",
-		fmt.Sprintf("Reconciling failed dataflow %s based on flow {bucketId : %s, flowId: %s, version: %s}",
+	r.Recorder.Event(instance, corev1.EventTypeNormal, "Reconciling",
+		fmt.Sprintf("Reconciling dataflow %s based on flow {bucketId : %s, flowId: %s, version: %s}",
 			instance.Name, instance.Spec.BucketId,
 			instance.Spec.FlowId, strconv.FormatInt(int64(*instance.Spec.FlowVersion), 10)))
 
@@ -399,40 +399,71 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	if instance.Status.State == v1alpha1.DataflowStateCreated ||
 		instance.Status.State == v1alpha1.DataflowStateStarting ||
 		instance.Status.State == v1alpha1.DataflowStateInSync ||
-		(!instance.Spec.SyncOnce() && instance.Status.State == v1alpha1.DataflowStateRan) {
+		(!instance.Spec.SyncOnce() && (instance.Status.State == v1alpha1.DataflowStateRan || instance.Status.State == v1alpha1.DataflowStateStopped)) {
 
-		instance.Status.State = v1alpha1.DataflowStateStarting
+		if instance.IsStopped() {
+			instance.Status.State = v1alpha1.DataflowStateStopping
+		} else {
+			instance.Status.State = v1alpha1.DataflowStateStarting
+		}
+
 		if err := r.Client.Status().Update(ctx, instance); err != nil {
 			return RequeueWithError(r.Log, "failed to update NifiDataflow status", err)
 		}
 
-		r.Recorder.Event(instance, corev1.EventTypeNormal, "Starting",
-			fmt.Sprintf("Starting dataflow %s based on flow {bucketId : %s, flowId: %s, version: %s}",
-				instance.Name, instance.Spec.BucketId,
-				instance.Spec.FlowId, strconv.FormatInt(int64(*instance.Spec.FlowVersion), 10)))
+		if instance.IsStopped() {
+			r.Recorder.Event(instance, corev1.EventTypeNormal, "Stopping",
+				fmt.Sprintf("Stopping dataflow %s based on flow {bucketId : %s, flowId: %s, version: %s}",
+					instance.Name, instance.Spec.BucketId,
+					instance.Spec.FlowId, strconv.FormatInt(int64(*instance.Spec.FlowVersion), 10)))
+		} else {
+			r.Recorder.Event(instance, corev1.EventTypeNormal, "Starting",
+				fmt.Sprintf("Starting dataflow %s based on flow {bucketId : %s, flowId: %s, version: %s}",
+					instance.Name, instance.Spec.BucketId,
+					instance.Spec.FlowId, strconv.FormatInt(int64(*instance.Spec.FlowVersion), 10)))
+		}
 
 		if err := dataflow.ScheduleDataflow(instance, clientConfig); err != nil {
 			switch errors.Cause(err).(type) {
 			case errorfactory.NifiFlowControllerServiceScheduling, errorfactory.NifiFlowScheduling:
 				return RequeueAfter(interval / 3)
 			default:
-				r.Recorder.Event(instance, corev1.EventTypeWarning, "StartingFailed",
-					fmt.Sprintf("Starting dataflow %s based on flow {bucketId : %s, flowId: %s, version: %s} failed.",
-						instance.Name, instance.Spec.BucketId,
-						instance.Spec.FlowId, strconv.FormatInt(int64(*instance.Spec.FlowVersion), 10)))
-				return RequeueWithError(r.Log, "failed to run NifiDataflow", err)
+				if instance.IsStopped() {
+					r.Recorder.Event(instance, corev1.EventTypeWarning, "StartingFailed",
+						fmt.Sprintf("Starting dataflow %s based on flow {bucketId : %s, flowId: %s, version: %s} failed.",
+							instance.Name, instance.Spec.BucketId,
+							instance.Spec.FlowId, strconv.FormatInt(int64(*instance.Spec.FlowVersion), 10)))
+					return RequeueWithError(r.Log, "failed to stop NifiDataflow", err)
+				} else {
+					r.Recorder.Event(instance, corev1.EventTypeWarning, "StartingFailed",
+						fmt.Sprintf("Starting dataflow %s based on flow {bucketId : %s, flowId: %s, version: %s} failed.",
+							instance.Name, instance.Spec.BucketId,
+							instance.Spec.FlowId, strconv.FormatInt(int64(*instance.Spec.FlowVersion), 10)))
+					return RequeueWithError(r.Log, "failed to run NifiDataflow", err)
+				}
 			}
 		}
 
-		instance.Status.State = v1alpha1.DataflowStateRan
+		if instance.IsStopped() {
+			instance.Status.State = v1alpha1.DataflowStateStopped
+		} else {
+			instance.Status.State = v1alpha1.DataflowStateRan
+		}
 		if err := r.Client.Status().Update(ctx, instance); err != nil {
 			return RequeueWithError(r.Log, "failed to update NifiDataflow status", err)
 		}
 
-		r.Recorder.Event(instance, corev1.EventTypeNormal, "Ran",
-			fmt.Sprintf("Ran dataflow %s based on flow {bucketId : %s, flowId: %s, version: %s}",
-				instance.Name, instance.Spec.BucketId,
-				instance.Spec.FlowId, strconv.FormatInt(int64(*instance.Spec.FlowVersion), 10)))
+		if instance.IsStopped() {
+			r.Recorder.Event(instance, corev1.EventTypeNormal, "Stopped",
+				fmt.Sprintf("Stopped dataflow %s based on flow {bucketId : %s, flowId: %s, version: %s}",
+					instance.Name, instance.Spec.BucketId,
+					instance.Spec.FlowId, strconv.FormatInt(int64(*instance.Spec.FlowVersion), 10)))
+		} else {
+			r.Recorder.Event(instance, corev1.EventTypeNormal, "Ran",
+				fmt.Sprintf("Ran dataflow %s based on flow {bucketId : %s, flowId: %s, version: %s}",
+					instance.Name, instance.Spec.BucketId,
+					instance.Spec.FlowId, strconv.FormatInt(int64(*instance.Spec.FlowVersion), 10)))
+		}
 	}
 
 	// Ensure NifiCluster label

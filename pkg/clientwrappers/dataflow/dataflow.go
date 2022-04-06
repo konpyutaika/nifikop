@@ -85,31 +85,42 @@ func ScheduleDataflow(flow *v1alpha1.NifiDataflow, config *clientconfig.NifiConf
 		return err
 	}
 
+	controllerServicesState := "ENABLED"
+	if flow.IsStopped() {
+		controllerServicesState = "DISABLED"
+	}
+
 	// Schedule controller services
 	_, err = nClient.UpdateFlowControllerServices(nigoapi.ActivateControllerServicesEntity{
 		Id:    flow.Status.ProcessGroupID,
-		State: "ENABLED",
+		State: controllerServicesState,
 	})
 	if err := clientwrappers.ErrorUpdateOperation(log, err, "Schedule flow's controller services"); err != nil {
 		return err
 	}
 
-	// Check all controller services are enabled
+	// Check all controller services are in the right state
 	csEntities, err := nClient.GetFlowControllerServices(flow.Status.ProcessGroupID)
 	if err := clientwrappers.ErrorGetOperation(log, err, "Get flow controller services"); err != nil {
 		return err
 	}
 	for _, csEntity := range csEntities.ControllerServices {
-		if csEntity.Status.RunStatus != "ENABLED" &&
+		if ((!flow.IsStopped() && csEntity.Status.RunStatus != "ENABLED") ||
+			(flow.IsStopped() && csEntity.Status.RunStatus != "DISABLED")) &&
 			!(flow.Spec.SkipInvalidControllerService && csEntity.Status.ValidationStatus == "INVALID") {
 			return errorfactory.NifiFlowControllerServiceScheduling{}
 		}
 	}
 
+	processGroupeState := "RUNNING"
+	if flow.IsStopped() {
+		processGroupeState = "STOPPED"
+	}
+
 	// Schedule flow
 	_, err = nClient.UpdateFlowProcessGroup(nigoapi.ScheduleComponentsEntity{
 		Id:    flow.Status.ProcessGroupID,
-		State: "RUNNING",
+		State: processGroupeState,
 	})
 	if err := clientwrappers.ErrorUpdateOperation(log, err, "Schedule flow"); err != nil {
 		return err
@@ -124,7 +135,9 @@ func ScheduleDataflow(flow *v1alpha1.NifiDataflow, config *clientconfig.NifiConf
 	processGroups = append(processGroups, *pGEntity)
 
 	for _, pgEntity := range processGroups {
-		if pgEntity.StoppedCount > 0 || (!flow.Spec.SkipInvalidComponent && pgEntity.InvalidCount > 0) {
+		if (!flow.IsStopped() && pgEntity.StoppedCount > 0) ||
+			(flow.IsStopped() && pgEntity.StoppedCount == 0) ||
+			(!flow.Spec.SkipInvalidComponent && pgEntity.InvalidCount > 0) {
 			return errorfactory.NifiFlowScheduling{}
 		}
 	}

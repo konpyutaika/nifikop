@@ -257,8 +257,12 @@ const (
 	DataflowStateCreated DataflowState = "Created"
 	// DataflowStateStarting describes the status of a NifiDataflow as starting
 	DataflowStateStarting DataflowState = "Starting"
-	// DataflowStateRunning describes the status of a NifiDataflow as running
+	// DataflowStateRan describes the status of a NifiDataflow as running
 	DataflowStateRan DataflowState = "Ran"
+	// DataflowStateStopping describes the status of a NifiDataflow as stopping
+	DataflowStateStopping DataflowState = "Stopping"
+	// DataflowStateStopped describes the status of a NifiDataflow as stopped
+	DataflowStateStopped DataflowState = "Stopped"
 	// DataflowStateOutOfSync describes the status of a NifiDataflow as out of sync
 	DataflowStateOutOfSync DataflowState = "OutOfSync"
 	// DataflowStateInSync describes the status of a NifiDataflow as in sync
