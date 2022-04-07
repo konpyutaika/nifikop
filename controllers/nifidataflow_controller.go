@@ -429,8 +429,8 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 				return RequeueAfter(interval / 3)
 			default:
 				if instance.IsStopped() {
-					r.Recorder.Event(instance, corev1.EventTypeWarning, "StartingFailed",
-						fmt.Sprintf("Starting dataflow %s based on flow {bucketId : %s, flowId: %s, version: %s} failed.",
+					r.Recorder.Event(instance, corev1.EventTypeWarning, "StoppingFailed",
+						fmt.Sprintf("Stopping dataflow %s based on flow {bucketId : %s, flowId: %s, version: %s} failed.",
 							instance.Name, instance.Spec.BucketId,
 							instance.Spec.FlowId, strconv.FormatInt(int64(*instance.Spec.FlowVersion), 10)))
 					return RequeueWithError(r.Log, "failed to stop NifiDataflow", err)
