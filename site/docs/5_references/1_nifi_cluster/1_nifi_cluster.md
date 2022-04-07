@@ -79,6 +79,9 @@ spec:
       - type: 's2s'
         name: 's2s'
         containerPort: 10000
+      - type: 'prometheus'
+        name: 'prometheus'
+        containerPort: 9090
   externalServices:
     - name: 'clusterip'
       spec:
@@ -136,7 +139,7 @@ spec:
 |topologySpreadConstraints| \[ \][TopologySpreadConstraint](https://godoc.org/k8s.io/api/core/v1#TopologySpreadConstraint) | specifies any TopologySpreadConstraint objects to be applied to all nodes.                                                                                                                                                                                                                                                               |No| nil                      |
 |nifiControllerTemplate| string                                                                                       | NifiControllerTemplate specifies the template to be used when naming the node controller (e.g. %s-mysuffix) **Warning: once defined don't change this value either the operator will no longer be able to manage the cluster**                                                                                                           |Yes| "%s-controller"          |
 |controllerUserIdentity| string                                                                                       | ControllerUserIdentity specifies what to call the static admin user's identity **Warning: once defined don't change this value either the operator will no longer be able to manage the cluster**                                                                                                                                        |Yes| false                    |
-|serviceMonitor| [ServiceMonitor](#servicemonitor)                                                                                       | ServiceMonitor specifies the configuration for creating ServiceMonitor resources for this NifiCluster resource.                                                                                                                                       |No| -                    |
+|serviceMonitor| [ServiceMonitor](#servicemonitor)                                                                                       | ServiceMonitor specifies the configuration for creating ServiceMonitor resources for this NifiCluster resource. You should  configure a Prometheus `NifiCluster.Spec.ListenersConfig.InternalLister` as seen in the example above.                                                                                                                                        |No| -                    |
 
 
 ## ServiceMonitor
