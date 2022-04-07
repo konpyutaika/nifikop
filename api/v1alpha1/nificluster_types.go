@@ -98,7 +98,7 @@ type NifiClusterSpec struct {
 	// ControllerUserIdentity specifies what to call the static admin user's identity
 	// Warning: once defined don't change this value either the operator will no longer be able to manage the cluster
 	ControllerUserIdentity *string `json:"controllerUserIdentity,omitempty"`
-	// ServiceMonitor controls whether or not nifikop creates a Prometheus ServiceMonitor for each NifiCluster it creates
+	// ServiceMonitor controls whether or not nifikop creates a Prometheus ServiceMonitor for this NifiCluster
 	ServiceMonitor *ServiceMonitor `json:"serviceMonitor,omitempty"`
 
 	// @TODO: Block Controller change
@@ -107,7 +107,7 @@ type NifiClusterSpec struct {
 // Prometheus ServiceMonitor configuration.
 type ServiceMonitor struct {
 	// If set to true, will create a ServiceMonitor. You should not enable this unless you've deployed a Prometheus Operator
-	// and its CRDs to your cluster. A ServiceMonitor will be created for each NifiCluster. You must also configure a
+	// and its CRDs to your cluster. A ServiceMonitor will be created for this NifiCluster. You must also configure a
 	// prometheus Spec.ListenersConfig.InternalListenerConfig or a ServiceMonitor will fail creation.
 	Enabled bool `json:"enabled,omitempty"`
 }
