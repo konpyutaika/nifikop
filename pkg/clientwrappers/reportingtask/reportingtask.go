@@ -12,7 +12,7 @@ import (
 	"strconv"
 )
 
-var log = ctrl.Log.WithName("reportingtaks-method")
+var log = ctrl.Log.WithName("reportingtask-method")
 
 const (
 	reportingTaskName                = "managed-prometheus"
@@ -24,7 +24,7 @@ const (
 	reportingTaskSendJVM             = "true"
 )
 
-func ExistReportingTaks(config *clientconfig.NifiConfig, cluster *v1alpha1.NifiCluster) (bool, error) {
+func ExistReportingTask(config *clientconfig.NifiConfig, cluster *v1alpha1.NifiCluster) (bool, error) {
 
 	if cluster.Status.PrometheusReportingTask.Id == "" {
 		return false, nil

@@ -6833,6 +6833,18 @@ spec:
                 required:
                 - headlessEnabled
                 type: object
+              serviceMonitor:
+                description: ServiceMonitor controls whether or not nifikop creates
+                  a Prometheus ServiceMonitor for each NifiCluster it creates
+                properties:
+                  enabled:
+                    description: If set to true, will create a ServiceMonitor. You
+                      should not enable this unless you've deployed a Prometheus Operator
+                      and its CRDs to your cluster. A ServiceMonitor will be created
+                      for each NifiCluster. You must also configure a prometheus Spec.ListenersConfig.InternalListenerConfig
+                      or a ServiceMonitor will fail creation.
+                    type: boolean
+                type: object
               sidecarConfigs:
                 description: SidecarsConfig defines additional sidecar configurations
                 items:

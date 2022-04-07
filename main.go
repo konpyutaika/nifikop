@@ -10,6 +10,7 @@ import (
 	"github.com/konpyutaika/nifikop/pkg/common"
 	"github.com/konpyutaika/nifikop/pkg/util"
 	"github.com/konpyutaika/nifikop/version"
+	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
@@ -108,7 +109,12 @@ func main() {
 	}
 
 	if err := certv1.AddToScheme(mgr.GetScheme()); err != nil {
-		setupLog.Error(err, "")
+		setupLog.Error(err, "Failed to add certv1 to scheme")
+		os.Exit(1)
+	}
+
+	if err := promv1.AddToScheme(mgr.GetScheme()); err != nil {
+		setupLog.Error(err, "Failed to add promv1 to scheme")
 		os.Exit(1)
 	}
 

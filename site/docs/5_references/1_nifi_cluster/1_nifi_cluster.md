@@ -12,6 +12,8 @@ kind: NifiCluster
 metadata:
   name: simplenifi
 spec:
+  serviceMonitor:
+    enabled: true
   service:
     headlessEnabled: true
     annotations:
@@ -134,7 +136,14 @@ spec:
 |topologySpreadConstraints| \[ \][TopologySpreadConstraint](https://godoc.org/k8s.io/api/core/v1#TopologySpreadConstraint) | specifies any TopologySpreadConstraint objects to be applied to all nodes.                                                                                                                                                                                                                                                               |No| nil                      |
 |nifiControllerTemplate| string                                                                                       | NifiControllerTemplate specifies the template to be used when naming the node controller (e.g. %s-mysuffix) **Warning: once defined don't change this value either the operator will no longer be able to manage the cluster**                                                                                                           |Yes| "%s-controller"          |
 |controllerUserIdentity| string                                                                                       | ControllerUserIdentity specifies what to call the static admin user's identity **Warning: once defined don't change this value either the operator will no longer be able to manage the cluster**                                                                                                                                        |Yes| false                    |
+|serviceMonitor| [ServiceMonitor](#servicemonitor)                                                                                       | ServiceMonitor specifies the configuration for creating ServiceMonitor resources for each NifiCluster resource.                                                                                                                                       |No| -                    |
 
+
+## ServiceMonitor
+
+| Field              | Type                                        | Description                                                   | Required | Default |
+| ------------------ | ------------------------------------------- | ------------------------------------------------------------- | -------- | ------- |
+| enabled         | bool | Whether or not to create a Prometheus ServiceMonitor resource for each NifiCluster. **Warning: You need to deploy the prometheus operator to your Kubernetes cluster before enabling this or it will fail.**                            | No       | false       |
 
 ## NifiClusterStatus
 

@@ -204,6 +204,18 @@ func (r *Reconciler) Reconcile(log logr.Logger) error {
 		}
 	}
 
+	// Handle ServiceMonitor
+	if r.NifiCluster.Spec.ServiceMonitor != nil && r.NifiCluster.Spec.ServiceMonitor.Enabled {
+		o, err := r.serviceMonitor(log)
+		if err != nil {
+			return errors.WrapIfWithDetails(err, "failed to compute serviceMonitor")
+		}
+		err = k8sutil.Reconcile(log, r.Client, o, r.NifiCluster)
+		if err != nil {
+			return errors.WrapIfWithDetails(err, "failed to reconcile resource", "resource", o.GetObjectKind().GroupVersionKind())
+		}
+	}
+
 	// Handle Pod delete
 	err = r.reconcileNifiPodDelete(log)
 	if err != nil {
@@ -875,7 +887,7 @@ func (r *Reconciler) reconcilePrometheusReportingTask(log logr.Logger) error {
 	}
 
 	// Check if the NiFi reporting task already exist
-	exist, err := reportingtask.ExistReportingTaks(clientConfig, r.NifiCluster)
+	exist, err := reportingtask.ExistReportingTask(clientConfig, r.NifiCluster)
 	if err != nil {
 		return errors.WrapIfWithDetails(err, "failure checking for existing prometheus reporting task")
 	}

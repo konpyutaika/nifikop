@@ -15,7 +15,7 @@ const (
 	HttpListenerType       = "http"
 	HttpsListenerType      = "https"
 	S2sListenerType        = "s2s"
-	prometheusListenerType = "prometheus"
+	PrometheusListenerType = "prometheus"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
@@ -98,8 +98,18 @@ type NifiClusterSpec struct {
 	// ControllerUserIdentity specifies what to call the static admin user's identity
 	// Warning: once defined don't change this value either the operator will no longer be able to manage the cluster
 	ControllerUserIdentity *string `json:"controllerUserIdentity,omitempty"`
+	// ServiceMonitor controls whether or not nifikop creates a Prometheus ServiceMonitor for each NifiCluster it creates
+	ServiceMonitor *ServiceMonitor `json:"serviceMonitor,omitempty"`
 
 	// @TODO: Block Controller change
+}
+
+// Prometheus ServiceMonitor configuration.
+type ServiceMonitor struct {
+	// If set to true, will create a ServiceMonitor. You should not enable this unless you've deployed a Prometheus Operator
+	// and its CRDs to your cluster. A ServiceMonitor will be created for each NifiCluster. You must also configure a
+	// prometheus Spec.ListenersConfig.InternalListenerConfig or a ServiceMonitor will fail creation.
+	Enabled bool `json:"enabled,omitempty"`
 }
 
 // DisruptionBudget defines the configuration for PodDisruptionBudget
@@ -699,7 +709,7 @@ func (nProperties NifiProperties) GetAuthorizer() string {
 func (nSpec *NifiClusterSpec) GetMetricPort() *int {
 
 	for _, iListener := range nSpec.ListenersConfig.InternalListeners {
-		if iListener.Type == prometheusListenerType {
+		if iListener.Type == PrometheusListenerType {
 			val := int(iListener.ContainerPort)
 			return &val
 		}
