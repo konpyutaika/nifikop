@@ -5,7 +5,7 @@
 ### Changed
 
 - [PR #75](https://github.com/konpyutaika/nifikop/pull/75) - **[Operator]** Update PodDisruptionBudget version to policy/v1 instead of policy/v1beta1.
-- [PR #84](https://github.com/konpyutaika/nifikop/pull/84) - **[Operator]** Create Prometheus ServiceMonitor resource for each NifiCluster created.
+- [PR #84](https://github.com/konpyutaika/nifikop/pull/84) - **[Operator]** Create Prometheus ServiceMonitor resource for each NifiCluster created. 
 
 ### Deprecated
 
