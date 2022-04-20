@@ -4,7 +4,7 @@ experimental:
   notify:
     branches:
       only:
-        - master
+        - influxdata/release
 
 # Define shareable packages of configuration
 # elements used into the worflow (= Orbs)
@@ -97,10 +97,10 @@ orbs:
                 - << parameters.operatorDir >>/build/_output
                 - << parameters.operatorDir >>/vendor
           - deploy:
-              name: Build & Push Operator Image to Github Container Registry
+              name: Push image to InfluxData's Quay repo
               command: |
                 if [[ $(echo "$CIRCLE_BRANCH" | grep -c "pull") -gt 0 ]]; then
-                  echo "This is a PR, we don't push to GitHub."
+                  echo "This is a PR, we don't push to Quay."
                 else
                   docker login -u=$QUAY_USER -p=$QUAY_PASS quay.io
                   make docker-push
@@ -265,7 +265,7 @@ jobs:
   filters:
     # ignore any commit on any branch by default
     branches:
-      only: master
+      only: influxdata/release
 
 # Workflow definition
 workflows:
