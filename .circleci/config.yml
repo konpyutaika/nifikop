@@ -54,11 +54,11 @@ orbs:
           - run:
               name: Vendor dependencies
               command: if [ ! -d vendor ]; then go mod vendor; fi
-          - run:
-              name: Generate
-              command: |
-                make generate
-                [ "$(git ls-files -m | grep -c zz_generated)" -eq 0 ]
+          # - run:
+          #     name: Generate
+          #     command: |
+          #       make generate
+          #       [ "$(git ls-files -m | grep -c zz_generated)" -eq 0 ]
           - run:
               name: List
               command: |
@@ -102,8 +102,8 @@ orbs:
                 if [[ $(echo "$CIRCLE_BRANCH" | grep -c "pull") -gt 0 ]]; then
                   echo "This is a PR, we don't push to GitHub."
                 else
-                  docker login ghcr.io -u $GH_NAME --password $GH_TOKEN
-                  make docker-buildx
+                  docker login -u=$QUAY_USER -p=$QUAY_PASS quay.io
+                  make docker-push
                 fi
           - save_cache:
               name: Save build artifacts in cache
@@ -295,14 +295,14 @@ workflows:
       #            - unit-test-nifikop
       #          <<: *canonical_repo_filter
 
-      - operator/release-helm:
-          name: release-helm-incubator-nifikop
-          requires:
-            - build-nifikop
-          <<: *only_on_release_tag
+      # - operator/release-helm:
+      #     name: release-helm-orange-incubator-nifikop
+      #     requires:
+      #       - build-nifikop
+      #     <<: *only_on_release_tag
 
-      - deploy-website:
-          name: deploy-website
-          requires:
-            - build-nifikop
-          <<: *website_publish
+      # - deploy-website:
+      #     name: deploy-website
+      #     requires:
+      #       - build-nifikop
+      #     <<: *website_publish
