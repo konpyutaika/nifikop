@@ -30,6 +30,24 @@ readOnlyConfig:
       name: raw
       # Namespace where is located the secret that we want to refer.
       namespace: nifikop
+  # Authorizer configuration that will be applied to the node
+  authorizerConfig:
+    # An authorizers.xml configuration template that will replace the default template seen in authorizers.go
+    replaceTemplateConfigMap:
+      # The key of the value, in data content, that we want use.
+      data: authorizers.xml
+      # Name of the configmap that we want to refer.
+      name: raw
+      # Namespace where is located the secret that we want to refer.
+      namespace: nifikop
+    # An authorizers.xml configuration template that will replace the default template seen in authorizers.go and the replaceTemplateConfigMap
+    replaceTemplateSecretConfig:
+      # The key of the value,in data content, that we want use.
+      data: authorizers.xml
+      # Name of the configmap that we want to refer.
+      name: raw
+      # Namespace where is located the secret that we want to refer.
+      namespace: nifikop
   # NifiProperties configuration that will be applied to the node.
   nifiProperties:
     # Additionnals nifi.properties configuration that will override the one produced based on template and
@@ -132,6 +150,7 @@ readOnlyConfig:
 |zookeeperProperties|[ZookeeperProperties](#zookeeperproperties)|zookeeper.properties configuration that will be applied to the node.|No|nil|
 |bootstrapProperties|[BootstrapProperties](#bootstrapproperties)|bootstrap.conf configuration that will be applied to the node.|No|nil|
 |logbackConfig|[LogbackConfig](#logbackconfig)|logback.xml configuration that will be applied to the node.|No|nil|
+|authorizerConfig|[AuthorizerConfig](#authorizerconfig)|authorizers.xml configuration template that will be applied to the node.|No|nil|
 |bootstrapNotificationServicesConfig|[BootstrapNotificationServices](#bootstrapnotificationservices)|bootstrap_notification_services.xml configuration that will be applied to the node.|No|nil|
 
 
@@ -171,6 +190,13 @@ readOnlyConfig:
 |-----|----|-----------|--------|--------|
 |replaceConfigMap|[ConfigmapReference](#configmapreference)|logback.xml configuration that will replace the one produced based on template.|No|nil|
 |replaceSecretConfig|[SecretConfigReference](#secretconfigreference)|logback.xml configuration that will replace the one produced based on template and overrideConfigMap.|No|nil|
+
+## AuthorizerConfig
+
+|Field|Type|Description|Required|Default|
+|-----|----|-----------|--------|--------|
+|replaceTemplateConfigMap|[ConfigmapReference](#configmapreference)|authorizers.xml configuration template that will replace the default template.|No|nil|
+|replaceTemplateSecretConfig|[SecretConfigReference](#secretconfigreference)|authorizers.xml configuration that will replace the default template and the replaceTemplateConfigMap.|No|nil|
 
 ## BootstrapNotificationServicesConfig
 

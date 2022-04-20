@@ -2,6 +2,8 @@
 
 ### Added
 
+- [PR #76](https://github.com/konpyutaika/nifikop/pull/76) - **[Operator/NiFiCluster]** Add ability to override default authorizers.xml template.
+
 ### Changed
 
 - [PR #75](https://github.com/konpyutaika/nifikop/pull/75) - **[Operator]** Update PodDisruptionBudget version to policy/v1 instead of policy/v1beta1.
