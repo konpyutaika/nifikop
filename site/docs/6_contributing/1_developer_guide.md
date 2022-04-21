@@ -66,7 +66,7 @@ This method can be used to run the operator locally outside of the cluster. This
 Set the name of the operator in an environment variable
 
 ```bash
- export OPERATOR_NAME=nifi-operator
+export OPERATOR_NAME=nifi-operator
 ```
 
 Deploy the CRDs.
@@ -76,6 +76,7 @@ kubectl apply -f config/crd/bases/nifi.konpyutaika.com_nificlusters.yaml
 kubectl apply -f config/crd/bases/nifi.konpyutaika.com_nifidataflows.yaml
 kubectl apply -f config/crd/bases/nifi.konpyutaika.com_nifiparametercontexts.yaml
 kubectl apply -f config/crd/bases/nifi.konpyutaika.com_nifiregistryclients.yaml
+kubectl apply -f config/crd/bases/nifi.konpyutaika.com_nifiusergroups.yaml
 kubectl apply -f config/crd/bases/nifi.konpyutaika.com_nifiusers.yaml
 ```
 
