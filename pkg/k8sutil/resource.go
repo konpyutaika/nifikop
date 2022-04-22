@@ -83,9 +83,6 @@ func Reconcile(log logr.Logger, client runtimeClient.Client, desired runtimeClie
 				desired = svc
 			}
 
-			if err := client.Update(context.TODO(), desired); err != nil {
-				return errorfactory.New(errorfactory.APIFailure{}, err, "updating resource failed", "kind", desiredType)
-			}
 			if cr != nil {
 				switch desired.(type) {
 				case *corev1.ConfigMap:
@@ -105,6 +102,10 @@ func Reconcile(log logr.Logger, client runtimeClient.Client, desired runtimeClie
 						}
 					}
 				}
+			}
+
+			if err := client.Update(context.TODO(), desired); err != nil {
+				return errorfactory.New(errorfactory.APIFailure{}, err, "updating resource failed", "kind", desiredType)
 			}
 		}
 
