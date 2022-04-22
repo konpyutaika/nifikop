@@ -16,6 +16,9 @@
 
 ### Fixed Bugs
 
+- [PR #76](https://github.com/konpyutaika/nifikop/pull/88) - **[Operator/NiFiCluster]** Re-ordering config out of sync steps.
+
+
 ## v0.10.0
 
 ### Changed
