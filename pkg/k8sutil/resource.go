@@ -109,7 +109,7 @@ func Reconcile(log logr.Logger, client runtimeClient.Client, desired runtimeClie
 			}
 		}
 
-		log.Info("resource updated")
+		log.V(10).Info("resource updated")
 	}
 	return nil
 }
@@ -124,7 +124,7 @@ func CheckIfObjectUpdated(log logr.Logger, desiredType reflect.Type, current, de
 		log.V(1).Info("resource is in sync")
 		return false
 	} else {
-		log.Info("resource diffs",
+		log.V(10).Info("resource diffs",
 			"patch", string(patchResult.Patch),
 			"current", string(patchResult.Current),
 			"modified", string(patchResult.Modified),
