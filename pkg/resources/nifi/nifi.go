@@ -168,7 +168,7 @@ func (r *Reconciler) Reconcile(log logr.Logger) error {
 				return errors.WrapIfWithDetails(err, "failed to reconcile resource", "resource", o.GetObjectKind().GroupVersionKind())
 			}
 		}
-		o = r.pod(node.Id, nodeConfig, pvcs, log)
+		o = r.pod(node, nodeConfig, pvcs, log)
 		err, isReady := r.reconcileNifiPod(log, o.(*corev1.Pod))
 		if err != nil {
 			return err
@@ -511,7 +511,7 @@ func (r *Reconciler) reconcileNifiPVC(log logr.Logger, desiredPVC *corev1.Persis
 			if err := r.Client.Update(context.TODO(), desiredPVC); err != nil {
 				return errorfactory.New(errorfactory.APIFailure{}, err, "updating resource failed", "kind", desiredType)
 			}
-			log.Info("resource updated")
+			log.V(10).Info("resource updated")
 		}
 	}
 	return nil
@@ -628,7 +628,7 @@ func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) (
 				return nil, k8sutil.PodReady(currentPod)
 			}
 		} else {
-			log.Info("resource diffs",
+			log.V(10).Info("resource diffs",
 				"patch", string(patchResult.Patch),
 				"current", string(patchResult.Current),
 				"modified", string(patchResult.Modified),

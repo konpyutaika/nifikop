@@ -15,7 +15,7 @@ const (
 	HttpListenerType       = "http"
 	HttpsListenerType      = "https"
 	S2sListenerType        = "s2s"
-	prometheusListenerType = "prometheus"
+	PrometheusListenerType = "prometheus"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
@@ -75,7 +75,7 @@ type NifiClusterSpec struct {
 	// NodeUserIdentityTemplate specifies the template to be used when naming the node user identity (e.g. node-%d-mysuffix)
 	NodeUserIdentityTemplate *string `json:"nodeUserIdentityTemplate,omitempty"`
 	// all node requires an image, unique id, and storageConfigs settings
-	Nodes []Node `json:"nodes"`
+	Nodes []Node `json:"nodes" patchStrategy:"merge" patchMergeKey:"id"`
 	// Defines the configuration for PodDisruptionBudget
 	DisruptionBudget DisruptionBudget `json:"disruptionBudget,omitempty"`
 	// LdapConfiguration specifies the configuration if you want to use LDAP
@@ -159,6 +159,9 @@ type Node struct {
 	ReadOnlyConfig *ReadOnlyConfig `json:"readOnlyConfig,omitempty"`
 	// node configuration
 	NodeConfig *NodeConfig `json:"nodeConfig,omitempty"`
+	// Labels are used to distinguish nodes from one another. They are also used by NifiNodeGroupAutoscaler
+	// to be automatically scaled. See NifiNodeGroupAutoscaler.Spec.NodeLabelsSelector
+	Labels map[string]string `json:"labels,omitempty"`
 }
 
 type ReadOnlyConfig struct {
@@ -709,7 +712,7 @@ func (nProperties NifiProperties) GetAuthorizer() string {
 func (nSpec *NifiClusterSpec) GetMetricPort() *int {
 
 	for _, iListener := range nSpec.ListenersConfig.InternalListeners {
-		if iListener.Type == prometheusListenerType {
+		if iListener.Type == PrometheusListenerType {
 			val := int(iListener.ContainerPort)
 			return &val
 		}

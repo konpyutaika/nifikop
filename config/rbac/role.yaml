@@ -81,6 +81,18 @@ rules:
   - update
   - watch
 - apiGroups:
+  - autoscaling
+  resources:
+  - horizontalpodautoscalers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
   - cert-manager.io
   resources:
   - certificates
@@ -164,6 +176,32 @@ rules:
   - nifi.konpyutaika.com
   resources:
   - nifidataflows/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - nifi.konpyutaika.com
+  resources:
+  - nifinodegroupautoscalers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - nifi.konpyutaika.com
+  resources:
+  - nifinodegroupautoscalers/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - nifi.konpyutaika.com
+  resources:
+  - nifinodegroupautoscalers/status
   verbs:
   - get
   - patch
