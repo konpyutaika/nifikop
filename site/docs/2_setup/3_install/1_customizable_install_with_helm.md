@@ -31,9 +31,9 @@ It will use Custom Ressources Definition CRDs:
 The following tables lists the configurable parameters of the NiFi Operator Helm chart and their default values.
 
 | Parameter                        | Description                                                                                                                                                                          | Default                                     |
-| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |---------------------------------------------|
+|----------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------|
 | `image.repository`               | Image                                                                                                                                                                                | `ghcr.io/konpyutaika/docker-images/nifikop` |
-| `image.tag`                      | Image tag                                                                                                                                                                            | `v0.10.0-release`                            |
+| `image.tag`                      | Image tag                                                                                                                                                                            | `v0.10.0-release`                           |
 | `image.pullPolicy`               | Image pull policy                                                                                                                                                                    | `Always`                                    |
 | `image.imagePullSecrets.enabled` | Enable tue use of secret for docker image                                                                                                                                            | `false`                                     |
 | `image.imagePullSecrets.name`    | Name of the secret to connect to docker registry                                                                                                                                     | -                                           |
@@ -42,7 +42,7 @@ The following tables lists the configurable parameters of the NiFi Operator Helm
 | `resources`                      | Pod resource requests & limits                                                                                                                                                       | `{}`                                        |
 | `metrics.enabled`                | deploy service for metrics                                                                                                                                                           | `false`                                     |
 | `metrics.port`                   | Set port for operator metrics                                                                                                                                                        | `8081`                                      |
-| `debug.enabled`                  | activate DEBUG log level                                                                                                                                                             | `false`                                     |
+| `logLevel`                       | Log level to output                                                                                                                                                                  | `Info`                                      |
 | `certManager.clusterScoped`      | If true setup cluster scoped resources                                                                                                                                               | `false`                                     |
 | `namespaces`                     | List of namespaces where Operator watches for custom resources. Make sure the operator ServiceAccount is granted `get` permissions on this `Node` resource when using limited RBACs. | `""` i.e. all namespaces                    |
 | `nodeSelector`                   | Node selector configuration for operator pod                                                                                                                                         | `{}`                                        |
@@ -90,8 +90,7 @@ values={[
 ```bash
 helm install nifikop konpyutaika/nifikop \
     --dry-run \
-    --debug.enabled \
-    --set debug.enabled=true \
+    --set logLevel=Debug \
     --set namespaces={"nifikop"}
 ```
 
@@ -117,13 +116,13 @@ helm install nifikop konpyutaika/nifikop --set namespaces={"nifikop"}
 
 ### Listing deployed charts
 
-```
+```bash
 helm list
 ```
 
 ### Get Status for the helm deployment
 
-```
+```bash
 helm status nifikop
 ```
 
@@ -132,7 +131,7 @@ helm status nifikop
 If you want to delete the operator from your Kubernetes cluster, the operator deployment
 should be deleted.
 
-```
+```bash
 helm del nifikop
 ```
 
@@ -144,7 +143,7 @@ The CRD created by the chart are not removed by default and should be manually c
 
 Manually delete the CRD:
 
-```
+```bash
 kubectl delete crd nificlusters.nifi.konpyutaika.com
 kubectl delete crd nifiusers.nifi.konpyutaika.com
 kubectl delete crd nifiusergroups.nifi.konpyutaika.com
