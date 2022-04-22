@@ -1,0 +1,46 @@
+apiVersion: nifi.konpyutaika.com/v1alpha1
+kind: NifiNodeGroupAutoscaler
+metadata:
+  name: nifinodegroupautoscaler-sample
+spec:
+  # contains the reference to the NifiCluster with the one the node group autoscaler is linked.
+  clusterRef:
+    name: nificluster-name
+    namespace: nifikop
+  # defines the id of the NodeConfig contained in NifiCluster.Spec.NodeConfigGroups
+  nodeConfigGroupId: default-node-group
+  # The selector used to identify nodes in NifiCluster.Spec.Nodes this autoscaler will manage
+  # Use Node.Labels in combination with this selector to clearly define which nodes will be managed by this autoscaler 
+  nodeLabelsSelector: nifi_cr=nificluster-name,nifi_node_group=default-node-group
+  # the strategy used to decide how to add nodes to a nifi cluster
+  upscaleStrategy: simple
+  # the strategy used to decide how to remove nodes from an existing cluster
+  downscaleStrategy: lifo
+  # the HorizontalPodAutoscaler configuration. More info can be found here: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/
+  horizontalAutoscaler:
+    maxReplicas: 5
+    minReplicas: 1
+    metrics:
+      - type: Resource
+        resource:
+          name: cpu
+          target:
+            type: Utilization
+            averageUtilization: 50
+    behavior:
+      scaleDown:
+        stabilizationWindowSeconds: 300
+        policies:
+        - type: Percent
+          value: 100
+          periodSeconds: 15
+      scaleUp:
+        stabilizationWindowSeconds: 0
+        policies:
+        - type: Percent
+          value: 100
+          periodSeconds: 15
+        - type: Pods
+          value: 4
+          periodSeconds: 15
+        selectPolicy: Max

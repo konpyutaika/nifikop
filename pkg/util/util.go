@@ -202,6 +202,31 @@ func NodesToIdList(nodes []v1alpha1.Node) (ids []int32) {
 	return
 }
 
+func NodesToIdMap(nodes []v1alpha1.Node) (nodeMap map[int32]v1alpha1.Node) {
+	nodeMap = make(map[int32]v1alpha1.Node)
+	for _, node := range nodes {
+		nodeMap[node.Id] = node
+	}
+	return
+}
+
+// SubtractNodes removes nodesToRemove from the originalNodes list by the node's Ids and returns the result
+func SubtractNodes(originalNodes []v1alpha1.Node, nodesToRemove []v1alpha1.Node) (results []v1alpha1.Node) {
+	if len(originalNodes) == 0 || len(nodesToRemove) == 0 {
+		return originalNodes
+	}
+	nodesToRemoveMap := NodesToIdMap(nodesToRemove)
+	results = []v1alpha1.Node{}
+
+	for _, node := range originalNodes {
+		if _, found := nodesToRemoveMap[node.Id]; !found {
+			// results are those which are _not_ in the nodesToRemove map
+			results = append(results, node)
+		}
+	}
+	return results
+}
+
 // computes the max between 2 ints
 func Max(x, y int) int {
 	if x < y {

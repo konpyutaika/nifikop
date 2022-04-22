@@ -1,81 +1,61 @@
 domain: konpyutaika.com
-layout: go.kubebuilder.io/v3
+layout:
+- go.kubebuilder.io/v3
+plugins:
+  manifests.sdk.operatorframework.io/v2: {}
+  scorecard.sdk.operatorframework.io/v2: {}
 projectName: nifikop
 repo: github.com/konpyutaika/nifikop
 resources:
 - api:
     crdVersion: v1
-    # TODO(user): Uncomment the below line if this resource's CRD is namespace scoped, else delete it.
-    # namespaced: true
-  # TODO(user): Uncomment the below line if this resource implements a controller, else delete it.
-  # controller: true
   domain: konpyutaika.com
   group: nifi
   kind: NifiCluster
-  # TODO(user): Update the package path for your API if the below value is incorrect.
   path: github.com/konpyutaika/nifikop/api/v1alpha1
   version: v1alpha1
 - api:
     crdVersion: v1
-    # TODO(user): Uncomment the below line if this resource's CRD is namespace scoped, else delete it.
-    # namespaced: true
-  # TODO(user): Uncomment the below line if this resource implements a controller, else delete it.
-  # controller: true
   domain: konpyutaika.com
   group: nifi
   kind: NifiUserGroup
-  # TODO(user): Update the package path for your API if the below value is incorrect.
   path: github.com/konpyutaika/nifikop/api/v1alpha1
   version: v1alpha1
 - api:
     crdVersion: v1
-    # TODO(user): Uncomment the below line if this resource's CRD is namespace scoped, else delete it.
-    # namespaced: true
-  # TODO(user): Uncomment the below line if this resource implements a controller, else delete it.
-  # controller: true
   domain: konpyutaika.com
   group: nifi
   kind: NifiUser
-  # TODO(user): Update the package path for your API if the below value is incorrect.
   path: github.com/Okonpyutaika/nifikop/api/v1alpha1
   version: v1alpha1
 - api:
     crdVersion: v1
-    # TODO(user): Uncomment the below line if this resource's CRD is namespace scoped, else delete it.
-    # namespaced: true
-  # TODO(user): Uncomment the below line if this resource implements a controller, else delete it.
-  # controller: true
   domain: konpyutaika.com
   group: nifi
   kind: NifiRegistryClient
-  # TODO(user): Update the package path for your API if the below value is incorrect.
   path: github.com/Okonpyutaika/nifikop/api/v1alpha1
   version: v1alpha1
 - api:
     crdVersion: v1
-    # TODO(user): Uncomment the below line if this resource's CRD is namespace scoped, else delete it.
-    # namespaced: true
-  # TODO(user): Uncomment the below line if this resource implements a controller, else delete it.
-  # controller: true
   domain: konpyutaika.com
   group: nifi
   kind: NifiDataflow
-  # TODO(user): Update the package path for your API if the below value is incorrect.
   path: github.com/konpyutaika/nifikop/api/v1alpha1
   version: v1alpha1
 - api:
     crdVersion: v1
-    # TODO(user): Uncomment the below line if this resource's CRD is namespace scoped, else delete it.
-    # namespaced: true
-  # TODO(user): Uncomment the below line if this resource implements a controller, else delete it.
-  # controller: true
   domain: konpyutaika.com
   group: nifi
   kind: NifiParameterContext
-  # TODO(user): Update the package path for your API if the below value is incorrect.
+  path: github.com/konpyutaika/nifikop/api/v1alpha1
+  version: v1alpha1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: konpyutaika.com
+  group: nifi
+  kind: NifiNodeGroupAutoscaler
   path: github.com/konpyutaika/nifikop/api/v1alpha1
   version: v1alpha1
 version: "3"
-plugins:
-  manifests.sdk.operatorframework.io/v2: {}
-  scorecard.sdk.operatorframework.io/v2: {}

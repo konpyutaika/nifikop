@@ -3732,6 +3732,13 @@ spec:
                       description: Unique Node id
                       format: int32
                       type: integer
+                    labels:
+                      additionalProperties:
+                        type: string
+                      description: Labels are used to distinguish nodes from one another.
+                        They are also used by NifiNodeGroupAutoscaler to be automatically
+                        scaled. See NifiNodeGroupAutoscaler.Spec.NodeLabelsSelector
+                      type: object
                     nodeConfig:
                       description: node configuration
                       properties:

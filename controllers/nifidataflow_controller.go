@@ -94,7 +94,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 			return RequeueWithError(r.Log, "could not apply last state to annotation", err)
 		}
 		if err := r.Client.Update(ctx, instance); err != nil {
-			return RequeueWithError(r.Log, "failed to update NifiRegistryClient", err)
+			return RequeueWithError(r.Log, "failed to update NifiDataflow", err)
 		}
 		o, err = patch.DefaultAnnotator.GetOriginalConfiguration(instance)
 	}
