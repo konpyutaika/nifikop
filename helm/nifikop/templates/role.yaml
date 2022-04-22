@@ -83,6 +83,7 @@ rules:
   - "nifidataflows"
   - "nifiregistryclients"
   - "nifiparametercontexts"
+  - "nifinodegroupautoscalers"
   verbs:
   - create
   - delete
@@ -92,6 +93,18 @@ rules:
   - update
   - watch
   - deletecollection
+- apiGroups:
+  - autoscaling
+  resources:
+  - horizontalpodautoscalers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
 - apiGroups:
   - cert-manager.io
   resources:
@@ -117,6 +130,7 @@ rules:
   - nifidataflows/status
   - nifiregistryclients/status
   - nifiparametercontexts/status
+  - nifinodegroupautoscalers/status
   verbs:
   - get
   - update

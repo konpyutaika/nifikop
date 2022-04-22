@@ -40,7 +40,7 @@ const (
 	ContainerName string = "nifi"
 )
 
-func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev1.PersistentVolumeClaim, log logr.Logger) runtimeClient.Object {
+func (r *Reconciler) pod(node v1alpha1.Node, nodeConfig *v1alpha1.NodeConfig, pvcs []corev1.PersistentVolumeClaim, log logr.Logger) runtimeClient.Object {
 
 	zkAddress := r.NifiCluster.Spec.ZKAddress
 	zkHostname := zk.GetHostnameAddress(zkAddress)
@@ -64,7 +64,7 @@ func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev
 	}
 
 	if r.NifiCluster.Spec.ListenersConfig.SSLSecrets != nil {
-		volume = append(volume, generateVolumesForSSL(r.NifiCluster, id)...)
+		volume = append(volume, generateVolumesForSSL(r.NifiCluster, node.Id)...)
 		volumeMount = append(volumeMount, generateVolumeMountForSSL()...)
 	}
 
@@ -75,7 +75,7 @@ func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev
 				//ConfigMap: &corev1.ConfigMapVolumeSource{
 				Secret: &corev1.SecretVolumeSource{
 					//LocalObjectReference: corev1.LocalObjectReference{Name: fmt.Sprintf(templates.NodeConfigTemplate+"-%d", r.NifiCluster.Name, id)},
-					SecretName:  fmt.Sprintf(templates.NodeConfigTemplate+"-%d", r.NifiCluster.Name, id),
+					SecretName:  fmt.Sprintf(templates.NodeConfigTemplate+"-%d", r.NifiCluster.Name, node.Id),
 					DefaultMode: util.Int32Pointer(0644),
 				},
 			},
@@ -120,7 +120,8 @@ func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev
 		r.NifiCluster.Spec.Pod.Labels,
 		nodeConfig.GetPodLabels(),
 		nifiutil.LabelsForNifi(r.NifiCluster.Name),
-		{"nodeId": fmt.Sprintf("%d", id)},
+		node.Labels,
+		{"nodeId": fmt.Sprintf("%d", node.Id)},
 	}
 
 	if r.NifiCluster.Spec.GetMetricPort() != nil {
@@ -133,7 +134,7 @@ func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev
 	pod := &corev1.Pod{
 		//ObjectMeta: templates.ObjectMetaWithAnnotations(
 		ObjectMeta: templates.ObjectMetaWithGeneratedNameAndAnnotations(
-			nifiutil.ComputeNodeName(id, r.NifiCluster.Name),
+			nifiutil.ComputeNodeName(node.Id, r.NifiCluster.Name),
 			util.MergeLabels(labelsToMerge...),
 			util.MergeAnnotations(anntotationsToMerge...), r.NifiCluster,
 		),
@@ -162,7 +163,7 @@ done`,
 				PodAntiAffinity: generatePodAntiAffinity(r.NifiCluster.Name, r.NifiCluster.Spec.OneNifiNodePerNode),
 			},
 			TopologySpreadConstraints:     r.NifiCluster.Spec.TopologySpreadConstraints,
-			Containers:                    r.injectAdditionalEnvVars(r.generateContainers(nodeConfig, id, podVolumeMounts, zkAddress)),
+			Containers:                    r.injectAdditionalEnvVars(r.generateContainers(nodeConfig, node.Id, podVolumeMounts, zkAddress)),
 			Volumes:                       podVolumes,
 			RestartPolicy:                 corev1.RestartPolicyNever,
 			TerminationGracePeriodSeconds: util.Int64Pointer(120),
@@ -177,7 +178,7 @@ done`,
 	}
 
 	//if r.NifiCluster.Spec.Service.HeadlessEnabled {
-	pod.Spec.Hostname = nifiutil.ComputeNodeName(id, r.NifiCluster.Name)
+	pod.Spec.Hostname = nifiutil.ComputeNodeName(node.Id, r.NifiCluster.Name)
 	pod.Spec.Subdomain = nifiutil.ComputeRequestNiFiAllNodeService(r.NifiCluster.Name,
 		r.NifiCluster.Spec.Service.GetServiceTemplate())
 	//}
