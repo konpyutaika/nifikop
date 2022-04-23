@@ -347,7 +347,7 @@ func (r *NifiNodeGroupAutoscalerReconciler) checkFinalizers(ctx context.Context,
 	r.Log.Info("NifiNodeGroupAutoscaler is marked for deletion")
 
 	var err error
-	if util.StringSliceContains(autoscaler.GetFinalizers(), dataflowFinalizer) {
+	if util.StringSliceContains(autoscaler.GetFinalizers(), autoscalerFinalizer) {
 		if err = r.finalizeNifiNodeGroupAutoscaler(autoscaler); err != nil {
 			return RequeueAfter(util.GetRequeueInterval(r.RequeueInterval/3, r.RequeueOffset))
 		}
