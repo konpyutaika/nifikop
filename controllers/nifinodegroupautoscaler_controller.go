@@ -28,7 +28,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 
-	// "k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
 	runtimeClient "sigs.k8s.io/controller-runtime/pkg/client"
@@ -94,6 +93,12 @@ func (r *NifiNodeGroupAutoscalerReconciler) Reconcile(ctx context.Context, req c
 	// Check if marked for deletion and run finalizers
 	if k8sutil.IsMarkedForDeletion(nodeGroupAutoscaler.ObjectMeta) {
 		return r.checkFinalizers(ctx, nodeGroupAutoscaler)
+	}
+
+	// Ensure finalizer for cleanup on deletion
+	if !util.StringSliceContains(nodeGroupAutoscaler.GetFinalizers(), autoscalerFinalizer) {
+		r.Log.Info(fmt.Sprintf("Adding Finalizer for NifiNodeGroupAutoscaler node group %s", nodeGroupAutoscaler.Spec.NodeConfigGroupId))
+		nodeGroupAutoscaler.SetFinalizers(append(nodeGroupAutoscaler.GetFinalizers(), autoscalerFinalizer))
 	}
 
 	// Get the last configuration viewed by the operator.
