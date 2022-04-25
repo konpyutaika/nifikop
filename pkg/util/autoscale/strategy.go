@@ -15,8 +15,8 @@ type HorizontalDownscaleStrategy interface {
 type HorizontalUpscaleStrategy interface {
 	Type() v1alpha1.ClusterScalingStrategy
 
-	// ScaleUp takes the current set of nodes, removes numNodesToRemove per the strategy, and
-	// returns the set of nodes that should be removed from the set of currentNodes
+	// ScaleUp takes the current set of nodes, adds numNodesToAdd per the strategy, and
+	// returns the set of nodes that should be added to the set of currentNodes
 	ScaleUp(currentNodes []v1alpha1.Node, numNodesToAdd int32) (newNodes []v1alpha1.Node, err error)
 }
 
@@ -54,8 +54,8 @@ func (simple *SimpleHorizontalUpscaleStrategy) Type() v1alpha1.ClusterScalingStr
 	return v1alpha1.SimpleClusterUpscaleStrategy
 }
 
-// ScaleUp takes the current set of nodes, removes numNodesToRemove per the strategy, and
-// returns the set of nodes that should be removed from the set of currentNodes
+// ScaleUp takes the current set of nodes, adds numNodesToAdd per the strategy, and
+// returns the set of nodes that should be added to the set of currentNodes
 func (simple *SimpleHorizontalUpscaleStrategy) ScaleUp(currentNodes []v1alpha1.Node, numNodesToAdd int32) (newNodes []v1alpha1.Node, err error) {
 	if numNodesToAdd == 0 {
 		return newNodes, nil
