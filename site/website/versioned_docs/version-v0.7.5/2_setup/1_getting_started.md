@@ -7,7 +7,7 @@ sidebar_label: Getting Started
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-The operator installs the 1.12.1 version of Apache NiFi, can run on Minikube v0.33.1+ and **Kubernetes 1.16.0+**, and require **Helm 3**.
+The operator installs the 1.12.1 version of Apache NiFi, can run on Minikube v0.33.1+ and **Kubernetes 1.21.0+**, and require **Helm 3**.
 
 :::info
 The operator supports NiFi 1.11.0+
