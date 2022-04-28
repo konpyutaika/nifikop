@@ -198,9 +198,14 @@ func (r *NifiClusterReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	}
 
 	return ctrl.NewControllerManagedBy(mgr).
+<<<<<<< HEAD
 		For(&v1.NifiCluster{}).
 		WithLogConstructor(logCtr).
 		Owns(&policyv1.PodDisruptionBudget{}).
+=======
+		For(&v1alpha1.NifiCluster{}).
+		Owns(&policyv1beta1.PodDisruptionBudget{}).
+>>>>>>> 10b0906f (Revert "update pod disruption budget version to v1 from v1beta1")
 		Owns(&corev1.Service{}).
 		Owns(&corev1.Pod{}).
 		Owns(&corev1.ConfigMap{}).

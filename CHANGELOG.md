@@ -140,8 +140,6 @@
 
 ### Changed
 
-- [PR #75](https://github.com/konpyutaika/nifikop/pull/75) - **[Operator]** Update PodDisruptionBudget version to policy/v1 instead of policy/v1beta1.
-
 ### Deprecated
 
 ### Removed
