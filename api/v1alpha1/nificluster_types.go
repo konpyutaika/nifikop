@@ -298,6 +298,9 @@ type NodeConfig struct {
 	Tolerations []corev1.Toleration `json:"tolerations,omitempty"`
 	// podMetadata allows to add additionnal metadata to the node pods
 	PodMetadata Metadata `json:"podMetadata,omitempty"`
+	// priorityClassName can be used to set the priority class applied to the node
+	// +optional
+	PriorityClassName *string `json:"priorityClassName,omitempty"`
 }
 
 type Metadata struct {
@@ -653,6 +656,14 @@ func (nConfig *NodeConfig) GetResources() *corev1.ResourceRequirements {
 			"memory": resource.MustParse("1Gi"),
 		},
 	}
+}
+
+// GetPriorityClass returns the name of the priority class to use for the given node
+func (nConfig *NodeConfig) GetPriorityClass() string {
+	if nConfig.PriorityClassName != nil {
+		return *nConfig.PriorityClassName
+	}
+	return ""
 }
 
 //
