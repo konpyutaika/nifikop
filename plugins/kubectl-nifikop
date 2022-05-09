@@ -2,14 +2,14 @@
 #
 # Copyright 2019 Orange
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
+# Licensed under the Apache License, Version 2.0 (the 'License');
 # you may not use this file except in compliance with the License.
 # 	You may obtain a copy of the License at
 #
 # http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
+# distributed under the License is distributed on an 'AS IS' BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # 	See the License for the specific language governing permissions and
 # limitations under the License.
@@ -19,71 +19,92 @@ import sys
 import json
 from subprocess import check_output, STDOUT, CalledProcessError
 from os.path import basename
-from random import shuffle
-from itertools import groupby
+
+K8S_NIFIDATAFLOW_KIND = 'nifidataflow'
+STOP_LABEL = 'stop-dataflow'
 
 def k(*args):
     params = list(args)
     try:
-        out = check_output(["kubectl"] + params, stderr=STDOUT)
-        result = out.decode("utf-8")
+        out = check_output(['kubectl'] + params, stderr=STDOUT)
+        result = out.decode('utf-8')
         if result:
-            if "-o" in " ".join(params):
+            if '-o' in ' '.join(params):
                 return result
-            return [r.split() for r in result.split("\n")[1:-1]]
+            return [r.split() for r in result.split('\n')[1:-1]]
     except CalledProcessError:
         return []
-
+    
+def die(msg):
+    print(f'{msg}. Have to stop here ...')
+    sys.exit(1)
 
 def get_namespace():
     return k('config', 'view', '--minify', '--output', 'jsonpath={..namespace}') or 'default'
 
-def get_nifidataflow(nifidataflow):
-  nifidataflow = k("get", "nifidataflow", nifidataflow, "-n", "nifi", "-o", "json")
-  nifidataflow = json.loads(nifidataflow)
-  print(nifidataflow)
+def set_resource_label(resourceKind, resourceName, labelName, labelValue, namespace):
+    print(f'Set label {labelName} on {resourceKind} {resourceName} to {labelValue}')
+    k('label', resourceKind, resourceName, f'{labelName}={labelValue}', '--overwrite', '-n', namespace)
+    
+def unset_resource_label(resourceKind, resourceName, labelName, namespace):
+    print(f'Unset label {labelName} on {resourceKind} {resourceName}')
+    k('label', resourceKind, resourceName, f'{labelName}-', '-n', namespace)
 
-def set_nifidataflow_label(pod, operation, status="ToDo", argument=None):
-    print(f"Set status of operation {operation} on pod {pod} to {status}")
-    labels = [f"operation-name={operation}", f"operation-status={status}"]
-    if argument:
-        labels.append(f"operation-argument={argument}")
-    k("label", "pods", pod, *labels, "--overwrite")
+def get_resources(resourceKind, resourceName, namespace):
+    resources = k('get', resourceKind, resourceName, '-n', namespace, '-o', 'json')
+    if (len(resources) > 0):
+        resources = json.loads(resources)
+    else:
+        resources = None
+    return resources
 
 class Command(object):
     def __init__(self):
         plugin = basename(sys.argv[0])
         parser = argparse.ArgumentParser(
             description='Kubernetes plugin used to trigger operations',
-            usage=f"""{plugin} <command> [<args>]
+            usage=f'''{plugin} <command> [<args>]
 The available commands are:
    stop
+   unstop
 For more information you can run {plugin} <command> --help
-""")
+''')
         parser.add_argument('command', help='Subcommand to run')
         args = parser.parse_args(sys.argv[1:2])
         self._command_must_exist(args.command, parser)
-        print(f"Namespace {get_namespace()}")
+        print(f'Default namespace: {get_namespace()}')
 
         # Call function corresponding to the command passed
         getattr(self, args.command)()
 
     def _command_must_exist(self, operation, parser):
         if not hasattr(self, operation):
-            print(f"Unrecognized operation {operation}")
+            print(f'Unrecognized operation {operation}')
             parser.print_help()
             exit(1)
     
     def stop(self):
       self._stop_operation(True)
+      
+    def unstop(self):
+      self._stop_operation(False)
 
     def _stop_operation(self, stop):
-        # We expect a supported operation to be passed
-        parser = argparse.ArgumentParser("stop")
-        parser.add_argument('NiFiDataflow', help=f'NiFiDataflow(s) to {"un" if not stop else ""}stop')
-        nifiDataflow = parser.parse_args(sys.argv[2:3]).NiFiDataflow
-        print(nifiDataflow)
-        get_nifidataflow(nifiDataflow)
+        parser = argparse.ArgumentParser(self._stop_operation.__name__)
+        parser.add_argument('nifidataflow', help=f'NiFiDataflow to {"un" if not stop else ""}stop')
+        parser.add_argument('--namespace', '-n', default=get_namespace())
+        args = parser.parse_args(sys.argv[2:])
+        nifidataflow = args.nifidataflow
+        namespace = args.namespace
+        nifidataflow_json = get_resources(K8S_NIFIDATAFLOW_KIND, nifidataflow, namespace)
+        
+        if nifidataflow_json is not None:
+            if (stop == True):
+                set_resource_label(K8S_NIFIDATAFLOW_KIND, nifidataflow, STOP_LABEL, 'true', namespace)
+            else:                
+                unset_resource_label(K8S_NIFIDATAFLOW_KIND, nifidataflow, STOP_LABEL, namespace)
+        else:
+            die(f'The specified NiFiDataflow "{nifidataflow}" could not be found')
 
 if __name__ == '__main__':
     Command()

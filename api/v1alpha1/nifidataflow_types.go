@@ -187,7 +187,7 @@ func (p *FlowPosition) GetY() int64 {
 }
 
 func (p *NifiDataflow) IsStopped() bool {
-	if p.Labels != nil && p.Labels["isStopped"] == "true" {
+	if p.Labels != nil && p.Labels["stop-dataflow"] == "true" {
 		return true
 	}
 	return false

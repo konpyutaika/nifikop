@@ -5,12 +5,12 @@ sidebar_label: Stop NiFi Dataflows
 ---
 
 NiFi Dataflows are by default started if the `syncMode` is not set to `never`. But sometimes, you want to stop your dataflow and still keep it in sync.
-To allow this, the label `isStopped` can be used. If this label is set to `true` and the dataflow is in sync, the operator will stop the processors and controller services of the dataflow. Once the label, the user will no longer be able to start the dataflow, the operator will ensure this.
+To allow this, the label `stop-dataflow` can be used. If this label is set to `true` and the dataflow is in sync, the operator will stop the processors and controller services of the dataflow. Once the label, the user will no longer be able to start the dataflow, the operator will ensure this.
 
 Here is an example of how to set this label via CLI :
 
 ```sh
-kubectl label nifidataflows dataflow isStopped=true --overwrite
+kubectl label nifidataflows dataflow stop-dataflow=true --overwrite
 ```
 
 Here is an example of how to set this label via the Kubernetes resource :
@@ -21,7 +21,7 @@ kind: NifiDataflow
 metadata:
   name: dataflow-lifecycle
   labels:
-    isStopped: "true"
+    stop-dataflow: "true"
 spec:
   parentProcessGroupID: "16cfd2ec-0174-1000-0000-00004b9b35cc"
   bucketId: "01ced6cc-0378-4893-9403-f6c70d080d4f"
