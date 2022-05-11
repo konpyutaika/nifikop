@@ -68,13 +68,19 @@ spec:
         portConfigs:
           - port: 8080
             internalListenerName: "http"
-      serviceAnnotations:
-        toto: tata
+      metadata:
+        annotations:
+          toto: tata
+        labels:
+          titi: tutu
     - name: "nodepart"
       spec:
         type: NodePort
         portConfigs:
           - port: 8080
             internalListenerName: "http"
-      serviceAnnotations:
-        toto: tata
+      metadata:
+        annotations:
+          toto: tata
+        labels:
+          titi: tutu

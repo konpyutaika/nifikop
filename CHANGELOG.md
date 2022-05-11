@@ -17,6 +17,7 @@
 ### Fixed Bugs
 
 - [PR #76](https://github.com/konpyutaika/nifikop/pull/88) - **[Operator/NiFiCluster]** Re-ordering config out of sync steps.
+- [PR #93](https://github.com/konpyutaika/nifikop/pull/93) - **[Documentation]** Remove serviceAnnotations mentions and fix docs.
 
 
 ## v0.10.0
