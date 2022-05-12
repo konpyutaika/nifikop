@@ -2,13 +2,14 @@ package nificlient
 
 import (
 	"context"
-	"emperror.dev/errors"
 	"fmt"
-	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
 	"net/http"
 	"net/url"
-	ctrl "sigs.k8s.io/controller-runtime"
 	"time"
+
+	"emperror.dev/errors"
+	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
+	ctrl "sigs.k8s.io/controller-runtime"
 
 	nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
@@ -92,6 +93,7 @@ type NifiClient interface {
 	UpdateInputPortRunStatus(id string, entity nigoapi.PortRunStatusEntity) (*nigoapi.ProcessorEntity, error)
 
 	// Parameter context func
+	GetParameterContexts() ([]nigoapi.ParameterContextEntity, error)
 	GetParameterContext(id string) (*nigoapi.ParameterContextEntity, error)
 	CreateParameterContext(entity nigoapi.ParameterContextEntity) (*nigoapi.ParameterContextEntity, error)
 	RemoveParameterContext(entity nigoapi.ParameterContextEntity) error
