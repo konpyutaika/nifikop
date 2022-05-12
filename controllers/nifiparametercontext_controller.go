@@ -241,7 +241,7 @@ func (r *NifiParameterContextReconciler) Reconcile(ctx context.Context, req ctrl
 			// ParameterContext name already used
 			if !instance.Spec.IsTakeOverEnabled() {
 				// TakeOver disabled
-				return RequeueWithError(r.Log, "parameter context name already used and takeOver disabled", err)
+				return RequeueWithError(r.Log, fmt.Sprintf("parameter context name %s already used and takeOver disabled", instance.GetName()), err)
 			}
 		}
 
