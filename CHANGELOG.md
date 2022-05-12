@@ -2,6 +2,8 @@
 
 ### Added
 
+- [PR #95](https://github.com/konpyutaika/nifikop/pull/95) - **[Operator/NiFiParameterContext]** Allow the operator to take over existing parameter context.
+
 ### Changed
 
 ### Deprecated
