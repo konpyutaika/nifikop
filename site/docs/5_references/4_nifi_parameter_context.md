@@ -44,6 +44,7 @@ spec:
 |parameters|\[ \][Parameter](#parameter)| a list of non-sensitive Parameters. |Yes| - |
 |secretRefs|\[ \][SecretReference](#secretreference)| a list of secret containing sensitive parameters (the key will name of the parameter) |No| - |
 |clusterRef|[ClusterReference](./2_nifi_user.md#clusterreference)| contains the reference to the NifiCluster with the one the user is linked. |Yes| - |
+|disableTakeOver|bool| whether or not the operator should not take over an existing parameter context if its name is the same. |No| - |
 
 ## NifiParameterContextStatus
 

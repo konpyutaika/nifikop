@@ -18,9 +18,12 @@ package controllers
 
 import (
 	"context"
-	"emperror.dev/errors"
 	"encoding/json"
 	"fmt"
+	"reflect"
+	"time"
+
+	"emperror.dev/errors"
 	"github.com/banzaicloud/k8s-objectmatcher/patch"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/parametercontext"
 	errorfactory "github.com/konpyutaika/nifikop/pkg/errorfactory"
@@ -31,9 +34,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/client-go/tools/record"
-	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"time"
 
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -223,9 +224,21 @@ func (r *NifiParameterContextReconciler) Reconcile(ctx context.Context, req ctrl
 		r.Recorder.Event(instance, corev1.EventTypeNormal, "Creating",
 			fmt.Sprintf("Creating parameter context %s", instance.Name))
 
-		status, err := parametercontext.CreateParameterContext(instance, parameterSecrets, clientConfig)
-		if err != nil {
-			return RequeueWithError(r.Log, "failure creating parameter context", err)
+		var status *v1alpha1.NifiParameterContextStatus
+
+		if instance.Spec.IsTakeOverEnabled() {
+			status, err = parametercontext.FindParameterContextByName(instance, clientConfig)
+			if err != nil {
+				return RequeueWithError(r.Log, "failure finding parameter context", err)
+			}
+		}
+
+		if status == nil {
+			// Create NiFi parameter context
+			status, err = parametercontext.CreateParameterContext(instance, parameterSecrets, clientConfig)
+			if err != nil {
+				return RequeueWithError(r.Log, "failure creating parameter context", err)
+			}
 		}
 
 		instance.Status = *status
