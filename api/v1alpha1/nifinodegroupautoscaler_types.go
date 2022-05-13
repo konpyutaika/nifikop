@@ -28,7 +28,7 @@ import (
 type NifiNodeGroupAutoscalerSpec struct {
 	// contains the reference to the NifiCluster with the one the dataflow is linked.
 	ClusterRef ClusterReference `json:"clusterRef"`
-	// reference to the nodeConfigGroup that will be managed and autoscaled
+	// reference to the nodeConfigGroup that will be set for nodes that are managed and autoscaled
 	// This Id is used to compute the names of some Kubernetes resources, so it must be a safe value.
 	// +kubebuilder:validation:Pattern:="[a-z0-9]([-a-z0-9]*[a-z0-9])?"
 	// +kubebuilder:validation:MaxLength:=63
