@@ -92,18 +92,15 @@ func (r *NifiNodeGroupAutoscalerReconciler) Reconcile(ctx context.Context, req c
 
 	// Ensure finalizer for cleanup on deletion
 	if !util.StringSliceContains(nodeGroupAutoscaler.GetFinalizers(), autoscalerFinalizer) {
-<<<<<<< HEAD
 		r.Log.V(5).Info(fmt.Sprintf("Adding Finalizer for NifiNodeGroupAutoscaler node group %s", nodeGroupAutoscaler.Spec.NodeConfigGroupId))
-=======
-		r.Log.Info(fmt.Sprintf("Adding Finalizer for NifiNodeGroupAutoscaler node group %s", nodeGroupAutoscaler.Spec.NodeConfigGroupId))
->>>>>>> dc0942865fb744431afbcc3c3151b82da3eb03e7
 		nodeGroupAutoscaler.SetFinalizers(append(nodeGroupAutoscaler.GetFinalizers(), autoscalerFinalizer))
 	}
 
 	// lookup NifiCluster reference
 	// we do not want cached objects here. We want an accurate state of what the cluster is right now, so bypass the client cache by using the APIReader directly.
 	cluster := &v1alpha1.NifiCluster{}
-	err = r.APIReader.Get(ctx,
+	// err = r.APIReader.Get(ctx,
+	err = r.Client.Get(ctx,
 		types.NamespacedName{
 			Name:      nodeGroupAutoscaler.Spec.ClusterRef.Name,
 			Namespace: nodeGroupAutoscaler.Spec.ClusterRef.Namespace,
@@ -211,7 +208,10 @@ func (r *NifiNodeGroupAutoscalerReconciler) scaleDown(autoscaler *v1alpha1.NifiN
 	default:
 		r.Log.Info(fmt.Sprintf("Using LIFO downscale strategy for cluster %s node group %s", cluster.Name, autoscaler.Spec.NodeConfigGroupId))
 		// remove the last n nodes from the node list
-		lifo := &autoscale.LIFOHorizontalDownscaleStrategy{}
+		lifo := &autoscale.LIFOHorizontalDownscaleStrategy{
+			NifiCluster:             cluster,
+			NifiNodeGroupAutoscaler: autoscaler,
+		}
 		nodesToRemove, err := lifo.ScaleDown(numNodesToRemove)
 		if err != nil {
 			return errors.WrapIf(err, "Failed to scale cluster down via LIFO strategy.")
@@ -300,10 +300,6 @@ func (r *NifiNodeGroupAutoscalerReconciler) getManagedNodes(autoscaler *v1alpha1
 func (r *NifiNodeGroupAutoscalerReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&v1alpha1.NifiNodeGroupAutoscaler{}).
-<<<<<<< HEAD
-=======
-		Owns(&autoscalingv2.HorizontalPodAutoscaler{}).
->>>>>>> dc0942865fb744431afbcc3c3151b82da3eb03e7
 		Complete(r)
 }
 

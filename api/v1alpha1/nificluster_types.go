@@ -809,15 +809,13 @@ func (p PairList) Less(i, j int) bool { return p[i].Value.Before(&p[j].Value) }
 // LIFO will not be able to reliably determine the oldest node. A rolling restart of nodes in the cluster will
 // resolve this issue going forward.
 func (cluster *NifiCluster) GetCreationTimeOrderedNodes() []Node {
-	nodeIdCreationPairs := make(PairList, len(cluster.Status.NodesState))
+	nodeIdCreationPairs := PairList{}
 
-	i := 0
 	for k, v := range cluster.Status.NodesState {
-		nodeIdCreationPairs[i] = Pair{k, v.CreationTime}
-		i++
+		nodeIdCreationPairs = append(nodeIdCreationPairs, Pair{k, v.CreationTime})
 	}
 
-	// nodeIfCreationPairs is now sorted by creation time in ascending order.
+	// nodeIdCreationPairs is now sorted by creation time in ascending order.
 	sort.Sort(nodeIdCreationPairs)
 
 	nodesMap := nodesToIdMap(cluster.Spec.Nodes)
