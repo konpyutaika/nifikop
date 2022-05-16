@@ -36,7 +36,6 @@ import (
 	"github.com/konpyutaika/nifikop/pkg/autoscale"
 	"github.com/konpyutaika/nifikop/pkg/k8sutil"
 	"github.com/konpyutaika/nifikop/pkg/util"
-	autoscalingv2 "k8s.io/api/autoscaling/v2beta2"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -93,7 +92,7 @@ func (r *NifiNodeGroupAutoscalerReconciler) Reconcile(ctx context.Context, req c
 
 	// Ensure finalizer for cleanup on deletion
 	if !util.StringSliceContains(nodeGroupAutoscaler.GetFinalizers(), autoscalerFinalizer) {
-		r.Log.Info(fmt.Sprintf("Adding Finalizer for NifiNodeGroupAutoscaler node group %s", nodeGroupAutoscaler.Spec.NodeConfigGroupId))
+		r.Log.V(5).Info(fmt.Sprintf("Adding Finalizer for NifiNodeGroupAutoscaler node group %s", nodeGroupAutoscaler.Spec.NodeConfigGroupId))
 		nodeGroupAutoscaler.SetFinalizers(append(nodeGroupAutoscaler.GetFinalizers(), autoscalerFinalizer))
 	}
 
@@ -297,7 +296,6 @@ func (r *NifiNodeGroupAutoscalerReconciler) getManagedNodes(autoscaler *v1alpha1
 func (r *NifiNodeGroupAutoscalerReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&v1alpha1.NifiNodeGroupAutoscaler{}).
-		Owns(&autoscalingv2.HorizontalPodAutoscaler{}).
 		Complete(r)
 }
 

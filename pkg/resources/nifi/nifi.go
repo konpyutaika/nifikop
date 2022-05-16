@@ -584,7 +584,7 @@ func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) (
 		nodeId := currentPod.Labels["nodeId"]
 		if _, ok := r.NifiCluster.Status.NodesState[nodeId]; ok {
 			if currentPod.Spec.NodeName == "" {
-				log.Info(fmt.Sprintf("pod for NodeId %s does not scheduled to node yet", nodeId))
+				log.Info(fmt.Sprintf("pod for NodeId %s is not scheduled to node yet", nodeId))
 			}
 		} else {
 			return errorfactory.New(errorfactory.InternalError{}, errors.New("reconcile failed"),
@@ -592,7 +592,7 @@ func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) (
 		}
 	} else {
 		return errorfactory.New(errorfactory.TooManyResources{}, errors.New("reconcile failed"),
-			"more then one matching pod found", "labels", matchingLabels), false
+			"more than one matching pod found", "labels", matchingLabels), false
 	}
 
 	// TODO check if this err == nil check necessary (baluchicken)
