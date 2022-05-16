@@ -17,7 +17,6 @@ limitations under the License.
 package v1alpha1
 
 import (
-	autoscalingv2 "k8s.io/api/autoscaling/v2beta2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -48,31 +47,6 @@ type NifiNodeGroupAutoscalerSpec struct {
 	// The strategy to use when scaling down the nifi cluster
 	// +kubebuilder:validation:Enum={"lifo","nonprimary","leastbusy"}
 	DownscaleStrategy ClusterScalingStrategy `json:"downscaleStrategy,omitempty"`
-	// Configuration for the HorizontalPodAutoscaler
-	HorizontalAutoscaler HorizontalAutoscaler `json:"horizontalAutoscaler"`
-}
-
-// configuration for a k8s HorizontalPodAutoscaler
-type HorizontalAutoscaler struct {
-	// maxReplicas is the upper limit for the number of replicas to which the autoscaler can scale up.
-	// It cannot be less that minReplicas.
-	MaxReplicas int32 `json:"maxReplicas"`
-	// minReplicas is the lower limit for the number of replicas to which the autoscaler
-	// can scale down.
-	MinReplicas int32 `json:"minReplicas,omitempty"`
-	// metrics contains the specifications for which to use to calculate the
-	// desired replica count (the maximum replica count across all metrics will
-	// be used).  The desired replica count is calculated multiplying the
-	// ratio between the target value and the current value by the current
-	// number of pods.  Ergo, metrics used must decrease as the pod count is
-	// increased, and vice-versa.  See the individual metric source types for
-	// more information about how each type of metric must respond.
-	// If not set, the default metric will be set to 80% average CPU utilization.
-	Metrics []autoscalingv2.MetricSpec `json:"metrics,omitempty"`
-	// behavior configures the scaling behavior of the target
-	// in both Up and Down directions (scaleUp and scaleDown fields respectively).
-	// If not set, the default HPAScalingRules for scale up and scale down are used.
-	Behavior *autoscalingv2.HorizontalPodAutoscalerBehavior `json:"behavior,omitempty"`
 }
 
 // NifiNodeGroupAutoscalerStatus defines the observed state of NifiNodeGroupAutoscaler

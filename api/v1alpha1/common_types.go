@@ -2,6 +2,8 @@ package v1alpha1
 
 import (
 	"fmt"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // DataflowState defines the state of a NifiDataflow
@@ -337,6 +339,8 @@ type NodeState struct {
 	InitClusterNode InitClusterNode `json:"initClusterNode"`
 	// PodIsReady whether or not the associated pod is ready
 	PodIsReady bool `json:"podIsReady"`
+	// CreationTime is the time at which this node was created. This must be sortable.
+	CreationTime metav1.Time `json:"creationTime"`
 }
 
 // RackAwarenessState holds info about rack awareness status

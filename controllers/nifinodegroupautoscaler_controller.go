@@ -18,7 +18,6 @@ package controllers
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"emperror.dev/errors"
@@ -33,12 +32,10 @@ import (
 	runtimeClient "sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	"github.com/banzaicloud/k8s-objectmatcher/patch"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
+	"github.com/konpyutaika/nifikop/pkg/autoscale"
 	"github.com/konpyutaika/nifikop/pkg/k8sutil"
 	"github.com/konpyutaika/nifikop/pkg/util"
-	"github.com/konpyutaika/nifikop/pkg/util/autoscale"
-	nifiutil "github.com/konpyutaika/nifikop/pkg/util/nifi"
 	autoscalingv2 "k8s.io/api/autoscaling/v2beta2"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -62,7 +59,6 @@ type NifiNodeGroupAutoscalerReconciler struct {
 //+kubebuilder:rbac:groups=nifi.konpyutaika.com,resources=nifinodegroupautoscalers/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=nifi.konpyutaika.com,resources=nifinodegroupautoscalers/finalizers,verbs=update
 //+kubebuilder:rbac:groups=nifi.konpyutaika.com,resources=nificlusters,verbs=get;list;watch;update;patch
-//+kubebuilder:rbac:groups="autoscaling",resources=horizontalpodautoscalers,verbs=get;list;watch;create;update;patch;delete
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -101,26 +97,6 @@ func (r *NifiNodeGroupAutoscalerReconciler) Reconcile(ctx context.Context, req c
 		nodeGroupAutoscaler.SetFinalizers(append(nodeGroupAutoscaler.GetFinalizers(), autoscalerFinalizer))
 	}
 
-	// Get the last configuration viewed by the operator.
-	o, err := patch.DefaultAnnotator.GetOriginalConfiguration(nodeGroupAutoscaler)
-	// Create it if not exist.
-	if o == nil {
-		if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(nodeGroupAutoscaler); err != nil {
-			return RequeueWithError(r.Log, "could not apply last state to annotation", err)
-		}
-		if err := r.Client.Update(ctx, nodeGroupAutoscaler); err != nil {
-			return RequeueWithError(r.Log, "failed to update NifiNodeGroupAutoscaler", err)
-		}
-		o, err = patch.DefaultAnnotator.GetOriginalConfiguration(nodeGroupAutoscaler)
-	}
-
-	// Check if the cluster reference changed.
-	original := &v1alpha1.NifiNodeGroupAutoscaler{}
-	json.Unmarshal(o, original)
-	if !v1alpha1.ClusterRefsEquals([]v1alpha1.ClusterReference{original.Spec.ClusterRef, nodeGroupAutoscaler.Spec.ClusterRef}) {
-		nodeGroupAutoscaler.Spec.ClusterRef = original.Spec.ClusterRef
-	}
-
 	// lookup NifiCluster reference
 	// we do not want cached objects here. We want an accurate state of what the cluster is right now, so bypass the client cache by using the APIReader directly.
 	cluster := &v1alpha1.NifiCluster{}
@@ -134,19 +110,9 @@ func (r *NifiNodeGroupAutoscalerReconciler) Reconcile(ctx context.Context, req c
 		return RequeueWithError(r.Log, fmt.Sprintf("failed to look up cluster reference %v+", nodeGroupAutoscaler.Spec.ClusterRef), err)
 	}
 
-	// Handle HorizontalAutoScaler
-	hpa, err := r.horizontalPodAutoscaler(r.Log, cluster, nodeGroupAutoscaler)
-	if err != nil {
-		return RequeueWithError(r.Log, "failed to generate horizontal pod autoscaler spec", err)
-	}
-	err = k8sutil.Reconcile(r.Log, r.Client, hpa, nil)
-	if err != nil {
-		return RequeueWithError(r.Log, "failed to reconcile horizontal pod autoscaler", err)
-	}
-
 	// Determine how many replicas there currently are and how many are desired for the appropriate node group
 	numDesiredReplicas := nodeGroupAutoscaler.Spec.Replicas
-	currentReplicas, maxId, err := r.getManagedNodes(nodeGroupAutoscaler, cluster.Spec.Nodes)
+	currentReplicas, err := r.getManagedNodes(nodeGroupAutoscaler, cluster.Spec.Nodes)
 	if err != nil {
 		return RequeueWithError(r.Log, "Failed to apply autoscaler node selector to cluster nodes", err)
 	}
@@ -154,7 +120,8 @@ func (r *NifiNodeGroupAutoscalerReconciler) Reconcile(ctx context.Context, req c
 
 	// if the current number of nodes being managed by this autoscaler is different than the replica setting,
 	// then set the autoscaler status to out of sync to indicate we're changing the NifiCluster node config
-	if numDesiredReplicas != numCurrentReplicas {
+	// Additionally, if the autoscaler state is currently out of sync then scale up/down
+	if numDesiredReplicas != numCurrentReplicas || nodeGroupAutoscaler.Status.State == v1alpha1.AutoscalerStateOutOfSync {
 		r.Log.Info(fmt.Sprintf("Replicas changed from %d to %d", numCurrentReplicas, numDesiredReplicas))
 		if err = r.updateAutoscalerReplicaState(ctx, nodeGroupAutoscaler, v1alpha1.AutoscalerStateOutOfSync); err != nil {
 			return RequeueWithError(r.Log, fmt.Sprintf("Failed to udpate node group autoscaler state for node group %s", nodeGroupAutoscaler.Spec.NodeConfigGroupId), err)
@@ -170,8 +137,7 @@ func (r *NifiNodeGroupAutoscalerReconciler) Reconcile(ctx context.Context, req c
 			numNodesToAdd := numDesiredReplicas - numCurrentReplicas
 			r.Log.Info(fmt.Sprintf("Adding %d more nodes to cluster %s spec.nodes configuration for node group %s", numNodesToAdd, cluster.Name, nodeGroupAutoscaler.Spec.NodeConfigGroupId))
 
-			startingNodeId := maxId + 1
-			if err = r.scaleUp(nodeGroupAutoscaler, cluster, numNodesToAdd, startingNodeId); err != nil {
+			if err = r.scaleUp(nodeGroupAutoscaler, cluster, numNodesToAdd); err != nil {
 				return RequeueWithError(r.Log, fmt.Sprintf("Failed to scale cluster %s up for node group %s", cluster.Name, nodeGroupAutoscaler.Spec.NodeConfigGroupId), err)
 			}
 
@@ -197,7 +163,6 @@ func (r *NifiNodeGroupAutoscalerReconciler) Reconcile(ctx context.Context, req c
 	} else {
 		r.Log.V(5).Info("Cluster replicas config and current number of replicas are the same", "replicas", nodeGroupAutoscaler.Spec.Replicas)
 	}
-	//TODO ensure finalizers on NifiNodeGroupAutoscaler
 
 	// update replica and replica status
 	if err = r.updateAutoscalerReplicaStatus(ctx, cluster, nodeGroupAutoscaler); err != nil {
@@ -210,12 +175,7 @@ func (r *NifiNodeGroupAutoscalerReconciler) Reconcile(ctx context.Context, req c
 }
 
 // scaleUp updates the provided cluster.Spec.Nodes list with the appropriate numNodesToAdd according to the autoscaler.Spec.UpscaleStrategy
-func (r *NifiNodeGroupAutoscalerReconciler) scaleUp(autoscaler *v1alpha1.NifiNodeGroupAutoscaler, cluster *v1alpha1.NifiCluster, numNodesToAdd int32, startingNodeId int32) error {
-	managedNodes, _, err := r.getManagedNodes(autoscaler, cluster.Spec.Nodes)
-	if err != nil {
-		return errors.WrapIff(err, "Failed to fetch managed nodes for node group %s", autoscaler.Spec.NodeConfigGroupId)
-	}
-
+func (r *NifiNodeGroupAutoscalerReconciler) scaleUp(autoscaler *v1alpha1.NifiNodeGroupAutoscaler, cluster *v1alpha1.NifiCluster, numNodesToAdd int32) error {
 	switch autoscaler.Spec.UpscaleStrategy {
 	// Right now Simple is the only option and the default
 	case v1alpha1.SimpleClusterUpscaleStrategy:
@@ -223,10 +183,10 @@ func (r *NifiNodeGroupAutoscalerReconciler) scaleUp(autoscaler *v1alpha1.NifiNod
 	default:
 		r.Log.Info(fmt.Sprintf("Using Simple upscale strategy for cluster %s node group %s", cluster.Name, autoscaler.Spec.NodeConfigGroupId))
 		simple := &autoscale.SimpleHorizontalUpscaleStrategy{
+			NifiCluster:             cluster,
 			NifiNodeGroupAutoscaler: autoscaler,
-			MaxNodeId:               startingNodeId,
 		}
-		nodesToAdd, err := simple.ScaleUp(managedNodes, numNodesToAdd)
+		nodesToAdd, err := simple.ScaleUp(numNodesToAdd)
 		if err != nil {
 			return errors.WrapIf(err, "Failed to scale up using the Simple strategy.")
 		}
@@ -240,11 +200,6 @@ func (r *NifiNodeGroupAutoscalerReconciler) scaleUp(autoscaler *v1alpha1.NifiNod
 
 // scaleUp updates the provided cluster.Spec.Nodes list with the appropriate numNodesToRemove according to the autoscaler.Spec.DownscaleStrategy
 func (r *NifiNodeGroupAutoscalerReconciler) scaleDown(autoscaler *v1alpha1.NifiNodeGroupAutoscaler, cluster *v1alpha1.NifiCluster, numNodesToRemove int32) error {
-	managedNodes, _, err := r.getManagedNodes(autoscaler, cluster.Spec.Nodes)
-	if err != nil {
-		return errors.WrapIff(err, "Failed to fetch managed nodes for node group %s", autoscaler.Spec.NodeConfigGroupId)
-	}
-
 	switch autoscaler.Spec.DownscaleStrategy {
 
 	// Right now LIFO is the only option and the default
@@ -254,7 +209,7 @@ func (r *NifiNodeGroupAutoscalerReconciler) scaleDown(autoscaler *v1alpha1.NifiN
 		r.Log.Info(fmt.Sprintf("Using LIFO downscale strategy for cluster %s node group %s", cluster.Name, autoscaler.Spec.NodeConfigGroupId))
 		// remove the last n nodes from the node list
 		lifo := &autoscale.LIFOHorizontalDownscaleStrategy{}
-		nodesToRemove, err := lifo.ScaleDown(managedNodes, numNodesToRemove)
+		nodesToRemove, err := lifo.ScaleDown(numNodesToRemove)
 		if err != nil {
 			return errors.WrapIf(err, "Failed to scale cluster down via LIFO strategy.")
 		}
@@ -324,20 +279,18 @@ func (r *NifiNodeGroupAutoscalerReconciler) getCurrentReplicaPods(ctx context.Co
 }
 
 // getManagedNodes filters a set of nodes by an autoscaler's configured node selector
-func (r *NifiNodeGroupAutoscalerReconciler) getManagedNodes(autoscaler *v1alpha1.NifiNodeGroupAutoscaler, nodes []v1alpha1.Node) (managedNodes []v1alpha1.Node, maxId int32, err error) {
+func (r *NifiNodeGroupAutoscalerReconciler) getManagedNodes(autoscaler *v1alpha1.NifiNodeGroupAutoscaler, nodes []v1alpha1.Node) (managedNodes []v1alpha1.Node, err error) {
 	selector, err := metav1.LabelSelectorAsSelector(autoscaler.Spec.NodeLabelsSelector)
 	if err != nil {
-		return nil, maxId, err
+		return nil, err
 	}
 
-	max := 0
 	for _, node := range nodes {
 		if selector.Matches(labels.Set(node.Labels)) {
 			managedNodes = append(managedNodes, node)
 		}
-		max = util.Max(max, int(node.Id))
 	}
-	return managedNodes, int32(max), nil
+	return managedNodes, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
@@ -353,9 +306,7 @@ func (r *NifiNodeGroupAutoscalerReconciler) checkFinalizers(ctx context.Context,
 
 	var err error
 	if util.StringSliceContains(autoscaler.GetFinalizers(), autoscalerFinalizer) {
-		if err = r.finalizeNifiNodeGroupAutoscaler(autoscaler); err != nil {
-			return RequeueAfter(util.GetRequeueInterval(r.RequeueInterval/3, r.RequeueOffset))
-		}
+		// no further actions necessary prior to removing finalizer.
 		if err = r.removeFinalizer(ctx, autoscaler); err != nil {
 			return RequeueWithError(r.Log, "failed to remove finalizer from autoscaler", err)
 		}
@@ -370,13 +321,6 @@ func (r *NifiNodeGroupAutoscalerReconciler) removeFinalizer(ctx context.Context,
 	return err
 }
 
-func (r *NifiNodeGroupAutoscalerReconciler) finalizeNifiNodeGroupAutoscaler(autoscaler *v1alpha1.NifiNodeGroupAutoscaler) error {
-
-	//TODO: remove nodes from NifiCluster that this auto scaler is controlling?
-
-	return nil
-}
-
 func (r *NifiNodeGroupAutoscalerReconciler) updateAndFetchLatest(ctx context.Context,
 	autoscaler *v1alpha1.NifiNodeGroupAutoscaler) (*v1alpha1.NifiNodeGroupAutoscaler, error) {
 
@@ -387,42 +331,4 @@ func (r *NifiNodeGroupAutoscalerReconciler) updateAndFetchLatest(ctx context.Con
 	}
 	autoscaler.TypeMeta = typeMeta
 	return autoscaler, nil
-}
-
-// Create a HorizontalPodAutoscaler CR
-func (r *NifiNodeGroupAutoscalerReconciler) horizontalPodAutoscaler(log logr.Logger, nifiCluster *v1alpha1.NifiCluster, autoscaler *v1alpha1.NifiNodeGroupAutoscaler) (runtimeClient.Object, error) {
-	resourceName := fmt.Sprintf("%s-%s-hpa", nifiCluster.Name, autoscaler.Spec.NodeConfigGroupId)
-	return &autoscalingv2.HorizontalPodAutoscaler{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "HorizontalPodAutoscaler",
-			APIVersion: "autoscaling/v2beta2",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:        resourceName,
-			Namespace:   nifiCluster.Namespace,
-			Labels:      util.MergeLabels(nifiutil.LabelsForNifi(nifiCluster.Name), nifiCluster.Labels),
-			Annotations: util.MergeAnnotations(nifiCluster.Spec.Service.Annotations, autoscaler.Annotations),
-			OwnerReferences: []metav1.OwnerReference{
-				{
-					APIVersion:         autoscaler.APIVersion,
-					Kind:               autoscaler.Kind,
-					Name:               autoscaler.Name,
-					UID:                autoscaler.UID,
-					Controller:         util.BoolPointer(true),
-					BlockOwnerDeletion: util.BoolPointer(true),
-				},
-			},
-		},
-		Spec: autoscalingv2.HorizontalPodAutoscalerSpec{
-			ScaleTargetRef: autoscalingv2.CrossVersionObjectReference{
-				Kind:       "NifiNodeGroupAutoscaler",
-				APIVersion: "nifi.konpyutaika.com/v1alpha1",
-				Name:       fmt.Sprintf("%s-%s", nifiCluster.Name, autoscaler.Spec.NodeConfigGroupId),
-			},
-			MinReplicas: &autoscaler.Spec.HorizontalAutoscaler.MinReplicas,
-			MaxReplicas: autoscaler.Spec.HorizontalAutoscaler.MaxReplicas,
-			Metrics:     autoscaler.Spec.HorizontalAutoscaler.Metrics,
-			Behavior:    autoscaler.Spec.HorizontalAutoscaler.Behavior,
-		},
-	}, nil
 }
