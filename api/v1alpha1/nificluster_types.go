@@ -2,6 +2,8 @@ package v1alpha1
 
 import (
 	"fmt"
+	"sort"
+	"strconv"
 	"strings"
 
 	cmmeta "github.com/jetstack/cert-manager/pkg/apis/meta/v1"
@@ -789,4 +791,46 @@ func (cluster NifiCluster) IsReady() bool {
 
 func (cluster *NifiCluster) Id() string {
 	return cluster.Name
+}
+
+type Pair struct {
+	Key   string
+	Value metav1.Time
+}
+type PairList []Pair
+
+func (p PairList) Len() int           { return len(p) }
+func (p PairList) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+func (p PairList) Less(i, j int) bool { return p[i].Value.Before(&p[j].Value) }
+
+// Order the nodes in the cluster by the time they were created. The list will be in ascending order.
+// Older nodes will be in the beginning of the list, newer nodes at the end
+func (cluster *NifiCluster) GetCreationTimeOrderedNodes() []Node {
+	nodeIdCreationPairs := make(PairList, len(cluster.Status.NodesState))
+
+	i := 0
+	for k, v := range cluster.Status.NodesState {
+		nodeIdCreationPairs[i] = Pair{k, v.CreationTime}
+		i++
+	}
+
+	// nodeIfCreationPairs is now sorted by creation time in ascending order.
+	sort.Sort(nodeIdCreationPairs)
+
+	nodesMap := nodesToIdMap(cluster.Spec.Nodes)
+	timeOrderedNodes := []Node{}
+
+	for _, pair := range nodeIdCreationPairs {
+		id, _ := strconv.Atoi(pair.Key)
+		timeOrderedNodes = append(timeOrderedNodes, nodesMap[int32(id)])
+	}
+	return timeOrderedNodes
+}
+
+func nodesToIdMap(nodes []Node) (nodeMap map[int32]Node) {
+	nodeMap = make(map[int32]Node)
+	for _, node := range nodes {
+		nodeMap[node.Id] = node
+	}
+	return
 }

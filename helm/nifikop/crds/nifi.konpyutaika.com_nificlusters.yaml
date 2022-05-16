@@ -8281,6 +8281,11 @@ spec:
                     configurationState:
                       description: ConfigurationState holds info about the config
                       type: string
+                    creationTime:
+                      description: CreationTime is the time at which this node was
+                        created. This must be sortable.
+                      format: date-time
+                      type: string
                     gracefulActionState:
                       description: GracefulActionState holds info about nifi cluster
                         action status
@@ -8315,6 +8320,7 @@ spec:
                       type: boolean
                   required:
                   - configurationState
+                  - creationTime
                   - gracefulActionState
                   - initClusterNode
                   - podIsReady
