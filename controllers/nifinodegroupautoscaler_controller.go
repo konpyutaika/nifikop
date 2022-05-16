@@ -99,8 +99,7 @@ func (r *NifiNodeGroupAutoscalerReconciler) Reconcile(ctx context.Context, req c
 	// lookup NifiCluster reference
 	// we do not want cached objects here. We want an accurate state of what the cluster is right now, so bypass the client cache by using the APIReader directly.
 	cluster := &v1alpha1.NifiCluster{}
-	// err = r.APIReader.Get(ctx,
-	err = r.Client.Get(ctx,
+	err = r.APIReader.Get(ctx,
 		types.NamespacedName{
 			Name:      nodeGroupAutoscaler.Spec.ClusterRef.Name,
 			Namespace: nodeGroupAutoscaler.Spec.ClusterRef.Namespace,
