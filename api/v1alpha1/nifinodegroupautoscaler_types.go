@@ -37,6 +37,9 @@ type NifiNodeGroupAutoscalerSpec struct {
 	// the node readOnlyConfig for each node in the node group
 	// +optional
 	ReadOnlyConfig *ReadOnlyConfig `json:"readOnlyConfig,omitempty"`
+	// the nodeConfig to use for each node in the node group. This will be merged with and is preferred to the configured nodeConfigGroupId
+	// +optional
+	NodeConfig *NodeConfig `json:"nodeConfig,omitempty"`
 	// current number of replicas expected for the node config group
 	// +kubebuilder:default:=1
 	// +optional
