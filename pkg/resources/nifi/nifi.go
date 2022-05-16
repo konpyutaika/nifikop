@@ -556,6 +556,13 @@ func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) (
 				statusErr, "updating status for resource failed", "kind", desiredType), false
 		}
 
+		// set node creation time
+		statusErr = k8sutil.UpdateNodeStatus(r.Client, []string{desiredPod.Labels["nodeId"]}, r.NifiCluster, metav1.Time.UTC, log)
+		if statusErr != nil {
+			return errorfactory.New(errorfactory.StatusUpdateError{},
+				statusErr, "failed to update node status creation time", "kind", desiredType), false
+		}
+
 		if val, ok := r.NifiCluster.Status.NodesState[desiredPod.Labels["nodeId"]]; ok &&
 			val.GracefulActionState.State != v1alpha1.GracefulUpscaleSucceeded {
 			gracefulActionState := v1alpha1.GracefulActionState{ErrorMessage: "", State: v1alpha1.GracefulUpscaleSucceeded}
