@@ -81,6 +81,7 @@ func (simple *SimpleHorizontalUpscaleStrategy) ScaleUp(numNodesToAdd int32) (new
 			NodeConfigGroup: simple.NifiNodeGroupAutoscaler.Spec.NodeConfigGroupId,
 			ReadOnlyConfig:  simple.NifiNodeGroupAutoscaler.Spec.ReadOnlyConfig,
 			Labels:          autoscalingNodeLabels,
+			NodeConfig:      simple.NifiNodeGroupAutoscaler.Spec.NodeConfig,
 		})
 	}
 	return
