@@ -340,7 +340,8 @@ type NodeState struct {
 	// PodIsReady whether or not the associated pod is ready
 	PodIsReady bool `json:"podIsReady"`
 	// CreationTime is the time at which this node was created. This must be sortable.
-	CreationTime metav1.Time `json:"creationTime"`
+	// +optional
+	CreationTime metav1.Time `json:"creationTime,omitempty"`
 }
 
 // RackAwarenessState holds info about rack awareness status

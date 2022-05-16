@@ -804,7 +804,10 @@ func (p PairList) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 func (p PairList) Less(i, j int) bool { return p[i].Value.Before(&p[j].Value) }
 
 // Order the nodes in the cluster by the time they were created. The list will be in ascending order.
-// Older nodes will be in the beginning of the list, newer nodes at the end
+// Older nodes will be in the beginning of the list, newer nodes at the end.
+// Nodes for Clusters that existed prior to this feature (v0.11.0+) will not have a creationTime. In this case,
+// LIFO will not be able to reliably determine the oldest node. A rolling restart of nodes in the cluster will
+// resolve this issue going forward.
 func (cluster *NifiCluster) GetCreationTimeOrderedNodes() []Node {
 	nodeIdCreationPairs := make(PairList, len(cluster.Status.NodesState))
 
