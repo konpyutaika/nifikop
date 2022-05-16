@@ -5,6 +5,7 @@ import (
 	"github.com/konpyutaika/nifikop/pkg/util"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
+	"sort"
 )
 
 type HorizontalDownscaleStrategy interface {
@@ -73,7 +74,7 @@ func (simple *SimpleHorizontalUpscaleStrategy) ScaleUp(numNodesToAdd int32) (new
 	}
 
 	// when computing new node IDs, we consider the entire cluster so that we don't inadvertntly re-use existing IDs
-	newNodeIds := util.ComputeNewNodeIds(simple.NifiCluster.Spec.Nodes, numNodesToAdd)
+	newNodeIds := ComputeNewNodeIds(simple.NifiCluster.Spec.Nodes, numNodesToAdd)
 
 	for _, id := range newNodeIds {
 		newNodes = append(newNodes, v1alpha1.Node{
@@ -100,4 +101,41 @@ func getManagedNodes(autoscaler *v1alpha1.NifiNodeGroupAutoscaler, nodes []v1alp
 		}
 	}
 	return managedNodes, nil
+}
+
+// New nodes are assigned an Id in the following manner:
+//
+// - Assigned node Ids will always be a non-negative integer starting with zero
+//
+// - extract and sort the node Ids in the provided node list
+//
+// - iterate through the node Id list starting with zero. For any unassigned node Id, assign it
+//
+// - return the list of assigned node Ids
+func ComputeNewNodeIds(nodes []v1alpha1.Node, numNewNodes int32) []int32 {
+	nodeIdList := util.NodesToIdList(nodes)
+	sort.Slice(nodeIdList, func(i, j int) bool {
+		return nodeIdList[i] < nodeIdList[j]
+	})
+
+	newNodeIds := []int32{}
+	index := int32(0)
+
+	// assign IDs in any gaps in the existing node list, starting with zero
+	var i int32
+	for i = int32(0); i < nodeIdList[len(nodeIdList)-1] && int32(len(newNodeIds)) < numNewNodes; i++ {
+		if nodeIdList[index] == i {
+			index++
+		} else {
+			newNodeIds = append(newNodeIds, i)
+		}
+	}
+
+	// add any remaining nodes needed
+	remainder := numNewNodes - int32(len(newNodeIds))
+	for j := int32(1); j <= remainder; j++ {
+		newNodeIds = append(newNodeIds, i+j)
+	}
+
+	return newNodeIds
 }
