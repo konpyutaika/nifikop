@@ -13,6 +13,8 @@ Holds information about nifi state
 |gracefulActionState|[GracefulActionState](#gracefulactionstate)| holds info about nifi cluster action status.| - | - |
 |configurationState|[ConfigurationState](#configurationstate)| holds info about the config.| - | - |
 |initClusterNode|[InitClusterNode](#initclusternode)| contains if this nodes was part of the initial cluster.| - | - |
+|podIsReady|bool| True if the pod for this node is up and running. Otherwise false.| - | - |
+|creationTime|[v1.Time](https://pkg.go.dev/k8s.io/apimachinery/pkg/apis/meta/v1#Time)| The time at which this node was created and added to the cluster| - | - |
 
 
 ## GracefulActionState 
