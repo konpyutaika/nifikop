@@ -8320,6 +8320,7 @@ spec:
                       type: boolean
                   required:
                   - configurationState
+                  - creationTime
                   - gracefulActionState
                   - initClusterNode
                   - podIsReady

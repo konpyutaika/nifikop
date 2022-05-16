@@ -92,7 +92,11 @@ func (r *NifiNodeGroupAutoscalerReconciler) Reconcile(ctx context.Context, req c
 
 	// Ensure finalizer for cleanup on deletion
 	if !util.StringSliceContains(nodeGroupAutoscaler.GetFinalizers(), autoscalerFinalizer) {
+<<<<<<< HEAD
 		r.Log.V(5).Info(fmt.Sprintf("Adding Finalizer for NifiNodeGroupAutoscaler node group %s", nodeGroupAutoscaler.Spec.NodeConfigGroupId))
+=======
+		r.Log.Info(fmt.Sprintf("Adding Finalizer for NifiNodeGroupAutoscaler node group %s", nodeGroupAutoscaler.Spec.NodeConfigGroupId))
+>>>>>>> dc0942865fb744431afbcc3c3151b82da3eb03e7
 		nodeGroupAutoscaler.SetFinalizers(append(nodeGroupAutoscaler.GetFinalizers(), autoscalerFinalizer))
 	}
 
@@ -296,6 +300,10 @@ func (r *NifiNodeGroupAutoscalerReconciler) getManagedNodes(autoscaler *v1alpha1
 func (r *NifiNodeGroupAutoscalerReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&v1alpha1.NifiNodeGroupAutoscaler{}).
+<<<<<<< HEAD
+=======
+		Owns(&autoscalingv2.HorizontalPodAutoscaler{}).
+>>>>>>> dc0942865fb744431afbcc3c3151b82da3eb03e7
 		Complete(r)
 }
 
