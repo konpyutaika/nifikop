@@ -1,6 +1,7 @@
 package autoscale
 
 import (
+	"reflect"
 	"testing"
 	"time"
 
@@ -27,16 +28,16 @@ var lifo = LIFOHorizontalDownscaleStrategy{
 		},
 		Status: v1alpha1.NifiClusterStatus{
 			NodesState: map[string]v1alpha1.NodeState{
-				"2": v1alpha1.NodeState{
+				"2": {
 					CreationTime: v1.NewTime(time.Now().UTC().Add(time.Duration(5) * time.Hour)),
 				},
-				"3": v1alpha1.NodeState{
+				"3": {
 					CreationTime: v1.NewTime(time.Now().UTC().Add(time.Duration(10) * time.Hour)),
 				},
-				"4": v1alpha1.NodeState{
+				"4": {
 					CreationTime: v1.NewTime(time.Now().UTC().Add(time.Duration(15) * time.Hour)),
 				},
-				"5": v1alpha1.NodeState{
+				"5": {
 					CreationTime: v1.NewTime(time.Now().UTC().Add(time.Duration(20) * time.Hour)),
 				},
 			},
@@ -63,16 +64,16 @@ var simple = SimpleHorizontalUpscaleStrategy{
 		},
 		Status: v1alpha1.NifiClusterStatus{
 			NodesState: map[string]v1alpha1.NodeState{
-				"2": v1alpha1.NodeState{
+				"2": {
 					CreationTime: v1.NewTime(time.Now().UTC().Add(time.Duration(5) * time.Hour)),
 				},
-				"3": v1alpha1.NodeState{
+				"3": {
 					CreationTime: v1.NewTime(time.Now().UTC().Add(time.Duration(10) * time.Hour)),
 				},
-				"4": v1alpha1.NodeState{
+				"4": {
 					CreationTime: v1.NewTime(time.Now().UTC().Add(time.Duration(15) * time.Hour)),
 				},
-				"5": v1alpha1.NodeState{
+				"5": {
 					CreationTime: v1.NewTime(time.Now().UTC().Add(time.Duration(20) * time.Hour)),
 				},
 			},
@@ -159,5 +160,53 @@ func TestSimpleAddNoNodes(t *testing.T) {
 
 	if len(nodesToAdd) != 0 {
 		t.Errorf("nodesToAdd should have been empty: %v+", nodesToAdd)
+	}
+}
+
+func TestComputeNewNodeIds(t *testing.T) {
+	nodeList := []v1alpha1.Node{
+		{
+			Id: 1,
+		},
+		{
+			Id: 2,
+		},
+		{
+			Id: 5,
+		},
+	}
+
+	// add more nodes than size of input node list
+	newNodeIds := ComputeNewNodeIds(nodeList, 5)
+	if len(newNodeIds) != 5 {
+		t.Errorf("There should be 5 new nodes. %v+", newNodeIds)
+	}
+	if !reflect.DeepEqual(newNodeIds, []int32{0, 3, 4, 6, 7}) {
+		t.Errorf("lists are not equal. %v+", newNodeIds)
+	}
+
+	// add less nodes than size of input node list
+	newNodeIds = ComputeNewNodeIds(nodeList, 2)
+
+	if len(newNodeIds) != 2 {
+		t.Errorf("There should be 2 new nodes. %v+", newNodeIds)
+	}
+	if !reflect.DeepEqual(newNodeIds, []int32{0, 3}) {
+		t.Errorf("lists are not equal. %v+", newNodeIds)
+	}
+
+	// add same number of nodes than size of input node list
+	newNodeIds = ComputeNewNodeIds(nodeList, 3)
+	if len(newNodeIds) != 3 {
+		t.Errorf("There should be 3 new nodes. %v+", newNodeIds)
+	}
+	if !reflect.DeepEqual(newNodeIds, []int32{0, 3, 4}) {
+		t.Errorf("lists are not equal. %v+", newNodeIds)
+	}
+
+	// add zero new nodes
+	newNodeIds = ComputeNewNodeIds(nodeList, 0)
+	if len(newNodeIds) != 0 {
+		t.Errorf("There should be 0 new nodes. %v+", newNodeIds)
 	}
 }
