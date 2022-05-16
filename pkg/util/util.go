@@ -6,7 +6,6 @@ import (
 	"math/rand"
 	"os"
 	"reflect"
-	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -209,43 +208,6 @@ func NodesToIdMap(nodes []v1alpha1.Node) (nodeMap map[int32]v1alpha1.Node) {
 		nodeMap[node.Id] = node
 	}
 	return
-}
-
-// New nodes are assigned an Id in the following manner:
-//
-// - Assigned node Ids will always be a non-negative integer starting with zero
-//
-// - extract and sort the node Ids in the provided node list
-//
-// - iterate through the node Id list starting with zero. For any unassigned node Id, assign it
-//
-// - return the list of assigned node Ids
-func ComputeNewNodeIds(nodes []v1alpha1.Node, numNewNodes int32) []int32 {
-	nodeIdList := NodesToIdList(nodes)
-	sort.Slice(nodeIdList, func(i, j int) bool {
-		return nodeIdList[i] < nodeIdList[j]
-	})
-
-	newNodeIds := []int32{}
-	index := int32(0)
-
-	// assign IDs in any gaps in the existing node list, starting with zero
-	var i int32
-	for i = int32(0); i < nodeIdList[len(nodeIdList)-1] && int32(len(newNodeIds)) < numNewNodes; i++ {
-		if nodeIdList[index] == i {
-			index++
-		} else {
-			newNodeIds = append(newNodeIds, i)
-		}
-	}
-
-	// add any remaining nodes needed
-	remainder := numNewNodes - int32(len(newNodeIds))
-	for j := int32(1); j <= remainder; j++ {
-		newNodeIds = append(newNodeIds, i+j)
-	}
-
-	return newNodeIds
 }
 
 // SubtractNodes removes nodesToRemove from the originalNodes list by the node's Ids and returns the result
