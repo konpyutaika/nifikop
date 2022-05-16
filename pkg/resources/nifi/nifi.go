@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/dataflow"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/scale"
@@ -557,7 +558,7 @@ func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) (
 		}
 
 		// set node creation time
-		statusErr = k8sutil.UpdateNodeStatus(r.Client, []string{desiredPod.Labels["nodeId"]}, r.NifiCluster, metav1.Time.UTC, log)
+		statusErr = k8sutil.UpdateNodeStatus(r.Client, []string{desiredPod.Labels["nodeId"]}, r.NifiCluster, metav1.NewTime(time.Now().UTC()), log)
 		if statusErr != nil {
 			return errorfactory.New(errorfactory.StatusUpdateError{},
 				statusErr, "failed to update node status creation time", "kind", desiredType), false
@@ -681,6 +682,7 @@ func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) (
 			}
 		}
 
+		log.Info(fmt.Sprintf("Deleting pod %s", currentPod.Name))
 		err = r.Client.Delete(context.TODO(), currentPod)
 		if err != nil {
 			return errorfactory.New(errorfactory.APIFailure{},
