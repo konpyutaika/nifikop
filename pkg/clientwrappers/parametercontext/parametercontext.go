@@ -36,6 +36,33 @@ func ExistParameterContext(parameterContext *v1alpha1.NifiParameterContext, conf
 	return entity != nil, nil
 }
 
+func FindParameterContextByName(parameterContext *v1alpha1.NifiParameterContext, config *clientconfig.NifiConfig) (*v1alpha1.NifiParameterContextStatus, error) {
+
+	nClient, err := common.NewClusterConnection(log, config)
+	if err != nil {
+		return nil, err
+	}
+
+	entities, err := nClient.GetParameterContexts()
+	if err := clientwrappers.ErrorGetOperation(log, err, "Get parameter-contexts"); err != nil {
+		if err == nificlient.ErrNifiClusterReturned404 {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	for _, entity := range entities {
+		if parameterContext.GetName() == entity.Component.Name {
+			return &v1alpha1.NifiParameterContextStatus{
+				Id:      entity.Id,
+				Version: *entity.Revision.Version,
+			}, nil
+		}
+	}
+
+	return nil, nil
+}
+
 func CreateParameterContext(parameterContext *v1alpha1.NifiParameterContext, parameterSecrets []*corev1.Secret,
 	config *clientconfig.NifiConfig) (*v1alpha1.NifiParameterContextStatus, error) {
 
