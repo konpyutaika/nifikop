@@ -3,6 +3,7 @@
 ### Added
 
 - [PR #76](https://github.com/konpyutaika/nifikop/pull/76) - **[Operator/NiFiCluster]** Add ability to override default authorizers.xml template.
+- [PR #95](https://github.com/konpyutaika/nifikop/pull/95) - **[Operator/NiFiParameterContext]** Allow the operator to take over existing parameter context.
 - [PR #96](https://github.com/konpyutaika/nifikop/pull/96) - **[Operator/NifiCluster]** Add ability to specify pod priority class
 
 ### Changed
