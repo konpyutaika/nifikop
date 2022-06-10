@@ -1,0 +1,26 @@
+{{ if .Values.nodeGroupAutoscalers }}
+{{ range .Values.nodeGroupAutoscalers }}
+{{ if .enabled }}
+apiVersion: autoscaling/v2beta2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "nifi-cluster.fullname" $ }}-{{ .nodeConfigGroupId }}-hpa
+  annotations: {{ toYaml .annotations | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: nifi.konpyutaika.com/v1alpha1
+    kind: NifiNodeGroupAutoscaler
+    name: {{ include "nifi-cluster.fullname" $ }}-{{ .nodeConfigGroupId }}
+  minReplicas: {{ .horizontalAutoscaler.minReplicas }}
+  maxReplicas: {{ .horizontalAutoscaler.maxReplicas }}
+{{ if .horizontalAutoscaler.metrics }}
+  metrics:
+{{ toYaml .horizontalAutoscaler.metrics | indent 4 }}
+{{ end }}
+{{ if .horizontalAutoscaler.behavior }}
+  behavior:
+{{ toYaml .horizontalAutoscaler.behavior | indent 4 }}
+{{ end }}
+{{ end }}
+{{ end }}
+{{ end }}
