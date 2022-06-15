@@ -50,6 +50,10 @@ spec:
               description:
                 description: the Description of the Parameter Context.
                 type: string
+              disableTakeOver:
+                description: whether or not the operator should take over an existing
+                  parameter context if its name is the same.
+                type: boolean
               parameters:
                 description: a list of non-sensitive Parameters.
                 items:

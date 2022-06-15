@@ -7,6 +7,23 @@ import (
 	nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
 )
 
+func (n *nifiClient) GetParameterContexts() ([]nigoapi.ParameterContextEntity, error) {
+	// Get nigoapi client, favoring the one associated to the coordinator node.
+	client, context := n.privilegeCoordinatorClient()
+	if client == nil {
+		log.Error(ErrNoNodeClientsAvailable, "Error during creating node client")
+		return nil, ErrNoNodeClientsAvailable
+	}
+
+	// Request on Nifi Rest API to get the parameter contexts informations
+	pcEntity, rsp, body, err := client.FlowApi.GetParameterContexts(context)
+	if err := errorGetOperation(rsp, body, err); err != nil {
+		return nil, err
+	}
+
+	return pcEntity.ParameterContexts, nil
+}
+
 func (n *nifiClient) GetParameterContext(id string) (*nigoapi.ParameterContextEntity, error) {
 	// Get nigoapi client, favoring the one associated to the coordinator node.
 	client, context := n.privilegeCoordinatorClient()
