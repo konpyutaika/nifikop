@@ -32,7 +32,7 @@
 
 - [PR #76](https://github.com/konpyutaika/nifikop/pull/88) - **[Operator/NiFiCluster]** Re-ordering config out of sync steps.
 - [PR #93](https://github.com/konpyutaika/nifikop/pull/93) - **[Documentation]** Remove serviceAnnotations mentions and fix docs.
-
+- [PR #101](https://github.com/konpyutaika/nifikop/pull/101) - **[Operator]** Handle finalizer removal case where `NifiCluster` is aggressively torn down and pods are no longer available to communicate with.
 
 ## v0.10.0
 

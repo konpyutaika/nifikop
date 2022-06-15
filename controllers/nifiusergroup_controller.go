@@ -188,6 +188,13 @@ func (r *NifiUserGroupReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceClusterError",
 			fmt.Sprintf("Failed to create HTTP client for the referenced cluster : %s in %s",
 				instance.Spec.ClusterRef.Name, clusterRef.Namespace))
+		// the cluster is gone, so just remove the finalizer
+		if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {
+			if err = r.removeFinalizer(ctx, instance); err != nil {
+				return RequeueWithError(r.Log, fmt.Sprintf("failed to remove finalizer from NifiUserGroup %s", instance.Name), err)
+			}
+			return Reconciled()
+		}
 		// the cluster does not exist - should have been caught pre-flight
 		return RequeueWithError(r.Log, "failed to create HTTP client the for referenced cluster", err)
 	}
@@ -328,8 +335,7 @@ func (r *NifiUserGroupReconciler) updateAndFetchLatest(ctx context.Context,
 
 func (r *NifiUserGroupReconciler) checkFinalizers(ctx context.Context, userGroup *v1alpha1.NifiUserGroup,
 	users []*v1alpha1.NifiUser, config *clientconfig.NifiConfig) (reconcile.Result, error) {
-
-	r.Log.Info("NiFi user group is marked for deletion")
+	r.Log.Info(fmt.Sprintf("NiFi user group %s is marked for deletion", userGroup.Name))
 	var err error
 	if util.StringSliceContains(userGroup.GetFinalizers(), userGroupFinalizer) {
 		if err = r.finalizeNifiNifiUserGroup(userGroup, users, config); err != nil {
@@ -343,6 +349,7 @@ func (r *NifiUserGroupReconciler) checkFinalizers(ctx context.Context, userGroup
 }
 
 func (r *NifiUserGroupReconciler) removeFinalizer(ctx context.Context, userGroup *v1alpha1.NifiUserGroup) error {
+	r.Log.V(5).Info(fmt.Sprintf("Removing finalizer for NifiUserGroup %s", userGroup.Name))
 	userGroup.SetFinalizers(util.StringSliceRemove(userGroup.GetFinalizers(), userGroupFinalizer))
 	_, err := r.updateAndFetchLatest(ctx, userGroup)
 	return err
