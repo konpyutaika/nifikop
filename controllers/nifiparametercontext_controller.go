@@ -171,6 +171,13 @@ func (r *NifiParameterContextReconciler) Reconcile(ctx context.Context, req ctrl
 		r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceClusterError",
 			fmt.Sprintf("Failed to create HTTP client for the referenced cluster : %s in %s",
 				instance.Spec.ClusterRef.Name, clusterRef.Namespace))
+		// the cluster is gone, so just remove the finalizer
+		if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {
+			if err = r.removeFinalizer(ctx, instance); err != nil {
+				return RequeueWithError(r.Log, fmt.Sprintf("failed to remove finalizer from NifiParameterContext %s", instance.Name), err)
+			}
+			return Reconciled()
+		}
 		// the cluster does not exist - should have been caught pre-flight
 		return RequeueWithError(r.Log, "failed to create HTTP client the for referenced cluster", err)
 	}
@@ -335,8 +342,7 @@ func (r *NifiParameterContextReconciler) checkFinalizers(
 	parameterContext *v1alpha1.NifiParameterContext,
 	parameterSecrets []*corev1.Secret,
 	config *clientconfig.NifiConfig) (reconcile.Result, error) {
-
-	r.Log.Info("NiFi parameter context is marked for deletion")
+	r.Log.Info(fmt.Sprintf("NiFi parameter context %s is marked for deletion", parameterContext.Name))
 	var err error
 	if util.StringSliceContains(parameterContext.GetFinalizers(), parameterContextFinalizer) {
 		if err = r.finalizeNifiParameterContext(parameterContext, parameterSecrets, config); err != nil {
@@ -349,9 +355,10 @@ func (r *NifiParameterContextReconciler) checkFinalizers(
 	return Reconciled()
 }
 
-func (r *NifiParameterContextReconciler) removeFinalizer(ctx context.Context, flow *v1alpha1.NifiParameterContext) error {
-	flow.SetFinalizers(util.StringSliceRemove(flow.GetFinalizers(), parameterContextFinalizer))
-	_, err := r.updateAndFetchLatest(ctx, flow)
+func (r *NifiParameterContextReconciler) removeFinalizer(ctx context.Context, paramCtxt *v1alpha1.NifiParameterContext) error {
+	r.Log.V(5).Info(fmt.Sprintf("Removing finalizer for NifiParameterContext %s", paramCtxt.Name))
+	paramCtxt.SetFinalizers(util.StringSliceRemove(paramCtxt.GetFinalizers(), parameterContextFinalizer))
+	_, err := r.updateAndFetchLatest(ctx, paramCtxt)
 	return err
 }
 
