@@ -225,6 +225,13 @@ func (r *NifiUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceClusterError",
 			fmt.Sprintf("Failed to create HTTP client for the referenced cluster : %s in %s",
 				instance.Spec.ClusterRef.Name, clusterRef.Namespace))
+		// the cluster is gone, so just remove the finalizer
+		if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {
+			if err = r.removeFinalizer(ctx, instance); err != nil {
+				return RequeueWithError(r.Log, fmt.Sprintf("failed to remove finalizer from NifiUser %s", instance.Name), err)
+			}
+			return Reconciled()
+		}
 		// the cluster does not exist - should have been caught pre-flight
 		return RequeueWithError(r.Log, "failed to create HTTP client the for referenced cluster", err)
 	}
@@ -384,7 +391,7 @@ func (r *NifiUserReconciler) updateAndFetchLatest(ctx context.Context, user *v1a
 }
 
 func (r *NifiUserReconciler) checkFinalizers(ctx context.Context, user *v1alpha1.NifiUser, config *clientconfig.NifiConfig) (reconcile.Result, error) {
-	r.Log.Info("NiFi user is marked for deletion")
+	r.Log.Info(fmt.Sprintf("NiFi user %s is marked for deletion", user.Name))
 	var err error
 	if util.StringSliceContains(user.GetFinalizers(), userFinalizer) {
 		if err = r.finalizeNifiUser(user, config); err != nil {
@@ -399,6 +406,7 @@ func (r *NifiUserReconciler) checkFinalizers(ctx context.Context, user *v1alpha1
 }
 
 func (r *NifiUserReconciler) removeFinalizer(ctx context.Context, user *v1alpha1.NifiUser) error {
+	r.Log.V(5).Info(fmt.Sprintf("Removing finalizer for NifiUser %s", user.Name))
 	user.SetFinalizers(util.StringSliceRemove(user.GetFinalizers(), userFinalizer))
 	_, err := r.updateAndFetchLatest(ctx, user)
 	return err
@@ -408,12 +416,12 @@ func (r *NifiUserReconciler) finalizeNifiUser(user *v1alpha1.NifiUser, config *c
 	if err := usercli.RemoveUser(user, config); err != nil {
 		return err
 	}
-	r.Log.Info("Delete user")
+	r.Log.Info(fmt.Sprintf("Deleted user %s", user.Name))
 	return nil
 }
 
 func (r *NifiUserReconciler) addFinalizer(user *v1alpha1.NifiUser) {
-	r.Log.Info("Adding Finalizer for the NifiUser")
+	r.Log.Info(fmt.Sprintf("Adding Finalizer for the NifiUser %s", user.Name))
 	user.SetFinalizers(append(user.GetFinalizers(), userFinalizer))
 	return
 }

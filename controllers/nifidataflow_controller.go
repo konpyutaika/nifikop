@@ -235,6 +235,13 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceClusterError",
 			fmt.Sprintf("Failed to create HTTP client for the referenced cluster : %s in %s",
 				instance.Spec.ClusterRef.Name, currentClusterRef.Namespace))
+		// the cluster is gone, so just remove the finalizer
+		if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {
+			if err = r.removeFinalizer(ctx, instance); err != nil {
+				return RequeueWithError(r.Log, fmt.Sprintf("failed to remove finalizer from NifiDataflow %s", instance.Name), err)
+			}
+			return Reconciled()
+		}
 		// the cluster does not exist - should have been caught pre-flight
 		return RequeueWithError(r.Log, "failed to create HTTP client the for referenced cluster", err)
 	}
@@ -491,8 +498,7 @@ func (r *NifiDataflowReconciler) updateAndFetchLatest(ctx context.Context,
 
 func (r *NifiDataflowReconciler) checkFinalizers(ctx context.Context, flow *v1alpha1.NifiDataflow,
 	config *clientconfig.NifiConfig) (reconcile.Result, error) {
-
-	r.Log.Info("NiFi dataflow is marked for deletion")
+	r.Log.Info(fmt.Sprintf("NiFi dataflow %s is marked for deletion", flow.Name))
 	var err error
 	if util.StringSliceContains(flow.GetFinalizers(), dataflowFinalizer) {
 		if err = r.finalizeNifiDataflow(flow, config); err != nil {
@@ -512,6 +518,7 @@ func (r *NifiDataflowReconciler) checkFinalizers(ctx context.Context, flow *v1al
 }
 
 func (r *NifiDataflowReconciler) removeFinalizer(ctx context.Context, flow *v1alpha1.NifiDataflow) error {
+	r.Log.V(5).Info(fmt.Sprintf("Removing finalizer for NifiDataflow %s", flow.Name))
 	flow.SetFinalizers(util.StringSliceRemove(flow.GetFinalizers(), dataflowFinalizer))
 	_, err := r.updateAndFetchLatest(ctx, flow)
 	return err
