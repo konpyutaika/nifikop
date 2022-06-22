@@ -165,14 +165,14 @@ spec:
 
 | Field  | Type   | Description                                                                                                                         | Required | Default |
 | ------ | ------ | ----------------------------------------------------------------------------------------------------------------------------------- | -------- | ------- |
-| create | bool   | if set to true, will create a podDisruptionBudget.                                                                                  | No       | -       |
+| identity | string | identity field is use to define the user identity on NiFi cluster side, it use full when the user's name doesn't suite with Kubernetes resource name. | No       | -       |
 | name   | string | name field is use to name the NifiUser resource, if not identity is provided it will be used to name the user on NiFi cluster side. | Yes      | -       |
 
 ## DisruptionBudget
 
 | Field    | Type   | Description                                                                                                                                           | Required | Default |
 | -------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------- |
-| identity | string | identity field is use to define the user identity on NiFi cluster side, it use full when the user's name doesn't suite with Kubernetes resource name. | No       | -       |
+| create | bool   | if set to true, will create a podDisruptionBudget.                                                                                  | No       | -       |
 | budget   | string | the budget to set for the PDB, can either be static number or a percentage.                                                                           | Yes      | -       |
 
 ## LdapConfiguration
