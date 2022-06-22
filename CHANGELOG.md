@@ -10,6 +10,8 @@
 
 ### Fixed Bugs
 
+- [PR #106](https://github.com/konpyutaika/nifikop/pull/106) - **[Documentation]** Patch documentation version and mixed docs.
+
 ## v0.11.0
 
 ### Added
