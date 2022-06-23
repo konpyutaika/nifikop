@@ -238,10 +238,10 @@ func (r *NifiParameterContextReconciler) Reconcile(ctx context.Context, req ctrl
 			return RequeueWithError(r.Log, "failure finding parameter context", err)
 		}
 
-                 if status != nil  && !instance.Spec.IsTakeOverEnabled()  {
-                         // TakeOver disabled
+		if status != nil && !instance.Spec.IsTakeOverEnabled() {
+			// TakeOver disabled
 			return RequeueWithError(r.Log, fmt.Sprintf("parameter context name %s already used and takeOver disabled", instance.GetName()), err)
-                 }
+		}
 		if status == nil {
 			// Create NiFi parameter context
 			status, err = parametercontext.CreateParameterContext(instance, parameterSecrets, clientConfig)
