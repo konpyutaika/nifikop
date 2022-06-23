@@ -433,7 +433,7 @@ func (r *NifiClusterTaskReconciler) checkNCActionStep(nodeId string, nifiCluster
 		}
 	}
 	// cc task still in progress
-	r.Log.Info("Nifi cluster task is still running", zap.Any("actionStep", actionStep))
+	r.Log.Info("Nifi cluster task is still running", zap.String("actionStep", string(actionStep)))
 	return errorfactory.New(errorfactory.NifiClusterTaskRunning{}, errors.New("Nifi cluster task is still running"), fmt.Sprintf("nc action step: %s", actionStep))
 }
 

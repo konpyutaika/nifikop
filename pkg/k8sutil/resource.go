@@ -28,7 +28,7 @@ func Reconcile(log zap.Logger, client runtimeClient.Client, desired runtimeClien
 	default:
 		var key runtimeClient.ObjectKey
 		key = runtimeClient.ObjectKeyFromObject(current)
-		log.Debug("reconciling", zap.Any("kind", desiredType), zap.Any("name", key.Name))
+		log.Debug("reconciling", zap.String("kind", desiredType.String()), zap.String("name", key.Name))
 
 		err = client.Get(context.TODO(), key, current)
 		if err != nil && !apierrors.IsNotFound(err) {
@@ -118,7 +118,7 @@ func Reconcile(log zap.Logger, client runtimeClient.Client, desired runtimeClien
 func CheckIfObjectUpdated(log zap.Logger, desiredType reflect.Type, current, desired runtime.Object) bool {
 	patchResult, err := patch.DefaultPatchMaker.Calculate(current, desired)
 	if err != nil {
-		log.Error("could not match objects", zap.Error(err), zap.Any("kind", desiredType))
+		log.Error("could not match objects", zap.Error(err), zap.String("kind", desiredType.String()))
 		return true
 	} else if patchResult.IsEmpty() {
 		log.Debug("resource is in sync")
