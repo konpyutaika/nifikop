@@ -450,7 +450,7 @@ func generateNodeIdsFromPodSlice(pods []corev1.Pod) []string {
 func (r *Reconciler) reconcileNifiPVC(log zap.Logger, desiredPVC *corev1.PersistentVolumeClaim) error {
 	var currentPVC = desiredPVC.DeepCopy()
 	desiredType := reflect.TypeOf(desiredPVC)
-	log.Debug("searching with label because name is empty", zap.Any("kind", desiredType))
+	log.Debug("searching with label because name is empty", zap.String("kind", desiredType.String()))
 
 	pvcList := &corev1.PersistentVolumeClaimList{}
 	matchingLabels := client.MatchingLabels{
@@ -528,7 +528,7 @@ func (r *Reconciler) reconcileNifiPod(log zap.Logger, desiredPod *corev1.Pod) (e
 	currentPod := desiredPod.DeepCopy()
 	desiredType := reflect.TypeOf(desiredPod)
 
-	log.Debug("searching with label because name is empty", zap.Any("kind", desiredType))
+	log.Debug("searching with label because name is empty", zap.String("kind", desiredType.String()))
 
 	podList := &corev1.PodList{}
 	matchingLabels := client.MatchingLabels{
@@ -609,7 +609,7 @@ func (r *Reconciler) reconcileNifiPod(log zap.Logger, desiredPod *corev1.Pod) (e
 		// Check if the resource actually updated
 		patchResult, err := patch.DefaultPatchMaker.Calculate(currentPod, desiredPod)
 		if err != nil {
-			log.Error("could not match objects", zap.Error(err), zap.Any("kind", desiredType))
+			log.Error("could not match objects", zap.Error(err), zap.String("kind", desiredType.String()))
 		} else if patchResult.IsEmpty() {
 			if !k8sutil.IsPodTerminatedOrShutdown(currentPod) &&
 				r.NifiCluster.Status.NodesState[currentPod.Labels["nodeId"]].ConfigurationState == v1alpha1.ConfigInSync {
