@@ -11,6 +11,7 @@ import (
 	"github.com/konpyutaika/nifikop/pkg/nificlient/config"
 	"github.com/konpyutaika/nifikop/pkg/pki"
 	nifiutil "github.com/konpyutaika/nifikop/pkg/util/nifi"
+	"go.uber.org/zap"
 
 	"emperror.dev/errors"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
@@ -18,7 +19,6 @@ import (
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/reportingtask"
 
 	"github.com/banzaicloud/k8s-objectmatcher/patch"
-	"github.com/go-logr/logr"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	"github.com/konpyutaika/nifikop/pkg/k8sutil"
 	"github.com/konpyutaika/nifikop/pkg/resources"
@@ -83,13 +83,15 @@ func getCreatedPVCForNode(c client.Client, nodeID int32, namespace, crName strin
 }
 
 // Reconcile implements the reconcile logic for nifi
-func (r *Reconciler) Reconcile(log logr.Logger) error {
-	log = log.WithValues("component", componentName, "clusterName", r.NifiCluster.Name, "clusterNamespace", r.NifiCluster.Namespace)
-
-	log.V(1).Info("Reconciling")
+func (r *Reconciler) Reconcile(log zap.Logger) error {
+	log.Debug("reconciling",
+		zap.String("component", componentName),
+		zap.String("clusterName", r.NifiCluster.Name),
+		zap.String("clusterNamespace", r.NifiCluster.Namespace),
+	)
 
 	if r.NifiCluster.IsExternal() {
-		log.V(1).Info("Reconciled")
+		log.Debug("reconciled")
 		return nil
 	}
 	// TODO : manage external LB
@@ -254,12 +256,12 @@ func (r *Reconciler) Reconcile(log logr.Logger) error {
 		}
 	}
 
-	log.V(1).Info("Reconciled")
+	log.Debug("reconciled")
 
 	return nil
 }
 
-func (r *Reconciler) reconcileNifiPodDelete(log logr.Logger) error {
+func (r *Reconciler) reconcileNifiPodDelete(log zap.Logger) error {
 
 	podList := &corev1.PodList{}
 	matchingLabels := client.MatchingLabels(nifiutil.LabelsForNifi(r.NifiCluster.Name))
@@ -321,7 +323,9 @@ OUTERLOOP:
 				nodeState.GracefulActionState.ActionStep != v1alpha1.OffloadStatus && nodeState.GracefulActionState.ActionStep != v1alpha1.RemovePodAction {
 
 				if nodeState.GracefulActionState.State == v1alpha1.GracefulDownscaleRunning {
-					log.Info("Nifi task is still running for node", "nodeId", node.Labels["nodeId"], "ActionStep", nodeState.GracefulActionState.ActionStep)
+					log.Info("Nifi task is still running for node",
+						zap.String("nodeId", node.Labels["nodeId"]),
+						zap.String("ActionStep", string(nodeState.GracefulActionState.ActionStep)))
 				}
 				continue
 			}
@@ -388,7 +392,7 @@ OUTERLOOP:
 }
 
 //
-func arePodsAlreadyDeleted(pods []corev1.Pod, log logr.Logger) bool {
+func arePodsAlreadyDeleted(pods []corev1.Pod, log zap.Logger) bool {
 	for _, node := range pods {
 		if node.ObjectMeta.DeletionTimestamp == nil {
 			return false
@@ -443,11 +447,10 @@ func generateNodeIdsFromPodSlice(pods []corev1.Pod) []string {
 	return ids
 }
 
-func (r *Reconciler) reconcileNifiPVC(log logr.Logger, desiredPVC *corev1.PersistentVolumeClaim) error {
+func (r *Reconciler) reconcileNifiPVC(log zap.Logger, desiredPVC *corev1.PersistentVolumeClaim) error {
 	var currentPVC = desiredPVC.DeepCopy()
 	desiredType := reflect.TypeOf(desiredPVC)
-	log = log.WithValues("kind", desiredType)
-	log.V(1).Info("searching with label because name is empty")
+	log.Debug("searching with label because name is empty", zap.Any("kind", desiredType))
 
 	pvcList := &corev1.PersistentVolumeClaimList{}
 	matchingLabels := client.MatchingLabels{
@@ -521,12 +524,11 @@ func isDesiredStorageValueInvalid(desired, current *corev1.PersistentVolumeClaim
 	return desired.Spec.Resources.Requests.Storage().Value() < current.Spec.Resources.Requests.Storage().Value()
 }
 
-func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) (error, bool) {
+func (r *Reconciler) reconcileNifiPod(log zap.Logger, desiredPod *corev1.Pod) (error, bool) {
 	currentPod := desiredPod.DeepCopy()
 	desiredType := reflect.TypeOf(desiredPod)
 
-	log = log.WithValues("kind", desiredType)
-	log.V(1).Info("searching with label because name is empty")
+	log.Debug("searching with label because name is empty", zap.Any("kind", desiredType))
 
 	podList := &corev1.PodList{}
 	matchingLabels := client.MatchingLabels{
@@ -607,7 +609,7 @@ func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) (
 		// Check if the resource actually updated
 		patchResult, err := patch.DefaultPatchMaker.Calculate(currentPod, desiredPod)
 		if err != nil {
-			log.Error(err, "could not match objects", "kind", desiredType)
+			log.Error("could not match objects", zap.Error(err), zap.Any("kind", desiredType))
 		} else if patchResult.IsEmpty() {
 			if !k8sutil.IsPodTerminatedOrShutdown(currentPod) &&
 				r.NifiCluster.Status.NodesState[currentPod.Labels["nodeId"]].ConfigurationState == v1alpha1.ConfigInSync {
@@ -624,15 +626,16 @@ func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) (
 					}
 				}
 
-				log.V(1).Info("resource is in sync")
+				log.Debug("resource is in sync")
+
 				return nil, k8sutil.PodReady(currentPod)
 			}
 		} else {
-			log.Info("resource diffs",
-				"patch", string(patchResult.Patch),
-				"current", string(patchResult.Current),
-				"modified", string(patchResult.Modified),
-				"original", string(patchResult.Original))
+			log.Debug("resource diffs",
+				zap.String("patch", string(patchResult.Patch)),
+				zap.String("current", string(patchResult.Current)),
+				zap.String("modified", string(patchResult.Modified)),
+				zap.String("original", string(patchResult.Original)))
 		}
 
 		if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(desiredPod); err != nil {
@@ -684,7 +687,7 @@ func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) (
 	return nil, k8sutil.PodReady(currentPod)
 }
 
-func (r *Reconciler) reconcileNifiUsersAndGroups(log logr.Logger) error {
+func (r *Reconciler) reconcileNifiUsersAndGroups(log zap.Logger) error {
 	/*	nifiControllerName := fmt.Sprintf(
 			pkicommon.NodeControllerFQDNTemplate,
 			r.NifiCluster.GetNifiControllerUserIdentity(),
@@ -861,7 +864,7 @@ func (r *Reconciler) reconcileNifiUsersAndGroups(log logr.Logger) error {
 	return nil
 }
 
-func (r *Reconciler) reconcilePrometheusReportingTask(log logr.Logger) error {
+func (r *Reconciler) reconcilePrometheusReportingTask(log zap.Logger) error {
 
 	var err error
 
@@ -906,7 +909,7 @@ func (r *Reconciler) reconcilePrometheusReportingTask(log logr.Logger) error {
 	return nil
 }
 
-func (r *Reconciler) reconcileMaximumThreadCounts(log logr.Logger) error {
+func (r *Reconciler) reconcileMaximumThreadCounts(log zap.Logger) error {
 	configManager := config.GetClientConfigManager(r.Client, v1alpha1.ClusterReference{
 		Namespace: r.NifiCluster.Namespace,
 		Name:      r.NifiCluster.Name,

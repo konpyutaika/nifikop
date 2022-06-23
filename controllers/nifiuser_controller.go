@@ -18,11 +18,13 @@ package controllers
 
 import (
 	"context"
-	"emperror.dev/errors"
 	"encoding/json"
 	"fmt"
+	"reflect"
+	"time"
+
+	"emperror.dev/errors"
 	"github.com/banzaicloud/k8s-objectmatcher/patch"
-	"github.com/go-logr/logr"
 	certv1 "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1"
 	usercli "github.com/konpyutaika/nifikop/pkg/clientwrappers/user"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
@@ -31,15 +33,14 @@ import (
 	"github.com/konpyutaika/nifikop/pkg/pki"
 	"github.com/konpyutaika/nifikop/pkg/util"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
+	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/record"
-	"reflect"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"time"
 
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 )
@@ -49,7 +50,7 @@ var userFinalizer = "nifiusers.nifi.konpyutaika.com/finalizer"
 // NifiUserReconciler reconciles a NifiUser object
 type NifiUserReconciler struct {
 	client.Client
-	Log             logr.Logger
+	Log             zap.Logger
 	Scheme          *runtime.Scheme
 	Recorder        record.EventRecorder
 	RequeueInterval int
@@ -73,7 +74,6 @@ type NifiUserReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.7.0/pkg/reconcile
 func (r *NifiUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = r.Log.WithValues("nifiuser", req.NamespacedName)
 	interval := util.GetRequeueInterval(r.RequeueInterval, r.RequeueOffset)
 	var err error
 
@@ -190,14 +190,14 @@ func (r *NifiUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 				// TODO: (tinyzimmer) - Sleep for longer for now to give user time to see the error
 				// But really we should catch these kinds of issues in a pre-admission hook in a future PR
 				// The user can fix while this is looping and it will pick it up next reconcile attempt
-				r.Log.Error(err, "Fatal error attempting to reconcile the user certificate. If using vault perhaps a permissions issue or improperly configured PKI?")
+				r.Log.Error("Fatal error attempting to reconcile the user certificate. If using vault perhaps a permissions issue or improperly configured PKI?", zap.Error(err))
 				return ctrl.Result{
 					Requeue:      true,
 					RequeueAfter: interval,
 				}, nil
 			case errorfactory.VaultAPIFailure:
 				// Same as above in terms of things that could be checked pre-flight on the cluster
-				r.Log.Error(err, "Vault API error attempting to reconcile the user certificate. If using vault perhaps a permissions issue or improperly configured PKI?")
+				r.Log.Error("Vault API error attempting to reconcile the user certificate. If using vault perhaps a permissions issue or improperly configured PKI?", zap.Error(err))
 				return ctrl.Result{
 					Requeue:      true,
 					RequeueAfter: interval,
@@ -406,7 +406,7 @@ func (r *NifiUserReconciler) checkFinalizers(ctx context.Context, user *v1alpha1
 }
 
 func (r *NifiUserReconciler) removeFinalizer(ctx context.Context, user *v1alpha1.NifiUser) error {
-	r.Log.V(5).Info(fmt.Sprintf("Removing finalizer for NifiUser %s", user.Name))
+	r.Log.Info(fmt.Sprintf("Removing finalizer for NifiUser %s", user.Name))
 	user.SetFinalizers(util.StringSliceRemove(user.GetFinalizers(), userFinalizer))
 	_, err := r.updateAndFetchLatest(ctx, user)
 	return err

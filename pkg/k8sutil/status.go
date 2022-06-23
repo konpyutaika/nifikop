@@ -3,12 +3,13 @@ package k8sutil
 import (
 	"context"
 	"fmt"
-	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"strings"
 	"time"
 
+	"github.com/konpyutaika/nifikop/api/v1alpha1"
+	"go.uber.org/zap"
+
 	"emperror.dev/errors"
-	"github.com/go-logr/logr"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -27,7 +28,7 @@ func IsMarkedForDeletion(m metav1.ObjectMeta) bool {
 }
 
 // UpdateNodeStatus updates the node status with rack and configuration infos
-func UpdateNodeStatus(c client.Client, nodeIds []string, cluster *v1alpha1.NifiCluster, state interface{}, logger logr.Logger) error {
+func UpdateNodeStatus(c client.Client, nodeIds []string, cluster *v1alpha1.NifiCluster, state interface{}, logger zap.Logger) error {
 	typeMeta := cluster.TypeMeta
 
 	for _, nodeId := range nodeIds {
@@ -136,7 +137,7 @@ func UpdateNodeStatus(c client.Client, nodeIds []string, cluster *v1alpha1.NifiC
 }
 
 // DeleteStatus deletes the given node state from the CR
-func DeleteStatus(c client.Client, nodeId string, cluster *v1alpha1.NifiCluster, logger logr.Logger) error {
+func DeleteStatus(c client.Client, nodeId string, cluster *v1alpha1.NifiCluster, logger zap.Logger) error {
 	typeMeta := cluster.TypeMeta
 
 	nodeStatus := cluster.Status.NodesState
@@ -178,7 +179,7 @@ func DeleteStatus(c client.Client, nodeId string, cluster *v1alpha1.NifiCluster,
 }
 
 // UpdateCRStatus updates the cluster state
-func UpdateCRStatus(c client.Client, cluster *v1alpha1.NifiCluster, state interface{}, logger logr.Logger) error {
+func UpdateCRStatus(c client.Client, cluster *v1alpha1.NifiCluster, state interface{}, logger zap.Logger) error {
 	typeMeta := cluster.TypeMeta
 
 	switch s := state.(type) {
@@ -213,12 +214,11 @@ func UpdateCRStatus(c client.Client, cluster *v1alpha1.NifiCluster, state interf
 	}
 	// update loses the typeMeta of the config that's used later when setting ownerrefs
 	cluster.TypeMeta = typeMeta
-	logger.Info("CR status updated", "status", state)
 	return nil
 }
 
 // UpdateRootProcessGroupIdStatus updates the cluster root process group id
-func UpdateRootProcessGroupIdStatus(c client.Client, cluster *v1alpha1.NifiCluster, id string, logger logr.Logger) error {
+func UpdateRootProcessGroupIdStatus(c client.Client, cluster *v1alpha1.NifiCluster, id string, logger zap.Logger) error {
 	typeMeta := cluster.TypeMeta
 
 	cluster.Status.RootProcessGroupId = id
@@ -247,12 +247,12 @@ func UpdateRootProcessGroupIdStatus(c client.Client, cluster *v1alpha1.NifiClust
 	}
 	// update loses the typeMeta of the config that's used later when setting ownerrefs
 	cluster.TypeMeta = typeMeta
-	logger.Info("Root process grout id updated", "id", id)
+	logger.Info("Root process group id updated", zap.String("id", id))
 	return nil
 }
 
 // UpdateRollingUpgradeState updates the state of the cluster with rolling upgrade info
-func UpdateRollingUpgradeState(c client.Client, cluster *v1alpha1.NifiCluster, time time.Time, logger logr.Logger) error {
+func UpdateRollingUpgradeState(c client.Client, cluster *v1alpha1.NifiCluster, time time.Time, logger zap.Logger) error {
 	typeMeta := cluster.TypeMeta
 
 	timeStamp := time.Format("Mon, 2 Jan 2006 15:04:05 GMT")
@@ -286,7 +286,7 @@ func UpdateRollingUpgradeState(c client.Client, cluster *v1alpha1.NifiCluster, t
 	}
 	// update loses the typeMeta of the config that's used later when setting ownerrefs
 	cluster.TypeMeta = typeMeta
-	logger.Info("Rolling upgrade status updated", "status", timeStamp)
+	logger.Info("Rolling upgrade status updated", zap.String("status", timeStamp))
 	return nil
 }
 
