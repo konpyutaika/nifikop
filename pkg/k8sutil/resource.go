@@ -6,11 +6,11 @@ import (
 
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
+	"go.uber.org/zap"
 	v1 "k8s.io/api/core/v1"
 
 	"emperror.dev/errors"
 	"github.com/banzaicloud/k8s-objectmatcher/patch"
-	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -19,7 +19,7 @@ import (
 )
 
 // Reconcile reconciles K8S resources
-func Reconcile(log logr.Logger, client runtimeClient.Client, desired runtimeClient.Object, cr *v1alpha1.NifiCluster) error {
+func Reconcile(log zap.Logger, client runtimeClient.Client, desired runtimeClient.Object, cr *v1alpha1.NifiCluster) error {
 	desiredType := reflect.TypeOf(desired)
 	current := desired.DeepCopyObject().(runtimeClient.Object)
 
@@ -28,7 +28,7 @@ func Reconcile(log logr.Logger, client runtimeClient.Client, desired runtimeClie
 	default:
 		var key runtimeClient.ObjectKey
 		key = runtimeClient.ObjectKeyFromObject(current)
-		log = log.WithValues("kind", desiredType, "name", key.Name)
+		log.Debug("reconciling", zap.Any("kind", desiredType), zap.Any("name", key.Name))
 
 		err = client.Get(context.TODO(), key, current)
 		if err != nil && !apierrors.IsNotFound(err) {
@@ -115,20 +115,20 @@ func Reconcile(log logr.Logger, client runtimeClient.Client, desired runtimeClie
 }
 
 // CheckIfObjectUpdated checks if the given object is updated using K8sObjectMatcher
-func CheckIfObjectUpdated(log logr.Logger, desiredType reflect.Type, current, desired runtime.Object) bool {
+func CheckIfObjectUpdated(log zap.Logger, desiredType reflect.Type, current, desired runtime.Object) bool {
 	patchResult, err := patch.DefaultPatchMaker.Calculate(current, desired)
 	if err != nil {
-		log.Error(err, "could not match objects", "kind", desiredType)
+		log.Error("could not match objects", zap.Error(err), zap.Any("kind", desiredType))
 		return true
 	} else if patchResult.IsEmpty() {
-		log.V(1).Info("resource is in sync")
+		log.Debug("resource is in sync")
 		return false
 	} else {
 		log.Info("resource diffs",
-			"patch", string(patchResult.Patch),
-			"current", string(patchResult.Current),
-			"modified", string(patchResult.Modified),
-			"original", string(patchResult.Original))
+			zap.String("patch", string(patchResult.Patch)),
+			zap.String("current", string(patchResult.Current)),
+			zap.String("modified", string(patchResult.Modified)),
+			zap.String("original", string(patchResult.Original)))
 		return true
 	}
 }

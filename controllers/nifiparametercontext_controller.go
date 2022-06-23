@@ -31,12 +31,12 @@ import (
 	"github.com/konpyutaika/nifikop/pkg/nificlient/config"
 	"github.com/konpyutaika/nifikop/pkg/util"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
+	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -49,7 +49,7 @@ var parameterContextFinalizer = "nifiparametercontexts.nifi.konpyutaika.com/fina
 // NifiParameterContextReconciler reconciles a NifiParameterContext object
 type NifiParameterContextReconciler struct {
 	client.Client
-	Log             logr.Logger
+	Log             zap.Logger
 	Scheme          *runtime.Scheme
 	Recorder        record.EventRecorder
 	RequeueInterval int
@@ -70,7 +70,6 @@ type NifiParameterContextReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.7.0/pkg/reconcile
 func (r *NifiParameterContextReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = r.Log.WithValues("nifiparametercontext", req.NamespacedName)
 	interval := util.GetRequeueInterval(r.RequeueInterval, r.RequeueOffset)
 	var err error
 
@@ -238,10 +237,10 @@ func (r *NifiParameterContextReconciler) Reconcile(ctx context.Context, req ctrl
 			return RequeueWithError(r.Log, "failure finding parameter context", err)
 		}
 
-                 if status != nil  && !instance.Spec.IsTakeOverEnabled()  {
-                         // TakeOver disabled
+		if status != nil && !instance.Spec.IsTakeOverEnabled() {
+			// TakeOver disabled
 			return RequeueWithError(r.Log, fmt.Sprintf("parameter context name %s already used and takeOver disabled", instance.GetName()), err)
-                 }
+		}
 		if status == nil {
 			// Create NiFi parameter context
 			status, err = parametercontext.CreateParameterContext(instance, parameterSecrets, clientConfig)
@@ -356,7 +355,7 @@ func (r *NifiParameterContextReconciler) checkFinalizers(
 }
 
 func (r *NifiParameterContextReconciler) removeFinalizer(ctx context.Context, paramCtxt *v1alpha1.NifiParameterContext) error {
-	r.Log.V(5).Info(fmt.Sprintf("Removing finalizer for NifiParameterContext %s", paramCtxt.Name))
+	r.Log.Info(fmt.Sprintf("Removing finalizer for NifiParameterContext %s", paramCtxt.Name))
 	paramCtxt.SetFinalizers(util.StringSliceRemove(paramCtxt.GetFinalizers(), parameterContextFinalizer))
 	_, err := r.updateAndFetchLatest(ctx, paramCtxt)
 	return err

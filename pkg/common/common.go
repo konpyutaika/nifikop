@@ -1,10 +1,10 @@
 package common
 
 import (
-	"github.com/go-logr/logr"
 	"github.com/konpyutaika/nifikop/pkg/nificlient"
 	"github.com/konpyutaika/nifikop/pkg/util"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
+	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
@@ -33,7 +33,7 @@ import (
 //
 //// newNodeConnection is a convenience wrapper for creating a node connection
 //// and creating a safer close function
-//func NewNodeConnection(log logr.Logger, client client.Client, cluster *v1alpha1.NifiCluster) (node nificlient.NifiClient, err error) {
+//func NewNodeConnection(log zap.Logger, client client.Client, cluster *v1alpha1.NifiCluster) (node nificlient.NifiClient, err error) {
 //
 //	// Get a nifi connection
 //	log.Info(fmt.Sprintf("Retrieving Nifi client for %s/%s", cluster.Namespace, cluster.Name))
@@ -50,7 +50,7 @@ var NewNifiFromConfig = nificlient.NewFromConfig
 
 // newNodeConnection is a convenience wrapper for creating a node connection
 // and creating a safer close function
-func NewClusterConnection(log logr.Logger, config *clientconfig.NifiConfig) (node nificlient.NifiClient, err error) {
+func NewClusterConnection(log *zap.Logger, config *clientconfig.NifiConfig) (node nificlient.NifiClient, err error) {
 
 	// Get a nifi connection
 	node, err = NewNifiFromConfig(config)
@@ -86,7 +86,7 @@ func NewRequeueConfig() *RequeueConfig {
 	}
 }
 
-func NewLogLevel(lvl string) (zapcore.LevelEnabler, bool) {
+func NewLogLevel(lvl string) (zapcore.Level, bool) {
 	switch lvl {
 	case "Debug":
 		return zapcore.DebugLevel, true
@@ -105,4 +105,34 @@ func NewLogLevel(lvl string) (zapcore.LevelEnabler, bool) {
 	default:
 		return zapcore.DebugLevel, true
 	}
+}
+
+func CustomLogger() *zap.Logger {
+
+	logLvl, isDevelopment := NewLogLevel(util.GetEnvWithDefault("LOG_LEVEL", "Debug"))
+
+	conf := zap.Config{
+		Level:            zap.NewAtomicLevelAt(logLvl),
+		Development:      isDevelopment,
+		Encoding:         "json",
+		OutputPaths:      []string{"stdout"},
+		ErrorOutputPaths: []string{"stderr"},
+		EncoderConfig: zapcore.EncoderConfig{
+			LevelKey:       "level",
+			NameKey:        "logger",
+			TimeKey:        "time",
+			MessageKey:     "msg",
+			CallerKey:      "caller",
+			FunctionKey:    zapcore.OmitKey,
+			StacktraceKey:  "stacktrace",
+			EncodeTime:     zapcore.EpochNanosTimeEncoder,
+			EncodeLevel:    zapcore.LowercaseLevelEncoder,
+			EncodeCaller:   zapcore.ShortCallerEncoder,
+			LineEnding:     zapcore.DefaultLineEnding,
+			EncodeDuration: zapcore.SecondsDurationEncoder,
+		},
+	}
+
+	logger, _ := conf.Build()
+	return logger
 }

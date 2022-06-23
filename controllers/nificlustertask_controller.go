@@ -18,8 +18,11 @@ package controllers
 
 import (
 	"context"
-	"emperror.dev/errors"
 	"fmt"
+	"reflect"
+	"time"
+
+	"emperror.dev/errors"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/scale"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	"github.com/konpyutaika/nifikop/pkg/k8sutil"
@@ -27,16 +30,14 @@ import (
 	"github.com/konpyutaika/nifikop/pkg/util"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
 	nifiutil "github.com/konpyutaika/nifikop/pkg/util/nifi"
+	"go.uber.org/zap"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/client-go/tools/record"
-	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"time"
 
-	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -47,7 +48,7 @@ import (
 // NifiClusterTaskReconciler reconciles
 type NifiClusterTaskReconciler struct {
 	client.Client
-	Log              logr.Logger
+	Log              zap.Logger
 	Scheme           *runtime.Scheme
 	Recorder         record.EventRecorder
 	RequeueIntervals map[string]int
@@ -64,7 +65,6 @@ type NifiClusterTaskReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.7.0/pkg/reconcile
 func (r *NifiClusterTaskReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = r.Log.WithValues("nificlustertask", req.NamespacedName)
 
 	intervalNotReady := util.GetRequeueInterval(r.RequeueIntervals["CLUSTER_TASK_NOT_READY_REQUEUE_INTERVAL"], r.RequeueOffset)
 	intervalRunning := util.GetRequeueInterval(r.RequeueIntervals["CLUSTER_TASK_RUNNING_REQUEUE_INTERVAL"], r.RequeueOffset)
@@ -82,8 +82,6 @@ func (r *NifiClusterTaskReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		// Error reading the object - requeue the request.
 		return RequeueWithError(r.Log, err.Error(), err)
 	}
-
-	r.Log.V(1).Info("Reconciling")
 
 	var nodesWithRunningNCTask []string
 
@@ -213,7 +211,7 @@ func (r *NifiClusterTaskReconciler) handlePodAddCCTask(nifiCluster *v1alpha1.Nif
 	for _, nodeId := range nodeIds {
 		actionStep, taskStartTime, scaleErr := scale.UpScaleCluster(nodeId, nifiCluster.Namespace, nifiCluster.Name)
 		if scaleErr != nil {
-			r.Log.Info("Nifi cluster communication error during upscaling node(s)", "nodeId(s)", nodeId)
+			r.Log.Info("Nifi cluster communication error during upscaling node(s)", zap.String("nodeId(s)", nodeId))
 			return errorfactory.New(errorfactory.NifiClusterNotReady{}, scaleErr, fmt.Sprintf("Node id(s): %s", nodeId))
 		}
 		statusErr := k8sutil.UpdateNodeStatus(r.Client, []string{nodeId}, nifiCluster,
@@ -266,7 +264,7 @@ func (r *NifiClusterTaskReconciler) handlePodDeleteNCTask(nifiCluster *v1alpha1.
 }
 
 // TODO: Review logic to simplify it through generic method
-func (r *NifiClusterTaskReconciler) handlePodRunningTask(nifiCluster *v1alpha1.NifiCluster, nodeIds []string, log logr.Logger) error {
+func (r *NifiClusterTaskReconciler) handlePodRunningTask(nifiCluster *v1alpha1.NifiCluster, nodeIds []string, log zap.Logger) error {
 	// Prepare cluster connection configurations
 	var clientConfig *clientconfig.NifiConfig
 	var err error
@@ -435,7 +433,7 @@ func (r *NifiClusterTaskReconciler) checkNCActionStep(nodeId string, nifiCluster
 		}
 	}
 	// cc task still in progress
-	r.Log.Info("Nifi cluster task is still running", "actionStep", actionStep)
+	r.Log.Info("Nifi cluster task is still running", zap.Any("actionStep", actionStep))
 	return errorfactory.New(errorfactory.NifiClusterTaskRunning{}, errors.New("Nifi cluster task is still running"), fmt.Sprintf("nc action step: %s", actionStep))
 }
 
