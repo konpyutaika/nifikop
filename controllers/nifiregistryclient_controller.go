@@ -146,6 +146,13 @@ func (r *NifiRegistryClientReconciler) Reconcile(ctx context.Context, req ctrl.R
 		r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceClusterError",
 			fmt.Sprintf("Failed to create HTTP client for the referenced cluster : %s in %s",
 				instance.Spec.ClusterRef.Name, clusterRef.Namespace))
+		// the cluster is gone, so just remove the finalizer
+		if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {
+			if err = r.removeFinalizer(ctx, instance); err != nil {
+				return RequeueWithError(r.Log, fmt.Sprintf("failed to remove finalizer from NifiRegistryClient %s", instance.Name), err)
+			}
+			return Reconciled()
+		}
 		// the cluster does not exist - should have been caught pre-flight
 		return RequeueWithError(r.Log, "failed to create HTTP client the for referenced cluster", err)
 	}
@@ -291,8 +298,7 @@ func (r *NifiRegistryClientReconciler) updateAndFetchLatest(ctx context.Context,
 
 func (r *NifiRegistryClientReconciler) checkFinalizers(ctx context.Context, reqLogger logr.Logger,
 	registryClient *v1alpha1.NifiRegistryClient, config *clientconfig.NifiConfig) (reconcile.Result, error) {
-
-	reqLogger.Info("NiFi registry client is marked for deletion")
+	reqLogger.Info(fmt.Sprintf("NiFi registry client %s is marked for deletion", registryClient.Name))
 	var err error
 	if util.StringSliceContains(registryClient.GetFinalizers(), registryClientFinalizer) {
 		if err = r.finalizeNifiRegistryClient(reqLogger, registryClient, config); err != nil {
@@ -306,6 +312,7 @@ func (r *NifiRegistryClientReconciler) checkFinalizers(ctx context.Context, reqL
 }
 
 func (r *NifiRegistryClientReconciler) removeFinalizer(ctx context.Context, registryClient *v1alpha1.NifiRegistryClient) error {
+	r.Log.V(5).Info(fmt.Sprintf("Removing finalizer for NifiRegistryClient %s", registryClient.Name))
 	registryClient.SetFinalizers(util.StringSliceRemove(registryClient.GetFinalizers(), registryClientFinalizer))
 	_, err := r.updateAndFetchLatest(ctx, registryClient)
 	return err
