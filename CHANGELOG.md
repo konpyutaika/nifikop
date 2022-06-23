@@ -2,6 +2,8 @@
 
 ### Added
 
+- [PR #108](https://github.com/konpyutaika/nifikop/pull/108) - **[Operator/Logging]** Migrated from logr library to zap
+
 ### Changed
 
 ### Deprecated
