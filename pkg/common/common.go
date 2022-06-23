@@ -110,11 +110,12 @@ func NewLogLevel(lvl string) (zapcore.Level, bool) {
 func CustomLogger() *zap.Logger {
 
 	logLvl, isDevelopment := NewLogLevel(util.GetEnvWithDefault("LOG_LEVEL", "Debug"))
+	logEncoding := util.GetEnvWithDefault("LOG_ENCODING", "json")
 
 	conf := zap.Config{
 		Level:            zap.NewAtomicLevelAt(logLvl),
 		Development:      isDevelopment,
-		Encoding:         "json",
+		Encoding:         logEncoding,
 		OutputPaths:      []string{"stdout"},
 		ErrorOutputPaths: []string{"stderr"},
 		EncoderConfig: zapcore.EncoderConfig{

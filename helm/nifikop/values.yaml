@@ -42,6 +42,7 @@ metrics:
   port: 8081
 
 logLevel: Info
+logEncoding: json
 
 certManager:
   enabled: true
