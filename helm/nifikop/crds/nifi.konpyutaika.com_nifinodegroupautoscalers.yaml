@@ -1877,6 +1877,10 @@ spec:
                           https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#syntax-and-character-set
                         type: object
                     type: object
+                  priorityClassName:
+                    description: priorityClassName can be used to set the priority
+                      class applied to the node
+                    type: string
                   provenanceStorage:
                     description: provenanceStorage allow to specify the maximum amount
                       of data provenance information to store at a time https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#write-ahead-provenance-repository-properties
