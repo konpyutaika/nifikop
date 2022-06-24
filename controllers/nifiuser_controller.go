@@ -170,6 +170,14 @@ func (r *NifiUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 		pkiManager := pki.GetPKIManager(r.Client, cluster)
 
+		// check if marked for deletion
+		if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {
+			r.Log.Info("Nifi user is marked for deletion, revoking certificates")
+			if err = pkiManager.FinalizeUserCertificate(ctx, instance); err != nil {
+				return RequeueWithError(r.Log, "failed to finalize user certificate", err)
+			}
+		}
+
 		r.Recorder.Event(instance, corev1.EventTypeNormal, "ReconcilingCertificate",
 			fmt.Sprintf("Reconciling certificate for nifi user %s", instance.Name))
 		// Reconcile no matter what to get a user certificate instance for ACL management
@@ -209,14 +217,6 @@ func (r *NifiUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 		r.Recorder.Event(instance, corev1.EventTypeNormal, "ReconciledCertificate",
 			fmt.Sprintf("Reconciled certificate for nifi user %s", instance.Name))
-
-		// check if marked for deletion
-		if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {
-			r.Log.Info("Nifi user is marked for deletion, revoking certificates")
-			if err = pkiManager.FinalizeUserCertificate(ctx, instance); err != nil {
-				return RequeueWithError(r.Log, "failed to finalize user certificate", err)
-			}
-		}
 	}
 
 	// Generate the client configuration.

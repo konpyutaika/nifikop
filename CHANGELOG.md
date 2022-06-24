@@ -10,6 +10,10 @@
 
 ### Fixed Bugs
 
+- [PR #106](https://github.com/konpyutaika/nifikop/pull/106) - **[Documentation]** Patch documentation version and mixed docs.
+- [PR #110](https://github.com/konpyutaika/nifikop/pull/110) - **[Operator]** Handle case where `Certificate` is destroyed before `NifiUser` to avoid Nifi user controller getting stuck on deletion
+
+
 ## v0.11.0
 
 ### Added
