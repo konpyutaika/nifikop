@@ -196,6 +196,17 @@
           "id": "version-v0.11.0/6_contributing/3_credits"
         }
       ]
+    },
+    {
+      "collapsed": true,
+      "type": "category",
+      "label": "Upgrade CRDs Version",
+      "items": [
+        {
+          "type": "doc",
+          "id": "version-v0.11.0/7_upgrade/1_v0.8.0"
+        }
+      ]
     }
   ]
 }
