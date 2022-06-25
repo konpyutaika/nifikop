@@ -2,6 +2,8 @@
 
 ### Added
 
+- [PR #112](https://github.com/konpyutaika/nifikop/pull/112) - **[Documentation]** Add section to explain how upgrade from 0.7.6 to 0.8.0.
+
 ### Changed
 
 ### Deprecated
