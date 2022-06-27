@@ -358,7 +358,7 @@ type ListenersConfig struct {
 type SSLSecrets struct {
 	// tlsSecretName should contain all ssl certs required by nifi including: caCert, caKey, clientCert, clientKey
 	// serverCert, serverKey, peerCert, peerKey
-	TLSSecretName string `json:"tlsSecretName"`
+	TLSSecretName string `json:"tlsSecretName,omitempty"`
 	// create tells the installed cert manager to create the required certs keys
 	Create bool `json:"create,omitempty"`
 	// clusterScoped defines if the Issuer created is cluster or namespace scoped
