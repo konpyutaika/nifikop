@@ -200,11 +200,11 @@
     {
       "collapsed": true,
       "type": "category",
-      "label": "Upgrade CRDs Version",
+      "label": "Upgrade Guides",
       "items": [
         {
           "type": "doc",
-          "id": "version-v0.11.0/7_upgrade/1_v0.8.0"
+          "id": "version-v0.11.0/7_upgrade/1_v0.7.x_to_v0.8.0"
         }
       ]
     }
