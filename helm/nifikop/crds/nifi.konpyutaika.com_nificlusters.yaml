@@ -1505,8 +1505,6 @@ spec:
                           by nifi including: caCert, caKey, clientCert, clientKey
                           serverCert, serverKey, peerCert, peerKey'
                         type: string
-                    required:
-                    - tlsSecretName
                     type: object
                   useExternalDNS:
                     description: 'useExternalDNS allow to manage externalDNS usage
