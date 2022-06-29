@@ -104,7 +104,7 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	}
 
 	// LookUp component
-	var sourceComponent := r.GetDataflowComponentInformation(r.client, instance.Spec.Source)
+	//var sourceComponent := r.GetDataflowComponentInformation(r.client, instance.Spec.Source)
 
 	return RequeueAfter(interval)
 }
