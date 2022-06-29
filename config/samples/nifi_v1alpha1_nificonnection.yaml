@@ -1,0 +1,6 @@
+apiVersion: nifi.konpyutaika.com/v1alpha1
+kind: NifiConnection
+metadata:
+  name: nificonnection-sample
+spec:
+  # TODO(user): Add fields here

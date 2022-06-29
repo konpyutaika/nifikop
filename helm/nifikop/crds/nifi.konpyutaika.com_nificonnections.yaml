@@ -1,0 +1,95 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.8.0
+  creationTimestamp: null
+  name: nificonnections.nifi.konpyutaika.com
+spec:
+  group: nifi.konpyutaika.com
+  names:
+    kind: NifiConnection
+    listKind: NifiConnectionList
+    plural: nificonnections
+    singular: nificonnection
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: NifiConnection is the Schema for the nificonnections API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: NifiConnectionSpec defines the desired state of NifiConnection
+            properties:
+              destination:
+                description: the Destination component of the connection.
+                properties:
+                  name:
+                    description: the name of the component.
+                    type: string
+                  namespace:
+                    description: the namespace of the component.
+                    type: string
+                  subName:
+                    description: the name of the sub component (e.g. queue or port
+                      name)
+                    type: string
+                  type:
+                    description: the type of the component (e.g. nifidataflow).
+                    type: string
+                required:
+                - name
+                - type
+                type: object
+              source:
+                description: the Source component of the connection.
+                properties:
+                  name:
+                    description: the name of the component.
+                    type: string
+                  namespace:
+                    description: the namespace of the component.
+                    type: string
+                  subName:
+                    description: the name of the sub component (e.g. queue or port
+                      name)
+                    type: string
+                  type:
+                    description: the type of the component (e.g. nifidataflow).
+                    type: string
+                required:
+                - name
+                - type
+                type: object
+            required:
+            - destination
+            - source
+            type: object
+          status:
+            description: NifiConnectionStatus defines the observed state of NifiConnection
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []

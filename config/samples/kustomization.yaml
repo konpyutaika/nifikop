@@ -4,4 +4,5 @@ resources:
 - nifi_v1alpha1_nifiusergroup.yaml
 - nifi_v1alpha1_nifidataflow.yaml
 - nifi_v1alpha1_nifiparametercontext.yaml
+- nifi_v1alpha1_nificonnection.yaml
 # +kubebuilder:scaffold:manifestskustomizesamples

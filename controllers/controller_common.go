@@ -2,8 +2,9 @@ package controllers
 
 import (
 	"fmt"
-	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
 	"time"
+
+	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
 
 	"emperror.dev/errors"
 	"github.com/go-logr/logr"
@@ -156,4 +157,15 @@ func GetUserRefNamespace(ns string, ref v1alpha1.UserReference) string {
 		return ns
 	}
 	return userNamespace
+}
+
+// getComponentRefNamespace returns the expected namespace for a Nifi cluster
+// referenced by a user/dataflow CR. It takes the namespace of the CR as the first
+// argument and the reference itself as the second.
+func GetComponentRefNamespace(ns string, ref v1alpha1.ComponentReference) string {
+	componentNamespace := ref.Namespace
+	if componentNamespace == "" {
+		return ns
+	}
+	return componentNamespace
 }

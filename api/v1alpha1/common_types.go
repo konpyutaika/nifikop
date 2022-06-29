@@ -424,3 +424,9 @@ const (
 	SyncOnce   DataflowSyncMode = "once"
 	SyncAlways DataflowSyncMode = "always"
 )
+
+type ComponentType string
+
+const (
+	ComponentDataflow ComponentType = "dataflow"
+)
