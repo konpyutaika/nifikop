@@ -432,7 +432,8 @@ const (
 )
 
 type ComponentInformation struct {
-	Id      string `json:"id"`
-	GroupId string `json:"groupId"`
-	Type    string `json:"type"`
+	Id         string           `json:"id"`
+	GroupId    string           `json:"groupId"`
+	Type       string           `json:"type"`
+	ClusterRef ClusterReference `json:"clusterRef"`
 }

@@ -95,32 +95,57 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	instance.Spec.Source.Namespace = GetComponentRefNamespace(instance.Namespace, instance.Spec.Source)
 	if !instance.Spec.Source.IsValid() {
 		r.Recorder.Event(instance, corev1.EventTypeWarning, "SourceInvalid",
-			fmt.Sprintf("Failed to validate the source component : %s in %s",
-				instance.Spec.Source.Name, instance.Spec.Source.Namespace))
+			fmt.Sprintf("Failed to validate the source component : %s in %s of type %s",
+				instance.Spec.Source.Name, instance.Spec.Source.Namespace, instance.Spec.Source.Type))
 		return RequeueWithError(r.Log, "failed to validate source component", err)
 	}
 
 	instance.Spec.Destination.Namespace = GetComponentRefNamespace(instance.Namespace, instance.Spec.Destination)
 	if !instance.Spec.Destination.IsValid() {
 		r.Recorder.Event(instance, corev1.EventTypeWarning, "DestinationInvalid",
-			fmt.Sprintf("Failed to validate the destination component : %s in %s",
-				instance.Spec.Destination.Name, instance.Spec.Destination.Namespace))
+			fmt.Sprintf("Failed to validate the destination component : %s in %s of type %s",
+				instance.Spec.Destination.Name, instance.Spec.Destination.Namespace, instance.Spec.Destination.Type))
 		return RequeueWithError(r.Log, "failed to validate destination component", err)
 	}
 
-	// Verification connection possible
-	// TO DO
-
 	// LookUp component
+	// Source lookup
 	sourceComponent := &v1alpha1.ComponentInformation{}
-	if sourceComponent, err = r.GetDataflowComponentInformation(instance.Spec.Source, true); err != nil {
-		r.Log.Info("Error") // TO DO
+	if instance.Spec.Source.Type == v1alpha1.ComponentDataflow {
+		sourceComponent, err = r.GetDataflowComponentInformation(instance.Spec.Source, true)
 	}
 
-	destinationComponent := &v1alpha1.ComponentInformation{}
-	if destinationComponent, err = r.GetDataflowComponentInformation(instance.Spec.Destination, false); err != nil {
-		r.Log.Info("Error") // TO DO
+	if err != nil {
+		r.Recorder.Event(instance, corev1.EventTypeWarning, "SourceNotFound",
+			fmt.Sprintf("Failed to retrieve source component information : %s in %s of type %s",
+				instance.Spec.Source.Name, instance.Spec.Source.Namespace, instance.Spec.Source.Type))
+		return RequeueWithError(r.Log, "failed to retrieve source component", err)
 	}
+
+	// Destination lookup
+	destinationComponent := &v1alpha1.ComponentInformation{}
+	if instance.Spec.Source.Type == v1alpha1.ComponentDataflow {
+		destinationComponent, err = r.GetDataflowComponentInformation(instance.Spec.Destination, false)
+	}
+
+	if err != nil {
+		r.Recorder.Event(instance, corev1.EventTypeWarning, "DestinationNotFound",
+			fmt.Sprintf("Failed to retrieve destination component information : %s in %s of type %s",
+				instance.Spec.Destination.Name, instance.Spec.Destination.Namespace, instance.Spec.Destination.Type))
+		return RequeueWithError(r.Log, "failed to retrieve destination component", err)
+	}
+
+	// Verification connection feasible
+	var clusterRefs []v1alpha1.ClusterReference
+	clusterRefs = append(clusterRefs, sourceComponent.ClusterRef, destinationComponent.ClusterRef)
+	if !v1alpha1.ClusterRefsEquals(clusterRefs) {
+		r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceClusterError",
+			fmt.Sprintf("Failed to verify feasibility of the connection from %s in %s of type %s to %s in %s of type %s",
+				instance.Spec.Source.Name, instance.Spec.Source.Namespace, instance.Spec.Source.Type,
+				instance.Spec.Destination.Name, instance.Spec.Destination.Namespace, instance.Spec.Destination.Type))
+		return RequeueWithError(r.Log, "failed to verify feasibility, due to cluster inconsistency", err)
+	}
+
 	r.Log.Info("Id: " + sourceComponent.Id)
 	r.Log.Info("Id: " + destinationComponent.Id)
 
@@ -161,7 +186,7 @@ func (r *NifiConnectionReconciler) GetDataflowComponentInformation(c v1alpha1.Co
 
 		// Ensure the cluster is ready to receive actions
 		if !clusterConnect.IsReady(r.Log) {
-			return nil, errors.New(fmt.Sprintf("Cluster %s in %s not ready for dataflow %s in %s", instance.Spec.ClusterRef.Name, clusterRef.Namespace, instance.Name, instance.Namespace))
+			return nil, errors.New(fmt.Sprintf("Cluster %s in %s not ready for dataflow %s in %s", clusterRef.Name, clusterRef.Namespace, instance.Name, instance.Namespace))
 		}
 
 		dataflowInformation, err := dataflow.GetDataflowInformation(instance, clientConfig)
@@ -199,9 +224,10 @@ func (r *NifiConnectionReconciler) GetDataflowComponentInformation(c v1alpha1.Co
 		}
 
 		information := &v1alpha1.ComponentInformation{
-			Id:      targetPort.Id,
-			Type:    targetPort.Component.Type_,
-			GroupId: targetPort.Component.ParentGroupId,
+			Id:         targetPort.Id,
+			Type:       targetPort.Component.Type_,
+			GroupId:    targetPort.Component.ParentGroupId,
+			ClusterRef: clusterRef,
 		}
 		return information, nil
 	}
