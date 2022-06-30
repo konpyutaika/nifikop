@@ -74,6 +74,7 @@ type NifiClient interface {
 	CreateProcessGroup(entity nigoapi.ProcessGroupEntity, pgParentId string) (*nigoapi.ProcessGroupEntity, error)
 	UpdateProcessGroup(entity nigoapi.ProcessGroupEntity) (*nigoapi.ProcessGroupEntity, error)
 	RemoveProcessGroup(entity nigoapi.ProcessGroupEntity) error
+	CreateConnection(entity nigoapi.ConnectionEntity) (*nigoapi.ConnectionEntity, error)
 
 	// Version func
 	CreateVersionUpdateRequest(pgId string, entity nigoapi.VersionControlInformationEntity) (*nigoapi.VersionedFlowUpdateRequestEntity, error)

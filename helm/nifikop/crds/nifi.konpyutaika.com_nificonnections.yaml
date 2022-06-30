@@ -81,6 +81,12 @@ spec:
             type: object
           status:
             description: NifiConnectionStatus defines the observed state of NifiConnection
+            properties:
+              connectionID:
+                description: connection ID
+                type: string
+            required:
+            - connectionID
             type: object
         type: object
     served: true

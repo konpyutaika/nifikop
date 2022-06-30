@@ -32,6 +32,7 @@ import (
 	"github.com/erdrix/nigoapi/pkg/nifi"
 	"github.com/go-logr/logr"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
+	"github.com/konpyutaika/nifikop/pkg/clientwrappers/connection"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/dataflow"
 	"github.com/konpyutaika/nifikop/pkg/k8sutil"
 	"github.com/konpyutaika/nifikop/pkg/nificlient/config"
@@ -145,6 +146,98 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 				instance.Spec.Destination.Name, instance.Spec.Destination.Namespace, instance.Spec.Destination.Type))
 		return RequeueWithError(r.Log, "failed to verify feasibility, due to cluster inconsistency", err)
 	}
+
+	// TO DO - Verify same parent process group id
+
+	// Prepare cluster connection configurations
+	var clientConfig *clientconfig.NifiConfig
+	var clusterConnect clientconfig.ClusterConnect
+
+	// Get the client config manager associated to the cluster ref.
+	clusterRef := sourceComponent.ClusterRef
+	configManager := config.GetClientConfigManager(r.Client, clusterRef)
+
+	// Generate the connect object
+	if clusterConnect, err = configManager.BuildConnect(); err != nil {
+		// This shouldn't trigger anymore, but leaving it here as a safetybelt
+		// if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {
+		// 	r.Log.Info("Cluster is already gone, there is nothing we can do")
+		// 	if err = r.removeFinalizer(ctx, instance); err != nil {
+		// 		return RequeueWithError(r.Log, "failed to remove finalizer", err)
+		// 	}
+		// 	return Reconciled()
+		// }
+
+		// // If the referenced cluster no more exist, just skip the deletion requirement in cluster ref change case.
+		// if !v1alpha1.ClusterRefsEquals([]v1alpha1.ClusterReference{instance.Spec.ClusterRef, current.Spec.ClusterRef}) {
+		// 	if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(current); err != nil {
+		// 		return RequeueWithError(r.Log, "could not apply last state to annotation", err)
+		// 	}
+		// 	if err := r.Client.Update(ctx, current); err != nil {
+		// 		return RequeueWithError(r.Log, "failed to update NifiDataflow", err)
+		// 	}
+		// 	return RequeueAfter(time.Duration(15) * time.Second)
+		// }
+		// r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceClusterError",
+		// 	fmt.Sprintf("Failed to lookup reference cluster : %s in %s",
+		// 		instance.Spec.ClusterRef.Name, currentClusterRef.Namespace))
+
+		// the cluster does not exist - should have been caught pre-flight
+		return RequeueWithError(r.Log, "failed to lookup referenced cluster", err)
+	}
+
+	// Generate the client configuration.
+	clientConfig, err = configManager.BuildConfig()
+	if err != nil {
+		r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceClusterError",
+			fmt.Sprintf("Failed to create HTTP client for the referenced cluster : %s in %s",
+				clusterRef.Name, clusterRef.Namespace))
+		// the cluster is gone, so just remove the finalizer
+		// if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {
+		// 	if err = r.removeFinalizer(ctx, instance); err != nil {
+		// 		return RequeueWithError(r.Log, fmt.Sprintf("failed to remove finalizer from NifiDataflow %s", instance.Name), err)
+		// 	}
+		// 	return Reconciled()
+		// }
+		// the cluster does not exist - should have been caught pre-flight
+		return RequeueWithError(r.Log, "failed to create HTTP client the for referenced cluster", err)
+	}
+
+	// Check if marked for deletion and if so run finalizers
+	// if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {
+	// 	return r.checkFinalizers(ctx, instance, clientConfig)
+	// }
+
+	// Ensure the cluster is ready to receive actions
+	if !clusterConnect.IsReady(r.Log) {
+		r.Log.Info("Cluster is not ready yet, will wait until it is.")
+		r.Recorder.Event(instance, corev1.EventTypeNormal, "ReferenceClusterNotReady",
+			fmt.Sprintf("The referenced cluster is not ready yet : %s in %s",
+				clusterRef.Name, clusterConnect.Id()))
+
+		// the cluster does not exist - should have been caught pre-flight
+		return RequeueAfter(interval)
+	}
+
+	var defaultVersion int64 = 0
+	connection.CreateConnection(&nifi.ConnectionEntity{
+		Revision: &nifi.RevisionDto{
+			Version: &defaultVersion,
+		},
+		Id: sourceComponent.GroupId,
+		Component: &nifi.ConnectionDto{
+			Source: &nifi.ConnectableDto{
+				Id:      sourceComponent.Id,
+				Type_:   sourceComponent.Type,
+				GroupId: sourceComponent.GroupId,
+			},
+			Destination: &nifi.ConnectableDto{
+				Id:      destinationComponent.Id,
+				Type_:   destinationComponent.Type,
+				GroupId: destinationComponent.GroupId,
+			},
+		},
+	}, clientConfig)
 
 	r.Log.Info("Id: " + sourceComponent.Id)
 	r.Log.Info("Id: " + destinationComponent.Id)

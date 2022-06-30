@@ -28,8 +28,8 @@ type ComponentReference struct {
 
 // NifiConnectionStatus defines the observed state of NifiConnection
 type NifiConnectionStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// connection ID
+	ConnectionId string `json:"connectionID"`
 }
 
 //+kubebuilder:object:root=true
