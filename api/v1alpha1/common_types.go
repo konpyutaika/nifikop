@@ -430,3 +430,9 @@ type ComponentType string
 const (
 	ComponentDataflow ComponentType = "dataflow"
 )
+
+type ComponentInformation struct {
+	Id      string `json:"id"`
+	GroupId string `json:"groupId"`
+	Type    string `json:"type"`
+}

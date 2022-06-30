@@ -56,6 +56,27 @@ func RootProcessGroup(config *clientconfig.NifiConfig) (string, error) {
 	return rootPg.ProcessGroupFlow.Id, nil
 }
 
+func GetDataflowInformation(flow *v1alpha1.NifiDataflow, config *clientconfig.NifiConfig) (*nigoapi.ProcessGroupFlowEntity, error) {
+	if flow.Status.ProcessGroupID == "" {
+		return nil, nil
+	}
+
+	nClient, err := common.NewClusterConnection(log, config)
+	if err != nil {
+		return nil, err
+	}
+
+	flowEntity, err := nClient.GetFlow(flow.Status.ProcessGroupID)
+	if err := clientwrappers.ErrorGetOperation(log, err, "Get flow"); err != nil {
+		if err == nificlient.ErrNifiClusterReturned404 {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return flowEntity, nil
+}
+
 // CreateDataflow will deploy the NifiDataflow on NiFi Cluster
 func CreateDataflow(flow *v1alpha1.NifiDataflow, config *clientconfig.NifiConfig,
 	registry *v1alpha1.NifiRegistryClient) (*v1alpha1.NifiDataflowStatus, error) {

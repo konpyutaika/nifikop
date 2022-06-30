@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 
+	"emperror.dev/errors"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -28,10 +29,14 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/banzaicloud/k8s-objectmatcher/patch"
+	"github.com/erdrix/nigoapi/pkg/nifi"
 	"github.com/go-logr/logr"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
+	"github.com/konpyutaika/nifikop/pkg/clientwrappers/dataflow"
 	"github.com/konpyutaika/nifikop/pkg/k8sutil"
+	"github.com/konpyutaika/nifikop/pkg/nificlient/config"
 	"github.com/konpyutaika/nifikop/pkg/util"
+	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
 )
 
 // NifiConnectionReconciler reconciles a NifiConnection object
@@ -103,8 +108,21 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		return RequeueWithError(r.Log, "failed to validate destination component", err)
 	}
 
+	// Verification connection possible
+	// TO DO
+
 	// LookUp component
-	//var sourceComponent := r.GetDataflowComponentInformation(r.client, instance.Spec.Source)
+	sourceComponent := &v1alpha1.ComponentInformation{}
+	if sourceComponent, err = r.GetDataflowComponentInformation(instance.Spec.Source, true); err != nil {
+		r.Log.Info("Error") // TO DO
+	}
+
+	destinationComponent := &v1alpha1.ComponentInformation{}
+	if destinationComponent, err = r.GetDataflowComponentInformation(instance.Spec.Destination, false); err != nil {
+		r.Log.Info("Error") // TO DO
+	}
+	r.Log.Info("Id: " + sourceComponent.Id)
+	r.Log.Info("Id: " + destinationComponent.Id)
 
 	return RequeueAfter(interval)
 }
@@ -116,11 +134,75 @@ func (r *NifiConnectionReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
-func (r *NifiConnectionReconciler) GetDataflowComponentInformation(client client.Client, c *v1alpha1.ComponentReference) (*string, error) {
-	dataflow, err := k8sutil.LookupNifiDataflow(r.Client, c.Name, c.Namespace)
+func (r *NifiConnectionReconciler) GetDataflowComponentInformation(c v1alpha1.ComponentReference, isSource bool) (*v1alpha1.ComponentInformation, error) {
+	instance, err := k8sutil.LookupNifiDataflow(r.Client, c.Name, c.Namespace)
 	if err != nil {
 		return nil, err
 	} else {
-		return &dataflow.Name, nil
+		// Prepare cluster connection configurations
+		var clientConfig *clientconfig.NifiConfig
+		var clusterConnect clientconfig.ClusterConnect
+
+		// Get the client config manager associated to the cluster ref.
+		clusterRef := instance.Spec.ClusterRef
+		clusterRef.Namespace = GetClusterRefNamespace(instance.Namespace, instance.Spec.ClusterRef)
+		configManager := config.GetClientConfigManager(r.Client, clusterRef)
+
+		// Generate the connect object
+		if clusterConnect, err = configManager.BuildConnect(); err != nil {
+			return nil, err
+		}
+
+		// Generate the client configuration.
+		clientConfig, err = configManager.BuildConfig()
+		if err != nil {
+			return nil, err
+		}
+
+		// Ensure the cluster is ready to receive actions
+		if !clusterConnect.IsReady(r.Log) {
+			return nil, errors.New(fmt.Sprintf("Cluster %s in %s not ready for dataflow %s in %s", instance.Spec.ClusterRef.Name, clusterRef.Namespace, instance.Name, instance.Namespace))
+		}
+
+		dataflowInformation, err := dataflow.GetDataflowInformation(instance, clientConfig)
+		if err != nil {
+			return nil, err
+		}
+
+		// Error if the dataflow does not exist
+		if dataflowInformation == nil {
+			return nil, errors.New(fmt.Sprintf("Dataflow %s in %s does not exist in the cluster", instance.Name, instance.Namespace))
+		}
+
+		var ports = []nifi.PortEntity{}
+		if isSource {
+			ports = dataflowInformation.ProcessGroupFlow.Flow.OutputPorts
+		} else {
+			ports = dataflowInformation.ProcessGroupFlow.Flow.InputPorts
+		}
+
+		if len(ports) == 0 {
+			return nil, errors.New(fmt.Sprintf("No port available for Dataflow %s in %s", instance.Name, instance.Namespace))
+		}
+
+		targetPort := &nifi.PortEntity{}
+		foudTarget := false
+		for _, port := range ports {
+			if port.Component.Name == c.SubName {
+				targetPort = &port
+				foudTarget = true
+			}
+		}
+
+		if !foudTarget {
+			return nil, errors.New(fmt.Sprintf("Port %s not found : %s in %s", c.SubName, instance.Name, instance.Namespace))
+		}
+
+		information := &v1alpha1.ComponentInformation{
+			Id:      targetPort.Id,
+			Type:    targetPort.Component.Type_,
+			GroupId: targetPort.Component.ParentGroupId,
+		}
+		return information, nil
 	}
 }
