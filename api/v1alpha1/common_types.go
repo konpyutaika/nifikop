@@ -432,8 +432,35 @@ const (
 )
 
 type ComponentInformation struct {
-	Id         string           `json:"id"`
-	GroupId    string           `json:"groupId"`
-	Type       string           `json:"type"`
-	ClusterRef ClusterReference `json:"clusterRef"`
+	Id            string           `json:"id"`
+	GroupId       string           `json:"groupId"`
+	Type          string           `json:"type"`
+	ParentGroupId string           `json:"parentGroupId"`
+	ClusterRef    ClusterReference `json:"clusterRef"`
 }
+
+type ConnectionLoadBalanceStrategy string
+
+const (
+	StrategyDoNotLoadBalance     ConnectionLoadBalanceStrategy = "DO_NOT_LOAD_BALANCE"
+	StrategyPartitionByAttribute ConnectionLoadBalanceStrategy = "PARTITION_BY_ATTRIBUTE"
+	StrategyRoundRobin           ConnectionLoadBalanceStrategy = "ROUND_ROBIN"
+	StrategySingle               ConnectionLoadBalanceStrategy = "SINGLE"
+)
+
+type ConnectionLoadBalanceCompression string
+
+const (
+	CompressionDoNotCompress                ConnectionLoadBalanceCompression = "DO_NOT_COMPRESS"
+	CompressionCompressAttributesOnly       ConnectionLoadBalanceCompression = "COMPRESS_ATTRIBUTES_ONLY"
+	CompressionCompressAttributesAndContent ConnectionLoadBalanceCompression = "COMPRESS_ATTRIBUTES_AND_CONTENT"
+)
+
+type ConnectionPrioritizer string
+
+const (
+	PrioritizerFirstInFirstOutPrioritizer     ConnectionPrioritizer = "FirstInFirstOutPrioritizer"
+	PrioritizerNewestFlowFileFirstPrioritizer ConnectionPrioritizer = "NewestFlowFileFirstPrioritizer"
+	PrioritizerOldestFlowFileFirstPrioritizer ConnectionPrioritizer = "OldestFlowFileFirstPrioritizer"
+	PrioritizerPriorityAttributePrioritizer   ConnectionPrioritizer = "PriorityAttributePrioritizer"
+)

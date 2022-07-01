@@ -93,6 +93,12 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	}
 
 	// Validate component
+	if !instance.Spec.Configuration.IsValid() {
+		r.Recorder.Event(instance, corev1.EventTypeWarning, "ConfigurationInvalid",
+			fmt.Sprintf("Failed to validate the connection configuration"))
+		return RequeueWithError(r.Log, "failed to validate connection configuration", err)
+	}
+
 	instance.Spec.Source.Namespace = GetComponentRefNamespace(instance.Namespace, instance.Spec.Source)
 	if !instance.Spec.Source.IsValid() {
 		r.Recorder.Event(instance, corev1.EventTypeWarning, "SourceInvalid",
@@ -141,13 +147,19 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	clusterRefs = append(clusterRefs, sourceComponent.ClusterRef, destinationComponent.ClusterRef)
 	if !v1alpha1.ClusterRefsEquals(clusterRefs) {
 		r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceClusterError",
-			fmt.Sprintf("Failed to verify feasibility of the connection from %s in %s of type %s to %s in %s of type %s",
+			fmt.Sprintf("Failed to determine the cluster of the connection between %s in %s of type %s and %s in %s of type %s",
 				instance.Spec.Source.Name, instance.Spec.Source.Namespace, instance.Spec.Source.Type,
 				instance.Spec.Destination.Name, instance.Spec.Destination.Namespace, instance.Spec.Destination.Type))
-		return RequeueWithError(r.Log, "failed to verify feasibility, due to cluster inconsistency", err)
+		return RequeueWithError(r.Log, "failed to determine the cluster of the connection", err)
 	}
 
-	// TO DO - Verify same parent process group id
+	if sourceComponent.ParentGroupId != destinationComponent.ParentGroupId {
+		r.Recorder.Event(instance, corev1.EventTypeWarning, "ParentGroupIdError",
+			fmt.Sprintf("Failed to match parent group id from %s in %s of type %s to %s in %s of type %s",
+				instance.Spec.Source.Name, instance.Spec.Source.Namespace, instance.Spec.Source.Type,
+				instance.Spec.Destination.Name, instance.Spec.Destination.Namespace, instance.Spec.Destination.Type))
+		return RequeueWithError(r.Log, "failed to match parent group id", err)
+	}
 
 	// Prepare cluster connection configurations
 	var clientConfig *clientconfig.NifiConfig
@@ -219,25 +231,7 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		return RequeueAfter(interval)
 	}
 
-	var defaultVersion int64 = 0
-	connection.CreateConnection(&nifi.ConnectionEntity{
-		Revision: &nifi.RevisionDto{
-			Version: &defaultVersion,
-		},
-		Id: sourceComponent.GroupId,
-		Component: &nifi.ConnectionDto{
-			Source: &nifi.ConnectableDto{
-				Id:      sourceComponent.Id,
-				Type_:   sourceComponent.Type,
-				GroupId: sourceComponent.GroupId,
-			},
-			Destination: &nifi.ConnectableDto{
-				Id:      destinationComponent.Id,
-				Type_:   destinationComponent.Type,
-				GroupId: destinationComponent.GroupId,
-			},
-		},
-	}, clientConfig)
+	connection.CreateConnection(sourceComponent, destinationComponent, &instance.Spec.Configuration, instance.Name, clientConfig)
 
 	r.Log.Info("Id: " + sourceComponent.Id)
 	r.Log.Info("Id: " + destinationComponent.Id)
@@ -317,10 +311,11 @@ func (r *NifiConnectionReconciler) GetDataflowComponentInformation(c v1alpha1.Co
 		}
 
 		information := &v1alpha1.ComponentInformation{
-			Id:         targetPort.Id,
-			Type:       targetPort.Component.Type_,
-			GroupId:    targetPort.Component.ParentGroupId,
-			ClusterRef: clusterRef,
+			Id:            targetPort.Id,
+			Type:          targetPort.Component.Type_,
+			GroupId:       targetPort.Component.ParentGroupId,
+			ParentGroupId: dataflowInformation.ProcessGroupFlow.ParentGroupId,
+			ClusterRef:    clusterRef,
 		}
 		return information, nil
 	}

@@ -35,6 +35,54 @@ spec:
           spec:
             description: NifiConnectionSpec defines the desired state of NifiConnection
             properties:
+              configuration:
+                description: the Configuration of the connection
+                properties:
+                  backPressureDataSizeThreshold:
+                    description: The maximum data size of objects that can be queued
+                      before back pressure is applied
+                    type: string
+                  backPressureObjectThreshold:
+                    description: The maximum number of objects that can be queued
+                      before back pressure is applied
+                    format: int64
+                    type: integer
+                  bends:
+                    description: The bend points on the connection
+                    items:
+                      properties:
+                        posX:
+                          description: The x coordinate.
+                          format: int64
+                          type: integer
+                        posY:
+                          description: The y coordinate.
+                          format: int64
+                          type: integer
+                      type: object
+                    type: array
+                  flowFileExpiration:
+                    description: The maximum amount of time an object may be in the
+                      flow before it will be automatically aged out of the flow
+                    type: string
+                  loadBalanceCompression:
+                    description: Whether or not data should be compressed when being
+                      transferred between nodes in the cluster
+                    type: string
+                  loadBalancePartitionAttribute:
+                    description: The FlowFile Attribute to use for determining which
+                      node a FlowFile will go to
+                    type: string
+                  loadBalanceStrategy:
+                    description: How to load balance the data in this Connection across
+                      the nodes in the cluster
+                    type: string
+                  prioritizers:
+                    description: The comparators used to prioritize the queue
+                    items:
+                      type: string
+                    type: array
+                type: object
               destination:
                 description: the Destination component of the connection.
                 properties:

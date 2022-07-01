@@ -13,11 +13,49 @@ import (
 var log = ctrl.Log.WithName("connection-method")
 
 // CreateConnection will deploy the NifiDataflow on NiFi Cluster
-func CreateConnection(connection *nigoapi.ConnectionEntity, config *clientconfig.NifiConfig) (*v1alpha1.NifiConnectionStatus, error) {
+func CreateConnection(source *v1alpha1.ComponentInformation, destination *v1alpha1.ComponentInformation,
+	configuration *v1alpha1.ConnectionConfiguration, name string, config *clientconfig.NifiConfig) (*v1alpha1.NifiConnectionStatus, error) {
 
 	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
 		return nil, err
+	}
+
+	var bends []nigoapi.PositionDto
+	for _, bend := range configuration.GetBends() {
+		bends = append(bends, nigoapi.PositionDto{
+			X: float64(*bend.X),
+			Y: float64(*bend.Y),
+		})
+	}
+
+	var defaultVersion int64 = 0
+	connection := &nigoapi.ConnectionEntity{
+		Revision: &nigoapi.RevisionDto{
+			Version: &defaultVersion,
+		},
+		Id: source.ParentGroupId,
+		Component: &nigoapi.ConnectionDto{
+			Name: name,
+			Source: &nigoapi.ConnectableDto{
+				Id:      source.Id,
+				Type_:   source.Type,
+				GroupId: source.GroupId,
+			},
+			Destination: &nigoapi.ConnectableDto{
+				Id:      destination.Id,
+				Type_:   destination.Type,
+				GroupId: destination.GroupId,
+			},
+			FlowFileExpiration:            configuration.GetFlowFileExpiration(),
+			BackPressureDataSizeThreshold: configuration.GetBackPressureDataSizeThreshold(),
+			BackPressureObjectThreshold:   configuration.GetBackPressureObjectThreshold(),
+			LoadBalanceStrategy:           string(configuration.GetLoadBalanceStrategy()),
+			LoadBalancePartitionAttribute: configuration.GetLoadBalancePartitionAttribute(),
+			LoadBalanceCompression:        string(configuration.GetLoadBalanceCompression()),
+			Prioritizers:                  configuration.GetStringPrioritizers(),
+			Bends:                         bends,
+		},
 	}
 
 	entity, err := nClient.CreateConnection(*connection)

@@ -210,6 +210,7 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "NifiConnection")
 		os.Exit(1)
 	}
+
 	// +kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("health", healthz.Ping); err != nil {
