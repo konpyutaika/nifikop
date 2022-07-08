@@ -61,13 +61,6 @@ func TestMergeHostAliasesJoin(t *testing.T) {
 	if len(results) != 2 {
 		t.Errorf("The merge results are not the correct length: %v+", results)
 	}
-
-	if results[0].IP != "1.2.3.4" {
-		t.Errorf("results are not correct: %v+", results[0])
-	}
-	if results[1].IP != "1.2.3.5" {
-		t.Errorf("results are not correct: %v+", results[0])
-	}
 }
 
 func TestMergeHostAliasesEmpty(t *testing.T) {
