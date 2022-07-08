@@ -43,7 +43,14 @@
           }
         ]
       },
-      "3_tasks/3_nifi_dataflow",
+      {
+        "type": "category",
+        "label": "NiFi Dataflow",
+        "items": [
+          "3_tasks/3_nifi_dataflow/1_provisioning_nifi_dataflow",
+          "3_tasks/3_nifi_dataflow/2_stop_nifi_dataflow"
+        ]
+      },
       "3_tasks/4_nifi_user_group"
     ],
     "Reference": [

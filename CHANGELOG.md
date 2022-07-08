@@ -2,6 +2,8 @@
 
 ### Added
 
+- [PR #83](https://github.com/konpyutaika/nifikop/pull/83) - **[Operator/NiFiDataflow]** Add ability to stop dataflow.
+
 ### Changed
 
 ### Deprecated

@@ -1,7 +1,7 @@
 ---
-id: 3_nifi_dataflow
+id: 1_provisioning_nifi_dataflow
 title: Provisioning NiFi Dataflows
-sidebar_label: NiFi Dataflows
+sidebar_label: Provisioning NiFi Dataflows
 ---
 
 You can create NiFi dataflows either :
@@ -9,7 +9,7 @@ You can create NiFi dataflows either :
 * directly against the cluster through its REST API (using UI or some home made scripts), or
 * via the `NifiDataflow` CRD.
 
-If you want more details about the design, just have a look on the [design page](../1_concepts/2_design_principes.md#dataflow-lifecycle-management)
+If you want more details about the design, just have a look on the [design page](../../1_concepts/2_design_principes.md#dataflow-lifecycle-management)
 
 To deploy a [NifiDataflow] you have to start by deploying a [NifiRegistryClient] because **NiFiKop** manages dataflow using the [NiFi Registry feature](https://nifi.apache.org/registry).
 
@@ -118,9 +118,9 @@ You have two modes of control from your dataflow by the operator :
 3 - `Spec.SyncMode == always` : The operator will deploy and ensure the dataflow lifecycle, it will avoid all manual modification directly from the Cluster (e.g remove the process group, remove the versioning, update the parent process group, make some local changes ...). If you want to perform update, rollback or stuff like this, you have to simply update the [NifiDataflow] resource.
 
 :::important
-More information about `Spec.UpdateStrategy` [here](../5_references/5_nifi_dataflow.md#dataflowupdatestrategy)
+More information about `Spec.UpdateStrategy` [here](../../5_references/5_nifi_dataflow.md#dataflowupdatestrategy)
 :::
 
-[NifiDataflow]: ../5_references/5_nifi_dataflow.md
-[NifiRegistryClient]: ../5_references/3_nifi_registry_client.md
-[NifiParameterContext]: ../5_references/4_nifi_parameter_context.md
+[NifiDataflow]: ../../5_references/5_nifi_dataflow.md
+[NifiRegistryClient]: ../../5_references/3_nifi_registry_client.md
+[NifiParameterContext]: ../../5_references/4_nifi_parameter_context.md
