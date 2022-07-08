@@ -3,6 +3,7 @@
 ### Added
 
 ### Changed
+- [PR #115](https://github.com/konpyutaika/nifikop/pull/115) - **[Operator]** Upgrade go version to 1.18.
 
 ### Deprecated
 
