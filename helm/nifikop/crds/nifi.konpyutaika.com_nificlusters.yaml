@@ -1505,8 +1505,6 @@ spec:
                           by nifi including: caCert, caKey, clientCert, clientKey
                           serverCert, serverKey, peerCert, peerKey'
                         type: string
-                    required:
-                    - tlsSecretName
                     type: object
                   useExternalDNS:
                     description: 'useExternalDNS allow to manage externalDNS usage
@@ -3173,6 +3171,25 @@ spec:
                       format: int64
                       minimum: 1
                       type: integer
+                    hostAliases:
+                      description: A list of host aliases to include in a pod's /etc/hosts
+                        configuration in the scenario where DNS is not available.
+                        This list takes precedence of the one at the NifiCluster.Spec.PodPolicy
+                        level
+                      items:
+                        description: HostAlias holds the mapping between IP and hostnames
+                          that will be injected as an entry in the pod's hosts file.
+                        properties:
+                          hostnames:
+                            description: Hostnames for the above IP address.
+                            items:
+                              type: string
+                            type: array
+                          ip:
+                            description: IP address of the host file entry.
+                            type: string
+                        type: object
+                      type: array
                     image:
                       description: Docker image used by the operator to create the
                         node associated https://hub.docker.com/r/apache/nifi/
@@ -5410,6 +5427,26 @@ spec:
                           format: int64
                           minimum: 1
                           type: integer
+                        hostAliases:
+                          description: A list of host aliases to include in a pod's
+                            /etc/hosts configuration in the scenario where DNS is
+                            not available. This list takes precedence of the one at
+                            the NifiCluster.Spec.PodPolicy level
+                          items:
+                            description: HostAlias holds the mapping between IP and
+                              hostnames that will be injected as an entry in the pod's
+                              hosts file.
+                            properties:
+                              hostnames:
+                                description: Hostnames for the above IP address.
+                                items:
+                                  type: string
+                                type: array
+                              ip:
+                                description: IP address of the host file entry.
+                                type: string
+                            type: object
+                          type: array
                         image:
                           description: Docker image used by the operator to create
                             the node associated https://hub.docker.com/r/apache/nifi/
@@ -6448,6 +6485,23 @@ spec:
                     description: Annotations specifies the annotations to attach to
                       pods the operator creates
                     type: object
+                  hostAliases:
+                    description: A list of host aliases to include in every pod's
+                      /etc/hosts configuration in the scenario where DNS is not available.
+                    items:
+                      description: HostAlias holds the mapping between IP and hostnames
+                        that will be injected as an entry in the pod's hosts file.
+                      properties:
+                        hostnames:
+                          description: Hostnames for the above IP address.
+                          items:
+                            type: string
+                          type: array
+                        ip:
+                          description: IP address of the host file entry.
+                          type: string
+                      type: object
+                    type: array
                   labels:
                     additionalProperties:
                       type: string
