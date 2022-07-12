@@ -32,6 +32,9 @@ spec:
 {{ if .Values.cluster.nodeUserIdentityTemplate }}
   nodeUserIdentityTemplate: {{ .Values.cluster.nodeUserIdentityTemplate }}
 {{ end }}
+{{ if .Values.cluster.controllerUserIdentity }}
+  controllerUserIdentity: {{ .Values.cluster.controllerUserIdentity }}
+{{ end }}
 
 {{ if .Values.cluster.managedAdminUsers }}
   managedAdminUsers:
