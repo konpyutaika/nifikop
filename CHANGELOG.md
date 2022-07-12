@@ -2,6 +2,8 @@
 
 ### Added
 
+- [PR #114](https://github.com/konpyutaika/nifikop/pull/114) - **[Operator/NifiCluster]** Added ability to set the `PodSpec.HostAliases` to provide Pod-level override of hostname resolution when DNS and other options are not applicable.
+
 ### Changed
 
 ### Deprecated
