@@ -123,6 +123,9 @@ func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev
 		{"nodeId": fmt.Sprintf("%d", id)},
 	}
 
+	// merge host aliases together, preferring the aliases in the nodeConfig
+	allHostAliases := util.MergeHostAliases(r.NifiCluster.Spec.Pod.HostAliases, nodeConfig.HostAliases)
+
 	if r.NifiCluster.Spec.GetMetricPort() != nil {
 		anntotationsToMerge = append(anntotationsToMerge, util.MonitoringAnnotations(*r.NifiCluster.Spec.GetMetricPort()))
 	}
@@ -163,6 +166,7 @@ done`,
 			},
 			TopologySpreadConstraints:     r.NifiCluster.Spec.TopologySpreadConstraints,
 			Containers:                    r.injectAdditionalEnvVars(r.generateContainers(nodeConfig, id, podVolumeMounts, zkAddress)),
+			HostAliases:                   allHostAliases,
 			Volumes:                       podVolumes,
 			RestartPolicy:                 corev1.RestartPolicyNever,
 			TerminationGracePeriodSeconds: util.Int64Pointer(120),
