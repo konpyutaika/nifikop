@@ -14,6 +14,7 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/imdario/mergo"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
@@ -55,6 +56,25 @@ func MapStringStringPointer(in map[string]string) (out map[string]*string) {
 		out[k] = StringPointer(v)
 	}
 	return
+}
+
+// MergeHostAliases takes two host alias lists and merges them. For IP conflicts, the latter/second list takes precedence
+func MergeHostAliases(globalAliases []corev1.HostAlias, overrideAliases []corev1.HostAlias) []corev1.HostAlias {
+	aliasesMap := map[string]corev1.HostAlias{}
+	aliases := []corev1.HostAlias{}
+
+	for _, alias := range globalAliases {
+		aliasesMap[alias.IP] = alias
+	}
+	// the below will override any existing IPs
+	for _, alias := range overrideAliases {
+		aliasesMap[alias.IP] = alias
+	}
+	for _, alias := range aliasesMap {
+		aliases = append(aliases, alias)
+	}
+
+	return aliases
 }
 
 // MergeLabels merges two given labels

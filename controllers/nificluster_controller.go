@@ -18,22 +18,23 @@ package controllers
 
 import (
 	"context"
-	"emperror.dev/errors"
 	"fmt"
+	"time"
+
+	"emperror.dev/errors"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	"github.com/konpyutaika/nifikop/pkg/k8sutil"
 	"github.com/konpyutaika/nifikop/pkg/pki"
 	"github.com/konpyutaika/nifikop/pkg/resources"
 	"github.com/konpyutaika/nifikop/pkg/resources/nifi"
 	"github.com/konpyutaika/nifikop/pkg/util"
+	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
 	policyv1 "k8s.io/api/policy/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"time"
 
-	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -48,7 +49,7 @@ var clusterUsersFinalizer = "nificlusters.nifi.konpyutaika.com/users"
 type NifiClusterReconciler struct {
 	client.Client
 	DirectClient     client.Reader
-	Log              logr.Logger
+	Log              zap.Logger
 	Scheme           *runtime.Scheme
 	Namespaces       []string
 	Recorder         record.EventRecorder
@@ -78,8 +79,6 @@ type NifiClusterReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.7.0/pkg/reconcile
 func (r *NifiClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = r.Log.WithValues("nificluster", req.NamespacedName)
-
 	// Fetch the NifiCluster instance
 	instance := &v1alpha1.NifiCluster{}
 	err := r.Client.Get(ctx, req.NamespacedName, instance)

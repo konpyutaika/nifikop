@@ -18,23 +18,24 @@ package controllers
 
 import (
 	"context"
-	"emperror.dev/errors"
 	"encoding/json"
 	"fmt"
+	"reflect"
+	"time"
+
+	"emperror.dev/errors"
 	"github.com/banzaicloud/k8s-objectmatcher/patch"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/usergroup"
 	"github.com/konpyutaika/nifikop/pkg/k8sutil"
 	"github.com/konpyutaika/nifikop/pkg/nificlient/config"
 	"github.com/konpyutaika/nifikop/pkg/util"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
+	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/client-go/tools/record"
-	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"time"
 
-	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -47,7 +48,7 @@ var userGroupFinalizer = "nifiusergroups.nifi.konpyutaika.com/finalizer"
 // NifiUserGroupReconciler reconciles a NifiUserGroup object
 type NifiUserGroupReconciler struct {
 	client.Client
-	Log             logr.Logger
+	Log             zap.Logger
 	Scheme          *runtime.Scheme
 	Recorder        record.EventRecorder
 	RequeueInterval int
@@ -68,7 +69,6 @@ type NifiUserGroupReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.7.0/pkg/reconcile
 func (r *NifiUserGroupReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = r.Log.WithValues("nifiusergroup", req.NamespacedName)
 	interval := util.GetRequeueInterval(r.RequeueInterval, r.RequeueOffset)
 	var err error
 
@@ -349,7 +349,7 @@ func (r *NifiUserGroupReconciler) checkFinalizers(ctx context.Context, userGroup
 }
 
 func (r *NifiUserGroupReconciler) removeFinalizer(ctx context.Context, userGroup *v1alpha1.NifiUserGroup) error {
-	r.Log.V(5).Info(fmt.Sprintf("Removing finalizer for NifiUserGroup %s", userGroup.Name))
+	r.Log.Info(fmt.Sprintf("Removing finalizer for NifiUserGroup %s", userGroup.Name))
 	userGroup.SetFinalizers(util.StringSliceRemove(userGroup.GetFinalizers(), userGroupFinalizer))
 	_, err := r.updateAndFetchLatest(ctx, userGroup)
 	return err

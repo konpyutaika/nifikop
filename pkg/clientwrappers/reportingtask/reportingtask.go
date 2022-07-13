@@ -1,6 +1,8 @@
 package reportingtask
 
 import (
+	"strconv"
+
 	nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers"
@@ -8,11 +10,9 @@ import (
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	"github.com/konpyutaika/nifikop/pkg/nificlient"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
-	ctrl "sigs.k8s.io/controller-runtime"
-	"strconv"
 )
 
-var log = ctrl.Log.WithName("reportingtaks-method")
+var log = common.CustomLogger().Named("reportingtask-method")
 
 const (
 	reportingTaskName                = "managed-prometheus"
