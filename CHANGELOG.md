@@ -3,8 +3,11 @@
 ### Added
 
 - [PR #108](https://github.com/konpyutaika/nifikop/pull/108) - **[Operator/Logging]** Migrated from logr library to zap
+- [PR #112](https://github.com/konpyutaika/nifikop/pull/112) - **[Documentation]** Add section to explain how upgrade from 0.7.6 to 0.8.0.
+- [PR #114](https://github.com/konpyutaika/nifikop/pull/114) - **[Operator/NifiCluster]** Added ability to set the `PodSpec.HostAliases` to provide Pod-level override of hostname resolution when DNS and other options are not applicable.
 
 ### Changed
+- [PR #115](https://github.com/konpyutaika/nifikop/pull/115) - **[Operator]** Upgrade go version to 1.18.
 
 ### Deprecated
 
@@ -12,7 +15,9 @@
 
 ### Fixed Bugs
 
+- [PR #106](https://github.com/konpyutaika/nifikop/pull/106) - **[Documentation]** Patch documentation version and mixed docs.
 - [PR #110](https://github.com/konpyutaika/nifikop/pull/110) - **[Operator]** Handle case where `Certificate` is destroyed before `NifiUser` to avoid Nifi user controller getting stuck on deletion
+
 
 ## v0.11.0
 
