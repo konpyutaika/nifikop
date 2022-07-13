@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/go-logr/logr"
 	certv1 "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
+	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -16,7 +16,7 @@ import (
 )
 
 // reconcile ensures the given kubernetes object
-func reconcile(ctx context.Context, log logr.Logger, client client.Client, object runtime.Object, cluster *v1alpha1.NifiCluster) (err error) {
+func reconcile(ctx context.Context, log zap.Logger, client client.Client, object runtime.Object, cluster *v1alpha1.NifiCluster) (err error) {
 	switch object.(type) {
 	case *certv1.Issuer:
 		issuer, _ := object.(*certv1.Issuer)
@@ -39,7 +39,7 @@ func reconcile(ctx context.Context, log logr.Logger, client client.Client, objec
 }
 
 // reconcileClusterIssuer ensures a cert-manager ClusterIssuer
-func reconcileClusterIssuer(ctx context.Context, log logr.Logger, client client.Client, issuer *certv1.ClusterIssuer, cluster *v1alpha1.NifiCluster) error {
+func reconcileClusterIssuer(ctx context.Context, log zap.Logger, client client.Client, issuer *certv1.ClusterIssuer, cluster *v1alpha1.NifiCluster) error {
 	obj := &certv1.ClusterIssuer{}
 	var err error
 	if err = client.Get(ctx, types.NamespacedName{Name: issuer.Name, Namespace: issuer.Namespace}, obj); err != nil {
@@ -52,7 +52,7 @@ func reconcileClusterIssuer(ctx context.Context, log logr.Logger, client client.
 }
 
 // reconcileIssuer ensures a cert-manager Issuer
-func reconcileIssuer(ctx context.Context, log logr.Logger, client client.Client, issuer *certv1.Issuer, cluster *v1alpha1.NifiCluster) error {
+func reconcileIssuer(ctx context.Context, log zap.Logger, client client.Client, issuer *certv1.Issuer, cluster *v1alpha1.NifiCluster) error {
 	obj := &certv1.Issuer{}
 	var err error
 	if err = client.Get(ctx, types.NamespacedName{Name: issuer.Name, Namespace: issuer.Namespace}, obj); err != nil {
@@ -65,7 +65,7 @@ func reconcileIssuer(ctx context.Context, log logr.Logger, client client.Client,
 }
 
 // reconcileCertificate ensures a cert-manager certificate
-func reconcileCertificate(ctx context.Context, log logr.Logger, client client.Client, cert *certv1.Certificate, cluster *v1alpha1.NifiCluster) error {
+func reconcileCertificate(ctx context.Context, log zap.Logger, client client.Client, cert *certv1.Certificate, cluster *v1alpha1.NifiCluster) error {
 	obj := &certv1.Certificate{}
 	var err error
 	if err = client.Get(ctx, types.NamespacedName{Name: cert.Name, Namespace: cert.Namespace}, obj); err != nil {
@@ -78,7 +78,7 @@ func reconcileCertificate(ctx context.Context, log logr.Logger, client client.Cl
 }
 
 // reconcileSecret ensures a Kubernetes secret
-func reconcileSecret(ctx context.Context, log logr.Logger, client client.Client, secret *corev1.Secret, cluster *v1alpha1.NifiCluster) error {
+func reconcileSecret(ctx context.Context, log zap.Logger, client client.Client, secret *corev1.Secret, cluster *v1alpha1.NifiCluster) error {
 	obj := &corev1.Secret{}
 	var err error
 	if err = client.Get(ctx, types.NamespacedName{Name: secret.Name, Namespace: secret.Namespace}, obj); err != nil {
@@ -91,7 +91,7 @@ func reconcileSecret(ctx context.Context, log logr.Logger, client client.Client,
 }
 
 // reconcileUser ensures a v1alpha1.NifiUser
-func reconcileUser(ctx context.Context, log logr.Logger, client client.Client, user *v1alpha1.NifiUser, cluster *v1alpha1.NifiCluster) error {
+func reconcileUser(ctx context.Context, log zap.Logger, client client.Client, user *v1alpha1.NifiUser, cluster *v1alpha1.NifiCluster) error {
 	obj := &v1alpha1.NifiUser{}
 	var err error
 	if err = client.Get(ctx, types.NamespacedName{Name: user.Name, Namespace: user.Namespace}, obj); err != nil {

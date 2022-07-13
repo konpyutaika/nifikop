@@ -5,13 +5,13 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/go-logr/logr"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
+	"go.uber.org/zap"
 	"k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-var log logr.Logger
+var log zap.Logger
 
 type mockClient struct {
 	client.Client

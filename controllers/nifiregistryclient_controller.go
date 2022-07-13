@@ -20,20 +20,21 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"reflect"
+	"time"
+
 	"github.com/banzaicloud/k8s-objectmatcher/patch"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/registryclient"
 	"github.com/konpyutaika/nifikop/pkg/k8sutil"
 	"github.com/konpyutaika/nifikop/pkg/nificlient/config"
 	"github.com/konpyutaika/nifikop/pkg/util"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
+	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/client-go/tools/record"
-	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"time"
 
-	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -46,7 +47,7 @@ var registryClientFinalizer = "nifiregistryclients.nifi.konpyutaika.com/finalize
 // NifiRegistryClientReconciler reconciles a NifiRegistryClient object
 type NifiRegistryClientReconciler struct {
 	client.Client
-	Log             logr.Logger
+	Log             zap.Logger
 	Scheme          *runtime.Scheme
 	Recorder        record.EventRecorder
 	RequeueInterval int
@@ -67,7 +68,6 @@ type NifiRegistryClientReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.7.0/pkg/reconcile
 func (r *NifiRegistryClientReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = r.Log.WithValues("nifiregistryclient", req.NamespacedName)
 	interval := util.GetRequeueInterval(r.RequeueInterval, r.RequeueOffset)
 	var err error
 
@@ -296,7 +296,7 @@ func (r *NifiRegistryClientReconciler) updateAndFetchLatest(ctx context.Context,
 	return registryClient, nil
 }
 
-func (r *NifiRegistryClientReconciler) checkFinalizers(ctx context.Context, reqLogger logr.Logger,
+func (r *NifiRegistryClientReconciler) checkFinalizers(ctx context.Context, reqLogger zap.Logger,
 	registryClient *v1alpha1.NifiRegistryClient, config *clientconfig.NifiConfig) (reconcile.Result, error) {
 	reqLogger.Info(fmt.Sprintf("NiFi registry client %s is marked for deletion", registryClient.Name))
 	var err error
@@ -312,13 +312,13 @@ func (r *NifiRegistryClientReconciler) checkFinalizers(ctx context.Context, reqL
 }
 
 func (r *NifiRegistryClientReconciler) removeFinalizer(ctx context.Context, registryClient *v1alpha1.NifiRegistryClient) error {
-	r.Log.V(5).Info(fmt.Sprintf("Removing finalizer for NifiRegistryClient %s", registryClient.Name))
+	r.Log.Info(fmt.Sprintf("Removing finalizer for NifiRegistryClient %s", registryClient.Name))
 	registryClient.SetFinalizers(util.StringSliceRemove(registryClient.GetFinalizers(), registryClientFinalizer))
 	_, err := r.updateAndFetchLatest(ctx, registryClient)
 	return err
 }
 
-func (r *NifiRegistryClientReconciler) finalizeNifiRegistryClient(reqLogger logr.Logger, registryClient *v1alpha1.NifiRegistryClient,
+func (r *NifiRegistryClientReconciler) finalizeNifiRegistryClient(reqLogger zap.Logger, registryClient *v1alpha1.NifiRegistryClient,
 	config *clientconfig.NifiConfig) error {
 
 	if err := registryclient.RemoveRegistryClient(registryClient, config); err != nil {
