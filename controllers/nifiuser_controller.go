@@ -189,7 +189,7 @@ func (r *NifiUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		if err != nil {
 			switch errors.Cause(err).(type) {
 			case errorfactory.ResourceNotReady:
-				r.Log.Info("generated secret not found, may not be ready")
+				r.Log.Info(fmt.Sprintf("generated secret not found for user %s, may not be ready", instance.Name))
 				return ctrl.Result{
 					Requeue:      true,
 					RequeueAfter: interval / 3,
@@ -343,7 +343,7 @@ func (r *NifiUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	r.Recorder.Event(instance, corev1.EventTypeNormal, "Reconciled",
 		fmt.Sprintf("Reconciling user %s", instance.Name))
 
-	r.Log.Info("Ensured user")
+	r.Log.V(5).Info("Ensured user", "user", instance.Name)
 
 	return RequeueAfter(interval)
 

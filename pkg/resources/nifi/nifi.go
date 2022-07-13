@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/dataflow"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/scale"
@@ -170,7 +171,7 @@ func (r *Reconciler) Reconcile(log zap.Logger) error {
 				return errors.WrapIfWithDetails(err, "failed to reconcile resource", "resource", o.GetObjectKind().GroupVersionKind())
 			}
 		}
-		o = r.pod(node.Id, nodeConfig, pvcs, log)
+		o = r.pod(node, nodeConfig, pvcs, log)
 		err, isReady := r.reconcileNifiPod(log, o.(*corev1.Pod))
 		if err != nil {
 			return err
@@ -514,7 +515,7 @@ func (r *Reconciler) reconcileNifiPVC(log zap.Logger, desiredPVC *corev1.Persist
 			if err := r.Client.Update(context.TODO(), desiredPVC); err != nil {
 				return errorfactory.New(errorfactory.APIFailure{}, err, "updating resource failed", "kind", desiredType)
 			}
-			log.Info("resource updated")
+			log.V(10).Info("resource updated")
 		}
 	}
 	return nil
@@ -558,6 +559,13 @@ func (r *Reconciler) reconcileNifiPod(log zap.Logger, desiredPod *corev1.Pod) (e
 				statusErr, "updating status for resource failed", "kind", desiredType), false
 		}
 
+		// set node creation time
+		statusErr = k8sutil.UpdateNodeStatus(r.Client, []string{desiredPod.Labels["nodeId"]}, r.NifiCluster, metav1.NewTime(time.Now().UTC()), log)
+		if statusErr != nil {
+			return errorfactory.New(errorfactory.StatusUpdateError{},
+				statusErr, "failed to update node status creation time", "kind", desiredType), false
+		}
+
 		if val, ok := r.NifiCluster.Status.NodesState[desiredPod.Labels["nodeId"]]; ok &&
 			val.GracefulActionState.State != v1alpha1.GracefulUpscaleSucceeded {
 			gracefulActionState := v1alpha1.GracefulActionState{ErrorMessage: "", State: v1alpha1.GracefulUpscaleSucceeded}
@@ -579,7 +587,7 @@ func (r *Reconciler) reconcileNifiPod(log zap.Logger, desiredPod *corev1.Pod) (e
 		nodeId := currentPod.Labels["nodeId"]
 		if _, ok := r.NifiCluster.Status.NodesState[nodeId]; ok {
 			if currentPod.Spec.NodeName == "" {
-				log.Info(fmt.Sprintf("pod for NodeId %s does not scheduled to node yet", nodeId))
+				log.Info(fmt.Sprintf("pod for NodeId %s is not scheduled to node yet", nodeId))
 			}
 		} else {
 			return errorfactory.New(errorfactory.InternalError{}, errors.New("reconcile failed"),
@@ -587,7 +595,7 @@ func (r *Reconciler) reconcileNifiPod(log zap.Logger, desiredPod *corev1.Pod) (e
 		}
 	} else {
 		return errorfactory.New(errorfactory.TooManyResources{}, errors.New("reconcile failed"),
-			"more then one matching pod found", "labels", matchingLabels), false
+			"more than one matching pod found", "labels", matchingLabels), false
 	}
 
 	// TODO check if this err == nil check necessary (baluchicken)
@@ -677,6 +685,7 @@ func (r *Reconciler) reconcileNifiPod(log zap.Logger, desiredPod *corev1.Pod) (e
 			}
 		}
 
+		log.Info(fmt.Sprintf("Deleting pod %s", currentPod.Name))
 		err = r.Client.Delete(context.TODO(), currentPod)
 		if err != nil {
 			return errorfactory.New(errorfactory.APIFailure{},
