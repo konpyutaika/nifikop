@@ -3,18 +3,19 @@ package controllers
 import (
 	"errors"
 	"reflect"
-	ctrl "sigs.k8s.io/controller-runtime"
 	"testing"
 	"time"
+
+	"go.uber.org/zap"
 
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 )
 
-var log = ctrl.Log.WithName("controller_testing")
-
 func TestRequeueWithError(t *testing.T) {
-	_, err := RequeueWithError(log, "test", errors.New("test error"))
+	logger, _ := zap.NewDevelopment()
+
+	_, err := RequeueWithError(*logger, "test", errors.New("test error"))
 	if err == nil {
 		t.Error("Expected error to fall through, got nil")
 	}
@@ -89,7 +90,9 @@ func TestCheckNodeConnectionError(t *testing.T) {
 
 	// Test nodes unreachable
 	err = errorfactory.New(errorfactory.NodesUnreachable{}, errors.New("test error"), "test message")
-	if res, err := CheckNodeConnectionError(log, err); err != nil {
+	logger, _ := zap.NewDevelopment()
+
+	if res, err := CheckNodeConnectionError(*logger, err); err != nil {
 		t.Error("Expected no error in result, got:", err)
 	} else {
 		if !res.Requeue {
@@ -102,7 +105,7 @@ func TestCheckNodeConnectionError(t *testing.T) {
 
 	// Test nodes not ready
 	err = errorfactory.New(errorfactory.NodesNotReady{}, errors.New("test error"), "test message")
-	if res, err := CheckNodeConnectionError(log, err); err != nil {
+	if res, err := CheckNodeConnectionError(*logger, err); err != nil {
 		t.Error("Expected no error in result, got:", err)
 	} else {
 		if !res.Requeue {
@@ -115,7 +118,7 @@ func TestCheckNodeConnectionError(t *testing.T) {
 
 	// test external resource not ready
 	err = errorfactory.New(errorfactory.ResourceNotReady{}, errors.New("test error"), "test message")
-	if res, err := CheckNodeConnectionError(log, err); err != nil {
+	if res, err := CheckNodeConnectionError(*logger, err); err != nil {
 		t.Error("Expected no error in result, got:", err)
 	} else {
 		if !res.Requeue {
@@ -128,7 +131,7 @@ func TestCheckNodeConnectionError(t *testing.T) {
 
 	// test default response
 	err = errorfactory.New(errorfactory.InternalError{}, errors.New("test error"), "test message")
-	if _, err := CheckNodeConnectionError(log, err); err == nil {
+	if _, err := CheckNodeConnectionError(*logger, err); err == nil {
 		t.Error("Expected error to fall through, got nil")
 	}
 }

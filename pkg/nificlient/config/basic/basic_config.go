@@ -4,8 +4,12 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
-	"emperror.dev/errors"
 	"fmt"
+	"strconv"
+	"strings"
+	"time"
+
+	"emperror.dev/errors"
 	"github.com/dgrijalva/jwt-go"
 	nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
@@ -21,14 +25,10 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
-	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"strconv"
-	"strings"
-	"time"
 )
 
-var log = ctrl.Log.WithName("basic_config")
+var log = common.CustomLogger().Named("basic_config")
 
 func (n *basic) BuildConfig() (*clientconfig.NifiConfig, error) {
 	var cluster *v1alpha1.NifiCluster
@@ -190,7 +190,7 @@ func clusterConfig(client client.Client, cluster *v1alpha1.NifiCluster) (*client
 		),
 		Data: data,
 	}
-	err = k8sutil.Reconcile(log, client, secret, nil)
+	err = k8sutil.Reconcile(*log, client, secret, nil)
 	if err != nil {
 		return nil, errors.WrapIfWithDetails(err, "failed to reconcile resource", "resource", secret.GetObjectKind().GroupVersionKind())
 	}

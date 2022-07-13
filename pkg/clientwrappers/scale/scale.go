@@ -2,9 +2,9 @@ package scale
 
 import (
 	"fmt"
-	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
-	ctrl "sigs.k8s.io/controller-runtime"
 	"time"
+
+	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
 
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers"
@@ -13,7 +13,7 @@ import (
 	nifiutil "github.com/konpyutaika/nifikop/pkg/util/nifi"
 )
 
-var log = ctrl.Log.WithName("scale-methods")
+var log = common.CustomLogger().Named("scale-method")
 
 // TODO : rework upscale to check that the node is connected before ending operation.
 // UpScaleCluster upscales Nifi cluster

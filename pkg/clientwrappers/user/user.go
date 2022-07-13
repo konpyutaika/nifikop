@@ -9,10 +9,9 @@ import (
 	"github.com/konpyutaika/nifikop/pkg/common"
 	"github.com/konpyutaika/nifikop/pkg/nificlient"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
-	ctrl "sigs.k8s.io/controller-runtime"
 )
 
-var log = ctrl.Log.WithName("user-method")
+var log = common.CustomLogger().Named("user-method")
 
 func ExistUser(user *v1alpha1.NifiUser, config *clientconfig.NifiConfig) (bool, error) {
 

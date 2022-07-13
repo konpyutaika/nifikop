@@ -2,13 +2,14 @@ package nifi
 
 import (
 	"fmt"
-	nifiutil "github.com/konpyutaika/nifikop/pkg/util/nifi"
 	"math"
-	runtimeClient "sigs.k8s.io/controller-runtime/pkg/client"
 	"strconv"
 	"strings"
 
-	"github.com/go-logr/logr"
+	nifiutil "github.com/konpyutaika/nifikop/pkg/util/nifi"
+	"go.uber.org/zap"
+	runtimeClient "sigs.k8s.io/controller-runtime/pkg/client"
+
 	"github.com/konpyutaika/nifikop/pkg/resources/templates"
 	"github.com/konpyutaika/nifikop/pkg/util"
 	policyv1 "k8s.io/api/policy/v1"
@@ -16,7 +17,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-func (r *Reconciler) podDisruptionBudget(log logr.Logger) (runtimeClient.Object, error) {
+func (r *Reconciler) podDisruptionBudget(log zap.Logger) (runtimeClient.Object, error) {
 	minAvailable, err := r.computeMinAvailable(log)
 
 	if err != nil {
@@ -47,7 +48,7 @@ func (r *Reconciler) podDisruptionBudget(log logr.Logger) (runtimeClient.Object,
 
 // Calculate maxUnavailable as max between nodeCount - 1 (so we only allow 1 node to be disrupted)
 // and 1 (to cover for 1 node clusters)
-func (r *Reconciler) computeMinAvailable(log logr.Logger) (intstr.IntOrString, error) {
+func (r *Reconciler) computeMinAvailable(log zap.Logger) (intstr.IntOrString, error) {
 
 	/*
 		budget = r.KafkaCluster.Spec.DisruptionBudget.budget (string) ->
@@ -69,7 +70,7 @@ func (r *Reconciler) computeMinAvailable(log logr.Logger) (intstr.IntOrString, e
 	if strings.HasSuffix(disruptionBudget, "%") {
 		percentage, err := strconv.ParseFloat(disruptionBudget[:len(disruptionBudget)-1], 4)
 		if err != nil {
-			log.Error(err, "error occurred during parsing the disruption budget")
+			log.Error("error occured during parsing the disruption budget", zap.Error(err))
 			return intstr.FromInt(-1), err
 		} else {
 			budget = int(math.Floor((percentage * float64(nodes)) / 100))
@@ -78,7 +79,7 @@ func (r *Reconciler) computeMinAvailable(log logr.Logger) (intstr.IntOrString, e
 		// treat static number budget
 		staticBudget, err := strconv.ParseInt(disruptionBudget, 10, 0)
 		if err != nil {
-			log.Error(err, "error occurred during parsing the disruption budget")
+			log.Error("error occured during parsing the disruption budget", zap.Error(err))
 			return intstr.FromInt(-1), err
 		} else {
 			budget = int(staticBudget)
