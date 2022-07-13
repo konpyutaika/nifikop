@@ -1229,6 +1229,13 @@ func (in *NodeConfig) DeepCopyInto(out *NodeConfig) {
 		}
 	}
 	in.PodMetadata.DeepCopyInto(&out.PodMetadata)
+	if in.HostAliases != nil {
+		in, out := &in.HostAliases, &out.HostAliases
+		*out = make([]v1.HostAlias, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
+	}
 	if in.PriorityClassName != nil {
 		in, out := &in.PriorityClassName, &out.PriorityClassName
 		*out = new(string)
@@ -1327,6 +1334,13 @@ func (in *PodPolicy) DeepCopyInto(out *PodPolicy) {
 		*out = make(map[string]string, len(*in))
 		for key, val := range *in {
 			(*out)[key] = val
+		}
+	}
+	if in.HostAliases != nil {
+		in, out := &in.HostAliases, &out.HostAliases
+		*out = make([]v1.HostAlias, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
 }
