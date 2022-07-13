@@ -4,10 +4,10 @@ import (
 	"context"
 	"crypto/tls"
 
-	"github.com/go-logr/logr"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/pki/certmanagerpki"
 	"github.com/konpyutaika/nifikop/pkg/util/pki"
+	"go.uber.org/zap"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -51,11 +51,11 @@ func newMockPKIManager(client client.Client, cluster *v1alpha1.NifiCluster) pki.
 	return &mockPKIManager{client: client, cluster: cluster}
 }
 
-func (m *mockPKIManager) ReconcilePKI(ctx context.Context, logger logr.Logger, scheme *runtime.Scheme, externalHostnames []string) error {
+func (m *mockPKIManager) ReconcilePKI(ctx context.Context, logger zap.Logger, scheme *runtime.Scheme, externalHostnames []string) error {
 	return nil
 }
 
-func (m *mockPKIManager) FinalizePKI(ctx context.Context, logger logr.Logger) error {
+func (m *mockPKIManager) FinalizePKI(ctx context.Context, logger zap.Logger) error {
 	return nil
 }
 

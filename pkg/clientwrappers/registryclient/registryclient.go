@@ -7,10 +7,9 @@ import (
 	"github.com/konpyutaika/nifikop/pkg/common"
 	"github.com/konpyutaika/nifikop/pkg/nificlient"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
-	ctrl "sigs.k8s.io/controller-runtime"
 )
 
-var log = ctrl.Log.WithName("registryclient-method")
+var log = common.CustomLogger().Named("registryclient-method")
 
 func ExistRegistryClient(registryClient *v1alpha1.NifiRegistryClient, config *clientconfig.NifiConfig) (bool, error) {
 

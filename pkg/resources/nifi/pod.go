@@ -6,9 +6,9 @@ import (
 	"strings"
 
 	configcommon "github.com/konpyutaika/nifikop/pkg/nificlient/config/common"
+	"go.uber.org/zap"
 	runtimeClient "sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/go-logr/logr"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/resources/templates"
 	"github.com/konpyutaika/nifikop/pkg/util"
@@ -124,6 +124,9 @@ func (r *Reconciler) pod(node v1alpha1.Node, nodeConfig *v1alpha1.NodeConfig, pv
 		{"nodeId": fmt.Sprintf("%d", node.Id)},
 	}
 
+	// merge host aliases together, preferring the aliases in the nodeConfig
+	allHostAliases := util.MergeHostAliases(r.NifiCluster.Spec.Pod.HostAliases, nodeConfig.HostAliases)
+
 	if r.NifiCluster.Spec.GetMetricPort() != nil {
 		anntotationsToMerge = append(anntotationsToMerge, util.MonitoringAnnotations(*r.NifiCluster.Spec.GetMetricPort()))
 	}
@@ -164,6 +167,7 @@ done`,
 			},
 			TopologySpreadConstraints:     r.NifiCluster.Spec.TopologySpreadConstraints,
 			Containers:                    r.injectAdditionalEnvVars(r.generateContainers(nodeConfig, node.Id, podVolumeMounts, zkAddress)),
+			HostAliases:                   allHostAliases,
 			Volumes:                       podVolumes,
 			RestartPolicy:                 corev1.RestartPolicyNever,
 			TerminationGracePeriodSeconds: util.Int64Pointer(120),

@@ -11,10 +11,9 @@ import (
 	"github.com/konpyutaika/nifikop/pkg/common"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	"github.com/konpyutaika/nifikop/pkg/nificlient"
-	ctrl "sigs.k8s.io/controller-runtime"
 )
 
-var log = ctrl.Log.WithName("dataflow-method")
+var log = common.CustomLogger().Named("dataflow-method")
 
 // DataflowExist check if the NifiDataflow exist on NiFi Cluster
 func DataflowExist(flow *v1alpha1.NifiDataflow, config *clientconfig.NifiConfig) (bool, error) {

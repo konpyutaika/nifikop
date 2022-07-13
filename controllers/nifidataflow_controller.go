@@ -32,12 +32,12 @@ import (
 	"github.com/konpyutaika/nifikop/pkg/nificlient/config"
 	"github.com/konpyutaika/nifikop/pkg/util"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
+	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -50,7 +50,7 @@ var dataflowFinalizer = "nifidataflows.nifi.konpyutaika.com/finalizer"
 // NifiDataflowReconciler reconciles a NifiDataflow object
 type NifiDataflowReconciler struct {
 	client.Client
-	Log             logr.Logger
+	Log             zap.Logger
 	Scheme          *runtime.Scheme
 	Recorder        record.EventRecorder
 	RequeueInterval int
@@ -71,7 +71,6 @@ type NifiDataflowReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.7.0/pkg/reconcile
 func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = r.Log.WithValues("nifidataflow", req.NamespacedName)
 
 	var err error
 	interval := util.GetRequeueInterval(r.RequeueInterval, r.RequeueOffset)
@@ -518,7 +517,7 @@ func (r *NifiDataflowReconciler) checkFinalizers(ctx context.Context, flow *v1al
 }
 
 func (r *NifiDataflowReconciler) removeFinalizer(ctx context.Context, flow *v1alpha1.NifiDataflow) error {
-	r.Log.V(5).Info(fmt.Sprintf("Removing finalizer for NifiDataflow %s", flow.Name))
+	r.Log.Info(fmt.Sprintf("Removing finalizer for NifiDataflow %s", flow.Name))
 	flow.SetFinalizers(util.StringSliceRemove(flow.GetFinalizers(), dataflowFinalizer))
 	_, err := r.updateAndFetchLatest(ctx, flow)
 	return err
