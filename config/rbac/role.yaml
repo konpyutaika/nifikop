@@ -171,6 +171,32 @@ rules:
 - apiGroups:
   - nifi.konpyutaika.com
   resources:
+  - nifinodegroupautoscalers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - nifi.konpyutaika.com
+  resources:
+  - nifinodegroupautoscalers/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - nifi.konpyutaika.com
+  resources:
+  - nifinodegroupautoscalers/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - nifi.konpyutaika.com
+  resources:
   - nifiparametercontexts
   verbs:
   - create

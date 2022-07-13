@@ -2,6 +2,7 @@
 
 ### Added
 
+- [PR #89](https://github.com/konpyutaika/nifikop/pull/89) - **[Operator/NifiNodeGroupAutoscaler]** Add NifiNodeGroupAutoscaler to automatically horizontally scale a NifiCluster resource via the Kubernetes HorizontalPodAutoscaler.
 - [PR #108](https://github.com/konpyutaika/nifikop/pull/108) - **[Operator/Logging]** Migrated from logr library to zap
 - [PR #112](https://github.com/konpyutaika/nifikop/pull/112) - **[Documentation]** Add section to explain how upgrade from 0.7.6 to 0.8.0.
 - [PR #114](https://github.com/konpyutaika/nifikop/pull/114) - **[Operator/NifiCluster]** Added ability to set the `PodSpec.HostAliases` to provide Pod-level override of hostname resolution when DNS and other options are not applicable.

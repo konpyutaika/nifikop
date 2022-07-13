@@ -1,0 +1,32 @@
+apiVersion: nifi.konpyutaika.com/v1alpha1
+kind: NifiNodeGroupAutoscaler
+metadata:
+  name: nifinodegroupautoscaler-sample
+spec:
+  # contains the reference to the NifiCluster with the one the node group autoscaler is linked.
+  clusterRef:
+    name: nificluster-name
+    namespace: nifikop
+  # defines the id of the NodeConfig contained in NifiCluster.Spec.NodeConfigGroups
+  nodeConfigGroupId: default-node-group
+  # readOnlyConfig can be used to pass Nifi node config
+  # which has type read-only these config changes will trigger rolling upgrade
+  readOnlyConfig:
+    nifiProperties:
+      overrideConfigs: |
+        nifi.ui.banner.text=NiFiKop - Scale Group
+  # This is an example of a node config you can apply to each replica in this node group.
+  # Any settings here will override those in the configured nodeConfigGroupId
+  nodeConfig:
+    nodeSelector:
+      node_type: high-mem
+  # The selector used to identify nodes in NifiCluster.Spec.Nodes this autoscaler will manage
+  # Use Node.Labels in combination with this selector to clearly define which nodes will be managed by this autoscaler 
+  nodeLabelsSelector: 
+    matchLabels:
+      nifi_cr: nificluster-name
+      nifi_node_group: default-node-group
+  # the strategy used to decide how to add nodes to a nifi cluster
+  upscaleStrategy: simple
+  # the strategy used to decide how to remove nodes from an existing cluster
+  downscaleStrategy: lifo

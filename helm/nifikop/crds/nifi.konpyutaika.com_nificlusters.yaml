@@ -3753,6 +3753,13 @@ spec:
                       description: Unique Node id
                       format: int32
                       type: integer
+                    labels:
+                      additionalProperties:
+                        type: string
+                      description: Labels are used to distinguish nodes from one another.
+                        They are also used by NifiNodeGroupAutoscaler to be automatically
+                        scaled. See NifiNodeGroupAutoscaler.Spec.NodeLabelsSelector
+                      type: object
                     nodeConfig:
                       description: node configuration
                       properties:
@@ -8335,6 +8342,11 @@ spec:
                   properties:
                     configurationState:
                       description: ConfigurationState holds info about the config
+                      type: string
+                    creationTime:
+                      description: CreationTime is the time at which this node was
+                        created. This must be sortable.
+                      format: date-time
                       type: string
                     gracefulActionState:
                       description: GracefulActionState holds info about nifi cluster

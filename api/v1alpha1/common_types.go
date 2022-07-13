@@ -2,6 +2,8 @@ package v1alpha1
 
 import (
 	"fmt"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // DataflowState defines the state of a NifiDataflow
@@ -24,6 +26,18 @@ type ActionStep string
 
 // ClusterState holds info about the cluster state
 type ClusterState string
+
+// NodeGroupAutoscalerState holds info autoscaler state
+type NodeGroupAutoscalerState string
+
+// ClusterReplicas holds info about the current number of replicas in the cluster
+type ClusterReplicas int32
+
+// ClusterReplicaSelector holds info about the pod selector for cluster replicas
+type ClusterReplicaSelector string
+
+// ClusterScalingStrategy holds info about how a cluster should be scaled
+type ClusterScalingStrategy string
 
 // ConfigurationState holds info about the configuration state
 type ConfigurationState string
@@ -325,6 +339,9 @@ type NodeState struct {
 	InitClusterNode InitClusterNode `json:"initClusterNode"`
 	// PodIsReady whether or not the associated pod is ready
 	PodIsReady bool `json:"podIsReady"`
+	// CreationTime is the time at which this node was created. This must be sortable.
+	// +optional
+	CreationTime metav1.Time `json:"creationTime,omitempty"`
 }
 
 // RackAwarenessState holds info about rack awareness status
@@ -390,6 +407,24 @@ const (
 	IsInitClusterNode InitClusterNode = true
 	// NotInitClusterNode states the node is not part of initial cluster setup
 	NotInitClusterNode InitClusterNode = false
+)
+
+const (
+	// AutoscalerStateOutOfSync describes the status of a NifiNodeGroupAutoscaler as out of sync
+	AutoscalerStateOutOfSync NodeGroupAutoscalerState = "OutOfSync"
+	// AutoscalerStateInSync describes the status of a NifiNodeGroupAutoscaler as in sync
+	AutoscalerStateInSync NodeGroupAutoscalerState = "InSync"
+
+	// upscale strategy representing 'Scale > Disconnect the nodes > Offload data > Reconnect the node' strategy
+	GracefulClusterUpscaleStrategy ClusterScalingStrategy = "graceful"
+	// simply add a node to the cluster and nothing else
+	SimpleClusterUpscaleStrategy ClusterScalingStrategy = "simple"
+	// downscale strategy to remove the last node added
+	LIFOClusterDownscaleStrategy ClusterScalingStrategy = "lifo"
+	// downscale strategy avoiding primary/coordinator nodes
+	NonPrimaryClusterDownscaleStrategy ClusterScalingStrategy = "nonprimary"
+	// downscale strategy targeting nodes which are least busy in terms of # flowfiles in queues
+	LeastBusyClusterDownscaleStrategy ClusterScalingStrategy = "leastbusy"
 )
 
 func ClusterRefsEquals(clusterRefs []ClusterReference) bool {

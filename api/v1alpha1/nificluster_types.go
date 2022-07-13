@@ -2,6 +2,8 @@ package v1alpha1
 
 import (
 	"fmt"
+	"sort"
+	"strconv"
 	"strings"
 
 	cmmeta "github.com/jetstack/cert-manager/pkg/apis/meta/v1"
@@ -15,7 +17,7 @@ const (
 	HttpListenerType       = "http"
 	HttpsListenerType      = "https"
 	S2sListenerType        = "s2s"
-	prometheusListenerType = "prometheus"
+	PrometheusListenerType = "prometheus"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
@@ -75,7 +77,7 @@ type NifiClusterSpec struct {
 	// NodeUserIdentityTemplate specifies the template to be used when naming the node user identity (e.g. node-%d-mysuffix)
 	NodeUserIdentityTemplate *string `json:"nodeUserIdentityTemplate,omitempty"`
 	// all node requires an image, unique id, and storageConfigs settings
-	Nodes []Node `json:"nodes"`
+	Nodes []Node `json:"nodes" patchStrategy:"merge" patchMergeKey:"id"`
 	// Defines the configuration for PodDisruptionBudget
 	DisruptionBudget DisruptionBudget `json:"disruptionBudget,omitempty"`
 	// LdapConfiguration specifies the configuration if you want to use LDAP
@@ -161,6 +163,9 @@ type Node struct {
 	ReadOnlyConfig *ReadOnlyConfig `json:"readOnlyConfig,omitempty"`
 	// node configuration
 	NodeConfig *NodeConfig `json:"nodeConfig,omitempty"`
+	// Labels are used to distinguish nodes from one another. They are also used by NifiNodeGroupAutoscaler
+	// to be automatically scaled. See NifiNodeGroupAutoscaler.Spec.NodeLabelsSelector
+	Labels map[string]string `json:"labels,omitempty"`
 }
 
 type ReadOnlyConfig struct {
@@ -726,7 +731,7 @@ func (nProperties NifiProperties) GetAuthorizer() string {
 func (nSpec *NifiClusterSpec) GetMetricPort() *int {
 
 	for _, iListener := range nSpec.ListenersConfig.InternalListeners {
-		if iListener.Type == prometheusListenerType {
+		if iListener.Type == PrometheusListenerType {
 			val := int(iListener.ContainerPort)
 			return &val
 		}
@@ -803,4 +808,47 @@ func (cluster NifiCluster) IsReady() bool {
 
 func (cluster *NifiCluster) Id() string {
 	return cluster.Name
+}
+
+type Pair struct {
+	Key   string
+	Value metav1.Time
+}
+type PairList []Pair
+
+func (p PairList) Len() int           { return len(p) }
+func (p PairList) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+func (p PairList) Less(i, j int) bool { return p[i].Value.Before(&p[j].Value) }
+
+// Order the nodes in the cluster by the time they were created. The list will be in ascending order.
+// Older nodes will be in the beginning of the list, newer nodes at the end.
+// Nodes for Clusters that existed prior to this feature (v0.11.0+) will not have a creationTime. In this case,
+// LIFO will not be able to reliably determine the oldest node. A rolling restart of nodes in the cluster will
+// resolve this issue going forward.
+func (cluster *NifiCluster) GetCreationTimeOrderedNodes() []Node {
+	nodeIdCreationPairs := PairList{}
+
+	for k, v := range cluster.Status.NodesState {
+		nodeIdCreationPairs = append(nodeIdCreationPairs, Pair{k, v.CreationTime})
+	}
+
+	// nodeIdCreationPairs is now sorted by creation time in ascending order.
+	sort.Sort(nodeIdCreationPairs)
+
+	nodesMap := nodesToIdMap(cluster.Spec.Nodes)
+	timeOrderedNodes := []Node{}
+
+	for _, pair := range nodeIdCreationPairs {
+		id, _ := strconv.Atoi(pair.Key)
+		timeOrderedNodes = append(timeOrderedNodes, nodesMap[int32(id)])
+	}
+	return timeOrderedNodes
+}
+
+func nodesToIdMap(nodes []Node) (nodeMap map[int32]Node) {
+	nodeMap = make(map[int32]Node)
+	for _, node := range nodes {
+		nodeMap[node.Id] = node
+	}
+	return
 }

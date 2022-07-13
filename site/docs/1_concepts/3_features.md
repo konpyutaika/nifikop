@@ -43,7 +43,7 @@ In a cloud native approach, we are looking for important management features, wh
 Without the management of users and access policies associated, it was not possible to have a fully automated NiFi cluster setup due to : 
 
 - **Node scaling :** when a new node joins the cluster it needs to have some roles like `proxy user request`, `view data` etc., by managing users and access policies we can easily create a user for this node with the right accesses.
-- **Operator admin rigth :** For the operator to manage efficiently the cluster it needs a lot of rights as `deploying process groups`, `empty the queues` etc., these rights are not available by default when you set a user as [InitialAdmin](https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#initial-admin-identity). Once again by giving the ability to define users and access policies we go through this.
+- **Operator admin rights :** For the operator to manage efficiently the cluster it needs a lot of rights as `deploying process groups`, `empty the queues` etc., these rights are not available by default when you set a user as [InitialAdmin](https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#initial-admin-identity). Once again by giving the ability to define users and access policies we go through this.
 - **User's access :** as seen just below we need to define the operator as `InitialAdmin`, in this situation there is no more users that can access to the web UI to manually give access to other users. That's why we extend the `InitialAdmin` concept into the operator, giving the ability to define a list of users as admins.
 
 In addition to these requirements to have a fully automated and managed cluster, we introduced some useful features : 
@@ -55,3 +55,13 @@ In addition to these requirements to have a fully automated and managed cluster,
     - **Readers :** a group giving access as viewer on the NiFi Cluster.
 
 By introducing this feature we are giving you the ability to fully automate your deployment, from the NiFi Cluster to your managed NiFi Dataflow.
+
+## Automatic horizontal NiFi cluster scaling via CRD
+
+NiFiKop supports automatically horizontally scaling `NifiCluster` node groups with a `NifiNodeGroupAutoscaler` custom resource. 
+
+- **Kubernetes native :** The `NifiNodeGroupAutoscaler` controller implements the [Kubernetes scale subresource](https://kubernetes.io/docs/tasks/extend-kubernetes/custom-resources/custom-resource-definitions/#scale-subresource) and creates a Kubernetes [`HorizontalPodAutoscaler`](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/) to automatically scale the pods that NiFiKop creates for `NifiCluster` deployments.
+- **Metrics-driven autoscaling :** The `HorizontalPodAutoscaler` can be driven by pod usage metrics (e.g. RAM, CPU) or through NiFi application metrics scraped by Prometheus.
+- **Flexible NifiCluster node group autoscaling :** The `NifiNodeGroupAutoscaler` scales specific node groups in your `NifiCluster` and you may have as many autoscalers as you like per `NifiCluster` deployment. For example, a `NifiNodeGroupAutoscaler` may manage high-memory or high-cpu sets of nodes for volume burst scenarios or it may manage every node in your cluster.
+
+Through this set of features, you may elect to have NiFiKop configure automatic horizontal autoscaling for any subset of nodes in your `NifiCluster` deployment.
