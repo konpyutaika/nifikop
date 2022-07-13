@@ -160,6 +160,7 @@ spec:
 | ----------- | ------------------- | ------------------------------------------------------------------------------------ | -------- | ------- |
 | annotations | map\[string\]string | Annotations specifies the annotations to attach to pods the NiFiKop operator creates | No       | -       |
 | labels      | map\[string\]string | Labels specifies the Labels to attach to pods the NiFiKop operator creates           | No       | -       |
+| hostAliases      | \[\][HostAlias](https://pkg.go.dev/k8s.io/api/core/v1#HostAlias) | A list of host aliases to include in every pod's /etc/hosts configuration in the scenario where DNS is not available.           | No       | \[\]       |
 
 ## ManagedUsers
 
