@@ -71,6 +71,9 @@
       "6_contributing/1_developer_guide",
       "6_contributing/2_reporting_bugs",
       "6_contributing/3_credits"
+    ],
+    "Upgrade Guides": [
+      "7_upgrade/1_v0.7.x_to_v0.8.0"
     ]
   }
 }

@@ -34,10 +34,11 @@
     "@docusaurus/core": "2.0.0-alpha.66",
     "@docusaurus/preset-classic": "2.0.0-alpha.66",
     "@docusaurus/theme-live-codeblock": "2.0.0-alpha.66",
-    "docusaurus-plugin-sass": "^0.1.11",
+    "docusaurus-plugin-sass": "^0.2.2",
     "react": "^16.10.2",
     "react-dom": "^16.10.2",
-    "react-github-btn": "^1.2.0"
+    "react-github-btn": "^1.2.0",
+    "sass": "^1.53.0"
   },
   "devDependencies": {
     "alex": "^9.0.1",
