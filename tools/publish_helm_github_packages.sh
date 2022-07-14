@@ -64,21 +64,26 @@ sync_repo() {
 
     local exit_code=0
 
-    echo "Packaging operators ..."
+    echo "Packaging operator and nifi-cluster charts..."
     if [[ -n "$chart_version" ]]; then
       if ! HELM_TARGET_DIR=${target_dir} make helm-package; then
-        log_error "Problem packaging operator"
+        log_error "Problem packaging operator and/or nifi-cluster charts"
         exit_code=1
       fi
     else
       if ! CHART_VERSION=${chart_version} HELM_TARGET_DIR=${target_dir} make helm-package; then
-        log_error "Problem packaging operator"
+        log_error "Problem packaging operator and/or nifi-cluster charts"
         exit_code=1
       fi
     fi
 
     if ! helm push ${target_dir}/nifikop-${CHART_VERSION}.tgz ${repo_url}; then
-        log_error "Exiting because unable to push chart."
+        log_error "Exiting because unable to push nifikop chart."
+        exit 1
+    fi
+
+    if ! helm push ${target_dir}/nifi-cluster-${CHART_VERSION}.tgz ${repo_url}; then
+        log_error "Exiting because unable to push nifi-cluster chart."
         exit 1
     fi
 

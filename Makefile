@@ -222,16 +222,22 @@ bundle-build:
 
 .PHONY: helm-package
 helm-package:
-	@echo Packaging $(CHART_VERSION)
+# package operator chart
+	@echo Packaging NiFiKop $(CHART_VERSION)
 ifdef CHART_VERSION
 	    echo $(CHART_VERSION)
 	    helm package --version $(CHART_VERSION) helm/nifikop
+			helm dependency update helm/nifi-cluster
+	    helm package --version $(CHART_VERSION) helm/nifi-cluster
 else
-		CHART_VERSION=$(HELM_VERSION)
-	    helm package helm/nifikop
+		CHART_VERSION=$(HELM_VERSION) helm package helm/nifikop
+		helm dependency update helm/nifi-cluster
+		CHART_VERSION=$(HELM_VERSION) helm package helm/nifi-cluster
 endif
 	mv nifikop-$(CHART_VERSION).tgz $(HELM_TARGET_DIR)
+	mv nifi-cluster-$(CHART_VERSION).tgz $(HELM_TARGET_DIR)
 	helm repo index $(HELM_TARGET_DIR)/
+
 
 # Push the docker image
 .PHONY: docker-push

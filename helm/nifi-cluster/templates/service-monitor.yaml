@@ -1,0 +1,19 @@
+{{ if .Values.monitoring.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "nifi-cluster.fullname" . }}
+  labels:
+    {{- include "nifi-cluster.labels" . | nindent 4 }}
+spec:
+  endpoints:
+  - path: /metrics/
+    # this is the name of the metrics port specified in the nifi-cluster service configuration
+    port: prometheus
+  namespaceSelector:
+    matchNames:
+    - {{ .Release.Namespace }}
+  selector:
+    matchLabels:
+        nifi_cr: {{ include "nifi-cluster.fullname" . }}
+{{ end }}

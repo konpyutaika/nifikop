@@ -1,0 +1,12 @@
+{{ if .Values.logging.enabled }}
+apiVersion: logging.banzaicloud.io/v1beta1
+kind: Flow
+metadata:
+  name: {{ default (include "nifi-cluster.fullname" .) .Values.cluster.fullnameOverride }}
+  labels:
+    {{- include "nifi-cluster.labels" . | nindent 4 }}
+spec:
+  globalOutputRefs: {{ toYaml .Values.logging.outputs.globalOutputRefs | nindent 4 }}
+  filters: {{ toYaml .Values.logging.flow.filters | nindent 4 }}
+  match: {{ toYaml .Values.logging.flow.match | nindent 4 }}
+{{ end }}
