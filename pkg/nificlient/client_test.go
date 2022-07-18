@@ -36,7 +36,7 @@ var (
 
 func TestNew(t *testing.T) {
 	opts := newMockOpts()
-	if client := New(opts, &zap.Logger{}); client == nil {
+	if client := New(opts, zap.NewNop()); client == nil {
 		t.Error("Expected new client, got nil")
 	}
 }

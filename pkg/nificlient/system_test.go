@@ -324,7 +324,7 @@ func testClientFromCluster(cluster *v1alpha1.NifiCluster, empty bool) (NifiClien
 				MockGetClusterResponse(cluster, empty))
 		})
 
-	cli, err := NewFromConfig(cfg, &zap.Logger{})
+	cli, err := NewFromConfig(cfg, zap.NewNop())
 	return cli, err
 }
 
