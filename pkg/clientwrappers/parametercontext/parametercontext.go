@@ -145,7 +145,7 @@ func RemoveParameterContext(parameterContext *v1alpha1.NifiParameterContext, par
 	}
 
 	entity, err := nClient.GetParameterContext(parameterContext.Status.Id)
-	if err := clientwrappers.ErrorGetOperation(log, err, "Get parameter-context"); err != nil {
+	if err := clientwrappers.ErrorGetOperation(log, err, "Failed to fetch parameter-context for removal: "+parameterContext.Name); err != nil {
 		if err == nificlient.ErrNifiClusterReturned404 {
 			return nil
 		}
@@ -155,7 +155,7 @@ func RemoveParameterContext(parameterContext *v1alpha1.NifiParameterContext, par
 	updateParameterContextEntity(parameterContext, parameterSecrets, entity)
 	err = nClient.RemoveParameterContext(*entity)
 
-	return clientwrappers.ErrorRemoveOperation(log, err, "Remove parameter-context")
+	return clientwrappers.ErrorRemoveOperation(log, err, "Failed to remove parameter-context "+parameterContext.Name)
 }
 
 func parameterContextIsSync(

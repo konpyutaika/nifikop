@@ -7,11 +7,8 @@ import (
 	"github.com/konpyutaika/nifikop/pkg/nificlient/config/nificluster"
 	"github.com/konpyutaika/nifikop/pkg/util"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
-	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
-
-var log = ctrl.Log.WithName("tls_config")
 
 func (n *tls) BuildConfig() (*clientconfig.NifiConfig, error) {
 	var cluster *v1alpha1.NifiCluster

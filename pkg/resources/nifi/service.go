@@ -45,7 +45,9 @@ func (r *Reconciler) externalServices(log zap.Logger) []runtimeClient.Object {
 
 		annotations := &eService.Metadata.Annotations
 		if err := mergo.Merge(annotations, r.NifiCluster.Spec.Service.Annotations); err != nil {
-			log.Error("error occurred during merging service annotations", zap.Error(err))
+			log.Error("error occurred during merging service annotations",
+				zap.String("clusterName", r.NifiCluster.Name),
+				zap.Error(err))
 		}
 
 		usedPorts := r.generateServicePortForExternalListeners(eService)

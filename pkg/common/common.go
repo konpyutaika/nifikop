@@ -53,7 +53,7 @@ var NewNifiFromConfig = nificlient.NewFromConfig
 func NewClusterConnection(log *zap.Logger, config *clientconfig.NifiConfig) (node nificlient.NifiClient, err error) {
 
 	// Get a nifi connection
-	node, err = NewNifiFromConfig(config)
+	node, err = NewNifiFromConfig(config, CustomLogger().Named("nifi_client"))
 	if err != nil {
 		return
 	}
