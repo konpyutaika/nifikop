@@ -334,7 +334,7 @@ func (r *NifiClusterTaskReconciler) handlePodRunningTask(nifiCluster *v1alpha1.N
 		if nifiCluster.Status.NodesState[nodeId].GracefulActionState.ActionStep == v1alpha1.RemovePodStatus {
 			actionStep, taskStartTime, err := scale.RemoveClusterNode(clientConfig, nodeId)
 			if err != nil {
-				r.Log.Info("nifi cluster communication error during removing node id",
+				r.Log.Error("nifi cluster communication error during removing node id",
 					zap.String("clusterName", nifiCluster.Name),
 					zap.String("nodeId", nodeId))
 				return errorfactory.New(errorfactory.NifiClusterNotReady{}, err, fmt.Sprintf("node id: %s", nodeId))
