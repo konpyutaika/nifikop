@@ -8,14 +8,12 @@ import (
 	"time"
 
 	"emperror.dev/errors"
-	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
-	ctrl "sigs.k8s.io/controller-runtime"
+	"go.uber.org/zap"
 
 	nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
+	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
 )
-
-var log = ctrl.Log.WithName("nifi_client")
 
 const (
 	PRIMARY_NODE        = "Primary Node"
@@ -136,6 +134,7 @@ type NifiClient interface {
 
 type nifiClient struct {
 	NifiClient
+	log        *zap.Logger
 	opts       *clientconfig.NifiConfig
 	client     *nigoapi.APIClient
 	nodeClient map[int32]*nigoapi.APIClient
@@ -146,8 +145,9 @@ type nifiClient struct {
 	newClient func(*nigoapi.Configuration) *nigoapi.APIClient
 }
 
-func New(opts *clientconfig.NifiConfig) NifiClient {
+func New(opts *clientconfig.NifiConfig, logger *zap.Logger) NifiClient {
 	nClient := &nifiClient{
+		log:     logger,
 		opts:    opts,
 		timeout: time.Duration(opts.OperationTimeout) * time.Second,
 	}
@@ -180,14 +180,14 @@ func (n *nifiClient) Build() error {
 }
 
 // NewFromConfig is a convenient wrapper around New() and ClusterConfig()
-func NewFromConfig(opts *clientconfig.NifiConfig) (NifiClient, error) {
+func NewFromConfig(opts *clientconfig.NifiConfig, logger *zap.Logger) (NifiClient, error) {
 	var client NifiClient
 	var err error
 
 	if opts == nil {
 		return nil, errorfactory.New(errorfactory.NilClientConfig{}, errors.New("The NiFi client config is nil"), "The NiFi client config is nil")
 	}
-	client = New(opts)
+	client = New(opts, logger)
 	err = client.Build()
 	if err != nil {
 		return nil, err
