@@ -84,6 +84,7 @@ NodeConfig defines the node configuration
 | nodeSelector          | map\[string\]string                                                                          |nodeSelector can be specified, which set the pod to fit on a node [nodeselector](https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#nodeselector)|No|nil|
 | tolerations           | \[  \][Toleration](https://godoc.org/k8s.io/api/core/v1#Toleration)                          |tolerations can be specified, which set the pod's tolerations [taint-and-toleration](https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/#concepts).|No|nil|
 | podMetadata           | [Metadata](#metadata)                                                                        |define additionnal metadata to merge to the pod associated.|No|nil|
+| hostAliases      | \[\][HostAlias](https://pkg.go.dev/k8s.io/api/core/v1#HostAlias) | A list of host aliases to include in each pod's /etc/hosts configuration in the scenario where DNS is not available.           | No       | \[\]       |
 | priorityClassName     | string                                                                                       | Specify the name of the priority class to apply to pods created with this node config | No | nil|
 
 ## StorageConfig
