@@ -7,7 +7,9 @@
 - [PR #114](https://github.com/konpyutaika/nifikop/pull/114) - **[Operator/NifiCluster]** Added ability to set the `PodSpec.HostAliases` to provide Pod-level override of hostname resolution when DNS and other options are not applicable.
 
 ### Changed
+
 - [PR #115](https://github.com/konpyutaika/nifikop/pull/115) - **[Operator]** Upgrade go version to 1.18.
+- [PR #121](https://github.com/konpyutaika/nifikop/pull/121) - **[Operator]** Refactor much of the nifikop logging to include more context.
 
 ### Deprecated
 
