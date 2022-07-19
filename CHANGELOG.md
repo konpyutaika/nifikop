@@ -8,6 +8,7 @@
 
 ### Changed
 - [PR #115](https://github.com/konpyutaika/nifikop/pull/115) - **[Operator]** Upgrade go version to 1.18.
+- [PR #122](https://github.com/konpyutaika/nifikop/pull/122) - **[Operator/NifiCluster]** Change name of PVCs that nifikop creates to include the name set via `NifiCluster.Spec.node_config_group.StorageConfigs.Name`
 
 ### Deprecated
 
