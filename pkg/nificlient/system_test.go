@@ -10,6 +10,7 @@ import (
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	nifiutil "github.com/konpyutaika/nifikop/pkg/util/nifi"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
 )
 
 func TestDescribeCluster(t *testing.T) {
@@ -323,7 +324,7 @@ func testClientFromCluster(cluster *v1alpha1.NifiCluster, empty bool) (NifiClien
 				MockGetClusterResponse(cluster, empty))
 		})
 
-	cli, err := NewFromConfig(cfg)
+	cli, err := NewFromConfig(cfg, zap.NewNop())
 	return cli, err
 }
 

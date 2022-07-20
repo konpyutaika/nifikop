@@ -135,23 +135,22 @@ func (r *NifiClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		if err != nil {
 			switch errors.Cause(err).(type) {
 			case errorfactory.NodesUnreachable:
-				r.Log.Info("Nodes unreachable, may still be starting up")
+				r.Log.Info("Nodes unreachable, may still be starting up", zap.String("reason", err.Error()))
 				return reconcile.Result{
 					RequeueAfter: intervalNotReady,
 				}, nil
 			case errorfactory.NodesNotReady:
-				r.Log.Info("Nodes not ready, may still be starting up")
+				r.Log.Info("Nodes not ready, may still be starting up", zap.String("reason", err.Error()))
 				return reconcile.Result{
 					RequeueAfter: intervalNotReady,
 				}, nil
 			case errorfactory.ResourceNotReady:
-				r.Log.Info("A new resource was not found or may not be ready")
-				r.Log.Info(err.Error())
+				r.Log.Info("A new resource was not found or may not be ready", zap.String("reason", err.Error()))
 				return reconcile.Result{
 					RequeueAfter: intervalNotReady / 2,
 				}, nil
 			case errorfactory.ReconcileRollingUpgrade:
-				r.Log.Info("Rolling Upgrade in Progress")
+				r.Log.Info("Rolling Upgrade in Progress", zap.String("reason", err.Error()))
 				return reconcile.Result{
 					RequeueAfter: intervalRunning,
 				}, nil
@@ -169,9 +168,9 @@ func (r *NifiClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		}
 	}
 
-	r.Log.Info("ensuring finalizers on nificluster")
+	r.Log.Info("ensuring finalizers on nificluster", zap.String("clusterName", instance.Name))
 	if instance, err = r.ensureFinalizers(ctx, instance); err != nil {
-		return RequeueWithError(r.Log, "failed to ensure finalizers on nificluster instance", err)
+		return RequeueWithError(r.Log, "failed to ensure finalizers on nificluster instance "+instance.Name, err)
 	}
 
 	//Update rolling upgrade last successful state
@@ -203,7 +202,7 @@ func (r *NifiClusterReconciler) SetupWithManager(mgr ctrl.Manager) error {
 func (r *NifiClusterReconciler) checkFinalizers(ctx context.Context,
 	cluster *v1alpha1.NifiCluster) (reconcile.Result, error) {
 
-	r.Log.Info("NifiCluster is marked for deletion, checking for children")
+	r.Log.Info("NifiCluster is marked for deletion, checking for children", zap.String("clusterName", cluster.Name))
 
 	// If the main finalizer is gone then we've already finished up
 	if !util.StringSliceContains(cluster.GetFinalizers(), clusterFinalizer) {
@@ -218,7 +217,7 @@ func (r *NifiClusterReconciler) checkFinalizers(ctx context.Context,
 		namespaces = make([]string, 0)
 		var namespaceList corev1.NamespaceList
 		if err := r.Client.List(ctx, &namespaceList); err != nil {
-			return RequeueWithError(r.Log, "failed to get namespace list", err)
+			return RequeueWithError(r.Log, "failed to get namespace list from k8s api", err)
 		}
 		for _, ns := range namespaceList.Items {
 			namespaces = append(namespaces, ns.Name)
@@ -232,7 +231,9 @@ func (r *NifiClusterReconciler) checkFinalizers(ctx context.Context,
 		// If we haven't deleted all nifiusers yet, iterate namespaces and delete all nifiusers
 		// with the matching label.
 		if util.StringSliceContains(cluster.GetFinalizers(), clusterUsersFinalizer) {
-			r.Log.Info(fmt.Sprintf("Sending delete nifiusers request to all namespaces for cluster %s/%s", cluster.Namespace, cluster.Name))
+			r.Log.Info("Sending delete nifiusers request to all namespaces for cluster",
+				zap.String("namespace", cluster.Namespace),
+				zap.String("clusterName", cluster.Name))
 			for _, ns := range namespaces {
 				if err := r.Client.DeleteAllOf(
 					ctx,
@@ -241,24 +242,25 @@ func (r *NifiClusterReconciler) checkFinalizers(ctx context.Context,
 					client.MatchingLabels{ClusterRefLabel: ClusterLabelString(cluster)},
 				); err != nil {
 					if client.IgnoreNotFound(err) != nil {
-						return RequeueWithError(r.Log, "failed to send delete request for children nifiusers", err)
+						return RequeueWithError(r.Log, "failed to send delete request for children nifiusers in namespace "+ns, err)
 					}
-					r.Log.Info(fmt.Sprintf("No matching nifiusers in namespace: %s", ns))
+					r.Log.Info("No matching nifiusers in namespace", zap.String("namespace", ns))
 				}
 			}
 			if cluster, err = r.removeFinalizer(ctx, cluster, clusterUsersFinalizer); err != nil {
-				return RequeueWithError(r.Log, "failed to remove users finalizer from nificluster", err)
+				return RequeueWithError(r.Log, "failed to remove users finalizer from nificluster "+cluster.Name, err)
 			}
 		}
 
 		// Do any necessary PKI cleanup - a PKI backend should make sure any
 		// user finalizations are done before it does its final cleanup
 		interval := util.GetRequeueInterval(r.RequeueIntervals["CLUSTER_TASK_NOT_READY_REQUEUE_INTERVAL"]/3, r.RequeueOffset)
-		r.Log.Info("Tearing down any PKI resources for the nificluster")
+		r.Log.Info("Tearing down any PKI resources for the nificluster",
+			zap.String("clusterName", cluster.Name))
 		if err = pki.GetPKIManager(r.Client, cluster).FinalizePKI(ctx, r.Log); err != nil {
 			switch err.(type) {
 			case errorfactory.ResourceNotReady:
-				r.Log.Info("The PKI is not ready to be torn down")
+				r.Log.Warn("The PKI is not ready to be torn down", zap.Error(err))
 				return ctrl.Result{
 					Requeue:      true,
 					RequeueAfter: interval,
@@ -270,14 +272,14 @@ func (r *NifiClusterReconciler) checkFinalizers(ctx context.Context,
 
 	}
 
-	r.Log.Info("Finalizing deletion of nificluster instance")
+	r.Log.Info("Finalizing deletion of nificluster instance", zap.String("clusterName", cluster.Name))
 	if _, err = r.removeFinalizer(ctx, cluster, clusterFinalizer); err != nil {
 		if client.IgnoreNotFound(err) == nil {
 			// We may have been a requeue from earlier with all conditions met - but with
 			// the state of the finalizer not yet reflected in the response we got.
 			return Reconciled()
 		}
-		return RequeueWithError(r.Log, "failed to remove main finalizer", err)
+		return RequeueWithError(r.Log, "failed to remove main finalizer from NifiCluser "+cluster.Name, err)
 	}
 
 	return reconcile.Result{}, nil

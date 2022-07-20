@@ -5,19 +5,20 @@ import (
 
 	"github.com/antihax/optional"
 	nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
+	"go.uber.org/zap"
 )
 
 func (n *nifiClient) GetProcessGroup(id string) (*nigoapi.ProcessGroupEntity, error) {
 	// Get nigoapi client, favoring the one associated to the coordinator node.
 	client, context := n.privilegeCoordinatorClient()
 	if client == nil {
-		log.Error(ErrNoNodeClientsAvailable, "Error during creating node client")
+		n.log.Error("Error during creating node client", zap.Error(ErrNoNodeClientsAvailable))
 		return nil, ErrNoNodeClientsAvailable
 	}
 
 	// Request on Nifi Rest API to get the process group informations
 	pGEntity, rsp, body, err := client.ProcessGroupsApi.GetProcessGroup(context, id)
-	if err := errorGetOperation(rsp, body, err); err != nil {
+	if err := errorGetOperation(rsp, body, err, n.log); err != nil {
 		return nil, err
 	}
 
@@ -30,13 +31,13 @@ func (n *nifiClient) CreateProcessGroup(
 	// Get nigoapi client, favoring the one associated to the coordinator node.
 	client, context := n.privilegeCoordinatorClient()
 	if client == nil {
-		log.Error(ErrNoNodeClientsAvailable, "Error during creating node client")
+		n.log.Error("Error during creating node client", zap.Error(ErrNoNodeClientsAvailable))
 		return nil, ErrNoNodeClientsAvailable
 	}
 
 	// Request on Nifi Rest API to create the versioned process group
 	pgEntity, rsp, body, err := client.ProcessGroupsApi.CreateProcessGroup(context, pgParentId, entity)
-	if err := errorCreateOperation(rsp, body, err); err != nil {
+	if err := errorCreateOperation(rsp, body, err, n.log); err != nil {
 		return nil, err
 	}
 
@@ -47,13 +48,13 @@ func (n *nifiClient) UpdateProcessGroup(entity nigoapi.ProcessGroupEntity) (*nig
 	// Get nigoapi client, favoring the one associated to the coordinator node.
 	client, context := n.privilegeCoordinatorClient()
 	if client == nil {
-		log.Error(ErrNoNodeClientsAvailable, "Error during creating node client")
+		n.log.Error("Error during creating node client", zap.Error(ErrNoNodeClientsAvailable))
 		return nil, ErrNoNodeClientsAvailable
 	}
 
 	// Request on Nifi Rest API to update the versioned process group
 	pgEntity, rsp, body, err := client.ProcessGroupsApi.UpdateProcessGroup(context, entity.Id, entity)
-	if err := errorUpdateOperation(rsp, body, err); err != nil {
+	if err := errorUpdateOperation(rsp, body, err, n.log); err != nil {
 		return nil, err
 	}
 
@@ -64,7 +65,7 @@ func (n *nifiClient) RemoveProcessGroup(entity nigoapi.ProcessGroupEntity) error
 	// Get nigoapi client, favoring the one associated to the coordinator node.
 	client, context := n.privilegeCoordinatorClient()
 	if client == nil {
-		log.Error(ErrNoNodeClientsAvailable, "Error during creating node client")
+		n.log.Error("Error during creating node client", zap.Error(ErrNoNodeClientsAvailable))
 		return ErrNoNodeClientsAvailable
 	}
 
@@ -76,5 +77,5 @@ func (n *nifiClient) RemoveProcessGroup(entity nigoapi.ProcessGroupEntity) error
 			Version: optional.NewString(strconv.FormatInt(*entity.Revision.Version, 10)),
 		})
 
-	return errorDeleteOperation(rsp, body, err)
+	return errorDeleteOperation(rsp, body, err, n.log)
 }
