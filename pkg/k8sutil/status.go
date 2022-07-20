@@ -132,7 +132,9 @@ func UpdateNodeStatus(c client.Client, nodeIds []string, cluster *v1alpha1.NifiC
 	}
 	// update loses the typeMeta of the config that's used later when setting ownerrefs
 	cluster.TypeMeta = typeMeta
-	logger.Info("Nifi cluster state updated")
+	logger.Debug("Nifi cluster state updated",
+		zap.String("clusterName", cluster.Name),
+		zap.Strings("nodeIds", nodeIds))
 	return nil
 }
 

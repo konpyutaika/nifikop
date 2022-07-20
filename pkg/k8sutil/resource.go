@@ -51,7 +51,10 @@ func Reconcile(log zap.Logger, client runtimeClient.Client, desired runtimeClien
 					"kind", desiredType, "name", key.Name,
 				)
 			}
-			log.Info("resource created")
+			log.Info("resource created",
+				zap.String("name", desired.GetName()),
+				zap.String("namespace", desired.GetNamespace()),
+				zap.String("kind", desired.GetObjectKind().GroupVersionKind().Kind))
 			return nil
 		}
 	}
@@ -109,7 +112,10 @@ func Reconcile(log zap.Logger, client runtimeClient.Client, desired runtimeClien
 			}
 		}
 
-		log.Info("resource updated")
+		log.Debug("resource updated",
+			zap.String("name", desired.GetName()),
+			zap.String("namespace", desired.GetNamespace()),
+			zap.String("kind", desired.GetObjectKind().GroupVersionKind().Kind))
 	}
 	return nil
 }
@@ -121,10 +127,10 @@ func CheckIfObjectUpdated(log zap.Logger, desiredType reflect.Type, current, des
 		log.Error("could not match objects", zap.Error(err), zap.String("kind", desiredType.String()))
 		return true
 	} else if patchResult.IsEmpty() {
-		log.Debug("resource is in sync")
+		log.Debug("resource is in sync", zap.String("kind", desiredType.String()))
 		return false
 	} else {
-		log.Info("resource diffs",
+		log.Debug("resource diffs",
 			zap.String("patch", string(patchResult.Patch)),
 			zap.String("current", string(patchResult.Current)),
 			zap.String("modified", string(patchResult.Modified)),

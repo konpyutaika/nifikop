@@ -73,7 +73,8 @@ func main() {
 	// Add support for MultiNamespace set in WATCH_NAMESPACE (e.g ns1,ns2)
 	var namespaceList []string
 	if watchNamespace != "" {
-		logger.Info("WATCH_NAMESPACE ENV provided, will watch and manage resources in defined namespaces", zap.String("namespaces", watchNamespace))
+		logger.Info("WATCH_NAMESPACE ENV provided, will watch and manage resources in defined namespaces",
+			zap.String("namespaces", watchNamespace))
 		namespaceList = strings.Split(watchNamespace, ",")
 
 		for i := range namespaceList {
