@@ -259,7 +259,7 @@ func (r *Reconciler) Reconcile(log zap.Logger) error {
 		}
 	}
 
-	log.Debug("reconciled",
+	log.Info("Successfully reconciled cluster",
 		zap.String("component", componentName),
 		zap.String("clusterName", r.NifiCluster.Name),
 		zap.String("clusterNamespace", r.NifiCluster.Namespace))

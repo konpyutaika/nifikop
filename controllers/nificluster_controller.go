@@ -168,7 +168,7 @@ func (r *NifiClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		}
 	}
 
-	r.Log.Info("ensuring finalizers on nificluster", zap.String("clusterName", instance.Name))
+	r.Log.Debug("ensuring finalizers on nificluster", zap.String("clusterName", instance.Name))
 	if instance, err = r.ensureFinalizers(ctx, instance); err != nil {
 		return RequeueWithError(r.Log, "failed to ensure finalizers on nificluster instance "+instance.Name, err)
 	}
