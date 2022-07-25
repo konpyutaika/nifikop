@@ -2,7 +2,7 @@ package nificlient
 
 import nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
 
-func (n *nifiClient) UpdateInputPortRunStatus(id string, entity nigoapi.PortRunStatusEntity) (*nigoapi.ProcessorEntity, error) {
+func (n *nifiClient) UpdateOutputPortRunStatus(id string, entity nigoapi.PortRunStatusEntity) (*nigoapi.ProcessorEntity, error) {
 	// Get nigoapi client, favoring the one associated to the coordinator node.
 	client, context := n.privilegeCoordinatorClient()
 	if client == nil {
@@ -10,8 +10,8 @@ func (n *nifiClient) UpdateInputPortRunStatus(id string, entity nigoapi.PortRunS
 		return nil, ErrNoNodeClientsAvailable
 	}
 
-	// Request on Nifi Rest API to update the input port run status
-	processor, rsp, body, err := client.InputPortsApi.UpdateRunStatus(context, id, entity)
+	// Request on Nifi Rest API to update the output port run status
+	processor, rsp, body, err := client.OutputPortsApi.UpdateRunStatus(context, id, entity)
 	if err := errorUpdateOperation(rsp, body, err); err != nil {
 		return nil, err
 	}
@@ -19,7 +19,7 @@ func (n *nifiClient) UpdateInputPortRunStatus(id string, entity nigoapi.PortRunS
 	return &processor, nil
 }
 
-func (n *nifiClient) GetInputPort(id string) (*nigoapi.PortEntity, error) {
+func (n *nifiClient) GetOutputPort(id string) (*nigoapi.PortEntity, error) {
 	// Get nigoapi client, favoring the one associated to the coordinator node.
 	client, context := n.privilegeCoordinatorClient()
 	if client == nil {
@@ -27,8 +27,8 @@ func (n *nifiClient) GetInputPort(id string) (*nigoapi.PortEntity, error) {
 		return nil, ErrNoNodeClientsAvailable
 	}
 
-	// Request on Nifi Rest API to update the input port informations
-	port, rsp, body, err := client.InputPortsApi.GetInputPort(context, id)
+	// Request on Nifi Rest API to update the output port informations
+	port, rsp, body, err := client.OutputPortsApi.GetOutputPort(context, id)
 	if err := errorUpdateOperation(rsp, body, err); err != nil {
 		return nil, err
 	}

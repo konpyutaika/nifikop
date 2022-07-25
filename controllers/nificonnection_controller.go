@@ -27,6 +27,7 @@ import (
 	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	"github.com/banzaicloud/k8s-objectmatcher/patch"
 	"github.com/erdrix/nigoapi/pkg/nifi"
@@ -39,6 +40,8 @@ import (
 	"github.com/konpyutaika/nifikop/pkg/util"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
 )
+
+var connectionFinalizer = "nificonnections.nifi.konpyutaika.com/finalizer"
 
 // NifiConnectionReconciler reconciles a NifiConnection object
 type NifiConnectionReconciler struct {
@@ -231,10 +234,44 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		return RequeueAfter(interval)
 	}
 
-	connection.CreateConnection(sourceComponent, destinationComponent, &instance.Spec.Configuration, instance.Name, clientConfig)
+	connectionStatus, err := connection.CreateConnection(sourceComponent, destinationComponent, &instance.Spec.Configuration, instance.Name, clientConfig)
+	if err != nil {
+		r.Recorder.Event(instance, corev1.EventTypeWarning, "CreationFailed",
+			fmt.Sprintf("Creation failed connection %s between %s in %s of type %s and %s in %s of type %s",
+				instance.Name,
+				instance.Spec.Source.Name, instance.Spec.Source.Namespace, instance.Spec.Source.Type,
+				instance.Spec.Destination.Name, instance.Spec.Destination.Namespace, instance.Spec.Destination.Type))
+		return RequeueWithError(r.Log, "failure creating connection", err)
+	}
 
-	r.Log.Info("Id: " + sourceComponent.Id)
-	r.Log.Info("Id: " + destinationComponent.Id)
+	// Set connection status
+	instance.Status = *connectionStatus
+
+	if err := r.Client.Status().Update(ctx, instance); err != nil {
+		return RequeueWithError(r.Log, "failed to update NifiConnection status", err)
+	}
+
+	r.Recorder.Event(instance, corev1.EventTypeNormal, "Created",
+		fmt.Sprintf("Created connection %s between %s in %s of type %s and %s in %s of type %s",
+			instance.Name,
+			instance.Spec.Source.Name, instance.Spec.Source.Namespace, instance.Spec.Source.Type,
+			instance.Spec.Destination.Name, instance.Spec.Destination.Namespace, instance.Spec.Destination.Type))
+
+	// Ensure finalizer for cleanup on deletion
+	if !util.StringSliceContains(instance.GetFinalizers(), connectionFinalizer) {
+		r.Log.Info("Adding Finalizer for NifiConnection")
+		instance.SetFinalizers(append(instance.GetFinalizers(), connectionFinalizer))
+	}
+
+	// Push any changes
+	if instance, err = r.updateAndFetchLatest(ctx, instance); err != nil {
+		return RequeueWithError(r.Log, "failed to update NifiConnection", err)
+	}
+
+	r.Recorder.Event(instance, corev1.EventTypeNormal, "Reconciled",
+		fmt.Sprintf("Reconciling connection %s", instance.Name))
+
+	r.Log.Info("Ensured Connection")
 
 	return RequeueAfter(interval)
 }
@@ -244,6 +281,54 @@ func (r *NifiConnectionReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&v1alpha1.NifiConnection{}).
 		Complete(r)
+}
+
+func (r *NifiConnectionReconciler) updateAndFetchLatest(ctx context.Context,
+	connection *v1alpha1.NifiConnection) (*v1alpha1.NifiConnection, error) {
+
+	typeMeta := connection.TypeMeta
+	err := r.Client.Update(ctx, connection)
+	if err != nil {
+		return nil, err
+	}
+	connection.TypeMeta = typeMeta
+	return connection, nil
+}
+
+func (r *NifiConnectionReconciler) checkFinalizers(
+	ctx context.Context,
+	connection *v1alpha1.NifiConnection,
+	config *clientconfig.NifiConfig) (reconcile.Result, error) {
+	r.Log.Info(fmt.Sprintf("NiFi connection %s is marked for deletion", connection.Name))
+	var err error
+	if util.StringSliceContains(connection.GetFinalizers(), connectionFinalizer) {
+		if err = r.finalizeNifiConnection(connection, config); err != nil {
+			return RequeueWithError(r.Log, "failed to finalize connection", err)
+		}
+		if err = r.removeFinalizer(ctx, connection); err != nil {
+			return RequeueWithError(r.Log, "failed to remove finalizer from connection", err)
+		}
+	}
+	return Reconciled()
+}
+
+func (r *NifiConnectionReconciler) removeFinalizer(ctx context.Context, connection *v1alpha1.NifiConnection) error {
+	r.Log.V(5).Info(fmt.Sprintf("Removing finalizer for NifiConnection %s", connection.Name))
+	connection.SetFinalizers(util.StringSliceRemove(connection.GetFinalizers(), connectionFinalizer))
+	_, err := r.updateAndFetchLatest(ctx, connection)
+	return err
+}
+
+func (r *NifiConnectionReconciler) finalizeNifiConnection(
+	connection *v1alpha1.NifiConnection,
+	config *clientconfig.NifiConfig) error {
+
+	// if err := parametercontext.RemoveParameterContext(connection, config); err != nil {
+	// 	return err
+	// }
+	// r.Log.Info("Delete NifiConnection Context")
+
+	return nil
 }
 
 func (r *NifiConnectionReconciler) GetDataflowComponentInformation(c v1alpha1.ComponentReference, isSource bool) (*v1alpha1.ComponentInformation, error) {

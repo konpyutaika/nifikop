@@ -89,9 +89,15 @@ type NifiClient interface {
 	// Processor func
 	UpdateProcessor(entity nigoapi.ProcessorEntity) (*nigoapi.ProcessorEntity, error)
 	UpdateProcessorRunStatus(id string, entity nigoapi.ProcessorRunStatusEntity) (*nigoapi.ProcessorEntity, error)
+	GetProcessor(id string) (*nigoapi.ProcessorEntity, error)
 
 	// Input port func
 	UpdateInputPortRunStatus(id string, entity nigoapi.PortRunStatusEntity) (*nigoapi.ProcessorEntity, error)
+	GetInputPort(id string) (*nigoapi.PortEntity, error)
+
+	// Output port func
+	UpdateOutputPortRunStatus(id string, entity nigoapi.PortRunStatusEntity) (*nigoapi.ProcessorEntity, error)
+	GetOutputPort(id string) (*nigoapi.PortEntity, error)
 
 	// Parameter context func
 	GetParameterContexts() ([]nigoapi.ParameterContextEntity, error)

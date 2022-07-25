@@ -10,27 +10,27 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestUpdateInputPortRunStatus(t *testing.T) {
+func TestUpdateOutputPortRunStatus(t *testing.T) {
 	assert := assert.New(t)
 
 	id := "16cfd2ec-0174-1000-0000-00004b9b35cc"
 
-	mockEntity := MockInputPortRunStatus("Stopped")
+	mockEntity := MockOutputPortRunStatus("Stopped")
 
-	entity, err := testUpdateInputPortRunStatus(t, mockEntity, id, 200)
+	entity, err := testUpdateOutputPortRunStatus(t, mockEntity, id, 200)
 	assert.Nil(err)
 	assert.NotNil(entity)
 
-	entity, err = testUpdateInputPortRunStatus(t, mockEntity, id, 404)
+	entity, err = testUpdateOutputPortRunStatus(t, mockEntity, id, 404)
 	assert.IsType(ErrNifiClusterReturned404, err)
 	assert.Nil(entity)
 
-	entity, err = testUpdateInputPortRunStatus(t, mockEntity, id, 500)
+	entity, err = testUpdateOutputPortRunStatus(t, mockEntity, id, 500)
 	assert.IsType(ErrNifiClusterNotReturned200, err)
 	assert.Nil(entity)
 }
 
-func testUpdateInputPortRunStatus(t *testing.T, entity nigoapi.PortRunStatusEntity, id string, status int) (*nigoapi.ProcessorEntity, error) {
+func testUpdateOutputPortRunStatus(t *testing.T, entity nigoapi.PortRunStatusEntity, id string, status int) (*nigoapi.ProcessorEntity, error) {
 
 	cluster := testClusterMock(t)
 
@@ -42,7 +42,7 @@ func testUpdateInputPortRunStatus(t *testing.T, entity nigoapi.PortRunStatusEnti
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	url := nifiAddress(cluster, fmt.Sprintf("/input-ports/%s/run-status", id))
+	url := nifiAddress(cluster, fmt.Sprintf("/output-ports/%s/run-status", id))
 	httpmock.RegisterResponder(http.MethodPut, url,
 		func(req *http.Request) (*http.Response, error) {
 			return httpmock.NewJsonResponse(
@@ -50,10 +50,10 @@ func testUpdateInputPortRunStatus(t *testing.T, entity nigoapi.PortRunStatusEnti
 				entity)
 		})
 
-	return client.UpdateInputPortRunStatus(id, entity)
+	return client.UpdateOutputPortRunStatus(id, entity)
 }
 
-func MockInputPortRunStatus(state string) nigoapi.PortRunStatusEntity {
+func MockOutputPortRunStatus(state string) nigoapi.PortRunStatusEntity {
 	var version int64 = 10
 	return nigoapi.PortRunStatusEntity{
 		Revision: &nigoapi.RevisionDto{Version: &version},

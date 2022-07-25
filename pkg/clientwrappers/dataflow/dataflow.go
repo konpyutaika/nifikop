@@ -106,6 +106,13 @@ func ScheduleDataflow(flow *v1alpha1.NifiDataflow, config *clientconfig.NifiConf
 		return err
 	}
 
+	componentsToStop := map[string][]string{}
+	for labelKey, labelValue := range flow.Labels {
+		if strings.HasPrefix(labelKey, "stop-component-") {
+			componentsToStop[strings.TrimPrefix(labelKey, "stop-component-")] = append(componentsToStop[strings.TrimPrefix(labelKey, "stop-component-")], labelValue)
+		}
+	}
+
 	// Schedule controller services
 	_, err = nClient.UpdateFlowControllerServices(nigoapi.ActivateControllerServicesEntity{
 		Id:    flow.Status.ProcessGroupID,
@@ -136,8 +143,10 @@ func ScheduleDataflow(flow *v1alpha1.NifiDataflow, config *clientconfig.NifiConf
 		return err
 	}
 
+	// TODO : STOP COMPONENT AND NOT PROCESS GROUP IF NEEDED
+
 	// Check all components are ok
-	processGroups, _, _, _, err := listComponents(config, flow.Status.ProcessGroupID)
+	processGroups, _, _, _, _, err := listComponents(config, flow.Status.ProcessGroupID)
 	pGEntity, err := nClient.GetProcessGroup(flow.Status.ProcessGroupID)
 	if err := clientwrappers.ErrorGetOperation(log, err, "Get process group"); err != nil {
 		return err
@@ -170,7 +179,7 @@ func IsOutOfSyncDataflow(
 		return false, err
 	}
 
-	processGroups, _, _, _, err := listComponents(config, flow.Status.ProcessGroupID)
+	processGroups, _, _, _, _, err := listComponents(config, flow.Status.ProcessGroupID)
 	if err != nil {
 		return false, err
 	}
@@ -257,7 +266,7 @@ func SyncDataflow(
 		return nil, err
 	}
 
-	processGroups, _, _, _, err := listComponents(config, flow.Status.ProcessGroupID)
+	processGroups, _, _, _, _, err := listComponents(config, flow.Status.ProcessGroupID)
 	if err != nil {
 		return nil, err
 	}
@@ -475,7 +484,7 @@ func prepareUpdatePG(flow *v1alpha1.NifiDataflow, config *clientconfig.NifiConfi
 		}
 
 		// Drop all events in connections
-		_, _, connections, _, err := listComponents(config, flow.Status.ProcessGroupID)
+		_, _, connections, _, _, err := listComponents(config, flow.Status.ProcessGroupID)
 		if err := clientwrappers.ErrorGetOperation(log, err, "Get recursively flow components"); err != nil {
 			return nil, err
 		}
@@ -507,7 +516,7 @@ func prepareUpdatePG(flow *v1alpha1.NifiDataflow, config *clientconfig.NifiConfi
 
 		// If flow is not fully drained
 		if pgEntity.Status.AggregateSnapshot.FlowFilesQueued != 0 {
-			_, processors, connections, inputPorts, err := listComponents(config, flow.Status.ProcessGroupID)
+			_, processors, connections, inputPorts, _, err := listComponents(config, flow.Status.ProcessGroupID)
 			if err := clientwrappers.ErrorGetOperation(log, err, "Get recursively flow components"); err != nil {
 				return nil, err
 			}
@@ -653,16 +662,17 @@ func processGroupFromFlow(
 
 // listComponents will get all ProcessGroups, Processors, Connections and Ports recursively
 func listComponents(config *clientconfig.NifiConfig,
-	processGroupID string) ([]nigoapi.ProcessGroupEntity, []nigoapi.ProcessorEntity, []nigoapi.ConnectionEntity, []nigoapi.PortEntity, error) {
+	processGroupID string) ([]nigoapi.ProcessGroupEntity, []nigoapi.ProcessorEntity, []nigoapi.ConnectionEntity, []nigoapi.PortEntity, []nigoapi.PortEntity, error) {
 
 	var processGroups []nigoapi.ProcessGroupEntity
 	var processors []nigoapi.ProcessorEntity
 	var connections []nigoapi.ConnectionEntity
 	var inputPorts []nigoapi.PortEntity
+	var outputPorts []nigoapi.PortEntity
 
 	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
-		return processGroups, processors, connections, inputPorts, err
+		return processGroups, processors, connections, inputPorts, outputPorts, err
 	}
 
 	flowEntity, err := nClient.GetFlow(processGroupID)
@@ -672,19 +682,21 @@ func listComponents(config *clientconfig.NifiConfig,
 	processors = flow.Processors
 	connections = flow.Connections
 	inputPorts = flow.InputPorts
+	outputPorts = flow.OutputPorts
 
 	for _, pg := range flow.ProcessGroups {
-		childPG, childP, childC, childI, err := listComponents(config, pg.Id)
+		childPG, childP, childC, childI, childO, err := listComponents(config, pg.Id)
 		if err != nil {
-			return processGroups, processors, connections, inputPorts, err
+			return processGroups, processors, connections, inputPorts, outputPorts, err
 		}
 		processGroups = append(processGroups, childPG...)
 		processors = append(processors, childP...)
 		connections = append(connections, childC...)
 		inputPorts = append(inputPorts, childI...)
+		outputPorts = append(outputPorts, childO...)
 	}
 
-	return processGroups, processors, connections, inputPorts, nil
+	return processGroups, processors, connections, inputPorts, outputPorts, nil
 }
 
 func dropRequest2Status(connectionId string, dropRequest *nigoapi.DropRequestEntity) *v1alpha1.DropRequest {

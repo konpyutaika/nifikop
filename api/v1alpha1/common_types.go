@@ -428,7 +428,12 @@ const (
 type ComponentType string
 
 const (
-	ComponentDataflow ComponentType = "dataflow"
+	ComponentDataflow     ComponentType = "dataflow"
+	ComponentInputPort    ComponentType = "input-port"
+	ComponentOutputPort   ComponentType = "output-port"
+	ComponentProcessor    ComponentType = "processor"
+	ComponentFunnel       ComponentType = "funnel"
+	ComponentProcessGroup ComponentType = "process-group"
 )
 
 type ComponentInformation struct {
