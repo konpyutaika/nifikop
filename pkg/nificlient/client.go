@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"emperror.dev/errors"
@@ -349,7 +350,7 @@ func (n *nifiClient) nodeDtoByNodeId(nId int32) *nigoapi.NodeDto {
 	for id := range n.nodes {
 		nodeDto := n.nodes[id]
 		// Check if the Cluster Node uri match with the one associated to the NifiCluster nodeId searched
-		if fmt.Sprintf("%s:%d", nodeDto.Address, nodeDto.ApiPort) == fmt.Sprintf(n.opts.NodeURITemplate, nId) {
+		if strings.Split(nodeDto.Address, ".")[0] == strings.Split(fmt.Sprintf(n.opts.NodeURITemplate, nId), ".")[0] {
 			return &nodeDto
 		}
 	}
