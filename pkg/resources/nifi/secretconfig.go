@@ -143,6 +143,7 @@ func (r *Reconciler) getNifiPropertiesConfigString(nConfig *v1.NodeConfig, id in
 			id,
 			r.NifiCluster.Namespace,
 			r.NifiCluster.Name,
+			r.NifiCluster.Spec.Service.HeadlessEnabled,
 			r.NifiCluster.Spec.ListenersConfig.GetClusterDomain(),
 			r.NifiCluster.Spec.ListenersConfig.UseExternalDNS,
 			r.NifiCluster.Spec.Service.GetServiceTemplate(),
