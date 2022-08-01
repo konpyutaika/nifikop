@@ -1,0 +1,3 @@
+package nificlient
+
+// TO DO

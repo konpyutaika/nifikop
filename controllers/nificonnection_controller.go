@@ -95,6 +95,13 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		o, err = patch.DefaultAnnotator.GetOriginalConfiguration(instance)
 	}
 
+	// TO DO
+	// // Check if the connection already exist
+	// existing, err := connection.ConnectionExist(instance, clientConfig)
+	// if err != nil {
+	// 	return RequeueWithError(r.Log, "failure checking for existing connection", err)
+	// }
+
 	// Validate component
 	if !instance.Spec.Configuration.IsValid() {
 		r.Recorder.Event(instance, corev1.EventTypeWarning, "ConfigurationInvalid",

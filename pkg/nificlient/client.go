@@ -138,6 +138,9 @@ type NifiClient interface {
 	GetControllerConfig() (*nigoapi.ControllerConfigurationEntity, error)
 	UpdateControllerConfig(entity nigoapi.ControllerConfigurationEntity) (*nigoapi.ControllerConfigurationEntity, error)
 
+	// Connections func
+	GetConnection(id string) (*nigoapi.ConnectionEntity, error)
+
 	Build() error
 }
 
