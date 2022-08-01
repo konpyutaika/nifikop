@@ -383,15 +383,15 @@ func (r *NifiConnectionReconciler) GetDataflowComponentInformation(c v1alpha1.Co
 		}
 
 		targetPort := &nifi.PortEntity{}
-		foudTarget := false
+		foundTarget := false
 		for _, port := range ports {
 			if port.Component.Name == c.SubName {
 				targetPort = &port
-				foudTarget = true
+				foundTarget = true
 			}
 		}
 
-		if !foudTarget {
+		if !foundTarget {
 			return nil, errors.New(fmt.Sprintf("Port %s not found : %s in %s", c.SubName, instance.Name, instance.Namespace))
 		}
 

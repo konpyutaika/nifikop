@@ -27,6 +27,8 @@ import (
 	"emperror.dev/errors"
 	"github.com/banzaicloud/k8s-objectmatcher/patch"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/dataflow"
+	"github.com/konpyutaika/nifikop/pkg/clientwrappers/inputport"
+	"github.com/konpyutaika/nifikop/pkg/clientwrappers/outputport"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	"github.com/konpyutaika/nifikop/pkg/k8sutil"
 	"github.com/konpyutaika/nifikop/pkg/nificlient/config"
@@ -342,6 +344,44 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 
 	if instance.Spec.SyncNever() {
 		return Reconciled()
+	}
+
+	// Maintenance operation(s) via label
+	var stopInputPortPrefix string = fmt.Sprintf("%s/stop-input", v1alpha1.GroupVersion.Group)
+	var stopOutputPortPrefix string = fmt.Sprintf("%s/stop-output", v1alpha1.GroupVersion.Group)
+
+	// Check if maintenance operation is needed
+	var operationNeeded bool = false
+	for labelKey, _ := range instance.Labels {
+		if labelKey == stopInputPortPrefix || labelKey == stopOutputPortPrefix {
+			operationNeeded = true
+		}
+	}
+
+	// Maintenance operation is needed
+	if operationNeeded {
+		dataflowInformation, err := dataflow.GetDataflowInformation(instance, clientConfig)
+		if err != nil {
+			return RequeueWithError(r.Log, "failed to get NifiDataflow information", err)
+		} else {
+			if labelValue, ok := instance.Labels[stopInputPortPrefix]; ok {
+				// Stop input port operation
+				for _, port := range dataflowInformation.ProcessGroupFlow.Flow.InputPorts {
+					if port.Component.Name == labelValue {
+						_, err := inputport.StopPort(port, clientConfig)
+						return RequeueWithError(r.Log, "failed to get stop input port", err)
+					}
+				}
+			} else if labelValue, ok := instance.Labels[stopOutputPortPrefix]; ok {
+				// Stop output port operation
+				for _, port := range dataflowInformation.ProcessGroupFlow.Flow.OutputPorts {
+					if port.Component.Name == labelValue {
+						_, err := outputport.StopPort(port, clientConfig)
+						return RequeueWithError(r.Log, "failed to get stop output port", err)
+					}
+				}
+			}
+		}
 	}
 
 	// In case where the flow is not sync

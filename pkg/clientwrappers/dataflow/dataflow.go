@@ -1,11 +1,8 @@
 package dataflow
 
 import (
-	"fmt"
-	"regexp"
 	"strings"
 
-	"github.com/konpyutaika/nifikop/pkg/util"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
 
 	nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
@@ -109,15 +106,6 @@ func ScheduleDataflow(flow *v1alpha1.NifiDataflow, config *clientconfig.NifiConf
 		return err
 	}
 
-	componentsToStop := map[string][]string{}
-	re := regexp.MustCompile(fmt.Sprintf("%s/stop-component-([a-z-]+)(?:-\\d+)?$", v1alpha1.GroupVersion.Group))
-	for labelKey, labelValue := range flow.Labels {
-		match := re.FindStringSubmatch(labelKey)
-		if len(match) == 2 {
-			componentsToStop[match[1]] = append(componentsToStop[match[1]], labelValue)
-		}
-	}
-
 	// Schedule controller services
 	_, err = nClient.UpdateFlowControllerServices(nigoapi.ActivateControllerServicesEntity{
 		Id:    flow.Status.ProcessGroupID,
@@ -140,111 +128,26 @@ func ScheduleDataflow(flow *v1alpha1.NifiDataflow, config *clientconfig.NifiConf
 	}
 
 	// Schedule flow
-	var numberOfComponentsToStop int = 0
-	if len(componentsToStop) == 0 {
-		_, err = nClient.UpdateFlowProcessGroup(nigoapi.ScheduleComponentsEntity{
-			Id:    flow.Status.ProcessGroupID,
-			State: "RUNNING",
-		})
-		if err := clientwrappers.ErrorUpdateOperation(log, err, "Schedule flow"); err != nil {
-			return err
-		}
-	} else {
-		processGroupsToStart, processorsToStart, inputPortsToStart, outputPortsToStart, processGroupsToStop, processorsToStop, inputPortsToStop, outputPortsToStop, err := listComponentsToStartStop(config, flow.Status.ProcessGroupID, componentsToStop, flow.Spec.SkipInvalidComponent)
-		numberOfComponentsToStop = len(processGroupsToStop) + len(processorsToStop) + len(inputPortsToStop) + len(outputPortsToStop)
-
-		if numberOfComponentsToStop == 0 {
-			_, err = nClient.UpdateFlowProcessGroup(nigoapi.ScheduleComponentsEntity{
-				Id:    flow.Status.ProcessGroupID,
-				State: "RUNNING",
-			})
-			if err := clientwrappers.ErrorUpdateOperation(log, err, "Schedule flow"); err != nil {
-				return err
-			}
-		} else {
-			for _, pg := range processGroupsToStart {
-				_, err = nClient.UpdateFlowProcessGroup(nigoapi.ScheduleComponentsEntity{
-					Id:    pg.Id,
-					State: "RUNNING",
-				})
-				if err := clientwrappers.ErrorUpdateOperation(log, err, "Schedule flow"); err != nil {
-					return err
-				}
-			}
-			for _, p := range processorsToStart {
-				_, err = nClient.UpdateProcessorRunStatus(p.Id, nigoapi.ProcessorRunStatusEntity{
-					Revision: p.Revision,
-					State:    "RUNNING",
-				})
-				if err := clientwrappers.ErrorUpdateOperation(log, err, "Schedule flow"); err != nil {
-					return err
-				}
-			}
-			for _, ip := range inputPortsToStart {
-				_, err = nClient.UpdateInputPortRunStatus(ip.Id, nigoapi.PortRunStatusEntity{
-					Revision: ip.Revision,
-					State:    "RUNNING",
-				})
-				if err := clientwrappers.ErrorUpdateOperation(log, err, "Schedule flow"); err != nil {
-					return err
-				}
-			}
-			for _, op := range outputPortsToStart {
-				_, err = nClient.UpdateOutputPortRunStatus(op.Id, nigoapi.PortRunStatusEntity{
-					Revision: op.Revision,
-					State:    "RUNNING",
-				})
-				if err := clientwrappers.ErrorUpdateOperation(log, err, "Schedule flow"); err != nil {
-					return err
-				}
-			}
-
-			for _, pg := range processGroupsToStop {
-				_, err = nClient.UpdateFlowProcessGroup(nigoapi.ScheduleComponentsEntity{
-					Id:    pg.Id,
-					State: "STOPPED",
-				})
-				if err := clientwrappers.ErrorUpdateOperation(log, err, "Schedule flow"); err != nil {
-					return err
-				}
-			}
-			for _, p := range processorsToStop {
-				_, err = nClient.UpdateProcessorRunStatus(p.Id, nigoapi.ProcessorRunStatusEntity{
-					Revision: p.Revision,
-					State:    "STOPPED",
-				})
-				if err := clientwrappers.ErrorUpdateOperation(log, err, "Schedule flow"); err != nil {
-					return err
-				}
-			}
-			for _, ip := range inputPortsToStop {
-				_, err = nClient.UpdateInputPortRunStatus(ip.Id, nigoapi.PortRunStatusEntity{
-					Revision: ip.Revision,
-					State:    "STOPPED",
-				})
-				if err := clientwrappers.ErrorUpdateOperation(log, err, "Schedule flow"); err != nil {
-					return err
-				}
-			}
-			for _, op := range outputPortsToStop {
-				_, err = nClient.UpdateOutputPortRunStatus(op.Id, nigoapi.PortRunStatusEntity{
-					Revision: op.Revision,
-					State:    "STOPPED",
-				})
-				if err := clientwrappers.ErrorUpdateOperation(log, err, "Schedule flow"); err != nil {
-					return err
-				}
-			}
-		}
+	_, err = nClient.UpdateFlowProcessGroup(nigoapi.ScheduleComponentsEntity{
+		Id:    flow.Status.ProcessGroupID,
+		State: "RUNNING",
+	})
+	if err := clientwrappers.ErrorUpdateOperation(log, err, "Schedule flow"); err != nil {
+		return err
 	}
 
 	// Check all components are ok
+	processGroups, _, _, _, err := listComponents(config, flow.Status.ProcessGroupID)
 	pGEntity, err := nClient.GetProcessGroup(flow.Status.ProcessGroupID)
 	if err := clientwrappers.ErrorGetOperation(log, err, "Get process group"); err != nil {
 		return err
 	}
-	if pGEntity.StoppedCount != int32(numberOfComponentsToStop) || (!flow.Spec.SkipInvalidComponent && pGEntity.InvalidCount > 0) {
-		return errorfactory.NifiFlowScheduling{}
+	processGroups = append(processGroups, *pGEntity)
+
+	for _, pgEntity := range processGroups {
+		if pgEntity.StoppedCount > 0 || (!flow.Spec.SkipInvalidComponent && pgEntity.InvalidCount > 0) {
+			return errorfactory.NifiFlowScheduling{}
+		}
 	}
 
 	return nil
@@ -267,7 +170,7 @@ func IsOutOfSyncDataflow(
 		return false, err
 	}
 
-	processGroups, _, _, _, _, err := listComponents(config, flow.Status.ProcessGroupID)
+	processGroups, _, _, _, err := listComponents(config, flow.Status.ProcessGroupID)
 	if err != nil {
 		return false, err
 	}
@@ -354,7 +257,7 @@ func SyncDataflow(
 		return nil, err
 	}
 
-	processGroups, _, _, _, _, err := listComponents(config, flow.Status.ProcessGroupID)
+	processGroups, _, _, _, err := listComponents(config, flow.Status.ProcessGroupID)
 	if err != nil {
 		return nil, err
 	}
@@ -572,7 +475,7 @@ func prepareUpdatePG(flow *v1alpha1.NifiDataflow, config *clientconfig.NifiConfi
 		}
 
 		// Drop all events in connections
-		_, _, connections, _, _, err := listComponents(config, flow.Status.ProcessGroupID)
+		_, _, connections, _, err := listComponents(config, flow.Status.ProcessGroupID)
 		if err := clientwrappers.ErrorGetOperation(log, err, "Get recursively flow components"); err != nil {
 			return nil, err
 		}
@@ -604,7 +507,7 @@ func prepareUpdatePG(flow *v1alpha1.NifiDataflow, config *clientconfig.NifiConfi
 
 		// If flow is not fully drained
 		if pgEntity.Status.AggregateSnapshot.FlowFilesQueued != 0 {
-			_, processors, connections, inputPorts, _, err := listComponents(config, flow.Status.ProcessGroupID)
+			_, processors, connections, inputPorts, err := listComponents(config, flow.Status.ProcessGroupID)
 			if err := clientwrappers.ErrorGetOperation(log, err, "Get recursively flow components"); err != nil {
 				return nil, err
 			}
@@ -750,130 +653,38 @@ func processGroupFromFlow(
 
 // listComponents will get all ProcessGroups, Processors, Connections and Ports recursively
 func listComponents(config *clientconfig.NifiConfig,
-	processGroupID string) ([]nigoapi.ProcessGroupEntity, []nigoapi.ProcessorEntity, []nigoapi.ConnectionEntity, []nigoapi.PortEntity, []nigoapi.PortEntity, error) {
+	processGroupID string) ([]nigoapi.ProcessGroupEntity, []nigoapi.ProcessorEntity, []nigoapi.ConnectionEntity, []nigoapi.PortEntity, error) {
 
 	var processGroups []nigoapi.ProcessGroupEntity
 	var processors []nigoapi.ProcessorEntity
 	var connections []nigoapi.ConnectionEntity
 	var inputPorts []nigoapi.PortEntity
-	var outputPorts []nigoapi.PortEntity
 
 	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
-		return processGroups, processors, connections, inputPorts, outputPorts, err
+		return processGroups, processors, connections, inputPorts, err
 	}
 
 	flowEntity, err := nClient.GetFlow(processGroupID)
-	if err != nil {
-		return processGroups, processors, connections, inputPorts, outputPorts, err
-	}
 	flow := flowEntity.ProcessGroupFlow.Flow
 
 	processGroups = flow.ProcessGroups
 	processors = flow.Processors
 	connections = flow.Connections
 	inputPorts = flow.InputPorts
-	outputPorts = flow.OutputPorts
 
 	for _, pg := range flow.ProcessGroups {
-		childPG, childP, childC, childI, childO, err := listComponents(config, pg.Id)
+		childPG, childP, childC, childI, err := listComponents(config, pg.Id)
 		if err != nil {
-			return processGroups, processors, connections, inputPorts, outputPorts, err
+			return processGroups, processors, connections, inputPorts, err
 		}
 		processGroups = append(processGroups, childPG...)
 		processors = append(processors, childP...)
 		connections = append(connections, childC...)
 		inputPorts = append(inputPorts, childI...)
-		outputPorts = append(outputPorts, childO...)
 	}
 
-	return processGroups, processors, connections, inputPorts, outputPorts, nil
-}
-
-// listComponents will get all ProcessGroups, Processors, Connections and Ports recursively
-func listComponentsToStartStop(config *clientconfig.NifiConfig,
-	processGroupID string,
-	componentsToStrop map[string][]string,
-	skipInvalid bool) (
-	[]nigoapi.ProcessGroupEntity, []nigoapi.ProcessorEntity, []nigoapi.PortEntity, []nigoapi.PortEntity,
-	[]nigoapi.ProcessGroupEntity, []nigoapi.ProcessorEntity, []nigoapi.PortEntity, []nigoapi.PortEntity, error) {
-
-	var processGroupsToStart, processGroupsToStop []nigoapi.ProcessGroupEntity
-	var processorsToStart, processorsToStop []nigoapi.ProcessorEntity
-	var inputPortsToStart, inputPortsToStop []nigoapi.PortEntity
-	var outputPortsToStart, outputPortsToStop []nigoapi.PortEntity
-
-	nClient, err := common.NewClusterConnection(log, config)
-	if err != nil {
-		return processGroupsToStart, processorsToStart, inputPortsToStart, outputPortsToStart,
-			processGroupsToStop, processorsToStop, inputPortsToStop, outputPortsToStop,
-			err
-	}
-
-	flowEntity, err := nClient.GetFlow(processGroupID)
-	if err != nil {
-		return processGroupsToStart, processorsToStart, inputPortsToStart, outputPortsToStart,
-			processGroupsToStop, processorsToStop, inputPortsToStop, outputPortsToStop,
-			err
-	}
-	flow := flowEntity.ProcessGroupFlow.Flow
-
-	for _, processor := range flow.Processors {
-		if !(processor.Status.RunStatus == "Invalid" && skipInvalid) {
-			if util.StringSliceContains(componentsToStrop[string(v1alpha1.ComponentProcessor)], processor.Id) {
-				processorsToStop = append(processorsToStop, processor)
-			} else {
-				processorsToStart = append(processorsToStart, processor)
-			}
-		}
-	}
-
-	for _, inputPort := range flow.InputPorts {
-		if !(inputPort.Status.RunStatus == "Invalid" && skipInvalid) {
-			if util.StringSliceContains(componentsToStrop[string(v1alpha1.ComponentInputPort)], inputPort.Id) {
-				inputPortsToStop = append(inputPortsToStop, inputPort)
-			} else {
-				inputPortsToStart = append(inputPortsToStart, inputPort)
-			}
-		}
-	}
-
-	for _, outputPort := range flow.OutputPorts {
-		if !(outputPort.Status.RunStatus == "Invalid" && skipInvalid) {
-			if util.StringSliceContains(componentsToStrop[string(v1alpha1.ComponentOutputPort)], outputPort.Id) {
-				outputPortsToStop = append(outputPortsToStop, outputPort)
-			} else {
-				outputPortsToStart = append(outputPortsToStart, outputPort)
-			}
-		}
-	}
-
-	for _, pg := range flow.ProcessGroups {
-		childPGSt, childPSt, childISt, childOSt, childPGSp, childPSp, childISp, childOSp, err := listComponentsToStartStop(config, pg.Id, componentsToStrop, skipInvalid)
-		if err != nil {
-			return processGroupsToStart, processorsToStart, inputPortsToStart, outputPortsToStart,
-				processGroupsToStop, processorsToStop, inputPortsToStop, outputPortsToStop,
-				err
-		}
-
-		if len(childPGSp) > 0 || len(childPSp) > 0 || len(childISp) > 0 || len(childOSp) > 0 {
-			processGroupsToStart = append(processGroupsToStart, childPGSt...)
-			processorsToStart = append(processorsToStart, childPSt...)
-			inputPortsToStart = append(inputPortsToStart, childISt...)
-			outputPortsToStart = append(outputPortsToStart, childOSt...)
-
-			processGroupsToStop = append(processGroupsToStop, childPGSp...)
-			processorsToStop = append(processorsToStop, childPSp...)
-			inputPortsToStop = append(inputPortsToStop, childISp...)
-			outputPortsToStop = append(outputPortsToStop, childOSp...)
-		} else {
-			processGroupsToStart = append(processGroupsToStart, pg)
-		}
-	}
-
-	return processGroupsToStart, processorsToStart, inputPortsToStart, outputPortsToStart,
-		processGroupsToStop, processorsToStop, inputPortsToStop, outputPortsToStop,
-		nil
+	return processGroups, processors, connections, inputPorts, nil
 }
 
 func dropRequest2Status(connectionId string, dropRequest *nigoapi.DropRequestEntity) *v1alpha1.DropRequest {
