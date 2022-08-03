@@ -34,9 +34,9 @@ spec:
   #      imagePullPolicy: IfNotPresent
   #      command: ["sh", "-c", "cp -vr /nifi_lib/* /nifi_lib_volume/"]
   #      volumeMounts:
-  #        - name: extensions-repository
+  #        - name: nifi-data-extensions-repository
   #          mountPath: /nifi_lib_volume
-  #        - name: logs
+  #        - name: nifi-data-logs
   #          mountPath: /logs
   # clusterImage can specify the whole nificluster image in one place
   clusterImage: "apache/nifi:1.12.1"
