@@ -20,7 +20,7 @@ func (r *Reconciler) pvc(id int32, storage v1alpha1.StorageConfig, log zap.Logge
 				nifiutil.LabelsForNifi(r.NifiCluster.Name),
 				map[string]string{"nodeId": fmt.Sprintf("%d", id)},
 			),
-			map[string]string{"mountPath": storage.MountPath, "storageName": storage.Name}, r.NifiCluster),
+			map[string]string{"mountPath": storage.MountPath, "storageName": fmt.Sprintf(templates.StorageNameTemplate, nifiutil.NifiDataVolumeMount, storage.Name)}, r.NifiCluster),
 		Spec: *storage.PVCSpec,
 	}
 }

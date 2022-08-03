@@ -343,7 +343,7 @@ func (r *NifiUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	r.Recorder.Event(instance, corev1.EventTypeNormal, "Reconciled",
 		fmt.Sprintf("Reconciling user %s", instance.Name))
 
-	r.Log.V(5).Info("Ensured user", "user", instance.Name)
+	r.Log.Info("Ensured user", zap.String("user", instance.Name))
 
 	return RequeueAfter(interval)
 
