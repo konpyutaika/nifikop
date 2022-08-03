@@ -1,0 +1,202 @@
+apiVersion: nifi.konpyutaika.com/v1alpha1
+kind: NifiCluster
+metadata:
+  labels:
+    clusterSize: small
+  name: doctolib
+  namespace: flow-manager-instance
+spec:
+  clusterImage: apache/nifi:1.16.3
+  externalServices:
+    - name: doctolib
+      spec:
+        portConfigs:
+          - internalListenerName: https
+            port: 443
+        type: LoadBalancer
+  ldapConfiguration: {}
+  listenersConfig:
+    internalListeners:
+      - containerPort: 8443
+        name: https
+        type: https
+      - containerPort: 6007
+        name: cluster
+        type: cluster
+      - containerPort: 10000
+        name: s2s
+        type: s2s
+      - containerPort: 9090
+        name: prometheus
+        type: prometheus
+    sslSecrets:
+      create: true
+      tlsSecretName: doctolib-tls
+  managedAdminUsers:
+    - identity: erdrix@gmail.com
+      name: aguitton
+    - identity: juldrixx@gmail.com
+      name: jguitton
+    - identity: julien.guitton.ext@orange.com
+      name: juguitton
+  managedReaderUsers:
+    - identity: erdrix@gmail.com
+      name: aguitton
+    - identity: juldrixx@gmail.com
+      name: jguitton
+  nifiClusterTaskSpec:
+    retryDurationMinutes: 10
+  nodeConfigGroups:
+    default_group:
+      isNode: true
+      resourcesRequirements:
+        limits:
+          cpu: "2"
+          memory: 2Gi
+        requests:
+          cpu: "1"
+          memory: 1Gi
+      serviceAccountName: external-dns
+      storageConfigs:
+        - mountPath: /opt/nifi/nifi-current/logs
+          name: logs
+          pvcSpec:
+            accessModes:
+              - ReadWriteOnce
+            resources:
+              requests:
+                storage: 10Gi
+            storageClassName: ssd-wait
+        - mountPath: /opt/nifi/data
+          name: data
+          pvcSpec:
+            accessModes:
+              - ReadWriteOnce
+            resources:
+              requests:
+                storage: 10Gi
+            storageClassName: ssd-wait
+        - mountPath: /opt/nifi/extensions
+          name: extensions-repository
+          pvcSpec:
+            accessModes:
+              - ReadWriteOnce
+            resources:
+              requests:
+                storage: 10Gi
+            storageClassName: ssd-wait
+        - mountPath: /opt/nifi/flowfile_repository
+          name: flowfile-repository
+          pvcSpec:
+            accessModes:
+              - ReadWriteOnce
+            resources:
+              requests:
+                storage: 10Gi
+            storageClassName: ssd-wait
+        - mountPath: /opt/nifi/nifi-current/conf
+          name: conf
+          pvcSpec:
+            accessModes:
+              - ReadWriteOnce
+            resources:
+              requests:
+                storage: 10Gi
+            storageClassName: ssd-wait
+        - mountPath: /opt/nifi/content_repository
+          name: content-repository
+          pvcSpec:
+            accessModes:
+              - ReadWriteOnce
+            resources:
+              requests:
+                storage: 10Gi
+            storageClassName: ssd-wait
+        - mountPath: /opt/nifi/provenance_repository
+          name: provenance-repository
+          pvcSpec:
+            accessModes:
+              - ReadWriteOnce
+            resources:
+              requests:
+                storage: 10Gi
+            storageClassName: ssd-wait
+  nodeUserIdentityTemplate: node-%d-doctolib
+  nodes:
+    - id: 0
+      nodeConfigGroup: default_group
+    - id: 1
+      nodeConfigGroup: default_group
+  propagateLabels: true
+  readOnlyConfig:
+    nifiProperties:
+      overrideConfigs: |
+        nifi.security.user.oidc.discovery.url=https://accounts.google.com/.well-known/openid-configuration
+        nifi.security.user.oidc.client.id=904085938288-p1dflefl947bhgqghbfb1upq10buj4fr.apps.googleusercontent.com
+        nifi.security.user.oidc.client.secret=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
+        nifi.security.identity.mapping.pattern.dn=CN=([^,]*)(?:, (?:O|OU)=.*)?
+        nifi.security.identity.mapping.value.dn=$1
+        nifi.security.identity.mapping.transform.dn=NONE
+        nifi.sensitive.props.key=fsdgfsfsdsdfgsdfg
+      webProxyHosts:
+        - doctolib.dev.flow.squidflow-sbx.fr
+  secretRef:
+    name: ""
+  service:
+    annotations:
+      external-dns.alpha.kubernetes.io/ttl: "60"
+    headlessEnabled: true
+  sidecarConfigs:
+    - args:
+        - tail
+        - -n+1
+        - -F
+        - /var/log/nifi-app.log
+      image: busybox:1.32.0
+      name: app-log
+      resources:
+        limits:
+          cpu: 50m
+          memory: 50Mi
+        requests:
+          cpu: 50m
+          memory: 50Mi
+      volumeMounts:
+        - mountPath: /var/log
+          name: nifi-data-logs
+    - args:
+        - tail
+        - -n+1
+        - -F
+        - /var/log/nifi-bootstrap.log
+      image: busybox:1.32.0
+      name: bootstrap-log
+      resources:
+        limits:
+          cpu: 50m
+          memory: 50Mi
+        requests:
+          cpu: 50m
+          memory: 50Mi
+      volumeMounts:
+        - mountPath: /var/log
+          name: nifi-data-logs
+    - args:
+        - tail
+        - -n+1
+        - -F
+        - /var/log/nifi-user.log
+      image: busybox:1.32.0
+      name: user-log
+      resources:
+        limits:
+          cpu: 50m
+          memory: 50Mi
+        requests:
+          cpu: 50m
+          memory: 50Mi
+      volumeMounts:
+        - mountPath: /var/log
+          name: nifi-data-logs
+  zkAddress: zookeeper.flow-manager-system:2181
+  zkPath: /doctolib
