@@ -835,7 +835,7 @@ func (cluster *NifiCluster) GetCreationTimeOrderedNodes() []Node {
 	// nodeIdCreationPairs is now sorted by creation time in ascending order.
 	sort.Sort(nodeIdCreationPairs)
 
-	nodesMap := nodesToIdMap(cluster.Spec.Nodes)
+	nodesMap := NodesToIdMap(cluster.Spec.Nodes)
 	timeOrderedNodes := []Node{}
 
 	for _, pair := range nodeIdCreationPairs {
@@ -845,7 +845,7 @@ func (cluster *NifiCluster) GetCreationTimeOrderedNodes() []Node {
 	return timeOrderedNodes
 }
 
-func nodesToIdMap(nodes []Node) (nodeMap map[int32]Node) {
+func NodesToIdMap(nodes []Node) (nodeMap map[int32]Node) {
 	nodeMap = make(map[int32]Node)
 	for _, node := range nodes {
 		nodeMap[node.Id] = node

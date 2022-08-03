@@ -11,10 +11,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 
 	"github.com/konpyutaika/nifikop/pkg/common"
-	"github.com/konpyutaika/nifikop/pkg/util"
-	"github.com/konpyutaika/nifikop/version"
-	"sigs.k8s.io/controller-runtime/pkg/cache"
-
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
@@ -191,12 +187,12 @@ func main() {
 		Client:          mgr.GetClient(),
 		APIReader:       mgr.GetAPIReader(),
 		Scheme:          mgr.GetScheme(),
-		Log:             ctrl.Log.WithName("controllers").WithName("NifiNodeGroupAutoscaler"),
+		Log:             *logger.Named("controllers").Named("NifiNodeGroupAutoscaler"),
 		Recorder:        mgr.GetEventRecorderFor("nifi-node-group-autoscaler"),
 		RequeueInterval: multipliers.NodeGroupAutoscalerRequeueInterval,
 		RequeueOffset:   multipliers.RequeueOffset,
 	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "NifiNodeGroupAutoscaler")
+		logger.Error("unable to create controller", zap.String("controller", "NifiNodeGroupAutoscaler"), zap.Error(err))
 		os.Exit(1)
 	}
 	// +kubebuilder:scaffold:builder
