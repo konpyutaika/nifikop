@@ -5,20 +5,21 @@ import (
 
 	"github.com/antihax/optional"
 	nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
+	"go.uber.org/zap"
 )
 
 func (n *nifiClient) GetReportingTask(id string) (*nigoapi.ReportingTaskEntity, error) {
 	// Get nigoapi client, favoring the one associated to the coordinator node.
 	client, context := n.privilegeCoordinatorClient()
 	if client == nil {
-		log.Error(ErrNoNodeClientsAvailable, "Error during creating node client")
+		n.log.Error("Error during creating node client", zap.Error(ErrNoNodeClientsAvailable))
 		return nil, ErrNoNodeClientsAvailable
 	}
 
 	// Request on Nifi Rest API to get the reporting task informations
 	out, rsp, body, err := client.ReportingTasksApi.GetReportingTask(context, id)
 
-	if err := errorGetOperation(rsp, body, err); err != nil {
+	if err := errorGetOperation(rsp, body, err, n.log); err != nil {
 		return nil, err
 	}
 
@@ -29,13 +30,13 @@ func (n *nifiClient) CreateReportingTask(entity nigoapi.ReportingTaskEntity) (*n
 	// Get nigoapi client, favoring the one associated to the coordinator node.
 	client, context := n.privilegeCoordinatorClient()
 	if client == nil {
-		log.Error(ErrNoNodeClientsAvailable, "Error during creating node client")
+		n.log.Error("Error during creating node client", zap.Error(ErrNoNodeClientsAvailable))
 		return nil, ErrNoNodeClientsAvailable
 	}
 
 	// Request on Nifi Rest API to create the reporting task
 	out, rsp, body, err := client.ControllerApi.CreateReportingTask(context, entity)
-	if err := errorCreateOperation(rsp, body, err); err != nil {
+	if err := errorCreateOperation(rsp, body, err, n.log); err != nil {
 		return nil, err
 	}
 
@@ -46,13 +47,13 @@ func (n *nifiClient) UpdateReportingTask(entity nigoapi.ReportingTaskEntity) (*n
 	// Get nigoapi client, favoring the one associated to the coordinator node.
 	client, context := n.privilegeCoordinatorClient()
 	if client == nil {
-		log.Error(ErrNoNodeClientsAvailable, "Error during creating node client")
+		n.log.Error("Error during creating node client", zap.Error(ErrNoNodeClientsAvailable))
 		return nil, ErrNoNodeClientsAvailable
 	}
 
 	// Request on Nifi Rest API to update the reporting task
 	out, rsp, body, err := client.ReportingTasksApi.UpdateReportingTask(context, entity.Id, entity)
-	if err := errorUpdateOperation(rsp, body, err); err != nil {
+	if err := errorUpdateOperation(rsp, body, err, n.log); err != nil {
 		return nil, err
 	}
 
@@ -63,13 +64,13 @@ func (n *nifiClient) UpdateRunStatusReportingTask(id string, entity nigoapi.Repo
 	// Get nigoapi client, favoring the one associated to the coordinator node.
 	client, context := n.privilegeCoordinatorClient()
 	if client == nil {
-		log.Error(ErrNoNodeClientsAvailable, "Error during creating node client")
+		n.log.Error("Error during creating node client", zap.Error(ErrNoNodeClientsAvailable))
 		return nil, ErrNoNodeClientsAvailable
 	}
 
 	// Request on Nifi Rest API to update the reporting task
 	out, rsp, body, err := client.ReportingTasksApi.UpdateRunStatus(context, id, entity)
-	if err := errorUpdateOperation(rsp, body, err); err != nil {
+	if err := errorUpdateOperation(rsp, body, err, n.log); err != nil {
 		return nil, err
 	}
 
@@ -80,7 +81,7 @@ func (n *nifiClient) RemoveReportingTask(entity nigoapi.ReportingTaskEntity) err
 	// Get nigoapi client, favoring the one associated to the coordinator node.
 	client, context := n.privilegeCoordinatorClient()
 	if client == nil {
-		log.Error(ErrNoNodeClientsAvailable, "Error during creating node client")
+		n.log.Error("Error during creating node client", zap.Error(ErrNoNodeClientsAvailable))
 		return ErrNoNodeClientsAvailable
 	}
 
@@ -90,5 +91,5 @@ func (n *nifiClient) RemoveReportingTask(entity nigoapi.ReportingTaskEntity) err
 			Version: optional.NewString(strconv.FormatInt(*entity.Revision.Version, 10)),
 		})
 
-	return errorDeleteOperation(rsp, body, err)
+	return errorDeleteOperation(rsp, body, err, n.log)
 }

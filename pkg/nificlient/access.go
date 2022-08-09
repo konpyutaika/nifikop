@@ -3,6 +3,7 @@ package nificlient
 import (
 	"github.com/antihax/optional"
 	nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
+	"go.uber.org/zap"
 )
 
 func (n *nifiClient) CreateAccessTokenUsingBasicAuth(username, password string, nodeId int32) (*string, error) {
@@ -11,7 +12,9 @@ func (n *nifiClient) CreateAccessTokenUsingBasicAuth(username, password string, 
 	client := n.nodeClient[nodeId]
 	context := n.opts.NodesContext[nodeId]
 	if client == nil {
-		log.Error(ErrNoNodeClientsAvailable, "Error during creating node client")
+		n.log.Error("Error during creating node client",
+			zap.Int32("nodeId", nodeId),
+			zap.Error(ErrNoNodeClientsAvailable))
 		return nil, ErrNoNodeClientsAvailable
 	}
 
@@ -21,7 +24,7 @@ func (n *nifiClient) CreateAccessTokenUsingBasicAuth(username, password string, 
 		Password: optional.NewString(password),
 	})
 
-	if err := errorCreateOperation(rsp, body, err); err != nil {
+	if err := errorCreateOperation(rsp, body, err, n.log); err != nil {
 		return nil, err
 	}
 	return body, nil

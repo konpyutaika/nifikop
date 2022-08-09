@@ -132,7 +132,9 @@ func UpdateNodeStatus(c client.Client, nodeIds []string, cluster *v1alpha1.NifiC
 	}
 	// update loses the typeMeta of the config that's used later when setting ownerrefs
 	cluster.TypeMeta = typeMeta
-	logger.Info("Nifi cluster state updated")
+	logger.Debug("Nifi cluster state updated",
+		zap.String("clusterName", cluster.Name),
+		zap.Strings("nodeIds", nodeIds))
 	return nil
 }
 
@@ -247,7 +249,9 @@ func UpdateRootProcessGroupIdStatus(c client.Client, cluster *v1alpha1.NifiClust
 	}
 	// update loses the typeMeta of the config that's used later when setting ownerrefs
 	cluster.TypeMeta = typeMeta
-	logger.Info("Root process group id updated", zap.String("id", id))
+	logger.Debug("Root process group id updated", 
+		zap.String("clusterName", cluster.Name),
+		zap.String("id", id))
 	return nil
 }
 

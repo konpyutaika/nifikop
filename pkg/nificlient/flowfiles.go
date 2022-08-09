@@ -2,19 +2,20 @@ package nificlient
 
 import (
 	nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
+	"go.uber.org/zap"
 )
 
 func (n *nifiClient) GetDropRequest(connectionId, id string) (*nigoapi.DropRequestEntity, error) {
 	// Get nigoapi client, favoring the one associated to the coordinator node.
 	client, context := n.privilegeCoordinatorClient()
 	if client == nil {
-		log.Error(ErrNoNodeClientsAvailable, "Error during creating node client")
+		n.log.Error("Error during creating node client", zap.Error(ErrNoNodeClientsAvailable))
 		return nil, ErrNoNodeClientsAvailable
 	}
 
 	// Request on Nifi Rest API to get the drop request information
 	dropRequest, rsp, body, err := client.FlowfileQueuesApi.GetDropRequest(context, connectionId, id)
-	if err := errorGetOperation(rsp, body, err); err != nil {
+	if err := errorGetOperation(rsp, body, err, n.log); err != nil {
 		return nil, err
 	}
 
@@ -25,13 +26,13 @@ func (n *nifiClient) CreateDropRequest(connectionId string) (*nigoapi.DropReques
 	// Get nigoapi client, favoring the one associated to the coordinator node.
 	client, context := n.privilegeCoordinatorClient()
 	if client == nil {
-		log.Error(ErrNoNodeClientsAvailable, "Error during creating node client")
+		n.log.Error("Error during creating node client", zap.Error(ErrNoNodeClientsAvailable))
 		return nil, ErrNoNodeClientsAvailable
 	}
 
 	// Request on Nifi Rest API to create the drop Request
 	entity, rsp, body, err := client.FlowfileQueuesApi.CreateDropRequest(context, connectionId)
-	if err := errorCreateOperation(rsp, body, err); err != nil {
+	if err := errorCreateOperation(rsp, body, err, n.log); err != nil {
 		return nil, err
 	}
 
