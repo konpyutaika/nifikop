@@ -3,19 +3,21 @@ package nificlient
 import (
 	"github.com/antihax/optional"
 	nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
+	"go.uber.org/zap"
 )
 
 func (n *nifiClient) GetFlow(id string) (*nigoapi.ProcessGroupFlowEntity, error) {
 	// Get nigoapi client, favoring the one associated to the coordinator node.
 	client, context := n.privilegeCoordinatorClient()
 	if client == nil {
-		log.Error(ErrNoNodeClientsAvailable, "Error during creating node client")
+		n.log.Error("Error during creating node client",
+			zap.Error(ErrNoNodeClientsAvailable))
 		return nil, ErrNoNodeClientsAvailable
 	}
 
 	// Request on Nifi Rest API to get the process group flow informations
 	flowPGEntity, rsp, body, err := client.FlowApi.GetFlow(context, id)
-	if err := errorGetOperation(rsp, body, err); err != nil {
+	if err := errorGetOperation(rsp, body, err, n.log); err != nil {
 		return nil, err
 	}
 
@@ -26,7 +28,7 @@ func (n *nifiClient) GetFlowControllerServices(id string) (*nigoapi.ControllerSe
 	// Get nigoapi client, favoring the one associated to the coordinator node.
 	client, context := n.privilegeCoordinatorClient()
 	if client == nil {
-		log.Error(ErrNoNodeClientsAvailable, "Error during creating node client")
+		n.log.Error("Error during creating node client", zap.Error(ErrNoNodeClientsAvailable))
 		return nil, ErrNoNodeClientsAvailable
 	}
 
@@ -37,7 +39,7 @@ func (n *nifiClient) GetFlowControllerServices(id string) (*nigoapi.ControllerSe
 			IncludeDescendantGroups: optional.NewBool(true),
 		})
 
-	if err := errorGetOperation(rsp, body, err); err != nil {
+	if err := errorGetOperation(rsp, body, err, n.log); err != nil {
 		return nil, err
 	}
 
@@ -49,13 +51,14 @@ func (n *nifiClient) UpdateFlowControllerServices(entity nigoapi.ActivateControl
 	// Get nigoapi client, favoring the one associated to the coordinator node.
 	client, context := n.privilegeCoordinatorClient()
 	if client == nil {
-		log.Error(ErrNoNodeClientsAvailable, "Error during creating node client")
+		n.log.Error("Error during creating node client",
+			zap.Error(ErrNoNodeClientsAvailable))
 		return nil, ErrNoNodeClientsAvailable
 	}
 
 	// Request on Nifi Rest API to enable or disable the controller services
 	csEntity, rsp, body, err := client.FlowApi.ActivateControllerServices(context, entity.Id, entity)
-	if err := errorUpdateOperation(rsp, body, err); err != nil {
+	if err := errorUpdateOperation(rsp, body, err, n.log); err != nil {
 		return nil, err
 	}
 
@@ -67,13 +70,14 @@ func (n *nifiClient) UpdateFlowProcessGroup(entity nigoapi.ScheduleComponentsEnt
 	// Get nigoapi client, favoring the one associated to the coordinator node.
 	client, context := n.privilegeCoordinatorClient()
 	if client == nil {
-		log.Error(ErrNoNodeClientsAvailable, "Error during creating node client")
+		n.log.Error("Error during creating node client",
+			zap.Error(ErrNoNodeClientsAvailable))
 		return nil, ErrNoNodeClientsAvailable
 	}
 
 	// Request on Nifi Rest API to enable or disable the controller services
 	csEntity, rsp, body, err := client.FlowApi.ScheduleComponents(context, entity.Id, entity)
-	if err := errorUpdateOperation(rsp, body, err); err != nil {
+	if err := errorUpdateOperation(rsp, body, err, n.log); err != nil {
 		return nil, err
 	}
 

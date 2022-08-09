@@ -84,18 +84,27 @@ func (r Reconciler) generateNifiPropertiesNodeConfig(id int32, nodeConfig *v1alp
 	}
 
 	if err := mergo.Merge(&readOnlyNodeConfig, readOnlyClusterConfig); err != nil {
-		log.Error("error occurred during merging readonly configs", zap.Error(err))
+		log.Error("error occurred during merging readonly configs",
+			zap.String("clusterName", r.NifiCluster.Name),
+			zap.Int32("nodeId", id),
+			zap.Error(err))
 	}
 
 	//Generate the Complete Configuration for the Node
 	completeConfigMap := map[string]string{}
 
 	if err := mergo.Merge(&completeConfigMap, readOnlyNodeConfig); err != nil {
-		log.Error("error occurred during merging readOnly config to complete configs", zap.Error(err))
+		log.Error("error occurred during merging readOnly config to complete configs",
+			zap.String("clusterName", r.NifiCluster.Name),
+			zap.Int32("nodeId", id),
+			zap.Error(err))
 	}
 
 	if err := mergo.Merge(&completeConfigMap, util.ParsePropertiesFormat(r.getNifiPropertiesConfigString(nodeConfig, id, serverPass, clientPass, superUsers, log))); err != nil {
-		log.Error("error occurred during merging operator generated configs", zap.Error(err))
+		log.Error("error occurred during merging operator generated configs",
+			zap.String("clusterName", r.NifiCluster.Name),
+			zap.Int32("nodeId", id),
+			zap.Error(err))
 	}
 
 	completeConfig := []string{}
@@ -110,7 +119,6 @@ func (r Reconciler) generateNifiPropertiesNodeConfig(id int32, nodeConfig *v1alp
 	return strings.Join(completeConfig, "\n")
 }
 
-//
 func (r *Reconciler) getNifiPropertiesConfigString(nConfig *v1alpha1.NodeConfig, id int32, serverPass, clientPass string, superUsers []string, log zap.Logger) string {
 
 	base := r.GetNifiPropertiesBase(id)
@@ -159,7 +167,10 @@ func (r *Reconciler) getNifiPropertiesConfigString(nConfig *v1alpha1.NodeConfig,
 		"ZookeeperConnectString": r.NifiCluster.Spec.ZKAddress,
 		"ZookeeperPath":          r.NifiCluster.Spec.GetZkPath(),
 	}); err != nil {
-		log.Error("error occurred during parsing the config template", zap.Error(err))
+		log.Error("error occurred during parsing the config template",
+			zap.String("clusterName", r.NifiCluster.Name),
+			zap.Int32("nodeId", id),
+			zap.Error(err))
 	}
 	return out.String()
 }
@@ -201,18 +212,27 @@ func (r Reconciler) generateZookeeperPropertiesNodeConfig(id int32, nodeConfig *
 	}
 
 	if err := mergo.Merge(&readOnlyNodeConfig, readOnlyClusterConfig); err != nil {
-		log.Error("error occurred during merging readonly configs", zap.Error(err))
+		log.Error("error occurred during merging readonly configs",
+			zap.String("clusterName", r.NifiCluster.Name),
+			zap.Int32("nodeId", id),
+			zap.Error(err))
 	}
 
 	//Generate the Complete Configuration for the Node
 	completeConfigMap := map[string]string{}
 
 	if err := mergo.Merge(&completeConfigMap, readOnlyNodeConfig); err != nil {
-		log.Error("error occurred during merging readOnly config to complete configs", zap.Error(err))
+		log.Error("error occurred during merging readOnly config to complete configs",
+			zap.String("clusterName", r.NifiCluster.Name),
+			zap.Int32("nodeId", id),
+			zap.Error(err))
 	}
 
 	if err := mergo.Merge(&completeConfigMap, util.ParsePropertiesFormat(r.getZookeeperPropertiesConfigString(nodeConfig, id, log))); err != nil {
-		log.Error("error occurred during merging operator generated configs", zap.Error(err))
+		log.Error("error occurred during merging operator generated configs",
+			zap.String("clusterName", r.NifiCluster.Name),
+			zap.Int32("nodeId", id),
+			zap.Error(err))
 	}
 
 	completeConfig := []string{}
@@ -240,7 +260,10 @@ func (r *Reconciler) getZookeeperPropertiesConfigString(nConfig *v1alpha1.NodeCo
 	var out bytes.Buffer
 	t := template.Must(template.New("nConfig-config").Parse(config.ZookeeperPropertiesTemplate))
 	if err := t.Execute(&out, map[string]interface{}{}); err != nil {
-		log.Error("error occurred during parsing the config template", zap.Error(err))
+		log.Error("error occurred during parsing the config template",
+			zap.String("clusterName", r.NifiCluster.Name),
+			zap.Int32("nodeId", id),
+			zap.Error(err))
 	}
 	return out.String()
 }
@@ -260,7 +283,10 @@ func (r *Reconciler) getStateManagementConfigString(nConfig *v1alpha1.NodeConfig
 		"ZookeeperConnectString": r.NifiCluster.Spec.ZKAddress,
 		"ZookeeperPath":          r.NifiCluster.Spec.GetZkPath(),
 	}); err != nil {
-		log.Error("error occurred during parsing the config template", zap.Error(err))
+		log.Error("error occurred during parsing the config template",
+			zap.String("clusterName", r.NifiCluster.Name),
+			zap.Int32("nodeId", id),
+			zap.Error(err))
 	}
 	return out.String()
 }
@@ -279,7 +305,10 @@ func (r *Reconciler) getLoginIdentityProvidersConfigString(nConfig *v1alpha1.Nod
 		"Id":                id,
 		"LdapConfiguration": r.NifiCluster.Spec.LdapConfiguration,
 	}); err != nil {
-		log.Error("error occurred during parsing the config template", zap.Error(err))
+		log.Error("error occurred during parsing the config template",
+			zap.String("clusterName", r.NifiCluster.Name),
+			zap.Int32("nodeId", id),
+			zap.Error(err))
 	}
 	return out.String()
 }
@@ -298,7 +327,10 @@ func (r *Reconciler) getLogbackConfigString(nConfig *v1alpha1.NodeConfig, id int
 				if err == nil {
 					return conf
 				}
-				log.Error("error occurred during getting readonly secret config", zap.Error(err))
+				log.Error("error occurred during getting readonly secret config",
+					zap.String("clusterName", r.NifiCluster.Name),
+					zap.Int32("nodeId", id),
+					zap.Error(err))
 			}
 
 			if node.ReadOnlyConfig.LogbackConfig.ReplaceConfigMap != nil {
@@ -306,7 +338,10 @@ func (r *Reconciler) getLogbackConfigString(nConfig *v1alpha1.NodeConfig, id int
 				if err == nil {
 					return conf
 				}
-				log.Error("error occurred during getting readonly configmap", zap.Error(err))
+				log.Error("error occurred during getting readonly configmap",
+					zap.String("clusterName", r.NifiCluster.Name),
+					zap.Int32("nodeId", id),
+					zap.Error(err))
 			}
 			break
 		}
@@ -317,7 +352,10 @@ func (r *Reconciler) getLogbackConfigString(nConfig *v1alpha1.NodeConfig, id int
 		if err == nil {
 			return conf
 		}
-		log.Error("error occurred during getting readonly secret config", zap.Error(err))
+		log.Error("error occurred during getting readonly secret config",
+			zap.String("clusterName", r.NifiCluster.Name),
+			zap.Int32("nodeId", id),
+			zap.Error(err))
 	}
 
 	if r.NifiCluster.Spec.ReadOnlyConfig.LogbackConfig.ReplaceConfigMap != nil {
@@ -325,7 +363,10 @@ func (r *Reconciler) getLogbackConfigString(nConfig *v1alpha1.NodeConfig, id int
 		if err == nil {
 			return conf
 		}
-		log.Error("error occurred during getting readonly configmap", zap.Error(err))
+		log.Error("error occurred during getting readonly configmap",
+			zap.String("clusterName", r.NifiCluster.Name),
+			zap.Int32("nodeId", id),
+			zap.Error(err))
 	}
 
 	var out bytes.Buffer
@@ -334,7 +375,10 @@ func (r *Reconciler) getLogbackConfigString(nConfig *v1alpha1.NodeConfig, id int
 		"NifiCluster": r.NifiCluster,
 		"Id":          id,
 	}); err != nil {
-		log.Error("error occurred during parsing the config template", zap.Error(err))
+		log.Error("error occurred during parsing the config template",
+			zap.String("clusterName", r.NifiCluster.Name),
+			zap.Int32("nodeId", id),
+			zap.Error(err))
 	}
 	return out.String()
 }
@@ -353,7 +397,10 @@ func (r *Reconciler) getBootstrapNotificationServicesConfigString(nConfig *v1alp
 				if err == nil {
 					return conf
 				}
-				log.Error("error occurred during getting readonly secret config", zap.Error(err))
+				log.Error("error occurred during getting bootstrap notification readonly secret config",
+					zap.String("clusterName", r.NifiCluster.Name),
+					zap.Int32("nodeId", id),
+					zap.Error(err))
 			}
 
 			if node.ReadOnlyConfig.BootstrapNotificationServicesReplaceConfig.ReplaceConfigMap != nil {
@@ -361,7 +408,10 @@ func (r *Reconciler) getBootstrapNotificationServicesConfigString(nConfig *v1alp
 				if err == nil {
 					return conf
 				}
-				log.Error("error occurred during getting readonly configmap", zap.Error(err))
+				log.Error("error occurred during getting bootstrap notification readonly configmap",
+					zap.String("clusterName", r.NifiCluster.Name),
+					zap.Int32("nodeId", id),
+					zap.Error(err))
 			}
 			break
 		}
@@ -372,7 +422,10 @@ func (r *Reconciler) getBootstrapNotificationServicesConfigString(nConfig *v1alp
 		if err == nil {
 			return conf
 		}
-		log.Error("error occurred during getting readonly secret config", zap.Error(err))
+		log.Error("error occurred during getting cluster bootstrap notification readonly secret config",
+			zap.String("clusterName", r.NifiCluster.Name),
+			zap.Int32("nodeId", id),
+			zap.Error(err))
 	}
 
 	if r.NifiCluster.Spec.ReadOnlyConfig.BootstrapNotificationServicesReplaceConfig.ReplaceConfigMap != nil {
@@ -380,7 +433,10 @@ func (r *Reconciler) getBootstrapNotificationServicesConfigString(nConfig *v1alp
 		if err == nil {
 			return conf
 		}
-		log.Error("error occurred during getting readonly configmap", zap.Error(err))
+		log.Error("error occurred during getting cluster bootstrap notification readonly configmap",
+			zap.String("clusterName", r.NifiCluster.Name),
+			zap.Int32("nodeId", id),
+			zap.Error(err))
 	}
 
 	var out bytes.Buffer
@@ -389,7 +445,10 @@ func (r *Reconciler) getBootstrapNotificationServicesConfigString(nConfig *v1alp
 		"NifiCluster": r.NifiCluster,
 		"Id":          id,
 	}); err != nil {
-		log.Error("error occurred during parsing the config template", zap.Error(err))
+		log.Error("error occurred during parsing the bootstrap notification config template",
+			zap.String("clusterName", r.NifiCluster.Name),
+			zap.Int32("nodeId", id),
+			zap.Error(err))
 	}
 	return out.String()
 }
@@ -413,7 +472,10 @@ func (r *Reconciler) getAuthorizersConfigString(nConfig *v1alpha1.NodeConfig, id
 			if err == nil {
 				authorizersTemplate = conf
 			}
-			log.Error("error occurred during getting authorizer readonly configmap", zap.Error(err))
+			log.Error("error occurred during getting authorizer readonly configmap",
+				zap.String("clusterName", r.NifiCluster.Name),
+				zap.Int32("nodeId", id),
+				zap.Error(err))
 		}
 
 		// The secret takes precedence over the ConfigMap, if it exists.
@@ -422,7 +484,10 @@ func (r *Reconciler) getAuthorizersConfigString(nConfig *v1alpha1.NodeConfig, id
 			if err == nil {
 				authorizersTemplate = conf
 			}
-			log.Error("error occurred during getting authorizer readonly secret config", zap.Error(err))
+			log.Error("error occurred during getting authorizer readonly secret config",
+				zap.String("clusterName", r.NifiCluster.Name),
+				zap.Int32("nodeId", id),
+				zap.Error(err))
 		}
 
 		for nId, nodeState := range r.NifiCluster.Status.NodesState {
@@ -454,7 +519,10 @@ func (r *Reconciler) getAuthorizersConfigString(nConfig *v1alpha1.NodeConfig, id
 		"NodeList":       nodeList,
 		"ControllerUser": r.NifiCluster.GetNifiControllerUserIdentity(),
 	}); err != nil {
-		log.Error("error occurred during parsing the config template", zap.Error(err))
+		log.Error("error occurred during parsing the config template",
+			zap.String("clusterName", r.NifiCluster.Name),
+			zap.Int32("nodeId", id),
+			zap.Error(err))
 	}
 
 	return out.String()
@@ -490,18 +558,27 @@ func (r Reconciler) generateBootstrapPropertiesNodeConfig(id int32, nodeConfig *
 	}
 
 	if err := mergo.Merge(&readOnlyNodeConfig, readOnlyClusterConfig); err != nil {
-		log.Error("error occurred during merging readonly configs", zap.Error(err))
+		log.Error("error occurred during merging readonly configs",
+			zap.String("clusterName", r.NifiCluster.Name),
+			zap.Int32("nodeId", id),
+			zap.Error(err))
 	}
 
 	//Generate the Complete Configuration for the Node
 	completeConfigMap := map[string]string{}
 
 	if err := mergo.Merge(&completeConfigMap, readOnlyNodeConfig); err != nil {
-		log.Error("error occurred during merging readOnly config to complete configs", zap.Error(err))
+		log.Error("error occurred during merging readOnly config to complete configs",
+			zap.String("clusterName", r.NifiCluster.Name),
+			zap.Int32("nodeId", id),
+			zap.Error(err))
 	}
 
 	if err := mergo.Merge(&completeConfigMap, util.ParsePropertiesFormat(r.getBootstrapPropertiesConfigString(nodeConfig, id, log))); err != nil {
-		log.Error("error occurred during merging operator generated configs", zap.Error(err))
+		log.Error("error occurred during merging operator generated configs",
+			zap.String("clusterName", r.NifiCluster.Name),
+			zap.Int32("nodeId", id),
+			zap.Error(err))
 	}
 
 	completeConfig := []string{}
@@ -532,7 +609,10 @@ func (r *Reconciler) getBootstrapPropertiesConfigString(nConfig *v1alpha1.NodeCo
 		"Id":          id,
 		"JvmMemory":   base.GetNifiJvmMemory(),
 	}); err != nil {
-		log.Error("error occurred during parsing the config template", zap.Error(err))
+		log.Error("error occurred during parsing the config template",
+			zap.String("clusterName", r.NifiCluster.Name),
+			zap.Int32("nodeId", id),
+			zap.Error(err))
 	}
 	return out.String()
 }
@@ -590,7 +670,9 @@ func (r Reconciler) generateReadOnlyConfig(
 	if overrideSecretConfig != nil {
 		secretConfig, err := r.getSecrectConfig(context.TODO(), *overrideSecretConfig)
 		if err != nil {
-			log.Error("error occurred during getting readonly secret config", zap.Error(err))
+			log.Error("error occurred during getting readonly secret config",
+				zap.String("clusterName", r.NifiCluster.Name),
+				zap.Error(err))
 		}
 		parsedReadOnlySecretClusterConfig = util.ParsePropertiesFormat(secretConfig)
 	}
@@ -598,7 +680,9 @@ func (r Reconciler) generateReadOnlyConfig(
 	if overrideConfigMap != nil {
 		configMap, err := r.getConfigMap(context.TODO(), *overrideConfigMap)
 		if err != nil {
-			log.Error("error occurred during getting readonly configmap", zap.Error(err))
+			log.Error("error occurred during getting readonly configmap",
+				zap.String("clusterName", r.NifiCluster.Name),
+				zap.Error(err))
 		}
 		parsedReadOnlyClusterConfigMap = util.ParsePropertiesFormat(configMap)
 	}
@@ -606,14 +690,20 @@ func (r Reconciler) generateReadOnlyConfig(
 	parsedReadOnlyClusterConfig = util.ParsePropertiesFormat(overrideConfigs)
 
 	if err := mergo.Merge(readOnlyClusterConfig, parsedReadOnlySecretClusterConfig); err != nil {
-		log.Error("error occurred during merging readonly configs", zap.Error(err))
+		log.Error("error occurred during merging readonly configs",
+			zap.String("clusterName", r.NifiCluster.Name),
+			zap.Error(err))
 	}
 
 	if err := mergo.Merge(readOnlyClusterConfig, parsedReadOnlyClusterConfig); err != nil {
-		log.Error("error occurred during merging readonly configs", zap.Error(err))
+		log.Error("error occurred during merging readonly configs",
+			zap.String("clusterName", r.NifiCluster.Name),
+			zap.Error(err))
 	}
 
 	if err := mergo.Merge(readOnlyClusterConfig, parsedReadOnlyClusterConfigMap); err != nil {
-		log.Error("error occurred during merging readonly configs", zap.Error(err))
+		log.Error("error occurred during merging readonly configs",
+			zap.String("clusterName", r.NifiCluster.Name),
+			zap.Error(err))
 	}
 }
