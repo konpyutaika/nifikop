@@ -37,7 +37,7 @@ func (lifo *LIFOHorizontalDownscaleStrategy) ScaleDown(numNodesToRemove int32) (
 		return nil, err
 	}
 	numberOfCurrentNodes := int32(len(currentNodes))
-	if numNodesToRemove >= numberOfCurrentNodes || numNodesToRemove == 0 {
+	if numNodesToRemove > numberOfCurrentNodes || numNodesToRemove == 0 {
 		return []v1alpha1.Node{}, nil
 	}
 
