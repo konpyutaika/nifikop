@@ -43,7 +43,7 @@ type NifiNodeGroupAutoscalerSpec struct {
 	// +optional
 	NodeConfig *NodeConfig `json:"nodeConfig,omitempty"`
 	// current number of replicas expected for the node config group
-	// +kubebuilder:default:=1
+	// +kubebuilder:default:=0
 	// +optional
 	Replicas int32 `json:"replicas"`
 	// The strategy to use when scaling up the nifi cluster
