@@ -32,12 +32,14 @@ type NifiNodeGroupAutoscalerSpec struct {
 	// +kubebuilder:validation:Pattern:="[a-z0-9]([-a-z0-9]*[a-z0-9])?"
 	// +kubebuilder:validation:MaxLength:=63
 	NodeConfigGroupId string `json:"nodeConfigGroupId"`
-	// A label selector used to identify & manage Node objects in the referenced NifiCluster. Any node matching this selector will be managed by this autoscaler. Even if that node was previously statically defined.
+	// A label selector used to identify & manage Node objects in the referenced NifiCluster. Any node matching this
+	// selector will be managed by this autoscaler. Even if that node was previously statically defined.
 	NodeLabelsSelector *metav1.LabelSelector `json:"nodeLabelsSelector"`
 	// the node readOnlyConfig for each node in the node group
 	// +optional
 	ReadOnlyConfig *ReadOnlyConfig `json:"readOnlyConfig,omitempty"`
-	// the nodeConfig to use for each node in the node group. This will be merged with and is preferred to the configured nodeConfigGroupId
+	// the nodeConfig to use for each node in the node group. This will be merged with and is preferred to the configured
+	// nodeConfigGroupId
 	// +optional
 	NodeConfig *NodeConfig `json:"nodeConfig,omitempty"`
 	// current number of replicas expected for the node config group

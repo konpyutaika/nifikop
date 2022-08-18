@@ -298,7 +298,7 @@ func (r *NifiUserGroupReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	r.Recorder.Event(instance, corev1.EventTypeNormal, "Reconciled",
 		fmt.Sprintf("Reconciling user group %s", instance.Name))
 
-	r.Log.Info("Ensured User Group", zap.String("group", instance.Name))
+	r.Log.Debug("Ensured User Group", zap.String("group", instance.Name))
 
 	return RequeueAfter(interval)
 }

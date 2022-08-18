@@ -109,7 +109,7 @@ func Reconcile(log zap.Logger, client runtimeClient.Client, desired runtimeClien
 			}
 		}
 
-		log.Info("resource updated")
+		log.Debug("resource updated")
 	}
 	return nil
 }
