@@ -69,7 +69,8 @@ type NifiNodeGroupAutoscalerReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.11.0/pkg/reconcile
 func (r *NifiNodeGroupAutoscalerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-
+	// @TODO: Manage dead lock when pending node because not enough resources
+	// by implementing a brut force deletion on nificluster controller.
 	nodeGroupAutoscaler := &v1alpha1.NifiNodeGroupAutoscaler{}
 	err := r.Client.Get(ctx, req.NamespacedName, nodeGroupAutoscaler)
 

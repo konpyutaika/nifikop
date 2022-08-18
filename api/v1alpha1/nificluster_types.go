@@ -829,7 +829,7 @@ func (cluster *NifiCluster) GetCreationTimeOrderedNodes() []Node {
 	nodeIdCreationPairs := PairList{}
 
 	for k, v := range cluster.Status.NodesState {
-		nodeIdCreationPairs = append(nodeIdCreationPairs, Pair{k, v.CreationTime})
+		nodeIdCreationPairs = append(nodeIdCreationPairs, Pair{k, *v.CreationTime})
 	}
 
 	// nodeIdCreationPairs is now sorted by creation time in ascending order.

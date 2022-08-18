@@ -42,7 +42,7 @@ type ClusterScalingStrategy string
 // ConfigurationState holds info about the configuration state
 type ConfigurationState string
 
-//  InitClusterNode holds info about if the node was part of the init cluster setup
+// InitClusterNode holds info about if the node was part of the init cluster setup
 type InitClusterNode bool
 
 // PKIBackend represents an interface implementing the PKIManager
@@ -341,7 +341,10 @@ type NodeState struct {
 	PodIsReady bool `json:"podIsReady"`
 	// CreationTime is the time at which this node was created. This must be sortable.
 	// +optional
-	CreationTime metav1.Time `json:"creationTime,omitempty"`
+	CreationTime *metav1.Time `json:"creationTime,omitempty"`
+	// LastUpdatedTime is the last time at which this node was updated. This must be sortable.
+	// +optional
+	LastUpdatedTime metav1.Time `json:"lastUpdatedTime,omitempty"`
 }
 
 // RackAwarenessState holds info about rack awareness status

@@ -261,7 +261,7 @@ func (r *NifiRegistryClientReconciler) Reconcile(ctx context.Context, req ctrl.R
 	r.Recorder.Event(instance, corev1.EventTypeNormal, "Reconciled",
 		fmt.Sprintf("Reconciling registry client %s", instance.Name))
 
-	r.Log.Info("Ensured Registry Client")
+	r.Log.Debug("Ensured Registry Client")
 
 	return RequeueAfter(interval)
 }
