@@ -6,7 +6,14 @@ import (
 	"time"
 
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1"
+)
+
+var (
+	time1 = v1.NewTime(time.Now().UTC().Add(time.Duration(5) * time.Hour))
+	time2 = v1.NewTime(time.Now().UTC().Add(time.Duration(10) * time.Hour))
+	time3 = v1.NewTime(time.Now().UTC().Add(time.Duration(15) * time.Hour))
+	time4 = v1.NewTime(time.Now().UTC().Add(time.Duration(20) * time.Hour))
 )
 
 var lifo = LIFOHorizontalDownscaleStrategy{
@@ -29,16 +36,16 @@ var lifo = LIFOHorizontalDownscaleStrategy{
 		Status: v1alpha1.NifiClusterStatus{
 			NodesState: map[string]v1alpha1.NodeState{
 				"2": {
-					CreationTime: v1.NewTime(time.Now().UTC().Add(time.Duration(5) * time.Hour)),
+					CreationTime: &time1,
 				},
 				"3": {
-					CreationTime: v1.NewTime(time.Now().UTC().Add(time.Duration(10) * time.Hour)),
+					CreationTime: &time2,
 				},
 				"4": {
-					CreationTime: v1.NewTime(time.Now().UTC().Add(time.Duration(15) * time.Hour)),
+					CreationTime: &time3,
 				},
 				"5": {
-					CreationTime: v1.NewTime(time.Now().UTC().Add(time.Duration(20) * time.Hour)),
+					CreationTime: &time4,
 				},
 			},
 		},
@@ -65,16 +72,16 @@ var simple = SimpleHorizontalUpscaleStrategy{
 		Status: v1alpha1.NifiClusterStatus{
 			NodesState: map[string]v1alpha1.NodeState{
 				"2": {
-					CreationTime: v1.NewTime(time.Now().UTC().Add(time.Duration(5) * time.Hour)),
+					CreationTime: &time1,
 				},
 				"3": {
-					CreationTime: v1.NewTime(time.Now().UTC().Add(time.Duration(10) * time.Hour)),
+					CreationTime: &time2,
 				},
 				"4": {
-					CreationTime: v1.NewTime(time.Now().UTC().Add(time.Duration(15) * time.Hour)),
+					CreationTime: &time3,
 				},
 				"5": {
-					CreationTime: v1.NewTime(time.Now().UTC().Add(time.Duration(20) * time.Hour)),
+					CreationTime: &time4,
 				},
 			},
 		},

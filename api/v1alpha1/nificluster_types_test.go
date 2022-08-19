@@ -8,6 +8,11 @@ import (
 )
 
 func TestGetCreationTimeOrderedNodes(t *testing.T) {
+	time1 := v1.NewTime(time.Now().UTC().Add(time.Duration(5) * time.Hour))
+	time2 := v1.NewTime(time.Now().UTC().Add(time.Duration(10) * time.Hour))
+	time3 := v1.NewTime(time.Now().UTC().Add(time.Duration(15) * time.Hour))
+	time4 := v1.NewTime(time.Now().UTC().Add(time.Duration(20) * time.Hour))
+
 	cluster := &NifiCluster{
 		Spec: NifiClusterSpec{
 			Nodes: []Node{
@@ -20,16 +25,16 @@ func TestGetCreationTimeOrderedNodes(t *testing.T) {
 		Status: NifiClusterStatus{
 			NodesState: map[string]NodeState{
 				"2": {
-					CreationTime: v1.NewTime(time.Now().UTC().Add(time.Duration(5) * time.Hour)),
+					CreationTime: &time1,
 				},
 				"3": {
-					CreationTime: v1.NewTime(time.Now().UTC().Add(time.Duration(15) * time.Hour)),
+					CreationTime: &time3,
 				},
 				"4": {
-					CreationTime: v1.NewTime(time.Now().UTC().Add(time.Duration(10) * time.Hour)),
+					CreationTime: &time2,
 				},
 				"5": {
-					CreationTime: v1.NewTime(time.Now().UTC().Add(time.Duration(20) * time.Hour)),
+					CreationTime: &time4,
 				},
 			},
 		},
