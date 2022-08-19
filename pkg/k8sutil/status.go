@@ -44,7 +44,11 @@ func UpdateNodeStatus(c client.Client, nodeIds []string, cluster *v1alpha1.NifiC
 			case bool:
 				cluster.Status.NodesState = map[string]v1alpha1.NodeState{nodeId: {PodIsReady: s}}
 			case metav1.Time:
-				cluster.Status.NodesState = map[string]v1alpha1.NodeState{nodeId: {CreationTime: s}}
+				if cluster.Status.NodesState[nodeId].CreationTime == nil {
+					cluster.Status.NodesState = map[string]v1alpha1.NodeState{nodeId: {CreationTime: &s}}
+				} else {
+					cluster.Status.NodesState = map[string]v1alpha1.NodeState{nodeId: {LastUpdatedTime: s}}
+				}
 			}
 		} else if val, ok := cluster.Status.NodesState[nodeId]; ok {
 			switch s := state.(type) {
@@ -57,7 +61,11 @@ func UpdateNodeStatus(c client.Client, nodeIds []string, cluster *v1alpha1.NifiC
 			case bool:
 				val.PodIsReady = s
 			case metav1.Time:
-				val.CreationTime = s
+				if cluster.Status.NodesState[nodeId].CreationTime == nil {
+					val.CreationTime = &s
+				} else {
+					val.LastUpdatedTime = s
+				}
 			}
 			cluster.Status.NodesState[nodeId] = val
 		} else {
@@ -71,7 +79,11 @@ func UpdateNodeStatus(c client.Client, nodeIds []string, cluster *v1alpha1.NifiC
 			case bool:
 				cluster.Status.NodesState[nodeId] = v1alpha1.NodeState{PodIsReady: s}
 			case metav1.Time:
-				cluster.Status.NodesState[nodeId] = v1alpha1.NodeState{CreationTime: s}
+				if cluster.Status.NodesState[nodeId].CreationTime == nil {
+					cluster.Status.NodesState = map[string]v1alpha1.NodeState{nodeId: {CreationTime: &s}}
+				} else {
+					cluster.Status.NodesState = map[string]v1alpha1.NodeState{nodeId: {LastUpdatedTime: s}}
+				}
 			}
 		}
 	}
@@ -105,7 +117,11 @@ func UpdateNodeStatus(c client.Client, nodeIds []string, cluster *v1alpha1.NifiC
 				case bool:
 					cluster.Status.NodesState = map[string]v1alpha1.NodeState{nodeId: {PodIsReady: s}}
 				case metav1.Time:
-					cluster.Status.NodesState = map[string]v1alpha1.NodeState{nodeId: {CreationTime: s}}
+					if cluster.Status.NodesState[nodeId].CreationTime == nil {
+						cluster.Status.NodesState = map[string]v1alpha1.NodeState{nodeId: {CreationTime: &s}}
+					} else {
+						cluster.Status.NodesState = map[string]v1alpha1.NodeState{nodeId: {LastUpdatedTime: s}}
+					}
 				}
 			} else if val, ok := cluster.Status.NodesState[nodeId]; ok {
 				switch s := state.(type) {
@@ -118,7 +134,11 @@ func UpdateNodeStatus(c client.Client, nodeIds []string, cluster *v1alpha1.NifiC
 				case bool:
 					val.PodIsReady = s
 				case metav1.Time:
-					val.CreationTime = s
+					if cluster.Status.NodesState[nodeId].CreationTime == nil {
+						val.CreationTime = &s
+					} else {
+						val.LastUpdatedTime = s
+					}
 				}
 				cluster.Status.NodesState[nodeId] = val
 			} else {
@@ -132,7 +152,11 @@ func UpdateNodeStatus(c client.Client, nodeIds []string, cluster *v1alpha1.NifiC
 				case bool:
 					cluster.Status.NodesState[nodeId] = v1alpha1.NodeState{PodIsReady: s}
 				case metav1.Time:
-					cluster.Status.NodesState[nodeId] = v1alpha1.NodeState{CreationTime: s}
+					if cluster.Status.NodesState[nodeId].CreationTime == nil {
+						cluster.Status.NodesState = map[string]v1alpha1.NodeState{nodeId: {CreationTime: &s}}
+					} else {
+						cluster.Status.NodesState = map[string]v1alpha1.NodeState{nodeId: {LastUpdatedTime: s}}
+					}
 				}
 			}
 		}

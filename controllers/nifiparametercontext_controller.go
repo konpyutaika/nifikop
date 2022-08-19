@@ -301,7 +301,7 @@ func (r *NifiParameterContextReconciler) Reconcile(ctx context.Context, req ctrl
 	r.Recorder.Event(instance, corev1.EventTypeNormal, "Reconciled",
 		fmt.Sprintf("Reconciling parameter context %s", instance.Name))
 
-	r.Log.Info("Ensured Parameter Context")
+	r.Log.Debug("Ensured Parameter Context")
 
 	return RequeueAfter(interval)
 }

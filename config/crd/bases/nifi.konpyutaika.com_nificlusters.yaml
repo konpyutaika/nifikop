@@ -8376,6 +8376,11 @@ spec:
                       description: InitClusterNode contains if this nodes was part
                         of the initial cluster
                       type: boolean
+                    lastUpdatedTime:
+                      description: LastUpdatedTime is the last time at which this
+                        node was updated. This must be sortable.
+                      format: date-time
+                      type: string
                     podIsReady:
                       description: PodIsReady whether or not the associated pod is
                         ready

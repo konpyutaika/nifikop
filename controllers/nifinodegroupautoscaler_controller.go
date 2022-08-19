@@ -19,9 +19,9 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"go.uber.org/zap"
 
 	"emperror.dev/errors"
-	"github.com/go-logr/logr"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -47,7 +47,7 @@ type NifiNodeGroupAutoscalerReconciler struct {
 	runtimeClient.Client
 	APIReader       runtimeClient.Reader
 	Scheme          *runtime.Scheme
-	Log             logr.Logger
+	Log             zap.Logger
 	Recorder        record.EventRecorder
 	RequeueInterval int
 	RequeueOffset   int
@@ -69,8 +69,8 @@ type NifiNodeGroupAutoscalerReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.11.0/pkg/reconcile
 func (r *NifiNodeGroupAutoscalerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = r.Log.WithValues("nifinodegroupautoscaler", req.NamespacedName)
-
+	// @TODO: Manage dead lock when pending node because not enough resources
+	// by implementing a brut force deletion on nificluster controller.
 	nodeGroupAutoscaler := &v1alpha1.NifiNodeGroupAutoscaler{}
 	err := r.Client.Get(ctx, req.NamespacedName, nodeGroupAutoscaler)
 
@@ -92,7 +92,7 @@ func (r *NifiNodeGroupAutoscalerReconciler) Reconcile(ctx context.Context, req c
 
 	// Ensure finalizer for cleanup on deletion
 	if !util.StringSliceContains(nodeGroupAutoscaler.GetFinalizers(), autoscalerFinalizer) {
-		r.Log.V(5).Info(fmt.Sprintf("Adding Finalizer for NifiNodeGroupAutoscaler node group %s", nodeGroupAutoscaler.Spec.NodeConfigGroupId))
+		r.Log.Info(fmt.Sprintf("Adding Finalizer for NifiNodeGroupAutoscaler node group %s", nodeGroupAutoscaler.Spec.NodeConfigGroupId))
 		nodeGroupAutoscaler.SetFinalizers(append(nodeGroupAutoscaler.GetFinalizers(), autoscalerFinalizer))
 	}
 
@@ -160,7 +160,7 @@ func (r *NifiNodeGroupAutoscalerReconciler) Reconcile(ctx context.Context, req c
 			return RequeueWithError(r.Log, fmt.Sprintf("Failed to udpate node group autoscaler state for node group %s", nodeGroupAutoscaler.Spec.NodeConfigGroupId), err)
 		}
 	} else {
-		r.Log.V(5).Info("Cluster replicas config and current number of replicas are the same", "replicas", nodeGroupAutoscaler.Spec.Replicas)
+		r.Log.Info("Cluster replicas config and current number of replicas are the same", zap.Int32("replicas", nodeGroupAutoscaler.Spec.Replicas))
 	}
 
 	// update replica and replica status
