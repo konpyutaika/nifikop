@@ -8,6 +8,7 @@
 
 ### Changed
 
+- [PR #136](https://github.com/konpyutaika/nifikop/pull/136) - **[Operator]** Update sync logic of dataflow to stop it fully.
 - [PR #115](https://github.com/konpyutaika/nifikop/pull/115) - **[Operator]** Upgrade go version to 1.18.
 - [PR #120](https://github.com/konpyutaika/nifikop/pull/120) - **[Operator]** Upgrade operator-sdk to v1.22.1.
 - [PR #121](https://github.com/konpyutaika/nifikop/pull/121) - **[Operator]** Refactor much of the nifikop logging to include more context.
