@@ -15,7 +15,8 @@ const (
 	NodeNameTemplate       = PrefixNodeNameTemplate + RootNodeNameTemplate + SuffixNodeNameTemplate
 
 	// TimeStampLayout defines the date format used.
-	TimeStampLayout = "Mon, 2 Jan 2006 15:04:05 GMT"
+	TimeStampLayout     = "Mon, 2 Jan 2006 15:04:05 GMT"
+	NifiDataVolumeMount = "nifi-data"
 )
 
 // ParseTimeStampToUnixTime parses the given CC timeStamp to time format
