@@ -92,6 +92,7 @@ func (r *NifiClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		// Error reading the object - requeue the request.
 		return RequeueWithError(r.Log, err.Error(), err)
 	}
+	current := instance.DeepCopy()
 
 	// Check if marked for deletion and run finalizers
 	if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {
@@ -170,7 +171,7 @@ func (r *NifiClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 
 	r.Log.Debug("ensuring finalizers on nificluster", zap.String("clusterName", instance.Name))
 	if instance, err = r.ensureFinalizers(ctx, instance); err != nil {
-		return RequeueWithError(r.Log, "failed to ensure finalizers on nificluster instance "+instance.Name, err)
+		return RequeueWithError(r.Log, "failed to ensure finalizers on nificluster instance "+current.Name, err)
 	}
 
 	//Update rolling upgrade last successful state
