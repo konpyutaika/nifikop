@@ -359,6 +359,10 @@ func SyncDataflow(
 			return status, err
 		}
 		flow.Status = *status
+
+		if err := UnscheduleDataflow(flow, config); err != nil {
+			return &flow.Status, err
+		}
 	}
 
 	pGEntity, err = nClient.GetProcessGroup(flow.Status.ProcessGroupID)

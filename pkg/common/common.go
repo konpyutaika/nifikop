@@ -53,7 +53,7 @@ var NewNifiFromConfig = nificlient.NewFromConfig
 func NewClusterConnection(log *zap.Logger, config *clientconfig.NifiConfig) (node nificlient.NifiClient, err error) {
 
 	// Get a nifi connection
-	node, err = NewNifiFromConfig(config)
+	node, err = NewNifiFromConfig(config, CustomLogger().Named("nifi_client"))
 	if err != nil {
 		return
 	}
@@ -111,7 +111,7 @@ func NewLogLevel(lvl string) (zapcore.Level, bool) {
 
 func CustomLogger() *zap.Logger {
 
-	logLvl, isDevelopment := NewLogLevel(util.GetEnvWithDefault("LOG_LEVEL", "Debug"))
+	logLvl, isDevelopment := NewLogLevel(util.GetEnvWithDefault("LOG_LEVEL", "Info"))
 	logEncoding := util.GetEnvWithDefault("LOG_ENCODING", "json")
 
 	conf := zap.Config{
