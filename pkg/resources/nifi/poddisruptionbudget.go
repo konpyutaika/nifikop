@@ -70,7 +70,10 @@ func (r *Reconciler) computeMinAvailable(log zap.Logger) (intstr.IntOrString, er
 	if strings.HasSuffix(disruptionBudget, "%") {
 		percentage, err := strconv.ParseFloat(disruptionBudget[:len(disruptionBudget)-1], 4)
 		if err != nil {
-			log.Error("error occured during parsing the disruption budget", zap.Error(err))
+			log.Error("error occured during parsing the disruption budget",
+				zap.String("clusterName", r.NifiCluster.Name),
+				zap.String("disruptionBudget", disruptionBudget),
+				zap.Error(err))
 			return intstr.FromInt(-1), err
 		} else {
 			budget = int(math.Floor((percentage * float64(nodes)) / 100))
@@ -79,7 +82,10 @@ func (r *Reconciler) computeMinAvailable(log zap.Logger) (intstr.IntOrString, er
 		// treat static number budget
 		staticBudget, err := strconv.ParseInt(disruptionBudget, 10, 0)
 		if err != nil {
-			log.Error("error occured during parsing the disruption budget", zap.Error(err))
+			log.Error("error occured during parsing the disruption budget",
+				zap.String("clusterName", r.NifiCluster.Name),
+				zap.String("disruptionBudget", disruptionBudget),
+				zap.Error(err))
 			return intstr.FromInt(-1), err
 		} else {
 			budget = int(staticBudget)
