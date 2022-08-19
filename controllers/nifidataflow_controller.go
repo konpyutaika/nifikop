@@ -334,7 +334,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 
 	// Push any changes
 	if instance, err = r.updateAndFetchLatest(ctx, instance); err != nil {
-		return RequeueWithError(r.Log, "failed to update NifiDataflow "+instance.Name, err)
+		return RequeueWithError(r.Log, "failed to update NifiDataflow "+current.Name, err)
 	}
 
 	if instance.Spec.SyncNever() {
@@ -446,7 +446,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 
 	// Push any changes
 	if instance, err = r.updateAndFetchLatest(ctx, instance); err != nil {
-		return RequeueWithError(r.Log, "failed to update NifiDataflow "+instance.Name, err)
+		return RequeueWithError(r.Log, "failed to update NifiDataflow "+current.Name, err)
 	}
 
 	r.Log.Info("Ensured Dataflow")

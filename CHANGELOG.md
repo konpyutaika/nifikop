@@ -20,6 +20,7 @@
 
 ### Fixed Bugs
 
+- [PR #135](https://github.com/konpyutaika/nifikop/pull/135) - **[Operator]** Update log generation to not reference nil variable
 - [PR #106](https://github.com/konpyutaika/nifikop/pull/106) - **[Documentation]** Patch documentation version and mixed docs.
 - [PR #110](https://github.com/konpyutaika/nifikop/pull/110) - **[Operator]** Handle case where `Certificate` is destroyed before `NifiUser` to avoid Nifi user controller getting stuck on deletion
 

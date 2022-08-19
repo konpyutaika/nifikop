@@ -335,20 +335,20 @@ func (r *NifiUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	// ensure a NifiCluster label
 	if instance, err = r.ensureClusterLabel(ctx, clusterConnect, instance); err != nil {
-		return RequeueWithError(r.Log, "failed to ensure NifiCluster label on user "+instance.Name, err)
+		return RequeueWithError(r.Log, "failed to ensure NifiCluster label on user "+current.Name, err)
 	}
 
 	// ensure a finalizer for cleanup on deletion
 	if !util.StringSliceContains(instance.GetFinalizers(), userFinalizer) {
 		r.addFinalizer(instance)
 		if instance, err = r.updateAndFetchLatest(ctx, instance); err != nil {
-			return RequeueWithError(r.Log, "failed to update finalizer for NifiUser "+instance.Name, err)
+			return RequeueWithError(r.Log, "failed to update finalizer for NifiUser "+current.Name, err)
 		}
 	}
 
 	// Push any changes
 	if instance, err = r.updateAndFetchLatest(ctx, instance); err != nil {
-		return RequeueWithError(r.Log, "failed to update NifiUser "+instance.Name, err)
+		return RequeueWithError(r.Log, "failed to update NifiUser "+current.Name, err)
 	}
 
 	r.Recorder.Event(instance, corev1.EventTypeNormal, "Reconciled",

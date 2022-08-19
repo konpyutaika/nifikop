@@ -283,7 +283,7 @@ func (r *NifiUserGroupReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 
 	// Ensure NifiCluster label
 	if instance, err = r.ensureClusterLabel(ctx, clusterConnect, instance); err != nil {
-		return RequeueWithError(r.Log, "failed to ensure NifiCluster label on user group "+instance.Name, err)
+		return RequeueWithError(r.Log, "failed to ensure NifiCluster label on user group "+current.Name, err)
 	}
 
 	// Ensure finalizer for cleanup on deletion
@@ -295,7 +295,7 @@ func (r *NifiUserGroupReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 
 	// Push any changes
 	if instance, err = r.updateAndFetchLatest(ctx, instance); err != nil {
-		return RequeueWithError(r.Log, "failed to update NifiUserGroup "+instance.Name, err)
+		return RequeueWithError(r.Log, "failed to update NifiUserGroup "+current.Name, err)
 	}
 
 	r.Recorder.Event(instance, corev1.EventTypeNormal, "Reconciled",
