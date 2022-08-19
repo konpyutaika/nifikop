@@ -61,13 +61,14 @@ func NewClusterConnection(log *zap.Logger, config *clientconfig.NifiConfig) (nod
 }
 
 type RequeueConfig struct {
-	UserRequeueInterval             int
-	RegistryClientRequeueInterval   int
-	ParameterContextRequeueInterval int
-	UserGroupRequeueInterval        int
-	DataFlowRequeueInterval         int
-	ClusterTaskRequeueIntervals     map[string]int
-	RequeueOffset                   int
+	UserRequeueInterval                int
+	RegistryClientRequeueInterval      int
+	NodeGroupAutoscalerRequeueInterval int
+	ParameterContextRequeueInterval    int
+	UserGroupRequeueInterval           int
+	DataFlowRequeueInterval            int
+	ClusterTaskRequeueIntervals        map[string]int
+	RequeueOffset                      int
 }
 
 func NewRequeueConfig() *RequeueConfig {
@@ -77,12 +78,13 @@ func NewRequeueConfig() *RequeueConfig {
 			"CLUSTER_TASK_TIMEOUT_REQUEUE_INTERVAL":   util.MustConvertToInt(util.GetEnvWithDefault("CLUSTER_TASK_TIMEOUT_REQUEUE_INTERVAL", "20"), "CLUSTER_TASK_TIMEOUT_REQUEUE_INTERVAL"),
 			"CLUSTER_TASK_NOT_READY_REQUEUE_INTERVAL": util.MustConvertToInt(util.GetEnvWithDefault("CLUSTER_TASK_NOT_READY_REQUEUE_INTERVAL", "15"), "CLUSTER_TASK_NODES_UNREACHABLE_REQUEUE_INTERVAL"),
 		},
-		UserRequeueInterval:             util.MustConvertToInt(util.GetEnvWithDefault("USERS_REQUEUE_INTERVAL", "15"), "USERS_REQUEUE_INTERVAL"),
-		RegistryClientRequeueInterval:   util.MustConvertToInt(util.GetEnvWithDefault("REGISTRY_CLIENT_REQUEUE_INTERVAL", "15"), "REGISTRY_CLIENT_REQUEUE_INTERVAL"),
-		ParameterContextRequeueInterval: util.MustConvertToInt(util.GetEnvWithDefault("PARAMETER_CONTEXT_REQUEUE_INTERVAL", "15"), "PARAMETER_CONTEXT_REQUEUE_INTERVAL"),
-		UserGroupRequeueInterval:        util.MustConvertToInt(util.GetEnvWithDefault("USER_GROUP_REQUEUE_INTERVAL", "15"), "USER_GROUP_REQUEUE_INTERVAL"),
-		DataFlowRequeueInterval:         util.MustConvertToInt(util.GetEnvWithDefault("DATAFLOW_REQUEUE_INTERVAL", "15"), "DATAFLOW_REQUEUE_INTERVAL"),
-		RequeueOffset:                   util.MustConvertToInt(util.GetEnvWithDefault("REQUEUE_OFFSET", "0"), "REQUEUE_OFFSET"),
+		UserRequeueInterval:                util.MustConvertToInt(util.GetEnvWithDefault("USERS_REQUEUE_INTERVAL", "15"), "USERS_REQUEUE_INTERVAL"),
+		NodeGroupAutoscalerRequeueInterval: util.MustConvertToInt(util.GetEnvWithDefault("NODE_GROUP_AUTOSCALER_REQUEUE_INTERVAL", "15"), "NODE_GROUP_AUTOSCALER_REQUEUE_INTERVAL"),
+		RegistryClientRequeueInterval:      util.MustConvertToInt(util.GetEnvWithDefault("REGISTRY_CLIENT_REQUEUE_INTERVAL", "15"), "REGISTRY_CLIENT_REQUEUE_INTERVAL"),
+		ParameterContextRequeueInterval:    util.MustConvertToInt(util.GetEnvWithDefault("PARAMETER_CONTEXT_REQUEUE_INTERVAL", "15"), "PARAMETER_CONTEXT_REQUEUE_INTERVAL"),
+		UserGroupRequeueInterval:           util.MustConvertToInt(util.GetEnvWithDefault("USER_GROUP_REQUEUE_INTERVAL", "15"), "USER_GROUP_REQUEUE_INTERVAL"),
+		DataFlowRequeueInterval:            util.MustConvertToInt(util.GetEnvWithDefault("DATAFLOW_REQUEUE_INTERVAL", "15"), "DATAFLOW_REQUEUE_INTERVAL"),
+		RequeueOffset:                      util.MustConvertToInt(util.GetEnvWithDefault("REQUEUE_OFFSET", "0"), "REQUEUE_OFFSET"),
 	}
 }
 

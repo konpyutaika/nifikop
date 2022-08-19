@@ -449,7 +449,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		return RequeueWithError(r.Log, "failed to update NifiDataflow "+current.Name, err)
 	}
 
-	r.Log.Info("Ensured Dataflow")
+	r.Log.Debug("Ensured Dataflow")
 
 	r.Recorder.Event(instance, corev1.EventTypeWarning, "Reconciled",
 		fmt.Sprintf("Success fully ensured dataflow %s based on flow {bucketId : %s, flowId: %s, version: %s}",

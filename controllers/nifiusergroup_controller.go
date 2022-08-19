@@ -304,6 +304,7 @@ func (r *NifiUserGroupReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	r.Log.Debug("Ensured User Group",
 		zap.String("userGroup", instance.Name))
 
+
 	return RequeueAfter(interval)
 }
 
