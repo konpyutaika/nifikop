@@ -7,6 +7,9 @@ import (
 // DataflowState defines the state of a NifiDataflow
 type DataflowState string
 
+// ConnectionState defines the state of a NifiConnection
+type ConnectionState string
+
 // DataflowUpdateRequestType defines the type of versioned flow update request
 type DataflowUpdateRequestType string
 
@@ -264,6 +267,11 @@ const (
 	// DataflowStateInSync describes the status of a NifiDataflow as in sync
 	DataflowStateInSync DataflowState = "InSync"
 
+	// ConnectionStateOutOfSync describes the status of a NifiConnection as out of sync
+	ConnectionStateOutOfSync ConnectionState = "OutOfSync"
+	// ConnectionStateInSync describes the status of a NifiConnection as in sync
+	ConnectionStateInSync ConnectionState = "InSync"
+
 	// RevertRequestType defines a revert changes request.
 	RevertRequestType DataflowUpdateRequestType = "Revert"
 	// UpdateRequestType defines an update version request.
@@ -414,6 +422,20 @@ func SecretRefsEquals(secretRefs []SecretReference) bool {
 			return false
 		}
 	}
+	return true
+}
+
+func ComponentRefsEquals(componentRefs []ComponentReference) bool {
+	c1 := componentRefs[0]
+	name := c1.Name
+	ns := c1.Namespace
+
+	for _, component := range componentRefs {
+		if name != component.Name || ns != component.Namespace || ns != string(component.Type) || ns != component.SubName {
+			return false
+		}
+	}
+
 	return true
 }
 

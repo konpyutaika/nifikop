@@ -58,6 +58,8 @@ type ConnectionBend struct {
 type NifiConnectionStatus struct {
 	// connection ID
 	ConnectionId string `json:"connectionID"`
+	// connection current state.
+	State ConnectionState `json:"state"`
 }
 
 //+kubebuilder:object:root=true

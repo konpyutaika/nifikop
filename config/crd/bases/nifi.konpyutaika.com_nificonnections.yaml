@@ -133,8 +133,12 @@ spec:
               connectionID:
                 description: connection ID
                 type: string
+              state:
+                description: connection current state.
+                type: string
             required:
             - connectionID
+            - state
             type: object
         type: object
     served: true

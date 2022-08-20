@@ -20,3 +20,20 @@ func (n *nifiClient) GetConnection(id string) (*nigoapi.ConnectionEntity, error)
 
 	return &connectionEntity, nil
 }
+
+func (n *nifiClient) UpdateConnection(entity nigoapi.ConnectionEntity) (*nigoapi.ConnectionEntity, error) {
+	// Get nigoapi client, favoring the one associated to the coordinator node.
+	client, context := n.privilegeCoordinatorClient()
+	if client == nil {
+		log.Error(ErrNoNodeClientsAvailable, "Error during creating node client")
+		return nil, ErrNoNodeClientsAvailable
+	}
+
+	// Request on Nifi Rest API to get the connection informations
+	connectionEntity, rsp, body, err := client.ConnectionsApi.UpdateConnection(context, entity.Id, entity)
+	if err := errorUpdateOperation(rsp, body, err); err != nil {
+		return nil, err
+	}
+
+	return &connectionEntity, nil
+}

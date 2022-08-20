@@ -2,6 +2,7 @@ package connection
 
 import (
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
+	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	"github.com/konpyutaika/nifikop/pkg/nificlient"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
 
@@ -88,4 +89,58 @@ func ConnectionExist(connection *v1alpha1.NifiConnection, config *clientconfig.N
 	}
 
 	return connectionEntity != nil, nil
+}
+
+// SyncConnection implements the logic to sync a SyncConnection with the deployed connection.
+func SyncConnection(connection *v1alpha1.NifiConnection,
+	source *v1alpha1.ComponentInformation, destination *v1alpha1.ComponentInformation,
+	config *clientconfig.NifiConfig) (*v1alpha1.NifiConnectionStatus, error) {
+
+	nClient, err := common.NewClusterConnection(log, config)
+	if err != nil {
+		return nil, err
+	}
+
+	connectionEntity, err := nClient.GetConnection(connection.Status.ConnectionId)
+	if err := clientwrappers.ErrorGetOperation(log, err, "Get connection"); err != nil {
+		return nil, err
+	}
+
+	if isSourceChanged(connectionEntity, source) {
+		connectionEntity.SourceId = source.Id
+
+		_, err := nClient.UpdateConnection(*connectionEntity)
+		if err := clientwrappers.ErrorUpdateOperation(log, err, "Update connection"); err != nil {
+			return nil, err
+		}
+		return &connection.Status, errorfactory.NifiConnectionSyncing{}
+	}
+
+	return &connection.Status, nil
+}
+
+// IsOutOfSyncConnection control if the deployed dataflow is out of sync with the NifiDataflow resource
+func IsOutOfSyncConnection(connection *v1alpha1.NifiConnection,
+	source *v1alpha1.ComponentInformation, destination *v1alpha1.ComponentInformation,
+	config *clientconfig.NifiConfig) (bool, error) {
+
+	nClient, err := common.NewClusterConnection(log, config)
+	if err != nil {
+		return false, err
+	}
+
+	connectionEntity, err := nClient.GetConnection(connection.Status.ConnectionId)
+	if err := clientwrappers.ErrorGetOperation(log, err, "Get connection"); err != nil {
+		return false, err
+	}
+
+	return isSourceChanged(connectionEntity, source), nil
+}
+
+func isSourceChanged(
+	connectionEntity *nigoapi.ConnectionEntity,
+	source *v1alpha1.ComponentInformation) bool {
+
+	return connectionEntity.Component.Source.Id != source.Id || connectionEntity.Component.Source.GroupId != source.GroupId ||
+		connectionEntity.Component.Source.Type_ != source.Type
 }

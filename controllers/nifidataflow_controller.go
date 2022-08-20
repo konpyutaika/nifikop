@@ -48,6 +48,8 @@ import (
 )
 
 var dataflowFinalizer = "nifidataflows.nifi.konpyutaika.com/finalizer"
+var stopInputPortPrefix string = fmt.Sprintf("%s/stop-input", v1alpha1.GroupVersion.Group)
+var stopOutputPortPrefix string = fmt.Sprintf("%s/stop-output", v1alpha1.GroupVersion.Group)
 
 // NifiDataflowReconciler reconciles a NifiDataflow object
 type NifiDataflowReconciler struct {
@@ -288,8 +290,8 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		return Reconciled()
 	}
 
-	r.Recorder.Event(instance, corev1.EventTypeWarning, "Reconciling",
-		fmt.Sprintf("Reconciling failed dataflow %s based on flow {bucketId : %s, flowId: %s, version: %s}",
+	r.Recorder.Event(instance, corev1.EventTypeNormal, "Reconciling",
+		fmt.Sprintf("Reconciling dataflow %s based on flow {bucketId : %s, flowId: %s, version: %s}",
 			instance.Name, instance.Spec.BucketId,
 			instance.Spec.FlowId, strconv.FormatInt(int64(*instance.Spec.FlowVersion), 10)))
 
@@ -347,9 +349,6 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	}
 
 	// Maintenance operation(s) via label
-	var stopInputPortPrefix string = fmt.Sprintf("%s/stop-input", v1alpha1.GroupVersion.Group)
-	var stopOutputPortPrefix string = fmt.Sprintf("%s/stop-output", v1alpha1.GroupVersion.Group)
-
 	// Check if maintenance operation is needed
 	var operationNeeded bool = false
 	for labelKey, _ := range instance.Labels {
@@ -494,7 +493,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 
 	r.Log.Info("Ensured Dataflow")
 
-	r.Recorder.Event(instance, corev1.EventTypeWarning, "Reconciled",
+	r.Recorder.Event(instance, corev1.EventTypeNormal, "Reconciled",
 		fmt.Sprintf("Success fully ensured dataflow %s based on flow {bucketId : %s, flowId: %s, version: %s}",
 			instance.Name, instance.Spec.BucketId,
 			instance.Spec.FlowId, strconv.FormatInt(int64(*instance.Spec.FlowVersion), 10)))
