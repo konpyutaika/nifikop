@@ -65,7 +65,6 @@ func New(client client.Client, directClient client.Reader, scheme *runtime.Schem
 	}
 }
 
-//
 func getCreatedPVCForNode(c client.Client, nodeID int32, namespace, crName string) ([]corev1.PersistentVolumeClaim, error) {
 	foundPVCList := &corev1.PersistentVolumeClaimList{}
 	matchingLabels := client.MatchingLabels{
@@ -381,7 +380,7 @@ OUTERLOOP:
 					return errors.WrapIfWithDetails(err, "could not delete service for node", "id", node.Labels["nodeId"])
 				}
 			}
-      
+
 			err = k8sutil.UpdateNodeStatus(r.Client, []string{node.Labels["nodeId"]}, r.NifiCluster,
 				v1alpha1.GracefulActionState{
 					ActionStep:  v1alpha1.RemovePodStatus,
@@ -397,7 +396,6 @@ OUTERLOOP:
 	return nil
 }
 
-//
 func arePodsAlreadyDeleted(pods []corev1.Pod, log zap.Logger) bool {
 	for _, node := range pods {
 		if node.ObjectMeta.DeletionTimestamp == nil {
