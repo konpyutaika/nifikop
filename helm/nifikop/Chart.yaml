@@ -5,7 +5,7 @@ home: https://github.com/konpyutaika/nifikop
 sources:
   - https://github.com/konpyutaika/nifikop
 version: 0.13.0
-appVersion: 0.13.0-release
+appVersion: 0.13.0-k8s-1.20-release
 icon:
 maintainers:
   - name: erdrix
