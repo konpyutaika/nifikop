@@ -30,7 +30,7 @@ import (
 	"github.com/konpyutaika/nifikop/pkg/util"
 	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
-	policyv1 "k8s.io/api/policy/v1"
+	policyv1beta1 "k8s.io/api/policy/v1beta1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -192,7 +192,7 @@ func (r *NifiClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 func (r *NifiClusterReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&v1alpha1.NifiCluster{}).
-		Owns(&policyv1.PodDisruptionBudget{}).
+		Owns(&policyv1beta1.PodDisruptionBudget{}).
 		Owns(&corev1.Service{}).
 		Owns(&corev1.Pod{}).
 		Owns(&corev1.ConfigMap{}).

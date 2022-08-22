@@ -12,7 +12,7 @@ import (
 
 	"github.com/konpyutaika/nifikop/pkg/resources/templates"
 	"github.com/konpyutaika/nifikop/pkg/util"
-	policyv1 "k8s.io/api/policy/v1"
+	policyv1beta1 "k8s.io/api/policy/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
@@ -25,10 +25,10 @@ func (r *Reconciler) podDisruptionBudget(log zap.Logger) (runtimeClient.Object, 
 
 	}
 
-	return &policyv1.PodDisruptionBudget{
+	return &policyv1beta1.PodDisruptionBudget{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "PodDisruptionBudget",
-			APIVersion: "policy/v1",
+			APIVersion: "policy/v1beta1",
 		},
 		ObjectMeta: templates.ObjectMetaWithAnnotations(
 			fmt.Sprintf("%s-pdb", r.NifiCluster.Name),
@@ -36,7 +36,7 @@ func (r *Reconciler) podDisruptionBudget(log zap.Logger) (runtimeClient.Object, 
 			r.NifiCluster.Spec.Service.Annotations,
 			r.NifiCluster,
 		),
-		Spec: policyv1.PodDisruptionBudgetSpec{
+		Spec: policyv1beta1.PodDisruptionBudgetSpec{
 			MinAvailable: &minAvailable,
 			Selector: &metav1.LabelSelector{
 				MatchLabels: nifiutil.LabelsForNifi(r.NifiCluster.Name),
