@@ -195,6 +195,7 @@ func (r *NifiUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			case errorfactory.ResourceNotReady:
 				r.Log.Debug("generated secret not found, may not be ready",
 					zap.String("user", instance.Name))
+
 				return ctrl.Result{
 					Requeue:      true,
 					RequeueAfter: interval / 3,

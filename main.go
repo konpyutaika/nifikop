@@ -8,9 +8,9 @@ import (
 
 	"github.com/go-logr/zapr"
 	certv1 "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1"
-	"github.com/konpyutaika/nifikop/pkg/common"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 
+	"github.com/konpyutaika/nifikop/pkg/common"
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
@@ -23,6 +23,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
+	nifiv1alpha1 "github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/controllers"
 	// +kubebuilder:scaffold:imports
 )
@@ -35,6 +36,7 @@ func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
 	utilruntime.Must(v1alpha1.AddToScheme(scheme))
+	utilruntime.Must(nifiv1alpha1.AddToScheme(scheme))
 	// +kubebuilder:scaffold:scheme
 }
 
@@ -182,6 +184,18 @@ func main() {
 		os.Exit(1)
 	}
 
+	if err = (&controllers.NifiNodeGroupAutoscalerReconciler{
+		Client:          mgr.GetClient(),
+		APIReader:       mgr.GetAPIReader(),
+		Scheme:          mgr.GetScheme(),
+		Log:             *logger.Named("controllers").Named("NifiNodeGroupAutoscaler"),
+		Recorder:        mgr.GetEventRecorderFor("nifi-node-group-autoscaler"),
+		RequeueInterval: multipliers.NodeGroupAutoscalerRequeueInterval,
+		RequeueOffset:   multipliers.RequeueOffset,
+	}).SetupWithManager(mgr); err != nil {
+		logger.Error("unable to create controller", zap.String("controller", "NifiNodeGroupAutoscaler"), zap.Error(err))
+		os.Exit(1)
+	}
 	// +kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("health", healthz.Ping); err != nil {

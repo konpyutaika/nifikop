@@ -5,7 +5,6 @@ import (
 	"sort"
 	"strings"
 
-	configcommon "github.com/konpyutaika/nifikop/pkg/nificlient/config/common"
 	"go.uber.org/zap"
 	runtimeClient "sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -40,7 +39,7 @@ const (
 	ContainerName string = "nifi"
 )
 
-func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev1.PersistentVolumeClaim, log zap.Logger) runtimeClient.Object {
+func (r *Reconciler) pod(node v1alpha1.Node, nodeConfig *v1alpha1.NodeConfig, pvcs []corev1.PersistentVolumeClaim, log zap.Logger) runtimeClient.Object {
 
 	zkAddress := r.NifiCluster.Spec.ZKAddress
 	zkHostname := zk.GetHostnameAddress(zkAddress)
@@ -64,7 +63,7 @@ func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev
 	}
 
 	if r.NifiCluster.Spec.ListenersConfig.SSLSecrets != nil {
-		volume = append(volume, generateVolumesForSSL(r.NifiCluster, id)...)
+		volume = append(volume, generateVolumesForSSL(r.NifiCluster, node.Id)...)
 		volumeMount = append(volumeMount, generateVolumeMountForSSL()...)
 	}
 
@@ -75,7 +74,7 @@ func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev
 				//ConfigMap: &corev1.ConfigMapVolumeSource{
 				Secret: &corev1.SecretVolumeSource{
 					//LocalObjectReference: corev1.LocalObjectReference{Name: fmt.Sprintf(templates.NodeConfigTemplate+"-%d", r.NifiCluster.Name, id)},
-					SecretName:  fmt.Sprintf(templates.NodeConfigTemplate+"-%d", r.NifiCluster.Name, id),
+					SecretName:  fmt.Sprintf(templates.NodeConfigTemplate+"-%d", r.NifiCluster.Name, node.Id),
 					DefaultMode: util.Int32Pointer(0644),
 				},
 			},
@@ -120,7 +119,8 @@ func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev
 		r.NifiCluster.Spec.Pod.Labels,
 		nodeConfig.GetPodLabels(),
 		nifiutil.LabelsForNifi(r.NifiCluster.Name),
-		{"nodeId": fmt.Sprintf("%d", id)},
+		node.Labels,
+		{"nodeId": fmt.Sprintf("%d", node.Id)},
 	}
 
 	// merge host aliases together, preferring the aliases in the nodeConfig
@@ -136,7 +136,7 @@ func (r *Reconciler) pod(id int32, nodeConfig *v1alpha1.NodeConfig, pvcs []corev
 	pod := &corev1.Pod{
 		//ObjectMeta: templates.ObjectMetaWithAnnotations(
 		ObjectMeta: templates.ObjectMetaWithGeneratedNameAndAnnotations(
-			nifiutil.ComputeNodeName(id, r.NifiCluster.Name),
+			nifiutil.ComputeNodeName(node.Id, r.NifiCluster.Name),
 			util.MergeLabels(labelsToMerge...),
 			util.MergeAnnotations(anntotationsToMerge...), r.NifiCluster,
 		),
@@ -165,7 +165,7 @@ done`,
 				PodAntiAffinity: generatePodAntiAffinity(r.NifiCluster.Name, r.NifiCluster.Spec.OneNifiNodePerNode),
 			},
 			TopologySpreadConstraints:     r.NifiCluster.Spec.TopologySpreadConstraints,
-			Containers:                    r.injectAdditionalEnvVars(r.generateContainers(nodeConfig, id, podVolumeMounts, zkAddress)),
+			Containers:                    r.injectAdditionalEnvVars(r.generateContainers(nodeConfig, node.Id, podVolumeMounts, zkAddress)),
 			HostAliases:                   allHostAliases,
 			Volumes:                       podVolumes,
 			RestartPolicy:                 corev1.RestartPolicyNever,
@@ -181,7 +181,7 @@ done`,
 	}
 
 	//if r.NifiCluster.Spec.Service.HeadlessEnabled {
-	pod.Spec.Hostname = nifiutil.ComputeNodeName(id, r.NifiCluster.Name)
+	pod.Spec.Hostname = nifiutil.ComputeNodeName(node.Id, r.NifiCluster.Name)
 	pod.Spec.Subdomain = nifiutil.ComputeRequestNiFiAllNodeService(r.NifiCluster.Name,
 		r.NifiCluster.Spec.Service.GetServiceTemplate())
 	//}
@@ -392,43 +392,6 @@ func (r *Reconciler) createNifiNodeContainer(nodeConfig *v1alpha1.NodeConfig, id
 			GetServerPort(r.NifiCluster.Spec.ListenersConfig))
 	}
 
-	failCondition := ""
-
-	if val, ok := r.NifiCluster.Status.NodesState[fmt.Sprint(id)]; !ok || (val.InitClusterNode != v1alpha1.IsInitClusterNode &&
-		(val.GracefulActionState.State == v1alpha1.GracefulUpscaleRequired ||
-			val.GracefulActionState.State == v1alpha1.GracefulUpscaleRunning)) {
-		failCondition = `else
-	echo fail to request cluster
-	exit 1
-`
-	}
-
-	requestClusterStatus := fmt.Sprintf("curl --fail -v http://%s/nifi-api/controller/cluster > $NIFI_BASE_DIR/cluster.state",
-		nifiutil.GenerateRequestNiFiAllNodeAddressFromCluster(r.NifiCluster))
-
-	if configcommon.UseSSL(r.NifiCluster) {
-		requestClusterStatus = fmt.Sprintf(
-			"curl --fail -kv --cert /var/run/secrets/java.io/keystores/client/tls.crt --key /var/run/secrets/java.io/keystores/client/tls.key https://%s/nifi-api/controller/cluster > $NIFI_BASE_DIR/cluster.state",
-			nifiutil.GenerateRequestNiFiAllNodeAddressFromCluster(r.NifiCluster))
-	}
-
-	removesFileAction := fmt.Sprintf(`if %s; then
-	echo "Successfully query NiFi cluster"
-	%s
-	echo "state $STATUS"
-	if [[ -z "$STATUS" ]]; then 
-		echo "Removing previous exec setup"
-		if [ -f "$NIFI_BASE_DIR/data/users.xml" ]; then rm -f $NIFI_BASE_DIR/data/users.xml; fi
-		if [ -f "$NIFI_BASE_DIR/data/authorizations.xml" ]; then rm -f  $NIFI_BASE_DIR/data/authorizations.xml; fi
-		if [ -f " $NIFI_BASE_DIR/data/flow.xml.gz" ]; then rm -f  $NIFI_BASE_DIR/data/flow.xml.gz; fi
-	fi
-%s
-fi
-rm -f $NIFI_BASE_DIR/cluster.state `,
-		requestClusterStatus,
-		"STATUS=$(jq -r \".cluster.nodes[] | select(.address==\\\"$(hostname -f)\\\") | .status\" $NIFI_BASE_DIR/cluster.state)",
-		failCondition)
-
 	nodeAddress := nifiutil.ComputeHostListenerNodeAddress(
 		id, r.NifiCluster.Name, r.NifiCluster.Namespace, r.NifiCluster.Spec.ListenersConfig.GetClusterDomain(),
 		r.NifiCluster.Spec.ListenersConfig.UseExternalDNS, r.NifiCluster.Spec.ListenersConfig.InternalListeners,
@@ -456,8 +419,7 @@ echo "Hostname is successfully binded withy IP adress"`, nodeAddress, nodeAddres
 	}
 	command := []string{"bash", "-ce", fmt.Sprintf(`cp ${NIFI_HOME}/tmp/* ${NIFI_HOME}/conf/
 %s
-%s
-exec bin/nifi.sh run`, resolveIp, removesFileAction)}
+exec bin/nifi.sh run`, resolveIp)}
 
 	return corev1.Container{
 		Name:            ContainerName,

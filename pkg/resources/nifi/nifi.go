@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/dataflow"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/scale"
@@ -39,7 +40,6 @@ const (
 
 	nodeSecretVolumeMount = "node-config"
 	nodeTmp               = "node-tmp"
-	nifiDataVolumeMount   = "nifi-data"
 
 	serverKeystoreVolume = "server-ks-files"
 	serverKeystorePath   = "/var/run/secrets/java.io/keystores/server"
@@ -152,7 +152,6 @@ func (r *Reconciler) Reconcile(log zap.Logger) error {
 			if err != nil {
 				return errors.WrapIfWithDetails(err, "failed to reconcile resource", "resource", o.GetObjectKind().GroupVersionKind())
 			}
-
 		}
 
 		o := r.secretConfig(node.Id, nodeConfig, serverPass, clientPass, superUsers, log)
@@ -173,7 +172,7 @@ func (r *Reconciler) Reconcile(log zap.Logger) error {
 				return errors.WrapIfWithDetails(err, "failed to reconcile resource", "resource", o.GetObjectKind().GroupVersionKind())
 			}
 		}
-		o = r.pod(node.Id, nodeConfig, pvcs, log)
+		o = r.pod(node, nodeConfig, pvcs, log)
 		err, isReady := r.reconcileNifiPod(log, o.(*corev1.Pod))
 		if err != nil {
 			return err
@@ -345,6 +344,23 @@ OUTERLOOP:
 				return errors.WrapIfWithDetails(err, "could not update status for node(s)", "id(s)", node.Labels["nodeId"])
 			}
 
+			for _, volume := range node.Spec.Volumes {
+				if strings.HasPrefix(volume.Name, nifiutil.NifiDataVolumeMount) {
+					err = r.Client.Delete(context.TODO(), &corev1.PersistentVolumeClaim{ObjectMeta: metav1.ObjectMeta{
+						Name:      volume.PersistentVolumeClaim.ClaimName,
+						Namespace: r.NifiCluster.Namespace,
+					}})
+					if err != nil {
+						if apierrors.IsNotFound(err) {
+							// can happen when node was not fully initialized and now is deleted
+							log.Info(fmt.Sprintf("PVC for Node %s not found. Continue", node.Labels["nodeId"]))
+						}
+
+						return errors.WrapIfWithDetails(err, "could not delete pvc for node", "id", node.Labels["nodeId"])
+					}
+				}
+			}
+
 			err = r.Client.Delete(context.TODO(), &node)
 			if err != nil {
 				return errors.WrapIfWithDetails(err, "could not delete node", "id", node.Labels["nodeId"])
@@ -365,29 +381,11 @@ OUTERLOOP:
 					return errors.WrapIfWithDetails(err, "could not delete service for node", "id", node.Labels["nodeId"])
 				}
 			}
-
-			for _, volume := range node.Spec.Volumes {
-				if strings.HasPrefix(volume.Name, nifiDataVolumeMount) {
-					err = r.Client.Delete(context.TODO(), &corev1.PersistentVolumeClaim{ObjectMeta: metav1.ObjectMeta{
-						Name:      volume.PersistentVolumeClaim.ClaimName,
-						Namespace: r.NifiCluster.Namespace,
-					}})
-					if err != nil {
-						if apierrors.IsNotFound(err) {
-							// can happen when node was not fully initialized and now is deleted
-							log.Info("PVC for Node not found. Continue",
-								zap.String("nodeId", node.Labels["nodeId"]))
-						}
-
-						return errors.WrapIfWithDetails(err, "could not delete pvc for node", "id", node.Labels["nodeId"])
-					}
-				}
-			}
-
+      
 			err = k8sutil.UpdateNodeStatus(r.Client, []string{node.Labels["nodeId"]}, r.NifiCluster,
 				v1alpha1.GracefulActionState{
 					ActionStep:  v1alpha1.RemovePodStatus,
-					State:       v1alpha1.GracefulDownscaleRunning,
+					State:       v1alpha1.GracefulDownscaleSucceeded,
 					TaskStarted: r.NifiCluster.Status.NodesState[node.Labels["nodeId"]].GracefulActionState.TaskStarted},
 				log)
 			if err != nil {
@@ -578,6 +576,13 @@ func (r *Reconciler) reconcileNifiPod(log zap.Logger, desiredPod *corev1.Pod) (e
 				statusErr, "updating status for resource failed", "kind", desiredType), false
 		}
 
+		// set node creation time
+		statusErr = k8sutil.UpdateNodeStatus(r.Client, []string{desiredPod.Labels["nodeId"]}, r.NifiCluster, metav1.NewTime(time.Now().UTC()), log)
+		if statusErr != nil {
+			return errorfactory.New(errorfactory.StatusUpdateError{},
+				statusErr, "failed to update node status creation time", "kind", desiredType), false
+		}
+
 		if val, ok := r.NifiCluster.Status.NodesState[desiredPod.Labels["nodeId"]]; ok &&
 			val.GracefulActionState.State != v1alpha1.GracefulUpscaleSucceeded {
 			gracefulActionState := v1alpha1.GracefulActionState{ErrorMessage: "", State: v1alpha1.GracefulUpscaleSucceeded}
@@ -613,7 +618,7 @@ func (r *Reconciler) reconcileNifiPod(log zap.Logger, desiredPod *corev1.Pod) (e
 		}
 	} else {
 		return errorfactory.New(errorfactory.TooManyResources{}, errors.New("reconcile failed"),
-			"more then one matching pod found", "labels", matchingLabels), false
+			"more than one matching pod found", "labels", matchingLabels), false
 	}
 
 	if err == nil {
@@ -706,6 +711,7 @@ func (r *Reconciler) reconcileNifiPod(log zap.Logger, desiredPod *corev1.Pod) (e
 			}
 		}
 
+		log.Info(fmt.Sprintf("Deleting pod %s", currentPod.Name))
 		err = r.Client.Delete(context.TODO(), currentPod)
 		if err != nil {
 			return errorfactory.New(errorfactory.APIFailure{},

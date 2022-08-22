@@ -8,6 +8,12 @@
 
 ### Removed
 
+## v0.13.0
+
+### Added
+
+- [PR #89](https://github.com/konpyutaika/nifikop/pull/89) - **[Operator/NifiNodeGroupAutoscaler]** Add NifiNodeGroupAutoscaler to automatically horizontally scale a NifiCluster resource via the Kubernetes HorizontalPodAutoscaler.
+
 ## v0.12.0
 
 ### Added

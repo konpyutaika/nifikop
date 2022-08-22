@@ -116,6 +116,7 @@ func Reconcile(log zap.Logger, client runtimeClient.Client, desired runtimeClien
 			zap.String("name", desired.GetName()),
 			zap.String("namespace", desired.GetNamespace()),
 			zap.String("kind", desired.GetObjectKind().GroupVersionKind().Kind))
+
 	}
 	return nil
 }
