@@ -2,6 +2,8 @@
 
 ### Added
 
+- [PR #138](https://github.com/konpyutaika/nifikop/pull/138) - **[Operator/NifiCluster]** Add ability to configure the NiFi Load Balance port.
+
 ### Changed
 
 ### Deprecated
