@@ -622,7 +622,7 @@ func (nConfig *NodeConfig) GetServiceAccount() string {
 	return "default"
 }
 
-//GetTolerations returns the tolerations for the given node
+// GetTolerations returns the tolerations for the given node
 func (nConfig *NodeConfig) GetTolerations() []corev1.Toleration {
 	return nConfig.Tolerations
 }
@@ -632,17 +632,16 @@ func (nConfig *NodeConfig) GetNodeSelector() map[string]string {
 	return nConfig.NodeSelector
 }
 
-//GetImagePullSecrets returns the list of Secrets needed to pull Containers images from private repositories
+// GetImagePullSecrets returns the list of Secrets needed to pull Containers images from private repositories
 func (nConfig *NodeConfig) GetImagePullSecrets() []corev1.LocalObjectReference {
 	return nConfig.ImagePullSecrets
 }
 
-//GetImagePullPolicy returns the image pull policy to pull containers images
+// GetImagePullPolicy returns the image pull policy to pull containers images
 func (nConfig *NodeConfig) GetImagePullPolicy() corev1.PullPolicy {
 	return nConfig.ImagePullPolicy
 }
 
-//
 func (nConfig *NodeConfig) GetPodAnnotations() map[string]string {
 	return nConfig.PodMetadata.Annotations
 }
@@ -677,7 +676,6 @@ func (nConfig *NodeConfig) GetPriorityClass() string {
 	return ""
 }
 
-//
 func (nConfig *NodeConfig) GetRunAsUser() *int64 {
 	var defaultUserID int64 = 1000
 	if nConfig.RunAsUser != nil {
@@ -696,7 +694,6 @@ func (nConfig *NodeConfig) GetFSGroup() *int64 {
 	return func(i int64) *int64 { return &i }(defaultGroupID)
 }
 
-//
 func (nConfig *NodeConfig) GetIsNode() bool {
 	if nConfig.IsNode != nil {
 		return *nConfig.IsNode
@@ -719,7 +716,6 @@ func (bProperties *BootstrapProperties) GetNifiJvmMemory() string {
 	return "512m"
 }
 
-//
 func (nProperties NifiProperties) GetAuthorizer() string {
 	if nProperties.Authorizer != "" {
 		return nProperties.Authorizer
@@ -727,7 +723,6 @@ func (nProperties NifiProperties) GetAuthorizer() string {
 	return "managed-authorizer"
 }
 
-//
 func (nSpec *NifiClusterSpec) GetMetricPort() *int {
 
 	for _, iListener := range nSpec.ListenersConfig.InternalListeners {
