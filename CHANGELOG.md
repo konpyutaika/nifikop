@@ -2,6 +2,9 @@
 
 ### Added
 
+- [PR #138](https://github.com/konpyutaika/nifikop/pull/138) - **[Operator/NifiCluster]** Add ability to configure the NiFi Load Balance port.
+- [PR #144](https://github.com/konpyutaika/nifikop/pull/144) - **[Operator]** Add automatic detection of k8s prior 1.21.
+
 ### Changed
 
 ### Deprecated
