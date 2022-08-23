@@ -119,12 +119,6 @@ func (r *NifiClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		}
 	}
 
-	if instance.Status.State != v1alpha1.NifiClusterRollingUpgrading {
-		if err := k8sutil.UpdateCRStatus(r.Client, instance, v1alpha1.NifiClusterReconciling, r.Log); err != nil {
-			return RequeueWithError(r.Log, err.Error(), err)
-		}
-	}
-
 	reconcilers := []resources.ComponentReconciler{
 		nifi.New(r.Client, r.DirectClient, r.Scheme, instance),
 	}
@@ -181,11 +175,13 @@ func (r *NifiClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		}
 	}
 
-	if err := k8sutil.UpdateCRStatus(r.Client, instance, v1alpha1.NifiClusterRunning, r.Log); err != nil {
-		return RequeueWithError(r.Log, err.Error(), err)
+	if !instance.IsReady() {
+		if err := k8sutil.UpdateCRStatus(r.Client, instance, v1alpha1.NifiClusterRunning, r.Log); err != nil {
+			return RequeueWithError(r.Log, err.Error(), err)
+		}
 	}
 
-	return Reconciled()
+	return RequeueAfter(intervalRunning)
 }
 
 // SetupWithManager sets up the controller with the Manager.
