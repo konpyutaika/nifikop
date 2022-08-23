@@ -287,21 +287,32 @@ func GetRequeueInterval(interval int, offset int) time.Duration {
 }
 
 func IsK8sPrior1_21() bool {
+	major, minor, err := GetK8sVersion()
+	return err == nil && *major == 1 && *minor < 21
+}
+
+func GetK8sVersion() (major *int, minor *int, err error) {
 	cfg, err := config.GetConfig()
-	if err == nil {
-		discoveryClient, err := discovery.NewDiscoveryClientForConfig(cfg)
-		if err == nil {
-			info, err := discoveryClient.ServerVersion()
-			if err == nil {
-				major, err := strconv.Atoi(info.Major)
-				if err == nil && major == 1 {
-					minor, err := strconv.Atoi(info.Minor)
-					if err == nil && minor < 21 {
-						return true
-					}
-				}
-			}
-		}
+	if err != nil {
+		return nil, nil, err
 	}
-	return false
+	discoveryClient, err := discovery.NewDiscoveryClientForConfig(cfg)
+	if err != nil {
+		return nil, nil, err
+	}
+	info, err := discoveryClient.ServerVersion()
+	if err != nil {
+		return nil, nil, err
+	}
+	maj, err := strconv.Atoi("info.Major")
+	if err != nil {
+		return nil, nil, err
+	}
+	major = &maj
+	min, err := strconv.Atoi(info.Minor)
+	if err != nil {
+		return nil, nil, err
+	}
+	minor = &min
+	return major, minor, nil
 }
