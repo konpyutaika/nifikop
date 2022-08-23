@@ -192,7 +192,6 @@ done`,
 	return pod
 }
 
-//
 func generateDataVolumeAndVolumeMount(pvcs []corev1.PersistentVolumeClaim) (volume []corev1.Volume, volumeMount []corev1.VolumeMount) {
 
 	for _, pvc := range pvcs {
@@ -216,7 +215,6 @@ func generateDataVolumeAndVolumeMount(pvcs []corev1.PersistentVolumeClaim) (volu
 	return
 }
 
-//
 func generatePodAntiAffinity(clusterName string, hardRuleEnabled bool) *corev1.PodAntiAffinity {
 	podAntiAffinity := corev1.PodAntiAffinity{}
 	if hardRuleEnabled {
@@ -248,7 +246,6 @@ func generatePodAntiAffinity(clusterName string, hardRuleEnabled bool) *corev1.P
 	return &podAntiAffinity
 }
 
-//
 func (r *Reconciler) generateContainerPortForInternalListeners() []corev1.ContainerPort {
 	var usedPorts []corev1.ContainerPort
 
@@ -263,7 +260,6 @@ func (r *Reconciler) generateContainerPortForInternalListeners() []corev1.Contai
 	return usedPorts
 }
 
-//
 func (r *Reconciler) generateContainerPortForExternalListeners() []corev1.ContainerPort {
 	var usedPorts []corev1.ContainerPort
 
@@ -278,7 +274,6 @@ func (r *Reconciler) generateContainerPortForExternalListeners() []corev1.Contai
 	return usedPorts
 }
 
-//
 func (r *Reconciler) generateDefaultContainerPort() []corev1.ContainerPort {
 
 	usedPorts := []corev1.ContainerPort{
