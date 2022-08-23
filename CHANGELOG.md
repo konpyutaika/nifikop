@@ -4,6 +4,8 @@
 
 ### Changed
 
+- [PR #140](https://github.com/konpyutaika/nifikop/pull/140) - **[Operator]** Fixed issue where operator would modify `NifiCluster` and `NifiDataflow` status on every reconciliation loop unnecessarily.
+
 ### Deprecated
 
 ### Removed
