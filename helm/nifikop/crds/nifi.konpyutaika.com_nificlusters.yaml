@@ -1452,13 +1452,15 @@ spec:
                           description: (Optional field) Type allow to specify if we
                             are in a specific nifi listener it's allowing to define
                             some required information such as Cluster Port, Http Port,
-                            Https Port or S2S port
+                            Https Port, Prometheus port, Load Balance port, or S2S
+                            port
                           enum:
                           - cluster
                           - http
                           - https
                           - s2s
                           - prometheus
+                          - load-balance
                           type: string
                       required:
                       - containerPort

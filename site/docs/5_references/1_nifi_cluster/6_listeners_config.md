@@ -21,6 +21,9 @@ ListenersConfig defines the Nifi listener types :
       - type: "prometheus"
         name: "prometheus"
         containerPort: 9090
+      - type: "load-balance"
+        name: "load-balance"
+        containerPort: 6342
     sslSecrets:
       tlsSecretName: "test-nifikop"
       create: true
@@ -39,7 +42,7 @@ ListenersConfig defines the Nifi listener types :
 
 Field|Type|Description|Required|Default|
 |-----|----|-----------|--------|--------|
-|type|enum{ "cluster", "http", "https", "s2s", "prometheus"}| allow to specify if we are in a specific nifi listener it's allowing to define some required information such as Cluster Port, Http Port, Https Port, S2S or Prometheus port| Yes | - |
+|type|enum{ "cluster", "http", "https", "s2s", "prometheus", "load-balance"}| allow to specify if we are in a specific nifi listener it's allowing to define some required information such as Cluster Port, Http Port, Https Port, S2S, Load Balance port, or Prometheus port| Yes | - |
 |name|string| an identifier for the port which will be configured. | Yes | - |
 |containerPort|int32| the containerPort. | Yes | - |
 
