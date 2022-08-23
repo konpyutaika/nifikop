@@ -2,11 +2,12 @@ package controllers
 
 import (
 	"fmt"
-	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
 	"time"
 
+	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
+	"go.uber.org/zap"
+
 	"emperror.dev/errors"
-	"github.com/go-logr/logr"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -21,8 +22,7 @@ var ClusterRefLabel = "nifiCluster"
 // requeueWithError is a convenience wrapper around logging an error message
 // separate from the stacktrace and then passing the error through to the controller
 // manager
-func RequeueWithError(logger logr.Logger, msg string, err error) (reconcile.Result, error) {
-	// Info log the error message and then let the reconciler dump the stacktrace
+func RequeueWithError(logger zap.Logger, msg string, err error) (reconcile.Result, error) {
 	logger.Info(msg)
 	return reconcile.Result{}, err
 }
@@ -48,7 +48,7 @@ func ClusterLabelString(cluster *v1alpha1.NifiCluster) string {
 
 // checkNodeConnectionError is a convenience wrapper for returning from common
 // node connection errors
-func CheckNodeConnectionError(logger logr.Logger, err error) (ctrl.Result, error) {
+func CheckNodeConnectionError(logger zap.Logger, err error) (ctrl.Result, error) {
 	switch errors.Cause(err).(type) {
 	case errorfactory.NodesUnreachable:
 		return ctrl.Result{

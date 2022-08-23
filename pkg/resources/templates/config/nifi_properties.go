@@ -3,9 +3,9 @@ package config
 import (
 	"fmt"
 
-	"github.com/go-logr/logr"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/util/nifi"
+	"go.uber.org/zap"
 )
 
 var NifiPropertiesTemplate = `# Licensed to the Apache Software Foundation (ASF) under one or more
@@ -252,7 +252,7 @@ func GenerateListenerSpecificConfig(
 	clusterDomain string,
 	useExternalDNS bool,
 	serviceTemplate string,
-	log logr.Logger) string {
+	log zap.Logger) string {
 
 	var nifiConfig string
 

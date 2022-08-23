@@ -7,10 +7,9 @@ import (
 	"github.com/konpyutaika/nifikop/pkg/common"
 	"github.com/konpyutaika/nifikop/pkg/nificlient"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
-	ctrl "sigs.k8s.io/controller-runtime"
 )
 
-var log = ctrl.Log.WithName("registryclient-method")
+var log = common.CustomLogger().Named("registryclient-method")
 
 func ExistRegistryClient(registryClient *v1alpha1.NifiRegistryClient, config *clientconfig.NifiConfig) (bool, error) {
 
@@ -45,7 +44,7 @@ func CreateRegistryClient(registryClient *v1alpha1.NifiRegistryClient,
 	updateRegistryClientEntity(registryClient, &scratchEntity)
 
 	entity, err := nClient.CreateRegistryClient(scratchEntity)
-	if err := clientwrappers.ErrorCreateOperation(log, err, "Create registry-client"); err != nil {
+	if err := clientwrappers.ErrorCreateOperation(log, err, "Failed to create registry-client "+registryClient.Name); err != nil {
 		return nil, err
 	}
 

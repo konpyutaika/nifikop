@@ -34,9 +34,9 @@ spec:
   #      imagePullPolicy: IfNotPresent
   #      command: ["sh", "-c", "cp -vr /nifi_lib/* /nifi_lib_volume/"]
   #      volumeMounts:
-  #        - name: extensions-repository
+  #        - name: nifi-data-extensions-repository
   #          mountPath: /nifi_lib_volume
-  #        - name: logs
+  #        - name: nifi-data-logs
   #          mountPath: /logs
   # clusterImage can specify the whole nificluster image in one place
   clusterImage: "apache/nifi:1.12.1"
@@ -99,6 +99,7 @@ spec:
       #	on template, configurations and overrideConfigMap
       overrideConfigs: |
         nifi.ui.banner.text=NiFiKop
+        nifi.sensitive.props.key=thisIsABadSensitiveKeyPassword
       # A comma separated list of allowed HTTP Host header values to consider when NiFi
       # is running securely and will be receiving requests to a different host[:port] than it is bound to.
       # https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#web-properties

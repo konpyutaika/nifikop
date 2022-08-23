@@ -14,6 +14,7 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/imdario/mergo"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
@@ -55,6 +56,25 @@ func MapStringStringPointer(in map[string]string) (out map[string]*string) {
 		out[k] = StringPointer(v)
 	}
 	return
+}
+
+// MergeHostAliases takes two host alias lists and merges them. For IP conflicts, the latter/second list takes precedence
+func MergeHostAliases(globalAliases []corev1.HostAlias, overrideAliases []corev1.HostAlias) []corev1.HostAlias {
+	aliasesMap := map[string]corev1.HostAlias{}
+	aliases := []corev1.HostAlias{}
+
+	for _, alias := range globalAliases {
+		aliasesMap[alias.IP] = alias
+	}
+	// the below will override any existing IPs
+	for _, alias := range overrideAliases {
+		aliasesMap[alias.IP] = alias
+	}
+	for _, alias := range aliasesMap {
+		aliases = append(aliases, alias)
+	}
+
+	return aliases
 }
 
 // MergeLabels merges two given labels
@@ -200,6 +220,31 @@ func NodesToIdList(nodes []v1alpha1.Node) (ids []int32) {
 		ids = append(ids, node.Id)
 	}
 	return
+}
+
+func NodesToIdMap(nodes []v1alpha1.Node) (nodeMap map[int32]v1alpha1.Node) {
+	nodeMap = make(map[int32]v1alpha1.Node)
+	for _, node := range nodes {
+		nodeMap[node.Id] = node
+	}
+	return
+}
+
+// SubtractNodes removes nodesToRemove from the originalNodes list by the node's Ids and returns the result
+func SubtractNodes(originalNodes []v1alpha1.Node, nodesToRemove []v1alpha1.Node) (results []v1alpha1.Node) {
+	if len(originalNodes) == 0 || len(nodesToRemove) == 0 {
+		return originalNodes
+	}
+	nodesToRemoveMap := NodesToIdMap(nodesToRemove)
+	results = []v1alpha1.Node{}
+
+	for _, node := range originalNodes {
+		if _, found := nodesToRemoveMap[node.Id]; !found {
+			// results are those which are _not_ in the nodesToRemove map
+			results = append(results, node)
+		}
+	}
+	return results
 }
 
 // computes the max between 2 ints

@@ -5,11 +5,11 @@ import (
 	"crypto/tls"
 	"fmt"
 
-	"github.com/go-logr/logr"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/resources/templates"
 	certutil "github.com/konpyutaika/nifikop/pkg/util/cert"
 	"github.com/konpyutaika/nifikop/pkg/util/nifi"
+	"go.uber.org/zap"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -39,10 +39,10 @@ type Manager interface {
 	// ReconcilePKI ensures a PKI for a nifi cluster - should be idempotent.
 	// This method should at least setup any issuer needed for user certificates
 	// as well as node secrets
-	ReconcilePKI(ctx context.Context, logger logr.Logger, scheme *runtime.Scheme, externalHostnames []string) error
+	ReconcilePKI(ctx context.Context, logger zap.Logger, scheme *runtime.Scheme, externalHostnames []string) error
 
 	// FinalizePKI performs any cleanup steps necessary for a PKI backend
-	FinalizePKI(ctx context.Context, logger logr.Logger) error
+	FinalizePKI(ctx context.Context, logger zap.Logger) error
 
 	// ReconcileUserCertificate ensures and returns a user certificate - should be idempotent
 	ReconcileUserCertificate(ctx context.Context, user *v1alpha1.NifiUser, scheme *runtime.Scheme) (*UserCertificate, error)

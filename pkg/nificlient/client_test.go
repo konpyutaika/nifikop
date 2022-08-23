@@ -2,10 +2,12 @@ package nificlient
 
 import (
 	"fmt"
-	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
 	"net/http"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	"testing"
+
+	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
+	"go.uber.org/zap"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
 	"github.com/jarcoal/httpmock"
@@ -34,7 +36,7 @@ var (
 
 func TestNew(t *testing.T) {
 	opts := newMockOpts()
-	if client := New(opts); client == nil {
+	if client := New(opts, zap.NewNop()); client == nil {
 		t.Error("Expected new client, got nil")
 	}
 }

@@ -4,18 +4,18 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/go-logr/logr"
 	"github.com/imdario/mergo"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/resources/templates"
 	"github.com/konpyutaika/nifikop/pkg/util"
 	nifiutil "github.com/konpyutaika/nifikop/pkg/util/nifi"
+	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	runtimeClient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func (r *Reconciler) service(id int32, log logr.Logger) runtimeClient.Object {
+func (r *Reconciler) service(id int32, log zap.Logger) runtimeClient.Object {
 
 	usedPorts := generateServicePortForInternalListeners(r.NifiCluster.Spec.ListenersConfig.InternalListeners)
 
@@ -38,14 +38,16 @@ func (r *Reconciler) service(id int32, log logr.Logger) runtimeClient.Object {
 	}
 }
 
-func (r *Reconciler) externalServices(log logr.Logger) []runtimeClient.Object {
+func (r *Reconciler) externalServices(log zap.Logger) []runtimeClient.Object {
 
 	var services []runtimeClient.Object
 	for _, eService := range r.NifiCluster.Spec.ExternalServices {
 
 		annotations := &eService.Metadata.Annotations
 		if err := mergo.Merge(annotations, r.NifiCluster.Spec.Service.Annotations); err != nil {
-			log.Error(err, "error occurred during merging service annotations")
+			log.Error("error occurred during merging service annotations",
+				zap.String("clusterName", r.NifiCluster.Name),
+				zap.Error(err))
 		}
 
 		usedPorts := r.generateServicePortForExternalListeners(eService)

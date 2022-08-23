@@ -64,7 +64,7 @@ RUN groupadd --gid 3434 circleci \
 RUN curl https://raw.githubusercontent.com/golang/dep/master/install.sh | INSTALL_DIRECTORY=/usr/local/bin sh
 RUN curl -sSL https://github.com/gotestyourself/gotestsum/releases/download/v0.3.4/gotestsum_0.3.4_linux_amd64.tar.gz | \
   tar -xz -C /usr/local/bin gotestsum
-RUN go install -u golang.org/x/lint/golint
+RUN go install golang.org/x/lint/golint@latest
 
 # Install kubectl cli
 RUN curl -L https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl -o /usr/local/bin/kubectl  \
