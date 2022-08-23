@@ -243,7 +243,6 @@ nifi.kerberos.spnego.authentication.expiration=12 hours
 nifi.variable.registry.properties=
 `
 
-//
 func GenerateListenerSpecificConfig(
 	l *v1alpha1.ListenersConfig,
 	nodeId int32,
