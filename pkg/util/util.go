@@ -11,11 +11,13 @@ import (
 	"time"
 
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
+	"sigs.k8s.io/controller-runtime/pkg/client/config"
 
 	"emperror.dev/errors"
 	"github.com/imdario/mergo"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/client-go/discovery"
 )
 
 // IntstrPointer generate IntOrString pointer from int
@@ -282,4 +284,24 @@ func GetRequeueInterval(interval int, offset int) time.Duration {
 	duration := interval + rand.Intn(offset+1) - (offset / 2)
 	duration = Max(duration, rand.Intn(5)+1) // make sure duration does not go zero for very large offsets
 	return time.Duration(duration) * time.Second
+}
+
+func IsK8sPrior1_21() bool {
+	cfg, err := config.GetConfig()
+	if err == nil {
+		discoveryClient, err := discovery.NewDiscoveryClientForConfig(cfg)
+		if err == nil {
+			info, err := discoveryClient.ServerVersion()
+			if err == nil {
+				major, err := strconv.Atoi(info.Major)
+				if err == nil && major == 1 {
+					minor, err := strconv.Atoi(info.Minor)
+					if err == nil && minor < 21 {
+						return true
+					}
+				}
+			}
+		}
+	}
+	return false
 }
