@@ -77,7 +77,6 @@ func (r *Reconciler) externalServices(log zap.Logger) []runtimeClient.Object {
 	return services
 }
 
-//
 func generateServicePortForInternalListeners(listeners []v1alpha1.InternalListenerConfig) []corev1.ServicePort {
 	var usedPorts []corev1.ServicePort
 

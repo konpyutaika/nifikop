@@ -128,7 +128,7 @@ func CustomLogger() *zap.Logger {
 			CallerKey:      "caller",
 			FunctionKey:    zapcore.OmitKey,
 			StacktraceKey:  "stacktrace",
-			EncodeTime:     zapcore.EpochNanosTimeEncoder,
+			EncodeTime:     zapcore.ISO8601TimeEncoder,
 			EncodeLevel:    zapcore.LowercaseLevelEncoder,
 			EncodeCaller:   zapcore.ShortCallerEncoder,
 			LineEnding:     zapcore.DefaultLineEnding,

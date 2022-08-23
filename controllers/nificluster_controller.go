@@ -104,7 +104,7 @@ func (r *NifiClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 			RequeueAfter: time.Duration(15) * time.Second,
 		}, nil
 	}
-	//
+
 	if len(instance.Status.State) == 0 || instance.Status.State == v1alpha1.NifiClusterInitializing {
 		if err := k8sutil.UpdateCRStatus(r.Client, instance, v1alpha1.NifiClusterInitializing, r.Log); err != nil {
 			return RequeueWithError(r.Log, err.Error(), err)
@@ -115,12 +115,6 @@ func (r *NifiClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 			}
 		}
 		if err := k8sutil.UpdateCRStatus(r.Client, instance, v1alpha1.NifiClusterInitialized, r.Log); err != nil {
-			return RequeueWithError(r.Log, err.Error(), err)
-		}
-	}
-
-	if instance.Status.State != v1alpha1.NifiClusterRollingUpgrading {
-		if err := k8sutil.UpdateCRStatus(r.Client, instance, v1alpha1.NifiClusterReconciling, r.Log); err != nil {
 			return RequeueWithError(r.Log, err.Error(), err)
 		}
 	}
@@ -181,11 +175,14 @@ func (r *NifiClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		}
 	}
 
-	if err := k8sutil.UpdateCRStatus(r.Client, instance, v1alpha1.NifiClusterRunning, r.Log); err != nil {
-		return RequeueWithError(r.Log, err.Error(), err)
+	// If the cluster isn't already set to be ready, make it so
+	if !instance.IsReady() {
+		if err := k8sutil.UpdateCRStatus(r.Client, instance, v1alpha1.NifiClusterRunning, r.Log); err != nil {
+			return RequeueWithError(r.Log, err.Error(), err)
+		}
 	}
 
-	return Reconciled()
+	return RequeueAfter(intervalRunning)
 }
 
 // SetupWithManager sets up the controller with the Manager.
