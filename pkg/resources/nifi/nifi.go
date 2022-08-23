@@ -344,7 +344,19 @@ OUTERLOOP:
 			}
 
 			for _, volume := range node.Spec.Volumes {
-				if strings.HasPrefix(volume.Name, nifiutil.NifiDataVolumeMount) {
+				if volume.PersistentVolumeClaim == nil {
+					continue
+				}
+				pvcFound := &corev1.PersistentVolumeClaim{}
+				r.Client.Get(context.TODO(),
+					types.NamespacedName{
+						Name:      volume.PersistentVolumeClaim.ClaimName,
+						Namespace: r.NifiCluster.Namespace,
+					},
+					pvcFound,
+				)
+
+				if pvcFound.Labels[nifiutil.NifiDataVolumeMountKey] == "true" {
 					err = r.Client.Delete(context.TODO(), &corev1.PersistentVolumeClaim{ObjectMeta: metav1.ObjectMeta{
 						Name:      volume.PersistentVolumeClaim.ClaimName,
 						Namespace: r.NifiCluster.Namespace,
