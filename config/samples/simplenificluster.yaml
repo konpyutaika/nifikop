@@ -73,3 +73,6 @@ spec:
       - containerPort: 9090
         type: prometheus
         name: prometheus
+      - containerPort: 6342
+        type: load-balance
+        name: load-balance

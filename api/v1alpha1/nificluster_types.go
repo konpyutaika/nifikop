@@ -13,11 +13,12 @@ import (
 )
 
 const (
-	ClusterListenerType    = "cluster"
-	HttpListenerType       = "http"
-	HttpsListenerType      = "https"
-	S2sListenerType        = "s2s"
-	PrometheusListenerType = "prometheus"
+	ClusterListenerType     = "cluster"
+	HttpListenerType        = "http"
+	HttpsListenerType       = "https"
+	S2sListenerType         = "s2s"
+	PrometheusListenerType  = "prometheus"
+	LoadBalanceListenerType = "load-balance"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
@@ -393,10 +394,10 @@ type SSLSecrets struct {
 
 // InternalListenerConfig defines the internal listener config for Nifi
 type InternalListenerConfig struct {
-	// +kubebuilder:validation:Enum={"cluster", "http", "https", "s2s", "prometheus"}
+	// +kubebuilder:validation:Enum={"cluster", "http", "https", "s2s", "prometheus", "load-balance"}
 	// (Optional field) Type allow to specify if we are in a specific nifi listener
 	// it's allowing to define some required information such as Cluster Port,
-	// Http Port, Https Port or S2S port
+	// Http Port, Https Port, Prometheus port, Load Balance port, or S2S port
 	Type string `json:"type,omitempty"`
 	// An identifier for the port which will be configured.
 	Name string `json:"name"`
