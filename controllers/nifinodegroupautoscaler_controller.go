@@ -19,6 +19,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+
 	"go.uber.org/zap"
 
 	"emperror.dev/errors"
@@ -298,8 +299,13 @@ func (r *NifiNodeGroupAutoscalerReconciler) getManagedNodes(autoscaler *v1alpha1
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *NifiNodeGroupAutoscalerReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	logCtr, err := GetLogConstructor(mgr, &v1alpha1.NifiNodeGroupAutoscaler{})
+	if err != nil {
+		return err
+	}
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&v1alpha1.NifiNodeGroupAutoscaler{}).
+		WithLogConstructor(logCtr).
 		Complete(r)
 }
 

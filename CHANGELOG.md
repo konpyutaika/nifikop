@@ -8,6 +8,7 @@
 ### Changed
 
 - [PR #146](https://github.com/konpyutaika/nifikop/pull/146) - **[Operator/NifiCluster]** Move from volume prefix to pvc label selection for deletion
+- [PR #151](https://github.com/konpyutaika/nifikop/pull/151) - **[Operator]** Fixed an issue where the controller logging erroneously appeared to all come from the same controller.
 
 ### Deprecated
 

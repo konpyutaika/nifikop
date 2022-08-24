@@ -8,7 +8,7 @@ require (
 	github.com/banzaicloud/k8s-objectmatcher v1.4.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/erdrix/nigoapi v0.0.0-20211122092449-0fa36e567288
-	github.com/go-logr/zapr v1.2.0
+	github.com/go-logr/zapr v1.2.3
 	github.com/imdario/mergo v0.3.12
 	github.com/jarcoal/httpmock v1.0.6
 	github.com/jetstack/cert-manager v1.7.2
@@ -16,7 +16,7 @@ require (
 	github.com/onsi/gomega v1.18.1
 	github.com/pavel-v-chernykh/keystore-go v2.1.0+incompatible
 	github.com/stretchr/testify v1.7.0
-	go.uber.org/zap v1.19.1
+	go.uber.org/zap v1.22.0
 	k8s.io/api v0.24.0
 	k8s.io/apimachinery v0.24.0
 	k8s.io/client-go v0.24.0
@@ -40,7 +40,7 @@ require (
 	github.com/evanphx/json-patch v4.12.0+incompatible // indirect
 	github.com/form3tech-oss/jwt-go v3.2.3+incompatible // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
-	github.com/go-logr/logr v1.2.0 // indirect
+	github.com/go-logr/logr v1.2.2 // indirect
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
 	github.com/go-openapi/jsonreference v0.19.5 // indirect
 	github.com/go-openapi/swag v0.19.14 // indirect
@@ -83,7 +83,7 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/apiextensions-apiserver v0.24.0 // indirect
 	k8s.io/component-base v0.24.0 // indirect
 	k8s.io/klog/v2 v2.60.1 // indirect

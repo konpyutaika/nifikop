@@ -23,7 +23,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
-	nifiv1alpha1 "github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/controllers"
 	// +kubebuilder:scaffold:imports
 )
@@ -34,9 +33,7 @@ var (
 
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
-
 	utilruntime.Must(v1alpha1.AddToScheme(scheme))
-	utilruntime.Must(nifiv1alpha1.AddToScheme(scheme))
 	// +kubebuilder:scaffold:scheme
 }
 
