@@ -1,0 +1,53 @@
+name: Support Question
+description: Any support questions you might have.
+labels: ["support", "community"]
+body:
+
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for filing an issue! Before hitting submit, please answer the following questions.
+
+        Fill in as much of the template below as you can. If you leave out information, we can't help you as well.
+
+        We will try our best to answer the question, but we also have a mailing list and slack channel for any other questions.
+
+  - type: dropdown
+    attributes:
+      label: Type of question
+      options:
+        - Best Practises
+        - Implementation Assistance
+        - General Context
+      validations:
+        required: true
+
+  - type: textarea
+    attributes:
+      label: Support question
+      description: Add any other context about the problem here
+    validations:
+      required: true
+
+  - type: input
+    attributes:
+      label: NiFiKop version
+      description: NiFiKop release or git SHA
+      placeholder: v0.13.0-release
+
+  - type: input
+    attributes:
+      label: Golang version
+      description: Insert the output of `go version` here
+      placeholder: go version go1.19 darwin/amd64
+
+  - type: input
+    attributes:
+      label: Kubernetes version
+      description: Insert the output of `kubectl version` here
+
+  - type: input
+    attributes:
+      label: NiFi version
+      description: Insert release NiFi version here
+      placeholder: 1.17.0
