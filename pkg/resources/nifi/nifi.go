@@ -348,13 +348,18 @@ OUTERLOOP:
 					continue
 				}
 				pvcFound := &corev1.PersistentVolumeClaim{}
-				r.Client.Get(context.TODO(),
+				if err := r.Client.Get(context.TODO(),
 					types.NamespacedName{
 						Name:      volume.PersistentVolumeClaim.ClaimName,
 						Namespace: r.NifiCluster.Namespace,
 					},
 					pvcFound,
-				)
+				); err != nil {
+					if apierrors.IsNotFound(err) {
+						continue
+					}
+					return errors.WrapIfWithDetails(err, "could not get pvc for node", "id", node.Labels["nodeId"])
+				}
 
 				if pvcFound.Labels[nifiutil.NifiDataVolumeMountKey] == "true" {
 					err = r.Client.Delete(context.TODO(), &corev1.PersistentVolumeClaim{ObjectMeta: metav1.ObjectMeta{
