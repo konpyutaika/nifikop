@@ -10,7 +10,7 @@ body:
 
         Fill in as much of the template below as you can. If you leave out information, we can't help you as well.
 
-  - type: input
+  - type: textarea
     attributes:
       label: What steps will reproduce the bug?
       description: Enter details about your bug
@@ -57,10 +57,14 @@ body:
     validations:
       required: true
 
-  - type: input
+  - type: textarea
     attributes:
       label: Kubernetes version
       description: Insert the output of `kubectl version` here
+      placeholder: |
+        Client Version: version.Info{Major:"1", Minor:"25", GitVersion:"v1.25.0", GitCommit:"a866cbe2e5bbaa01cfd5e969aa3e033f3282a8a2", GitTreeState:"clean", BuildDate:"2022-08-23T17:44:59Z", GoVersion:"go1.19", Compiler:"gc", Platform:"darwin/amd64"}
+        Kustomize Version: v4.5.7
+        Server Version: version.Info{Major:"1", Minor:"24", GitVersion:"v1.24.3", GitCommit:"aef86a93758dc3cb2c658dd9657ab4ad4afc21cb", GitTreeState:"clean", BuildDate:"2022-08-11T22:48:42Z", GoVersion:"go1.18.3", Compiler:"gc", Platform:"linux/arm64"}
     validations:
       required: true
 
