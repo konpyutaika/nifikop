@@ -7,6 +7,8 @@
 
 ### Changed
 
+- [PR #151](https://github.com/konpyutaika/nifikop/pull/151) - **[Operator]** Fixed an issue where the controller logging erroneously appeared to all come from the same controller.
+
 ### Deprecated
 
 ### Removed
