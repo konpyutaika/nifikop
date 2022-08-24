@@ -19,8 +19,9 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"github.com/konpyutaika/nifikop/api/v1"
 	"time"
+
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 
 	"emperror.dev/errors"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
@@ -107,8 +108,17 @@ func (r *NifiClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		if err := k8sutil.UpdateCRStatus(r.Client, instance, v1.NifiClusterInitializing, r.Log); err != nil {
 			return RequeueWithError(r.Log, err.Error(), err)
 		}
+		cert, err := pki.GetPKIManager(r.Client, instance).GetCertificate(ctx, r.Log)
+		if err != nil {
+			return RequeueWithError(r.Log, err.Error(), err)
+		}
+		certRenewalTime := v1.CertificateExpireDate(cert.Status.RenewalTime.Time.Format(time.RFC3339))
+
 		for nId := range instance.Spec.Nodes {
 			if err := k8sutil.UpdateNodeStatus(r.Client, []string{fmt.Sprint(instance.Spec.Nodes[nId].Id)}, instance, v1.IsInitClusterNode, r.Log); err != nil {
+				return RequeueWithError(r.Log, err.Error(), err)
+			}
+			if err := k8sutil.UpdateNodeStatus(r.Client, []string{fmt.Sprint(instance.Spec.Nodes[nId].Id)}, instance, certRenewalTime, r.Log); err != nil {
 				return RequeueWithError(r.Log, err.Error(), err)
 			}
 		}

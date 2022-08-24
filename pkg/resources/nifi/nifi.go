@@ -3,10 +3,11 @@ package nifi
 import (
 	"context"
 	"fmt"
-	"github.com/konpyutaika/nifikop/api/v1"
 	"reflect"
 	"strings"
 	"time"
+
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/dataflow"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/scale"
@@ -182,6 +183,7 @@ func (r *Reconciler) Reconcile(log zap.Logger) error {
 				return errors.WrapIfWithDetails(err, "could not update status for node(s)",
 					"id(s)", o.(*corev1.Pod).Labels["nodeId"])
 			}
+			pki.GetPKIManager(r.Client, r.NifiCluster).UpdateCertificateStatusDate(context.TODO(), o.(*corev1.Pod), log)
 		}
 	}
 
@@ -659,7 +661,8 @@ func (r *Reconciler) reconcileNifiPod(log zap.Logger, desiredPod *corev1.Pod) (e
 				zap.Error(err))
 		} else if patchResult.IsEmpty() {
 			if !k8sutil.IsPodTerminatedOrShutdown(currentPod) &&
-				r.NifiCluster.Status.NodesState[currentPod.Labels["nodeId"]].ConfigurationState == v1.ConfigInSync {
+				r.NifiCluster.Status.NodesState[currentPod.Labels["nodeId"]].ConfigurationState == v1.ConfigInSync &&
+				!pki.GetPKIManager(r.Client, r.NifiCluster).IsCertificateExpired(context.TODO(), currentPod, log) {
 
 				if val, found := r.NifiCluster.Status.NodesState[desiredPod.Labels["nodeId"]]; found &&
 					val.GracefulActionState.State == v1.GracefulUpscaleRunning &&

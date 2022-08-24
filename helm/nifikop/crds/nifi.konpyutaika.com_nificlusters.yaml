@@ -7943,6 +7943,10 @@ spec:
               nodesState:
                 additionalProperties:
                   properties:
+                    certificateExpireDate:
+                      description: Certificate expire date contains the date when
+                        the certificate should be renewed
+                      type: string
                     configurationState:
                       type: string
                     creationTime:
