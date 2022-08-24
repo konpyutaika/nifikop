@@ -168,10 +168,15 @@ func (r *NifiClusterTaskReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *NifiClusterTaskReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	logCtr, err := GetLogConstructor(mgr, &v1alpha1.NifiCluster{})
+	if err != nil {
+		return err
+	}
 	builder := ctrl.NewControllerManagedBy(mgr).
-		For(&v1alpha1.NifiCluster{})
+		For(&v1alpha1.NifiCluster{}).
+		WithLogConstructor(logCtr)
 
-	err := builder.WithEventFilter(
+	err = builder.WithEventFilter(
 		predicate.Funcs{
 			UpdateFunc: func(e event.UpdateEvent) bool {
 				object, err := meta.Accessor(e.ObjectNew)

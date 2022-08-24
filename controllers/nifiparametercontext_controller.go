@@ -316,8 +316,13 @@ func (r *NifiParameterContextReconciler) Reconcile(ctx context.Context, req ctrl
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *NifiParameterContextReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	logCtr, err := GetLogConstructor(mgr, &v1alpha1.NifiParameterContext{})
+	if err != nil {
+		return err
+	}
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&v1alpha1.NifiParameterContext{}).
+		WithLogConstructor(logCtr).
 		Complete(r)
 }
 
