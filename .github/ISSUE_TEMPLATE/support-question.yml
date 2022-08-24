@@ -16,7 +16,7 @@ body:
     attributes:
       label: Type of question
       options:
-        - Best Practises
+        - Best Practices
         - Implementation Assistance
         - General Context
       validations:
