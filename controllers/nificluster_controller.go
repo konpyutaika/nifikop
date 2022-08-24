@@ -196,9 +196,14 @@ func (r *NifiClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *NifiClusterReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	logCtr, err := GetLogConstructor(mgr, &v1alpha1.NifiCluster{})
+	if err != nil {
+		return err
+	}
 	if util.IsK8sPrior1_21() {
 		return ctrl.NewControllerManagedBy(mgr).
 			For(&v1alpha1.NifiCluster{}).
+			WithLogConstructor(logCtr).
 			Owns(&policyv1beta1.PodDisruptionBudget{}).
 			Owns(&corev1.Service{}).
 			Owns(&corev1.Pod{}).
@@ -209,6 +214,7 @@ func (r *NifiClusterReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&v1alpha1.NifiCluster{}).
+		WithLogConstructor(logCtr).
 		Owns(&policyv1.PodDisruptionBudget{}).
 		Owns(&corev1.Service{}).
 		Owns(&corev1.Pod{}).
