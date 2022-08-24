@@ -433,7 +433,10 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 			if err := r.Client.Status().Update(ctx, instance); err != nil {
 				return RequeueWithError(r.Log, "failed to update status for NifiDataflow "+instance.Name, err)
 			}
-
+			r.Log.Info("Successfully ran dataflow",
+				zap.String("clusterName", instance.Spec.ClusterRef.Name),
+				zap.String("flowId", instance.Spec.FlowId),
+				zap.String("dataflow", instance.Name))
 			r.Recorder.Event(instance, corev1.EventTypeNormal, "Ran",
 				fmt.Sprintf("Ran dataflow %s based on flow {bucketId : %s, flowId: %s, version: %s}",
 					instance.Name, instance.Spec.BucketId,
