@@ -285,7 +285,7 @@ func UpdateRootProcessGroupIdStatus(c client.Client, cluster *v1alpha1.NifiClust
 	}
 	// update loses the typeMeta of the config that's used later when setting ownerrefs
 	cluster.TypeMeta = typeMeta
-	logger.Debug("Root process group id updated", 
+	logger.Debug("Root process group id updated",
 		zap.String("clusterName", cluster.Name),
 		zap.String("id", id))
 	return nil

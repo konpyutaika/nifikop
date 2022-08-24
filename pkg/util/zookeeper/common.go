@@ -8,12 +8,10 @@ func PrepareConnectionAddress(zkAddress string, zkPath string) string {
 	return zkAddress + zkPath
 }
 
-//
 func GetHostnameAddress(zkAddress string) string {
 	return strings.Split(zkAddress, ":")[0]
 }
 
-//
 func GetPortAddress(zkAddress string) string {
 	return strings.Split(zkAddress, ":")[1]
 }

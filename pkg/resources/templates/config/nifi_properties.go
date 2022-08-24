@@ -243,7 +243,6 @@ nifi.kerberos.spnego.authentication.expiration=12 hours
 nifi.variable.registry.properties=
 `
 
-//
 func GenerateListenerSpecificConfig(
 	l *v1alpha1.ListenersConfig,
 	nodeId int32,
@@ -265,6 +264,7 @@ func GenerateListenerSpecificConfig(
 	httpsPortConfig := "nifi.web.https.port=\n"
 	httpsHostConfig := "nifi.web.https.host=\n"
 	s2sPortConfig := "nifi.remote.input.socket.port=\n"
+	loadBalancePortConfig := "nifi.cluster.node.load.balance.port=\n"
 
 	for _, iListener := range l.InternalListeners {
 		switch iListener.Type {
@@ -278,6 +278,8 @@ func GenerateListenerSpecificConfig(
 			httpsHostConfig = fmt.Sprintf("nifi.web.https.host=%s", hostListener) + "\n"
 		case v1alpha1.S2sListenerType:
 			s2sPortConfig = fmt.Sprintf("nifi.remote.input.socket.port=%d", iListener.ContainerPort) + "\n"
+		case v1alpha1.LoadBalanceListenerType:
+			loadBalancePortConfig = fmt.Sprintf("nifi.cluster.node.load.balance.port=%d", iListener.ContainerPort) + "\n"
 		}
 	}
 	nifiConfig = nifiConfig +
@@ -286,7 +288,8 @@ func GenerateListenerSpecificConfig(
 		httpHostConfig +
 		httpsPortConfig +
 		httpsHostConfig +
-		s2sPortConfig
+		s2sPortConfig +
+		loadBalancePortConfig
 
 	nifiConfig = nifiConfig + fmt.Sprintf("nifi.remote.input.host=%s", hostListener) + "\n"
 	nifiConfig = nifiConfig + fmt.Sprintf("nifi.cluster.node.address=%s", hostListener) + "\n"
