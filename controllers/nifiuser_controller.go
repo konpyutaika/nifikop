@@ -363,8 +363,13 @@ func (r *NifiUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *NifiUserReconciler) SetupWithManager(mgr ctrl.Manager, certManagerEnabled bool) error {
+	logCtr, err := GetLogConstructor(mgr, &v1alpha1.NifiUser{})
+	if err != nil {
+		return err
+	}
 	builder := ctrl.NewControllerManagedBy(mgr).
 		For(&v1alpha1.NifiUser{}).
+		WithLogConstructor(logCtr).
 		Owns(&corev1.Secret{})
 
 	if certManagerEnabled {

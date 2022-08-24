@@ -2,15 +2,21 @@ package controllers
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
+	"github.com/go-logr/logr"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
 	"go.uber.org/zap"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/klog/v2"
 
 	"emperror.dev/errors"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
@@ -18,6 +24,8 @@ import (
 // to a NifiCluster
 
 var ClusterRefLabel = "nifiCluster"
+
+var getGvk = apiutil.GVKForObject
 
 // requeueWithError is a convenience wrapper around logging an error message
 // separate from the stacktrace and then passing the error through to the controller
@@ -156,4 +164,33 @@ func GetUserRefNamespace(ns string, ref v1alpha1.UserReference) string {
 		return ns
 	}
 	return userNamespace
+}
+
+func GetLogConstructor(mgr manager.Manager, obj runtime.Object) (func(*reconcile.Request) logr.Logger, error) {
+
+	// Retrieve the GVK from the object we're reconciling
+	// to prepopulate logger information, and to optionally generate a default name.
+	gvk, err := getGvk(obj, mgr.GetScheme())
+	if err != nil {
+		return nil, err
+	}
+
+	log := mgr.GetLogger().WithValues(
+		"controller", strings.ToLower(gvk.Kind),
+		"controllerGroup", gvk.Group,
+		"controllerKind", gvk.Kind,
+	)
+
+	lowerCamelCaseKind := strings.ToLower(gvk.Kind[:1]) + gvk.Kind[1:]
+
+	return func(req *reconcile.Request) logr.Logger {
+		log := log
+		if req != nil {
+			log = log.WithValues(
+				lowerCamelCaseKind, klog.KRef(req.Namespace, req.Name),
+				"namespace", req.Namespace, "name", req.Name,
+			)
+		}
+		return log
+	}, nil
 }
