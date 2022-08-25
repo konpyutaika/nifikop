@@ -2,6 +2,8 @@ package v1alpha1
 
 import (
 	"fmt"
+	"sort"
+	"strconv"
 	"strings"
 
 	cmmeta "github.com/jetstack/cert-manager/pkg/apis/meta/v1"
@@ -11,11 +13,12 @@ import (
 )
 
 const (
-	ClusterListenerType    = "cluster"
-	HttpListenerType       = "http"
-	HttpsListenerType      = "https"
-	S2sListenerType        = "s2s"
-	prometheusListenerType = "prometheus"
+	ClusterListenerType     = "cluster"
+	HttpListenerType        = "http"
+	HttpsListenerType       = "https"
+	S2sListenerType         = "s2s"
+	PrometheusListenerType  = "prometheus"
+	LoadBalanceListenerType = "load-balance"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
@@ -75,7 +78,7 @@ type NifiClusterSpec struct {
 	// NodeUserIdentityTemplate specifies the template to be used when naming the node user identity (e.g. node-%d-mysuffix)
 	NodeUserIdentityTemplate *string `json:"nodeUserIdentityTemplate,omitempty"`
 	// all node requires an image, unique id, and storageConfigs settings
-	Nodes []Node `json:"nodes"`
+	Nodes []Node `json:"nodes" patchStrategy:"merge" patchMergeKey:"id"`
 	// Defines the configuration for PodDisruptionBudget
 	DisruptionBudget DisruptionBudget `json:"disruptionBudget,omitempty"`
 	// LdapConfiguration specifies the configuration if you want to use LDAP
@@ -129,6 +132,8 @@ type PodPolicy struct {
 	Annotations map[string]string `json:"annotations,omitempty"`
 	// Labels specifies additional labels to attach to the pods the operator creates
 	Labels map[string]string `json:"labels,omitempty"`
+	// A list of host aliases to include in every pod's /etc/hosts configuration in the scenario where DNS is not available.
+	HostAliases []corev1.HostAlias `json:"hostAliases,omitempty"`
 }
 
 // rollingUpgradeConfig specifies the rolling upgrade config for the cluster
@@ -159,6 +164,9 @@ type Node struct {
 	ReadOnlyConfig *ReadOnlyConfig `json:"readOnlyConfig,omitempty"`
 	// node configuration
 	NodeConfig *NodeConfig `json:"nodeConfig,omitempty"`
+	// Labels are used to distinguish nodes from one another. They are also used by NifiNodeGroupAutoscaler
+	// to be automatically scaled. See NifiNodeGroupAutoscaler.Spec.NodeLabelsSelector
+	Labels map[string]string `json:"labels,omitempty"`
 }
 
 type ReadOnlyConfig struct {
@@ -298,6 +306,10 @@ type NodeConfig struct {
 	Tolerations []corev1.Toleration `json:"tolerations,omitempty"`
 	// podMetadata allows to add additionnal metadata to the node pods
 	PodMetadata Metadata `json:"podMetadata,omitempty"`
+	// A list of host aliases to include in a pod's /etc/hosts configuration in the scenario where DNS is not available.
+	// This list takes precedence of the one at the NifiCluster.Spec.PodPolicy level
+	// +optional
+	HostAliases []corev1.HostAlias `json:"hostAliases,omitempty"`
 	// priorityClassName can be used to set the priority class applied to the node
 	// +optional
 	PriorityClassName *string `json:"priorityClassName,omitempty"`
@@ -382,10 +394,10 @@ type SSLSecrets struct {
 
 // InternalListenerConfig defines the internal listener config for Nifi
 type InternalListenerConfig struct {
-	// +kubebuilder:validation:Enum={"cluster", "http", "https", "s2s", "prometheus"}
+	// +kubebuilder:validation:Enum={"cluster", "http", "https", "s2s", "prometheus", "load-balance"}
 	// (Optional field) Type allow to specify if we are in a specific nifi listener
 	// it's allowing to define some required information such as Cluster Port,
-	// Http Port, Https Port or S2S port
+	// Http Port, Https Port, Prometheus port, Load Balance port, or S2S port
 	Type string `json:"type,omitempty"`
 	// An identifier for the port which will be configured.
 	Name string `json:"name"`
@@ -611,7 +623,7 @@ func (nConfig *NodeConfig) GetServiceAccount() string {
 	return "default"
 }
 
-//GetTolerations returns the tolerations for the given node
+// GetTolerations returns the tolerations for the given node
 func (nConfig *NodeConfig) GetTolerations() []corev1.Toleration {
 	return nConfig.Tolerations
 }
@@ -621,17 +633,16 @@ func (nConfig *NodeConfig) GetNodeSelector() map[string]string {
 	return nConfig.NodeSelector
 }
 
-//GetImagePullSecrets returns the list of Secrets needed to pull Containers images from private repositories
+// GetImagePullSecrets returns the list of Secrets needed to pull Containers images from private repositories
 func (nConfig *NodeConfig) GetImagePullSecrets() []corev1.LocalObjectReference {
 	return nConfig.ImagePullSecrets
 }
 
-//GetImagePullPolicy returns the image pull policy to pull containers images
+// GetImagePullPolicy returns the image pull policy to pull containers images
 func (nConfig *NodeConfig) GetImagePullPolicy() corev1.PullPolicy {
 	return nConfig.ImagePullPolicy
 }
 
-//
 func (nConfig *NodeConfig) GetPodAnnotations() map[string]string {
 	return nConfig.PodMetadata.Annotations
 }
@@ -666,7 +677,6 @@ func (nConfig *NodeConfig) GetPriorityClass() string {
 	return ""
 }
 
-//
 func (nConfig *NodeConfig) GetRunAsUser() *int64 {
 	var defaultUserID int64 = 1000
 	if nConfig.RunAsUser != nil {
@@ -685,7 +695,6 @@ func (nConfig *NodeConfig) GetFSGroup() *int64 {
 	return func(i int64) *int64 { return &i }(defaultGroupID)
 }
 
-//
 func (nConfig *NodeConfig) GetIsNode() bool {
 	if nConfig.IsNode != nil {
 		return *nConfig.IsNode
@@ -708,7 +717,6 @@ func (bProperties *BootstrapProperties) GetNifiJvmMemory() string {
 	return "512m"
 }
 
-//
 func (nProperties NifiProperties) GetAuthorizer() string {
 	if nProperties.Authorizer != "" {
 		return nProperties.Authorizer
@@ -716,11 +724,10 @@ func (nProperties NifiProperties) GetAuthorizer() string {
 	return "managed-authorizer"
 }
 
-//
 func (nSpec *NifiClusterSpec) GetMetricPort() *int {
 
 	for _, iListener := range nSpec.ListenersConfig.InternalListeners {
-		if iListener.Type == prometheusListenerType {
+		if iListener.Type == PrometheusListenerType {
 			val := int(iListener.ContainerPort)
 			return &val
 		}
@@ -797,4 +804,47 @@ func (cluster NifiCluster) IsReady() bool {
 
 func (cluster *NifiCluster) Id() string {
 	return cluster.Name
+}
+
+type Pair struct {
+	Key   string
+	Value metav1.Time
+}
+type PairList []Pair
+
+func (p PairList) Len() int           { return len(p) }
+func (p PairList) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+func (p PairList) Less(i, j int) bool { return p[i].Value.Before(&p[j].Value) }
+
+// Order the nodes in the cluster by the time they were created. The list will be in ascending order.
+// Older nodes will be in the beginning of the list, newer nodes at the end.
+// Nodes for Clusters that existed prior to this feature (v0.11.0+) will not have a creationTime. In this case,
+// LIFO will not be able to reliably determine the oldest node. A rolling restart of nodes in the cluster will
+// resolve this issue going forward.
+func (cluster *NifiCluster) GetCreationTimeOrderedNodes() []Node {
+	nodeIdCreationPairs := PairList{}
+
+	for k, v := range cluster.Status.NodesState {
+		nodeIdCreationPairs = append(nodeIdCreationPairs, Pair{k, *v.CreationTime})
+	}
+
+	// nodeIdCreationPairs is now sorted by creation time in ascending order.
+	sort.Sort(nodeIdCreationPairs)
+
+	nodesMap := NodesToIdMap(cluster.Spec.Nodes)
+	timeOrderedNodes := []Node{}
+
+	for _, pair := range nodeIdCreationPairs {
+		id, _ := strconv.Atoi(pair.Key)
+		timeOrderedNodes = append(timeOrderedNodes, nodesMap[int32(id)])
+	}
+	return timeOrderedNodes
+}
+
+func NodesToIdMap(nodes []Node) (nodeMap map[int32]Node) {
+	nodeMap = make(map[int32]Node)
+	for _, node := range nodes {
+		nodeMap[node.Id] = node
+	}
+	return
 }

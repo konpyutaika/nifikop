@@ -22,6 +22,10 @@ spec:
   clusterImage: "apache/nifi:1.15.3"
   initContainerImage: 'busybox:1.34.0'
   oneNifiNodePerNode: true
+  readOnlyConfig:
+    nifiProperties:
+      overrideConfigs: |
+        nifi.sensitive.props.key=thisIsABadSensitiveKeyPassword
   pod:
     labels:
       cluster-name: simplenifi
@@ -69,3 +73,6 @@ spec:
       - containerPort: 9090
         type: prometheus
         name: prometheus
+      - containerPort: 6342
+        type: load-balance
+        name: load-balance

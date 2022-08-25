@@ -99,6 +99,7 @@ spec:
       #	on template, configurations and overrideConfigMap
       overrideConfigs: |
         nifi.ui.banner.text=NiFiKop
+        nifi.sensitive.props.key=thisIsABadSensitiveKeyPassword
       # A comma separated list of allowed HTTP Host header values to consider when NiFi
       # is running securely and will be receiving requests to a different host[:port] than it is bound to.
       # https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#web-properties
@@ -314,8 +315,8 @@ spec:
     internalListeners:
       # (Optional field) Type allow to specify if we are in a specific nifi listener
       # it's allowing to define some required information such as Cluster Port,
-      # Http Port, Https Port or S2S port
-      # {"cluster", "http", "https", "s2s"}
+      # Http Port, Https Port, S2S port, Prometheus port, or Load Balance port.
+      # {"cluster", "http", "https", "s2s", "prometheus", "load-balance"}
       - type: "http"
         # An identifier for the port which will be configured.
         name: "http"
@@ -327,13 +328,14 @@ spec:
       - type: "s2s"
         name: "s2s"
         containerPort: 10000
-      - name: "prometheus"
-        containerPort: 9020
       - name: "rsyslog"
         containerPort: 10001
       - type: "prometheus"
         name: "prometheus"
         containerPort: 9090
+      - type: "load-balance"
+        name: "load-balance"
+        containerPort: 9090      
       # sslSecrets contains information about ssl related kubernetes secrets if one of the
       # listener setting type set to ssl these fields must be populated to
       #    sslSecrets:

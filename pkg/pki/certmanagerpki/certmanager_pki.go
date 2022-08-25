@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/go-logr/logr"
 	certv1 "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1"
 	certmeta "github.com/jetstack/cert-manager/pkg/apis/meta/v1"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	"github.com/konpyutaika/nifikop/pkg/resources/templates"
 	pkicommon "github.com/konpyutaika/nifikop/pkg/util/pki"
+	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -20,8 +20,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-func (c *certManager) FinalizePKI(ctx context.Context, logger logr.Logger) error {
-	logger.Info("Removing cert-manager certificates and secrets")
+func (c *certManager) FinalizePKI(ctx context.Context, logger zap.Logger) error {
+	logger.Info("Removing cert-manager certificates and secrets",
+		zap.String("clusterName", c.cluster.Name))
 
 	// Safety check that we are actually doing something
 	if c.cluster.Spec.ListenersConfig.SSLSecrets == nil {
@@ -78,8 +79,9 @@ func (c *certManager) FinalizePKI(ctx context.Context, logger logr.Logger) error
 	return nil
 }
 
-func (c *certManager) ReconcilePKI(ctx context.Context, logger logr.Logger, scheme *runtime.Scheme, externalHostnames []string) (err error) {
-	logger.Info("Reconciling cert-manager PKI")
+func (c *certManager) ReconcilePKI(ctx context.Context, logger zap.Logger, scheme *runtime.Scheme, externalHostnames []string) (err error) {
+	logger.Info("Reconciling cert-manager PKI",
+		zap.String("clusterName", c.cluster.Name))
 
 	resources, err := c.
 		nifipki(ctx, scheme, externalHostnames)

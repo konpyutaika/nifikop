@@ -55,6 +55,15 @@ resources:
   controller: true
   domain: konpyutaika.com
   group: nifi
+  kind: NifiNodeGroupAutoscaler
+  path: github.com/konpyutaika/nifikop/api/v1alpha1
+  version: v1alpha1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: konpyutaika.com
+  group: nifi
   kind: NifiConnection
   path: github.com/konpyutaika/nifikop/api/v1alpha1
   version: v1alpha1

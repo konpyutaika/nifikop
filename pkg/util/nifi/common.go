@@ -18,6 +18,10 @@ const (
 	TimeStampLayout = "Mon, 2 Jan 2006 15:04:05 GMT"
 )
 
+var (
+	NifiDataVolumeMountKey = fmt.Sprintf("%s/nifi-data", v1alpha1.GroupVersion.Group)
+)
+
 // ParseTimeStampToUnixTime parses the given CC timeStamp to time format
 func ParseTimeStampToUnixTime(timestamp string) (time.Time, error) {
 

@@ -1,6 +1,9 @@
 package nificlient
 
-import nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
+import (
+	nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
+	"go.uber.org/zap"
+)
 
 func (n *nifiClient) UpdateProcessorRunStatus(
 	id string,
@@ -9,13 +12,13 @@ func (n *nifiClient) UpdateProcessorRunStatus(
 	// Get nigoapi client, favoring the one associated to the coordinator node.
 	client, context := n.privilegeCoordinatorClient()
 	if client == nil {
-		log.Error(ErrNoNodeClientsAvailable, "Error during creating node client")
+		n.log.Error("Error during creating node client", zap.Error(ErrNoNodeClientsAvailable))
 		return nil, ErrNoNodeClientsAvailable
 	}
 
 	// Request on Nifi Rest API to update the processor run status
 	processor, rsp, body, err := client.ProcessorsApi.UpdateRunStatus(context, id, entity)
-	if err := errorUpdateOperation(rsp, body, err); err != nil {
+	if err := errorUpdateOperation(rsp, body, err, n.log); err != nil {
 		return nil, err
 	}
 

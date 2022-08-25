@@ -126,3 +126,5 @@ testbin/*
 # editor and IDE paraphernalia
 
 *~
+
+vendor/

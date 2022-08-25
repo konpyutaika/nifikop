@@ -1,0 +1,80 @@
+name: Bug Report
+description: If things aren't working as expected
+labels: ["bug", "community"]
+body:
+
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for filing an issue! Before hitting the button, please answer these questions.
+
+        Fill in as much of the template below as you can. If you leave out information, we can't help you as well.
+
+  - type: textarea
+    attributes:
+      label: What steps will reproduce the bug?
+      description: Enter details about your bug
+      placeholder: |
+        1. In this environment...
+        2. With this config...
+        3. Run '...'
+        4. See error...
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: What is the expected behavior?
+      description: A clear and concise description of what you expected to happen (or insert a code snippet)
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: What do you see instead?
+      description: A clear and concise description of what you expected to happen (or insert a code snippet)
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Possible solution
+      description: Only if you have suggestions on a fix for the bug
+
+  - type: input
+    attributes:
+      label: NiFiKop version
+      description: NiFiKop release or git SHA
+      placeholder: v0.13.0-release
+    validations:
+      required: true
+
+  - type: input
+    attributes:
+      label: Golang version
+      description: Insert the output of `go version` here
+      placeholder: go version go1.19 darwin/amd64
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Kubernetes version
+      description: Insert the output of `kubectl version` here
+      placeholder: |
+        Client Version: version.Info{Major:"1", Minor:"25", GitVersion:"v1.25.0", GitCommit:"a866cbe2e5bbaa01cfd5e969aa3e033f3282a8a2", GitTreeState:"clean", BuildDate:"2022-08-23T17:44:59Z", GoVersion:"go1.19", Compiler:"gc", Platform:"darwin/amd64"}
+        Kustomize Version: v4.5.7
+        Server Version: version.Info{Major:"1", Minor:"24", GitVersion:"v1.24.3", GitCommit:"aef86a93758dc3cb2c658dd9657ab4ad4afc21cb", GitTreeState:"clean", BuildDate:"2022-08-11T22:48:42Z", GoVersion:"go1.18.3", Compiler:"gc", Platform:"linux/arm64"}
+    validations:
+      required: true
+
+  - type: input
+    attributes:
+      label: NiFi version
+      description: Insert release NiFi version here
+      placeholder: 1.17.0
+
+  - type: textarea
+    attributes:
+      label: Additional context
+      description: Add any other context about the problem here
