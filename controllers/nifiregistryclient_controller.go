@@ -26,6 +26,7 @@ import (
 	"github.com/banzaicloud/k8s-objectmatcher/patch"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/registryclient"
 	"github.com/konpyutaika/nifikop/pkg/k8sutil"
+	"github.com/konpyutaika/nifikop/pkg/metrics"
 	"github.com/konpyutaika/nifikop/pkg/nificlient/config"
 	"github.com/konpyutaika/nifikop/pkg/util"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
@@ -46,12 +47,24 @@ var registryClientFinalizer = "nifiregistryclients.nifi.konpyutaika.com/finalize
 
 // NifiRegistryClientReconciler reconciles a NifiRegistryClient object
 type NifiRegistryClientReconciler struct {
+	InstrumentedReconciler
 	client.Client
-	Log             zap.Logger
+	zap.Logger
+	*metrics.MetricRegistry
 	Scheme          *runtime.Scheme
 	Recorder        record.EventRecorder
 	RequeueInterval int
 	RequeueOffset   int
+}
+
+// Metrics implements InstrumentedReconciler interface
+func (r *NifiRegistryClientReconciler) Metrics() *metrics.MetricRegistry {
+	return r.MetricRegistry
+}
+
+// Log implements InstrumentedReconciler interface
+func (r *NifiRegistryClientReconciler) Log() *zap.Logger {
+	return &r.Logger
 }
 
 // +kubebuilder:rbac:groups=nifi.konpyutaika.com,resources=nifiregistryclients,verbs=get;list;watch;create;update;patch;delete
@@ -68,6 +81,13 @@ type NifiRegistryClientReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.7.0/pkg/reconcile
 func (r *NifiRegistryClientReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	startTime := time.Now()
+	res, err := r.doReconcile(ctx, req)
+	r.Metrics().ReconcileDurationHistogram().Observe(time.Since(startTime).Seconds())
+	return res, err
+}
+
+func (r *NifiRegistryClientReconciler) doReconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	interval := util.GetRequeueInterval(r.RequeueInterval, r.RequeueOffset)
 	var err error
 
@@ -76,10 +96,10 @@ func (r *NifiRegistryClientReconciler) Reconcile(ctx context.Context, req ctrl.R
 	if err = r.Client.Get(ctx, req.NamespacedName, instance); err != nil {
 		if apierrors.IsNotFound(err) {
 			// Request object not found, could have been deleted after reconcile request.
-			return Reconciled()
+			return Reconciled(r)
 		}
 		// Error reading the object - requeue the request.
-		return RequeueWithError(r.Log, err.Error(), err)
+		return RequeueWithError(r, err.Error(), err)
 	}
 
 	// Get the last configuration viewed by the operator.
@@ -87,10 +107,10 @@ func (r *NifiRegistryClientReconciler) Reconcile(ctx context.Context, req ctrl.R
 	// Create it if not exist.
 	if o == nil {
 		if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(instance); err != nil {
-			return RequeueWithError(r.Log, "could not apply last state to annotation for registry client"+instance.Name, err)
+			return RequeueWithError(r, "could not apply last state to annotation for registry client"+instance.Name, err)
 		}
 		if err := r.Client.Update(ctx, instance); err != nil {
-			return RequeueWithError(r.Log, "failed to update NifiRegistryClient "+instance.Name, err)
+			return RequeueWithError(r, "failed to update NifiRegistryClient "+instance.Name, err)
 		}
 		o, err = patch.DefaultAnnotator.GetOriginalConfiguration(instance)
 	}
@@ -116,30 +136,30 @@ func (r *NifiRegistryClientReconciler) Reconcile(ctx context.Context, req ctrl.R
 	if clusterConnect, err = configManager.BuildConnect(); err != nil {
 		// This shouldn't trigger anymore, but leaving it here as a safetybelt
 		if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {
-			r.Log.Error("Cluster is already gone, there is nothing we can do",
+			r.Logger.Error("Cluster is already gone, there is nothing we can do",
 				zap.String("registryClient", instance.Name),
 				zap.String("clusterName", clusterRef.Name))
 			if err = r.removeFinalizer(ctx, instance); err != nil {
-				return RequeueWithError(r.Log, "failed to remove finalizer for registry client "+instance.Name, err)
+				return RequeueWithError(r, "failed to remove finalizer for registry client "+instance.Name, err)
 			}
-			return Reconciled()
+			return Reconciled(r)
 		}
 		// If the referenced cluster no more exist, just skip the deletion requirement in cluster ref change case.
 		if !v1alpha1.ClusterRefsEquals([]v1alpha1.ClusterReference{instance.Spec.ClusterRef, current.Spec.ClusterRef}) {
 			if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(current); err != nil {
-				return RequeueWithError(r.Log, "could not apply last state to annotation to registry client "+instance.Name, err)
+				return RequeueWithError(r, "could not apply last state to annotation to registry client "+instance.Name, err)
 			}
 			if err := r.Client.Update(ctx, current); err != nil {
-				return RequeueWithError(r.Log, "failed to update NifiRegistryClient "+instance.Name, err)
+				return RequeueWithError(r, "failed to update NifiRegistryClient "+instance.Name, err)
 			}
-			return RequeueAfter(time.Duration(15) * time.Second)
+			return RequeueAfter(r, interval)
 		}
 
 		r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceClusterError",
 			fmt.Sprintf("Failed to lookup reference cluster : %s in %s",
 				instance.Spec.ClusterRef.Name, clusterRef.Namespace))
 		// the cluster does not exist - should have been caught pre-flight
-		return RequeueWithError(r.Log, "failed to lookup referenced cluster for registry client "+instance.Name, err)
+		return RequeueWithError(r, "failed to lookup referenced cluster for registry client "+instance.Name, err)
 	}
 
 	// Generate the client configuration.
@@ -151,12 +171,12 @@ func (r *NifiRegistryClientReconciler) Reconcile(ctx context.Context, req ctrl.R
 		// the cluster is gone, so just remove the finalizer
 		if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {
 			if err = r.removeFinalizer(ctx, instance); err != nil {
-				return RequeueWithError(r.Log, "failed to remove finalizer from NifiRegistryClient "+instance.Name, err)
+				return RequeueWithError(r, "failed to remove finalizer from NifiRegistryClient "+instance.Name, err)
 			}
-			return Reconciled()
+			return Reconciled(r)
 		}
 		// the cluster does not exist - should have been caught pre-flight
-		return RequeueWithError(r.Log, "failed to create HTTP client the for referenced cluster "+clusterRef.Name+" for registry client "+instance.Name, err)
+		return RequeueWithError(r, "failed to create HTTP client the for referenced cluster "+clusterRef.Name+" for registry client "+instance.Name, err)
 	}
 
 	// Check if marked for deletion and if so run finalizers
@@ -165,15 +185,15 @@ func (r *NifiRegistryClientReconciler) Reconcile(ctx context.Context, req ctrl.R
 	}
 
 	// Ensure the cluster is ready to receive actions
-	if !clusterConnect.IsReady(r.Log) {
-		r.Log.Debug("Cluster is not ready yet, will wait until it is.",
+	if !clusterConnect.IsReady(r.Logger) {
+		r.Logger.Debug("Cluster is not ready yet, will wait until it is.",
 			zap.String("registryClient", instance.Name),
 			zap.String("clusterName", clusterRef.Name))
 		r.Recorder.Event(instance, corev1.EventTypeNormal, "ReferenceClusterNotReady",
 			fmt.Sprintf("The referenced cluster is not ready yet : %s in %s",
 				instance.Spec.ClusterRef.Name, clusterConnect.Id()))
 		// the cluster does not exist - should have been caught pre-flight
-		return RequeueAfter(interval)
+		return RequeueAfter(r, interval)
 	}
 
 	// Ìn case of the cluster reference changed.
@@ -183,16 +203,16 @@ func (r *NifiRegistryClientReconciler) Reconcile(ctx context.Context, req ctrl.R
 			r.Recorder.Event(instance, corev1.EventTypeWarning, "RemoveError",
 				fmt.Sprintf("Failed to delete NifiRegistryClient %s from cluster %s before moving in %s",
 					instance.Name, original.Spec.ClusterRef.Name, original.Spec.ClusterRef.Name))
-			return RequeueWithError(r.Log, "Failed to delete NifiRegistryClient before moving", err)
+			return RequeueWithError(r, "Failed to delete NifiRegistryClient before moving", err)
 		}
 		// Update the last view configuration to the current one.
 		if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(current); err != nil {
-			return RequeueWithError(r.Log, "could not apply last state to annotation for registry client "+instance.Name, err)
+			return RequeueWithError(r, "could not apply last state to annotation for registry client "+instance.Name, err)
 		}
 		if err := r.Client.Update(ctx, current); err != nil {
-			return RequeueWithError(r.Log, "failed to update NifiRegistryClient "+instance.Name, err)
+			return RequeueWithError(r, "failed to update NifiRegistryClient "+instance.Name, err)
 		}
-		return RequeueAfter(interval)
+		return RequeueAfter(r, interval)
 	}
 
 	r.Recorder.Event(instance, corev1.EventTypeNormal, "Reconciling",
@@ -201,7 +221,7 @@ func (r *NifiRegistryClientReconciler) Reconcile(ctx context.Context, req ctrl.R
 	// Check if the NiFi registry client already exist
 	exist, err := registryclient.ExistRegistryClient(instance, clientConfig)
 	if err != nil {
-		return RequeueWithError(r.Log, "failure checking for existing registry client "+instance.Name, err)
+		return RequeueWithError(r, "failure checking for existing registry client "+instance.Name, err)
 	}
 
 	if !exist {
@@ -210,24 +230,24 @@ func (r *NifiRegistryClientReconciler) Reconcile(ctx context.Context, req ctrl.R
 			fmt.Sprintf("Creating registry client %s", instance.Name))
 		status, err := registryclient.CreateRegistryClient(instance, clientConfig)
 		if err != nil {
-			return RequeueWithError(r.Log, "failure creating registry client "+instance.Name, err)
+			return RequeueWithError(r, "failure creating registry client "+instance.Name, err)
 		}
 
 		instance.Status = *status
 		if err := r.Client.Status().Update(ctx, instance); err != nil {
-			return RequeueWithError(r.Log, "failed to update status for NifiRegistryClient "+instance.Name, err)
+			return RequeueWithError(r, "failed to update status for NifiRegistryClient "+instance.Name, err)
 		}
 
 		r.Recorder.Event(instance, corev1.EventTypeNormal, "Created",
 			fmt.Sprintf("Created registry client %s", instance.Name))
-		r.Log.Info("Created registry client",
+		r.Logger.Info("Created registry client",
 			zap.String("registryClient", instance.Name))
 
 		if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(instance); err != nil {
-			return RequeueWithError(r.Log, "could not apply last state to annotation for registry client "+instance.Name, err)
+			return RequeueWithError(r, "could not apply last state to annotation for registry client "+instance.Name, err)
 		}
 		if err := r.Client.Update(ctx, instance); err != nil {
-			return RequeueWithError(r.Log, "failed to update NifiRegistryClient "+instance.Name, err)
+			return RequeueWithError(r, "failed to update NifiRegistryClient "+instance.Name, err)
 		}
 	}
 
@@ -238,40 +258,40 @@ func (r *NifiRegistryClientReconciler) Reconcile(ctx context.Context, req ctrl.R
 	if err != nil {
 		r.Recorder.Event(instance, corev1.EventTypeNormal, "SynchronizingFailed",
 			fmt.Sprintf("Synchronizing registry client %s failed", instance.Name))
-		return RequeueWithError(r.Log, "failed to sync NifiRegistryClient "+instance.Name, err)
+		return RequeueWithError(r, "failed to sync NifiRegistryClient "+instance.Name, err)
 	}
 
 	instance.Status = *status
 	if err := r.Client.Status().Update(ctx, instance); err != nil {
-		return RequeueWithError(r.Log, "failed to update status for NifiRegistryClient "+instance.Name, err)
+		return RequeueWithError(r, "failed to update status for NifiRegistryClient "+instance.Name, err)
 	}
 
 	r.Recorder.Event(instance, corev1.EventTypeNormal, "Synchronized",
 		fmt.Sprintf("Synchronized registry client %s", instance.Name))
 	// Ensure NifiCluster label
 	if instance, err = r.ensureClusterLabel(ctx, clusterConnect, instance); err != nil {
-		return RequeueWithError(r.Log, "failed to ensure NifiCluster label on registry client "+current.Name, err)
+		return RequeueWithError(r, "failed to ensure NifiCluster label on registry client "+current.Name, err)
 	}
 
 	// Ensure finalizer for cleanup on deletion
 	if !util.StringSliceContains(instance.GetFinalizers(), registryClientFinalizer) {
-		r.Log.Debug("Adding Finalizer for NifiRegistryClient",
+		r.Logger.Debug("Adding Finalizer for NifiRegistryClient",
 			zap.String("registryClient", instance.Name))
 		instance.SetFinalizers(append(instance.GetFinalizers(), registryClientFinalizer))
 	}
 
 	// Push any changes
 	if instance, err = r.updateAndFetchLatest(ctx, instance); err != nil {
-		return RequeueWithError(r.Log, "failed to update NifiRegistryClient "+current.Name, err)
+		return RequeueWithError(r, "failed to update NifiRegistryClient "+current.Name, err)
 	}
 
 	r.Recorder.Event(instance, corev1.EventTypeNormal, "Reconciled",
 		fmt.Sprintf("Reconciling registry client %s", instance.Name))
 
-	r.Log.Debug("Ensured Registry Client",
+	r.Logger.Debug("Ensured Registry Client",
 		zap.String("registryClient", instance.Name))
 
-	return RequeueAfter(interval)
+	return RequeueAfter(r, interval)
 }
 
 // SetupWithManager sets up the controller with the Manager.
@@ -311,22 +331,22 @@ func (r *NifiRegistryClientReconciler) updateAndFetchLatest(ctx context.Context,
 
 func (r *NifiRegistryClientReconciler) checkFinalizers(ctx context.Context,
 	registryClient *v1alpha1.NifiRegistryClient, config *clientconfig.NifiConfig) (reconcile.Result, error) {
-	r.Log.Info("NiFi registry client is marked for deletion. Removing finalizers.",
+	r.Logger.Info("NiFi registry client is marked for deletion. Removing finalizers.",
 		zap.String("registryClient", registryClient.Name))
 	var err error
 	if util.StringSliceContains(registryClient.GetFinalizers(), registryClientFinalizer) {
 		if err = r.finalizeNifiRegistryClient(registryClient, config); err != nil {
-			return RequeueWithError(r.Log, "failed to finalize nifiregistryclient", err)
+			return RequeueWithError(r, "failed to finalize nifiregistryclient", err)
 		}
 		if err = r.removeFinalizer(ctx, registryClient); err != nil {
-			return RequeueWithError(r.Log, "failed to remove finalizer from nifiregistryclient", err)
+			return RequeueWithError(r, "failed to remove finalizer from nifiregistryclient", err)
 		}
 	}
-	return Reconciled()
+	return Reconciled(r)
 }
 
 func (r *NifiRegistryClientReconciler) removeFinalizer(ctx context.Context, registryClient *v1alpha1.NifiRegistryClient) error {
-	r.Log.Debug("Removing finalizer for NifiRegistryClient",
+	r.Logger.Debug("Removing finalizer for NifiRegistryClient",
 		zap.String("registryClient", registryClient.Name))
 	registryClient.SetFinalizers(util.StringSliceRemove(registryClient.GetFinalizers(), registryClientFinalizer))
 	_, err := r.updateAndFetchLatest(ctx, registryClient)
@@ -339,7 +359,7 @@ func (r *NifiRegistryClientReconciler) finalizeNifiRegistryClient(registryClient
 	if err := registryclient.RemoveRegistryClient(registryClient, config); err != nil {
 		return err
 	}
-	r.Log.Info("Deleted Registry client",
+	r.Logger.Info("Deleted Registry client",
 		zap.String("registryClient", registryClient.Name))
 
 	return nil

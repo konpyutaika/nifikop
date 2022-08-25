@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/go-logr/logr"
+	"github.com/konpyutaika/nifikop/pkg/metrics"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
 	"go.uber.org/zap"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -27,25 +28,35 @@ var ClusterRefLabel = "nifiCluster"
 
 var getGvk = apiutil.GVKForObject
 
+// IntrumentedReconciler is an interface all of the controllers extend to benefit from metric tracking
+type InstrumentedReconciler interface {
+	Metrics() *metrics.MetricRegistry
+	Log() *zap.Logger
+}
+
 // requeueWithError is a convenience wrapper around logging an error message
 // separate from the stacktrace and then passing the error through to the controller
 // manager
-func RequeueWithError(logger zap.Logger, msg string, err error) (reconcile.Result, error) {
-	logger.Info(msg)
+func RequeueWithError(r InstrumentedReconciler, msg string, err error) (reconcile.Result, error) {
+	r.Metrics().ReconcileErrorsCounter().Inc()
+	r.Log().Info(msg)
 	return reconcile.Result{}, err
 }
 
-func Requeue() (reconcile.Result, error) {
+func Requeue(r InstrumentedReconciler) (reconcile.Result, error) {
+	r.Metrics().ReconcileCounter().Inc()
 	return reconcile.Result{Requeue: true}, nil
 }
 
-func RequeueAfter(time time.Duration) (reconcile.Result, error) {
+func RequeueAfter(r InstrumentedReconciler, time time.Duration) (reconcile.Result, error) {
+	r.Metrics().ReconcileCounter().Inc()
 	return reconcile.Result{Requeue: true, RequeueAfter: time}, nil
 }
 
 // reconciled returns an empty result with nil error to signal a successful reconcile
 // to the controller manager
-func Reconciled() (reconcile.Result, error) {
+func Reconciled(r InstrumentedReconciler) (reconcile.Result, error) {
+	r.Metrics().ReconcileCounter().Inc()
 	return reconcile.Result{}, nil
 }
 
@@ -55,8 +66,8 @@ func ClusterLabelString(cluster *v1alpha1.NifiCluster) string {
 }
 
 // checkNodeConnectionError is a convenience wrapper for returning from common
-// node connection errors
-func CheckNodeConnectionError(logger zap.Logger, err error) (ctrl.Result, error) {
+// node connection errors. This is only used in testing.
+func checkNodeConnectionError(r InstrumentedReconciler, err error) (ctrl.Result, error) {
 	switch errors.Cause(err).(type) {
 	case errorfactory.NodesUnreachable:
 		return ctrl.Result{
@@ -69,13 +80,13 @@ func CheckNodeConnectionError(logger zap.Logger, err error) (ctrl.Result, error)
 			RequeueAfter: time.Duration(15) * time.Second,
 		}, nil
 	case errorfactory.ResourceNotReady:
-		logger.Info("Needed resource for node connection not found, may not be ready")
+		r.Log().Info("Needed resource for node connection not found, may not be ready")
 		return ctrl.Result{
 			Requeue:      true,
 			RequeueAfter: time.Duration(5) * time.Second,
 		}, nil
 	default:
-		return RequeueWithError(logger, err.Error(), err)
+		return RequeueWithError(r, err.Error(), err)
 	}
 }
 

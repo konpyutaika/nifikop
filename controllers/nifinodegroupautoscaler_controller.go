@@ -19,6 +19,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"go.uber.org/zap"
 
@@ -36,6 +37,7 @@ import (
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/autoscale"
 	"github.com/konpyutaika/nifikop/pkg/k8sutil"
+	"github.com/konpyutaika/nifikop/pkg/metrics"
 	"github.com/konpyutaika/nifikop/pkg/util"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -45,13 +47,25 @@ var autoscalerFinalizer = "nifinodegroupautoscalers.nifi.konpyutaika.com/finaliz
 
 // NifiNodeGroupAutoscalerReconciler reconciles a NifiNodeGroupAutoscaler object
 type NifiNodeGroupAutoscalerReconciler struct {
+	InstrumentedReconciler
 	runtimeClient.Client
+	zap.Logger
+	*metrics.MetricRegistry
 	APIReader       runtimeClient.Reader
 	Scheme          *runtime.Scheme
-	Log             zap.Logger
 	Recorder        record.EventRecorder
 	RequeueInterval int
 	RequeueOffset   int
+}
+
+// Metrics implements InstrumentedReconciler interface
+func (r *NifiNodeGroupAutoscalerReconciler) Metrics() *metrics.MetricRegistry {
+	return r.MetricRegistry
+}
+
+// Log implements InstrumentedReconciler interface
+func (r *NifiNodeGroupAutoscalerReconciler) Log() *zap.Logger {
+	return &r.Logger
 }
 
 //+kubebuilder:rbac:groups="",resources=pods,verbs=get;list;watch
@@ -70,6 +84,13 @@ type NifiNodeGroupAutoscalerReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.11.0/pkg/reconcile
 func (r *NifiNodeGroupAutoscalerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	startTime := time.Now()
+	res, err := r.doReconcile(ctx, req)
+	r.Metrics().ReconcileDurationHistogram().Observe(time.Since(startTime).Seconds())
+	return res, err
+}
+
+func (r *NifiNodeGroupAutoscalerReconciler) doReconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	// @TODO: Manage dead lock when pending node because not enough resources
 	// by implementing a brut force deletion on nificluster controller.
 	nodeGroupAutoscaler := &v1alpha1.NifiNodeGroupAutoscaler{}
@@ -80,10 +101,10 @@ func (r *NifiNodeGroupAutoscalerReconciler) Reconcile(ctx context.Context, req c
 			// Request object not found, could have been deleted after reconcile request.
 			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
 			// Return and don't requeue
-			return Reconciled()
+			return Reconciled(r)
 		}
 		// Error reading the object - requeue the request.
-		return RequeueWithError(r.Log, err.Error(), err)
+		return RequeueWithError(r, err.Error(), err)
 	}
 
 	// Check if marked for deletion and run finalizers
@@ -93,7 +114,7 @@ func (r *NifiNodeGroupAutoscalerReconciler) Reconcile(ctx context.Context, req c
 
 	// Ensure finalizer for cleanup on deletion
 	if !util.StringSliceContains(nodeGroupAutoscaler.GetFinalizers(), autoscalerFinalizer) {
-		r.Log.Info(fmt.Sprintf("Adding Finalizer for NifiNodeGroupAutoscaler node group %s", nodeGroupAutoscaler.Spec.NodeConfigGroupId))
+		r.Logger.Info(fmt.Sprintf("Adding Finalizer for NifiNodeGroupAutoscaler node group %s", nodeGroupAutoscaler.Spec.NodeConfigGroupId))
 		nodeGroupAutoscaler.SetFinalizers(append(nodeGroupAutoscaler.GetFinalizers(), autoscalerFinalizer))
 	}
 
@@ -107,14 +128,14 @@ func (r *NifiNodeGroupAutoscalerReconciler) Reconcile(ctx context.Context, req c
 		},
 		cluster)
 	if err != nil {
-		return RequeueWithError(r.Log, fmt.Sprintf("failed to look up cluster reference %v+", nodeGroupAutoscaler.Spec.ClusterRef), err)
+		return RequeueWithError(r, fmt.Sprintf("failed to look up cluster reference %v+", nodeGroupAutoscaler.Spec.ClusterRef), err)
 	}
 
 	// Determine how many replicas there currently are and how many are desired for the appropriate node group
 	numDesiredReplicas := nodeGroupAutoscaler.Spec.Replicas
 	currentReplicas, err := r.getManagedNodes(nodeGroupAutoscaler, cluster.Spec.Nodes)
 	if err != nil {
-		return RequeueWithError(r.Log, "Failed to apply autoscaler node selector to cluster nodes", err)
+		return RequeueWithError(r, "Failed to apply autoscaler node selector to cluster nodes", err)
 	}
 	numCurrentReplicas := int32(len(currentReplicas))
 
@@ -122,9 +143,9 @@ func (r *NifiNodeGroupAutoscalerReconciler) Reconcile(ctx context.Context, req c
 	// then set the autoscaler status to out of sync to indicate we're changing the NifiCluster node config
 	// Additionally, if the autoscaler state is currently out of sync then scale up/down
 	if numDesiredReplicas != numCurrentReplicas || nodeGroupAutoscaler.Status.State == v1alpha1.AutoscalerStateOutOfSync {
-		r.Log.Info(fmt.Sprintf("Replicas changed from %d to %d", numCurrentReplicas, numDesiredReplicas))
+		r.Logger.Info(fmt.Sprintf("Replicas changed from %d to %d", numCurrentReplicas, numDesiredReplicas))
 		if err = r.updateAutoscalerReplicaState(ctx, nodeGroupAutoscaler, v1alpha1.AutoscalerStateOutOfSync); err != nil {
-			return RequeueWithError(r.Log, fmt.Sprintf("Failed to udpate node group autoscaler state for node group %s", nodeGroupAutoscaler.Spec.NodeConfigGroupId), err)
+			return RequeueWithError(r, fmt.Sprintf("Failed to udpate node group autoscaler state for node group %s", nodeGroupAutoscaler.Spec.NodeConfigGroupId), err)
 		}
 
 		// json merge patch is a full-replace strategy. This means we must compute the entire NifiCluster.Spec.Nodes list as it should look after scaling.
@@ -135,43 +156,41 @@ func (r *NifiNodeGroupAutoscalerReconciler) Reconcile(ctx context.Context, req c
 		if numDesiredReplicas > numCurrentReplicas {
 			// need to increase node group
 			numNodesToAdd := numDesiredReplicas - numCurrentReplicas
-			r.Log.Info(fmt.Sprintf("Adding %d more nodes to cluster %s spec.nodes configuration for node group %s", numNodesToAdd, cluster.Name, nodeGroupAutoscaler.Spec.NodeConfigGroupId))
+			r.Logger.Info(fmt.Sprintf("Adding %d more nodes to cluster %s spec.nodes configuration for node group %s", numNodesToAdd, cluster.Name, nodeGroupAutoscaler.Spec.NodeConfigGroupId))
 
 			if err = r.scaleUp(nodeGroupAutoscaler, cluster, numNodesToAdd); err != nil {
-				return RequeueWithError(r.Log, fmt.Sprintf("Failed to scale cluster %s up for node group %s", cluster.Name, nodeGroupAutoscaler.Spec.NodeConfigGroupId), err)
+				return RequeueWithError(r, fmt.Sprintf("Failed to scale cluster %s up for node group %s", cluster.Name, nodeGroupAutoscaler.Spec.NodeConfigGroupId), err)
 			}
 
 		} else if numDesiredReplicas < numCurrentReplicas {
 			// need to decrease node group
 			numNodesToRemove := numCurrentReplicas - numDesiredReplicas
-			r.Log.Info(fmt.Sprintf("Removing %d nodes from cluster %s spec.nodes configuration for node group %s", numNodesToRemove, cluster.Name, nodeGroupAutoscaler.Spec.NodeConfigGroupId))
+			r.Logger.Info(fmt.Sprintf("Removing %d nodes from cluster %s spec.nodes configuration for node group %s", numNodesToRemove, cluster.Name, nodeGroupAutoscaler.Spec.NodeConfigGroupId))
 
 			if err = r.scaleDown(nodeGroupAutoscaler, cluster, numNodesToRemove); err != nil {
-				return RequeueWithError(r.Log, fmt.Sprintf("Failed to scale cluster %s down for node group %s", cluster.Name, nodeGroupAutoscaler.Spec.NodeConfigGroupId), err)
+				return RequeueWithError(r, fmt.Sprintf("Failed to scale cluster %s down for node group %s", cluster.Name, nodeGroupAutoscaler.Spec.NodeConfigGroupId), err)
 			}
 		}
 
 		// patch nificluster resource with added/removed nodes
 		if err = r.Client.Patch(ctx, cluster, clusterPatch); err != nil {
-			return RequeueWithError(r.Log, fmt.Sprintf("Failed to patch nifi cluster with changes in nodes. Tried to apply the following patch:\n %v+", clusterPatch), err)
+			return RequeueWithError(r, fmt.Sprintf("Failed to patch nifi cluster with changes in nodes. Tried to apply the following patch:\n %v+", clusterPatch), err)
 		}
 
 		// update autoscaler state to InSync.
 		if err = r.updateAutoscalerReplicaState(ctx, nodeGroupAutoscaler, v1alpha1.AutoscalerStateInSync); err != nil {
-			return RequeueWithError(r.Log, fmt.Sprintf("Failed to udpate node group autoscaler state for node group %s", nodeGroupAutoscaler.Spec.NodeConfigGroupId), err)
+			return RequeueWithError(r, fmt.Sprintf("Failed to udpate node group autoscaler state for node group %s", nodeGroupAutoscaler.Spec.NodeConfigGroupId), err)
 		}
 	} else {
-		r.Log.Info("Cluster replicas config and current number of replicas are the same", zap.Int32("replicas", nodeGroupAutoscaler.Spec.Replicas))
+		r.Logger.Info("Cluster replicas config and current number of replicas are the same", zap.Int32("replicas", nodeGroupAutoscaler.Spec.Replicas))
 	}
 
 	// update replica and replica status
 	if err = r.updateAutoscalerReplicaStatus(ctx, cluster, nodeGroupAutoscaler); err != nil {
-		return RequeueWithError(r.Log, fmt.Sprintf("Failed to update node group autoscaler replica status for node group %s", nodeGroupAutoscaler.Spec.NodeConfigGroupId), err)
+		return RequeueWithError(r, fmt.Sprintf("Failed to update node group autoscaler replica status for node group %s", nodeGroupAutoscaler.Spec.NodeConfigGroupId), err)
 	}
 
-	return reconcile.Result{
-		RequeueAfter: util.GetRequeueInterval(r.RequeueInterval, r.RequeueOffset),
-	}, nil
+	return RequeueAfter(r, util.GetRequeueInterval(r.RequeueInterval, r.RequeueOffset))
 }
 
 // scaleUp updates the provided cluster.Spec.Nodes list with the appropriate numNodesToAdd according to the autoscaler.Spec.UpscaleStrategy
@@ -181,7 +200,7 @@ func (r *NifiNodeGroupAutoscalerReconciler) scaleUp(autoscaler *v1alpha1.NifiNod
 	case v1alpha1.SimpleClusterUpscaleStrategy:
 		fallthrough
 	default:
-		r.Log.Info(fmt.Sprintf("Using Simple upscale strategy for cluster %s node group %s", cluster.Name, autoscaler.Spec.NodeConfigGroupId))
+		r.Logger.Info(fmt.Sprintf("Using Simple upscale strategy for cluster %s node group %s", cluster.Name, autoscaler.Spec.NodeConfigGroupId))
 		simple := &autoscale.SimpleHorizontalUpscaleStrategy{
 			NifiCluster:             cluster,
 			NifiNodeGroupAutoscaler: autoscaler,
@@ -206,7 +225,7 @@ func (r *NifiNodeGroupAutoscalerReconciler) scaleDown(autoscaler *v1alpha1.NifiN
 	case v1alpha1.LIFOClusterDownscaleStrategy:
 		fallthrough
 	default:
-		r.Log.Info(fmt.Sprintf("Using LIFO downscale strategy for cluster %s node group %s", cluster.Name, autoscaler.Spec.NodeConfigGroupId))
+		r.Logger.Info(fmt.Sprintf("Using LIFO downscale strategy for cluster %s node group %s", cluster.Name, autoscaler.Spec.NodeConfigGroupId))
 		// remove the last n nodes from the node list
 		lifo := &autoscale.LIFOHorizontalDownscaleStrategy{
 			NifiCluster:             cluster,
@@ -310,17 +329,17 @@ func (r *NifiNodeGroupAutoscalerReconciler) SetupWithManager(mgr ctrl.Manager) e
 }
 
 func (r *NifiNodeGroupAutoscalerReconciler) checkFinalizers(ctx context.Context, autoscaler *v1alpha1.NifiNodeGroupAutoscaler) (reconcile.Result, error) {
-	r.Log.Info("NifiNodeGroupAutoscaler is marked for deletion")
+	r.Logger.Info("NifiNodeGroupAutoscaler is marked for deletion")
 
 	var err error
 	if util.StringSliceContains(autoscaler.GetFinalizers(), autoscalerFinalizer) {
 		// no further actions necessary prior to removing finalizer.
 		if err = r.removeFinalizer(ctx, autoscaler); err != nil {
-			return RequeueWithError(r.Log, "failed to remove finalizer from autoscaler", err)
+			return RequeueWithError(r, "failed to remove finalizer from autoscaler", err)
 		}
 	}
 
-	return Reconciled()
+	return Reconciled(r)
 }
 
 func (r *NifiNodeGroupAutoscalerReconciler) removeFinalizer(ctx context.Context, autoscaler *v1alpha1.NifiNodeGroupAutoscaler) error {

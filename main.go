@@ -4,13 +4,18 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 
 	"github.com/go-logr/zapr"
 	certv1 "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/collectors"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 
 	"github.com/konpyutaika/nifikop/pkg/common"
+	"github.com/konpyutaika/nifikop/pkg/metrics"
+
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
@@ -94,105 +99,138 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Create a new metrics registry.
+	reg := prometheus.NewRegistry()
+
+	reg.MustRegister(collectors.NewBuildInfoCollector())
+	reg.MustRegister(collectors.NewGoCollector(
+		collectors.WithGoCollectorRuntimeMetrics(collectors.GoRuntimeMetricsRule{Matcher: regexp.MustCompile("/.*")}),
+		collectors.WithGoCollectorMemStatsMetricsDisabled(),
+	))
+
 	multipliers := *common.NewRequeueConfig()
-	if err = (&controllers.NifiClusterReconciler{
+	ncr := &controllers.NifiClusterReconciler{
 		Client:           mgr.GetClient(),
 		DirectClient:     mgr.GetAPIReader(),
-		Log:              *logger.Named("controllers").Named("NifiCluster"),
+		Logger:           *logger.Named("controllers").Named("NifiCluster"),
 		Scheme:           mgr.GetScheme(),
 		Namespaces:       namespaceList,
 		Recorder:         mgr.GetEventRecorderFor("nifi-cluster"),
 		RequeueIntervals: multipliers.ClusterTaskRequeueIntervals,
 		RequeueOffset:    multipliers.RequeueOffset,
-	}).SetupWithManager(mgr); err != nil {
+		MetricRegistry:   metrics.NewMetrics("NifiCluster", reg),
+	}
+	if err = ncr.SetupWithManager(mgr); err != nil {
 		logger.Error("unable to create controller", zap.String("controller", "NifiCluster"), zap.Error(err))
 		os.Exit(1)
 	}
+	ncr.Metrics().Ready().Set(1)
 
-	if err = (&controllers.NifiClusterTaskReconciler{
+	nctr := &controllers.NifiClusterTaskReconciler{
 		Client:           mgr.GetClient(),
-		Log:              *logger.Named("controllers").Named("NifiClusterTask"),
+		Logger:           *logger.Named("controllers").Named("NifiClusterTask"),
 		Scheme:           mgr.GetScheme(),
 		Recorder:         mgr.GetEventRecorderFor("nifi-cluster-task"),
 		RequeueIntervals: multipliers.ClusterTaskRequeueIntervals,
 		RequeueOffset:    multipliers.RequeueOffset,
-	}).SetupWithManager(mgr); err != nil {
+		MetricRegistry:   metrics.NewMetrics("NifiClusterTask", reg),
+	}
+	if err = nctr.SetupWithManager(mgr); err != nil {
 		logger.Error("unable to create controller", zap.String("controller", "NifiClusterTask"), zap.Error(err))
 		os.Exit(1)
 	}
+	nctr.Metrics().Ready().Set(1)
 
-	if err = (&controllers.NifiUserReconciler{
+	nur := &controllers.NifiUserReconciler{
 		Client:          mgr.GetClient(),
-		Log:             *logger.Named("controllers").Named("NifiUser"),
+		Logger:          *logger.Named("controllers").Named("NifiUser"),
 		Scheme:          mgr.GetScheme(),
 		Recorder:        mgr.GetEventRecorderFor("nifi-user"),
 		RequeueInterval: multipliers.UserRequeueInterval,
 		RequeueOffset:   multipliers.RequeueOffset,
-	}).SetupWithManager(mgr, certManagerEnabled); err != nil {
+		MetricRegistry:  metrics.NewMetrics("NifiUser", reg),
+	}
+	if err = nur.SetupWithManager(mgr, certManagerEnabled); err != nil {
 		logger.Error("unable to create controller", zap.String("controller", "NifiUser"), zap.Error(err))
 		os.Exit(1)
 	}
+	nur.Metrics().Ready().Set(1)
 
-	if err = (&controllers.NifiUserGroupReconciler{
+	nugr := &controllers.NifiUserGroupReconciler{
 		Client:          mgr.GetClient(),
-		Log:             *logger.Named("controllers").Named("NifiUserGroup"),
+		Logger:          *logger.Named("controllers").Named("NifiUserGroup"),
 		Scheme:          mgr.GetScheme(),
 		Recorder:        mgr.GetEventRecorderFor("nifi-user-group"),
 		RequeueInterval: multipliers.UserGroupRequeueInterval,
 		RequeueOffset:   multipliers.RequeueOffset,
-	}).SetupWithManager(mgr); err != nil {
+		MetricRegistry:  metrics.NewMetrics("NifiUserGroup", reg),
+	}
+	if err = nugr.SetupWithManager(mgr); err != nil {
 		logger.Error("unable to create controller", zap.String("controller", "NifiUserGroup"), zap.Error(err))
 		os.Exit(1)
 	}
+	nugr.Metrics().Ready().Set(1)
 
-	if err = (&controllers.NifiDataflowReconciler{
+	ndr := &controllers.NifiDataflowReconciler{
 		Client:          mgr.GetClient(),
-		Log:             *logger.Named("controllers").Named("NifiDataflow"),
+		Logger:          *logger.Named("controllers").Named("NifiDataflow"),
 		Scheme:          mgr.GetScheme(),
 		Recorder:        mgr.GetEventRecorderFor("nifi-dataflow"),
 		RequeueInterval: multipliers.DataFlowRequeueInterval,
 		RequeueOffset:   multipliers.RequeueOffset,
-	}).SetupWithManager(mgr); err != nil {
+		MetricRegistry:  metrics.NewMetrics("NifiDataflow", reg),
+	}
+	if err = ndr.SetupWithManager(mgr); err != nil {
 		logger.Error("unable to create controller", zap.String("controller", "NifiDataflow"), zap.Error(err))
 		os.Exit(1)
 	}
+	ndr.Metrics().Ready().Set(1)
 
-	if err = (&controllers.NifiParameterContextReconciler{
+	npcr := &controllers.NifiParameterContextReconciler{
 		Client:          mgr.GetClient(),
-		Log:             *logger.Named("controllers").Named("NifiParameterContext"),
+		Logger:          *logger.Named("controllers").Named("NifiParameterContext"),
 		Scheme:          mgr.GetScheme(),
 		Recorder:        mgr.GetEventRecorderFor("nifi-parameter-context"),
 		RequeueInterval: multipliers.ParameterContextRequeueInterval,
 		RequeueOffset:   multipliers.RequeueOffset,
-	}).SetupWithManager(mgr); err != nil {
+		MetricRegistry:  metrics.NewMetrics("NifiParameterContext", reg),
+	}
+	if err = npcr.SetupWithManager(mgr); err != nil {
 		logger.Error("unable to create controller", zap.String("controller", "NifiParameterContext"), zap.Error(err))
 		os.Exit(1)
 	}
+	npcr.Metrics().Ready().Set(1)
 
-	if err = (&controllers.NifiRegistryClientReconciler{
+	nrcr := &controllers.NifiRegistryClientReconciler{
 		Client:          mgr.GetClient(),
-		Log:             *logger.Named("controllers").Named("NifiRegistryClient"),
+		Logger:          *logger.Named("controllers").Named("NifiRegistryClient"),
 		Scheme:          mgr.GetScheme(),
 		Recorder:        mgr.GetEventRecorderFor("nifi-registry-client"),
 		RequeueInterval: multipliers.RegistryClientRequeueInterval,
 		RequeueOffset:   multipliers.RequeueOffset,
-	}).SetupWithManager(mgr); err != nil {
+		MetricRegistry:  metrics.NewMetrics("NifiRegistryClient", reg),
+	}
+	if err = nrcr.SetupWithManager(mgr); err != nil {
 		logger.Error("unable to create controller", zap.String("controller", "NifiRegistryClient"), zap.Error(err))
 		os.Exit(1)
 	}
+	nrcr.Metrics().Ready().Set(1)
 
-	if err = (&controllers.NifiNodeGroupAutoscalerReconciler{
+	nngr := &controllers.NifiNodeGroupAutoscalerReconciler{
 		Client:          mgr.GetClient(),
 		APIReader:       mgr.GetAPIReader(),
 		Scheme:          mgr.GetScheme(),
-		Log:             *logger.Named("controllers").Named("NifiNodeGroupAutoscaler"),
+		Logger:          *logger.Named("controllers").Named("NifiNodeGroupAutoscaler"),
 		Recorder:        mgr.GetEventRecorderFor("nifi-node-group-autoscaler"),
 		RequeueInterval: multipliers.NodeGroupAutoscalerRequeueInterval,
 		RequeueOffset:   multipliers.RequeueOffset,
-	}).SetupWithManager(mgr); err != nil {
+		MetricRegistry:  metrics.NewMetrics("NifiNodeGroupAutoscaler", reg),
+	}
+	if err = nngr.SetupWithManager(mgr); err != nil {
 		logger.Error("unable to create controller", zap.String("controller", "NifiNodeGroupAutoscaler"), zap.Error(err))
 		os.Exit(1)
 	}
+	nngr.Metrics().Ready().Set(1)
 	// +kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("health", healthz.Ping); err != nil {

@@ -10,19 +10,29 @@ import (
 
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
+	"github.com/konpyutaika/nifikop/pkg/metrics"
 )
 
-func TestRequeueWithError(t *testing.T) {
-	logger, _ := zap.NewDevelopment()
+type mockReconciler struct {
+	InstrumentedReconciler
+}
 
-	_, err := RequeueWithError(*logger, "test", errors.New("test error"))
+func (m *mockReconciler) Metrics() *metrics.MetricRegistry {
+	return nil
+}
+func (m *mockReconciler) Log() *zap.Logger {
+	return zap.NewNop()
+}
+
+func TestRequeueWithError(t *testing.T) {
+	_, err := RequeueWithError(&mockReconciler{}, "test", errors.New("test error"))
 	if err == nil {
 		t.Error("Expected error to fall through, got nil")
 	}
 }
 
 func TestReconciled(t *testing.T) {
-	res, err := Reconciled()
+	res, err := Reconciled(&mockReconciler{})
 	if err != nil {
 		t.Error("Expected error to be nil, got:", err)
 	}
@@ -90,9 +100,7 @@ func TestCheckNodeConnectionError(t *testing.T) {
 
 	// Test nodes unreachable
 	err = errorfactory.New(errorfactory.NodesUnreachable{}, errors.New("test error"), "test message")
-	logger, _ := zap.NewDevelopment()
-
-	if res, err := CheckNodeConnectionError(*logger, err); err != nil {
+	if res, err := checkNodeConnectionError(&mockReconciler{}, err); err != nil {
 		t.Error("Expected no error in result, got:", err)
 	} else {
 		if !res.Requeue {
@@ -105,7 +113,7 @@ func TestCheckNodeConnectionError(t *testing.T) {
 
 	// Test nodes not ready
 	err = errorfactory.New(errorfactory.NodesNotReady{}, errors.New("test error"), "test message")
-	if res, err := CheckNodeConnectionError(*logger, err); err != nil {
+	if res, err := checkNodeConnectionError(&mockReconciler{}, err); err != nil {
 		t.Error("Expected no error in result, got:", err)
 	} else {
 		if !res.Requeue {
@@ -118,7 +126,7 @@ func TestCheckNodeConnectionError(t *testing.T) {
 
 	// test external resource not ready
 	err = errorfactory.New(errorfactory.ResourceNotReady{}, errors.New("test error"), "test message")
-	if res, err := CheckNodeConnectionError(*logger, err); err != nil {
+	if res, err := checkNodeConnectionError(&mockReconciler{}, err); err != nil {
 		t.Error("Expected no error in result, got:", err)
 	} else {
 		if !res.Requeue {
@@ -131,7 +139,7 @@ func TestCheckNodeConnectionError(t *testing.T) {
 
 	// test default response
 	err = errorfactory.New(errorfactory.InternalError{}, errors.New("test error"), "test message")
-	if _, err := CheckNodeConnectionError(*logger, err); err == nil {
+	if _, err := checkNodeConnectionError(&mockReconciler{}, err); err == nil {
 		t.Error("Expected error to fall through, got nil")
 	}
 }
