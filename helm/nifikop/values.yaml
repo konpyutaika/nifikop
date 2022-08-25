@@ -14,10 +14,10 @@ vaultSecret: ""
 namespaces: []
 
 # Optional labels to add to all deployed resources
-commonLabels: {}
+labels: {}
 
 # Optional annotations to add to all deployed resources
-commonAnnotations: {}
+annotations: {}
 
 ## Prometheus-operator resource limits & requests
 ## Ref: https://kubernetes.io/docs/user-guide/compute-resources/

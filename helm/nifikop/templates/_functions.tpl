@@ -32,16 +32,16 @@ Return the appropriate apiVersion value to use for the capi-operator managed k8s
 {{- end -}}
 
 {{- define "userdefined.labels" }}
-{{ if .Values.commonLabels }}
-{{- with .Values.commonLabels }}
+{{ if .Values.labels }}
+{{- with .Values.labels }}
 {{- toYaml . | nindent 4 }}
 {{- end}}
 {{- end}}
 {{- end }}
 
 {{- define "userdefined.annotations" }}
-{{ if .Values.commonAnnotations }}
-{{- with .Values.commonAnnotations }}
+{{ if .Values.annotations }}
+{{- with .Values.annotations }}
 {{- toYaml . | nindent 4 }}
 {{- end}}
 {{- end}}
