@@ -9,6 +9,17 @@ metadata:
     chart: {{ $.Chart.Name }}-{{ $.Chart.Version }}
     heritage: {{ $.Release.Service }}
     release: {{ $.Release.Name }}
+    {{ if $.vals.commonLabels }}
+    {{- with $.vals.commonLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end}}
+    {{- end}}
+  {{ if $.vals.commonAnnotations }}
+  {{- with $.vals.commonAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end}}
+  {{- end}}
   name: {{ template "nifikop.name" $_ }}
   namespace: {{$namespace}}
 rules:

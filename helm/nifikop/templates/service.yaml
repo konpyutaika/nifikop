@@ -10,6 +10,17 @@ metadata:
     chart: {{ .Chart.Name }}-{{ .Chart.Version }}
     heritage: {{ .Release.Service }}
     release: {{ .Release.Name }}
+    {{ if .Values.commonLabels }}
+    {{- with .Values.commonLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end}}
+    {{- end}}
+  {{ if .Values.commonAnnotations }}
+  {{- with .Values.commonAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end}}
+  {{- end}}
 spec:
   selector:
     app: {{ template "nifikop.name" . }}
