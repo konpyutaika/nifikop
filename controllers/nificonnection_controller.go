@@ -199,7 +199,12 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	var clusterConnect clientconfig.ClusterConnect
 
 	// Get the client config manager associated to the cluster ref.
-	clusterRef := sourceComponent.ClusterRef
+	currentClusterRef := sourceComponent.ClusterRef
+	clusterRef := *originalClusterRef
+	// Set the clusterRef to the current one if the original one is empty (= new resource)
+	if clusterRef.Name == "" && clusterRef.Namespace == "" {
+		clusterRef = currentClusterRef
+	}
 	configManager := config.GetClientConfigManager(r.Client, clusterRef)
 
 	// Generate the connect object
@@ -261,6 +266,25 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 				clusterRef.Name, clusterConnect.Id()))
 
 		// the cluster does not exist - should have been caught pre-flight
+		return RequeueAfter(interval)
+	}
+
+	// Ìn case of the cluster reference changed.
+	if !v1alpha1.ClusterRefsEquals([]v1alpha1.ClusterReference{clusterRef, currentClusterRef}) {
+		// // Delete the resource on the previous cluster.
+		// if _, err := dataflow.RemoveDataflow(instance, clientConfig); err != nil {
+		// 	r.Recorder.Event(instance, corev1.EventTypeWarning, "RemoveError",
+		// 		fmt.Sprintf("Failed to delete NifiDataflow %s from cluster %s before moving in %s",
+		// 			instance.Name, original.Spec.ClusterRef.Name, original.Spec.ClusterRef.Name))
+		// 	return RequeueWithError(r.Log, "Failed to delete NifiDataflow before moving", err)
+		// }
+		// // Update the last view configuration to the current one.
+		// if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(current); err != nil {
+		// 	return RequeueWithError(r.Log, "could not apply last state to annotation", err)
+		// }
+		// if err := r.Client.Update(ctx, current); err != nil {
+		// 	return RequeueWithError(r.Log, "failed to update NifiDatafllow", err)
+		// }
 		return RequeueAfter(interval)
 	}
 
