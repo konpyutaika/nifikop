@@ -84,13 +84,13 @@ func (n *nifiClient) CreateConnection(entity nigoapi.ConnectionEntity) (*nigoapi
 	// Get nigoapi client, favoring the one associated to the coordinator node.
 	client, context := n.privilegeCoordinatorClient()
 	if client == nil {
-		log.Error(ErrNoNodeClientsAvailable, "Error during creating node client")
+		n.log.Error("Error during creating node client", zap.Error(ErrNoNodeClientsAvailable))
 		return nil, ErrNoNodeClientsAvailable
 	}
 
 	// Request on Nifi Rest API to create a connection
 	conEntity, rsp, body, err := client.ProcessGroupsApi.CreateConnection(context, entity.Id, entity)
-	if err := errorCreateOperation(rsp, body, err); err != nil {
+	if err := errorCreateOperation(rsp, body, err, n.log); err != nil {
 		return nil, err
 	}
 

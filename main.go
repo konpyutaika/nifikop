@@ -196,7 +196,7 @@ func main() {
 
 	if err = (&controllers.NifiConnectionReconciler{
 		Client:          mgr.GetClient(),
-		Log:             ctrl.Log.WithName("controllers").WithName("NifiConnection"),
+		Log:             *logger.Named("controllers").Named("NifiConnection"),
 		Scheme:          mgr.GetScheme(),
 		Recorder:        mgr.GetEventRecorderFor("nifi-connection"),
 		RequeueInterval: multipliers.RegistryClientRequeueInterval,

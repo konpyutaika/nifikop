@@ -9,10 +9,9 @@ import (
 	nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers"
 	"github.com/konpyutaika/nifikop/pkg/common"
-	ctrl "sigs.k8s.io/controller-runtime"
 )
 
-var log = ctrl.Log.WithName("connection-method")
+var log = common.CustomLogger().Named("connection-method")
 
 // CreateConnection will deploy the NifiDataflow on NiFi Cluster
 func CreateConnection(source *v1alpha1.ComponentInformation, destination *v1alpha1.ComponentInformation,

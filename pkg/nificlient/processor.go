@@ -29,13 +29,13 @@ func (n *nifiClient) GetProcessor(id string) (*nigoapi.ProcessorEntity, error) {
 	// Get nigoapi client, favoring the one associated to the coordinator node.
 	client, context := n.privilegeCoordinatorClient()
 	if client == nil {
-		log.Error(ErrNoNodeClientsAvailable, "Error during creating node client")
+		n.log.Error("Error during creating node client", zap.Error(ErrNoNodeClientsAvailable))
 		return nil, ErrNoNodeClientsAvailable
 	}
 
 	// Request on Nifi Rest API to get the processor informations
 	processor, rsp, body, err := client.ProcessorsApi.GetProcessor(context, id)
-	if err := errorUpdateOperation(rsp, body, err); err != nil {
+	if err := errorUpdateOperation(rsp, body, err, n.log); err != nil {
 		return nil, err
 	}
 

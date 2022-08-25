@@ -6,10 +6,9 @@ import (
 	nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers"
 	"github.com/konpyutaika/nifikop/pkg/common"
-	ctrl "sigs.k8s.io/controller-runtime"
 )
 
-var log = ctrl.Log.WithName("inputport-method")
+var log = common.CustomLogger().Named("inputport-method")
 
 // StopPort will the port on NiFi
 func StopPort(port nigoapi.PortEntity, config *clientconfig.NifiConfig) (*nigoapi.ProcessorStatusDto, error) {

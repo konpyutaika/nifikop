@@ -22,6 +22,7 @@ import (
 	"fmt"
 
 	"emperror.dev/errors"
+	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -32,7 +33,6 @@ import (
 
 	"github.com/banzaicloud/k8s-objectmatcher/patch"
 	"github.com/erdrix/nigoapi/pkg/nifi"
-	"github.com/go-logr/logr"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/connection"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/dataflow"
@@ -49,7 +49,7 @@ var lastAppliedClusterAnnotation string = fmt.Sprintf("%s/last-applied-nificlust
 // NifiConnectionReconciler reconciles a NifiConnection object
 type NifiConnectionReconciler struct {
 	client.Client
-	Log             logr.Logger
+	Log             zap.Logger
 	Scheme          *runtime.Scheme
 	Recorder        record.EventRecorder
 	RequeueInterval int
@@ -70,7 +70,6 @@ type NifiConnectionReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.12.1/pkg/reconcile
 func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = r.Log.WithValues("nificonnection", req.NamespacedName)
 	interval := util.GetRequeueInterval(r.RequeueInterval, r.RequeueOffset)
 	var err error
 
@@ -429,7 +428,8 @@ func (r *NifiConnectionReconciler) checkFinalizers(
 }
 
 func (r *NifiConnectionReconciler) removeFinalizer(ctx context.Context, connection *v1alpha1.NifiConnection) error {
-	r.Log.V(5).Info(fmt.Sprintf("Removing finalizer for NifiConnection %s", connection.Name))
+	r.Log.Info("Removing finalizer for NifiConnection",
+		zap.String("connection", connection.Name))
 	connection.SetFinalizers(util.StringSliceRemove(connection.GetFinalizers(), connectionFinalizer))
 	_, err := r.updateAndFetchLatest(ctx, connection)
 	return err
