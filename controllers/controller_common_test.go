@@ -11,6 +11,7 @@ import (
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	"github.com/konpyutaika/nifikop/pkg/metrics"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 type mockReconciler struct {
@@ -18,8 +19,10 @@ type mockReconciler struct {
 }
 
 func (m *mockReconciler) Metrics() *metrics.MetricRegistry {
-	return nil
+	reg := prometheus.NewRegistry()
+	return metrics.NewMetrics("foo", reg)
 }
+
 func (m *mockReconciler) Log() *zap.Logger {
 	return zap.NewNop()
 }
