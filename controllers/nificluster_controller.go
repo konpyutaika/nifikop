@@ -121,9 +121,9 @@ func (r *NifiClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	}
 
 	if instance.Status.State != v1alpha1.NifiClusterRollingUpgrading {
-		if err := k8sutil.UpdateCRStatus(r.Client, instance, v1alpha1.NifiClusterReconciling, r.Log); err != nil {
-			return RequeueWithError(r.Log, err.Error(), err)
-		}
+		r.Log.Info("NifiCluster starting reconciliation", zap.String("clusterName", instance.Name))
+		r.Recorder.Event(instance, corev1.EventTypeNormal, string(v1alpha1.NifiClusterReconciling),
+			"NifiCluster starting reconciliation")
 	}
 
 	reconcilers := []resources.ComponentReconciler{
@@ -182,11 +182,16 @@ func (r *NifiClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		}
 	}
 
-	if err := k8sutil.UpdateCRStatus(r.Client, instance, v1alpha1.NifiClusterRunning, r.Log); err != nil {
-		return RequeueWithError(r.Log, err.Error(), err)
+	if !instance.IsReady() {
+		r.Log.Info("Successfully reconciled NifiCluster", zap.String("clusterName", instance.Name))
+		r.Recorder.Event(instance, corev1.EventTypeNormal, string(v1alpha1.NifiClusterRunning),
+			"Successfully reconciled NifiCluster")
+		if err := k8sutil.UpdateCRStatus(r.Client, instance, v1alpha1.NifiClusterRunning, r.Log); err != nil {
+			return RequeueWithError(r.Log, err.Error(), err)
+		}
 	}
 
-	return Reconciled()
+	return RequeueAfter(intervalRunning)
 }
 
 // SetupWithManager sets up the controller with the Manager.
