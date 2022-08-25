@@ -237,6 +237,7 @@ func (r *NifiNodeGroupAutoscalerReconciler) updateAutoscalerReplicaState(ctx con
 	return r.Client.Status().Update(ctx, autoscaler)
 }
 
+// TODO : discuss about replacing by looking for NifiCluster.Spec.Nodes instead
 // updateAutoscalerReplicaStatus updates autoscaler replica status to inform the k8s scale subresource
 func (r *NifiNodeGroupAutoscalerReconciler) updateAutoscalerReplicaStatus(ctx context.Context, nifiCluster *v1alpha1.NifiCluster, autoscaler *v1alpha1.NifiNodeGroupAutoscaler) error {
 	podList, err := r.getCurrentReplicaPods(ctx, autoscaler)

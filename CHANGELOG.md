@@ -8,6 +8,12 @@
 
 ### Removed
 
+## v0.13.1
+
+### Changed
+
+- [PR #146](https://github.com/konpyutaika/nifikop/pull/146) - **[Operator/NifiCluster]** Move from volume prefix to pvc label selection for deletion
+
 ## v0.13.0
 
 ### Added

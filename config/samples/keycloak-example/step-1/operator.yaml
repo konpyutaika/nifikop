@@ -1,4 +1,4 @@
-# nifikop 0.13.0
+# nifikop 0.13.1
 rbacEnable: true
 namespaces:
   - nifi
