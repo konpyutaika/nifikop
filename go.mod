@@ -8,6 +8,7 @@ require (
 	github.com/banzaicloud/k8s-objectmatcher v1.4.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/erdrix/nigoapi v0.0.0-20211122092449-0fa36e567288
+	github.com/go-logr/logr v1.2.2
 	github.com/go-logr/zapr v1.2.3
 	github.com/imdario/mergo v0.3.12
 	github.com/jarcoal/httpmock v1.0.6
@@ -20,6 +21,7 @@ require (
 	k8s.io/api v0.24.0
 	k8s.io/apimachinery v0.24.0
 	k8s.io/client-go v0.24.0
+	k8s.io/klog/v2 v2.60.1
 	sigs.k8s.io/controller-runtime v0.12.1
 )
 
@@ -40,7 +42,6 @@ require (
 	github.com/evanphx/json-patch v4.12.0+incompatible // indirect
 	github.com/form3tech-oss/jwt-go v3.2.3+incompatible // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
-	github.com/go-logr/logr v1.2.2 // indirect
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
 	github.com/go-openapi/jsonreference v0.19.5 // indirect
 	github.com/go-openapi/swag v0.19.14 // indirect
@@ -86,7 +87,6 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/apiextensions-apiserver v0.24.0 // indirect
 	k8s.io/component-base v0.24.0 // indirect
-	k8s.io/klog/v2 v2.60.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20220328201542-3ee0da9b0b42 // indirect
 	k8s.io/utils v0.0.0-20220210201930-3a6ce19ff2f9 // indirect
 	sigs.k8s.io/json v0.0.0-20211208200746-9f7c6b3444d2 // indirect
