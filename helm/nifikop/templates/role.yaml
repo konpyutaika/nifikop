@@ -9,6 +9,9 @@ metadata:
     chart: {{ $.Chart.Name }}-{{ $.Chart.Version }}
     heritage: {{ $.Release.Service }}
     release: {{ $.Release.Name }}
+    {{- include "userdefined.labels" $_ }}
+  annotations:
+    {{- include "userdefined.annotations" $_ }}
   name: {{ template "nifikop.name" $_ }}
   namespace: {{$namespace}}
 rules:
