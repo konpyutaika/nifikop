@@ -6,7 +6,7 @@
   </a>
 
   <a href="https://github.com/orgs/konpyutaika/packages/container/package/helm-charts%2Fnifikop">
-    <img src="https://img.shields.io/github/v/release/konpyutaika/nifikop?style=shield&logo=docker" alt="Helm chart Automated build">
+    <img src="https://img.shields.io/github/v/release/konpyutaika/nifikop?style=shield&logo=helm" alt="Helm chart Automated build">
   </a>
 
   <a href="https://github.com/konpyutaika/nifikop/releases">
