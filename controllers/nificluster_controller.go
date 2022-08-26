@@ -101,9 +101,7 @@ func (r *NifiClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	}
 
 	if instance.IsExternal() {
-		return reconcile.Result{
-			RequeueAfter: time.Duration(15) * time.Second,
-		}, nil
+		return RequeueAfter(time.Duration(15) * time.Second)
 	}
 	//
 	if len(instance.Status.State) == 0 || instance.Status.State == v1alpha1.NifiClusterInitializing {
@@ -138,32 +136,20 @@ func (r *NifiClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 			switch errors.Cause(err).(type) {
 			case errorfactory.NodesUnreachable:
 				r.Log.Info("Nodes unreachable, may still be starting up", zap.String("reason", err.Error()))
-				return reconcile.Result{
-					RequeueAfter: intervalNotReady,
-				}, nil
+				return RequeueAfter(intervalNotReady)
 			case errorfactory.NodesNotReady:
 				r.Log.Info("Nodes not ready, may still be starting up", zap.String("reason", err.Error()))
-				return reconcile.Result{
-					RequeueAfter: intervalNotReady,
-				}, nil
+				return RequeueAfter(intervalNotReady)
 			case errorfactory.ResourceNotReady:
 				r.Log.Info("A new resource was not found or may not be ready", zap.String("reason", err.Error()))
-				return reconcile.Result{
-					RequeueAfter: intervalNotReady,
-				}, nil
+				return RequeueAfter(intervalNotReady)
 			case errorfactory.ReconcileRollingUpgrade:
 				r.Log.Info("Rolling Upgrade in Progress", zap.String("reason", err.Error()))
-				return reconcile.Result{
-					RequeueAfter: intervalRunning,
-				}, nil
+				return RequeueAfter(intervalRunning)
 			case errorfactory.NifiClusterNotReady:
-				return reconcile.Result{
-					RequeueAfter: intervalNotReady,
-				}, nil
+				return RequeueAfter(intervalNotReady)
 			case errorfactory.NifiClusterTaskRunning:
-				return reconcile.Result{
-					RequeueAfter: intervalRunning,
-				}, nil
+				return RequeueAfter(intervalRunning)
 			default:
 				return RequeueWithError(r.Log, err.Error(), err)
 			}
@@ -306,7 +292,7 @@ func (r *NifiClusterReconciler) checkFinalizers(ctx context.Context,
 		return RequeueWithError(r.Log, "failed to remove main finalizer from NifiCluser "+cluster.Name, err)
 	}
 
-	return reconcile.Result{}, nil
+	return Reconciled()
 }
 
 func (r *NifiClusterReconciler) removeFinalizer(ctx context.Context, cluster *v1alpha1.NifiCluster,
