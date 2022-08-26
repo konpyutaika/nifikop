@@ -198,7 +198,7 @@ func (r *NifiUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 				return ctrl.Result{
 					Requeue:      true,
-					RequeueAfter: interval / 3,
+					RequeueAfter: interval,
 				}, nil
 			case errorfactory.FatalReconcileError:
 				// TODO: (tinyzimmer) - Sleep for longer for now to give user time to see the error

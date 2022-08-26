@@ -11,6 +11,9 @@
 - [PR #142](https://github.com/konpyutaika/nifikop/pull/142) - **[Operator]** Fixed issue where operator would modify `NifiCluster` and `NifiDataflow` status on every reconciliation loop unnecessarily.
 - [PR #151](https://github.com/konpyutaika/nifikop/pull/151) - **[Operator]** Fixed an issue where the controller logging erroneously appeared to all come from the same controller.
 
+### Fixed Bugs
+- [PR #155](https://github.com/konpyutaika/nifikop/pull/155) - **[Operator]** Removed instances where reconcile requeue didn't honor the interval time
+
 ### Deprecated
 
 ### Removed

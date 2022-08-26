@@ -101,9 +101,7 @@ func (r *NifiClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	}
 
 	if instance.IsExternal() {
-		return reconcile.Result{
-			RequeueAfter: time.Duration(15) * time.Second,
-		}, nil
+		return RequeueAfter(time.Duration(15) * time.Second)
 	}
 	//
 	if len(instance.Status.State) == 0 || instance.Status.State == v1alpha1.NifiClusterInitializing {
@@ -138,32 +136,20 @@ func (r *NifiClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 			switch errors.Cause(err).(type) {
 			case errorfactory.NodesUnreachable:
 				r.Log.Info("Nodes unreachable, may still be starting up", zap.String("reason", err.Error()))
-				return reconcile.Result{
-					RequeueAfter: intervalNotReady,
-				}, nil
+				return RequeueAfter(intervalNotReady)
 			case errorfactory.NodesNotReady:
 				r.Log.Info("Nodes not ready, may still be starting up", zap.String("reason", err.Error()))
-				return reconcile.Result{
-					RequeueAfter: intervalNotReady,
-				}, nil
+				return RequeueAfter(intervalNotReady)
 			case errorfactory.ResourceNotReady:
 				r.Log.Info("A new resource was not found or may not be ready", zap.String("reason", err.Error()))
-				return reconcile.Result{
-					RequeueAfter: intervalNotReady / 2,
-				}, nil
+				return RequeueAfter(intervalNotReady)
 			case errorfactory.ReconcileRollingUpgrade:
 				r.Log.Info("Rolling Upgrade in Progress", zap.String("reason", err.Error()))
-				return reconcile.Result{
-					RequeueAfter: intervalRunning,
-				}, nil
+				return RequeueAfter(intervalRunning)
 			case errorfactory.NifiClusterNotReady:
-				return reconcile.Result{
-					RequeueAfter: intervalNotReady,
-				}, nil
+				return RequeueAfter(intervalNotReady)
 			case errorfactory.NifiClusterTaskRunning:
-				return reconcile.Result{
-					RequeueAfter: intervalRunning,
-				}, nil
+				return RequeueAfter(intervalRunning)
 			default:
 				return RequeueWithError(r.Log, err.Error(), err)
 			}
@@ -278,7 +264,7 @@ func (r *NifiClusterReconciler) checkFinalizers(ctx context.Context,
 
 		// Do any necessary PKI cleanup - a PKI backend should make sure any
 		// user finalizations are done before it does its final cleanup
-		interval := util.GetRequeueInterval(r.RequeueIntervals["CLUSTER_TASK_NOT_READY_REQUEUE_INTERVAL"]/3, r.RequeueOffset)
+		interval := util.GetRequeueInterval(r.RequeueIntervals["CLUSTER_TASK_NOT_READY_REQUEUE_INTERVAL"], r.RequeueOffset)
 		r.Log.Info("Tearing down any PKI resources for the nificluster",
 			zap.String("clusterName", cluster.Name))
 		if err = pki.GetPKIManager(r.Client, cluster).FinalizePKI(ctx, r.Log); err != nil {
@@ -306,7 +292,7 @@ func (r *NifiClusterReconciler) checkFinalizers(ctx context.Context,
 		return RequeueWithError(r.Log, "failed to remove main finalizer from NifiCluser "+cluster.Name, err)
 	}
 
-	return reconcile.Result{}, nil
+	return Reconciled()
 }
 
 func (r *NifiClusterReconciler) removeFinalizer(ctx context.Context, cluster *v1alpha1.NifiCluster,
