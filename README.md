@@ -14,7 +14,7 @@
   </a>
 
   <a href="https://circleci.com/gh/konpyutaika/nifikop">
-    <img src="https://circleci.com/gh/konpyutaika/nifikop/tree/master.svg?style=shield&logo=circleci" alt="CircleCI">
+    <img src="https://img.shields.io/circleci/build/github/konpyutaika/nifikop/master?logo=circleci&style=shield" alt="CircleCI">
   </a>
 
   <a href="https://goreportcard.com/report/github.com/konpyutaika/nifikop">
