@@ -2,22 +2,35 @@
 
 ### Added
 
+### Changed
+
+### Fixed Bugs
+
+### Deprecated
+
+### Removed
+
+## v0.14.0
+
+### Added
+
 - [PR #138](https://github.com/konpyutaika/nifikop/pull/138) - **[Operator/NifiCluster]** Add ability to configure the NiFi Load Balance port.
 - [PR #144](https://github.com/konpyutaika/nifikop/pull/144) - **[Operator]** Add automatic detection of k8s prior 1.21.
 - [PR #153](https://github.com/konpyutaika/nifikop/pull/153) - **[Helm Chart]** Added helm values to set common labels and annotations.
 
 ### Changed
 
-- [PR #146](https://github.com/konpyutaika/nifikop/pull/146) - **[Operator/NifiCluster]** Move from volume prefix to pvc label selection for deletion
 - [PR #142](https://github.com/konpyutaika/nifikop/pull/142) - **[Operator]** Fixed issue where operator would modify `NifiCluster` and `NifiDataflow` status on every reconciliation loop unnecessarily.
 - [PR #151](https://github.com/konpyutaika/nifikop/pull/151) - **[Operator]** Fixed an issue where the controller logging erroneously appeared to all come from the same controller.
 
 ### Fixed Bugs
 - [PR #155](https://github.com/konpyutaika/nifikop/pull/155) - **[Operator]** Removed instances where reconcile requeue didn't honor the interval time
 
-### Deprecated
+## v0.13.1
 
-### Removed
+### Changed
+
+- [PR #146](https://github.com/konpyutaika/nifikop/pull/146) - **[Operator/NifiCluster]** Move from volume prefix to pvc label selection for deletion
 
 ## v0.13.0
 
