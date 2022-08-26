@@ -13,6 +13,12 @@ vaultSecret: ""
 # set of namespaces where the operator watches resources
 namespaces: []
 
+# Optional labels to add to all deployed resources
+labels: {}
+
+# Optional annotations to add to all deployed resources
+annotations: {}
+
 ## Prometheus-operator resource limits & requests
 ## Ref: https://kubernetes.io/docs/user-guide/compute-resources/
 resources:
