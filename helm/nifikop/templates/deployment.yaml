@@ -10,6 +10,9 @@ metadata:
     operator: nifi
     release: {{ .Release.Name }}
     control-plane: nifikop
+    {{- include "userdefined.labels" . }}
+  annotations:
+    {{- include "userdefined.annotations" . }}
 spec:
   selector:
     matchLabels:
@@ -24,6 +27,9 @@ spec:
         app: {{ template "nifikop.name" . }}
         operator: nifi
         release: {{ .Release.Name }}
+        {{- include "userdefined.labels" . | indent 4 }}
+      annotations:
+        {{- include "userdefined.annotations" . | indent 4 }}
     spec:
     {{- with .Values.nodeSelector }}
       nodeSelector:

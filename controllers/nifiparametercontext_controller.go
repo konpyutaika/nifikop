@@ -277,7 +277,7 @@ func (r *NifiParameterContextReconciler) Reconcile(ctx context.Context, req ctrl
 	if err != nil {
 		switch errors.Cause(err).(type) {
 		case errorfactory.NifiParameterContextUpdateRequestRunning:
-			return RequeueAfter(interval / 3)
+			return RequeueAfter(interval)
 		default:
 			r.Recorder.Event(instance, corev1.EventTypeNormal, "SynchronizingFailed",
 				fmt.Sprintf("Synchronizing parameter context %s failed", instance.Name))

@@ -169,9 +169,7 @@ func (r *NifiNodeGroupAutoscalerReconciler) Reconcile(ctx context.Context, req c
 		return RequeueWithError(r.Log, fmt.Sprintf("Failed to update node group autoscaler replica status for node group %s", nodeGroupAutoscaler.Spec.NodeConfigGroupId), err)
 	}
 
-	return reconcile.Result{
-		RequeueAfter: util.GetRequeueInterval(r.RequeueInterval, r.RequeueOffset),
-	}, nil
+	return RequeueAfter(util.GetRequeueInterval(r.RequeueInterval, r.RequeueOffset))
 }
 
 // scaleUp updates the provided cluster.Spec.Nodes list with the appropriate numNodesToAdd according to the autoscaler.Spec.UpscaleStrategy

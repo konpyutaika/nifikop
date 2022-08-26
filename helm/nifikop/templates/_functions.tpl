@@ -31,3 +31,18 @@ Return the appropriate apiVersion value to use for the capi-operator managed k8s
 {{- printf "%s" "nificlusters.nifi.konpyutaika.com/v1alpha1" -}}
 {{- end -}}
 
+{{- define "userdefined.labels" }}
+{{ if .Values.labels }}
+{{- with .Values.labels }}
+{{- toYaml . | nindent 4 }}
+{{- end}}
+{{- end}}
+{{- end }}
+
+{{- define "userdefined.annotations" }}
+{{ if .Values.annotations }}
+{{- with .Values.annotations }}
+{{- toYaml . | nindent 4 }}
+{{- end}}
+{{- end}}
+{{- end }}
