@@ -1,24 +1,28 @@
 <p align="center"><img src="docs/img/nifikop.png" width="160"></p>
 
 <p align="center">
-  <a href="https://ghcr.io/konpyutaika/docker-images/nifikop/">
+  <a href="https://github.com/konpyutaika/nifikop/pkgs/container/docker-images%2Fnifikop">
     <img src="https://img.shields.io/github/v/release/konpyutaika/nifikop?style=shield&logo=docker" alt="Docker Automated build">
   </a>
 
-  <a href="https://github.com/konpyutaika/nifikop">
-    <img src="https://img.shields.io/github/v/release/konpyutaika/nifikop?style=shield&logo=github" alt="Docker Automated build">
+  <a href="https://github.com/konpyutaika/nifikop/releases">
+    <img src="https://img.shields.io/github/v/release/konpyutaika/nifikop?style=shield&logo=github" alt="Github Releases">
+  </a>
+
+  <a href="https://join.slack.com/t/konpytika/shared_invite/zt-1f0z06xv7-VjnKwrUBcyE2I_BwOukIUQ">
+    <img src="https://img.shields.io/badge/slack-nifikop-brightgreen.svg?style=shield&logo=slack" alt="Slack chat">
   </a>
 
   <a href="https://circleci.com/gh/konpyutaika/nifikop">
-    <img src="https://circleci.com/gh/konpyutaika/nifikop/tree/master.svg?style=shield" alt="CircleCI">
+    <img src="https://img.shields.io/circleci/build/github/konpyutaika/nifikop/master?logo=circleci&style=shield" alt="CircleCI">
   </a>
 
   <a href="https://goreportcard.com/report/github.com/konpyutaika/nifikop">
-    <img src="https://goreportcard.com/badge/github.com/konpyutaika/nifikop?style=shield" alt="Go Report Card">
+    <img src="https://goreportcard.com/badge/github.com/konpyutaika/nifikop?style=shield&logo=go" alt="Go Report Card">
   </a>
 
   <a href="https://github.com/konpyutaika/nifikop/">
-    <img src="https://img.shields.io/badge/license-Apache%20v2-orange.svg?style=shield" alt="license">
+    <img src="https://img.shields.io/badge/license-Apache%20v2-orange.svg?style=shield&logo=apache" alt="license">
   </a>
 </p>
 
