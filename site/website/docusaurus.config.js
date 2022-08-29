@@ -54,6 +54,7 @@ module.exports = {
   plugins: ['@docusaurus/theme-live-codeblock', 'docusaurus-plugin-sass', './sitePlugin'],
   themeConfig: {
     algolia: {
+      appId: '<NEW_APP_ID>',
       apiKey: '34dbf55751628f3e3aaf8e06776fba0b',
       indexName: 'nifikop',
 
