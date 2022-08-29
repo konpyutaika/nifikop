@@ -4,6 +4,8 @@
 
 ### Changed
 
+- [PR #160](https://github.com/konpyutaika/nifikop/pull/160) - **[Documentation]** Upgrade documentation dependencies.
+
 ### Fixed Bugs
 
 ### Deprecated
