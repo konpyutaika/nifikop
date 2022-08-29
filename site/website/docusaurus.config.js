@@ -28,6 +28,7 @@ module.exports = {
           editUrl:
             'https://github.com/konpyutaika/nifikop/edit/master/site/website/',
           path: '../docs',
+          numberPrefixParser: false,
           sidebarPath: require.resolve('./sidebars.json'),
           // remarkPlugins: [require('@react-native-website/remark-snackplayer')],
         },
@@ -76,7 +77,6 @@ module.exports = {
         alt: 'NiFiKop Logo',
         src: 'img/nifikop.png',
       },
-      style: 'dark',
       items: [
         {to: 'docs/1_concepts/1_introduction', className: 'header-doc-link', 'aria-label': 'Documentation', position: 'right'},
         {to: 'blog', className: 'header-blog-link', 'aria-label': 'Blog', position: 'right'},
