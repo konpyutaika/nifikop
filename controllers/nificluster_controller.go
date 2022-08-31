@@ -21,9 +21,8 @@ import (
 	"fmt"
 	"time"
 
-	v1 "github.com/konpyutaika/nifikop/api/v1"
-
 	"emperror.dev/errors"
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	"github.com/konpyutaika/nifikop/pkg/k8sutil"
 	"github.com/konpyutaika/nifikop/pkg/pki"
@@ -35,6 +34,7 @@ import (
 	policyv1 "k8s.io/api/policy/v1"
 	policyv1beta1 "k8s.io/api/policy/v1beta1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
@@ -108,13 +108,15 @@ func (r *NifiClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		if err := k8sutil.UpdateCRStatus(r.Client, instance, v1.NifiClusterInitializing, r.Log); err != nil {
 			return RequeueWithError(r.Log, err.Error(), err)
 		}
-		cert, err := pki.GetPKIManager(r.Client, instance).GetCertificate(ctx, r.Log)
-		if err != nil {
-			return RequeueWithError(r.Log, err.Error(), err)
-		}
-		certRenewalTime := v1.CertificateExpireDate(cert.Status.RenewalTime.Time.Format(time.RFC3339))
 
 		for nId := range instance.Spec.Nodes {
+			cert, err := pki.GetPKIManager(r.Client, instance).GetCertificate(ctx, int32(nId+1), r.Log)
+			time := metav1.Unix(0, 0)
+			certRenewalTime := &time
+			if err == nil {
+				certRenewalTime = cert.Status.RenewalTime
+			}
+
 			if err := k8sutil.UpdateNodeStatus(r.Client, []string{fmt.Sprint(instance.Spec.Nodes[nId].Id)}, instance, v1.IsInitClusterNode, r.Log); err != nil {
 				return RequeueWithError(r.Log, err.Error(), err)
 			}

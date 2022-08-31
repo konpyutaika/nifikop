@@ -349,7 +349,7 @@ type NodeState struct {
 	// +optional
 	LastUpdatedTime metav1.Time `json:"lastUpdatedTime,omitempty"`
 	// Certificate expire date contains the date when the certificate should be renewed
-	CertificateExpireDate CertificateExpireDate `json:"certificateExpireDate,omitempty"`
+	CertificateExpireDate *metav1.Time `json:"certificateExpireDate,omitempty"`
 }
 
 // RackAwarenessState holds info about rack awareness status

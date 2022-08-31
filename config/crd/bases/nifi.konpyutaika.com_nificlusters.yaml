@@ -7946,6 +7946,7 @@ spec:
                     certificateExpireDate:
                       description: Certificate expire date contains the date when
                         the certificate should be renewed
+                      format: date-time
                       type: string
                     configurationState:
                       type: string

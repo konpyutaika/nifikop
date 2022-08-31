@@ -50,7 +50,7 @@ func UpdateNodeStatus(c client.Client, nodeIds []string, cluster *v1.NifiCluster
 				} else {
 					cluster.Status.NodesState = map[string]v1.NodeState{nodeId: {LastUpdatedTime: s}}
 				}
-			case v1.CertificateExpireDate:
+			case *metav1.Time:
 				cluster.Status.NodesState = map[string]v1.NodeState{nodeId: {CertificateExpireDate: s}}
 			}
 		} else if val, ok := cluster.Status.NodesState[nodeId]; ok {
@@ -69,7 +69,7 @@ func UpdateNodeStatus(c client.Client, nodeIds []string, cluster *v1.NifiCluster
 				} else {
 					val.LastUpdatedTime = s
 				}
-			case v1.CertificateExpireDate:
+			case *metav1.Time:
 				val.CertificateExpireDate = s
 			}
 			cluster.Status.NodesState[nodeId] = val
@@ -89,7 +89,7 @@ func UpdateNodeStatus(c client.Client, nodeIds []string, cluster *v1.NifiCluster
 				} else {
 					cluster.Status.NodesState = map[string]v1.NodeState{nodeId: {LastUpdatedTime: s}}
 				}
-			case v1.CertificateExpireDate:
+			case *metav1.Time:
 				cluster.Status.NodesState[nodeId] = v1.NodeState{CertificateExpireDate: s}
 			}
 		}
@@ -129,6 +129,8 @@ func UpdateNodeStatus(c client.Client, nodeIds []string, cluster *v1.NifiCluster
 					} else {
 						cluster.Status.NodesState = map[string]v1.NodeState{nodeId: {LastUpdatedTime: s}}
 					}
+				case *metav1.Time:
+					cluster.Status.NodesState = map[string]v1.NodeState{nodeId: {CertificateExpireDate: s}}
 				}
 			} else if val, ok := cluster.Status.NodesState[nodeId]; ok {
 				switch s := state.(type) {
@@ -146,6 +148,8 @@ func UpdateNodeStatus(c client.Client, nodeIds []string, cluster *v1.NifiCluster
 					} else {
 						val.LastUpdatedTime = s
 					}
+				case *metav1.Time:
+					val.CertificateExpireDate = s
 				}
 				cluster.Status.NodesState[nodeId] = val
 			} else {
@@ -164,6 +168,8 @@ func UpdateNodeStatus(c client.Client, nodeIds []string, cluster *v1.NifiCluster
 					} else {
 						cluster.Status.NodesState = map[string]v1.NodeState{nodeId: {LastUpdatedTime: s}}
 					}
+				case *metav1.Time:
+					cluster.Status.NodesState[nodeId] = v1.NodeState{CertificateExpireDate: s}
 				}
 			}
 		}

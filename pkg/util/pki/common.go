@@ -57,7 +57,7 @@ type Manager interface {
 	GetControllerTLSConfig() (*tls.Config, error)
 
 	// GetCertificate get the cert manager certificate object
-	GetCertificate(ctx context.Context, logger zap.Logger) (certv1.Certificate, error)
+	GetCertificate(ctx context.Context, nodeId int32, logger zap.Logger) (certv1.Certificate, error)
 
 	// IsCertificateExpired return true is the certificate of the cluster has expired
 	IsCertificateExpired(ctx context.Context, pod *corev1.Pod, logger zap.Logger) bool

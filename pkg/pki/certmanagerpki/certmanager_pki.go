@@ -3,10 +3,9 @@ package certmanagerpki
 import (
 	"context"
 	"fmt"
-	"time"
+	"strconv"
 
 	v1 "github.com/konpyutaika/nifikop/api/v1"
-	"github.com/konpyutaika/nifikop/api/v1alpha1"
 
 	certv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	certmeta "github.com/cert-manager/cert-manager/pkg/apis/meta/v1"
@@ -24,13 +23,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-func (c *certManager) GetCertificate(ctx context.Context, logger zap.Logger) (certv1.Certificate, error) {
+func (c *certManager) GetCertificate(ctx context.Context, nodeId int32, logger zap.Logger) (certv1.Certificate, error) {
 	cert := &certv1.Certificate{}
 
-	objName := types.NamespacedName{
-		Name:      fmt.Sprintf(pkicommon.NodeCACertTemplate, c.cluster.Name),
-		Namespace: c.cluster.Namespace}
-
+	objName := types.NamespacedName{Name: pkicommon.GetNodeUserName(c.cluster, nodeId), Namespace: c.cluster.Namespace}
 	if err := c.client.Get(ctx, objName, cert); err != nil {
 		if apierrors.IsNotFound(err) {
 			logger.Error("No certificate found", zap.Error(err))
@@ -44,17 +40,22 @@ func (c *certManager) IsCertificateExpired(ctx context.Context, pod *corev1.Pod,
 	logger.Info("Checking if the certificate is expired")
 
 	// Get certificate object
-	cert, err := c.GetCertificate(ctx, logger)
+	tmp, _ := strconv.ParseInt(pod.Labels["nodeId"], 10, 32)
+	nodeIdInt := int32(tmp)
+	cert, err := c.GetCertificate(ctx, nodeIdInt, logger)
 
 	if err != nil {
 		logger.Error("No certificate found", zap.Error(err))
 		return false
 	}
 
-	// Get certificate renewal w/ time format RFC3339: “2006-01-02T15:04:05Z07:00”
-	certRenewalTime := cert.Status.RenewalTime.Time.Format(time.RFC3339)
+	certRenewalTime := cert.Status.RenewalTime.Time
 	certificateExpireDate := c.cluster.Status.NodesState[pod.Labels["nodeId"]].CertificateExpireDate
-	return string(certificateExpireDate) != certRenewalTime
+	certificateExpireDateTime := metav1.Unix(0, 0).Time
+	if certificateExpireDate != nil {
+		certificateExpireDateTime = certificateExpireDate.Time
+	}
+	return certificateExpireDateTime != certRenewalTime
 }
 
 func (c *certManager) UpdateCertificateStatusDate(ctx context.Context, pod *corev1.Pod, logger zap.Logger) error {
@@ -67,11 +68,16 @@ func (c *certManager) UpdateCertificateStatusDate(ctx context.Context, pod *core
 
 	nodeId := pod.Labels["nodeId"]
 
-	// Get certificate renewal w/ time format RFC3339: “2006-01-02T15:04:05Z07:00”
-	certRenewalTime := v1alpha1.CertificateExpireDate(cert.Status.RenewalTime.Time.Format(time.RFC3339))
+	certRenewalTime := cert.Status.RenewalTime
+	// test := metav1.NewTime(time.Now())
+	// certRenewalTime := v1alpha1.CertificateExpireDate(&test)
 	certificateExpireDate := c.cluster.Status.NodesState[nodeId].CertificateExpireDate
+	certificateExpireDateTime := metav1.Now().Time
+	if certificateExpireDate != nil {
+		certificateExpireDateTime = certificateExpireDate.Time
+	}
 
-	if string(certificateExpireDate) != string(certRenewalTime) {
+	if certificateExpireDateTime != certRenewalTime.Time {
 		if err := k8sutil.UpdateNodeStatus(c.client, []string{nodeId}, c.cluster, certRenewalTime, logger); err != nil {
 			logger.Error("Fail to update CertificateExpireDate", zap.Error(err))
 			return err

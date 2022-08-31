@@ -45,9 +45,6 @@ type ConfigurationState string
 // InitClusterNode holds info about if the node was part of the init cluster setup
 type InitClusterNode bool
 
-// Certificate expire date contains the date when the certificate should be renewed
-type CertificateExpireDate string
-
 // PKIBackend represents an interface implementing the PKIManager
 type PKIBackend string
 
@@ -349,7 +346,7 @@ type NodeState struct {
 	// +optional
 	LastUpdatedTime metav1.Time `json:"lastUpdatedTime,omitempty"`
 	// Certificate expire date contains the date when the certificate should be renewed
-	CertificateExpireDate CertificateExpireDate `json:"certificateExpireDate,omitempty"`
+	CertificateExpireDate *metav1.Time `json:"certificateExpireDate,omitempty"`
 }
 
 // RackAwarenessState holds info about rack awareness status
