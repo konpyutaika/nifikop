@@ -1,5 +1,5 @@
 ---
-id: secured_nifi_cluster_on_gcp
+slug: secured_nifi_cluster_on_gcp
 title: Secured NiFi cluster with NiFiKop on the Google Cloud Platform
 author: Alexandre Guitton
 author_title: Alexandre Guitton
