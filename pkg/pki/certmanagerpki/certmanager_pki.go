@@ -59,7 +59,8 @@ func (c *certManager) IsCertificateExpired(ctx context.Context, pod *corev1.Pod,
 }
 
 func (c *certManager) UpdateCertificateStatusDate(ctx context.Context, pod *corev1.Pod, logger zap.Logger) error {
-	cert, err := c.GetCertificate(ctx, logger)
+	nodeIdInt, _ := strconv.Atoi(pod.Labels["nodeId"])
+	cert, err := c.GetCertificate(ctx, nodeIdInt, logger)
 
 	if err != nil {
 		logger.Info("No certificate found", zap.Error(err))
@@ -72,7 +73,7 @@ func (c *certManager) UpdateCertificateStatusDate(ctx context.Context, pod *core
 	// test := metav1.NewTime(time.Now())
 	// certRenewalTime := v1alpha1.CertificateExpireDate(&test)
 	certificateExpireDate := c.cluster.Status.NodesState[nodeId].CertificateExpireDate
-	certificateExpireDateTime := metav1.Now().Time
+	certificateExpireDateTime := metav1.Unix(0, 0).Time
 	if certificateExpireDate != nil {
 		certificateExpireDateTime = certificateExpireDate.Time
 	}

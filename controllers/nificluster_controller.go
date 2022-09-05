@@ -120,7 +120,12 @@ func (r *NifiClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 			if err := k8sutil.UpdateNodeStatus(r.Client, []string{fmt.Sprint(instance.Spec.Nodes[nId].Id)}, instance, v1.IsInitClusterNode, r.Log); err != nil {
 				return RequeueWithError(r.Log, err.Error(), err)
 			}
+
 			if err := k8sutil.UpdateNodeStatus(r.Client, []string{fmt.Sprint(instance.Spec.Nodes[nId].Id)}, instance, certRenewalTime, r.Log); err != nil {
+				return RequeueWithError(r.Log, err.Error(), err)
+			}
+
+			if err := k8sutil.UpdateNodeStatus(r.Client, []string{fmt.Sprint(instance.Spec.Nodes[nId].Id)}, instance, v1.IsInitClusterNode, r.Log); err != nil {
 				return RequeueWithError(r.Log, err.Error(), err)
 			}
 		}
