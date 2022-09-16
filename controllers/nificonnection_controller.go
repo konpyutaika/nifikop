@@ -41,6 +41,7 @@ import (
 	"github.com/konpyutaika/nifikop/pkg/nificlient/config"
 	"github.com/konpyutaika/nifikop/pkg/util"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
+	nifiutil "github.com/konpyutaika/nifikop/pkg/util/nifi"
 )
 
 var connectionFinalizer string = fmt.Sprintf("nificonnections.%s/stop-input", v1alpha1.GroupVersion.Group)
@@ -89,11 +90,11 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	// Create it if not exist.
 	if o == nil {
 		if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(instance); err != nil {
-			return RequeueWithError(r.Log, "could not apply last state to annotation", err)
+			return RequeueWithError(r.Log, "could not apply last state to annotation for connection "+instance.Name, err)
 		}
 
 		if err := r.Client.Update(ctx, instance); err != nil {
-			return RequeueWithError(r.Log, "failed to update NifiConnection", err)
+			return RequeueWithError(r.Log, "failed to update NifiConnection "+instance.Name, err)
 		}
 		o, err = patch.DefaultAnnotator.GetOriginalConfiguration(instance)
 	}
@@ -104,15 +105,15 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	if cr == nil {
 		jsonResource, err := json.Marshal(v1alpha1.ClusterReference{})
 		if err != nil {
-			return RequeueWithError(r.Log, "could not apply last state to annotation", err)
+			return RequeueWithError(r.Log, "could not apply last state to annotation for connection "+instance.Name, err)
 		}
 
 		if err := k8sutil.SetAnnotation(lastAppliedClusterAnnotation, instance, jsonResource); err != nil {
-			return RequeueWithError(r.Log, "could not apply last state to annotation", err)
+			return RequeueWithError(r.Log, "could not apply last state to annotation for connection "+instance.Name, err)
 		}
 
 		if err := r.Client.Update(ctx, instance); err != nil {
-			return RequeueWithError(r.Log, "failed to update NifiConnection", err)
+			return RequeueWithError(r.Log, "failed to update NifiConnection "+instance.Name, err)
 		}
 		cr, err = patch.DefaultAnnotator.GetOriginalConfiguration(instance)
 	}
@@ -337,8 +338,71 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		return RequeueWithError(r.Log, "failed to update NifiConnection "+current.Name, err)
 	}
 
-	if instance.Status.State == v1alpha1.ConnectionStateOutOfSync {
-		status, err := connection.SyncConnection(instance, sourceComponent, destinationComponent, clientConfig)
+	// Resync connection source
+	if instance.Status.State == v1alpha1.ConnectionStateSourceOutOfSync {
+		if original.Spec.Source.Type == v1alpha1.ComponentDataflow {
+			status, err := connection.SyncConnectionSource(instance, sourceComponent, clientConfig)
+			if status != nil {
+				instance.Status = *status
+				if err := r.Client.Status().Update(ctx, instance); err != nil {
+					return RequeueWithError(r.Log, "failed to update status for NifiConnection "+instance.Name, err)
+				}
+			}
+			if err != nil {
+				return RequeueWithError(r.Log, "failed to sync NifiConnection "+instance.Name, err)
+			}
+		}
+
+		instance.Status.State = v1alpha1.ConnectionStateInSync
+		if err := r.Client.Status().Update(ctx, instance); err != nil {
+			return RequeueWithError(r.Log, "failed to update status for NifiConnection "+instance.Name, err)
+		}
+
+		r.Recorder.Event(instance, corev1.EventTypeNormal, "Synchronized",
+			fmt.Sprintf("Synchronized connection %s between %s in %s of type %s and %s in %s of type %s",
+				instance.Name,
+				instance.Spec.Source.Name, instance.Spec.Source.Namespace, instance.Spec.Source.Type,
+				instance.Spec.Destination.Name, instance.Spec.Destination.Namespace, instance.Spec.Destination.Type))
+	}
+
+	// Resync connection destination
+	if instance.Status.State == v1alpha1.ConnectionStateDestinationOutOfSync {
+		if original.Spec.Destination.Type == v1alpha1.ComponentDataflow {
+			status, err := connection.SyncConnectionDestination(instance, destinationComponent, clientConfig)
+			if status != nil {
+				instance.Status = *status
+				if err := r.Client.Status().Update(ctx, instance); err != nil {
+					return RequeueWithError(r.Log, "failed to update status for NifiConnection "+instance.Name, err)
+				}
+			}
+			if err != nil {
+				return RequeueWithError(r.Log, "failed to sync NifiConnection "+instance.Name, err)
+			}
+		}
+
+		// Update the last view configuration to the current one.
+		// TO FIX
+		current.Spec = original.Spec
+		current.Spec.Destination = instance.Spec.Destination
+		if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(current); err != nil {
+			return RequeueWithError(r.Log, "could not apply last state to annotation for dataflow "+instance.Name, err)
+		}
+
+		instance.Status.State = v1alpha1.ConnectionStateInSync
+		if err := r.Client.Status().Update(ctx, instance); err != nil {
+			return RequeueWithError(r.Log, "failed to update status for NifiConnection "+instance.Name, err)
+		}
+
+		r.Recorder.Event(instance, corev1.EventTypeNormal, "Synchronized",
+			fmt.Sprintf("Synchronized connection %s between %s in %s of type %s and %s in %s of type %s",
+				instance.Name,
+				instance.Spec.Source.Name, instance.Spec.Source.Namespace, instance.Spec.Source.Type,
+				instance.Spec.Destination.Name, instance.Spec.Destination.Namespace, instance.Spec.Destination.Type))
+	}
+
+	// Resync connection configuration
+	if instance.Status.State == v1alpha1.ConnectionStateConfigOutOfSync {
+		status, err := connection.SyncConnectionConfig(instance, clientConfig)
 		if status != nil {
 			instance.Status = *status
 			if err := r.Client.Status().Update(ctx, instance); err != nil {
@@ -374,15 +438,34 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	}
 
 	// Check if the connection is out of sync
+	// Check if the destination of the connection is out of sync
+	if original.Spec.Source.Name != instance.Spec.Source.Name {
+		instance.Status.State = v1alpha1.ConnectionStateSourceOutOfSync
+		if err := r.Client.Status().Update(ctx, instance); err != nil {
+			return RequeueWithError(r.Log, "failed to update status for NifiConnection "+instance.Name, err)
+		}
+		return Requeue()
+	}
+
+	// Check if the destination of the connection is out of sync
+	if original.Spec.Destination.Name != instance.Spec.Destination.Name {
+		instance.Status.State = v1alpha1.ConnectionStateDestinationOutOfSync
+		if err := r.Client.Status().Update(ctx, instance); err != nil {
+			return RequeueWithError(r.Log, "failed to update status for NifiConnection "+instance.Name, err)
+		}
+		return Requeue()
+	}
+
+	// Check if the configuration of the connection is out of sync
 	isOutOfSink, err := connection.IsOutOfSyncConnection(instance, sourceComponent, destinationComponent, clientConfig)
 	if err != nil {
-		return RequeueWithError(r.Log, "failed to check NifiConnection sync", err)
+		return RequeueWithError(r.Log, "failed to check sync for NifiConnection "+instance.Name, err)
 	}
 
 	if isOutOfSink {
-		instance.Status.State = v1alpha1.ConnectionStateOutOfSync
+		instance.Status.State = v1alpha1.ConnectionStateConfigOutOfSync
 		if err := r.Client.Status().Update(ctx, instance); err != nil {
-			return RequeueWithError(r.Log, "failed to update NifiConnection status", err)
+			return RequeueWithError(r.Log, "failed to update status for NifiConnection "+instance.Name, err)
 		}
 		return Requeue()
 	}
@@ -544,4 +627,37 @@ func (r *NifiConnectionReconciler) GetDataflowComponentInformation(c v1alpha1.Co
 		}
 		return information, nil
 	}
+}
+
+func (r *NifiConnectionReconciler) StopDataflowComponent(ctx context.Context, c v1alpha1.ComponentReference, isSource bool) error {
+	instance, err := k8sutil.LookupNifiDataflow(r.Client, c.Name, c.Namespace)
+	if err != nil {
+		return err
+	} else {
+		labels := instance.GetLabels()
+
+		if !isSource {
+			if label, ok := labels[nifiutil.StopInputPortPrefix]; ok {
+				if label != c.SubName {
+					return errors.New(fmt.Sprintf("Label %s is already set on the NifiDataflow %s", nifiutil.StopInputPortPrefix, instance.Name))
+				}
+			} else {
+				labels[nifiutil.StopInputPortPrefix] = c.SubName
+				instance.SetLabels(labels)
+				return r.Client.Update(ctx, instance)
+			}
+		} else {
+
+			if label, ok := labels[nifiutil.StopOutputPortPrefix]; ok {
+				if label != c.SubName {
+					return errors.New(fmt.Sprintf("Label %s is already set on the NifiDataflow %s", nifiutil.StopOutputPortPrefix, instance.Name))
+				}
+			} else {
+				labels[nifiutil.StopOutputPortPrefix] = c.SubName
+				instance.SetLabels(labels)
+				return r.Client.Update(ctx, instance)
+			}
+		}
+	}
+	return nil
 }

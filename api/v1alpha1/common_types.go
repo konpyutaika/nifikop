@@ -281,8 +281,12 @@ const (
 	// DataflowStateInSync describes the status of a NifiDataflow as in sync
 	DataflowStateInSync DataflowState = "InSync"
 
-	// ConnectionStateOutOfSync describes the status of a NifiConnection as out of sync
-	ConnectionStateOutOfSync ConnectionState = "OutOfSync"
+	// ConnectionStateConfigOutOfSync describes the status of a NifiConnection as config out of sync
+	ConnectionStateConfigOutOfSync ConnectionState = "ConfigOutOfSync"
+	// ConnectionStateDestinationOutOfSync describes the status of a NifiConnection as destination out of sync
+	ConnectionStateDestinationOutOfSync ConnectionState = "DestinationOutOfSync"
+	// ConnectionStateSourceOutOfSync describes the status of a NifiConnection as source out of sync
+	ConnectionStateSourceOutOfSync ConnectionState = "SourceOutOfSync"
 	// ConnectionStateInSync describes the status of a NifiConnection as in sync
 	ConnectionStateInSync ConnectionState = "InSync"
 

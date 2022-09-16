@@ -22,6 +22,11 @@ var (
 	NifiDataVolumeMountKey = fmt.Sprintf("%s/nifi-data", v1alpha1.GroupVersion.Group)
 )
 
+var (
+	StopInputPortPrefix  = fmt.Sprintf("%s/stop-input", v1alpha1.GroupVersion.Group)
+	StopOutputPortPrefix = fmt.Sprintf("%s/stop-output", v1alpha1.GroupVersion.Group)
+)
+
 // ParseTimeStampToUnixTime parses the given CC timeStamp to time format
 func ParseTimeStampToUnixTime(timestamp string) (time.Time, error) {
 

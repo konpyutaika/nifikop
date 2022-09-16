@@ -39,6 +39,7 @@ import (
 	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
+	nifiutil "github.com/konpyutaika/nifikop/pkg/util/nifi"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -47,8 +48,6 @@ import (
 )
 
 var dataflowFinalizer = "nifidataflows.nifi.konpyutaika.com/finalizer"
-var stopInputPortPrefix string = fmt.Sprintf("%s/stop-input", v1alpha1.GroupVersion.Group)
-var stopOutputPortPrefix string = fmt.Sprintf("%s/stop-output", v1alpha1.GroupVersion.Group)
 
 // NifiDataflowReconciler reconciles a NifiDataflow object
 type NifiDataflowReconciler struct {
@@ -349,7 +348,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	// Check if maintenance operation is needed
 	var operationNeeded bool = false
 	for labelKey, _ := range instance.Labels {
-		if labelKey == stopInputPortPrefix || labelKey == stopOutputPortPrefix {
+		if labelKey == nifiutil.StopInputPortPrefix || labelKey == nifiutil.StopOutputPortPrefix {
 			operationNeeded = true
 		}
 	}
@@ -360,7 +359,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		if err != nil {
 			return RequeueWithError(r.Log, "failed to get NifiDataflow information", err)
 		} else {
-			if labelValue, ok := instance.Labels[stopInputPortPrefix]; ok {
+			if labelValue, ok := instance.Labels[nifiutil.StopInputPortPrefix]; ok {
 				// Stop input port operation
 				for _, port := range dataflowInformation.ProcessGroupFlow.Flow.InputPorts {
 					if port.Component.Name == labelValue {
@@ -368,7 +367,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 						return RequeueWithError(r.Log, "failed to get stop input port", err)
 					}
 				}
-			} else if labelValue, ok := instance.Labels[stopOutputPortPrefix]; ok {
+			} else if labelValue, ok := instance.Labels[nifiutil.StopOutputPortPrefix]; ok {
 				// Stop output port operation
 				for _, port := range dataflowInformation.ProcessGroupFlow.Flow.OutputPorts {
 					if port.Component.Name == labelValue {

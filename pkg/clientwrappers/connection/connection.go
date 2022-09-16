@@ -91,9 +91,8 @@ func ConnectionExist(connection *v1alpha1.NifiConnection, config *clientconfig.N
 	return connectionEntity != nil, nil
 }
 
-// SyncConnection implements the logic to sync a SyncConnection with the deployed connection.
-func SyncConnection(connection *v1alpha1.NifiConnection,
-	source *v1alpha1.ComponentInformation, destination *v1alpha1.ComponentInformation,
+// SyncConnectionConfig implements the logic to sync a NifiConnection config with the deployed connection config.
+func SyncConnectionConfig(connection *v1alpha1.NifiConnection,
 	config *clientconfig.NifiConfig) (*v1alpha1.NifiConnectionStatus, error) {
 
 	nClient, err := common.NewClusterConnection(log, config)
@@ -104,16 +103,6 @@ func SyncConnection(connection *v1alpha1.NifiConnection,
 	connectionEntity, err := nClient.GetConnection(connection.Status.ConnectionId)
 	if err := clientwrappers.ErrorGetOperation(log, err, "Get connection"); err != nil {
 		return nil, err
-	}
-
-	if isSourceChanged(connectionEntity, source) {
-		connectionEntity.SourceId = source.Id
-
-		_, err := nClient.UpdateConnection(*connectionEntity)
-		if err := clientwrappers.ErrorUpdateOperation(log, err, "Update connection"); err != nil {
-			return nil, err
-		}
-		return &connection.Status, errorfactory.NifiConnectionSyncing{}
 	}
 
 	if isConfigurationChanged(connectionEntity, connection) {
@@ -161,7 +150,10 @@ func IsOutOfSyncConnection(connection *v1alpha1.NifiConnection,
 		return false, err
 	}
 
-	return isConfigurationChanged(connectionEntity, connection) || isSourceChanged(connectionEntity, source), nil
+	return isConfigurationChanged(connectionEntity, connection), nil
+
+	// return isConfigurationChanged(connectionEntity, connection) || isSourceChanged(connectionEntity, source) ||
+	// 	isDestinationChanged(connectionEntity, destination), nil
 }
 
 func isConfigurationChanged(connectionEntity *nigoapi.ConnectionEntity, connection *v1alpha1.NifiConnection) bool {
@@ -210,4 +202,62 @@ func isSourceChanged(
 
 	return connectionEntity.Component.Source.Id != source.Id || connectionEntity.Component.Source.GroupId != source.GroupId ||
 		connectionEntity.Component.Source.Type_ != source.Type
+}
+
+func isDestinationChanged(
+	connectionEntity *nigoapi.ConnectionEntity,
+	destination *v1alpha1.ComponentInformation) bool {
+
+	return connectionEntity.Component.Destination.Id != destination.Id || connectionEntity.Component.Destination.GroupId != destination.GroupId ||
+		connectionEntity.Component.Destination.Type_ != destination.Type
+}
+
+// SyncConnectionDestination implements the logic to sync a NifiConnection with the deployed connection destination.
+func SyncConnectionDestination(connection *v1alpha1.NifiConnection, destination *v1alpha1.ComponentInformation,
+	config *clientconfig.NifiConfig) (*v1alpha1.NifiConnectionStatus, error) {
+
+	nClient, err := common.NewClusterConnection(log, config)
+	if err != nil {
+		return nil, err
+	}
+
+	connectionEntity, err := nClient.GetConnection(connection.Status.ConnectionId)
+	if err := clientwrappers.ErrorGetOperation(log, err, "Get connection"); err != nil {
+		return nil, err
+	}
+
+	connectionEntity.Component.Destination.Id = destination.Id
+	connectionEntity.Component.Destination.Type_ = destination.Type
+	connectionEntity.Component.Destination.GroupId = destination.GroupId
+
+	_, err = nClient.UpdateConnection(*connectionEntity)
+	if err := clientwrappers.ErrorUpdateOperation(log, err, "Update connection"); err != nil {
+		return nil, err
+	}
+	return &connection.Status, nil
+}
+
+// SyncConnectionSource implements the logic to sync a NifiConnection with the deployed connection source.
+func SyncConnectionSource(connection *v1alpha1.NifiConnection, source *v1alpha1.ComponentInformation,
+	config *clientconfig.NifiConfig) (*v1alpha1.NifiConnectionStatus, error) {
+
+	nClient, err := common.NewClusterConnection(log, config)
+	if err != nil {
+		return nil, err
+	}
+
+	connectionEntity, err := nClient.GetConnection(connection.Status.ConnectionId)
+	if err := clientwrappers.ErrorGetOperation(log, err, "Get connection"); err != nil {
+		return nil, err
+	}
+
+	connectionEntity.Component.Source.Id = source.Id
+	connectionEntity.Component.Source.Type_ = source.Type
+	connectionEntity.Component.Source.GroupId = source.GroupId
+
+	_, err = nClient.UpdateConnection(*connectionEntity)
+	if err := clientwrappers.ErrorUpdateOperation(log, err, "Update connection"); err != nil {
+		return nil, err
+	}
+	return &connection.Status, nil
 }
