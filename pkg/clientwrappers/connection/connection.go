@@ -4,6 +4,7 @@ import (
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	"github.com/konpyutaika/nifikop/pkg/nificlient"
+	"github.com/konpyutaika/nifikop/pkg/util"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
 
 	nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
@@ -14,8 +15,8 @@ import (
 var log = common.CustomLogger().Named("connection-method")
 
 // CreateConnection will deploy the NifiDataflow on NiFi Cluster
-func CreateConnection(source *v1alpha1.ComponentInformation, destination *v1alpha1.ComponentInformation,
-	configuration *v1alpha1.ConnectionConfiguration, name string, config *clientconfig.NifiConfig) (*v1alpha1.NifiConnectionStatus, error) {
+func CreateConnection(connection *v1alpha1.NifiConnection, source *v1alpha1.ComponentInformation, destination *v1alpha1.ComponentInformation,
+	config *clientconfig.NifiConfig) (*v1alpha1.NifiConnectionStatus, error) {
 
 	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
@@ -23,7 +24,7 @@ func CreateConnection(source *v1alpha1.ComponentInformation, destination *v1alph
 	}
 
 	var bends []nigoapi.PositionDto
-	for _, bend := range configuration.GetBends() {
+	for _, bend := range connection.Spec.Configuration.GetBends() {
 		bends = append(bends, nigoapi.PositionDto{
 			X: float64(*bend.X),
 			Y: float64(*bend.Y),
@@ -31,13 +32,13 @@ func CreateConnection(source *v1alpha1.ComponentInformation, destination *v1alph
 	}
 
 	var defaultVersion int64 = 0
-	connection := &nigoapi.ConnectionEntity{
+	connectionEntity := nigoapi.ConnectionEntity{
 		Revision: &nigoapi.RevisionDto{
 			Version: &defaultVersion,
 		},
 		Id: source.ParentGroupId,
 		Component: &nigoapi.ConnectionDto{
-			Name: name,
+			Name: connection.Name,
 			Source: &nigoapi.ConnectableDto{
 				Id:      source.Id,
 				Type_:   source.Type,
@@ -48,18 +49,18 @@ func CreateConnection(source *v1alpha1.ComponentInformation, destination *v1alph
 				Type_:   destination.Type,
 				GroupId: destination.GroupId,
 			},
-			FlowFileExpiration:            configuration.GetFlowFileExpiration(),
-			BackPressureDataSizeThreshold: configuration.GetBackPressureDataSizeThreshold(),
-			BackPressureObjectThreshold:   configuration.GetBackPressureObjectThreshold(),
-			LoadBalanceStrategy:           string(configuration.GetLoadBalanceStrategy()),
-			LoadBalancePartitionAttribute: configuration.GetLoadBalancePartitionAttribute(),
-			LoadBalanceCompression:        string(configuration.GetLoadBalanceCompression()),
-			Prioritizers:                  configuration.GetStringPrioritizers(),
+			FlowFileExpiration:            connection.Spec.Configuration.GetFlowFileExpiration(),
+			BackPressureDataSizeThreshold: connection.Spec.Configuration.GetBackPressureDataSizeThreshold(),
+			BackPressureObjectThreshold:   connection.Spec.Configuration.GetBackPressureObjectThreshold(),
+			LoadBalanceStrategy:           string(connection.Spec.Configuration.GetLoadBalanceStrategy()),
+			LoadBalancePartitionAttribute: connection.Spec.Configuration.GetLoadBalancePartitionAttribute(),
+			LoadBalanceCompression:        string(connection.Spec.Configuration.GetLoadBalanceCompression()),
+			Prioritizers:                  connection.Spec.Configuration.GetStringPrioritizers(),
 			Bends:                         bends,
 		},
 	}
 
-	entity, err := nClient.CreateConnection(*connection)
+	entity, err := nClient.CreateConnection(connectionEntity)
 	if err := clientwrappers.ErrorCreateOperation(log, err, "Create connection"); err != nil {
 		return nil, err
 	}
@@ -115,6 +116,33 @@ func SyncConnection(connection *v1alpha1.NifiConnection,
 		return &connection.Status, errorfactory.NifiConnectionSyncing{}
 	}
 
+	if isConfigurationChanged(connectionEntity, connection) {
+		connectionEntity.Component.Name = connection.Name
+
+		var bends []nigoapi.PositionDto
+		for _, bend := range connection.Spec.Configuration.GetBends() {
+			bends = append(bends, nigoapi.PositionDto{
+				X: float64(*bend.X),
+				Y: float64(*bend.Y),
+			})
+		}
+
+		connectionEntity.Component.FlowFileExpiration = connection.Spec.Configuration.GetFlowFileExpiration()
+		connectionEntity.Component.BackPressureDataSizeThreshold = connection.Spec.Configuration.GetBackPressureDataSizeThreshold()
+		connectionEntity.Component.BackPressureObjectThreshold = connection.Spec.Configuration.GetBackPressureObjectThreshold()
+		connectionEntity.Component.LoadBalanceStrategy = string(connection.Spec.Configuration.GetLoadBalanceStrategy())
+		connectionEntity.Component.LoadBalancePartitionAttribute = connection.Spec.Configuration.GetLoadBalancePartitionAttribute()
+		connectionEntity.Component.LoadBalanceCompression = string(connection.Spec.Configuration.GetLoadBalanceCompression())
+		connectionEntity.Component.Prioritizers = connection.Spec.Configuration.GetStringPrioritizers()
+		connectionEntity.Component.Bends = bends
+
+		_, err := nClient.UpdateConnection(*connectionEntity)
+		if err := clientwrappers.ErrorUpdateOperation(log, err, "Update connection"); err != nil {
+			return nil, err
+		}
+		return &connection.Status, errorfactory.NifiConnectionSyncing{}
+	}
+
 	return &connection.Status, nil
 }
 
@@ -133,7 +161,47 @@ func IsOutOfSyncConnection(connection *v1alpha1.NifiConnection,
 		return false, err
 	}
 
-	return isSourceChanged(connectionEntity, source), nil
+	return isConfigurationChanged(connectionEntity, connection) || isSourceChanged(connectionEntity, source), nil
+}
+
+func isConfigurationChanged(connectionEntity *nigoapi.ConnectionEntity, connection *v1alpha1.NifiConnection) bool {
+	var bends []nigoapi.PositionDto
+	for _, bend := range connection.Spec.Configuration.GetBends() {
+		bends = append(bends, nigoapi.PositionDto{
+			X: float64(*bend.X),
+			Y: float64(*bend.Y),
+		})
+	}
+
+	return connectionEntity.Component.FlowFileExpiration != connection.Spec.Configuration.GetFlowFileExpiration() ||
+		connectionEntity.Component.BackPressureDataSizeThreshold != connection.Spec.Configuration.GetBackPressureDataSizeThreshold() ||
+		connectionEntity.Component.BackPressureObjectThreshold != connection.Spec.Configuration.GetBackPressureObjectThreshold() ||
+		connectionEntity.Component.LoadBalanceStrategy != string(connection.Spec.Configuration.GetLoadBalanceStrategy()) ||
+		connectionEntity.Component.LoadBalancePartitionAttribute != connection.Spec.Configuration.GetLoadBalancePartitionAttribute() ||
+		connectionEntity.Component.LoadBalanceCompression != string(connection.Spec.Configuration.GetLoadBalanceCompression()) ||
+		!util.StringSliceStrictCompare(connectionEntity.Component.Prioritizers, connection.Spec.Configuration.GetStringPrioritizers()) ||
+		isBendChanged(connectionEntity.Component.Bends, bends)
+}
+
+func isBendChanged(current []nigoapi.PositionDto, original []nigoapi.PositionDto) bool {
+	if len(current) != len(original) {
+		return true
+	}
+
+	for _, posC := range current {
+		var found bool = false
+		for _, posO := range original {
+			if posC.X == posO.X && posC.Y == posO.Y {
+				found = true
+			}
+		}
+
+		if found {
+			return true
+		}
+	}
+
+	return false
 }
 
 func isSourceChanged(

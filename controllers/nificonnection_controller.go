@@ -125,71 +125,71 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	json.Unmarshal(cr, originalClusterRef)
 
 	// Validate component
-	if !current.Spec.Configuration.IsValid() {
-		r.Recorder.Event(current, corev1.EventTypeWarning, "ConfigurationInvalid",
+	if !instance.Spec.Configuration.IsValid() {
+		r.Recorder.Event(instance, corev1.EventTypeWarning, "ConfigurationInvalid",
 			fmt.Sprintf("Failed to validate the connection configuration"))
-		return RequeueWithError(r.Log, "failed to validate connection configuration", err)
+		return RequeueWithError(r.Log, "failed to validate the configuration of connection "+instance.Name, err)
 	}
 
-	current.Spec.Source.Namespace = GetComponentRefNamespace(current.Namespace, current.Spec.Source)
-	if !current.Spec.Source.IsValid() {
-		r.Recorder.Event(current, corev1.EventTypeWarning, "SourceInvalid",
+	instance.Spec.Source.Namespace = GetComponentRefNamespace(instance.Namespace, instance.Spec.Source)
+	if !instance.Spec.Source.IsValid() {
+		r.Recorder.Event(instance, corev1.EventTypeWarning, "SourceInvalid",
 			fmt.Sprintf("Failed to validate the source component : %s in %s of type %s",
-				current.Spec.Source.Name, current.Spec.Source.Namespace, current.Spec.Source.Type))
-		return RequeueWithError(r.Log, "failed to validate source component", err)
+				instance.Spec.Source.Name, instance.Spec.Source.Namespace, instance.Spec.Source.Type))
+		return RequeueWithError(r.Log, "failed to validate source component "+instance.Spec.Source.Name, err)
 	}
 
-	current.Spec.Destination.Namespace = GetComponentRefNamespace(current.Namespace, current.Spec.Destination)
-	if !current.Spec.Destination.IsValid() {
-		r.Recorder.Event(current, corev1.EventTypeWarning, "DestinationInvalid",
+	instance.Spec.Destination.Namespace = GetComponentRefNamespace(instance.Namespace, instance.Spec.Destination)
+	if !instance.Spec.Destination.IsValid() {
+		r.Recorder.Event(instance, corev1.EventTypeWarning, "DestinationInvalid",
 			fmt.Sprintf("Failed to validate the destination component : %s in %s of type %s",
-				current.Spec.Destination.Name, current.Spec.Destination.Namespace, current.Spec.Destination.Type))
-		return RequeueWithError(r.Log, "failed to validate destination component", err)
+				instance.Spec.Destination.Name, instance.Spec.Destination.Namespace, instance.Spec.Destination.Type))
+		return RequeueWithError(r.Log, "failed to validate destination component "+instance.Spec.Destination.Name, err)
 	}
 
 	// LookUp component
 	// Source lookup
 	sourceComponent := &v1alpha1.ComponentInformation{}
-	if current.Spec.Source.Type == v1alpha1.ComponentDataflow {
-		sourceComponent, err = r.GetDataflowComponentInformation(current.Spec.Source, true)
+	if instance.Spec.Source.Type == v1alpha1.ComponentDataflow {
+		sourceComponent, err = r.GetDataflowComponentInformation(instance.Spec.Source, true)
 	}
 
 	if err != nil {
-		r.Recorder.Event(current, corev1.EventTypeWarning, "SourceNotFound",
+		r.Recorder.Event(instance, corev1.EventTypeWarning, "SourceNotFound",
 			fmt.Sprintf("Failed to retrieve source component information : %s in %s of type %s",
-				current.Spec.Source.Name, current.Spec.Source.Namespace, current.Spec.Source.Type))
-		return RequeueWithError(r.Log, "failed to retrieve source component", err)
+				instance.Spec.Source.Name, instance.Spec.Source.Namespace, instance.Spec.Source.Type))
+		return RequeueWithError(r.Log, "failed to retrieve source component "+instance.Spec.Source.Name, err)
 	}
 
 	// Destination lookup
 	destinationComponent := &v1alpha1.ComponentInformation{}
-	if current.Spec.Source.Type == v1alpha1.ComponentDataflow {
-		destinationComponent, err = r.GetDataflowComponentInformation(current.Spec.Destination, false)
+	if instance.Spec.Source.Type == v1alpha1.ComponentDataflow {
+		destinationComponent, err = r.GetDataflowComponentInformation(instance.Spec.Destination, false)
 	}
 
 	if err != nil {
-		r.Recorder.Event(current, corev1.EventTypeWarning, "DestinationNotFound",
+		r.Recorder.Event(instance, corev1.EventTypeWarning, "DestinationNotFound",
 			fmt.Sprintf("Failed to retrieve destination component information : %s in %s of type %s",
-				current.Spec.Destination.Name, current.Spec.Destination.Namespace, current.Spec.Destination.Type))
-		return RequeueWithError(r.Log, "failed to retrieve destination component", err)
+				instance.Spec.Destination.Name, instance.Spec.Destination.Namespace, instance.Spec.Destination.Type))
+		return RequeueWithError(r.Log, "failed to retrieve destination component "+instance.Spec.Destination.Name, err)
 	}
 
 	// Verification connection feasible
 	var clusterRefs []v1alpha1.ClusterReference
 	clusterRefs = append(clusterRefs, sourceComponent.ClusterRef, destinationComponent.ClusterRef)
 	if !v1alpha1.ClusterRefsEquals(clusterRefs) {
-		r.Recorder.Event(current, corev1.EventTypeWarning, "ReferenceClusterError",
+		r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceClusterError",
 			fmt.Sprintf("Failed to determine the cluster of the connection between %s in %s of type %s and %s in %s of type %s",
-				current.Spec.Source.Name, current.Spec.Source.Namespace, current.Spec.Source.Type,
-				current.Spec.Destination.Name, current.Spec.Destination.Namespace, current.Spec.Destination.Type))
-		return RequeueWithError(r.Log, "failed to determine the cluster of the connection", err)
+				instance.Spec.Source.Name, instance.Spec.Source.Namespace, instance.Spec.Source.Type,
+				instance.Spec.Destination.Name, instance.Spec.Destination.Namespace, instance.Spec.Destination.Type))
+		return RequeueWithError(r.Log, "failed to determine the cluster of the connection "+instance.Name, err)
 	}
 
 	if sourceComponent.ParentGroupId != destinationComponent.ParentGroupId {
-		r.Recorder.Event(current, corev1.EventTypeWarning, "ParentGroupIdError",
+		r.Recorder.Event(instance, corev1.EventTypeWarning, "ParentGroupIdError",
 			fmt.Sprintf("Failed to match parent group id from %s in %s of type %s to %s in %s of type %s",
-				current.Spec.Source.Name, current.Spec.Source.Namespace, current.Spec.Source.Type,
-				current.Spec.Destination.Name, current.Spec.Destination.Namespace, current.Spec.Destination.Type))
+				instance.Spec.Source.Name, instance.Spec.Source.Namespace, instance.Spec.Source.Type,
+				instance.Spec.Destination.Name, instance.Spec.Destination.Namespace, instance.Spec.Destination.Type))
 		return RequeueWithError(r.Log, "failed to match parent group id", err)
 	}
 
@@ -238,13 +238,13 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	// Generate the client configuration.
 	clientConfig, err = configManager.BuildConfig()
 	if err != nil {
-		r.Recorder.Event(current, corev1.EventTypeWarning, "ReferenceClusterError",
+		r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceClusterError",
 			fmt.Sprintf("Failed to create HTTP client for the referenced cluster : %s in %s",
 				clusterRef.Name, clusterRef.Namespace))
 		// the cluster is gone, so just remove the finalizer
-		if k8sutil.IsMarkedForDeletion(current.ObjectMeta) {
-			if err = r.removeFinalizer(ctx, current); err != nil {
-				return RequeueWithError(r.Log, fmt.Sprintf("failed to remove finalizer from NifiConnection %s", current.Name), err)
+		if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {
+			if err = r.removeFinalizer(ctx, instance); err != nil {
+				return RequeueWithError(r.Log, fmt.Sprintf("failed to remove finalizer from NifiConnection %s", instance.Name), err)
 			}
 			return Reconciled()
 		}
@@ -253,16 +253,18 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	}
 
 	// Check if marked for deletion and if so run finalizers
-	if k8sutil.IsMarkedForDeletion(current.ObjectMeta) {
-		return r.checkFinalizers(ctx, current, clientConfig)
+	if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {
+		return r.checkFinalizers(ctx, instance, clientConfig)
 	}
 
 	// Ensure the cluster is ready to receive actions
 	if !clusterConnect.IsReady(r.Log) {
-		r.Log.Info("Cluster is not ready yet, will wait until it is.")
-		r.Recorder.Event(current, corev1.EventTypeNormal, "ReferenceClusterNotReady",
-			fmt.Sprintf("The referenced cluster is not ready yet : %s in %s",
-				clusterRef.Name, clusterConnect.Id()))
+		r.Log.Debug("Cluster is not ready yet, will wait until it is.",
+			zap.String("clusterName", clusterRef.Name),
+			zap.String("connection", instance.Name))
+		r.Recorder.Event(instance, corev1.EventTypeNormal, "ReferenceClusterNotReady",
+			fmt.Sprintf("The referenced cluster is not ready yet for connection %s : %s in %s",
+				instance.Name, clusterRef.Name, clusterConnect.Id()))
 
 		// the cluster does not exist - should have been caught pre-flight
 		return RequeueAfter(interval)
@@ -287,49 +289,52 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		return RequeueAfter(interval)
 	}
 
-	r.Recorder.Event(current, corev1.EventTypeNormal, "Reconciling",
-		fmt.Sprintf("Reconciling connection %s", current.Name))
+	r.Recorder.Event(instance, corev1.EventTypeNormal, "Reconciling",
+		fmt.Sprintf("Reconciling connection %s between %s in %s of type %s and %s in %s of type %s",
+			instance.Name,
+			instance.Spec.Source.Name, instance.Spec.Source.Namespace, instance.Spec.Source.Type,
+			instance.Spec.Destination.Name, instance.Spec.Destination.Namespace, instance.Spec.Destination.Type))
 
 	// Check if the connection already exist
-	existing, err := connection.ConnectionExist(current, clientConfig)
+	existing, err := connection.ConnectionExist(instance, clientConfig)
 	if err != nil {
-		return RequeueWithError(r.Log, "failure checking for existing connection", err)
+		return RequeueWithError(r.Log, "failure checking for existing connection named "+instance.Name, err)
 	}
 
 	if !existing {
-		connectionStatus, err := connection.CreateConnection(sourceComponent, destinationComponent, &current.Spec.Configuration, current.Name, clientConfig)
+		connectionStatus, err := connection.CreateConnection(instance, sourceComponent, destinationComponent, clientConfig)
 		if err != nil {
-			r.Recorder.Event(current, corev1.EventTypeWarning, "CreationFailed",
+			r.Recorder.Event(instance, corev1.EventTypeWarning, "CreationFailed",
 				fmt.Sprintf("Creation failed connection %s between %s in %s of type %s and %s in %s of type %s",
-					current.Name,
-					current.Spec.Source.Name, current.Spec.Source.Namespace, current.Spec.Source.Type,
-					current.Spec.Destination.Name, current.Spec.Destination.Namespace, current.Spec.Destination.Type))
-			return RequeueWithError(r.Log, "failure creating connection", err)
+					instance.Name,
+					instance.Spec.Source.Name, instance.Spec.Source.Namespace, instance.Spec.Source.Type,
+					instance.Spec.Destination.Name, instance.Spec.Destination.Namespace, instance.Spec.Destination.Type))
+			return RequeueWithError(r.Log, "failure creating connection "+instance.Name, err)
 		}
 
 		// Set connection status
-		current.Status = *connectionStatus
+		instance.Status = *connectionStatus
 
-		if err := r.Client.Status().Update(ctx, current); err != nil {
-			return RequeueWithError(r.Log, "failed to update NifiConnection status", err)
+		if err := r.Client.Status().Update(ctx, instance); err != nil {
+			return RequeueWithError(r.Log, "failed to update status for NifiConnection "+instance.Name, err)
 		}
 
-		r.Recorder.Event(current, corev1.EventTypeNormal, "Created",
+		r.Recorder.Event(instance, corev1.EventTypeNormal, "Created",
 			fmt.Sprintf("Created connection %s between %s in %s of type %s and %s in %s of type %s",
-				current.Name,
-				current.Spec.Source.Name, current.Spec.Source.Namespace, current.Spec.Source.Type,
-				current.Spec.Destination.Name, current.Spec.Destination.Namespace, current.Spec.Destination.Type))
+				instance.Name,
+				instance.Spec.Source.Name, instance.Spec.Source.Namespace, instance.Spec.Source.Type,
+				instance.Spec.Destination.Name, instance.Spec.Destination.Namespace, instance.Spec.Destination.Type))
 	}
 
 	// Ensure finalizer for cleanup on deletion
-	if !util.StringSliceContains(current.GetFinalizers(), connectionFinalizer) {
+	if !util.StringSliceContains(instance.GetFinalizers(), connectionFinalizer) {
 		r.Log.Info("Adding Finalizer for NifiConnection")
-		current.SetFinalizers(append(current.GetFinalizers(), connectionFinalizer))
+		instance.SetFinalizers(append(instance.GetFinalizers(), connectionFinalizer))
 	}
 
 	// Push any changes
-	if current, err = r.updateAndFetchLatest(ctx, current); err != nil {
-		return RequeueWithError(r.Log, "failed to update NifiConnection", err)
+	if instance, err = r.updateAndFetchLatest(ctx, instance); err != nil {
+		return RequeueWithError(r.Log, "failed to update NifiConnection "+current.Name, err)
 	}
 
 	if instance.Status.State == v1alpha1.ConnectionStateOutOfSync {
@@ -337,7 +342,7 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		if status != nil {
 			instance.Status = *status
 			if err := r.Client.Status().Update(ctx, instance); err != nil {
-				return RequeueWithError(r.Log, "failed to update NifiConnection status", err)
+				return RequeueWithError(r.Log, "failed to update status for NifiConnection "+instance.Name, err)
 			}
 		}
 		if err != nil {
@@ -349,12 +354,23 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 			default:
 				r.Recorder.Event(instance, corev1.EventTypeWarning, "SynchronizingFailed",
 					fmt.Sprintf("Syncing connection %s between %s in %s of type %s and %s in %s of type %s",
-						current.Name,
-						current.Spec.Source.Name, current.Spec.Source.Namespace, current.Spec.Source.Type,
-						current.Spec.Destination.Name, current.Spec.Destination.Namespace, current.Spec.Destination.Type))
-				return RequeueWithError(r.Log, "failed to sync NifiConnection", err)
+						instance.Name,
+						instance.Spec.Source.Name, instance.Spec.Source.Namespace, instance.Spec.Source.Type,
+						instance.Spec.Destination.Name, instance.Spec.Destination.Namespace, instance.Spec.Destination.Type))
+				return RequeueWithError(r.Log, "failed to sync NifiConnection "+instance.Name, err)
 			}
 		}
+
+		instance.Status.State = v1alpha1.ConnectionStateInSync
+		if err := r.Client.Status().Update(ctx, instance); err != nil {
+			return RequeueWithError(r.Log, "failed to update status for NifiConnection "+instance.Name, err)
+		}
+
+		r.Recorder.Event(instance, corev1.EventTypeNormal, "Synchronized",
+			fmt.Sprintf("Synchronized connection %s between %s in %s of type %s and %s in %s of type %s",
+				instance.Name,
+				instance.Spec.Source.Name, instance.Spec.Source.Namespace, instance.Spec.Source.Type,
+				instance.Spec.Destination.Name, instance.Spec.Destination.Namespace, instance.Spec.Destination.Type))
 	}
 
 	// Check if the connection is out of sync
@@ -381,14 +397,22 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		return RequeueWithError(r.Log, "failed to update NifiConnection", err)
 	}
 
-	// r.Log.Info("Ensured Connection")
+	r.Log.Debug("Ensured Connection",
+		zap.String("sourceName", instance.Spec.Source.Name),
+		zap.String("sourceNamespace", instance.Spec.Source.Namespace),
+		zap.String("sourceType", string(instance.Spec.Source.Type)),
+		zap.String("destinationName", instance.Spec.Destination.Name),
+		zap.String("destinationNamespace", instance.Spec.Destination.Namespace),
+		zap.String("destinationType", string(instance.Spec.Destination.Type)),
+		zap.String("connection", instance.Name))
 
-	r.Recorder.Event(current, corev1.EventTypeNormal, "Reconciled",
-		fmt.Sprintf("Success fully reconciled connection %s", current.Name))
+	r.Recorder.Event(instance, corev1.EventTypeNormal, "Reconciled",
+		fmt.Sprintf("Success fully reconciled connection %s between %s in %s of type %s and %s in %s of type %s",
+			instance.Name,
+			instance.Spec.Source.Name, instance.Spec.Source.Namespace, instance.Spec.Source.Type,
+			instance.Spec.Destination.Name, instance.Spec.Destination.Namespace, instance.Spec.Destination.Type))
 
-	r.Log.Info("Ensured Connection")
-
-	return RequeueAfter(interval)
+	return RequeueAfter(interval / 3)
 }
 
 // SetupWithManager sets up the controller with the Manager.
