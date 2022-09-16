@@ -15,8 +15,8 @@ type ConnectionState string
 // DataflowUpdateRequestType defines the type of versioned flow update request
 type DataflowUpdateRequestType string
 
-// DataflowUpdateStrategy defines the type of strategy to update a flow
-type DataflowUpdateStrategy string
+// ComponentUpdateStrategy defines the type of strategy to update a component
+type ComponentUpdateStrategy string
 
 // RackAwarenessState stores info about rack awareness status
 type RackAwarenessState string
@@ -297,9 +297,9 @@ const (
 
 	// DrainStrategy leads to shutting down only input components (Input processors, remote input process group)
 	// and dropping all flowfiles from the flow.
-	DrainStrategy DataflowUpdateStrategy = "drain"
+	DrainStrategy ComponentUpdateStrategy = "drain"
 	// DropStrategy leads to shutting down all components and dropping all flowfiles from the flow.
-	DropStrategy DataflowUpdateStrategy = "drop"
+	DropStrategy ComponentUpdateStrategy = "drop"
 
 	// UserStateCreated describes the status of a NifiUser as created
 	UserStateCreated UserState = "created"

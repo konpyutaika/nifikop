@@ -68,9 +68,26 @@ func CreateConnection(connection *v1alpha1.NifiConnection, source *v1alpha1.Comp
 	return &v1alpha1.NifiConnectionStatus{ConnectionId: entity.Id}, nil
 }
 
+// GetConnectionInformation retrieve the connection information
+func GetConnectionInformation(connection *v1alpha1.NifiConnection, config *clientconfig.NifiConfig) (*nigoapi.ConnectionEntity, error) {
+	nClient, err := common.NewClusterConnection(log, config)
+	if err != nil {
+		return nil, err
+	}
+
+	connectionEntity, err := nClient.GetConnection(connection.Status.ConnectionId)
+	if err := clientwrappers.ErrorGetOperation(log, err, "Get connection"); err != nil {
+		if err == nificlient.ErrNifiClusterReturned404 {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return connectionEntity, nil
+}
+
 // ConnectionExist check if the NifiConnection exist on NiFi Cluster
 func ConnectionExist(connection *v1alpha1.NifiConnection, config *clientconfig.NifiConfig) (bool, error) {
-
 	if connection.Status.ConnectionId == "" {
 		return false, nil
 	}
@@ -237,27 +254,21 @@ func SyncConnectionDestination(connection *v1alpha1.NifiConnection, destination 
 	return &connection.Status, nil
 }
 
-// SyncConnectionSource implements the logic to sync a NifiConnection with the deployed connection source.
-func SyncConnectionSource(connection *v1alpha1.NifiConnection, source *v1alpha1.ComponentInformation,
-	config *clientconfig.NifiConfig) (*v1alpha1.NifiConnectionStatus, error) {
-
+func DeleteConnection(connection *v1alpha1.NifiConnection, config *clientconfig.NifiConfig) error {
 	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
-		return nil, err
+		return nil
 	}
 
 	connectionEntity, err := nClient.GetConnection(connection.Status.ConnectionId)
 	if err := clientwrappers.ErrorGetOperation(log, err, "Get connection"); err != nil {
-		return nil, err
+		return err
 	}
 
-	connectionEntity.Component.Source.Id = source.Id
-	connectionEntity.Component.Source.Type_ = source.Type
-	connectionEntity.Component.Source.GroupId = source.GroupId
-
-	_, err = nClient.UpdateConnection(*connectionEntity)
-	if err := clientwrappers.ErrorUpdateOperation(log, err, "Update connection"); err != nil {
-		return nil, err
+	err = nClient.DeleteConnection(*connectionEntity)
+	if err := clientwrappers.ErrorCreateOperation(log, err, "Remove process-group"); err != nil {
+		return err
 	}
-	return &connection.Status, nil
+
+	return nil
 }

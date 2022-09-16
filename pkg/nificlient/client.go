@@ -139,6 +139,7 @@ type NifiClient interface {
 	// Connections func
 	GetConnection(id string) (*nigoapi.ConnectionEntity, error)
 	UpdateConnection(entity nigoapi.ConnectionEntity) (*nigoapi.ConnectionEntity, error)
+	DeleteConnection(entity nigoapi.ConnectionEntity) error
 
 	Build() error
 }

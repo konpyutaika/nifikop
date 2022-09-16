@@ -364,17 +364,27 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 				for _, port := range dataflowInformation.ProcessGroupFlow.Flow.InputPorts {
 					if port.Component.Name == labelValue {
 						_, err := inputport.StopPort(port, clientConfig)
-						return RequeueWithError(r.Log, "failed to get stop input port", err)
+						if err != nil {
+							return RequeueWithError(r.Log, "failed to stop input port", err)
+						}
 					}
 				}
+				return reconcile.Result{
+					RequeueAfter: interval / 3,
+				}, nil
 			} else if labelValue, ok := instance.Labels[nifiutil.StopOutputPortPrefix]; ok {
 				// Stop output port operation
 				for _, port := range dataflowInformation.ProcessGroupFlow.Flow.OutputPorts {
 					if port.Component.Name == labelValue {
 						_, err := outputport.StopPort(port, clientConfig)
-						return RequeueWithError(r.Log, "failed to get stop output port", err)
+						if err != nil {
+							return RequeueWithError(r.Log, "failed to stop output port", err)
+						}
 					}
 				}
+				return reconcile.Result{
+					RequeueAfter: interval / 3,
+				}, nil
 			}
 		}
 	}

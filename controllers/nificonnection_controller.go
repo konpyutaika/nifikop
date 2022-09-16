@@ -341,28 +341,79 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	// Resync connection source
 	if instance.Status.State == v1alpha1.ConnectionStateSourceOutOfSync {
 		if original.Spec.Source.Type == v1alpha1.ComponentDataflow {
-			status, err := connection.SyncConnectionSource(instance, sourceComponent, clientConfig)
-			if status != nil {
-				instance.Status = *status
-				if err := r.Client.Status().Update(ctx, instance); err != nil {
-					return RequeueWithError(r.Log, "failed to update status for NifiConnection "+instance.Name, err)
+			if err := r.StopDataflowComponent(ctx, original.Spec.Source, true); err != nil {
+				return RequeueWithError(r.Log, "failed to update label of NifiDataflow "+original.Spec.Source.Name, err)
+			}
+		}
+
+		if original.Spec.Destination.Type == v1alpha1.ComponentDataflow {
+			destinationInstance, err := k8sutil.LookupNifiDataflow(r.Client, original.Spec.Destination.Name, original.Spec.Destination.Namespace)
+			if err != nil {
+				return RequeueWithError(r.Log, "failed to retrieve information of NifiDataflow "+original.Spec.Destination.Name, err)
+			}
+
+			if destinationInstance.Spec.UpdateStrategy == v1alpha1.DropStrategy && instance.Spec.UpdateStrategy == v1alpha1.DropStrategy {
+				if err := r.StopDataflowComponent(ctx, original.Spec.Destination, false); err != nil {
+					return RequeueWithError(r.Log, "failed to update label of NifiDataflow "+original.Spec.Destination.Name, err)
 				}
 			}
+
+			connectionEntity, err := connection.GetConnectionInformation(instance, clientConfig)
 			if err != nil {
-				return RequeueWithError(r.Log, "failed to sync NifiConnection "+instance.Name, err)
+				return RequeueWithError(r.Log, "failed to retrieve information of NifiConnection "+instance.Name, err)
+			}
+			if !connectionEntity.Component.Source.Running && connectionEntity.Component.Destination.Running &&
+				connectionEntity.Status.AggregateSnapshot.FlowFilesQueued == 0 {
+				if err := r.StopDataflowComponent(ctx, original.Spec.Destination, false); err != nil {
+					return RequeueWithError(r.Log, "failed to update label of NifiDataflow "+original.Spec.Destination.Name, err)
+				}
+			} else if !connectionEntity.Component.Source.Running && !connectionEntity.Component.Destination.Running &&
+				connectionEntity.Status.AggregateSnapshot.FlowFilesQueued == 0 {
+				if err := connection.DeleteConnection(instance, clientConfig); err != nil {
+					return RequeueWithError(r.Log, "failed to delete connection "+instance.Name, err)
+				}
+
+				if err := r.UnStopDataflowComponent(ctx, original.Spec.Source, true); err != nil {
+					return RequeueWithError(r.Log, "failed to update label of NifiDataflow "+original.Spec.Source.Name, err)
+				}
+
+				if err := r.UnStopDataflowComponent(ctx, original.Spec.Destination, false); err != nil {
+					return RequeueWithError(r.Log, "failed to update label of NifiDataflow "+original.Spec.Destination.Name, err)
+				}
+
+				/*
+					TODO
+
+					- QUEUE dupliqué parce que des flowfiles sont apparu dans la queue pour une raison étrange
+					- Update de queue si port changé
+				*/
+
+				// Update the last view configuration to the current one (only for the source).
+				instance.Spec = original.Spec
+				instance.Spec.Source = current.Spec.Source
+				if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(instance); err != nil {
+					return RequeueWithError(r.Log, "could not apply last state to annotation for dataflow "+instance.Name, err)
+				}
+				instance.Spec = current.Spec
+
+				// Update last-applied annotation with only the new source
+				if err := r.Client.Update(ctx, instance); err != nil {
+					return RequeueWithError(r.Log, "failed to update NifiConnection "+instance.Name, err)
+				}
+
+				// Update status
+				instance.Status.State = v1alpha1.ConnectionStateInSync
+				if err := r.Client.Status().Update(ctx, instance); err != nil {
+					return RequeueWithError(r.Log, "failed to update NifiConnection "+instance.Name, err)
+				}
+
+				r.Recorder.Event(instance, corev1.EventTypeNormal, "Synchronized",
+					fmt.Sprintf("Synchronized connection %s between %s in %s of type %s and %s in %s of type %s",
+						instance.Name,
+						instance.Spec.Source.Name, instance.Spec.Source.Namespace, instance.Spec.Source.Type,
+						instance.Spec.Destination.Name, instance.Spec.Destination.Namespace, instance.Spec.Destination.Type))
 			}
 		}
-
-		instance.Status.State = v1alpha1.ConnectionStateInSync
-		if err := r.Client.Status().Update(ctx, instance); err != nil {
-			return RequeueWithError(r.Log, "failed to update status for NifiConnection "+instance.Name, err)
-		}
-
-		r.Recorder.Event(instance, corev1.EventTypeNormal, "Synchronized",
-			fmt.Sprintf("Synchronized connection %s between %s in %s of type %s and %s in %s of type %s",
-				instance.Name,
-				instance.Spec.Source.Name, instance.Spec.Source.Namespace, instance.Spec.Source.Type,
-				instance.Spec.Destination.Name, instance.Spec.Destination.Namespace, instance.Spec.Destination.Type))
 	}
 
 	// Resync connection destination
@@ -380,17 +431,23 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 			}
 		}
 
-		// Update the last view configuration to the current one.
-		// TO FIX
-		current.Spec = original.Spec
-		current.Spec.Destination = instance.Spec.Destination
-		if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(current); err != nil {
+		// Update the last view configuration to the current one (only for the destination).
+		instance.Spec = original.Spec
+		instance.Spec.Destination = current.Spec.Destination
+		if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(instance); err != nil {
 			return RequeueWithError(r.Log, "could not apply last state to annotation for dataflow "+instance.Name, err)
 		}
+		instance.Spec = current.Spec
 
+		// Update last-applied annotation with only the new destination
+		if err := r.Client.Update(ctx, instance); err != nil {
+			return RequeueWithError(r.Log, "failed to update NifiConnection "+instance.Name, err)
+		}
+
+		// Update status
 		instance.Status.State = v1alpha1.ConnectionStateInSync
 		if err := r.Client.Status().Update(ctx, instance); err != nil {
-			return RequeueWithError(r.Log, "failed to update status for NifiConnection "+instance.Name, err)
+			return RequeueWithError(r.Log, "failed to update NifiConnection "+instance.Name, err)
 		}
 
 		r.Recorder.Event(instance, corev1.EventTypeNormal, "Synchronized",
@@ -605,11 +662,11 @@ func (r *NifiConnectionReconciler) GetDataflowComponentInformation(c v1alpha1.Co
 			return nil, errors.New(fmt.Sprintf("No port available for Dataflow %s in %s", instance.Name, instance.Namespace))
 		}
 
-		targetPort := &nifi.PortEntity{}
+		targetPort := nifi.PortEntity{}
 		foundTarget := false
 		for _, port := range ports {
 			if port.Component.Name == c.SubName {
-				targetPort = &port
+				targetPort = port
 				foundTarget = true
 			}
 		}
@@ -647,7 +704,6 @@ func (r *NifiConnectionReconciler) StopDataflowComponent(ctx context.Context, c 
 				return r.Client.Update(ctx, instance)
 			}
 		} else {
-
 			if label, ok := labels[nifiutil.StopOutputPortPrefix]; ok {
 				if label != c.SubName {
 					return errors.New(fmt.Sprintf("Label %s is already set on the NifiDataflow %s", nifiutil.StopOutputPortPrefix, instance.Name))
@@ -660,4 +716,22 @@ func (r *NifiConnectionReconciler) StopDataflowComponent(ctx context.Context, c 
 		}
 	}
 	return nil
+}
+
+func (r *NifiConnectionReconciler) UnStopDataflowComponent(ctx context.Context, c v1alpha1.ComponentReference, isSource bool) error {
+	instance, err := k8sutil.LookupNifiDataflow(r.Client, c.Name, c.Namespace)
+	if err != nil {
+		return err
+	} else {
+		labels := instance.GetLabels()
+
+		if !isSource {
+			delete(labels, nifiutil.StopInputPortPrefix)
+		} else {
+			delete(labels, nifiutil.StopOutputPortPrefix)
+		}
+
+		instance.SetLabels(labels)
+		return r.Client.Update(ctx, instance)
+	}
 }

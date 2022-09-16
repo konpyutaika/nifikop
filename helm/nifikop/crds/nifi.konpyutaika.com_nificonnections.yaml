@@ -123,9 +123,17 @@ spec:
                 - name
                 - type
                 type: object
+              updateStrategy:
+                description: 'describes the way the operator will deal with data when
+                  a connection will be updated : drop or drain'
+                enum:
+                - drop
+                - drain
+                type: string
             required:
             - destination
             - source
+            - updateStrategy
             type: object
           status:
             description: NifiConnectionStatus defines the observed state of NifiConnection

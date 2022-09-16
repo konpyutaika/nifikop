@@ -34,7 +34,7 @@ type NifiDataflowSpec struct {
 	RegistryClientRef *RegistryClientReference `json:"registryClientRef,omitempty"`
 	// describes the way the operator will deal with data when a dataflow will be updated : drop or drain
 	// +kubebuilder:validation:Enum={"drop","drain"}
-	UpdateStrategy DataflowUpdateStrategy `json:"updateStrategy"`
+	UpdateStrategy ComponentUpdateStrategy `json:"updateStrategy"`
 }
 
 type FlowPosition struct {
