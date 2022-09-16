@@ -141,6 +141,32 @@ func ConvertMapStringToMapStringPointer(inputMap map[string]string) map[string]*
 	return result
 }
 
+// StringSliceCompare returns true if the two lists of string are the same
+func StringSliceCompare(list1 []string, list2 []string) bool {
+	if len(list1) != len(list2) {
+		return false
+	}
+	for _, v := range list1 {
+		if !StringSliceContains(list2, v) {
+			return false
+		}
+	}
+	return true
+}
+
+// StringSliceStrictCompare returns true if the two lists of string are the same with the order taking into account
+func StringSliceStrictCompare(list1 []string, list2 []string) bool {
+	if len(list1) != len(list2) {
+		return false
+	}
+	for i, v := range list1 {
+		if list2[i] != v {
+			return false
+		}
+	}
+	return true
+}
+
 // StringSliceContains returns true if list contains s
 func StringSliceContains(list []string, s string) bool {
 	for _, v := range list {
