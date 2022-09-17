@@ -83,6 +83,9 @@ type NifiReportingTasksInvalid struct{ error }
 // NifiConnectionSyncing states that the connection is still syncing
 type NifiConnectionSyncing struct{ error }
 
+// NifiConnectionDeleting states that the connection is still deleting
+type NifiConnectionDeleting struct{ error }
+
 // New creates a new error factory error
 func New(t interface{}, err error, msg string, wrapArgs ...interface{}) error {
 	wrapped := errors.WrapIfWithDetails(err, msg, wrapArgs...)

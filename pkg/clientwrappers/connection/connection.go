@@ -110,6 +110,7 @@ func ConnectionExist(connection *v1alpha1.NifiConnection, config *clientconfig.N
 
 // SyncConnectionConfig implements the logic to sync a NifiConnection config with the deployed connection config.
 func SyncConnectionConfig(connection *v1alpha1.NifiConnection,
+	source *v1alpha1.ComponentInformation, destination *v1alpha1.ComponentInformation,
 	config *clientconfig.NifiConfig) (*v1alpha1.NifiConnectionStatus, error) {
 
 	nClient, err := common.NewClusterConnection(log, config)
@@ -120,6 +121,10 @@ func SyncConnectionConfig(connection *v1alpha1.NifiConnection,
 	connectionEntity, err := nClient.GetConnection(connection.Status.ConnectionId)
 	if err := clientwrappers.ErrorGetOperation(log, err, "Get connection"); err != nil {
 		return nil, err
+	}
+
+	if isSourceChanged(connectionEntity, source) {
+		return &connection.Status, errorfactory.NifiConnectionDeleting{}
 	}
 
 	if isConfigurationChanged(connectionEntity, connection) {
@@ -149,6 +154,14 @@ func SyncConnectionConfig(connection *v1alpha1.NifiConnection,
 		return &connection.Status, errorfactory.NifiConnectionSyncing{}
 	}
 
+	if isDestinationChanged(connectionEntity, destination) {
+		_, err := SyncConnectionDestination(connection, destination, config)
+		if err := clientwrappers.ErrorUpdateOperation(log, err, "Update connection"); err != nil {
+			return nil, err
+		}
+		return &connection.Status, errorfactory.NifiConnectionSyncing{}
+	}
+
 	return &connection.Status, nil
 }
 
@@ -167,10 +180,10 @@ func IsOutOfSyncConnection(connection *v1alpha1.NifiConnection,
 		return false, err
 	}
 
-	return isConfigurationChanged(connectionEntity, connection), nil
+	// return isConfigurationChanged(connectionEntity, connection), nil
 
-	// return isConfigurationChanged(connectionEntity, connection) || isSourceChanged(connectionEntity, source) ||
-	// 	isDestinationChanged(connectionEntity, destination), nil
+	return isConfigurationChanged(connectionEntity, connection) || isSourceChanged(connectionEntity, source) ||
+		isDestinationChanged(connectionEntity, destination), nil
 }
 
 func isConfigurationChanged(connectionEntity *nigoapi.ConnectionEntity, connection *v1alpha1.NifiConnection) bool {
