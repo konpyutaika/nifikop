@@ -50,7 +50,10 @@ spec:
               description:
                 description: the Description of the Parameter Context.
                 type: string
-<<<<<<< HEAD
+              disableTakeOver:
+                description: whether or not the operator should take over an existing
+                  parameter context if its name is the same.
+                type: boolean
               parameterContextRefs:
                 description: a list of references to NiFiParameterContext
                 items:
@@ -65,12 +68,6 @@ spec:
                   - name
                   type: object
                 type: array
-=======
-              disableTakeOver:
-                description: whether or not the operator should take over an existing
-                  parameter context if its name is the same.
-                type: boolean
->>>>>>> master
               parameters:
                 description: a list of non-sensitive Parameters.
                 items:
