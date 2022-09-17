@@ -1,5 +1,5 @@
 ---
-id: 2020-06-30-secured_nifi_cluster_on_gcp_with_external_dns
+slug: 2020-06-30-secured_nifi_cluster_on_gcp_with_external_dns
 title: Secured NiFi cluster with NiFiKop with external dns on the Google Cloud Platform
 author: Alexandre Guitton
 author_title: Alexandre Guitton

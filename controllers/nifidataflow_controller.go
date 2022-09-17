@@ -410,9 +410,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 				errorfactory.NifiFlowDraining,
 				errorfactory.NifiFlowControllerServiceScheduling,
 				errorfactory.NifiFlowScheduling, errorfactory.NifiFlowSyncing:
-				return reconcile.Result{
-					RequeueAfter: interval / 3,
-				}, nil
+				return RequeueAfter(interval)
 			default:
 				r.Recorder.Event(instance, corev1.EventTypeWarning, "SynchronizingFailed",
 					fmt.Sprintf("Syncing dataflow %s based on flow {bucketId : %s, flowId: %s, version: %s} failed",
@@ -466,7 +464,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		if err := dataflow.ScheduleDataflow(instance, clientConfig); err != nil {
 			switch errors.Cause(err).(type) {
 			case errorfactory.NifiFlowControllerServiceScheduling, errorfactory.NifiFlowScheduling:
-				return RequeueAfter(interval / 3)
+				return RequeueAfter(interval)
 			default:
 				r.Recorder.Event(instance, corev1.EventTypeWarning, "StartingFailed",
 					fmt.Sprintf("Starting dataflow %s based on flow {bucketId : %s, flowId: %s, version: %s} failed.",
@@ -516,7 +514,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		return Reconciled()
 	}
 
-	return RequeueAfter(interval / 3)
+	return RequeueAfter(interval)
 }
 
 // SetupWithManager sets up the controller with the Manager.
@@ -563,7 +561,7 @@ func (r *NifiDataflowReconciler) checkFinalizers(ctx context.Context, flow *v1al
 		if err = r.finalizeNifiDataflow(flow, config); err != nil {
 			switch errors.Cause(err).(type) {
 			case errorfactory.NifiConnectionDropping, errorfactory.NifiFlowDraining:
-				return RequeueAfter(util.GetRequeueInterval(r.RequeueInterval/3, r.RequeueOffset))
+				return RequeueAfter(util.GetRequeueInterval(r.RequeueInterval, r.RequeueOffset))
 			default:
 				return RequeueWithError(r.Log, "failed to finalize NiFiDataflow "+flow.Name, err)
 			}

@@ -220,7 +220,7 @@ jobs:
   deploy-website:
     working_directory: /home/circleci/nifikop/site
     docker: # run the steps with Docker
-      - image: node:14.15.4
+      - image: node:18.8.0
     steps:
       - checkout:
           path: /home/circleci/nifikop
