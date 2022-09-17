@@ -1,4 +1,3 @@
-
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -165,6 +164,32 @@ rules:
   - nifi.konpyutaika.com
   resources:
   - nifidataflows/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - nifi.konpyutaika.com
+  resources:
+  - nifinodegroupautoscalers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - nifi.konpyutaika.com
+  resources:
+  - nifinodegroupautoscalers/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - nifi.konpyutaika.com
+  resources:
+  - nifinodegroupautoscalers/status
   verbs:
   - get
   - patch

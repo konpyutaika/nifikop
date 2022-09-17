@@ -64,6 +64,7 @@ spec:
 |secretRefs|\[ \][SecretReference](#secretreference)| a list of secret containing sensitive parameters (the key will name of the parameter) |No| - |
 |clusterRef|[ClusterReference](./2_nifi_user.md#clusterreference)| contains the reference to the NifiCluster with the one the user is linked. |Yes| - |
 |parameterContextRefs|[ParameterContextReference](#parametercontextreference)| contains the reference to the NiFiParameterContexts it should inherit from. |No| - |
+|disableTakeOver|bool| whether or not the operator should take over an existing parameter context if its name is the same. |No| - |
 
 ## NifiParameterContextStatus
 

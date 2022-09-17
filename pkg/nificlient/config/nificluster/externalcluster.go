@@ -2,10 +2,11 @@ package nificluster
 
 import (
 	"fmt"
+
 	"github.com/konpyutaika/nifikop/pkg/common"
 	"github.com/konpyutaika/nifikop/pkg/nificlient"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
-	"github.com/go-logr/logr"
+	"go.uber.org/zap"
 )
 
 type ExternalCluster struct {
@@ -30,8 +31,8 @@ func (cluster *ExternalCluster) ClusterLabelString() string {
 	return fmt.Sprintf("%s", cluster.Name)
 }
 
-func (cluster ExternalCluster) IsReady(log logr.Logger) bool {
-	nClient, err := common.NewClusterConnection(log, cluster.NifiConfig)
+func (cluster ExternalCluster) IsReady(log zap.Logger) bool {
+	nClient, err := common.NewClusterConnection(&log, cluster.NifiConfig)
 	if err != nil {
 		return false
 	}

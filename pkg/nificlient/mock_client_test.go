@@ -5,11 +5,12 @@ import (
 
 	"github.com/konpyutaika/nifikop/pkg/nificlient/config/common"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
+	"go.uber.org/zap"
 
 	"github.com/jarcoal/httpmock"
-	nigoapi "github.com/juldrixx/nigoapi/pkg/nifi"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	nifiutil "github.com/konpyutaika/nifikop/pkg/util/nifi"
+	nigoapi "github.com/konpyutaika/nigoapi/pkg/nifi"
 )
 
 var (
@@ -39,6 +40,7 @@ func newMockHttpClient(c *nigoapi.Configuration) *nigoapi.APIClient {
 
 func newMockClient() *nifiClient {
 	return &nifiClient{
+		log:       zap.NewNop(),
 		opts:      newMockOpts(),
 		newClient: newMockHttpClient,
 	}
@@ -52,6 +54,7 @@ func newBuildedMockClient() *nifiClient {
 
 func NewMockNiFiClient() *nifiClient {
 	return &nifiClient{
+		log:       zap.NewNop(),
 		opts:      newMockOpts(),
 		newClient: newMockHttpClient,
 	}

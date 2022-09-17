@@ -6,12 +6,13 @@ import (
 	"testing"
 
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
+	"go.uber.org/zap"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/jarcoal/httpmock"
-	nigoapi "github.com/juldrixx/nigoapi/pkg/nifi"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
+	nigoapi "github.com/konpyutaika/nigoapi/pkg/nifi"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -35,7 +36,7 @@ var (
 
 func TestNew(t *testing.T) {
 	opts := newMockOpts()
-	if client := New(opts); client == nil {
+	if client := New(opts, zap.NewNop()); client == nil {
 		t.Error("Expected new client, got nil")
 	}
 }

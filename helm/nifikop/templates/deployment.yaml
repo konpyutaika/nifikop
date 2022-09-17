@@ -10,6 +10,9 @@ metadata:
     operator: nifi
     release: {{ .Release.Name }}
     control-plane: nifikop
+    {{- include "userdefined.labels" . }}
+  annotations:
+    {{- include "userdefined.annotations" . }}
 spec:
   selector:
     matchLabels:
@@ -24,6 +27,9 @@ spec:
         app: {{ template "nifikop.name" . }}
         operator: nifi
         release: {{ .Release.Name }}
+        {{- include "userdefined.labels" . | indent 4 }}
+      annotations:
+        {{- include "userdefined.annotations" . | indent 4 }}
     spec:
     {{- with .Values.nodeSelector }}
       nodeSelector:
@@ -62,6 +68,12 @@ spec:
       {{- else }}
       securityContext:
         runAsUser: 1000
+      {{- end }}
+      {{- if .Values.hostAliases }}
+      {{- with .Values.hostAliases }}
+      hostAliases:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       {{- end }}
       containers:
         - command:
@@ -106,6 +118,8 @@ spec:
             {{- end }}
             - name: LOG_LEVEL
               value: {{ default "Info" .Values.logLevel }}
+            - name: LOG_ENCODING
+              value: {{ default "json" .Values.logEncoding }}
           livenessProbe:
             httpGet:
               path: /healthz

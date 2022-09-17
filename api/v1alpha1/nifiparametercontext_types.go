@@ -19,6 +19,8 @@ type NifiParameterContextSpec struct {
 	SecretRefs []SecretReference `json:"secretRefs,omitempty"`
 	// a list of references to NiFiParameterContext
 	ParameterContextRefs []ParameterContextReference `json:"parameterContextRefs,omitempty"`
+	// whether or not the operator should take over an existing parameter context if its name is the same.
+	DisableTakeOver *bool `json:"disableTakeOver,omitempty"`
 }
 
 type Parameter struct {
@@ -84,4 +86,11 @@ type NifiParameterContextList struct {
 
 func init() {
 	SchemeBuilder.Register(&NifiParameterContext{}, &NifiParameterContextList{})
+}
+
+func (d *NifiParameterContextSpec) IsTakeOverEnabled() bool {
+	if d.DisableTakeOver == nil {
+		return true
+	}
+	return !*d.DisableTakeOver
 }

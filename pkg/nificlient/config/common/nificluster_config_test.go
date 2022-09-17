@@ -61,6 +61,7 @@ func testCluster(t *testing.T) *v1alpha1.NifiCluster {
 		{Type: "http", ContainerPort: 8080},
 		{Type: "cluster", ContainerPort: 8083},
 		{Type: "s2s", ContainerPort: 8085},
+		{Type: "load-balance", ContainerPort: 6342},
 	}
 	return cluster
 }

@@ -1,18 +1,17 @@
 package parametercontext
 
 import (
-	nigoapi "github.com/juldrixx/nigoapi/pkg/nifi"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers"
 	"github.com/konpyutaika/nifikop/pkg/common"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	"github.com/konpyutaika/nifikop/pkg/nificlient"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
+	nigoapi "github.com/konpyutaika/nigoapi/pkg/nifi"
 	corev1 "k8s.io/api/core/v1"
-	ctrl "sigs.k8s.io/controller-runtime"
 )
 
-var log = ctrl.Log.WithName("parametercontext-method")
+var log = common.CustomLogger().Named("parametercontext-method")
 
 func ExistParameterContext(parameterContext *v1alpha1.NifiParameterContext, config *clientconfig.NifiConfig) (bool, error) {
 
@@ -34,6 +33,33 @@ func ExistParameterContext(parameterContext *v1alpha1.NifiParameterContext, conf
 	}
 
 	return entity != nil, nil
+}
+
+func FindParameterContextByName(parameterContext *v1alpha1.NifiParameterContext, config *clientconfig.NifiConfig) (*v1alpha1.NifiParameterContextStatus, error) {
+
+	nClient, err := common.NewClusterConnection(log, config)
+	if err != nil {
+		return nil, err
+	}
+
+	entities, err := nClient.GetParameterContexts()
+	if err := clientwrappers.ErrorGetOperation(log, err, "Get parameter-contexts"); err != nil {
+		if err == nificlient.ErrNifiClusterReturned404 {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	for _, entity := range entities {
+		if parameterContext.GetName() == entity.Component.Name {
+			return &v1alpha1.NifiParameterContextStatus{
+				Id:      entity.Id,
+				Version: *entity.Revision.Version,
+			}, nil
+		}
+	}
+
+	return nil, nil
 }
 
 func CreateParameterContext(
@@ -128,7 +154,7 @@ func RemoveParameterContext(
 	}
 
 	entity, err := nClient.GetParameterContext(parameterContext.Status.Id)
-	if err := clientwrappers.ErrorGetOperation(log, err, "Get parameter-context"); err != nil {
+	if err := clientwrappers.ErrorGetOperation(log, err, "Failed to fetch parameter-context for removal: "+parameterContext.Name); err != nil {
 		if err == nificlient.ErrNifiClusterReturned404 {
 			return nil
 		}
@@ -138,7 +164,7 @@ func RemoveParameterContext(
 	updateParameterContextEntity(parameterContext, parameterSecrets, parameterContextRefs, entity)
 	err = nClient.RemoveParameterContext(*entity)
 
-	return clientwrappers.ErrorRemoveOperation(log, err, "Remove parameter-context")
+	return clientwrappers.ErrorRemoveOperation(log, err, "Failed to remove parameter-context "+parameterContext.Name)
 }
 
 func parameterContextIsSync(

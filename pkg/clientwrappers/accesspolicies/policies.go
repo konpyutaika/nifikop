@@ -1,16 +1,15 @@
 package accesspolicies
 
 import (
-	nigoapi "github.com/juldrixx/nigoapi/pkg/nifi"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers"
 	"github.com/konpyutaika/nifikop/pkg/common"
 	"github.com/konpyutaika/nifikop/pkg/nificlient"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
-	ctrl "sigs.k8s.io/controller-runtime"
+	nigoapi "github.com/konpyutaika/nigoapi/pkg/nifi"
 )
 
-var log = ctrl.Log.WithName("accesspolicies-method")
+var log = common.CustomLogger().Named("accesspolicies-method")
 
 func ExistAccessPolicies(accessPolicy *v1alpha1.AccessPolicy, config *clientconfig.NifiConfig) (bool, error) {
 

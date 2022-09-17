@@ -1,7 +1,6 @@
 package user
 
 import (
-	nigoapi "github.com/juldrixx/nigoapi/pkg/nifi"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/accesspolicies"
@@ -9,10 +8,10 @@ import (
 	"github.com/konpyutaika/nifikop/pkg/common"
 	"github.com/konpyutaika/nifikop/pkg/nificlient"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
-	ctrl "sigs.k8s.io/controller-runtime"
+	nigoapi "github.com/konpyutaika/nigoapi/pkg/nifi"
 )
 
-var log = ctrl.Log.WithName("user-method")
+var log = common.CustomLogger().Named("user-method")
 
 func ExistUser(user *v1alpha1.NifiUser, config *clientconfig.NifiConfig) (bool, error) {
 

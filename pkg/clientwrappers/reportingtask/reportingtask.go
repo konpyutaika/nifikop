@@ -3,17 +3,17 @@ package reportingtask
 import (
 	"strconv"
 
-	nigoapi "github.com/juldrixx/nigoapi/pkg/nifi"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers"
 	"github.com/konpyutaika/nifikop/pkg/common"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	"github.com/konpyutaika/nifikop/pkg/nificlient"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
-	ctrl "sigs.k8s.io/controller-runtime"
+	nigoapi "github.com/konpyutaika/nigoapi/pkg/nifi"
+	"go.uber.org/zap"
 )
 
-var log = ctrl.Log.WithName("reportingtaks-method")
+var log = common.CustomLogger().Named("reportingtask-method")
 
 const (
 	reportingTaskName                = "managed-prometheus"
@@ -109,6 +109,8 @@ func SyncReportingTask(config *clientconfig.NifiConfig, cluster *v1alpha1.NifiCl
 	}
 
 	if entity.Status.RunStatus == "STOPPED" || entity.Status.RunStatus == "DISABLED" {
+		log.Info("Starting Prometheus reporting task",
+			zap.String("clusterName", cluster.Name))
 		entity, err = nClient.UpdateRunStatusReportingTask(entity.Id, nigoapi.ReportingTaskRunStatusEntity{
 			Revision: entity.Revision,
 			State:    "RUNNING",

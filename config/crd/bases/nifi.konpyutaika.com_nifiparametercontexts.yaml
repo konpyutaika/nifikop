@@ -1,10 +1,9 @@
-
 ---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.4.1
+    controller-gen.kubebuilder.io/version: v0.9.0
   creationTimestamp: null
   name: nifiparametercontexts.nifi.konpyutaika.com
 spec:
@@ -51,6 +50,7 @@ spec:
               description:
                 description: the Description of the Parameter Context.
                 type: string
+<<<<<<< HEAD
               parameterContextRefs:
                 description: a list of references to NiFiParameterContext
                 items:
@@ -65,6 +65,12 @@ spec:
                   - name
                   type: object
                 type: array
+=======
+              disableTakeOver:
+                description: whether or not the operator should take over an existing
+                  parameter context if its name is the same.
+                type: boolean
+>>>>>>> master
               parameters:
                 description: a list of non-sensitive Parameters.
                 items:
@@ -164,9 +170,3 @@ spec:
     storage: true
     subresources:
       status: {}
-status:
-  acceptedNames:
-    kind: ""
-    plural: ""
-  conditions: []
-  storedVersions: []

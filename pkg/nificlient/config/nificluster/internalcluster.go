@@ -2,8 +2,9 @@ package nificluster
 
 import (
 	"fmt"
+
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
-	"github.com/go-logr/logr"
+	"go.uber.org/zap"
 )
 
 type InternalCluster struct {
@@ -24,7 +25,7 @@ func (c InternalCluster) IsExternal() bool {
 	return false
 }
 
-func (c InternalCluster) IsReady(log logr.Logger) bool {
+func (c InternalCluster) IsReady(log zap.Logger) bool {
 	for _, nodeState := range c.Status.NodesState {
 		if nodeState.ConfigurationState != v1alpha1.ConfigInSync || nodeState.GracefulActionState.State != v1alpha1.GracefulUpscaleSucceeded ||
 			!nodeState.PodIsReady {

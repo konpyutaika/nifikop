@@ -2,7 +2,7 @@
 ##
 image:
   repository: ghcr.io/konpyutaika/docker-images/nifikop
-  tag: v0.8.0-release
+  tag: v0.14.0-release
   pullPolicy: Always
   imagePullSecrets:
     enabled: false
@@ -13,15 +13,25 @@ vaultSecret: ""
 # set of namespaces where the operator watches resources
 namespaces: []
 
+# Optional labels to add to all deployed resources
+labels: {}
+
+# Optional annotations to add to all deployed resources
+annotations: {}
+
 ## Prometheus-operator resource limits & requests
 ## Ref: https://kubernetes.io/docs/user-guide/compute-resources/
 resources:
   requests:
     cpu: 10m
-    memory: 50Mi
+    memory: 64Mi
   limits:
     cpu: 1
     memory: 512Mi
+
+## pod spec host aliases for the operator
+## Ref: https://kubernetes.io/docs/tasks/network/customize-hosts-file-for-pods/
+hostAliases: []
 
 ## If true, create & deploy the CRD
 ##
@@ -42,6 +52,7 @@ metrics:
   port: 8081
 
 logLevel: Info
+logEncoding: json
 
 certManager:
   enabled: true

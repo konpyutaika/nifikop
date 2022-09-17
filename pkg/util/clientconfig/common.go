@@ -3,7 +3,8 @@ package clientconfig
 import (
 	"context"
 	"crypto/tls"
-	"github.com/go-logr/logr"
+
+	"go.uber.org/zap"
 )
 
 const (
@@ -16,11 +17,11 @@ type Manager interface {
 }
 
 type ClusterConnect interface {
-	//NodeConnection(log logr.Logger, client client.Client) (node nificlient.NifiClient, err error)
+	//NodeConnection(log zap.Logger, client client.Client) (node nificlient.NifiClient, err error)
 	IsInternal() bool
 	IsExternal() bool
 	ClusterLabelString() string
-	IsReady(log logr.Logger) bool
+	IsReady(log zap.Logger) bool
 	Id() string
 }
 

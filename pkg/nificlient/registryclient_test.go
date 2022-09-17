@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/jarcoal/httpmock"
-	nigoapi "github.com/juldrixx/nigoapi/pkg/nifi"
+	nigoapi "github.com/konpyutaika/nigoapi/pkg/nifi"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -9,6 +9,9 @@ metadata:
     chart: {{ $.Chart.Name }}-{{ $.Chart.Version }}
     heritage: {{ $.Release.Service }}
     release: {{ $.Release.Name }}
+    {{- include "userdefined.labels" $_ }}
+  annotations:
+    {{- include "userdefined.annotations" $_ }}
   name: {{ template "nifikop.name" $_ }}
   namespace: {{$namespace}}
 rules:
@@ -83,6 +86,7 @@ rules:
   - "nifidataflows"
   - "nifiregistryclients"
   - "nifiparametercontexts"
+  - "nifinodegroupautoscalers"
   verbs:
   - create
   - delete
@@ -92,6 +96,18 @@ rules:
   - update
   - watch
   - deletecollection
+- apiGroups:
+  - autoscaling
+  resources:
+  - horizontalpodautoscalers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
 - apiGroups:
   - cert-manager.io
   resources:
@@ -117,6 +133,7 @@ rules:
   - nifidataflows/status
   - nifiregistryclients/status
   - nifiparametercontexts/status
+  - nifinodegroupautoscalers/status
   verbs:
   - get
   - update

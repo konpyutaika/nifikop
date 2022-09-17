@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/dataflow"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/scale"
 	"github.com/konpyutaika/nifikop/pkg/nificlient/config"
 	"github.com/konpyutaika/nifikop/pkg/pki"
 	nifiutil "github.com/konpyutaika/nifikop/pkg/util/nifi"
+	"go.uber.org/zap"
 
 	"emperror.dev/errors"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
@@ -18,7 +20,6 @@ import (
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/reportingtask"
 
 	"github.com/banzaicloud/k8s-objectmatcher/patch"
-	"github.com/go-logr/logr"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	"github.com/konpyutaika/nifikop/pkg/k8sutil"
 	"github.com/konpyutaika/nifikop/pkg/resources"
@@ -39,7 +40,6 @@ const (
 
 	nodeSecretVolumeMount = "node-config"
 	nodeTmp               = "node-tmp"
-	nifiDataVolumeMount   = "nifi-data"
 
 	serverKeystoreVolume = "server-ks-files"
 	serverKeystorePath   = "/var/run/secrets/java.io/keystores/server"
@@ -65,7 +65,6 @@ func New(client client.Client, directClient client.Reader, scheme *runtime.Schem
 	}
 }
 
-//
 func getCreatedPVCForNode(c client.Client, nodeID int32, namespace, crName string) ([]corev1.PersistentVolumeClaim, error) {
 	foundPVCList := &corev1.PersistentVolumeClaimList{}
 	matchingLabels := client.MatchingLabels{
@@ -83,13 +82,18 @@ func getCreatedPVCForNode(c client.Client, nodeID int32, namespace, crName strin
 }
 
 // Reconcile implements the reconcile logic for nifi
-func (r *Reconciler) Reconcile(log logr.Logger) error {
-	log = log.WithValues("component", componentName, "clusterName", r.NifiCluster.Name, "clusterNamespace", r.NifiCluster.Namespace)
-
-	log.V(1).Info("Reconciling")
+func (r *Reconciler) Reconcile(log zap.Logger) error {
+	log.Debug("reconciling",
+		zap.String("component", componentName),
+		zap.String("clusterName", r.NifiCluster.Name),
+		zap.String("clusterNamespace", r.NifiCluster.Namespace),
+	)
 
 	if r.NifiCluster.IsExternal() {
-		log.V(1).Info("Reconciled")
+		log.Debug("reconciled",
+			zap.String("component", componentName),
+			zap.String("clusterName", r.NifiCluster.Name),
+			zap.String("clusterNamespace", r.NifiCluster.Namespace))
 		return nil
 	}
 	// TODO : manage external LB
@@ -147,7 +151,6 @@ func (r *Reconciler) Reconcile(log logr.Logger) error {
 			if err != nil {
 				return errors.WrapIfWithDetails(err, "failed to reconcile resource", "resource", o.GetObjectKind().GroupVersionKind())
 			}
-
 		}
 
 		o := r.secretConfig(node.Id, nodeConfig, serverPass, clientPass, superUsers, log)
@@ -168,7 +171,7 @@ func (r *Reconciler) Reconcile(log logr.Logger) error {
 				return errors.WrapIfWithDetails(err, "failed to reconcile resource", "resource", o.GetObjectKind().GroupVersionKind())
 			}
 		}
-		o = r.pod(node.Id, nodeConfig, pvcs, log)
+		o = r.pod(node, nodeConfig, pvcs, log)
 		err, isReady := r.reconcileNifiPod(log, o.(*corev1.Pod))
 		if err != nil {
 			return err
@@ -254,12 +257,15 @@ func (r *Reconciler) Reconcile(log logr.Logger) error {
 		}
 	}
 
-	log.V(1).Info("Reconciled")
+	log.Info("Successfully reconciled cluster",
+		zap.String("component", componentName),
+		zap.String("clusterName", r.NifiCluster.Name),
+		zap.String("clusterNamespace", r.NifiCluster.Namespace))
 
 	return nil
 }
 
-func (r *Reconciler) reconcileNifiPodDelete(log logr.Logger) error {
+func (r *Reconciler) reconcileNifiPodDelete(log zap.Logger) error {
 
 	podList := &corev1.PodList{}
 	matchingLabels := client.MatchingLabels(nifiutil.LabelsForNifi(r.NifiCluster.Name))
@@ -313,7 +319,8 @@ OUTERLOOP:
 		for _, node := range deletedNodes {
 
 			if node.ObjectMeta.DeletionTimestamp != nil {
-				log.Info(fmt.Sprintf("Nopde %s is already on terminating state", node.Labels["nodeId"]))
+				log.Info("Node is already on terminating state",
+					zap.String("nodeId", node.Labels["nodeId"]))
 				continue
 			}
 
@@ -321,7 +328,9 @@ OUTERLOOP:
 				nodeState.GracefulActionState.ActionStep != v1alpha1.OffloadStatus && nodeState.GracefulActionState.ActionStep != v1alpha1.RemovePodAction {
 
 				if nodeState.GracefulActionState.State == v1alpha1.GracefulDownscaleRunning {
-					log.Info("Nifi task is still running for node", "nodeId", node.Labels["nodeId"], "ActionStep", nodeState.GracefulActionState.ActionStep)
+					log.Info("Nifi task is still running for node",
+						zap.String("nodeId", node.Labels["nodeId"]),
+						zap.String("ActionStep", string(nodeState.GracefulActionState.ActionStep)))
 				}
 				continue
 			}
@@ -332,6 +341,40 @@ OUTERLOOP:
 
 			if err != nil {
 				return errors.WrapIfWithDetails(err, "could not update status for node(s)", "id(s)", node.Labels["nodeId"])
+			}
+
+			for _, volume := range node.Spec.Volumes {
+				if volume.PersistentVolumeClaim == nil {
+					continue
+				}
+				pvcFound := &corev1.PersistentVolumeClaim{}
+				if err := r.Client.Get(context.TODO(),
+					types.NamespacedName{
+						Name:      volume.PersistentVolumeClaim.ClaimName,
+						Namespace: r.NifiCluster.Namespace,
+					},
+					pvcFound,
+				); err != nil {
+					if apierrors.IsNotFound(err) {
+						continue
+					}
+					return errors.WrapIfWithDetails(err, "could not get pvc for node", "id", node.Labels["nodeId"])
+				}
+
+				if pvcFound.Labels[nifiutil.NifiDataVolumeMountKey] == "true" {
+					err = r.Client.Delete(context.TODO(), &corev1.PersistentVolumeClaim{ObjectMeta: metav1.ObjectMeta{
+						Name:      volume.PersistentVolumeClaim.ClaimName,
+						Namespace: r.NifiCluster.Namespace,
+					}})
+					if err != nil {
+						if apierrors.IsNotFound(err) {
+							// can happen when node was not fully initialized and now is deleted
+							log.Info(fmt.Sprintf("PVC for Node %s not found. Continue", node.Labels["nodeId"]))
+						}
+
+						return errors.WrapIfWithDetails(err, "could not delete pvc for node", "id", node.Labels["nodeId"])
+					}
+				}
 			}
 
 			err = r.Client.Delete(context.TODO(), &node)
@@ -355,27 +398,10 @@ OUTERLOOP:
 				}
 			}
 
-			for _, volume := range node.Spec.Volumes {
-				if strings.HasPrefix(volume.Name, nifiDataVolumeMount) {
-					err = r.Client.Delete(context.TODO(), &corev1.PersistentVolumeClaim{ObjectMeta: metav1.ObjectMeta{
-						Name:      volume.PersistentVolumeClaim.ClaimName,
-						Namespace: r.NifiCluster.Namespace,
-					}})
-					if err != nil {
-						if apierrors.IsNotFound(err) {
-							// can happen when node was not fully initialized and now is deleted
-							log.Info(fmt.Sprintf("PVC for Node %s not found. Continue", node.Labels["nodeId"]))
-						}
-
-						return errors.WrapIfWithDetails(err, "could not delete pvc for node", "id", node.Labels["nodeId"])
-					}
-				}
-			}
-
 			err = k8sutil.UpdateNodeStatus(r.Client, []string{node.Labels["nodeId"]}, r.NifiCluster,
 				v1alpha1.GracefulActionState{
 					ActionStep:  v1alpha1.RemovePodStatus,
-					State:       v1alpha1.GracefulDownscaleRunning,
+					State:       v1alpha1.GracefulDownscaleSucceeded,
 					TaskStarted: r.NifiCluster.Status.NodesState[node.Labels["nodeId"]].GracefulActionState.TaskStarted},
 				log)
 			if err != nil {
@@ -387,13 +413,13 @@ OUTERLOOP:
 	return nil
 }
 
-//
-func arePodsAlreadyDeleted(pods []corev1.Pod, log logr.Logger) bool {
+func arePodsAlreadyDeleted(pods []corev1.Pod, log zap.Logger) bool {
 	for _, node := range pods {
 		if node.ObjectMeta.DeletionTimestamp == nil {
 			return false
 		}
-		log.Info(fmt.Sprintf("Node %s is already on terminating state", node.Labels["nodeId"]))
+		log.Info("Node is already on terminating state",
+			zap.String("nodeId", node.Labels["nodeId"]))
 	}
 	return true
 }
@@ -412,7 +438,7 @@ func (r *Reconciler) getServerAndClientDetails(nodeId int32) (string, string, []
 	}
 	serverPass := string(serverSecret.Data[v1alpha1.PasswordKey])
 
-	clientName := types.NamespacedName{Name: fmt.Sprintf(pkicommon.NodeControllerTemplate, r.NifiCluster.Name), Namespace: r.NifiCluster.Namespace}
+	clientName := types.NamespacedName{Name: r.NifiCluster.GetNifiControllerUserIdentity(), Namespace: r.NifiCluster.Namespace}
 	clientSecret := &corev1.Secret{}
 	if err := r.Client.Get(context.TODO(), clientName, clientSecret); err != nil {
 		if apierrors.IsNotFound(err) {
@@ -434,7 +460,6 @@ func (r *Reconciler) getServerAndClientDetails(nodeId int32) (string, string, []
 	return serverPass, clientPass, superUsers, nil
 }
 
-//
 func generateNodeIdsFromPodSlice(pods []corev1.Pod) []string {
 	ids := make([]string, len(pods))
 	for i, node := range pods {
@@ -443,11 +468,13 @@ func generateNodeIdsFromPodSlice(pods []corev1.Pod) []string {
 	return ids
 }
 
-func (r *Reconciler) reconcileNifiPVC(log logr.Logger, desiredPVC *corev1.PersistentVolumeClaim) error {
+func (r *Reconciler) reconcileNifiPVC(log zap.Logger, desiredPVC *corev1.PersistentVolumeClaim) error {
 	var currentPVC = desiredPVC.DeepCopy()
 	desiredType := reflect.TypeOf(desiredPVC)
-	log = log.WithValues("kind", desiredType)
-	log.V(1).Info("searching with label because name is empty")
+	log.Debug("searching for pvc with label because name is empty",
+		zap.String("nifiCluster", r.NifiCluster.Name),
+		zap.String("nodeId", desiredPVC.Labels["nodeId"]),
+		zap.String("kind", desiredType.String()))
 
 	pvcList := &corev1.PersistentVolumeClaimList{}
 	matchingLabels := client.MatchingLabels{
@@ -470,7 +497,10 @@ func (r *Reconciler) reconcileNifiPVC(log logr.Logger, desiredPVC *corev1.Persis
 		if err := r.Client.Create(context.TODO(), desiredPVC); err != nil {
 			return errorfactory.New(errorfactory.APIFailure{}, err, "creating resource failed", "kind", desiredType)
 		}
-		log.Info("resource created")
+		log.Info("Persistent volume created",
+			zap.String("clusterName", r.NifiCluster.Name),
+			zap.String("pvcName", desiredPVC.Name),
+			zap.String("pvcNamespace", desiredPVC.Namespace))
 		return nil
 	}
 	alreadyCreated := false
@@ -511,7 +541,10 @@ func (r *Reconciler) reconcileNifiPVC(log logr.Logger, desiredPVC *corev1.Persis
 			if err := r.Client.Update(context.TODO(), desiredPVC); err != nil {
 				return errorfactory.New(errorfactory.APIFailure{}, err, "updating resource failed", "kind", desiredType)
 			}
-			log.Info("resource updated")
+			log.Debug("persistent volume updated",
+				zap.String("clusterName", r.NifiCluster.Name),
+				zap.String("pvcName", desiredPVC.Name),
+				zap.String("pvcNamespace", desiredPVC.Namespace))
 		}
 	}
 	return nil
@@ -521,12 +554,14 @@ func isDesiredStorageValueInvalid(desired, current *corev1.PersistentVolumeClaim
 	return desired.Spec.Resources.Requests.Storage().Value() < current.Spec.Resources.Requests.Storage().Value()
 }
 
-func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) (error, bool) {
+func (r *Reconciler) reconcileNifiPod(log zap.Logger, desiredPod *corev1.Pod) (error, bool) {
 	currentPod := desiredPod.DeepCopy()
 	desiredType := reflect.TypeOf(desiredPod)
 
-	log = log.WithValues("kind", desiredType)
-	log.V(1).Info("searching with label because name is empty")
+	log.Debug("searching for pod with label because name is empty",
+		zap.String("clusterName", r.NifiCluster.Name),
+		zap.String("nodeId", desiredPod.Labels["nodeId"]),
+		zap.String("kind", desiredType.String()))
 
 	podList := &corev1.PodList{}
 	matchingLabels := client.MatchingLabels{
@@ -556,6 +591,13 @@ func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) (
 				statusErr, "updating status for resource failed", "kind", desiredType), false
 		}
 
+		// set node creation time
+		statusErr = k8sutil.UpdateNodeStatus(r.Client, []string{desiredPod.Labels["nodeId"]}, r.NifiCluster, metav1.NewTime(time.Now().UTC()), log)
+		if statusErr != nil {
+			return errorfactory.New(errorfactory.StatusUpdateError{},
+				statusErr, "failed to update node status creation time", "kind", desiredType), false
+		}
+
 		if val, ok := r.NifiCluster.Status.NodesState[desiredPod.Labels["nodeId"]]; ok &&
 			val.GracefulActionState.State != v1alpha1.GracefulUpscaleSucceeded {
 			gracefulActionState := v1alpha1.GracefulActionState{ErrorMessage: "", State: v1alpha1.GracefulUpscaleSucceeded}
@@ -570,14 +612,20 @@ func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) (
 					statusErr, "could not update node graceful action state"), false
 			}
 		}
-		log.Info("resource created")
+		log.Info("Pod created",
+			zap.String("clusterName", r.NifiCluster.Name),
+			zap.String("nodeId", desiredPod.Labels["nodeId"]),
+			zap.String("podName", desiredPod.Name))
+
 		return nil, false
 	} else if len(podList.Items) == 1 {
 		currentPod = podList.Items[0].DeepCopy()
 		nodeId := currentPod.Labels["nodeId"]
 		if _, ok := r.NifiCluster.Status.NodesState[nodeId]; ok {
 			if currentPod.Spec.NodeName == "" {
-				log.Info(fmt.Sprintf("pod for NodeId %s does not scheduled to node yet", nodeId))
+				log.Debug("pod for NodeId is not scheduled to node yet",
+					zap.String("clusterName", r.NifiCluster.Name),
+					zap.String("nodeId", nodeId))
 			}
 		} else {
 			return errorfactory.New(errorfactory.InternalError{}, errors.New("reconcile failed"),
@@ -585,12 +633,10 @@ func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) (
 		}
 	} else {
 		return errorfactory.New(errorfactory.TooManyResources{}, errors.New("reconcile failed"),
-			"more then one matching pod found", "labels", matchingLabels), false
+			"more than one matching pod found", "labels", matchingLabels), false
 	}
 
-	// TODO check if this err == nil check necessary (baluchicken)
 	if err == nil {
-
 		// Since toleration does not support patchStrategy:"merge,retainKeys", we need to add all toleration from the current pod if the toleration is set in the CR
 		if len(desiredPod.Spec.Tolerations) > 0 {
 			desiredPod.Spec.Tolerations = append(desiredPod.Spec.Tolerations, currentPod.Spec.Tolerations...)
@@ -607,7 +653,10 @@ func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) (
 		// Check if the resource actually updated
 		patchResult, err := patch.DefaultPatchMaker.Calculate(currentPod, desiredPod)
 		if err != nil {
-			log.Error(err, "could not match objects", "kind", desiredType)
+			log.Error("could not match pod objects",
+				zap.String("clusterName", r.NifiCluster.Name),
+				zap.String("kind", desiredType.String()),
+				zap.Error(err))
 		} else if patchResult.IsEmpty() {
 			if !k8sutil.IsPodTerminatedOrShutdown(currentPod) &&
 				r.NifiCluster.Status.NodesState[currentPod.Labels["nodeId"]].ConfigurationState == v1alpha1.ConfigInSync {
@@ -624,15 +673,18 @@ func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) (
 					}
 				}
 
-				log.V(1).Info("resource is in sync")
+				log.Debug("pod resource is in sync",
+					zap.String("clusterName", r.NifiCluster.Name),
+					zap.String("podName", desiredPod.Name))
+
 				return nil, k8sutil.PodReady(currentPod)
 			}
 		} else {
-			log.Info("resource diffs",
-				"patch", string(patchResult.Patch),
-				"current", string(patchResult.Current),
-				"modified", string(patchResult.Modified),
-				"original", string(patchResult.Original))
+			log.Debug("resource diffs",
+				zap.String("patch", string(patchResult.Patch)),
+				zap.String("current", string(patchResult.Current)),
+				zap.String("modified", string(patchResult.Modified)),
+				zap.String("original", string(patchResult.Original)))
 		}
 
 		if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(desiredPod); err != nil {
@@ -674,6 +726,7 @@ func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) (
 			}
 		}
 
+		log.Info(fmt.Sprintf("Deleting pod %s", currentPod.Name))
 		err = r.Client.Delete(context.TODO(), currentPod)
 		if err != nil {
 			return errorfactory.New(errorfactory.APIFailure{},
@@ -684,11 +737,9 @@ func (r *Reconciler) reconcileNifiPod(log logr.Logger, desiredPod *corev1.Pod) (
 	return nil, k8sutil.PodReady(currentPod)
 }
 
-func (r *Reconciler) reconcileNifiUsersAndGroups(log logr.Logger) error {
-	controllerName := types.NamespacedName{Name: fmt.Sprintf(pkicommon.NodeControllerFQDNTemplate,
-		fmt.Sprintf(pkicommon.NodeControllerTemplate, r.NifiCluster.Name),
-		r.NifiCluster.Namespace,
-		r.NifiCluster.Spec.ListenersConfig.GetClusterDomain()), Namespace: r.NifiCluster.Namespace}
+func (r *Reconciler) reconcileNifiUsersAndGroups(log zap.Logger) error {
+	controllerNamespacedName := types.NamespacedName{
+		Name: r.NifiCluster.GetNifiControllerUserIdentity(), Namespace: r.NifiCluster.Namespace}
 
 	managedUsers := append(r.NifiCluster.Spec.ManagedAdminUsers, r.NifiCluster.Spec.ManagedReaderUsers...)
 	var users []*v1alpha1.NifiUser
@@ -738,8 +789,8 @@ func (r *Reconciler) reconcileNifiUsersAndGroups(log logr.Logger) error {
 					Namespace: r.NifiCluster.Namespace,
 				},
 				UsersRef: append(managedAdminUserRef, v1alpha1.UserReference{
-					Name:      controllerName.Name,
-					Namespace: controllerName.Namespace,
+					Name:      controllerNamespacedName.Name,
+					Namespace: controllerNamespacedName.Namespace,
 				},
 				),
 				AccessPolicies: []v1alpha1.AccessPolicy{
@@ -852,7 +903,7 @@ func (r *Reconciler) reconcileNifiUsersAndGroups(log logr.Logger) error {
 	return nil
 }
 
-func (r *Reconciler) reconcilePrometheusReportingTask(log logr.Logger) error {
+func (r *Reconciler) reconcilePrometheusReportingTask(log zap.Logger) error {
 
 	var err error
 
@@ -897,7 +948,7 @@ func (r *Reconciler) reconcilePrometheusReportingTask(log logr.Logger) error {
 	return nil
 }
 
-func (r *Reconciler) reconcileMaximumThreadCounts(log logr.Logger) error {
+func (r *Reconciler) reconcileMaximumThreadCounts(log zap.Logger) error {
 	configManager := config.GetClientConfigManager(r.Client, v1alpha1.ClusterReference{
 		Namespace: r.NifiCluster.Namespace,
 		Name:      r.NifiCluster.Name,
