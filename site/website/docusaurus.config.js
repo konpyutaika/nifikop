@@ -28,6 +28,7 @@ module.exports = {
           editUrl:
             'https://github.com/konpyutaika/nifikop/edit/master/site/website/',
           path: '../docs',
+          numberPrefixParser: false,
           sidebarPath: require.resolve('./sidebars.json'),
           // remarkPlugins: [require('@react-native-website/remark-snackplayer')],
         },
@@ -54,7 +55,8 @@ module.exports = {
   plugins: ['@docusaurus/theme-live-codeblock', 'docusaurus-plugin-sass', './sitePlugin'],
   themeConfig: {
     algolia: {
-      apiKey: '34dbf55751628f3e3aaf8e06776fba0b',
+      appId: 'VBPOAOSEIB',
+      apiKey: 'd301810165188ea9095145222463ef55',
       indexName: 'nifikop',
 
       // Optional: see doc section bellow
