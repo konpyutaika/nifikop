@@ -46,6 +46,8 @@ type ConnectionConfiguration struct {
 	LoadBalanceCompression ConnectionLoadBalanceCompression `json:"loadBalanceCompression,omitempty"`
 	// The comparators used to prioritize the queue
 	Prioritizers []ConnectionPrioritizer `json:"prioritizers,omitempty"`
+	// The index of the bend point where to place the connection label.
+	LabelIndex *int32 `json:"labelIndex,omitempty"`
 	// The bend points on the connection
 	Bends []ConnectionBend `json:"bends,omitempty"`
 }
@@ -152,6 +154,13 @@ func (conf *ConnectionConfiguration) GetStringPrioritizers() []string {
 		prioritizers = append(prioritizers, prefix+string(prioritizer))
 	}
 	return prioritizers
+}
+
+func (conf *ConnectionConfiguration) GetLabelIndex() int32 {
+	if conf.LabelIndex != nil {
+		return *conf.LabelIndex
+	}
+	return 0
 }
 
 func (conf *ConnectionConfiguration) GetBends() []ConnectionBend {

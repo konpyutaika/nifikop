@@ -9,10 +9,10 @@ import (
 	"go.uber.org/zap"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
 	"github.com/jarcoal/httpmock"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
+	nigoapi "github.com/konpyutaika/nigoapi/pkg/nifi"
 	"github.com/stretchr/testify/assert"
 )
 

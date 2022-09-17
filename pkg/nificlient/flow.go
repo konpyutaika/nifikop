@@ -2,7 +2,7 @@ package nificlient
 
 import (
 	"github.com/antihax/optional"
-	nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
+	nigoapi "github.com/konpyutaika/nigoapi/pkg/nifi"
 	"go.uber.org/zap"
 )
 
@@ -16,7 +16,7 @@ func (n *nifiClient) GetFlow(id string) (*nigoapi.ProcessGroupFlowEntity, error)
 	}
 
 	// Request on Nifi Rest API to get the process group flow informations
-	flowPGEntity, rsp, body, err := client.FlowApi.GetFlow(context, id)
+	flowPGEntity, rsp, body, err := client.FlowApi.GetFlow(context, id, nil)
 	if err := errorGetOperation(rsp, body, err, n.log); err != nil {
 		return nil, err
 	}

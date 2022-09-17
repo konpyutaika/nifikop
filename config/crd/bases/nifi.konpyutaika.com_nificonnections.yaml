@@ -65,6 +65,11 @@ spec:
                     description: The maximum amount of time an object may be in the
                       flow before it will be automatically aged out of the flow
                     type: string
+                  labelIndex:
+                    description: The index of the bend point where to place the connection
+                      label.
+                    format: int32
+                    type: integer
                   loadBalanceCompression:
                     description: Whether or not data should be compressed when being
                       transferred between nodes in the cluster

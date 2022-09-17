@@ -217,6 +217,11 @@ func (in *ConnectionConfiguration) DeepCopyInto(out *ConnectionConfiguration) {
 		*out = make([]ConnectionPrioritizer, len(*in))
 		copy(*out, *in)
 	}
+	if in.LabelIndex != nil {
+		in, out := &in.LabelIndex, &out.LabelIndex
+		*out = new(int32)
+		**out = **in
+	}
 	if in.Bends != nil {
 		in, out := &in.Bends, &out.Bends
 		*out = make([]ConnectionBend, len(*in))

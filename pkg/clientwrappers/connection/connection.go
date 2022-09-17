@@ -7,9 +7,9 @@ import (
 	"github.com/konpyutaika/nifikop/pkg/util"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
 
-	nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers"
 	"github.com/konpyutaika/nifikop/pkg/common"
+	nigoapi "github.com/konpyutaika/nigoapi/pkg/nifi"
 )
 
 var log = common.CustomLogger().Named("connection-method")
@@ -56,6 +56,7 @@ func CreateConnection(connection *v1alpha1.NifiConnection, source *v1alpha1.Comp
 			LoadBalancePartitionAttribute: connection.Spec.Configuration.GetLoadBalancePartitionAttribute(),
 			LoadBalanceCompression:        string(connection.Spec.Configuration.GetLoadBalanceCompression()),
 			Prioritizers:                  connection.Spec.Configuration.GetStringPrioritizers(),
+			LabelIndex:                    int32(0),
 			Bends:                         bends,
 		},
 	}
@@ -145,6 +146,7 @@ func SyncConnectionConfig(connection *v1alpha1.NifiConnection,
 		connectionEntity.Component.LoadBalancePartitionAttribute = connection.Spec.Configuration.GetLoadBalancePartitionAttribute()
 		connectionEntity.Component.LoadBalanceCompression = string(connection.Spec.Configuration.GetLoadBalanceCompression())
 		connectionEntity.Component.Prioritizers = connection.Spec.Configuration.GetStringPrioritizers()
+		connectionEntity.Component.LabelIndex = connection.Spec.Configuration.GetLabelIndex()
 		connectionEntity.Component.Bends = bends
 
 		_, err := nClient.UpdateConnection(*connectionEntity)
@@ -180,8 +182,6 @@ func IsOutOfSyncConnection(connection *v1alpha1.NifiConnection,
 		return false, err
 	}
 
-	// return isConfigurationChanged(connectionEntity, connection), nil
-
 	return isConfigurationChanged(connectionEntity, connection) || isSourceChanged(connectionEntity, source) ||
 		isDestinationChanged(connectionEntity, destination), nil
 }
@@ -202,6 +202,7 @@ func isConfigurationChanged(connectionEntity *nigoapi.ConnectionEntity, connecti
 		connectionEntity.Component.LoadBalancePartitionAttribute != connection.Spec.Configuration.GetLoadBalancePartitionAttribute() ||
 		connectionEntity.Component.LoadBalanceCompression != string(connection.Spec.Configuration.GetLoadBalanceCompression()) ||
 		!util.StringSliceStrictCompare(connectionEntity.Component.Prioritizers, connection.Spec.Configuration.GetStringPrioritizers()) ||
+		connectionEntity.Component.LabelIndex != connection.Spec.Configuration.GetLabelIndex() ||
 		isBendChanged(connectionEntity.Component.Bends, bends)
 }
 
@@ -210,15 +211,8 @@ func isBendChanged(current []nigoapi.PositionDto, original []nigoapi.PositionDto
 		return true
 	}
 
-	for _, posC := range current {
-		var found bool = false
-		for _, posO := range original {
-			if posC.X == posO.X && posC.Y == posO.Y {
-				found = true
-			}
-		}
-
-		if found {
+	for i, posC := range current {
+		if posC.X != original[i].X || posC.Y != original[i].Y {
 			return true
 		}
 	}

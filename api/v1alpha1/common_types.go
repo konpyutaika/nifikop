@@ -289,6 +289,8 @@ const (
 	ConnectionStateSourceOutOfSync ConnectionState = "SourceOutOfSync"
 	// ConnectionStateInSync describes the status of a NifiConnection as in sync
 	ConnectionStateInSync ConnectionState = "InSync"
+	// ConnectionStateCreated describes the status of a NifiConnection as created
+	ConnectionStateCreated ConnectionState = "Created"
 
 	// RevertRequestType defines a revert changes request.
 	RevertRequestType DataflowUpdateRequestType = "Revert"
