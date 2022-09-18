@@ -73,6 +73,10 @@ spec:
                   loadBalanceCompression:
                     description: Whether or not data should be compressed when being
                       transferred between nodes in the cluster
+                    enum:
+                    - DO_NOT_COMPRESS
+                    - COMPRESS_ATTRIBUTES_ONLY
+                    - COMPRESS_ATTRIBUTES_AND_CONTENT
                     type: string
                   loadBalancePartitionAttribute:
                     description: The FlowFile Attribute to use for determining which
@@ -81,10 +85,20 @@ spec:
                   loadBalanceStrategy:
                     description: How to load balance the data in this Connection across
                       the nodes in the cluster
+                    enum:
+                    - DO_NOT_LOAD_BALANCE
+                    - PARTITION_BY_ATTRIBUTE
+                    - ROUND_ROBIN
+                    - SINGLE
                     type: string
                   prioritizers:
                     description: The comparators used to prioritize the queue
                     items:
+                      enum:
+                      - FirstInFirstOutPrioritizer
+                      - NewestFlowFileFirstPrioritizer
+                      - OldestFlowFileFirstPrioritizer
+                      - PriorityAttributePrioritizer
                       type: string
                     type: array
                 type: object

@@ -16,6 +16,7 @@ type ConnectionState string
 type DataflowUpdateRequestType string
 
 // ComponentUpdateStrategy defines the type of strategy to update a component
+// +kubebuilder:validation:Enum={"drop","drain"}
 type ComponentUpdateStrategy string
 
 // RackAwarenessState stores info about rack awareness status
@@ -49,12 +50,15 @@ type ConfigurationState string
 type InitClusterNode bool
 
 // PKIBackend represents an interface implementing the PKIManager
+// +kubebuilder:validation:Enum={"cert-manager","vault"}
 type PKIBackend string
 
 // ClientConfigType represents an interface implementing the ClientConfigManager
+// +kubebuilder:validation:Enum={"tls","basic"}
 type ClientConfigType string
 
 // ClusterType represents an interface implementing the  ClientConfigManager
+// +kubebuilder:validation:Enum={"external","internal"}
 type ClusterType string
 
 // AccessPolicyType represents the type of access policy
@@ -479,6 +483,7 @@ func ComponentRefsEquals(componentRefs []ComponentReference) bool {
 	return true
 }
 
+// +kubebuilder:validation:Enum={"never","always","once"}
 type DataflowSyncMode string
 
 const (
@@ -506,6 +511,7 @@ type ComponentInformation struct {
 	ClusterRef    ClusterReference `json:"clusterRef"`
 }
 
+// +kubebuilder:validation:Enum={"DO_NOT_LOAD_BALANCE","PARTITION_BY_ATTRIBUTE","ROUND_ROBIN","SINGLE"}
 type ConnectionLoadBalanceStrategy string
 
 const (
@@ -515,6 +521,7 @@ const (
 	StrategySingle               ConnectionLoadBalanceStrategy = "SINGLE"
 )
 
+// +kubebuilder:validation:Enum={"DO_NOT_COMPRESS","COMPRESS_ATTRIBUTES_ONLY","COMPRESS_ATTRIBUTES_AND_CONTENT"}
 type ConnectionLoadBalanceCompression string
 
 const (
@@ -523,6 +530,7 @@ const (
 	CompressionCompressAttributesAndContent ConnectionLoadBalanceCompression = "COMPRESS_ATTRIBUTES_AND_CONTENT"
 )
 
+// +kubebuilder:validation:Enum={"FirstInFirstOutPrioritizer","NewestFlowFileFirstPrioritizer","OldestFlowFileFirstPrioritizer","PriorityAttributePrioritizer"}
 type ConnectionPrioritizer string
 
 const (

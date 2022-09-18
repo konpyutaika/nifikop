@@ -16,7 +16,6 @@ type NifiConnectionSpec struct {
 	// the Configuration of the connection
 	Configuration ConnectionConfiguration `json:"configuration,omitempty"`
 	// describes the way the operator will deal with data when a connection will be updated : drop or drain
-	// +kubebuilder:validation:Enum={"drop","drain"}
 	UpdateStrategy ComponentUpdateStrategy `json:"updateStrategy"`
 }
 
