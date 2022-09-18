@@ -509,7 +509,8 @@ func (r *NifiConnectionReconciler) finalizeNifiConnection(
 	return nil
 }
 
-func (r *NifiConnectionReconciler) DeleteConnection(ctx context.Context, clientConfig *clientconfig.NifiConfig, original *v1alpha1.NifiConnection, instance *v1alpha1.NifiConnection) error {
+func (r *NifiConnectionReconciler) DeleteConnection(ctx context.Context, clientConfig *clientconfig.NifiConfig,
+	original *v1alpha1.NifiConnection, instance *v1alpha1.NifiConnection) error {
 	if original.Spec.Source.Type == v1alpha1.ComponentDataflow {
 		if err := r.StopDataflowComponent(ctx, original.Spec.Source, true); err != nil {
 			return err
@@ -535,6 +536,12 @@ func (r *NifiConnectionReconciler) DeleteConnection(ctx context.Context, clientC
 		if !connectionEntity.Component.Source.Running && connectionEntity.Component.Destination.Running &&
 			connectionEntity.Status.AggregateSnapshot.FlowFilesQueued == 0 {
 			if err := r.StopDataflowComponent(ctx, original.Spec.Destination, false); err != nil {
+				return err
+			}
+		} else if !connectionEntity.Component.Source.Running && !connectionEntity.Component.Destination.Running &&
+			connectionEntity.Status.AggregateSnapshot.FlowFilesQueued != 0 && destinationInstance.Spec.UpdateStrategy == v1alpha1.DropStrategy &&
+			instance.Spec.UpdateStrategy == v1alpha1.DropStrategy {
+			if err := connection.DropConnectionFlowFiles(instance, clientConfig); err != nil {
 				return err
 			}
 		} else if !connectionEntity.Component.Source.Running && !connectionEntity.Component.Destination.Running &&

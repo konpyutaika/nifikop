@@ -279,3 +279,19 @@ func DeleteConnection(connection *v1alpha1.NifiConnection, config *clientconfig.
 
 	return nil
 }
+
+// DropConnectionFlowFiles implements the logic to drop the flowfiles from the connection.
+func DropConnectionFlowFiles(connection *v1alpha1.NifiConnection,
+	config *clientconfig.NifiConfig) error {
+	nClient, err := common.NewClusterConnection(log, config)
+	if err != nil {
+		return nil
+	}
+
+	_, err = nClient.CreateDropRequest(connection.Status.ConnectionId)
+	if err := clientwrappers.ErrorCreateOperation(log, err, "Create drop-request"); err != nil {
+		return err
+	}
+
+	return nil
+}
