@@ -490,7 +490,7 @@ func prepareUpdatePG(flow *v1alpha1.NifiDataflow, config *clientconfig.NifiConfi
 				}
 
 				flow.Status.LatestDropRequest =
-					dropRequest2Status(flow.Status.LatestDropRequest.ConnectionId, dropRequest)
+					dropRequest2Status(connection.Id, dropRequest)
 
 				return &flow.Status, errorfactory.NifiConnectionDropping{}
 			}
@@ -671,10 +671,7 @@ func inputConnectionFromFlow(flowEntity *nigoapi.ProcessGroupFlowEntity,
 }
 
 // hasInputConnectionsActive will determine if a flow has input connections that are still active
-func hasInputConnectionsActive(config *clientconfig.NifiConfig,
-	rootFlowEntity *nigoapi.ProcessGroupFlowEntity,
-	processGroupID string) (*bool, error) {
-
+func hasInputConnectionsActive(flow *v1alpha1.NifiDataflow, config *clientconfig.NifiConfig) (*bool, error) {
 	var connections []nigoapi.ConnectionEntity
 
 	nClient, err := common.NewClusterConnection(log, config)
@@ -682,13 +679,17 @@ func hasInputConnectionsActive(config *clientconfig.NifiConfig,
 		return nil, err
 	}
 
-	flowEntity, err := nClient.GetFlow(processGroupID)
+	flowEntity, err := nClient.GetFlow(flow.Status.ProcessGroupID)
 	if err != nil {
 		return nil, err
 	}
-	flow := flowEntity.ProcessGroupFlow.Flow
 
-	connections = inputConnectionFromFlow(rootFlowEntity, flow.InputPorts)
+	parentFlowEntity, err := nClient.GetFlow(flowEntity.ProcessGroupFlow.ParentGroupId)
+	if err != nil {
+		return nil, err
+	}
+
+	connections = inputConnectionFromFlow(parentFlowEntity, flowEntity.ProcessGroupFlow.Flow.InputPorts)
 
 	var hasConnectionActive bool = false
 	for _, inputConnection := range connections {

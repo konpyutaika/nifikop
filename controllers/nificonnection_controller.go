@@ -479,7 +479,7 @@ func (r *NifiConnectionReconciler) checkFinalizers(
 	r.Log.Info(fmt.Sprintf("NiFi connection %s is marked for deletion", connection.Name))
 	var err error
 	if util.StringSliceContains(connection.GetFinalizers(), connectionFinalizer) {
-		if err = r.finalizeNifiConnection(connection, config); err != nil {
+		if err = r.finalizeNifiConnection(ctx, connection, config); err != nil {
 			return RequeueWithError(r.Log, "failed to finalize connection", err)
 		}
 		if err = r.removeFinalizer(ctx, connection); err != nil {
@@ -498,13 +498,35 @@ func (r *NifiConnectionReconciler) removeFinalizer(ctx context.Context, connecti
 }
 
 func (r *NifiConnectionReconciler) finalizeNifiConnection(
-	connection *v1alpha1.NifiConnection,
+	ctx context.Context,
+	instance *v1alpha1.NifiConnection,
 	config *clientconfig.NifiConfig) error {
 
-	// if err := parametercontext.RemoveParameterContext(connection, config); err != nil {
-	// 	return err
-	// }
-	// r.Log.Info("Delete NifiConnection Context")
+	exists, err := connection.ConnectionExist(instance, config)
+	if err != nil {
+		return err
+	}
+
+	if exists {
+		r.Recorder.Event(instance, corev1.EventTypeNormal, "Removing",
+			fmt.Sprintf("Removing connection %s between %s in %s of type %s and %s in %s of type %s",
+				instance.Name,
+				instance.Spec.Source.Name, instance.Spec.Source.Namespace, instance.Spec.Source.Type,
+				instance.Spec.Destination.Name, instance.Spec.Destination.Namespace, instance.Spec.Destination.Type))
+
+		if err := r.DeleteConnection(ctx, config, instance, instance); err != nil {
+			return err
+		}
+
+		r.Recorder.Event(instance, corev1.EventTypeNormal, "Removed",
+			fmt.Sprintf("Removed connection %s between %s in %s of type %s and %s in %s of type %s",
+				instance.Name,
+				instance.Spec.Source.Name, instance.Spec.Source.Namespace, instance.Spec.Source.Type,
+				instance.Spec.Destination.Name, instance.Spec.Destination.Namespace, instance.Spec.Destination.Type))
+
+		r.Log.Info("Connection deleted",
+			zap.String("connection", instance.Name))
+	}
 
 	return nil
 }
@@ -557,9 +579,10 @@ func (r *NifiConnectionReconciler) DeleteConnection(ctx context.Context, clientC
 			if err := r.UnStopDataflowComponent(ctx, original.Spec.Destination, false); err != nil {
 				return err
 			}
+			return nil
 		}
 	}
-	return nil
+	return errorfactory.NifiConnectionDeleting{}
 }
 
 func (r *NifiConnectionReconciler) GetDataflowComponentInformation(c v1alpha1.ComponentReference, isSource bool) (*v1alpha1.ComponentInformation, error) {
