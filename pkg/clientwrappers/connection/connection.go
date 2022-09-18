@@ -289,7 +289,7 @@ func DropConnectionFlowFiles(connection *v1alpha1.NifiConnection,
 	}
 
 	_, err = nClient.CreateDropRequest(connection.Status.ConnectionId)
-	if err := clientwrappers.ErrorCreateOperation(log, err, "Create drop-request"); err != nil {
+	if err := clientwrappers.ErrorUpdateOperation(log, err, "Create drop-request"); err != nil {
 		return err
 	}
 

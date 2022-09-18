@@ -485,7 +485,7 @@ func prepareUpdatePG(flow *v1alpha1.NifiDataflow, config *clientconfig.NifiConfi
 		for _, connection := range connections {
 			if connection.Status.AggregateSnapshot.FlowFilesQueued != 0 {
 				dropRequest, err := nClient.CreateDropRequest(connection.Id)
-				if err := clientwrappers.ErrorCreateOperation(log, err, "Create drop-request"); err != nil {
+				if err := clientwrappers.ErrorUpdateOperation(log, err, "Create drop-request"); err != nil {
 					return nil, err
 				}
 
