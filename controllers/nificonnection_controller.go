@@ -45,7 +45,6 @@ import (
 )
 
 var connectionFinalizer string = fmt.Sprintf("nificonnections.%s/stop-input", v1alpha1.GroupVersion.Group)
-var lastAppliedClusterAnnotation string = fmt.Sprintf("%s/last-applied-nificluster", v1alpha1.GroupVersion.Group)
 
 // NifiConnectionReconciler reconciles a NifiConnection object
 type NifiConnectionReconciler struct {
@@ -100,7 +99,7 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	}
 
 	// Get the last NiFiCluster viewed by the operator.
-	cr, err := k8sutil.GetAnnotation(lastAppliedClusterAnnotation, instance)
+	cr, err := k8sutil.GetAnnotation(nifiutil.LastAppliedClusterAnnotation, instance)
 	// Create it if not exist.
 	if cr == nil {
 		jsonResource, err := json.Marshal(v1alpha1.ClusterReference{})
@@ -108,7 +107,7 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 			return RequeueWithError(r.Log, "could not apply last state to annotation for connection "+instance.Name, err)
 		}
 
-		if err := k8sutil.SetAnnotation(lastAppliedClusterAnnotation, instance, jsonResource); err != nil {
+		if err := k8sutil.SetAnnotation(nifiutil.LastAppliedClusterAnnotation, instance, jsonResource); err != nil {
 			return RequeueWithError(r.Log, "could not apply last state to annotation for connection "+instance.Name, err)
 		}
 
@@ -315,7 +314,17 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 
 		// Update the last view configuration to the current one.
 		if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(instance); err != nil {
-			return RequeueWithError(r.Log, "could not apply last state to annotation for dataflow "+instance.Name, err)
+			return RequeueWithError(r.Log, "could not apply last state to annotation for connection "+instance.Name, err)
+		}
+
+		// Update the last view configuration to the current one.
+		clusterRefJsonResource, err := json.Marshal(clusterRef)
+		if err != nil {
+			return RequeueWithError(r.Log, "could not apply last state to annotation for connection "+instance.Name, err)
+		}
+
+		if err := k8sutil.SetAnnotation(nifiutil.LastAppliedClusterAnnotation, instance, clusterRefJsonResource); err != nil {
+			return RequeueWithError(r.Log, "could not apply last state to annotation for connection "+instance.Name, err)
 		}
 		// Update last-applied annotation
 		if err := r.Client.Update(ctx, instance); err != nil {

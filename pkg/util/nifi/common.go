@@ -23,8 +23,9 @@ var (
 )
 
 var (
-	StopInputPortPrefix  = fmt.Sprintf("%s/stop-input", v1alpha1.GroupVersion.Group)
-	StopOutputPortPrefix = fmt.Sprintf("%s/stop-output", v1alpha1.GroupVersion.Group)
+	StopInputPortPrefix          = fmt.Sprintf("%s/stop-input", v1alpha1.GroupVersion.Group)
+	StopOutputPortPrefix         = fmt.Sprintf("%s/stop-output", v1alpha1.GroupVersion.Group)
+	LastAppliedClusterAnnotation = fmt.Sprintf("%s/last-applied-nificluster", v1alpha1.GroupVersion.Group)
 )
 
 // ParseTimeStampToUnixTime parses the given CC timeStamp to time format
