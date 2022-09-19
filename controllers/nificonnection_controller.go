@@ -147,6 +147,114 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		return RequeueWithError(r.Log, "failed to validate destination component "+instance.Spec.Destination.Name, err)
 	}
 
+	// Check if the 2 components are in the same NifiCluster and retrieve it
+	currentClusterRef, err := r.RetrieveNifiClusterRef(instance.Spec.Source, instance.Spec.Destination)
+	if err != nil {
+		r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceClusterError",
+			fmt.Sprintf("Failed to determine the cluster of the connection between %s in %s of type %s and %s in %s of type %s",
+				instance.Spec.Source.Name, instance.Spec.Source.Namespace, instance.Spec.Source.Type,
+				instance.Spec.Destination.Name, instance.Spec.Destination.Namespace, instance.Spec.Destination.Type))
+		return RequeueWithError(r.Log, "failed to determine the cluster of the connection "+instance.Name, err)
+	}
+
+	// Get the client config manager associated to the cluster ref.
+	clusterRef := *originalClusterRef
+	// Set the clusterRef to the current one if the original one is empty (= new resource)
+	if clusterRef.Name == "" && clusterRef.Namespace == "" {
+		clusterRef = *currentClusterRef
+	}
+
+	// Ìn case of the cluster reference changed.
+	if !v1alpha1.ClusterRefsEquals([]v1alpha1.ClusterReference{clusterRef, *currentClusterRef}) {
+		// Prepare cluster connection configurations
+		var clientConfig *clientconfig.NifiConfig
+		var clusterConnect clientconfig.ClusterConnect
+
+		// Generate the connect object
+		configManager := config.GetClientConfigManager(r.Client, clusterRef)
+		if clusterConnect, err = configManager.BuildConnect(); err != nil {
+			// This shouldn't trigger anymore, but leaving it here as a safetybelt
+			// if k8sutil.IsMarkedForDeletion(current.ObjectMeta) {
+			// 	r.Log.Info("Cluster is already gone, there is nothing we can do")
+			// 	if err = r.removeFinalizer(ctx, current); err != nil {
+			// 		return RequeueWithError(r.Log, "failed to remove finalizer", err)
+			// 	}
+			// 	return Reconciled()
+			// }
+
+			// // If the referenced cluster no more exist, just skip the deletion requirement in cluster ref change case.
+			// if !v1alpha1.ClusterRefsEquals([]v1alpha1.ClusterReference{current.Spec.ClusterRef, current.Spec.ClusterRef}) {
+			// 	if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(current); err != nil {
+			// 		return RequeueWithError(r.Log, "could not apply last state to annotation", err)
+			// 	}
+			// 	if err := r.Client.Update(ctx, current); err != nil {
+			// 		return RequeueWithError(r.Log, "failed to update NifiDataflow", err)
+			// 	}
+			// 	return RequeueAfter(time.Duration(15) * time.Second)
+			// }
+			// r.Recorder.Event(current, corev1.EventTypeWarning, "ReferenceClusterError",
+			// 	fmt.Sprintf("Failed to lookup reference cluster : %s in %s",
+			// 		current.Spec.ClusterRef.Name, currentClusterRef.Namespace))
+
+			// the cluster does not exist - should have been caught pre-flight
+			return RequeueWithError(r.Log, "failed to lookup referenced cluster", err)
+		}
+		// Generate the client configuration.
+		clientConfig, err = configManager.BuildConfig()
+		if err != nil {
+			r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceClusterError",
+				fmt.Sprintf("Failed to create HTTP client for the referenced cluster : %s in %s",
+					clusterRef.Name, clusterRef.Namespace))
+
+			// the cluster does not exist - should have been caught pre-flight
+			return RequeueWithError(r.Log, "failed to create HTTP client the for referenced cluster", err)
+		}
+
+		// Ensure the cluster is ready to receive actions
+		if !clusterConnect.IsReady(r.Log) {
+			r.Log.Debug("Cluster is not ready yet, will wait until it is.",
+				zap.String("clusterName", clusterRef.Name),
+				zap.String("connection", instance.Name))
+			r.Recorder.Event(instance, corev1.EventTypeNormal, "ReferenceClusterNotReady",
+				fmt.Sprintf("The referenced cluster is not ready yet for connection %s : %s in %s",
+					instance.Name, clusterRef.Name, clusterConnect.Id()))
+		}
+
+		// Delete the resource on the previous cluster.
+		// if err := r.DeleteConnection(ctx, clientConfig, original, original); err != nil {
+		// 	r.Recorder.Event(instance, corev1.EventTypeWarning, "RemoveError",
+		// 		fmt.Sprintf("Failed to delete NifiConnection %s from cluster %s before moving in %s",
+		// 			instance.Name, original.Spec.ClusterRef.Name, original.Spec.ClusterRef.Name))
+		// 	return RequeueWithError(r.Log, "Failed to delete NifiDataflow before moving", err)
+		// }
+		err := r.DeleteConnection(ctx, clientConfig, original, instance)
+
+		if err != nil {
+			r.Recorder.Event(instance, corev1.EventTypeWarning, "RemoveError",
+				fmt.Sprintf("Deleting connection %s between %s in %s of type %s and %s in %s of type %s",
+					original.Name,
+					original.Spec.Source.Name, original.Spec.Source.Namespace, original.Spec.Source.Type,
+					original.Spec.Destination.Name, original.Spec.Destination.Namespace, original.Spec.Destination.Type))
+			return RequeueWithError(r.Log, "failed to delete NifiConnection "+instance.Name, err)
+		}
+
+		// Update the last view configuration to the current one.
+		clusterRefJsonResource, err := json.Marshal(v1alpha1.ClusterReference{})
+		if err != nil {
+			return RequeueWithError(r.Log, "could not apply last state to annotation for connection "+instance.Name, err)
+		}
+		if err := k8sutil.SetAnnotation(nifiutil.LastAppliedClusterAnnotation, instance, clusterRefJsonResource); err != nil {
+			return RequeueWithError(r.Log, "could not apply last state to annotation for connection "+instance.Name, err)
+		}
+
+		// Update last-applied annotation
+		if err := r.Client.Update(ctx, instance); err != nil {
+			return RequeueWithError(r.Log, "failed to update NifiConnection "+instance.Name, err)
+		}
+
+		return RequeueAfter(interval)
+	}
+
 	// LookUp component
 	// Source lookup
 	sourceComponent := &v1alpha1.ComponentInformation{}
@@ -174,17 +282,7 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		return RequeueWithError(r.Log, "failed to retrieve destination component "+instance.Spec.Destination.Name, err)
 	}
 
-	// Verification connection feasible
-	var clusterRefs []v1alpha1.ClusterReference
-	clusterRefs = append(clusterRefs, sourceComponent.ClusterRef, destinationComponent.ClusterRef)
-	if !v1alpha1.ClusterRefsEquals(clusterRefs) {
-		r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceClusterError",
-			fmt.Sprintf("Failed to determine the cluster of the connection between %s in %s of type %s and %s in %s of type %s",
-				instance.Spec.Source.Name, instance.Spec.Source.Namespace, instance.Spec.Source.Type,
-				instance.Spec.Destination.Name, instance.Spec.Destination.Namespace, instance.Spec.Destination.Type))
-		return RequeueWithError(r.Log, "failed to determine the cluster of the connection "+instance.Name, err)
-	}
-
+	// Check if the 2 components are on the same level in the NiFi canvas
 	if sourceComponent.ParentGroupId != destinationComponent.ParentGroupId {
 		r.Recorder.Event(instance, corev1.EventTypeWarning, "ParentGroupIdError",
 			fmt.Sprintf("Failed to match parent group id from %s in %s of type %s to %s in %s of type %s",
@@ -197,16 +295,8 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	var clientConfig *clientconfig.NifiConfig
 	var clusterConnect clientconfig.ClusterConnect
 
-	// Get the client config manager associated to the cluster ref.
-	currentClusterRef := sourceComponent.ClusterRef
-	clusterRef := *originalClusterRef
-	// Set the clusterRef to the current one if the original one is empty (= new resource)
-	if clusterRef.Name == "" && clusterRef.Namespace == "" {
-		clusterRef = currentClusterRef
-	}
-	configManager := config.GetClientConfigManager(r.Client, clusterRef)
-
 	// Generate the connect object
+	configManager := config.GetClientConfigManager(r.Client, clusterRef)
 	if clusterConnect, err = configManager.BuildConnect(); err != nil {
 		// This shouldn't trigger anymore, but leaving it here as a safetybelt
 		// if k8sutil.IsMarkedForDeletion(current.ObjectMeta) {
@@ -267,25 +357,6 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 				instance.Name, clusterRef.Name, clusterConnect.Id()))
 
 		// the cluster does not exist - should have been caught pre-flight
-		return RequeueAfter(interval)
-	}
-
-	// Ìn case of the cluster reference changed.
-	if !v1alpha1.ClusterRefsEquals([]v1alpha1.ClusterReference{clusterRef, currentClusterRef}) {
-		// // Delete the resource on the previous cluster.
-		// if _, err := dataflow.RemoveDataflow(instance, clientConfig); err != nil {
-		// 	r.Recorder.Event(instance, corev1.EventTypeWarning, "RemoveError",
-		// 		fmt.Sprintf("Failed to delete NifiDataflow %s from cluster %s before moving in %s",
-		// 			instance.Name, original.Spec.ClusterRef.Name, original.Spec.ClusterRef.Name))
-		// 	return RequeueWithError(r.Log, "Failed to delete NifiDataflow before moving", err)
-		// }
-		// // Update the last view configuration to the current one.
-		// if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(current); err != nil {
-		// 	return RequeueWithError(r.Log, "could not apply last state to annotation", err)
-		// }
-		// if err := r.Client.Update(ctx, current); err != nil {
-		// 	return RequeueWithError(r.Log, "failed to update NifiDatafllow", err)
-		// }
 		return RequeueAfter(interval)
 	}
 
@@ -564,6 +635,9 @@ func (r *NifiConnectionReconciler) DeleteConnection(ctx context.Context, clientC
 		if err != nil {
 			return err
 		}
+		if connectionEntity == nil {
+			return nil
+		}
 		if !connectionEntity.Component.Source.Running && connectionEntity.Component.Destination.Running &&
 			connectionEntity.Status.AggregateSnapshot.FlowFilesQueued == 0 {
 			if err := r.StopDataflowComponent(ctx, original.Spec.Destination, false); err != nil {
@@ -592,6 +666,37 @@ func (r *NifiConnectionReconciler) DeleteConnection(ctx context.Context, clientC
 		}
 	}
 	return errorfactory.NifiConnectionDeleting{}
+}
+
+func (r *NifiConnectionReconciler) RetrieveNifiClusterRef(src v1alpha1.ComponentReference, dst v1alpha1.ComponentReference) (*v1alpha1.ClusterReference, error) {
+	var srcClusterRef = v1alpha1.ClusterReference{}
+	if src.Type == v1alpha1.ComponentDataflow {
+		srcDataflow, err := k8sutil.LookupNifiDataflow(r.Client, src.Name, src.Namespace)
+		if err != nil {
+			return nil, err
+		}
+
+		srcClusterRef = srcDataflow.Spec.ClusterRef
+	}
+
+	var dstClusterRef = v1alpha1.ClusterReference{}
+	if dst.Type == v1alpha1.ComponentDataflow {
+		dstDataflow, err := k8sutil.LookupNifiDataflow(r.Client, dst.Name, dst.Namespace)
+		if err != nil {
+			return nil, err
+		}
+
+		dstClusterRef = dstDataflow.Spec.ClusterRef
+	}
+
+	// Verification connection feasible
+	if !v1alpha1.ClusterRefsEquals([]v1alpha1.ClusterReference{srcClusterRef, dstClusterRef}) {
+		return nil, errors.New(fmt.Sprintf("Source cluster %s in %s is different from Destination cluster %s in %s",
+			srcClusterRef.Name, srcClusterRef.Namespace,
+			dstClusterRef.Name, dstClusterRef.Namespace))
+	}
+
+	return &srcClusterRef, nil
 }
 
 func (r *NifiConnectionReconciler) GetDataflowComponentInformation(c v1alpha1.ComponentReference, isSource bool) (*v1alpha1.ComponentInformation, error) {
@@ -671,6 +776,7 @@ func (r *NifiConnectionReconciler) GetDataflowComponentInformation(c v1alpha1.Co
 
 func (r *NifiConnectionReconciler) StopDataflowComponent(ctx context.Context, c v1alpha1.ComponentReference, isSource bool) error {
 	instance, err := k8sutil.LookupNifiDataflow(r.Client, c.Name, c.Namespace)
+	instanceOriginal := instance.DeepCopy()
 	if err != nil {
 		return err
 	} else {
@@ -684,7 +790,7 @@ func (r *NifiConnectionReconciler) StopDataflowComponent(ctx context.Context, c 
 			} else {
 				labels[nifiutil.StopInputPortPrefix] = c.SubName
 				instance.SetLabels(labels)
-				return r.Client.Update(ctx, instance)
+				return r.Client.Patch(ctx, instance, client.MergeFrom(instanceOriginal))
 			}
 		} else {
 			if label, ok := labels[nifiutil.StopOutputPortPrefix]; ok {
@@ -694,7 +800,7 @@ func (r *NifiConnectionReconciler) StopDataflowComponent(ctx context.Context, c 
 			} else {
 				labels[nifiutil.StopOutputPortPrefix] = c.SubName
 				instance.SetLabels(labels)
-				return r.Client.Update(ctx, instance)
+				return r.Client.Patch(ctx, instance, client.MergeFrom(instanceOriginal))
 			}
 		}
 	}
@@ -703,6 +809,7 @@ func (r *NifiConnectionReconciler) StopDataflowComponent(ctx context.Context, c 
 
 func (r *NifiConnectionReconciler) UnStopDataflowComponent(ctx context.Context, c v1alpha1.ComponentReference, isSource bool) error {
 	instance, err := k8sutil.LookupNifiDataflow(r.Client, c.Name, c.Namespace)
+	instanceOriginal := instance.DeepCopy()
 	if err != nil {
 		return err
 	} else {
@@ -715,6 +822,6 @@ func (r *NifiConnectionReconciler) UnStopDataflowComponent(ctx context.Context, 
 		}
 
 		instance.SetLabels(labels)
-		return r.Client.Update(ctx, instance)
+		return r.Client.Patch(ctx, instance, client.MergeFrom(instanceOriginal))
 	}
 }

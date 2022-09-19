@@ -492,6 +492,8 @@ const (
 	SyncAlways DataflowSyncMode = "always"
 )
 
+// Change the list to {"dataflow","input-port","output-port","processor","process-group"} when all the type are available
+// +kubebuilder:validation:Enum={"dataflow"}
 type ComponentType string
 
 const (
