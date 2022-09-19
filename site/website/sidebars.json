@@ -40,6 +40,21 @@
                     "3_manage_nifi/1_manage_clusters/1_deploy_cluster/3_expose_cluster/1_kubernetes_service",
                     "3_manage_nifi/1_manage_clusters/1_deploy_cluster/3_expose_cluster/2_external_dns"
                   ]
+                },
+                "3_manage_nifi/1_manage_clusters/1_deploy_cluster/4_ssl_configuration",
+                {
+                  "type": "category",
+                  "label": "Users authentication",
+                  "items": [
+                    "3_manage_nifi/1_manage_clusters/1_deploy_cluster/5_users_authentication/1_oidc"
+                  ]
+                },
+                {
+                  "type": "category",
+                  "label": "Users authorization",
+                  "items": [
+                    "3_manage_nifi/1_manage_clusters/1_deploy_cluster/6_users_authorization/1_custom_user_authorizer"
+                  ]
                 }
               ]
             },
