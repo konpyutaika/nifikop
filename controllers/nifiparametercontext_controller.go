@@ -43,7 +43,7 @@ import (
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 )
 
-var parameterContextFinalizer = "nifiparametercontexts.nifi.konpyutaika.com/finalizer"
+var parameterContextFinalizer = fmt.Sprintf("nifiparametercontexts.%s/finalizer", v1alpha1.GroupVersion.Group)
 
 // NifiParameterContextReconciler reconciles a NifiParameterContext object
 type NifiParameterContextReconciler struct {

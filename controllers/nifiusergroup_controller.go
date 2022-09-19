@@ -42,7 +42,7 @@ import (
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 )
 
-var userGroupFinalizer = "nifiusergroups.nifi.konpyutaika.com/finalizer"
+var userGroupFinalizer = fmt.Sprintf("nifiusergroups.%s/finalizer", v1alpha1.GroupVersion.Group)
 
 // NifiUserGroupReconciler reconciles a NifiUserGroup object
 type NifiUserGroupReconciler struct {

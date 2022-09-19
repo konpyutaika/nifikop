@@ -47,7 +47,7 @@ import (
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 )
 
-var dataflowFinalizer = "nifidataflows.nifi.konpyutaika.com/finalizer"
+var dataflowFinalizer string = fmt.Sprintf("nifidataflows.%s/finalizer", v1alpha1.GroupVersion.Group)
 
 // NifiDataflowReconciler reconciles a NifiDataflow object
 type NifiDataflowReconciler struct {

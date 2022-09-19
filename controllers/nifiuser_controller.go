@@ -44,7 +44,7 @@ import (
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 )
 
-var userFinalizer = "nifiusers.nifi.konpyutaika.com/finalizer"
+var userFinalizer = fmt.Sprintf("nifiusers.%s/finalizer", v1alpha1.GroupVersion.Group)
 
 // NifiUserReconciler reconciles a NifiUser object
 type NifiUserReconciler struct {

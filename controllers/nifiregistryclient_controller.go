@@ -41,7 +41,7 @@ import (
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 )
 
-var registryClientFinalizer = "nifiregistryclients.nifi.konpyutaika.com/finalizer"
+var registryClientFinalizer = fmt.Sprintf("nifiregistryclients.%s/finalizer", v1alpha1.GroupVersion.Group)
 
 // NifiRegistryClientReconciler reconciles a NifiRegistryClient object
 type NifiRegistryClientReconciler struct {

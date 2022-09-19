@@ -44,7 +44,7 @@ import (
 	"github.com/konpyutaika/nigoapi/pkg/nifi"
 )
 
-var connectionFinalizer string = fmt.Sprintf("nificonnections.%s/stop-input", v1alpha1.GroupVersion.Group)
+var connectionFinalizer string = fmt.Sprintf("nificonnections.%s/finalizer", v1alpha1.GroupVersion.Group)
 
 // NifiConnectionReconciler reconciles a NifiConnection object
 type NifiConnectionReconciler struct {

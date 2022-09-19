@@ -43,8 +43,8 @@ import (
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 )
 
-var clusterFinalizer = "nificlusters.nifi.konpyutaika.com/finalizer"
-var clusterUsersFinalizer = "nificlusters.nifi.konpyutaika.com/users"
+var clusterFinalizer string = fmt.Sprintf("nificlusters.%s/finalizer", v1alpha1.GroupVersion.Group)
+var clusterUsersFinalizer string = fmt.Sprintf("nificlusters.%s/users", v1alpha1.GroupVersion.Group)
 
 // NifiClusterReconciler reconciles a NifiCluster object
 type NifiClusterReconciler struct {
