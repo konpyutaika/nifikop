@@ -37,13 +37,13 @@ In this task, you will first perform a scale up, in adding an new node. Then, yo
 
 ## Scale up : Add a new node
 
-For this task, we will simply add a node with the same configuration than the other ones, if you want to know more about how to add a node with an other configuration let's have a look to the [Node configuration](../..configuration.md) documentation page.
+For this task, we will simply add a node with the same configuration than the other ones, if you want to know more about how to add a node with an other configuration let's have a look to the [Node configuration](../1_deploy_cluster/2_nodes_configuration) documentation page.
 
 1. Add and run a dataflow as the example :
 
 ![Scaling dataflow](/img/3_tasks/1_nifi_cluster/2_cluster_scaling/scaling_dataflow.png)
 
-2. Add a new node to the list of `NifiCluster.Spec.Nodes` field, by following the [Node object definition](../../5_referencesces/1_nifi_cluster/4_node.md) documentation:
+2. Add a new node to the list of `NifiCluster.Spec.Nodes` field, by following the [Node object definition](../../../5_references/1_nifi_cluster/4_node) documentation:
 
 ```yaml
 apiVersion: nifi.konpyutaika.com/v1alpha1
@@ -227,11 +227,11 @@ Status:
 ```
 
 :::tip
-The list of decommisions step and their corresponding value for the `Nifi Cluster.Status.Node State.Graceful ActionState.ActionStep` field is described into the [Node State page](../../../5_references/1_nifi_cluster/5_node_state.md#actionstep)
+The list of decommisions step and their corresponding value for the `Nifi Cluster.Status.Node State.Graceful ActionState.ActionStep` field is described into the [Node State page](../../../5_references/1_nifi_cluster/5_node_state#actionstep)
 :::
 
 4. Once the scaledown successfully performed, you should have the data offloaded on the other nodes, and the node state removed from the `NifiCluster.Status.NodesState` list :
 
 :::warning
-Keep in mind that the [`NifiCluster.Spec.nifiClusterTaskSpec.retryDurationMinutes`](../../../5_references/1_nifi_cluster/1_nifi_cluster.md#nificlustertaskspec) should be long enough to perform the whole procedure, or you will have some rollback and retry loop.
+Keep in mind that the [`NifiCluster.Spec.nifiClusterTaskSpec.retryDurationMinutes`](../../../5_references/1_nifi_cluster/1_nifi_cluster#nificlustertaskspec) should be long enough to perform the whole procedure, or you will have some rollback and retry loop.
 :::

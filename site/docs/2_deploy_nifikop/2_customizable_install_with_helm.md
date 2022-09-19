@@ -9,7 +9,7 @@ import TabItem from '@theme/TabItem';
 
 ## Prerequisites
 
-- Perform any necessary [plateform-specific setup](../2_platform_setup/1_gke.md)
+- Perform any necessary [plateform-specific setup](./1_quick_start)
 - [Install a Helm client](https://github.com/helm/helm#install) with a version higher than 3
 
 ## Introduction

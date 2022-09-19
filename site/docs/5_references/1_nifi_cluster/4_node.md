@@ -55,6 +55,6 @@ Node defines the nifi node basic configuration
 |-----|----|-----------|--------|--------|
 |id|int32| unique Node id. |Yes| - |
 |nodeConfigGroup|string|  can be used to ease the node configuration, if set only the id is required |No| "" |
-|readOnlyConfig|[ReadOnlyConfig](./1_nifi_cluster/2_read_only_config.md)| readOnlyConfig can be used to pass Nifi node config which has type read-only these config changes will trigger rolling upgrade.| No | nil |
-|nodeConfig|[NodeConfig](./1_nifi_cluster/3_node_config.md)| node configuration. |No| nil |
+|readOnlyConfig|[ReadOnlyConfig](./2_read_only_config)| readOnlyConfig can be used to pass Nifi node config which has type read-only these config changes will trigger rolling upgrade.| No | nil |
+|nodeConfig|[NodeConfig](./3_node_config)| node configuration. |No| nil |
 
