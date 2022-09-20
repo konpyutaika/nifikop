@@ -12,7 +12,7 @@ require (
 	github.com/imdario/mergo v0.3.12
 	github.com/jarcoal/httpmock v1.0.6
 	github.com/jetstack/cert-manager v1.7.2
-	github.com/konpyutaika/nigoapi v0.0.0-20220917224206-75aa546e554b
+	github.com/konpyutaika/nigoapi v0.0.6
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.18.1
 	github.com/pavel-v-chernykh/keystore-go v2.1.0+incompatible
