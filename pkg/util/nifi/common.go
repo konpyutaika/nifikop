@@ -23,8 +23,13 @@ var (
 )
 
 var (
-	StopInputPortPrefix          = fmt.Sprintf("%s/stop-input", v1alpha1.GroupVersion.Group)
-	StopOutputPortPrefix         = fmt.Sprintf("%s/stop-output", v1alpha1.GroupVersion.Group)
+	StopInputPortLabel  = fmt.Sprintf("%s/stop-input", v1alpha1.GroupVersion.Group)
+	StopOutputPortLabel = fmt.Sprintf("%s/stop-output", v1alpha1.GroupVersion.Group)
+	ForceStopLabel      = fmt.Sprintf("%s/force-stop", v1alpha1.GroupVersion.Group)
+	ForceStartLabel     = fmt.Sprintf("%s/force-start", v1alpha1.GroupVersion.Group)
+)
+
+var (
 	LastAppliedClusterAnnotation = fmt.Sprintf("%s/last-applied-nificluster", v1alpha1.GroupVersion.Group)
 )
 

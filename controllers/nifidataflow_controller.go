@@ -247,6 +247,82 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		return RequeueWithError(r.Log, "failed to create HTTP client the for referenced cluster", err)
 	}
 
+	// Maintenance operation(s) via label
+	// Check if maintenance operation is needed
+	var maintenanceOpNeeded bool = false
+	for labelKey, _ := range instance.Labels {
+		if labelKey == nifiutil.StopInputPortLabel || labelKey == nifiutil.StopOutputPortLabel ||
+			labelKey == nifiutil.ForceStartLabel || labelKey == nifiutil.ForceStopLabel {
+			maintenanceOpNeeded = true
+		}
+	}
+
+	// Maintenance operation is needed
+	if maintenanceOpNeeded {
+		r.Recorder.Event(instance, corev1.EventTypeNormal, "MaintenanceOperationInProgress",
+			fmt.Sprintf("Syncing dataflow %s based on flow {bucketId : %s, flowId: %s, version: %s}",
+				instance.Name, instance.Spec.BucketId,
+				instance.Spec.FlowId, strconv.FormatInt(int64(*instance.Spec.FlowVersion), 10)))
+
+		dataflowInformation, err := dataflow.GetDataflowInformation(instance, clientConfig)
+		if err != nil {
+			return RequeueWithError(r.Log, "failed to get NifiDataflow information", err)
+		} else {
+			if labelValue, ok := instance.Labels[nifiutil.ForceStopLabel]; ok {
+				// Stop dataflow operation
+				if labelValue == "true" {
+					err = dataflow.UnscheduleDataflow(instance, clientConfig)
+					if err != nil {
+						return RequeueWithError(r.Log, "failed to stop dataflow "+instance.Name, err)
+					}
+				}
+				return reconcile.Result{
+					RequeueAfter: interval / 3,
+				}, nil
+			} else if labelValue, ok := instance.Labels[nifiutil.ForceStartLabel]; ok {
+				// Start dataflow operation
+				if labelValue == "true" {
+					err = dataflow.ScheduleDataflow(instance, clientConfig)
+					if err != nil {
+						return RequeueWithError(r.Log, "failed to start dataflow "+instance.Name, err)
+					}
+				}
+				return reconcile.Result{
+					RequeueAfter: interval / 3,
+				}, nil
+			} else {
+				if labelValue, ok := instance.Labels[nifiutil.StopInputPortLabel]; ok {
+					// Stop input port operation
+					for _, port := range dataflowInformation.ProcessGroupFlow.Flow.InputPorts {
+						if port.Component.Name == labelValue {
+							_, err := inputport.StopPort(port, clientConfig)
+							if err != nil {
+								return RequeueWithError(r.Log, "failed to stop input port "+labelValue, err)
+							}
+						}
+					}
+					return reconcile.Result{
+						RequeueAfter: interval / 3,
+					}, nil
+				}
+				if labelValue, ok := instance.Labels[nifiutil.StopOutputPortLabel]; ok {
+					// Stop output port operation
+					for _, port := range dataflowInformation.ProcessGroupFlow.Flow.OutputPorts {
+						if port.Component.Name == labelValue {
+							_, err := outputport.StopPort(port, clientConfig)
+							if err != nil {
+								return RequeueWithError(r.Log, "failed to stop output port "+labelValue, err)
+							}
+						}
+					}
+					return reconcile.Result{
+						RequeueAfter: interval / 3,
+					}, nil
+				}
+			}
+		}
+	}
+
 	// Check if marked for deletion and if so run finalizers
 	if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {
 		return r.checkFinalizers(ctx, instance, clientConfig, patchInstance)
@@ -344,51 +420,6 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 
 	if instance.Spec.SyncNever() {
 		return Reconciled()
-	}
-
-	// Maintenance operation(s) via label
-	// Check if maintenance operation is needed
-	var operationNeeded bool = false
-	for labelKey, _ := range instance.Labels {
-		if labelKey == nifiutil.StopInputPortPrefix || labelKey == nifiutil.StopOutputPortPrefix {
-			operationNeeded = true
-		}
-	}
-
-	// Maintenance operation is needed
-	if operationNeeded {
-		dataflowInformation, err := dataflow.GetDataflowInformation(instance, clientConfig)
-		if err != nil {
-			return RequeueWithError(r.Log, "failed to get NifiDataflow information", err)
-		} else {
-			if labelValue, ok := instance.Labels[nifiutil.StopInputPortPrefix]; ok {
-				// Stop input port operation
-				for _, port := range dataflowInformation.ProcessGroupFlow.Flow.InputPorts {
-					if port.Component.Name == labelValue {
-						_, err := inputport.StopPort(port, clientConfig)
-						if err != nil {
-							return RequeueWithError(r.Log, "failed to stop input port", err)
-						}
-					}
-				}
-				return reconcile.Result{
-					RequeueAfter: interval / 3,
-				}, nil
-			} else if labelValue, ok := instance.Labels[nifiutil.StopOutputPortPrefix]; ok {
-				// Stop output port operation
-				for _, port := range dataflowInformation.ProcessGroupFlow.Flow.OutputPorts {
-					if port.Component.Name == labelValue {
-						_, err := outputport.StopPort(port, clientConfig)
-						if err != nil {
-							return RequeueWithError(r.Log, "failed to stop output port", err)
-						}
-					}
-				}
-				return reconcile.Result{
-					RequeueAfter: interval / 3,
-				}, nil
-			}
-		}
 	}
 
 	// In case where the flow is not sync

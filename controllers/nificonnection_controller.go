@@ -638,8 +638,17 @@ func (r *NifiConnectionReconciler) DeleteConnection(ctx context.Context, clientC
 		if connectionEntity == nil {
 			return nil
 		}
-		if !connectionEntity.Component.Source.Running && connectionEntity.Component.Destination.Running &&
+		if !connectionEntity.Component.Source.Running &&
+			connectionEntity.Status.AggregateSnapshot.FlowFilesQueued != 0 &&
+			instance.Spec.UpdateStrategy == v1alpha1.DrainStrategy {
+			if err := r.ForceStartDataflowComponent(ctx, original.Spec.Destination); err != nil {
+				return err
+			}
+		} else if !connectionEntity.Component.Source.Running && connectionEntity.Component.Destination.Running &&
 			connectionEntity.Status.AggregateSnapshot.FlowFilesQueued == 0 {
+			if err := r.UnForceStartDataflowComponent(ctx, original.Spec.Destination); err != nil {
+				return err
+			}
 			if err := r.StopDataflowComponent(ctx, original.Spec.Destination, false); err != nil {
 				return err
 			}
@@ -783,22 +792,22 @@ func (r *NifiConnectionReconciler) StopDataflowComponent(ctx context.Context, c 
 		labels := instance.GetLabels()
 
 		if !isSource {
-			if label, ok := labels[nifiutil.StopInputPortPrefix]; ok {
+			if label, ok := labels[nifiutil.StopInputPortLabel]; ok {
 				if label != c.SubName {
-					return errors.New(fmt.Sprintf("Label %s is already set on the NifiDataflow %s", nifiutil.StopInputPortPrefix, instance.Name))
+					return errors.New(fmt.Sprintf("Label %s is already set on the NifiDataflow %s", nifiutil.StopInputPortLabel, instance.Name))
 				}
 			} else {
-				labels[nifiutil.StopInputPortPrefix] = c.SubName
+				labels[nifiutil.StopInputPortLabel] = c.SubName
 				instance.SetLabels(labels)
 				return r.Client.Patch(ctx, instance, client.MergeFrom(instanceOriginal))
 			}
 		} else {
-			if label, ok := labels[nifiutil.StopOutputPortPrefix]; ok {
+			if label, ok := labels[nifiutil.StopOutputPortLabel]; ok {
 				if label != c.SubName {
-					return errors.New(fmt.Sprintf("Label %s is already set on the NifiDataflow %s", nifiutil.StopOutputPortPrefix, instance.Name))
+					return errors.New(fmt.Sprintf("Label %s is already set on the NifiDataflow %s", nifiutil.StopOutputPortLabel, instance.Name))
 				}
 			} else {
-				labels[nifiutil.StopOutputPortPrefix] = c.SubName
+				labels[nifiutil.StopOutputPortLabel] = c.SubName
 				instance.SetLabels(labels)
 				return r.Client.Patch(ctx, instance, client.MergeFrom(instanceOriginal))
 			}
@@ -816,10 +825,45 @@ func (r *NifiConnectionReconciler) UnStopDataflowComponent(ctx context.Context, 
 		labels := instance.GetLabels()
 
 		if !isSource {
-			delete(labels, nifiutil.StopInputPortPrefix)
+			delete(labels, nifiutil.StopInputPortLabel)
 		} else {
-			delete(labels, nifiutil.StopOutputPortPrefix)
+			delete(labels, nifiutil.StopOutputPortLabel)
 		}
+
+		instance.SetLabels(labels)
+		return r.Client.Patch(ctx, instance, client.MergeFrom(instanceOriginal))
+	}
+}
+
+func (r *NifiConnectionReconciler) ForceStartDataflowComponent(ctx context.Context, c v1alpha1.ComponentReference) error {
+	instance, err := k8sutil.LookupNifiDataflow(r.Client, c.Name, c.Namespace)
+	instanceOriginal := instance.DeepCopy()
+	if err != nil {
+		return err
+	} else {
+		labels := instance.GetLabels()
+		if label, ok := labels[nifiutil.ForceStartLabel]; ok {
+			if label != "true" {
+				return errors.New(fmt.Sprintf("Label %s is already set on the NifiDataflow %s", nifiutil.StopInputPortLabel, instance.Name))
+			}
+		} else {
+			labels[nifiutil.ForceStartLabel] = "true"
+			instance.SetLabels(labels)
+			return r.Client.Patch(ctx, instance, client.MergeFrom(instanceOriginal))
+		}
+	}
+	return nil
+}
+
+func (r *NifiConnectionReconciler) UnForceStartDataflowComponent(ctx context.Context, c v1alpha1.ComponentReference) error {
+	instance, err := k8sutil.LookupNifiDataflow(r.Client, c.Name, c.Namespace)
+	instanceOriginal := instance.DeepCopy()
+	if err != nil {
+		return err
+	} else {
+		labels := instance.GetLabels()
+
+		delete(labels, nifiutil.ForceStartLabel)
 
 		instance.SetLabels(labels)
 		return r.Client.Patch(ctx, instance, client.MergeFrom(instanceOriginal))
