@@ -130,7 +130,7 @@ func (r *NifiParameterContextReconciler) Reconcile(ctx context.Context, req ctrl
 
 	// Get the referenced NiFiParameterContext referenced
 	var parameterContextRefs []*v1alpha1.NifiParameterContext
-	for _, parameterContextRef := range instance.Spec.ParameterContextRefs {
+	for _, parameterContextRef := range instance.Spec.InheritedParameterContexts {
 		parameterContextNamespace := GetParameterContextRefNamespace(instance.Namespace, parameterContextRef)
 		var parameterContext *v1alpha1.NifiParameterContext
 		if parameterContext, err = k8sutil.LookupNifiParameterContext(r.Client, parameterContextRef.Name, parameterContextNamespace); err != nil {
