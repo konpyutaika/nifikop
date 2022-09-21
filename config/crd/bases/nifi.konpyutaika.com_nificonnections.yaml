@@ -36,19 +36,19 @@ spec:
             description: NifiConnectionSpec defines the desired state of NifiConnection
             properties:
               configuration:
-                description: the Configuration of the connection
+                description: the Configuration of the connection.
                 properties:
                   backPressureDataSizeThreshold:
                     description: The maximum data size of objects that can be queued
-                      before back pressure is applied
+                      before back pressure is applied.
                     type: string
                   backPressureObjectThreshold:
                     description: The maximum number of objects that can be queued
-                      before back pressure is applied
+                      before back pressure is applied.
                     format: int64
                     type: integer
                   bends:
-                    description: The bend points on the connection
+                    description: The bend points on the connection.
                     items:
                       properties:
                         posX:
@@ -63,7 +63,7 @@ spec:
                     type: array
                   flowFileExpiration:
                     description: The maximum amount of time an object may be in the
-                      flow before it will be automatically aged out of the flow
+                      flow before it will be automatically aged out of the flow.
                     type: string
                   labelIndex:
                     description: The index of the bend point where to place the connection
@@ -72,7 +72,7 @@ spec:
                     type: integer
                   loadBalanceCompression:
                     description: Whether or not data should be compressed when being
-                      transferred between nodes in the cluster
+                      transferred between nodes in the cluster.
                     enum:
                     - DO_NOT_COMPRESS
                     - COMPRESS_ATTRIBUTES_ONLY
@@ -80,11 +80,11 @@ spec:
                     type: string
                   loadBalancePartitionAttribute:
                     description: The FlowFile Attribute to use for determining which
-                      node a FlowFile will go to
+                      node a FlowFile will go to.
                     type: string
                   loadBalanceStrategy:
                     description: How to load balance the data in this Connection across
-                      the nodes in the cluster
+                      the nodes in the cluster.
                     enum:
                     - DO_NOT_LOAD_BALANCE
                     - PARTITION_BY_ATTRIBUTE
@@ -92,7 +92,7 @@ spec:
                     - SINGLE
                     type: string
                   prioritizers:
-                    description: The comparators used to prioritize the queue
+                    description: The comparators used to prioritize the queue.
                     items:
                       enum:
                       - FirstInFirstOutPrioritizer
@@ -113,7 +113,7 @@ spec:
                     type: string
                   subName:
                     description: the name of the sub component (e.g. queue or port
-                      name)
+                      name).
                     type: string
                   type:
                     description: the type of the component (e.g. nifidataflow).
@@ -135,7 +135,7 @@ spec:
                     type: string
                   subName:
                     description: the name of the sub component (e.g. queue or port
-                      name)
+                      name).
                     type: string
                   type:
                     description: the type of the component (e.g. nifidataflow).
@@ -148,7 +148,7 @@ spec:
                 type: object
               updateStrategy:
                 description: 'describes the way the operator will deal with data when
-                  a connection will be updated : drop or drain'
+                  a connection will be updated : drop or drain.'
                 enum:
                 - drop
                 - drain
@@ -162,7 +162,7 @@ spec:
             description: NifiConnectionStatus defines the observed state of NifiConnection
             properties:
               connectionID:
-                description: connection ID
+                description: connection identifier.
                 type: string
               state:
                 description: connection current state.

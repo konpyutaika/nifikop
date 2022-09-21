@@ -13,9 +13,9 @@ type NifiConnectionSpec struct {
 	Source ComponentReference `json:"source"`
 	// the Destination component of the connection.
 	Destination ComponentReference `json:"destination"`
-	// the Configuration of the connection
+	// the Configuration of the connection.
 	Configuration ConnectionConfiguration `json:"configuration,omitempty"`
-	// describes the way the operator will deal with data when a connection will be updated : drop or drain
+	// describes the way the operator will deal with data when a connection will be updated : drop or drain.
 	UpdateStrategy ComponentUpdateStrategy `json:"updateStrategy"`
 }
 
@@ -26,28 +26,28 @@ type ComponentReference struct {
 	Namespace string `json:"namespace,omitempty"`
 	// the type of the component (e.g. nifidataflow).
 	Type ComponentType `json:"type"`
-	// the name of the sub component (e.g. queue or port name)
+	// the name of the sub component (e.g. queue or port name).
 	SubName string `json:"subName,omitempty"`
 }
 
 type ConnectionConfiguration struct {
-	// The maximum amount of time an object may be in the flow before it will be automatically aged out of the flow
+	// the maximum amount of time an object may be in the flow before it will be automatically aged out of the flow.
 	FlowFileExpiration string `json:"flowFileExpiration,omitempty"`
-	// The maximum data size of objects that can be queued before back pressure is applied
+	// the maximum data size of objects that can be queued before back pressure is applied.
 	BackPressureDataSizeThreshold string `json:"backPressureDataSizeThreshold,omitempty"`
-	// The maximum number of objects that can be queued before back pressure is applied
+	// the maximum number of objects that can be queued before back pressure is applied.
 	BackPressureObjectThreshold *int64 `json:"backPressureObjectThreshold,omitempty"`
-	// How to load balance the data in this Connection across the nodes in the cluster
+	// how to load balance the data in this Connection across the nodes in the cluster.
 	LoadBalanceStrategy ConnectionLoadBalanceStrategy `json:"loadBalanceStrategy,omitempty"`
-	// The FlowFile Attribute to use for determining which node a FlowFile will go to
+	// the FlowFile Attribute to use for determining which node a FlowFile will go to.
 	LoadBalancePartitionAttribute string `json:"loadBalancePartitionAttribute,omitempty"`
-	// Whether or not data should be compressed when being transferred between nodes in the cluster
+	// whether or not data should be compressed when being transferred between nodes in the cluster.
 	LoadBalanceCompression ConnectionLoadBalanceCompression `json:"loadBalanceCompression,omitempty"`
-	// The comparators used to prioritize the queue
+	// the comparators used to prioritize the queue.
 	Prioritizers []ConnectionPrioritizer `json:"prioritizers,omitempty"`
-	// The index of the bend point where to place the connection label.
+	// the index of the bend point where to place the connection label.
 	LabelIndex *int32 `json:"labelIndex,omitempty"`
-	// The bend points on the connection
+	// the bend points on the connection.
 	Bends []ConnectionBend `json:"bends,omitempty"`
 }
 
@@ -60,7 +60,7 @@ type ConnectionBend struct {
 
 // NifiConnectionStatus defines the observed state of NifiConnection
 type NifiConnectionStatus struct {
-	// connection ID
+	// connection ID.
 	ConnectionId string `json:"connectionID"`
 	// connection current state.
 	State ConnectionState `json:"state"`

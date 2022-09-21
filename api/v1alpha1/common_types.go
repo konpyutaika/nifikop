@@ -517,18 +517,25 @@ type ComponentInformation struct {
 type ConnectionLoadBalanceStrategy string
 
 const (
-	StrategyDoNotLoadBalance     ConnectionLoadBalanceStrategy = "DO_NOT_LOAD_BALANCE"
+	// Do not load balance FlowFiles between nodes in the cluster.
+	StrategyDoNotLoadBalance ConnectionLoadBalanceStrategy = "DO_NOT_LOAD_BALANCE"
+	// Determine which node to send a given FlowFile to based on the value of a user-specified FlowFile Attribute. All FlowFiles that have the same value for said Attribute will be sent to the same node in the cluster.
 	StrategyPartitionByAttribute ConnectionLoadBalanceStrategy = "PARTITION_BY_ATTRIBUTE"
-	StrategyRoundRobin           ConnectionLoadBalanceStrategy = "ROUND_ROBIN"
-	StrategySingle               ConnectionLoadBalanceStrategy = "SINGLE"
+	// FlowFiles will be distributed to nodes in the cluster in a Round-Robin fashion. However, if a node in the cluster is not able to receive data as fast as other nodes, that node may be skipped in one or more iterations in order to maximize throughput of data distribution across the cluster.
+	StrategyRoundRobin ConnectionLoadBalanceStrategy = "ROUND_ROBIN"
+	// All FlowFiles will be sent to the same node. Which node they are sent to is not defined.
+	StrategySingle ConnectionLoadBalanceStrategy = "SINGLE"
 )
 
 // +kubebuilder:validation:Enum={"DO_NOT_COMPRESS","COMPRESS_ATTRIBUTES_ONLY","COMPRESS_ATTRIBUTES_AND_CONTENT"}
 type ConnectionLoadBalanceCompression string
 
 const (
-	CompressionDoNotCompress                ConnectionLoadBalanceCompression = "DO_NOT_COMPRESS"
-	CompressionCompressAttributesOnly       ConnectionLoadBalanceCompression = "COMPRESS_ATTRIBUTES_ONLY"
+	// FlowFiles will not be compressed.
+	CompressionDoNotCompress ConnectionLoadBalanceCompression = "DO_NOT_COMPRESS"
+	// FlowFiles' attributes will be compressed, but the FlowFiles' contents will not be
+	CompressionCompressAttributesOnly ConnectionLoadBalanceCompression = "COMPRESS_ATTRIBUTES_ONLY"
+	// FlowFiles' attributes and content will be compressed
 	CompressionCompressAttributesAndContent ConnectionLoadBalanceCompression = "COMPRESS_ATTRIBUTES_AND_CONTENT"
 )
 
@@ -536,8 +543,12 @@ const (
 type ConnectionPrioritizer string
 
 const (
-	PrioritizerFirstInFirstOutPrioritizer     ConnectionPrioritizer = "FirstInFirstOutPrioritizer"
+	// Given two FlowFiles, the one that reached the connection first will be processed first.
+	PrioritizerFirstInFirstOutPrioritizer ConnectionPrioritizer = "FirstInFirstOutPrioritizer"
+	// Given two FlowFiles, the one that is newest in the dataflow will be processed first.
 	PrioritizerNewestFlowFileFirstPrioritizer ConnectionPrioritizer = "NewestFlowFileFirstPrioritizer"
+	// Given two FlowFiles, the one that is oldest in the dataflow will be processed first. 'This is the default scheme that is used if no prioritizers are selected'.
 	PrioritizerOldestFlowFileFirstPrioritizer ConnectionPrioritizer = "OldestFlowFileFirstPrioritizer"
-	PrioritizerPriorityAttributePrioritizer   ConnectionPrioritizer = "PriorityAttributePrioritizer"
+	// Given two FlowFiles, an attribute called “priority” will be extracted. The one that has the lowest priority value will be processed first.
+	PrioritizerPriorityAttributePrioritizer ConnectionPrioritizer = "PriorityAttributePrioritizer"
 )
