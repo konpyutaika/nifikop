@@ -36,9 +36,9 @@ func CreateConnection(connection *v1alpha1.NifiConnection, source *v1alpha1.Comp
 		Revision: &nigoapi.RevisionDto{
 			Version: &defaultVersion,
 		},
-		Id: source.ParentGroupId,
 		Component: &nigoapi.ConnectionDto{
-			Name: connection.Name,
+			Name:          connection.Name,
+			ParentGroupId: source.ParentGroupId,
 			Source: &nigoapi.ConnectableDto{
 				Id:      source.Id,
 				Type_:   source.Type,

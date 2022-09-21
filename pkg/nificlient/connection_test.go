@@ -155,7 +155,8 @@ func MockConnection(
 		Id: id,
 		Component: &nigoapi.ConnectionDto{
 			Name:          name,
-			ParentGroupId: id,
+			Id:            id,
+			ParentGroupId: parentId,
 			Source: &nigoapi.ConnectableDto{
 				Id:      srcId,
 				Type_:   srcType,

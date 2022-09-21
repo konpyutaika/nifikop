@@ -89,7 +89,7 @@ func (n *nifiClient) CreateConnection(entity nigoapi.ConnectionEntity) (*nigoapi
 	}
 
 	// Request on Nifi Rest API to create a connection
-	conEntity, rsp, body, err := client.ProcessGroupsApi.CreateConnection(context, entity.Id, entity)
+	conEntity, rsp, body, err := client.ProcessGroupsApi.CreateConnection(context, entity.Component.ParentGroupId, entity)
 	if err := errorCreateOperation(rsp, body, err, n.log); err != nil {
 		return nil, err
 	}
