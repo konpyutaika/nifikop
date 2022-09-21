@@ -4,6 +4,7 @@
 
 ### Changed
 
+- [PR #168](https://github.com/konpyutaika/nifikop/pull/168) - **[Operator/NifiConnection]** Implementation on NifiConnection controller.
 - [PR #160](https://github.com/konpyutaika/nifikop/pull/160) - **[Documentation]** Upgrade documentation dependencies.
 
 ### Fixed Bugs
