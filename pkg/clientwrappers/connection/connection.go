@@ -56,7 +56,7 @@ func CreateConnection(connection *v1alpha1.NifiConnection, source *v1alpha1.Comp
 			LoadBalancePartitionAttribute: connection.Spec.Configuration.GetLoadBalancePartitionAttribute(),
 			LoadBalanceCompression:        string(connection.Spec.Configuration.GetLoadBalanceCompression()),
 			Prioritizers:                  connection.Spec.Configuration.GetStringPrioritizers(),
-			LabelIndex:                    int32(0),
+			LabelIndex:                    connection.Spec.Configuration.GetLabelIndex(),
 			Bends:                         bends,
 		},
 	}
