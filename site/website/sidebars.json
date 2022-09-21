@@ -19,7 +19,10 @@
       {
         "type": "category",
         "label": "Install",
-        "items": ["2_setup/3_install/1_customizable_install_with_helm"]
+        "items": [
+          "2_setup/3_install/1_customizable_install_with_helm",
+          "2_setup/3_install/2_kubectl_plugin"
+        ]
       }
     ],
     "Tasks": [

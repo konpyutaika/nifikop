@@ -20,10 +20,24 @@ import json
 from subprocess import check_output, STDOUT, CalledProcessError
 from os.path import basename
 
-K8S_NIFIKOP_GROUP = 'nifi.konpyutaika.com'
-K8S_NIFIDATAFLOW_KIND = 'nifidataflow'
-STOP_LABEL = f'{K8S_NIFIKOP_GROUP}/force-stop'
-START_LABEL = f'{K8S_NIFIKOP_GROUP}/force-start'
+K8S_NIFICLUSTER_KIND                = 'nificluster'
+K8S_NIFIDATAFLOW_KIND               = 'nifidataflow'
+K8S_NIFICONNECTION_KIND             = 'nificonnection'
+K8S_NIFINODEGROUPAUTOSCALER_KIND    = 'nifinodegroupautoscaler'
+K8S_NIFIPARAMETERCONTEXT_KIND       = 'nifiparametercontext'
+K8S_NIFIREGISTRYCLIENT_KIND         = 'nifiregistryclient'
+K8S_NIFIUSER_KIND                   = 'nifiuser'
+K8S_NIFIUSERGROUP_KIND              = 'nifiusergroup'
+
+K8S_NIFIKOP_GROUP   = 'nifi.konpyutaika.com'
+K8S_NIFIKOP_KIND    = [
+    K8S_NIFICLUSTER_KIND, K8S_NIFIDATAFLOW_KIND, K8S_NIFICONNECTION_KIND, K8S_NIFINODEGROUPAUTOSCALER_KIND,
+    K8S_NIFIPARAMETERCONTEXT_KIND, K8S_NIFIREGISTRYCLIENT_KIND, K8S_NIFIUSER_KIND, K8S_NIFIUSERGROUP_KIND,
+]
+FORCE_STOP_LABEL    = f'{K8S_NIFIKOP_GROUP}/force-stop'
+FORCE_START_LABEL   = f'{K8S_NIFIKOP_GROUP}/force-start'
+STOP_INPUT_LABEL    = f'{K8S_NIFIKOP_GROUP}/input-stop'
+STOP_OUTPUT_LABEL   = f'{K8S_NIFIKOP_GROUP}/output-stop'
 
 def k(*args):
     params = list(args)
@@ -71,6 +85,8 @@ The available commands are:
    unstop
    start
    unstart
+   stop_io
+   unstop_io
 For more information you can run {plugin} <command> --help
 ''')
         parser.add_argument('command', help='Subcommand to run')
@@ -88,51 +104,93 @@ For more information you can run {plugin} <command> --help
             exit(1)
 
     def stop(self):
-      self._stop_operation(True)
+        self._stop_operation(True)
 
     def unstop(self):
-      self._stop_operation(False)
+        self._stop_operation(False)
 
     def _stop_operation(self, stop):
-        parser = argparse.ArgumentParser(self._stop_operation.__name__)
-        parser.add_argument('nifidataflow', help=f'NiFiDataflow to {"un" if not stop else ""}stop')
+        parser = argparse.ArgumentParser(f'{"un" if not stop else ""}stop')
+        parser.add_argument('type', choices=K8S_NIFIKOP_KIND, help=f'NiFiKop resource type to {"un" if not stop else ""}stop')
+        parser.add_argument('name', help=f'NiFiKop resource name to {"un" if not stop else ""}stop')
         parser.add_argument('--namespace', '-n', default=get_namespace())
         args = parser.parse_args(sys.argv[2:])
-        nifidataflow = args.nifidataflow
+        type = args.type
+        name = args.name
         namespace = args.namespace
-        nifidataflow_json = get_resources(K8S_NIFIDATAFLOW_KIND, nifidataflow, namespace)
-
-        if nifidataflow_json is not None:
+        
+        resource_json = get_resources(type, name, namespace)
+        if resource_json is not None:
             if (stop == True):
-                set_resource_label(K8S_NIFIDATAFLOW_KIND, nifidataflow, STOP_LABEL, 'true', namespace)
+                set_resource_label(type, name, FORCE_STOP_LABEL, 'true', namespace)
             else:                
-                unset_resource_label(K8S_NIFIDATAFLOW_KIND, nifidataflow, STOP_LABEL, namespace)
+                unset_resource_label(type, name, FORCE_STOP_LABEL, namespace)
         else:
-            die(f'The specified NiFiDataflow "{nifidataflow}" could not be found')
+            die(f'The specified resource "{name}" of type "{type}" could not be found in namespace "{namespace}"')
             
     def start(self):
-      self._start_operation(True)
+        self._start_operation(True)
 
     def unstart(self):
-      self._start_operation(False)
+        self._start_operation(False)
 
     def _start_operation(self, start):
-        parser = argparse.ArgumentParser(self._start_operation.__name__)
-        parser.add_argument('nifidataflow', help=f'NiFiDataflow to {"un" if not start else ""}start')
+        parser = argparse.ArgumentParser(f'{"un" if not start else ""}start')
+        parser.add_argument('type', choices=K8S_NIFIKOP_KIND, help=f'NiFiKop resource type to {"un" if not start else ""}start')
+        parser.add_argument('name', help=f'NiFiKop resource name to {"un" if not start else ""}start')
         parser.add_argument('--namespace', '-n', default=get_namespace())
         args = parser.parse_args(sys.argv[2:])
-        nifidataflow = args.nifidataflow
+        type = args.type
+        name = args.name
         namespace = args.namespace
-        nifidataflow_json = get_resources(K8S_NIFIDATAFLOW_KIND, nifidataflow, namespace)
-
-        if nifidataflow_json is not None:
+        
+        resource_json = get_resources(type, name, namespace)
+        if resource_json is not None:
             if (start == True):
-                set_resource_label(K8S_NIFIDATAFLOW_KIND, nifidataflow, START_LABEL, 'true', namespace)
+                set_resource_label(type, name, FORCE_START_LABEL, 'true', namespace)
             else:                
-                unset_resource_label(K8S_NIFIDATAFLOW_KIND, nifidataflow, START_LABEL, namespace)
+                unset_resource_label(type, name, FORCE_START_LABEL, namespace)
         else:
-            die(f'The specified NiFiDataflow "{nifidataflow}" could not be found')
+            die(f'The specified resource "{name}" of type "{type}" could not be found in namespace "{namespace}"')
 
+    def stop_io(self,):
+        parser = argparse.ArgumentParser(self.stop_io.__name__)
+        parser.add_argument('type', choices=K8S_NIFIKOP_KIND, help=f'NiFiKop resource type to target')
+        parser.add_argument('name', help=f'NiFiKop resource name to target')
+        parser.add_argument('componentType', choices=["input", "output"], help=f'Component type to stop')
+        parser.add_argument('componentName', help=f'Component name to stop')
+        parser.add_argument('--namespace', '-n', default=get_namespace())
+        args = parser.parse_args(sys.argv[2:])
+        type = args.type
+        name = args.name
+        componentType = args.componentType
+        componentName = args.componentName
+        namespace = args.namespace
+
+        resource_json = get_resources(type, name, namespace)
+        if resource_json is not None:
+            set_resource_label(type, name, STOP_INPUT_LABEL if componentType == "input" else STOP_OUTPUT_LABEL, componentName, namespace)
+        else:
+            die(f'The specified resource "{name}" of type "{type}" could not be found in namespace "{namespace}"')
+            
+    def unstop_io(self):
+        parser = argparse.ArgumentParser(self.unstop_io.__name__)
+        parser.add_argument('type', choices=K8S_NIFIKOP_KIND, help=f'NiFiKop resource type to target')
+        parser.add_argument('name', help=f'NiFiKop resource name to target')
+        parser.add_argument('componentType', choices=["input", "output"], help=f'Component type to stop')
+        parser.add_argument('--namespace', '-n', default=get_namespace())
+        args = parser.parse_args(sys.argv[2:])
+        type = args.type
+        name = args.name
+        componentType = args.componentType
+        namespace = args.namespace
+
+        resource_json = get_resources(type, name, namespace)
+        if resource_json is not None:          
+            unset_resource_label(type, name, STOP_INPUT_LABEL if componentType == "input" else STOP_OUTPUT_LABEL, namespace)
+        else:
+            die(f'The specified resource "{name}" of type "{type}" could not be found in namespace "{namespace}"')
+            
 if __name__ == '__main__':
     Command()
 
