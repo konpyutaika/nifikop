@@ -259,5 +259,76 @@ Keep in mind that some changes to the default configuration may cause the operat
 Just because it's allowed doesn't mean it works :)
 :::
 
+## Advanced configuration
+
+In some cases, using the default content or provenance configuration for storage may not be sufficient, for example you may need to create multiple directories for your content or provenance repository in order to [set up a high performance installation](https://community.cloudera.com/t5/Community-Articles/HDF-CFM-NIFI-Best-practices-for-setting-up-a-high/ta-p/244999).
+As described in the NiFi Administration Guide, you can do this by using the [nifi.content.repository.directory.default*](https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#file-system-content-repository-properties) and [nifi.provenance.repository.directory.default*](https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#write-ahead-provenance-repository-properties) properties.
+
+Here is an example of how to do this in the `NiFiCluster` configuration:
+
+```yaml
+...
+  readOnlyConfig:
+    nifiProperties:
+      overrideConfigs: |
+        nifi.content.repository.directory.dir1=../content-additional/dir1
+        nifi.content.repository.directory.dir2=../content-additional/dir2
+        nifi.content.repository.directory.dir3=../content-additional/dir3
+        nifi.provenance.repository.directory.dir1=../provenance-additional/dir1
+        nifi.provenance.repository.directory.dir2=../provenance-additional/dir2
+...
+  nodeConfigGroups:
+    default_group:
+      ...
+      storageConfigs:
+      - mountPath: "/opt/nifi/content-additional/dir1"
+        name: content-repository-dir1
+        pvcSpec:
+          accessModes:
+            - ReadWriteOnce
+          storageClassName: {{ storageClassName }}
+          resources:
+            requests:
+              storage: 100G
+      - mountPath: "/opt/nifi/content-additional/dir2"
+        name: content-repository-dir2
+        pvcSpec:
+          accessModes:
+            - ReadWriteOnce
+          storageClassName: {{ storageClassName }}
+          resources:
+            requests:
+              storage: 100G
+      - mountPath: "/opt/nifi/content-additional/dir3"
+        name: content-repository-dir3
+        pvcSpec:
+          accessModes:
+            - ReadWriteOnce
+          storageClassName: {{ storageClassName }}
+          resources:
+            requests:
+              storage: 100G
+      - mountPath: "/opt/nifi/provenance-additional/dir1"
+        name: provenance-repository-dir1
+        pvcSpec:
+          accessModes:
+            - ReadWriteOnce
+          storageClassName: {{ storageClassName }}
+          resources:
+            requests:
+              storage: 100G
+      - mountPath: "/opt/nifi/provenance-additional/dir2"
+        name: provenance-repository-dir2
+        pvcSpec:
+          accessModes:
+            - ReadWriteOnce
+          storageClassName: {{ storageClassName }}
+          resources:
+            requests:
+              storage: 100G
+      ...
+```
+
+
 [NodeConfigGroup]: ../../../5_references/1_nifi_cluster/3_node_config
 [ReadOnlyConfig]: ../../../5_references/1_nifi_cluster/2_read_only_config
