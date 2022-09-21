@@ -14,7 +14,7 @@ import (
 
 var log = common.CustomLogger().Named("connection-method")
 
-// CreateConnection will deploy the NifiDataflow on NiFi Cluster
+// CreateConnection will deploy the NifiDataflow on NiFi Cluster.
 func CreateConnection(connection *v1alpha1.NifiConnection, source *v1alpha1.ComponentInformation, destination *v1alpha1.ComponentInformation,
 	config *clientconfig.NifiConfig) (*v1alpha1.NifiConnectionStatus, error) {
 
@@ -69,7 +69,7 @@ func CreateConnection(connection *v1alpha1.NifiConnection, source *v1alpha1.Comp
 	return &v1alpha1.NifiConnectionStatus{ConnectionId: entity.Id}, nil
 }
 
-// GetConnectionInformation retrieve the connection information
+// GetConnectionInformation retrieve the connection information.
 func GetConnectionInformation(connection *v1alpha1.NifiConnection, config *clientconfig.NifiConfig) (*nigoapi.ConnectionEntity, error) {
 	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
@@ -87,7 +87,7 @@ func GetConnectionInformation(connection *v1alpha1.NifiConnection, config *clien
 	return connectionEntity, nil
 }
 
-// ConnectionExist check if the NifiConnection exist on NiFi Cluster
+// ConnectionExist check if the NifiConnection exist on NiFi Cluster.
 func ConnectionExist(connection *v1alpha1.NifiConnection, config *clientconfig.NifiConfig) (bool, error) {
 	if connection.Status.ConnectionId == "" {
 		return false, nil
@@ -167,7 +167,7 @@ func SyncConnectionConfig(connection *v1alpha1.NifiConnection,
 	return &connection.Status, nil
 }
 
-// IsOutOfSyncConnection control if the deployed dataflow is out of sync with the NifiDataflow resource
+// IsOutOfSyncConnection control if the deployed connection is out of sync with the NifiConnection resource.
 func IsOutOfSyncConnection(connection *v1alpha1.NifiConnection,
 	source *v1alpha1.ComponentInformation, destination *v1alpha1.ComponentInformation,
 	config *clientconfig.NifiConfig) (bool, error) {
@@ -186,6 +186,7 @@ func IsOutOfSyncConnection(connection *v1alpha1.NifiConnection,
 		isDestinationChanged(connectionEntity, destination), nil
 }
 
+// isConfigurationChanged control if the deployed connection configuration is out of sync.
 func isConfigurationChanged(connectionEntity *nigoapi.ConnectionEntity, connection *v1alpha1.NifiConnection) bool {
 	var bends []nigoapi.PositionDto
 	for _, bend := range connection.Spec.Configuration.GetBends() {
@@ -206,6 +207,7 @@ func isConfigurationChanged(connectionEntity *nigoapi.ConnectionEntity, connecti
 		isBendChanged(connectionEntity.Component.Bends, bends)
 }
 
+// isBendChanged control if the deployed connection bends are out of sync.
 func isBendChanged(current []nigoapi.PositionDto, original []nigoapi.PositionDto) bool {
 	if len(current) != len(original) {
 		return true
@@ -220,6 +222,7 @@ func isBendChanged(current []nigoapi.PositionDto, original []nigoapi.PositionDto
 	return false
 }
 
+// isSourceChanged control if the deployed connection source is out of sync.
 func isSourceChanged(
 	connectionEntity *nigoapi.ConnectionEntity,
 	source *v1alpha1.ComponentInformation) bool {
@@ -228,6 +231,7 @@ func isSourceChanged(
 		connectionEntity.Component.Source.Type_ != source.Type
 }
 
+// isSourceChanged control if the deployed connection destination is out of sync.
 func isDestinationChanged(
 	connectionEntity *nigoapi.ConnectionEntity,
 	destination *v1alpha1.ComponentInformation) bool {
@@ -261,6 +265,7 @@ func SyncConnectionDestination(connection *v1alpha1.NifiConnection, destination 
 	return &connection.Status, nil
 }
 
+// DeleteConnection implements the logic to delete a connection.
 func DeleteConnection(connection *v1alpha1.NifiConnection, config *clientconfig.NifiConfig) error {
 	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
@@ -280,7 +285,7 @@ func DeleteConnection(connection *v1alpha1.NifiConnection, config *clientconfig.
 	return nil
 }
 
-// DropConnectionFlowFiles implements the logic to drop the flowfiles from the connection.
+// DropConnectionFlowFiles implements the logic to drop the flowfiles from a connection.
 func DropConnectionFlowFiles(connection *v1alpha1.NifiConnection,
 	config *clientconfig.NifiConfig) error {
 	nClient, err := common.NewClusterConnection(log, config)

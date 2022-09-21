@@ -852,3 +852,23 @@ func removeProcessor(processors []nigoapi.ProcessorEntity, toRemoveId string) []
 
 	return tmp
 }
+
+// Check if a dataflow contains flowfile
+func IsDataflowEmpty(flow *v1alpha1.NifiDataflow, config *clientconfig.NifiConfig) (bool, error) {
+	nClient, err := common.NewClusterConnection(log, config)
+	if err != nil {
+		return false, err
+	}
+
+	flowEntity, err := nClient.GetFlow(flow.Spec.GetParentProcessGroupID(config.RootProcessGroupId))
+	if err := clientwrappers.ErrorGetOperation(log, err, "Get flow"); err != nil {
+		return false, err
+	}
+
+	pgEntity := processGroupFromFlow(flowEntity, flow)
+	if pgEntity == nil {
+		return false, errorfactory.NifiFlowDraining{}
+	}
+
+	return pgEntity.Status.AggregateSnapshot.FlowFilesQueued == 0, nil
+}

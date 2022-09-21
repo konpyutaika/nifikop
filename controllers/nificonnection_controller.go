@@ -20,6 +20,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"reflect"
 
 	"emperror.dev/errors"
 	"go.uber.org/zap"
@@ -62,10 +63,6 @@ type NifiConnectionReconciler struct {
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
-// TODO(user): Modify the Reconcile function to compare the state specified by
-// the NifiConnection object against the actual cluster state, and then
-// perform operations to make the cluster state reflect the state specified by
-// the user.
 //
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.12.1/pkg/reconcile
@@ -131,7 +128,9 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		return RequeueWithError(r.Log, "failed to validate the configuration of connection "+instance.Name, err)
 	}
 
+	// Retrieve the namespace of the source component
 	instance.Spec.Source.Namespace = GetComponentRefNamespace(instance.Namespace, instance.Spec.Source)
+	// If the source component is invalid, requeue with error
 	if !instance.Spec.Source.IsValid() {
 		r.Recorder.Event(instance, corev1.EventTypeWarning, "SourceInvalid",
 			fmt.Sprintf("Failed to validate the source component : %s in %s of type %s",
@@ -139,7 +138,9 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		return RequeueWithError(r.Log, "failed to validate source component "+instance.Spec.Source.Name, err)
 	}
 
+	// Retrieve the namespace of the destination component
 	instance.Spec.Destination.Namespace = GetComponentRefNamespace(instance.Namespace, instance.Spec.Destination)
+	// If the destination component is invalid, requeue with error
 	if !instance.Spec.Destination.IsValid() {
 		r.Recorder.Event(instance, corev1.EventTypeWarning, "DestinationInvalid",
 			fmt.Sprintf("Failed to validate the destination component : %s in %s of type %s",
@@ -174,27 +175,13 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		configManager := config.GetClientConfigManager(r.Client, clusterRef)
 		if clusterConnect, err = configManager.BuildConnect(); err != nil {
 			// This shouldn't trigger anymore, but leaving it here as a safetybelt
-			// if k8sutil.IsMarkedForDeletion(current.ObjectMeta) {
-			// 	r.Log.Info("Cluster is already gone, there is nothing we can do")
-			// 	if err = r.removeFinalizer(ctx, current); err != nil {
-			// 		return RequeueWithError(r.Log, "failed to remove finalizer", err)
-			// 	}
-			// 	return Reconciled()
-			// }
-
-			// // If the referenced cluster no more exist, just skip the deletion requirement in cluster ref change case.
-			// if !v1alpha1.ClusterRefsEquals([]v1alpha1.ClusterReference{current.Spec.ClusterRef, current.Spec.ClusterRef}) {
-			// 	if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(current); err != nil {
-			// 		return RequeueWithError(r.Log, "could not apply last state to annotation", err)
-			// 	}
-			// 	if err := r.Client.Update(ctx, current); err != nil {
-			// 		return RequeueWithError(r.Log, "failed to update NifiDataflow", err)
-			// 	}
-			// 	return RequeueAfter(time.Duration(15) * time.Second)
-			// }
-			// r.Recorder.Event(current, corev1.EventTypeWarning, "ReferenceClusterError",
-			// 	fmt.Sprintf("Failed to lookup reference cluster : %s in %s",
-			// 		current.Spec.ClusterRef.Name, currentClusterRef.Namespace))
+			if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {
+				r.Log.Info("Cluster is already gone, there is nothing we can do")
+				if err = r.removeFinalizer(ctx, current); err != nil {
+					return RequeueWithError(r.Log, "failed to remove finalizer", err)
+				}
+				return Reconciled()
+			}
 
 			// the cluster does not exist - should have been caught pre-flight
 			return RequeueWithError(r.Log, "failed to lookup referenced cluster", err)
@@ -221,22 +208,35 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		}
 
 		// Delete the resource on the previous cluster.
-		// if err := r.DeleteConnection(ctx, clientConfig, original, original); err != nil {
-		// 	r.Recorder.Event(instance, corev1.EventTypeWarning, "RemoveError",
-		// 		fmt.Sprintf("Failed to delete NifiConnection %s from cluster %s before moving in %s",
-		// 			instance.Name, original.Spec.ClusterRef.Name, original.Spec.ClusterRef.Name))
-		// 	return RequeueWithError(r.Log, "Failed to delete NifiDataflow before moving", err)
-		// }
 		err := r.DeleteConnection(ctx, clientConfig, original, instance)
-
 		if err != nil {
-			r.Recorder.Event(instance, corev1.EventTypeWarning, "RemoveError",
-				fmt.Sprintf("Deleting connection %s between %s in %s of type %s and %s in %s of type %s",
-					original.Name,
-					original.Spec.Source.Name, original.Spec.Source.Namespace, original.Spec.Source.Type,
-					original.Spec.Destination.Name, original.Spec.Destination.Namespace, original.Spec.Destination.Type))
-			return RequeueWithError(r.Log, "failed to delete NifiConnection "+instance.Name, err)
+			switch errors.Cause(err).(type) {
+			// If the connection is still deleting, requeue
+			case errorfactory.NifiConnectionDeleting:
+				r.Recorder.Event(instance, corev1.EventTypeWarning, "Deleting",
+					fmt.Sprintf("Deleting the connection %s between %s in %s of type %s and %s in %s of type %s",
+						original.Name,
+						original.Spec.Source.Name, original.Spec.Source.Namespace, original.Spec.Source.Type,
+						original.Spec.Destination.Name, original.Spec.Destination.Namespace, original.Spec.Destination.Type))
+				return reconcile.Result{
+					RequeueAfter: interval / 3,
+				}, nil
+			// If error during deletion, requeue with error
+			default:
+				r.Recorder.Event(instance, corev1.EventTypeWarning, "DeleteError",
+					fmt.Sprintf("Failed to delete the connection %s between %s in %s of type %s and %s in %s of type %s",
+						original.Name,
+						original.Spec.Source.Name, original.Spec.Source.Namespace, original.Spec.Source.Type,
+						original.Spec.Destination.Name, original.Spec.Destination.Namespace, original.Spec.Destination.Type))
+				return RequeueWithError(r.Log, "failed to delete NifiConnection "+instance.Name, err)
+			}
 		}
+
+		r.Recorder.Event(instance, corev1.EventTypeWarning, "Deleted",
+			fmt.Sprintf("The connection %s between %s in %s of type %s and %s in %s of type %s has been deleted",
+				original.Name,
+				original.Spec.Source.Name, original.Spec.Source.Namespace, original.Spec.Source.Type,
+				original.Spec.Destination.Name, original.Spec.Destination.Namespace, original.Spec.Destination.Type))
 
 		// Update the last view configuration to the current one.
 		clusterRefJsonResource, err := json.Marshal(v1alpha1.ClusterReference{})
@@ -262,6 +262,7 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		sourceComponent, err = r.GetDataflowComponentInformation(instance.Spec.Source, true)
 	}
 
+	// If the source cannot be found, requeue with error
 	if err != nil {
 		r.Recorder.Event(instance, corev1.EventTypeWarning, "SourceNotFound",
 			fmt.Sprintf("Failed to retrieve source component information : %s in %s of type %s",
@@ -275,6 +276,7 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		destinationComponent, err = r.GetDataflowComponentInformation(instance.Spec.Destination, false)
 	}
 
+	// If the destination cannot be found, requeue with error
 	if err != nil {
 		r.Recorder.Event(instance, corev1.EventTypeWarning, "DestinationNotFound",
 			fmt.Sprintf("Failed to retrieve destination component information : %s in %s of type %s",
@@ -299,27 +301,13 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	configManager := config.GetClientConfigManager(r.Client, clusterRef)
 	if clusterConnect, err = configManager.BuildConnect(); err != nil {
 		// This shouldn't trigger anymore, but leaving it here as a safetybelt
-		// if k8sutil.IsMarkedForDeletion(current.ObjectMeta) {
-		// 	r.Log.Info("Cluster is already gone, there is nothing we can do")
-		// 	if err = r.removeFinalizer(ctx, current); err != nil {
-		// 		return RequeueWithError(r.Log, "failed to remove finalizer", err)
-		// 	}
-		// 	return Reconciled()
-		// }
-
-		// // If the referenced cluster no more exist, just skip the deletion requirement in cluster ref change case.
-		// if !v1alpha1.ClusterRefsEquals([]v1alpha1.ClusterReference{current.Spec.ClusterRef, current.Spec.ClusterRef}) {
-		// 	if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(current); err != nil {
-		// 		return RequeueWithError(r.Log, "could not apply last state to annotation", err)
-		// 	}
-		// 	if err := r.Client.Update(ctx, current); err != nil {
-		// 		return RequeueWithError(r.Log, "failed to update NifiDataflow", err)
-		// 	}
-		// 	return RequeueAfter(time.Duration(15) * time.Second)
-		// }
-		// r.Recorder.Event(current, corev1.EventTypeWarning, "ReferenceClusterError",
-		// 	fmt.Sprintf("Failed to lookup reference cluster : %s in %s",
-		// 		current.Spec.ClusterRef.Name, currentClusterRef.Namespace))
+		if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {
+			r.Log.Info("Cluster is already gone, there is nothing we can do")
+			if err = r.removeFinalizer(ctx, instance); err != nil {
+				return RequeueWithError(r.Log, "failed to remove finalizer", err)
+			}
+			return Reconciled()
+		}
 
 		// the cluster does not exist - should have been caught pre-flight
 		return RequeueWithError(r.Log, "failed to lookup referenced cluster", err)
@@ -366,12 +354,13 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 			instance.Spec.Source.Name, instance.Spec.Source.Namespace, instance.Spec.Source.Type,
 			instance.Spec.Destination.Name, instance.Spec.Destination.Namespace, instance.Spec.Destination.Type))
 
-	// Check if the connection already exist
+	// Check if the connection already exists
 	existing, err := connection.ConnectionExist(instance, clientConfig)
 	if err != nil {
 		return RequeueWithError(r.Log, "failure checking for existing connection named "+instance.Name, err)
 	}
 
+	// If the connection does not exist, create it
 	if !existing {
 		connectionStatus, err := connection.CreateConnection(instance, sourceComponent, destinationComponent, clientConfig)
 		if err != nil {
@@ -431,7 +420,7 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		return RequeueWithError(r.Log, "failed to update NifiConnection "+current.Name, err)
 	}
 
-	// Resync connection configuration
+	// If the connection is out of sync, sync it
 	if instance.Status.State == v1alpha1.ConnectionStateOutOfSync {
 		status, err := connection.SyncConnectionConfig(instance, sourceComponent, destinationComponent, clientConfig)
 		if status != nil {
@@ -442,24 +431,50 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		}
 		if err != nil {
 			switch errors.Cause(err).(type) {
+			// If the connection is still syncing, requeue
 			case errorfactory.NifiConnectionSyncing:
+				r.Log.Debug("Connection syncing",
+					zap.String("connection", instance.Name))
 				return reconcile.Result{
 					RequeueAfter: interval / 3,
 				}, nil
+			// If the connection needs to be deleted, delete it
 			case errorfactory.NifiConnectionDeleting:
 				err = r.DeleteConnection(ctx, clientConfig, original, instance)
 				if err != nil {
-					r.Recorder.Event(instance, corev1.EventTypeWarning, "SynchronizingFailed",
-						fmt.Sprintf("Deleting connection %s between %s in %s of type %s and %s in %s of type %s",
+					switch errors.Cause(err).(type) {
+					// If the connection is still deleting, requeue
+					case errorfactory.NifiConnectionDeleting:
+						r.Recorder.Event(instance, corev1.EventTypeWarning, "Deleting",
+							fmt.Sprintf("Deleting the connection %s between %s in %s of type %s and %s in %s of type %s",
+								original.Name,
+								original.Spec.Source.Name, original.Spec.Source.Namespace, original.Spec.Source.Type,
+								original.Spec.Destination.Name, original.Spec.Destination.Namespace, original.Spec.Destination.Type))
+						return reconcile.Result{
+							RequeueAfter: interval / 3,
+						}, nil
+					// If error during deletion, requeue with error
+					default:
+						r.Recorder.Event(instance, corev1.EventTypeWarning, "DeleteError",
+							fmt.Sprintf("Failed to delete the connection %s between %s in %s of type %s and %s in %s of type %s",
+								original.Name,
+								original.Spec.Source.Name, original.Spec.Source.Namespace, original.Spec.Source.Type,
+								original.Spec.Destination.Name, original.Spec.Destination.Namespace, original.Spec.Destination.Type))
+						return RequeueWithError(r.Log, "failed to delete NifiConnection "+instance.Name, err)
+					}
+					// If the connection has been deleted, requeue
+				} else {
+					r.Recorder.Event(instance, corev1.EventTypeWarning, "Deleted",
+						fmt.Sprintf("The connection %s between %s in %s of type %s and %s in %s of type %s has been deleted",
 							original.Name,
 							original.Spec.Source.Name, original.Spec.Source.Namespace, original.Spec.Source.Type,
 							original.Spec.Destination.Name, original.Spec.Destination.Namespace, original.Spec.Destination.Type))
-					return RequeueWithError(r.Log, "failed to delete NifiConnection "+instance.Name, err)
-				} else {
+
 					return reconcile.Result{
 						RequeueAfter: interval / 3,
 					}, nil
 				}
+			// If error during syncing, requeue with error
 			default:
 				r.Recorder.Event(instance, corev1.EventTypeWarning, "SynchronizingFailed",
 					fmt.Sprintf("Syncing connection %s between %s in %s of type %s and %s in %s of type %s",
@@ -479,6 +494,7 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 			return RequeueWithError(r.Log, "failed to update NifiConnection "+instance.Name, err)
 		}
 
+		// Update the state of the connection to indicate that it is synced
 		instance.Status.State = v1alpha1.ConnectionStateInSync
 		if err := r.Client.Status().Update(ctx, instance); err != nil {
 			return RequeueWithError(r.Log, "failed to update status for NifiConnection "+instance.Name, err)
@@ -491,12 +507,13 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 				instance.Spec.Destination.Name, instance.Spec.Destination.Namespace, instance.Spec.Destination.Type))
 	}
 
-	// Check if the configuration of the connection is out of sync
+	// Check if the connection is out of sync
 	isOutOfSink, err := connection.IsOutOfSyncConnection(instance, sourceComponent, destinationComponent, clientConfig)
 	if err != nil {
 		return RequeueWithError(r.Log, "failed to check sync for NifiConnection "+instance.Name, err)
 	}
 
+	// If the connection is out of sync, update the state of the connection to indicate it
 	if isOutOfSink {
 		instance.Status.State = v1alpha1.ConnectionStateOutOfSync
 		if err := r.Client.Status().Update(ctx, instance); err != nil {
@@ -505,10 +522,10 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		return RequeueAfter(interval / 3)
 	}
 
-	// // Ensure NifiConnection label
-	// if instance, err = r.ensureClusterLabel(ctx, clusterConnect, instance); err != nil {
-	// 	return RequeueWithError(r.Log, "failed to ensure NifiConnection label on connection", err)
-	// }
+	// Ensure NifiConnection label
+	if instance, err = r.ensureClusterLabel(ctx, clusterConnect, instance); err != nil {
+		return RequeueWithError(r.Log, "failed to ensure NifiConnection label on connection", err)
+	}
 
 	// Push any changes
 	if instance, err = r.updateAndFetchLatest(ctx, instance); err != nil {
@@ -540,6 +557,19 @@ func (r *NifiConnectionReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
+// Set the label specifying the cluster used by the NifiConnection
+func (r *NifiConnectionReconciler) ensureClusterLabel(ctx context.Context, cluster clientconfig.ClusterConnect,
+	connection *v1alpha1.NifiConnection) (*v1alpha1.NifiConnection, error) {
+
+	labels := ApplyClusterReferenceLabel(cluster, connection.GetLabels())
+	if !reflect.DeepEqual(labels, connection.GetLabels()) {
+		connection.SetLabels(labels)
+		return r.updateAndFetchLatest(ctx, connection)
+	}
+	return connection, nil
+}
+
+// Update the NifiConnection resource and return the latest version of it
 func (r *NifiConnectionReconciler) updateAndFetchLatest(ctx context.Context,
 	connection *v1alpha1.NifiConnection) (*v1alpha1.NifiConnection, error) {
 
@@ -552,6 +582,7 @@ func (r *NifiConnectionReconciler) updateAndFetchLatest(ctx context.Context,
 	return connection, nil
 }
 
+// Check if the finalizer is present on the NifiConnection resource
 func (r *NifiConnectionReconciler) checkFinalizers(
 	ctx context.Context,
 	connection *v1alpha1.NifiConnection,
@@ -569,6 +600,7 @@ func (r *NifiConnectionReconciler) checkFinalizers(
 	return Reconciled()
 }
 
+// Remove the finalizer on the NifiConnection resource
 func (r *NifiConnectionReconciler) removeFinalizer(ctx context.Context, connection *v1alpha1.NifiConnection) error {
 	r.Log.Info("Removing finalizer for NifiConnection",
 		zap.String("connection", connection.Name))
@@ -577,16 +609,20 @@ func (r *NifiConnectionReconciler) removeFinalizer(ctx context.Context, connecti
 	return err
 }
 
+// Delete the connection to finalize the NifiConnection
 func (r *NifiConnectionReconciler) finalizeNifiConnection(
 	ctx context.Context,
 	instance *v1alpha1.NifiConnection,
 	config *clientconfig.NifiConfig) error {
+	r.Log.Debug("Finalize the NifiConnection",
+		zap.String("connection", instance.Name))
 
 	exists, err := connection.ConnectionExist(instance, config)
 	if err != nil {
 		return err
 	}
 
+	// Check if the connection still exists in NiFi
 	if exists {
 		r.Recorder.Event(instance, corev1.EventTypeNormal, "Removing",
 			fmt.Sprintf("Removing connection %s between %s in %s of type %s and %s in %s of type %s",
@@ -594,6 +630,7 @@ func (r *NifiConnectionReconciler) finalizeNifiConnection(
 				instance.Spec.Source.Name, instance.Spec.Source.Namespace, instance.Spec.Source.Type,
 				instance.Spec.Destination.Name, instance.Spec.Destination.Namespace, instance.Spec.Destination.Type))
 
+		// Delete the connection
 		if err := r.DeleteConnection(ctx, config, instance, instance); err != nil {
 			return err
 		}
@@ -611,26 +648,59 @@ func (r *NifiConnectionReconciler) finalizeNifiConnection(
 	return nil
 }
 
+// Delete the connection
 func (r *NifiConnectionReconciler) DeleteConnection(ctx context.Context, clientConfig *clientconfig.NifiConfig,
 	original *v1alpha1.NifiConnection, instance *v1alpha1.NifiConnection) error {
+	r.Log.Debug("Delete the connection",
+		zap.String("name", instance.Name),
+		zap.String("sourceName", original.Spec.Source.Name),
+		zap.String("sourceNamespace", original.Spec.Source.Namespace),
+		zap.String("sourceType", string(original.Spec.Source.Type)),
+		zap.String("destinationName", original.Spec.Destination.Name),
+		zap.String("destinationNamespace", original.Spec.Destination.Namespace),
+		zap.String("destinationType", string(original.Spec.Destination.Type)))
+
+	// Check if the source component is a NifiDataflow
 	if original.Spec.Source.Type == v1alpha1.ComponentDataflow {
-		if err := r.StopDataflowComponent(ctx, original.Spec.Source, true); err != nil {
+		// Retrieve NifiDataflow information
+		sourceInstance, err := k8sutil.LookupNifiDataflow(r.Client, original.Spec.Source.Name, original.Spec.Source.Namespace)
+		if err != nil {
 			return err
+		}
+
+		// Check is the NifiDataflow's update strategy is on drain
+		if sourceInstance.Spec.UpdateStrategy == v1alpha1.DrainStrategy {
+			// Check if the dataflow is empty
+			isEmpty, err := dataflow.IsDataflowEmpty(sourceInstance, clientConfig)
+			if err != nil {
+				return err
+			}
+
+			// If the dataflow is empty, stop the output-port of the dataflow
+			if isEmpty {
+				if err := r.StopDataflowComponent(ctx, original.Spec.Source, true); err != nil {
+					return err
+				}
+			}
 		}
 	}
 
+	// Check if the destination component is a NifiDataflow
 	if original.Spec.Destination.Type == v1alpha1.ComponentDataflow {
+		// Retrieve NifiDataflow information
 		destinationInstance, err := k8sutil.LookupNifiDataflow(r.Client, original.Spec.Destination.Name, original.Spec.Destination.Namespace)
 		if err != nil {
 			return err
 		}
 
+		// If the NifiDataflow's update strategy is on drop and the NifiConnection's too, stop the input-port of the dataflow
 		if destinationInstance.Spec.UpdateStrategy == v1alpha1.DropStrategy && instance.Spec.UpdateStrategy == v1alpha1.DropStrategy {
 			if err := r.StopDataflowComponent(ctx, original.Spec.Destination, false); err != nil {
 				return err
 			}
 		}
 
+		// Retrieve the connection information
 		connectionEntity, err := connection.GetConnectionInformation(instance, clientConfig)
 		if err != nil {
 			return err
@@ -638,12 +708,17 @@ func (r *NifiConnectionReconciler) DeleteConnection(ctx context.Context, clientC
 		if connectionEntity == nil {
 			return nil
 		}
+
+		// If the source is stopped, the connection is not empty and the connections's update strategy is on drain:
+		// force the dataflow to stay started
 		if !connectionEntity.Component.Source.Running &&
 			connectionEntity.Status.AggregateSnapshot.FlowFilesQueued != 0 &&
 			instance.Spec.UpdateStrategy == v1alpha1.DrainStrategy {
 			if err := r.ForceStartDataflowComponent(ctx, original.Spec.Destination); err != nil {
 				return err
 			}
+			// If the source is stopped, the destination is running and the connection is empty:
+			// unforce the dataflow to stay started and stop the input-port of the dataflow
 		} else if !connectionEntity.Component.Source.Running && connectionEntity.Component.Destination.Running &&
 			connectionEntity.Status.AggregateSnapshot.FlowFilesQueued == 0 {
 			if err := r.UnForceStartDataflowComponent(ctx, original.Spec.Destination); err != nil {
@@ -652,20 +727,27 @@ func (r *NifiConnectionReconciler) DeleteConnection(ctx context.Context, clientC
 			if err := r.StopDataflowComponent(ctx, original.Spec.Destination, false); err != nil {
 				return err
 			}
+			// If the source is stopped, the destination is stopped, the connection is not empty and the destination's update strategy is on drop:
+			// empty the connection
 		} else if !connectionEntity.Component.Source.Running && !connectionEntity.Component.Destination.Running &&
 			connectionEntity.Status.AggregateSnapshot.FlowFilesQueued != 0 && destinationInstance.Spec.UpdateStrategy == v1alpha1.DropStrategy &&
 			instance.Spec.UpdateStrategy == v1alpha1.DropStrategy {
 			if err := connection.DropConnectionFlowFiles(instance, clientConfig); err != nil {
 				return err
 			}
+			// If the source is stopped, the destination is stopped and the connection is empty:
+			// delete the connection, unstop the output-port of the source and unstop the input-port of th destination
 		} else if !connectionEntity.Component.Source.Running && !connectionEntity.Component.Destination.Running &&
 			connectionEntity.Status.AggregateSnapshot.FlowFilesQueued == 0 {
 			if err := connection.DeleteConnection(instance, clientConfig); err != nil {
 				return err
 			}
 
-			if err := r.UnStopDataflowComponent(ctx, original.Spec.Source, true); err != nil {
-				return err
+			// Check if the source component is a NifiDataflow
+			if original.Spec.Source.Type == v1alpha1.ComponentDataflow {
+				if err := r.UnStopDataflowComponent(ctx, original.Spec.Source, true); err != nil {
+					return err
+				}
 			}
 
 			if err := r.UnStopDataflowComponent(ctx, original.Spec.Destination, false); err != nil {
@@ -677,8 +759,18 @@ func (r *NifiConnectionReconciler) DeleteConnection(ctx context.Context, clientC
 	return errorfactory.NifiConnectionDeleting{}
 }
 
+// Retrieve the clusterRef based on the source and the destination of the connection
 func (r *NifiConnectionReconciler) RetrieveNifiClusterRef(src v1alpha1.ComponentReference, dst v1alpha1.ComponentReference) (*v1alpha1.ClusterReference, error) {
+	r.Log.Debug("Retrieve the cluster reference from the source and the destination",
+		zap.String("sourceName", src.Name),
+		zap.String("sourceNamespace", src.Namespace),
+		zap.String("sourceType", string(src.Type)),
+		zap.String("destinationName", dst.Name),
+		zap.String("destinationNamespace", dst.Namespace),
+		zap.String("destinationType", string(dst.Type)))
+
 	var srcClusterRef = v1alpha1.ClusterReference{}
+	// Retrieve the source clusterRef from a NifiDataflow resource
 	if src.Type == v1alpha1.ComponentDataflow {
 		srcDataflow, err := k8sutil.LookupNifiDataflow(r.Client, src.Name, src.Namespace)
 		if err != nil {
@@ -689,6 +781,7 @@ func (r *NifiConnectionReconciler) RetrieveNifiClusterRef(src v1alpha1.Component
 	}
 
 	var dstClusterRef = v1alpha1.ClusterReference{}
+	// Retrieve the destination clusterRef from a NifiDataflow resource
 	if dst.Type == v1alpha1.ComponentDataflow {
 		dstDataflow, err := k8sutil.LookupNifiDataflow(r.Client, dst.Name, dst.Namespace)
 		if err != nil {
@@ -698,7 +791,7 @@ func (r *NifiConnectionReconciler) RetrieveNifiClusterRef(src v1alpha1.Component
 		dstClusterRef = dstDataflow.Spec.ClusterRef
 	}
 
-	// Verification connection feasible
+	// Check that the source and the destination reference the same cluster
 	if !v1alpha1.ClusterRefsEquals([]v1alpha1.ClusterReference{srcClusterRef, dstClusterRef}) {
 		return nil, errors.New(fmt.Sprintf("Source cluster %s in %s is different from Destination cluster %s in %s",
 			srcClusterRef.Name, srcClusterRef.Namespace,
@@ -708,7 +801,18 @@ func (r *NifiConnectionReconciler) RetrieveNifiClusterRef(src v1alpha1.Component
 	return &srcClusterRef, nil
 }
 
+// Retrieve port information from a NifiDataflow
 func (r *NifiConnectionReconciler) GetDataflowComponentInformation(c v1alpha1.ComponentReference, isSource bool) (*v1alpha1.ComponentInformation, error) {
+	var portType string = "input"
+	if isSource {
+		portType = "output"
+	}
+	r.Log.Debug("Retrieve the dataflow port information",
+		zap.String("dataflowName", c.Name),
+		zap.String("dataflowNamespace", c.Namespace),
+		zap.String("portName", c.SubName),
+		zap.String("portType", portType))
+
 	instance, err := k8sutil.LookupNifiDataflow(r.Client, c.Name, c.Namespace)
 	if err != nil {
 		return nil, err
@@ -748,6 +852,7 @@ func (r *NifiConnectionReconciler) GetDataflowComponentInformation(c v1alpha1.Co
 			return nil, errors.New(fmt.Sprintf("Dataflow %s in %s does not exist in the cluster", instance.Name, instance.Namespace))
 		}
 
+		// Retrieve the ports
 		var ports = []nifi.PortEntity{}
 		if isSource {
 			ports = dataflowInformation.ProcessGroupFlow.Flow.OutputPorts
@@ -755,10 +860,12 @@ func (r *NifiConnectionReconciler) GetDataflowComponentInformation(c v1alpha1.Co
 			ports = dataflowInformation.ProcessGroupFlow.Flow.InputPorts
 		}
 
+		// Error if no port exists in the dataflow
 		if len(ports) == 0 {
 			return nil, errors.New(fmt.Sprintf("No port available for Dataflow %s in %s", instance.Name, instance.Namespace))
 		}
 
+		// Search the targeted port
 		targetPort := nifi.PortEntity{}
 		foundTarget := false
 		for _, port := range ports {
@@ -768,10 +875,12 @@ func (r *NifiConnectionReconciler) GetDataflowComponentInformation(c v1alpha1.Co
 			}
 		}
 
+		// Error if the targeted port is not found
 		if !foundTarget {
 			return nil, errors.New(fmt.Sprintf("Port %s not found : %s in %s", c.SubName, instance.Name, instance.Namespace))
 		}
 
+		// Return all the information on the targetted port of the dataflow
 		information := &v1alpha1.ComponentInformation{
 			Id:            targetPort.Id,
 			Type:          targetPort.Component.Type_,
@@ -783,7 +892,19 @@ func (r *NifiConnectionReconciler) GetDataflowComponentInformation(c v1alpha1.Co
 	}
 }
 
+// Set the maintenance label to force the stop of a port
 func (r *NifiConnectionReconciler) StopDataflowComponent(ctx context.Context, c v1alpha1.ComponentReference, isSource bool) error {
+	var portType string = "input"
+	if isSource {
+		portType = "output"
+	}
+	r.Log.Debug("Set label to stop the port of the dataflow",
+		zap.String("dataflowName", c.Name),
+		zap.String("dataflowNamespace", c.Namespace),
+		zap.String("portName", c.SubName),
+		zap.String("portType", portType))
+
+	// Retrieve K8S Dataflow object
 	instance, err := k8sutil.LookupNifiDataflow(r.Client, c.Name, c.Namespace)
 	instanceOriginal := instance.DeepCopy()
 	if err != nil {
@@ -791,6 +912,7 @@ func (r *NifiConnectionReconciler) StopDataflowComponent(ctx context.Context, c 
 	} else {
 		labels := instance.GetLabels()
 
+		// Check that the label is not already set with a different value
 		if !isSource {
 			if label, ok := labels[nifiutil.StopInputPortLabel]; ok {
 				if label != c.SubName {
@@ -802,6 +924,7 @@ func (r *NifiConnectionReconciler) StopDataflowComponent(ctx context.Context, c 
 				return r.Client.Patch(ctx, instance, client.MergeFrom(instanceOriginal))
 			}
 		} else {
+			// Set the label
 			if label, ok := labels[nifiutil.StopOutputPortLabel]; ok {
 				if label != c.SubName {
 					return errors.New(fmt.Sprintf("Label %s is already set on the NifiDataflow %s", nifiutil.StopOutputPortLabel, instance.Name))
@@ -816,18 +939,35 @@ func (r *NifiConnectionReconciler) StopDataflowComponent(ctx context.Context, c 
 	return nil
 }
 
+// Unset the maintenance label to force the stop of a port
 func (r *NifiConnectionReconciler) UnStopDataflowComponent(ctx context.Context, c v1alpha1.ComponentReference, isSource bool) error {
+	r.Log.Debug("Unset label to stop the port of the dataflow",
+		zap.String("dataflowName", c.Name),
+		zap.String("dataflowNamespace", c.Namespace))
+
+	// Retrieve K8S Dataflow object
 	instance, err := k8sutil.LookupNifiDataflow(r.Client, c.Name, c.Namespace)
 	instanceOriginal := instance.DeepCopy()
 	if err != nil {
 		return err
 	} else {
+		// Set the label
 		labels := instance.GetLabels()
 
 		if !isSource {
-			delete(labels, nifiutil.StopInputPortLabel)
+			// If the label is set with the correct value, delete it
+			if label, ok := labels[nifiutil.StopInputPortLabel]; ok {
+				if label == c.SubName {
+					delete(labels, nifiutil.StopInputPortLabel)
+				}
+			}
 		} else {
-			delete(labels, nifiutil.StopOutputPortLabel)
+			// If the label is set with the correct value, delete it
+			if label, ok := labels[nifiutil.StopOutputPortLabel]; ok {
+				if label == c.SubName {
+					delete(labels, nifiutil.StopOutputPortLabel)
+				}
+			}
 		}
 
 		instance.SetLabels(labels)
@@ -835,18 +975,26 @@ func (r *NifiConnectionReconciler) UnStopDataflowComponent(ctx context.Context, 
 	}
 }
 
+// Set the maintenance label to force the start of a dataflow
 func (r *NifiConnectionReconciler) ForceStartDataflowComponent(ctx context.Context, c v1alpha1.ComponentReference) error {
+	r.Log.Debug("Set label to force the start of the dataflow",
+		zap.String("dataflowName", c.Name),
+		zap.String("dataflowNamespace", c.Namespace))
+
+	// Retrieve K8S Dataflow object
 	instance, err := k8sutil.LookupNifiDataflow(r.Client, c.Name, c.Namespace)
 	instanceOriginal := instance.DeepCopy()
 	if err != nil {
 		return err
 	} else {
 		labels := instance.GetLabels()
+		// Check that the label is not already set with a different value
 		if label, ok := labels[nifiutil.ForceStartLabel]; ok {
 			if label != "true" {
 				return errors.New(fmt.Sprintf("Label %s is already set on the NifiDataflow %s", nifiutil.StopInputPortLabel, instance.Name))
 			}
 		} else {
+			// Set the label
 			labels[nifiutil.ForceStartLabel] = "true"
 			instance.SetLabels(labels)
 			return r.Client.Patch(ctx, instance, client.MergeFrom(instanceOriginal))
@@ -855,12 +1003,19 @@ func (r *NifiConnectionReconciler) ForceStartDataflowComponent(ctx context.Conte
 	return nil
 }
 
+// Unset the maintenance label to force the start of a dataflow
 func (r *NifiConnectionReconciler) UnForceStartDataflowComponent(ctx context.Context, c v1alpha1.ComponentReference) error {
+	r.Log.Debug("Unset label to force the start of the dataflow",
+		zap.String("dataflowName", c.Name),
+		zap.String("dataflowNamespace", c.Namespace))
+
+	// Retrieve K8S Dataflow object
 	instance, err := k8sutil.LookupNifiDataflow(r.Client, c.Name, c.Namespace)
 	instanceOriginal := instance.DeepCopy()
 	if err != nil {
 		return err
 	} else {
+		// Unset the label
 		labels := instance.GetLabels()
 
 		delete(labels, nifiutil.ForceStartLabel)

@@ -451,6 +451,8 @@ github.com/konpyutaika/nigoapi v0.0.0-20220917215119-94b3b7d35947 h1:sa07P/PdPrC
 github.com/konpyutaika/nigoapi v0.0.0-20220917215119-94b3b7d35947/go.mod h1:ylinFOIwDzQvM+BbiDFWmr6l2Lexs2pg/jb9znIVAv4=
 github.com/konpyutaika/nigoapi v0.0.0-20220917224206-75aa546e554b h1:1yzIpY4oprxR9AVmvNMWhBephvOK3+5+3O2bPdSvcYA=
 github.com/konpyutaika/nigoapi v0.0.0-20220917224206-75aa546e554b/go.mod h1:ylinFOIwDzQvM+BbiDFWmr6l2Lexs2pg/jb9znIVAv4=
+github.com/konpyutaika/nigoapi v0.0.6 h1:tyzs05rJ1DVbwb3zhdtV/T4k8tfRkAPaydZOGfQFSL0=
+github.com/konpyutaika/nigoapi v0.0.6/go.mod h1:ylinFOIwDzQvM+BbiDFWmr6l2Lexs2pg/jb9znIVAv4=
 github.com/konsorten/go-windows-terminal-sequences v1.0.1/go.mod h1:T0+1ngSBFLxvqU3pZ+m/2kptfBszLMUkC4ZK/EgS/cQ=
 github.com/konsorten/go-windows-terminal-sequences v1.0.3/go.mod h1:T0+1ngSBFLxvqU3pZ+m/2kptfBszLMUkC4ZK/EgS/cQ=
 github.com/kr/fs v0.1.0/go.mod h1:FFnZGqtBN9Gxj7eW1uZ42v5BccTP0vu6NEaFoC2HwRg=

@@ -117,6 +117,8 @@ spec:
                     type: string
                   type:
                     description: the type of the component (e.g. nifidataflow).
+                    enum:
+                    - dataflow
                     type: string
                 required:
                 - name
@@ -137,6 +139,8 @@ spec:
                     type: string
                   type:
                     description: the type of the component (e.g. nifidataflow).
+                    enum:
+                    - dataflow
                     type: string
                 required:
                 - name

@@ -33,7 +33,7 @@ func (n *nifiClient) UpdateConnection(entity nigoapi.ConnectionEntity) (*nigoapi
 		return nil, ErrNoNodeClientsAvailable
 	}
 
-	// Request on Nifi Rest API to get the connection informations
+	// Request on Nifi Rest API to update the connection informations
 	connectionEntity, rsp, body, err := client.ConnectionsApi.UpdateConnection(context, entity.Id, entity)
 	if err := errorUpdateOperation(rsp, body, err, n.log); err != nil {
 		return nil, err
@@ -50,7 +50,7 @@ func (n *nifiClient) DeleteConnection(entity nigoapi.ConnectionEntity) error {
 		return ErrNoNodeClientsAvailable
 	}
 
-	// Request on Nifi Rest API to get the connection informations
+	// Request on Nifi Rest API to delete the connection
 	_, rsp, body, err := client.ConnectionsApi.DeleteConnection(
 		context,
 		entity.Id,
