@@ -39,16 +39,16 @@ spec:
                 description: the Configuration of the connection.
                 properties:
                   backPressureDataSizeThreshold:
-                    description: The maximum data size of objects that can be queued
+                    description: the maximum data size of objects that can be queued
                       before back pressure is applied.
                     type: string
                   backPressureObjectThreshold:
-                    description: The maximum number of objects that can be queued
+                    description: the maximum number of objects that can be queued
                       before back pressure is applied.
                     format: int64
                     type: integer
                   bends:
-                    description: The bend points on the connection.
+                    description: the bend points on the connection.
                     items:
                       properties:
                         posX:
@@ -62,16 +62,16 @@ spec:
                       type: object
                     type: array
                   flowFileExpiration:
-                    description: The maximum amount of time an object may be in the
+                    description: the maximum amount of time an object may be in the
                       flow before it will be automatically aged out of the flow.
                     type: string
                   labelIndex:
-                    description: The index of the bend point where to place the connection
+                    description: the index of the bend point where to place the connection
                       label.
                     format: int32
                     type: integer
                   loadBalanceCompression:
-                    description: Whether or not data should be compressed when being
+                    description: whether or not data should be compressed when being
                       transferred between nodes in the cluster.
                     enum:
                     - DO_NOT_COMPRESS
@@ -79,11 +79,11 @@ spec:
                     - COMPRESS_ATTRIBUTES_AND_CONTENT
                     type: string
                   loadBalancePartitionAttribute:
-                    description: The FlowFile Attribute to use for determining which
+                    description: the FlowFile Attribute to use for determining which
                       node a FlowFile will go to.
                     type: string
                   loadBalanceStrategy:
-                    description: How to load balance the data in this Connection across
+                    description: how to load balance the data in this Connection across
                       the nodes in the cluster.
                     enum:
                     - DO_NOT_LOAD_BALANCE
@@ -92,7 +92,7 @@ spec:
                     - SINGLE
                     type: string
                   prioritizers:
-                    description: The comparators used to prioritize the queue.
+                    description: the comparators used to prioritize the queue.
                     items:
                       enum:
                       - FirstInFirstOutPrioritizer
@@ -162,7 +162,7 @@ spec:
             description: NifiConnectionStatus defines the observed state of NifiConnection
             properties:
               connectionID:
-                description: connection identifier.
+                description: connection ID.
                 type: string
               state:
                 description: connection current state.
