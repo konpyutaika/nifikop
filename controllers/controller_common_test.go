@@ -45,6 +45,76 @@ func TestGetClusterRefNamespace(t *testing.T) {
 	}
 }
 
+func TestGetRegistryClientRefNamespace(t *testing.T) {
+	ns := "test-namespace"
+	ref := v1alpha1.RegistryClientReference{
+		Name: "test-cluster",
+	}
+	if refNS := GetRegistryClientRefNamespace(ns, ref); refNS != "test-namespace" {
+		t.Error("Expected to get 'test-namespace', got:", refNS)
+	}
+	ref.Namespace = "another-namespace"
+	if refNS := GetRegistryClientRefNamespace(ns, ref); refNS != "another-namespace" {
+		t.Error("Expected to get 'another-namespace', got:", refNS)
+	}
+}
+
+func TestGetParameterContextRefNamespace(t *testing.T) {
+	ns := "test-namespace"
+	ref := v1alpha1.ParameterContextReference{
+		Name: "test-cluster",
+	}
+	if refNS := GetParameterContextRefNamespace(ns, ref); refNS != "test-namespace" {
+		t.Error("Expected to get 'test-namespace', got:", refNS)
+	}
+	ref.Namespace = "another-namespace"
+	if refNS := GetParameterContextRefNamespace(ns, ref); refNS != "another-namespace" {
+		t.Error("Expected to get 'another-namespace', got:", refNS)
+	}
+}
+
+func TestGetSecretRefNamespace(t *testing.T) {
+	ns := "test-namespace"
+	ref := v1alpha1.SecretReference{
+		Name: "test-cluster",
+	}
+	if refNS := GetSecretRefNamespace(ns, ref); refNS != "test-namespace" {
+		t.Error("Expected to get 'test-namespace', got:", refNS)
+	}
+	ref.Namespace = "another-namespace"
+	if refNS := GetSecretRefNamespace(ns, ref); refNS != "another-namespace" {
+		t.Error("Expected to get 'another-namespace', got:", refNS)
+	}
+}
+
+func TestGetUserRefNamespace(t *testing.T) {
+	ns := "test-namespace"
+	ref := v1alpha1.UserReference{
+		Name: "test-cluster",
+	}
+	if refNS := GetUserRefNamespace(ns, ref); refNS != "test-namespace" {
+		t.Error("Expected to get 'test-namespace', got:", refNS)
+	}
+	ref.Namespace = "another-namespace"
+	if refNS := GetUserRefNamespace(ns, ref); refNS != "another-namespace" {
+		t.Error("Expected to get 'another-namespace', got:", refNS)
+	}
+}
+
+func TestGetComponentRefNamespace(t *testing.T) {
+	ns := "test-namespace"
+	ref := v1alpha1.ComponentReference{
+		Name: "test-cluster",
+	}
+	if refNS := GetComponentRefNamespace(ns, ref); refNS != "test-namespace" {
+		t.Error("Expected to get 'test-namespace', got:", refNS)
+	}
+	ref.Namespace = "another-namespace"
+	if refNS := GetComponentRefNamespace(ns, ref); refNS != "another-namespace" {
+		t.Error("Expected to get 'another-namespace', got:", refNS)
+	}
+}
+
 func TestClusterLabelString(t *testing.T) {
 	cluster := &v1alpha1.NifiCluster{}
 	cluster.Name = "test-cluster"
