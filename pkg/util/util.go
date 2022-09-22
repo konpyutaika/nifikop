@@ -304,7 +304,7 @@ func GetK8sVersion() (major *int, minor *int, err error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	maj, err := strconv.Atoi("info.Major")
+	maj, err := strconv.Atoi(info.Major)
 	if err != nil {
 		return nil, nil, err
 	}
