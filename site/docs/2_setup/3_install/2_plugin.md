@@ -22,6 +22,8 @@ The available commands are:
    unstop
    start
    unstart
+   stop_io
+   unstop_io
 For more information you can run kubectl-nifikop <command> --help
 kubectl-nifikop: error: the following arguments are required: command
 ```
