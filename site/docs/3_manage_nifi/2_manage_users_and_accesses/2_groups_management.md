@@ -49,6 +49,6 @@ The [NifiUserGroup.UsersRef](../../5_references/6_nifi_usergroup#userreference) 
 It's required to create the resource even if the user is already declared in NiFi Cluster (In that case the operator will just sync the kubernetes resource).
 :::
 
-Like for `NifiUser` you can declare a list of [AccessPolicies](../../5_referencesrences/2_nifi_user#accesspolicy) to give a list of access to your user.
+Like for `NifiUser` you can declare a list of [AccessPolicies](../../5_references/2_nifi_user#accesspolicy) to give a list of access to your user.
 
 In the example above we are giving to users `nc-0-node.nc-headless.nifikop.svc.cluster.local` and `nc-controller.nifikop.mgt.cluster.local` the right to view the counters information.
