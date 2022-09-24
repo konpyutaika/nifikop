@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkreact_native_website=self.webpackChunkreact_native_website||[]).push([[3023],{985:e=>{e.exports=JSON.parse('{"label":"secured","permalink":"/nifikop/blog/tags/secured","allTagsPath":"/nifikop/blog/tags","count":2}')}}]);
