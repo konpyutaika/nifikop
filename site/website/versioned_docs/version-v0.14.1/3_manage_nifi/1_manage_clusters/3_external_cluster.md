@@ -1,15 +1,13 @@
 ---
-id: 4_external_cluster
+id: 3_external_cluster
 title: External cluster
 sidebar_label: External cluster
 ---
 
-This task shows you how to configure an external cluster.
-
 ## Common configuration
 
 The operator allows you to manage the Dataflow lifecycle for internal (i.e cluster managed by the operator) and external NiFi cluster.
-A NiFi cluster is considered as external as soon as the `NifiCluster` resource used as reference in other NiFi resource explicitly detailed the way to comunicate with the cluster.
+A NiFi cluster is considered as external as soon as the `NifiCluster` resource used as reference in other NiFi resource explicitly detailed the way to communicate with the cluster.
 
 This feature allows you :
 
@@ -51,8 +49,8 @@ spec:
 - The `Spec.NodeURITemplate` field, defines the hostname template of your NiFi cluster nodes, the operator will use this information and the list of id specified in `Spec.Nodes` field to generate the hostname of the nodes (in the configuration above you will have : `nifi01.integ.mapreduce.m0.p.fti.net:9090`, `nifi02.integ.mapreduce.m0.p.fti.net:9090`, `nifi03.integ.mapreduce.m0.p.fti.net:9090`).
 - The `Spec.Type` field defines the type of cluster that this resource is refering to, by default it is `internal`, in our case here we just want to use this resource to reference an existing NiFi cluster, so we set this field to `external`.
 - The `Spec.ClientType` field defines how we want to authenticate to the NiFi cluster API, for now we are supporting two modes :
-  - `tls` : using client TLS certificate.
-  - `basic` : using a username and a password to get an access token.
+    - `tls` : using client TLS certificate.
+    - `basic` : using a username and a password to get an access token.
 - The `Spec.SecretRef` defines a reference to a secret which contains the sensitive values that will be used by the operator to authenticate to the NiFi cluster API (ie in basic mode it will contain the password and username).
 
 :::warning

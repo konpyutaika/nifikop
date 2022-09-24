@@ -1,49 +1,53 @@
 ---
-id: 1_getting_started
-title: Getting Started
-sidebar_label: Getting Started
+id: 1_quick_start
+title: Quick start
+sidebar_label: Quick start
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-The operator installs the 1.12.1 version of Apache NiFi, can run on Minikube v0.33.1+ and **Kubernetes 1.21.0+**, and require **Helm 3**.
+For information about versions compatibilty of the operator features with Kubernetes and Apache NiFi, let's have look of the [version compatibility page](../4_compatibility_versions)
 
-:::info
-The operator supports NiFi 1.11.0+
-:::
+## Getting Started
 
-As a pre-requisite it needs a Kubernetes cluster. Also, NiFi requires Zookeeper so you need to first have a Zookeeper cluster if you don't already have one.
+### Cluster Setup
 
-> We believe in the `separation of concerns` principle, thus the NiFi operator does not install nor manage Zookeeper.
+For local testing we recommend following one of the following setup guides:
 
-## Prerequisites
+- [Docker Desktop (Mac)](https://docs.docker.com/desktop/kubernetes)
+- [Minikube](https://minikube.sigs.k8s.io/docs/start)
+  :::note
+  Start Minikube with at least 4gb RAM with `minikube start --memory=4000`
+  :::
+- [Kind](https://kind.sigs.k8s.io/docs/user/quick-start/)
+- For testing on GKE you can [create a cluster with the command line or the Cloud Console UI](https://cloud.google.com/kubernetes-engine/docs/how-to/creating-a-zonal-cluster).
+- For testing on EKS you can [install eksctl](https://eksctl.io/introduction/) and run `eksctl create cluster` to create an EKS cluster/VPC/subnets/etc. This process should take 10-15 minutes.
 
-### Install Zookeeper
+### Install kubectl
 
-To install Zookeeper we recommend using the [Bitnami's Zookeeper chart](https://github.com/bitnami/charts/tree/master/bitnami/zookeeper).
+If you do not already have the CLI tool `kubectl` installed, please follow [these instructions to install](https://kubernetes.io/docs/tasks/tools/).
 
-```bash
-helm repo add bitnami https://charts.bitnami.com/bitnami
-```
+### Configure kubectl
 
-```bash
-# You have to create the namespace before executing following command
-helm install zookeeper bitnami/zookeeper \
-    --set resources.requests.memory=256Mi \
-    --set resources.requests.cpu=250m \
-    --set resources.limits.memory=256Mi \
-    --set resources.limits.cpu=250m \
-    --set global.storageClass=standard \
-    --set networkPolicy.enabled=true \
-    --set replicaCount=3
-```
+Configure `kubectl` to connect to your cluster by using `kubectl use-context my-cluster-name`.
 
-:::warning
-Replace the `storageClass` parameter value with your own.
-:::
-
-### Install cert-manager
+- For GKE
+  - Configure `gcloud` with `gcloud auth login`.
+  - On the Google Cloud Console, the cluster page will have a `Connect` button, which will give a command to run locally that looks like
+  ```console
+  gcloud container clusters get-credentials CLUSTER_NAME --zone ZONE_NAME --project PROJECT_NAME.
+  ```
+  - Use `kubectl config get-contexts` to show the contexts available.
+  - Run `kubectl config use-context ${gke context}` to access the cluster from `kubectl`.
+- For EKS 
+  - [Configure your AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html) to connect to your project. 
+  - Install [eksctl](https://eksctl.io/introduction/) 
+  - Run `eksctl utils write-kubeconfig --cluster=${CLUSTER NAME}` to make the context available to `kubectl` 
+  - Use `kubectl config get-context`s to show the contexts available. 
+  - Run `kubectl config use-context ${eks context}` to access the cluster with `kubectl`.
+  
+## Install cert-manager
 
 The NiFiKop operator uses `cert-manager` for issuing certificates to users and and nodes, so you'll need to have it setup in case you want to deploy a secured cluster with authentication enabled. The minimum supported cert-manager version is v1.0.
 
@@ -83,9 +87,7 @@ helm install cert-manager \
 </TabItem>
 </Tabs>
 
-## Installation
-
-## Installing with Helm
+## Deploy NiFiKop
 
 You can deploy the operator using a Helm chart [Helm chart](https://github.com/konpyutaika/nifikop/tree/master/helm):
 
@@ -109,8 +111,8 @@ Now deploy the helm chart :
 helm install nifikop \
     oci://ghcr.io/konpyutaika/helm-charts/nifikop \
     --namespace=nifi \
-    --version 0.14.1 \
-    --set image.tag=v0.14.1-release \
+    --version 0.14.0 \
+    --set image.tag=v0.14.0-release \
     --set resources.requests.memory=256Mi \
     --set resources.requests.cpu=250m \
     --set resources.limits.memory=256Mi \
@@ -121,32 +123,3 @@ helm install nifikop \
 :::note
 Add the following parameter if you are using this instance to only deploy unsecured clusters : `--set certManager.enabled=false`
 :::
-
-## Create custom storage class
-
-We recommend to use a **custom StorageClass** to leverage the volume binding mode `WaitForFirstConsumer`
-
-```bash
-apiVersion: storage.k8s.io/v1
-kind: StorageClass
-metadata:
-  name: exampleStorageclass
-parameters:
-  type: pd-standard
-provisioner: kubernetes.io/gce-pd
-reclaimPolicy: Delete
-volumeBindingMode: WaitForFirstConsumer
-```
-
-:::tip
-Remember to set your NiFiCluster CR properly to use the newly created StorageClass.
-:::
-
-## Deploy NiFi cluster
-
-And after you can deploy a simple NiFi cluster.
-
-```bash
-# Add your zookeeper svc name to the configuration
-kubectl create -n nifi -f config/samples/simplenificluster.yaml
-```

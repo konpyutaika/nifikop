@@ -1,7 +1,7 @@
 ---
-id: 1_authorizer
+id: 1_custom_user_authorizer
 title: Custom User Authorizers
-sidebar_label: Custom Authorizers
+sidebar_label: Custom User Authorizers
 ---
 
 :::info
