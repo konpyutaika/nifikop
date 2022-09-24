@@ -97,7 +97,7 @@ In most cases, the `headless mode` should be used. An example where you need the
 ## External service configuration
 
 Once you have considered how to expose your service internally in the k8s cluster, you may want to expose your cluster externally, for example to give access to your cluster to your users, or to expose your prometheus endpoint.
-To configure the external exposure of your cluster pods, you should use the [Spec.ExternalServices](../../../..//5_references/1_nifi_cluster/7_external_service_config) field.
+To configure the external exposure of your cluster pods, you should use the [Spec.ExternalServices](../../../../5_references/1_nifi_cluster/7_external_service_config) field.
 
 It takes as configuration:
 - `name`: which will be used to name the kubernetes service.
@@ -152,5 +152,5 @@ cluster-access      LoadBalancer   10.88.21.98   35.180.241.132   443:30421/TCP,
 If you add the `external ip` in your `Spec.ReadOnlyConfig.NifiProperties.WebProxyHosts` field, you will be able to access your cluster by: `https://<external-ip>` and your NiFi processor http endpoint by: `http://<external-ip>`.
 
 :::note
-For any additional configuration please refer to [this page](../../../..//5_references/1_nifi_cluster/7_external_service_config).
+For any additional configuration please refer to [this page](../../../../5_references/1_nifi_cluster/7_external_service_config).
 :::
