@@ -66,20 +66,18 @@ The operator fully automates NiFi's user and access policies management.
 
 The NiFi operator exposes NiFi JMX metrics to Prometheus.
 
-### Reacting on Alerts
+### Auto scaling
 
-|                       |       |
-| --------------------- | ----- |
-| Status                | To Do |
-| Priority              | Low   |
-| Targeted Start date   | -     |
+|                       |           |
+| --------------------- |-----------|
+| Status                | To Do     |
+| Priority              | High      |
+| Targeted Start date   | Sept 2022 |
 
-The NiFi Operator acts as a **Prometheus Alert Manager**. It receives alerts defined in Prometheus, and creates actions based on Prometheus alert annotations.
+Enable the NiFi cluster to be scaled by HPA kubernetes feature :
 
-Currently, there are three actions expected :
 - upscale cluster (add a new Node)
 - downscale cluster (remove a Node)
-- add additional disk to a Node
 
 ### Seamless Istio mesh support
 
