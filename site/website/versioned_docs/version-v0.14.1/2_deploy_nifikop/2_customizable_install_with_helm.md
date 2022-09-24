@@ -1,5 +1,5 @@
 ---
-id: 1_customizable_install_with_helm
+id: 2_customizable_install_with_helm
 title: Customizable install with Helm
 sidebar_label: Customizable install with Helm
 ---
@@ -9,7 +9,7 @@ import TabItem from '@theme/TabItem';
 
 ## Prerequisites
 
-- Perform any necessary [plateform-specific setup](../2_platform_setup/1_gke.md)
+- Perform any necessary [plateform-specific setup](./1_quick_start)
 - [Install a Helm client](https://github.com/helm/helm#install) with a version higher than 3
 
 ## Introduction
@@ -29,10 +29,11 @@ It will use Custom Ressources Definition CRDs:
 ### Configuration
 
 The following tables lists the configurable parameters of the NiFi Operator Helm chart and their default values.
+
 | Parameter                        | Description                                                                                                                                                                          | Default                                     |
 |----------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------|
 | `image.repository`               | Image                                                                                                                                                                                | `ghcr.io/konpyutaika/docker-images/nifikop` |
-| `image.tag`                      | Image tag                                                                                                                                                                            | `v0.14.1-release`                           |
+| `image.tag`                      | Image tag                                                                                                                                                                            | `v0.14.0-release`                           |
 | `image.pullPolicy`               | Image pull policy                                                                                                                                                                    | `Always`                                    |
 | `image.imagePullSecrets.enabled` | Enable tue use of secret for docker image                                                                                                                                            | `false`                                     |
 | `image.imagePullSecrets.name`    | Name of the secret to connect to docker registry                                                                                                                                     | -                                           |
