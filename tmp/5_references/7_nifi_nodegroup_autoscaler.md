@@ -39,16 +39,16 @@ spec:
 
 ## NifiNodeGroupAutoscalerSpec
 
-|Field| Type                                                                                |Description|Required|Default|
-|-----|-------------------------------------------------------------------------------------|-----------|--------|--------|
-|clusterRef| [ClusterReference](./2_nifi_user#clusterreference)                                |  contains the reference to the NifiCluster containing the node group this autoscaler should manage. |Yes| - |
-|nodeConfigGroupId| string                                                                              | defines the id of the [NodeConfig](./1_nifi_cluster/3_node_config) contained in `NifiCluster.Spec.NodeConfigGroups`. |Yes| - |
-|nodeLabelsSelector| [LabelSelector](https://pkg.go.dev/k8s.io/apimachinery/pkg/apis/meta/v1#LabelSelector) | defines the set of labels used to identify nodes in a `NifiCluster` node config group. Use `Node.Labels` in combination with this selector to clearly define which nodes will be managed by this autoscaler. Take care to avoid having mutliple autoscalers managing the same nodes. |Yes| - |
-|readOnlyConfig| [ReadOnlyConfig](./1_nifi_cluster/2_read_only_config)                             | defines a readOnlyConfig to apply to each node in this node group. Any settings here will override those set in the configured `nodeConfigGroupId`. |Yes| - |
-|nodeConfig| [NodeConfig](./1_nifi_cluster/3_node_config)                | defines a nodeConfig to apply to each node in this node group. Any settings here will override those set in the configured `nodeConfigGroupId`. |Yes| - |
-|upscaleStrategy| string                                                                              | The strategy NiFiKop will use to scale up the nodes managed by this autoscaler. Must be one of {`simple`}. |Yes| - |
-|downscaleStrategy| string                                                                              | The strategy NiFiKop will use to scale down the nodes managed by this autoscaler. Must be one of {`lifo`}. |Yes| - |
-|replicas| int                                                                                 | the initial number of replicas to configure the `HorizontalPodAutoscaler` with. After the initial configuration, this `replicas` configuration will be automatically updated by the Kubernetes `HorizontalPodAutoscaler` controller. |No| 1 |
+|Field|Type|Description|Required|Default|
+|-----|----|-----------|--------|--------|
+|clusterRef|[ClusterReference](..ser.md#clusterreference)|  contains the reference to the NifiCluster containing the node group this autoscaler should manage. |Yes| - |
+|nodeConfigGroupId| string | defines the id of the [NodeConfig](..luster/3_node_config.md) contained in `NifiCluster.Spec.NodeConfigGroups`. |Yes| - |
+|nodeLabelsSelector|[LabelSelector](https://pkg.go.dev/k8s.io/apimachinery/pkg/apis/meta/v1#LabelSelector)| defines the set of labels used to identify nodes in a `NifiCluster` node config group. Use `Node.Labels` in combination with this selector to clearly define which nodes will be managed by this autoscaler. Take care to avoid having mutliple autoscalers managing the same nodes.  |Yes| - |
+|readOnlyConfig| [ReadOnlyConfig](..luster/2_read_only_config.md) | defines a readOnlyConfig to apply to each node in this node group. Any settings here will override those set in the configured `nodeConfigGroupId`. |Yes| - |
+|nodeConfig| [NodeConfig](..luster/3_node_config.md) | defines a nodeConfig to apply to each node in this node group. Any settings here will override those set in the configured `nodeConfigGroupId`. |Yes| - |
+|upscaleStrategy| string | The strategy NiFiKop will use to scale up the nodes managed by this autoscaler. Must be one of {`simple`}. |Yes| - |
+|downscaleStrategy| string | The strategy NiFiKop will use to scale down the nodes managed by this autoscaler. Must be one of {`lifo`}. |Yes| - |
+|replicas| int | the initial number of replicas to configure the `HorizontalPodAutoscaler` with. After the initial configuration, this `replicas` configuration will be automatically updated by the Kubernetes `HorizontalPodAutoscaler` controller. |No| 1 |
 
 ## NifiNodeGroupAutoscalerStatus
 

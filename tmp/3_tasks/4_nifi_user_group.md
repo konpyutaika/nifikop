@@ -6,12 +6,12 @@ sidebar_label: NiFi Users and Groups
 
 ## User management
 
-The `NifiUser` resource was already introduced for the [SSL credentials](./2_security/1_ssl.md#create-ssl-credentials) concerns.
+The `NifiUser` resource was already introduced for the [SSL credentials](..ty/1_ssl.md#create-ssl-credentials) concerns.
 What we are covering here is the NiFi user management part introduced in this resource.
 
 When you create a `NifiUser` resource the operator will :
 
-1. Try to check if a user already exists with the same name on the NiFi cluster, if it does, the operator will set [NifiUser.Status.Id](./2_security/1_ssl.md#create-ssl-credentials) to bind it with the kubernetes resource.
+1. Try to check if a user already exists with the same name on the NiFi cluster, if it does, the operator will set [NifiUser.Status.Id](..ty/1_ssl.md#create-ssl-credentials) to bind it with the kubernetes resource.
 2. If no user is found, the operator will create and manage it (i.e it will ensure the synchronisation with the NiFi Cluster).
 
 ```yaml
@@ -55,7 +55,7 @@ In the example above the kubernetes resource name will be `aguitton` but the NiF
 
 In the case the user will not authenticate himself using TLS authentication, the operator doesn't have to create a certificate, so just set `NifiUser.Spec.CreateCert` to false.
 
-For each user, you have the ability to define a list of [AccessPolicies](../5_references/2_nifi_user.md#accesspolicy) to give a list of access to your user.
+For each user, you have the ability to define a list of [AccessPolicies](../5_referencesrences/2_nifi_user.md#accesspolicy) to give a list of access to your user.
 In the example above we are giving to user `alexandre.guitton@orange.com` the right to view metadata et content for the root process group in flowfile queues in outbound connections and through provenance events.
 
 ## UserGroup management
@@ -97,15 +97,15 @@ spec:
 ```
 
 When you create a `NifiUserGroup` resource, the operator will create and manage a group named `${resource namespace}-${resource name}` in Nifi.
-To declare the users that are part of this group, you just have to declare them in the [NifiUserGroup.UsersRef](../5_references/6_nifi_usergroup.md#userreference) field.
+To declare the users that are part of this group, you just have to declare them in the [NifiUserGroup.UsersRef](../5_referencesrences/6_nifi_usergroup.md#userreference) field.
 
 :::important
-The [NifiUserGroup.UsersRef](../5_references/6_nifi_usergroup.md#userreference) requires to declare the name and namespace of a `NifiUser` resource, so it is previously required to declare the resource. 
+The [NifiUserGroup.UsersRef](../5_referencesrences/6_nifi_usergroup.md#userreference) requires to declare the name and namespace of a `NifiUser` resource, so it is previously required to declare the resource. 
 
 It's required to create the resource even if the user is already declared in NiFi Cluster (In that case the operator will just sync the kubernetes resource).
 :::
 
-Like for `NifiUser` you can declare a list of [AccessPolicies](../5_references/2_nifi_user.md#accesspolicy) to give a list of access to your user.
+Like for `NifiUser` you can declare a list of [AccessPolicies](../5_referencesrences/2_nifi_user.md#accesspolicy) to give a list of access to your user.
 
 In the example above we are giving to users `nc-0-node.nc-headless.nifikop.svc.cluster.local` and `nc-controller.nifikop.mgt.cluster.local` the right to view the counters informations.
 

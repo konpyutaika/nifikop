@@ -55,7 +55,7 @@ If `listenersConfig.sslSecrets.create` is set to `false`, the operator will look
 
 ## Using an existing Issuer
 
-As described in the [Reference section](../../5_references/1_nifi_cluster/6_listeners_config.md#sslsecrets), instead of using a self-signed certificate as CA, you can use an existing one.
+As described in the [Reference section](../../5_referencesces/1_nifi_cluster/6_listeners_config.md#sslsecrets), instead of using a self-signed certificate as CA, you can use an existing one.
 In order to do so, you only have to refer it into your `Spec.ListenerConfig.SslSecrets.IssuerRef` field. 
 
 ### Example : Let's encrypt 
