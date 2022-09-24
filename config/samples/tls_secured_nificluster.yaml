@@ -7,7 +7,7 @@ spec:
     headlessEnabled: true
   zkAddress: "zookeeper.zookeeper:2181"
   zkPath: "/ssllnifi"
-  clusterImage: "apache/nifi:1.12.1"
+  clusterImage: "apache/nifi:1.17.0"
   oneNifiNodePerNode: false
   managedAdminUsers:
     -  identity : "alexandre.guitton@orange.com"

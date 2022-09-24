@@ -1,7 +1,7 @@
 ---
-id: 1_introduction
-title: Introduction
-sidebar_label: Introduction
+id: 1_start_here
+title: Start here
+sidebar_label: Start here
 ---
 
 The Konpyūtāika NiFi operator is a Kubernetes operator to automate provisioning, management, autoscaling and operations of [Apache NiFi](https://nifi.apache.org/) clusters deployed to K8s.
@@ -14,15 +14,15 @@ Some of the high-level capabilities and objectives of Apache NiFi include, and s
 - **Fine grained** node configuration support
 - Graceful rolling upgrade
 - graceful NiFi cluster **scaling**
+- NiFi cluster **auto-scaling** 
 - Encrypted communication using SSL
 - the provisioning of secure NiFi clusters
 - Advanced Dataflow and user management via CRD
 
 Some of the roadmap features :
 
-- Monitoring via **Prometheus**
 - Automatic reaction and self healing based on alerts (plugin system, with meaningful default alert plugins)
-- graceful NiFi cluster **scaling and rebalancing**
+- graceful NiFi cluster **rebalancing**
 
 ## Motivation
 

@@ -104,7 +104,5 @@ NodeConfig defines the node configuration
 
 ## Metadata
 
-| Field                                                             |Type| Description |Required|Default|
-|-------------------------------------------------------------------|----|-------------|--------|--------|
 | annotations | map\[string\]string | Additionnal annotation to merge to the pod associated [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#syntax-and-character-set). |No|nil|
 | nodeLabels  | map\[string\]string | Additionnal labels to merge to the pod associated [labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#syntax-and-character-set).               |No|nil|

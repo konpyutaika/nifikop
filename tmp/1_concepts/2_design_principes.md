@@ -36,7 +36,7 @@ With the NiFi operator we can:
 
 ## Dataflow Lifecycle management
 
-The [Dataflow Lifecycle management feature](./3_features.md#dataflow-lifecycle-management-via-crd) introduces 3 new CRDs :
+The [Dataflow Lifecycle management feature](..es.md#dataflow-lifecycle-management-via-crd) introduces 3 new CRDs :
 
 - **NiFiRegistryClient :** Allowing you to declare a [NiFi registry client](https://nifi.apache.org/docs/nifi-registry-docs/html/getting-started.html#connect-nifi-to-the-registry).
 - **NiFiParameterContext :** Allowing you to create parameter context, with two kinds of parameters, a simple `map[string]string` for non-sensitive parameters and a `list of secrets` which contains sensitive parameters.
