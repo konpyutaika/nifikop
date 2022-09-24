@@ -5,12 +5,12 @@ import (
 
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
 
-	nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers"
 	"github.com/konpyutaika/nifikop/pkg/common"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	"github.com/konpyutaika/nifikop/pkg/nificlient"
+	nigoapi "github.com/konpyutaika/nigoapi/pkg/nifi"
 )
 
 var log = common.CustomLogger().Named("dataflow-method")
@@ -292,6 +292,7 @@ func SyncDataflow(
 			X: xPos,
 			Y: yPos,
 		}
+
 		_, err := nClient.UpdateProcessGroup(*pGEntity)
 		if err := clientwrappers.ErrorUpdateOperation(log, err, "Stop flow"); err != nil {
 			return nil, err
@@ -755,6 +756,7 @@ func updateProcessGroupEntity(
 		X: xPos,
 		Y: yPos,
 	}
+
 	entity.Component.VersionControlInformation = &nigoapi.VersionControlInformationDto{
 		GroupId:          stringFactory(),
 		RegistryName:     stringFactory(),

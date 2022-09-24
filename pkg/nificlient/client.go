@@ -10,9 +10,9 @@ import (
 	"emperror.dev/errors"
 	"go.uber.org/zap"
 
-	nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
+	nigoapi "github.com/konpyutaika/nigoapi/pkg/nifi"
 )
 
 const (
