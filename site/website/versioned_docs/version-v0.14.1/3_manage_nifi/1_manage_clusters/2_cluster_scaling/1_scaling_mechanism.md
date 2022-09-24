@@ -233,5 +233,5 @@ The list of decommisions step and their corresponding value for the `Nifi Cluste
 4. Once the scaledown successfully performed, you should have the data offloaded on the other nodes, and the node state removed from the `NifiCluster.Status.NodesState` list :
 
 :::warning
-Keep in mind that the [`NifiCluster.Spec.nifiClusterTaskSpec.retryDurationMinutes`](../../../5_references/1_nifi_cluster/1_nifi_cluster#nificlustertaskspec) should be long enough to perform the whole procedure, or you will have some rollback and retry loop.
+Keep in mind that the [`NifiCluster.Spec.nifiClusterTaskSpec.retryDurationMinutes`](../../../5_references/1_nifi_cluster/1_nifi_cluster.md#nificlustertaskspec) should be long enough to perform the whole procedure, or you will have some rollback and retry loop.
 :::
