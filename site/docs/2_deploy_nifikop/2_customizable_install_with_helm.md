@@ -29,6 +29,7 @@ It will use Custom Ressources Definition CRDs:
 ### Configuration
 
 The following tables lists the configurable parameters of the NiFi Operator Helm chart and their default values.
+
 | Parameter                        | Description                                                                                                                                                                          | Default                                     |
 |----------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------|
 | `image.repository`               | Image                                                                                                                                                                                | `ghcr.io/konpyutaika/docker-images/nifikop` |

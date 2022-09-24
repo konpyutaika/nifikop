@@ -38,7 +38,7 @@
                   "label": "Expose cluster",
                   "items": [
                     "3_manage_nifi/1_manage_clusters/1_deploy_cluster/3_expose_cluster/1_kubernetes_service",
-                    "3_manage_nifi/1_manage_clusters/1_deploy_cluster/3_expose_cluster/2_external_dns"
+                    "3_manage_nifi/1_manage_clusters/1_deploy_cluster/3_expose_cluster/2_istio_service_mesh"
                   ]
                 },
                 "3_manage_nifi/1_manage_clusters/1_deploy_cluster/4_ssl_configuration",
