@@ -109,7 +109,7 @@ module.exports = {
           items: [
             {
               label: 'Documentation',
-              to: 'docs/1_concepts/1_introduction',
+              to: 'docs/1_concepts/1_start_here',
             },
             {
               label: 'GitHub',
