@@ -7,13 +7,22 @@
 ### Changed
 
 - [PR #165](https://github.com/konpyutaika/nifikop/pull/165) - **[NiGoApi]** Update NiGoApi dependence.
-- [PR #160](https://github.com/konpyutaika/nifikop/pull/160) - **[Documentation]** Upgrade documentation dependencies.
 
 ### Fixed Bugs
 
 ### Deprecated
 
 ### Removed
+
+## v0.14.1
+
+### Changed
+
+- [PR #160](https://github.com/konpyutaika/nifikop/pull/160) - **[Documentation]** Upgrade documentation dependencies.
+
+### Fixed Bugs
+
+- [PR #174](https://github.com/konpyutaika/nifikop/pull/174) - **[Operator]** Fix K8S version getting.
 
 ## v0.14.0
 

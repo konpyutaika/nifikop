@@ -32,7 +32,7 @@ spec:
 |-----|----|-----------|--------|--------|
 |description|string| describes the Registry client. |No| - |
 |uri|string| URI of the NiFi registry that should be used for pulling the flow. |Yes| - |
-|clusterRef|[ClusterReference](./2_nifi_user.md#clusterreference)|  contains the reference to the NifiCluster with the one the user is linked. |Yes| - |
+|clusterRef|[ClusterReference](./2_nifi_user#clusterreference)|  contains the reference to the NifiCluster with the one the user is linked. |Yes| - |
 
 ## NifiRegistryClientStatus
 
