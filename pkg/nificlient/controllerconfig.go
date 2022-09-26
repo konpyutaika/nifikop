@@ -1,7 +1,7 @@
 package nificlient
 
 import (
-	nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
+	nigoapi "github.com/konpyutaika/nigoapi/pkg/nifi"
 	"go.uber.org/zap"
 )
 

@@ -2,7 +2,11 @@
 
 ### Added
 
+- [PR #165](https://github.com/konpyutaika/nifikop/pull/165) - **[NifiParameterContext]** Add parameter context inheritance.
+
 ### Changed
+
+- [PR #165](https://github.com/konpyutaika/nifikop/pull/165) - **[NiGoApi]** Update NiGoApi dependence.
 
 ### Fixed Bugs
 

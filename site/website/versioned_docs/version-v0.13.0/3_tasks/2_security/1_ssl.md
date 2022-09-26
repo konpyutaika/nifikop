@@ -15,7 +15,7 @@ kind: NifiCluster
 spec:
   ...
   managedAdminUsers:
-    - identity : "alexandre.guitton@orange.com"
+    - identity : "alexandre.guitton@konpyutaika.com"
       name: "aguitton"
   ...
   readOnlyConfig:

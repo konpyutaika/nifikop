@@ -54,10 +54,10 @@ sidebar_label: Compatibility versions
 | Feature                             | NiFi 1.16 | NiFi 1.17 |
 |-------------------------------------|-----------|-----------|
 | Parameter context deployment        | Yes       | Yes       |
-| Parameter context inheritance       | No        | No        |
+| Parameter context inheritance       | Yes       | Yes       |
 | Parameter context cluster migration | No        | No        |
 
-## NiFi auto scaling
+### NiFi auto scaling
 
 | Feature                       | NiFi 1.16 | NiFi 1.17 |
 |-------------------------------|-----------|-----------|

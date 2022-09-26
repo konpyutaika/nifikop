@@ -17,6 +17,8 @@ type NifiParameterContextSpec struct {
 	ClusterRef ClusterReference `json:"clusterRef,omitempty"`
 	// a list of secret containing sensitive parameters (the key will name of the parameter).
 	SecretRefs []SecretReference `json:"secretRefs,omitempty"`
+	// a list of references of Parameter Contexts from which this one inherits parameters
+	InheritedParameterContexts []ParameterContextReference `json:"inheritedParameterContexts,omitempty"`
 	// whether or not the operator should take over an existing parameter context if its name is the same.
 	DisableTakeOver *bool `json:"disableTakeOver,omitempty"`
 }

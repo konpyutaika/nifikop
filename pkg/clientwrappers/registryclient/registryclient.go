@@ -1,12 +1,12 @@
 package registryclient
 
 import (
-	nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers"
 	"github.com/konpyutaika/nifikop/pkg/common"
 	"github.com/konpyutaika/nifikop/pkg/nificlient"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
+	nigoapi "github.com/konpyutaika/nigoapi/pkg/nifi"
 )
 
 var log = common.CustomLogger().Named("registryclient-method")

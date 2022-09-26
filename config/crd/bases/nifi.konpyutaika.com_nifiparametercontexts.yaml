@@ -54,6 +54,21 @@ spec:
                 description: whether or not the operator should take over an existing
                   parameter context if its name is the same.
                 type: boolean
+              inheritedParameterContexts:
+                description: a list of references of Parameter Contexts from which
+                  this one inherits parameters
+                items:
+                  description: ParameterContextReference states a reference to a parameter
+                    context for dataflow provisioning
+                  properties:
+                    name:
+                      type: string
+                    namespace:
+                      type: string
+                  required:
+                  - name
+                  type: object
+                type: array
               parameters:
                 description: a list of non-sensitive Parameters.
                 items:

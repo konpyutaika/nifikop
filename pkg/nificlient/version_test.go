@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"testing"
 
-	nigoapi "github.com/erdrix/nigoapi/pkg/nifi"
 	"github.com/jarcoal/httpmock"
+	nigoapi "github.com/konpyutaika/nigoapi/pkg/nifi"
 	"github.com/stretchr/testify/assert"
 )
 
