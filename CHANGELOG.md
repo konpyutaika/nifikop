@@ -3,6 +3,19 @@
 ### Added
 
 - [PR #168](https://github.com/konpyutaika/nifikop/pull/168) - **[Operator/NifiConnection]** Implementation on NifiConnection controller.
+- [PR #165](https://github.com/konpyutaika/nifikop/pull/165) - **[NifiParameterContext]** Add parameter context inheritance.
+
+### Changed
+
+- [PR #165](https://github.com/konpyutaika/nifikop/pull/165) - **[NiGoApi]** Update NiGoApi dependence.
+
+### Fixed Bugs
+
+### Deprecated
+
+### Removed
+
+## v0.14.1
 
 ### Changed
 
@@ -10,9 +23,7 @@
 
 ### Fixed Bugs
 
-### Deprecated
-
-### Removed
+- [PR #174](https://github.com/konpyutaika/nifikop/pull/174) - **[Operator]** Fix K8S version getting.
 
 ## v0.14.0
 

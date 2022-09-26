@@ -12,7 +12,7 @@ kind: NifiUser
 metadata:
   name: aguitton
 spec:
-  identity: alexandre.guitton@orange.com
+  identity: alexandre.guitton@konpyutaika.com
   clusterRef:
     name: nc
     namespace: nifikop

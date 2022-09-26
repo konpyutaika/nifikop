@@ -1071,6 +1071,11 @@ func (in *NifiParameterContextSpec) DeepCopyInto(out *NifiParameterContextSpec) 
 		*out = make([]SecretReference, len(*in))
 		copy(*out, *in)
 	}
+	if in.InheritedParameterContexts != nil {
+		in, out := &in.InheritedParameterContexts, &out.InheritedParameterContexts
+		*out = make([]ParameterContextReference, len(*in))
+		copy(*out, *in)
+	}
 	if in.DisableTakeOver != nil {
 		in, out := &in.DisableTakeOver, &out.DisableTakeOver
 		*out = new(bool)

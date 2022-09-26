@@ -79,7 +79,7 @@ module.exports = {
       },
       style: 'dark',
       items: [
-        {to: 'docs/1_concepts/1_introduction', className: 'header-doc-link', 'aria-label': 'Documentation', position: 'right'},
+        {to: 'docs/1_concepts/1_start_here', className: 'header-doc-link', 'aria-label': 'Documentation', position: 'right'},
         {to: 'blog', className: 'header-blog-link', 'aria-label': 'Blog', position: 'right'},
         {
           href: 'https://github.com/konpyutaika/nifikop',
@@ -109,7 +109,7 @@ module.exports = {
           items: [
             {
               label: 'Documentation',
-              to: 'docs/1_concepts/1_introduction',
+              to: 'docs/1_concepts/1_start_here',
             },
             {
               label: 'GitHub',

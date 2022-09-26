@@ -313,6 +313,7 @@ func SyncDataflow(
 			X: xPos,
 			Y: yPos,
 		}
+
 		_, err := nClient.UpdateProcessGroup(*pGEntity)
 		if err := clientwrappers.ErrorUpdateOperation(log, err, "Stop flow"); err != nil {
 			return nil, err
@@ -826,6 +827,7 @@ func updateProcessGroupEntity(
 		X: xPos,
 		Y: yPos,
 	}
+
 	entity.Component.VersionControlInformation = &nigoapi.VersionControlInformationDto{
 		GroupId:          stringFactory(),
 		RegistryName:     stringFactory(),

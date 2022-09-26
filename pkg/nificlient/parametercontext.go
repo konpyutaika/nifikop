@@ -34,7 +34,10 @@ func (n *nifiClient) GetParameterContext(id string) (*nigoapi.ParameterContextEn
 	}
 
 	// Request on Nifi Rest API to get the parameter context informations
-	pcEntity, rsp, body, err := client.ParameterContextsApi.GetParameterContext(context, id, nil)
+	pcEntity, rsp, body, err := client.ParameterContextsApi.GetParameterContext(
+		context,
+		id,
+		&nigoapi.ParameterContextsApiGetParameterContextOpts{IncludeInheritedParameters: optional.NewBool(false)})
 	if err := errorGetOperation(rsp, body, err, n.log); err != nil {
 		return nil, err
 	}
