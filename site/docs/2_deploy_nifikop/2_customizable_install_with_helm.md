@@ -25,6 +25,7 @@ It will use Custom Ressources Definition CRDs:
 - `nifiregistryclients.nifi.konpyutaika.com`,
 - `nifiparametercontexts.nifi.konpyutaika.com`,
 - `nifidataflows.nifi.konpyutaika.com`,
+- `nifinodegroupautoscalers.nifi.konpyutaika.com`,
 
 ### Configuration
 
@@ -33,7 +34,7 @@ The following tables lists the configurable parameters of the NiFi Operator Helm
 | Parameter                        | Description                                                                                                                                                                          | Default                                     |
 |----------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------|
 | `image.repository`               | Image                                                                                                                                                                                | `ghcr.io/konpyutaika/docker-images/nifikop` |
-| `image.tag`                      | Image tag                                                                                                                                                                            | `v0.14.0-release`                           |
+| `image.tag`                      | Image tag                                                                                                                                                                            | `v0.14.1-release`                           |
 | `image.pullPolicy`               | Image pull policy                                                                                                                                                                    | `Always`                                    |
 | `image.imagePullSecrets.enabled` | Enable tue use of secret for docker image                                                                                                                                            | `false`                                     |
 | `image.imagePullSecrets.name`    | Name of the secret to connect to docker registry                                                                                                                                     | -                                           |
@@ -76,6 +77,7 @@ kubectl apply -f https://raw.githubusercontent.com/konpyutaika/nifikop/master/co
 kubectl apply -f https://raw.githubusercontent.com/konpyutaika/nifikop/master/config/crd/bases/nifi.konpyutaika.com_nifidataflows.yaml
 kubectl apply -f https://raw.githubusercontent.com/konpyutaika/nifikop/master/config/crd/bases/nifi.konpyutaika.com_nifiparametercontexts.yaml
 kubectl apply -f https://raw.githubusercontent.com/konpyutaika/nifikop/master/config/crd/bases/nifi.konpyutaika.com_nifiregistryclients.yaml
+kubectl apply -f https://raw.githubusercontent.com/konpyutaika/nifikop/master/config/crd/bases/nifi.konpyutaika.com_nifinodegroupautoscalers.yaml
 ```
 
 :::
