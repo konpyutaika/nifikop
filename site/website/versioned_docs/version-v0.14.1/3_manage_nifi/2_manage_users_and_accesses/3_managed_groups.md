@@ -23,21 +23,21 @@ spec:
   #
   propagateLabels: true
   managedAdminUsers:
-    -  identity : "alexandre.guitton@orange.com"
+    -  identity : "alexandre.guitton@konpyutaika.com"
        name: "aguitton"
-    -  identity : "nifiuser@orange.com"
+    -  identity : "nifiuser@konpyutaika.com"
        name: "nifiuser"
   managedReaderUsers:
-    -  identity : "toto@orange.com"
+    -  identity : "toto@konpyutaika.com"
        name: "toto"
     ...
 ```
 
 In this example the operator will create and manage 3 `NifiUsers` :
 
-- **aguitton**, with the identity : `alexandre.guitton@orange.com`
-- **nifiuser**, with the identity : `nifiuser@orange.com`
-- **toto**, with the identity : `toto@orange.com`
+- **aguitton**, with the identity : `alexandre.guitton@konpyutaika.com`
+- **nifiuser**, with the identity : `nifiuser@konpyutaika.com`
+- **toto**, with the identity : `toto@konpyutaika.com`
 
 And create and manage two groups :
 
