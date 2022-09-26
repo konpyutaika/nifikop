@@ -4,28 +4,31 @@ title: Kubectl Plugin
 sidebar_label: Kubectl Plugin
 ---
 
-You can install the plugin by copying the [file](https://raw.githubusercontent.com/konpyutaika/nifikop/master/plugins/kubectl-nifikop) into your PATH.
+You can build the plugin and copy the exectuable into your PATH.
 
 For example on a UNIX machine:
 
 ```console
-sudo cp plugins/kubectl-nifikop /usr/local/bin/kubectl-nifikop && sudo chmod +x /usr/local/bin/kubectl-nifikop
+make kubectl-nifikop && sudo cp ./bin/kubectl-nifikop /usr/local/bin
 ```
 
 Then you can test the plugin:
 
 ```console
 $ kubectl nifikop
-usage: kubectl-nifikop <command> [<args>]
-The available commands are:
-   stop
-   unstop
-   start
-   unstart
-   stop_io
-   unstop_io
-For more information you can run kubectl-nifikop <command> --help
-kubectl-nifikop: error: the following arguments are required: command
+Usage:
+  nifikop [command]
+
+Available Commands:
+  completion          Generate the autocompletion script for the specified shell
+  help                Help about any command
+  nificluster         
+  nificonnection      
+  nifidataflow        
+  nifigroupautoscaler 
+  nifiregistryclient  
+  nifiuser            
+  nifiusergroup 
 ```
 
 Your NiFiKop plugin is now installed!

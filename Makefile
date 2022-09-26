@@ -357,3 +357,7 @@ catalog-build: opm ## Build a catalog image.
 .PHONY: catalog-push
 catalog-push: ## Push a catalog image.
 	$(MAKE) docker-push IMG=$(CATALOG_IMG)
+
+.PHONY: kubectl-nifikop
+kubectl-nifikop:
+	go build -o bin/kubectl-nifikop ./cmd/kubectl-nifikop/main.go
