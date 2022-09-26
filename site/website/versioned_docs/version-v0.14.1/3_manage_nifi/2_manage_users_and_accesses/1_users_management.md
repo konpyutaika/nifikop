@@ -20,7 +20,7 @@ metadata:
 spec:
   # identity field is use to define the user identity on NiFi cluster side,
   #	it use full when the user's name doesn't suite with Kubernetes resource name.
-  identity: alexandre.guitton@orange.com
+  identity: alexandre.guitton@konpyutaika.com
   # Contains the reference to the NifiCluster with the one the registry client is linked.
   clusterRef:
     name: nc
@@ -49,9 +49,9 @@ spec:
 By default the user name that will be used is the name of the resource.
 
 But as there are some constraints on this name (e.g [RFC 1123](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#dns-subdomain-names)) that doesn't match with those applied on NiFi, you can override it with the `NifiUser.Spec.Identity` field which is more permissive.
-In the example above the kubernetes resource name will be `aguitton` but the NiFi use created on the cluster will be `alexandre.guitton@orange.com`.
+In the example above the kubernetes resource name will be `aguitton` but the NiFi use created on the cluster will be `alexandre.guitton@konpyutaika.com`.
 
 In the case the user will not authenticate himself using TLS authentication, the operator doesn't have to create a certificate, so just set `NifiUser.Spec.CreateCert` to false.
 
 For each user, you have the ability to define a list of [AccessPolicies](../../5_references/2_nifi_user#accesspolicy) to give a list of access to your user.
-In the example above we are giving to user `alexandre.guitton@orange.com` the right to view metadata et content for the root process group in flowfile queues in outbound connections and through provenance events.
+In the example above we are giving to user `alexandre.guitton@konpyutaika.com` the right to view metadata et content for the root process group in flowfile queues in outbound connections and through provenance events.
