@@ -49,5 +49,4 @@ In this way, we can say:
 [NifiUser]: ../5_references/2_nifi_user
 [NifiUserGroup]: ../5_references/6_nifi_usergroup
 [NifiRegistryClient]: ../5_references/3_nifi_registry_client
-[NifiRegistryClient]: ../5_references/3_nifi_registry_client
 [NifiNodeGroupAutoscaler]: ../5_references/7_nifi_nodegroup_autoscaler
