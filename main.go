@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 	"os"
 	"strings"
 
@@ -34,6 +35,7 @@ var (
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	utilruntime.Must(v1alpha1.AddToScheme(scheme))
+	utilruntime.Must(v1.AddToScheme(scheme))
 	// +kubebuilder:scaffold:scheme
 }
 

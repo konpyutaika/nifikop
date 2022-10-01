@@ -2,7 +2,7 @@ package pki
 
 import (
 	"fmt"
-	"github.com/konpyutaika/nifikop/api/v1alpha1"
+	"github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/pkg/resources/templates"
 	"github.com/konpyutaika/nifikop/pkg/util"
 	certutil "github.com/konpyutaika/nifikop/pkg/util/cert"
@@ -11,15 +11,15 @@ import (
 	"testing"
 )
 
-func testCluster(t *testing.T) *v1alpha1.NifiCluster {
+func testCluster(t *testing.T) *v1.NifiCluster {
 	t.Helper()
-	cluster := &v1alpha1.NifiCluster{}
+	cluster := &v1.NifiCluster{}
 	cluster.Name = "test-cluster"
 	cluster.Namespace = "test-namespace"
-	cluster.Spec = v1alpha1.NifiClusterSpec{}
-	cluster.Spec.ListenersConfig = &v1alpha1.ListenersConfig{}
+	cluster.Spec = v1.NifiClusterSpec{}
+	cluster.Spec.ListenersConfig = &v1.ListenersConfig{}
 
-	cluster.Spec.Nodes = []v1alpha1.Node{
+	cluster.Spec.Nodes = []v1.Node{
 		{Id: 0},
 		{Id: 1},
 		{Id: 2},
@@ -110,19 +110,19 @@ func TestNodeUsersForCluster(t *testing.T) {
 	users := NodeUsersForCluster(cluster, []string{})
 
 	for _, node := range cluster.Spec.Nodes {
-		expected := &v1alpha1.NifiUser{
+		expected := &v1.NifiUser{
 			ObjectMeta: templates.ObjectMeta(GetNodeUserName(cluster, node.Id), LabelsForNifiPKI(cluster.Name), cluster),
-			Spec: v1alpha1.NifiUserSpec{
+			Spec: v1.NifiUserSpec{
 				SecretName: fmt.Sprintf(NodeServerCertTemplate, cluster.Name, node.Id),
 				DNSNames:   GetInternalDNSNames(cluster, node.Id),
 				IncludeJKS: true,
-				ClusterRef: v1alpha1.ClusterReference{
+				ClusterRef: v1.ClusterReference{
 					Name:      cluster.Name,
 					Namespace: cluster.Namespace,
 				},
-				AccessPolicies: []v1alpha1.AccessPolicy{
-					{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.ReadAccessPolicyAction, Resource: v1alpha1.ProxyAccessPolicyResource},
-					{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.WriteAccessPolicyAction, Resource: v1alpha1.ProxyAccessPolicyResource},
+				AccessPolicies: []v1.AccessPolicy{
+					{Type: v1.GlobalAccessPolicyType, Action: v1.ReadAccessPolicyAction, Resource: v1.ProxyAccessPolicyResource},
+					{Type: v1.GlobalAccessPolicyType, Action: v1.WriteAccessPolicyAction, Resource: v1.ProxyAccessPolicyResource},
 				},
 			},
 		}
@@ -140,30 +140,30 @@ func TestControllerUserForCluster(t *testing.T) {
 		cluster.Namespace,
 		cluster.Spec.ListenersConfig.GetClusterDomain())*/
 
-	expected := &v1alpha1.NifiUser{
+	expected := &v1.NifiUser{
 		ObjectMeta: templates.ObjectMeta(
 			cluster.GetNifiControllerUserIdentity(),
 			LabelsForNifiPKI(cluster.Name), cluster,
 		),
-		Spec: v1alpha1.NifiUserSpec{
+		Spec: v1.NifiUserSpec{
 			DNSNames:   []string{cluster.GetNifiControllerUserIdentity()},
 			SecretName: cluster.GetNifiControllerUserIdentity(),
 			IncludeJKS: true,
-			ClusterRef: v1alpha1.ClusterReference{
+			ClusterRef: v1.ClusterReference{
 				Name:      cluster.Name,
 				Namespace: cluster.Namespace,
 			},
-			AccessPolicies: []v1alpha1.AccessPolicy{
-				{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.ReadAccessPolicyAction, Resource: v1alpha1.FlowAccessPolicyResource},
-				{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.WriteAccessPolicyAction, Resource: v1alpha1.FlowAccessPolicyResource},
-				{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.ReadAccessPolicyAction, Resource: v1alpha1.ControllerAccessPolicyResource},
-				{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.WriteAccessPolicyAction, Resource: v1alpha1.ControllerAccessPolicyResource},
-				{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.ReadAccessPolicyAction, Resource: v1alpha1.RestrictedComponentsAccessPolicyResource},
-				{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.WriteAccessPolicyAction, Resource: v1alpha1.RestrictedComponentsAccessPolicyResource},
-				{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.ReadAccessPolicyAction, Resource: v1alpha1.PoliciesAccessPolicyResource},
-				{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.WriteAccessPolicyAction, Resource: v1alpha1.PoliciesAccessPolicyResource},
-				{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.ReadAccessPolicyAction, Resource: v1alpha1.TenantsAccessPolicyResource},
-				{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.WriteAccessPolicyAction, Resource: v1alpha1.TenantsAccessPolicyResource},
+			AccessPolicies: []v1.AccessPolicy{
+				{Type: v1.GlobalAccessPolicyType, Action: v1.ReadAccessPolicyAction, Resource: v1.FlowAccessPolicyResource},
+				{Type: v1.GlobalAccessPolicyType, Action: v1.WriteAccessPolicyAction, Resource: v1.FlowAccessPolicyResource},
+				{Type: v1.GlobalAccessPolicyType, Action: v1.ReadAccessPolicyAction, Resource: v1.ControllerAccessPolicyResource},
+				{Type: v1.GlobalAccessPolicyType, Action: v1.WriteAccessPolicyAction, Resource: v1.ControllerAccessPolicyResource},
+				{Type: v1.GlobalAccessPolicyType, Action: v1.ReadAccessPolicyAction, Resource: v1.RestrictedComponentsAccessPolicyResource},
+				{Type: v1.GlobalAccessPolicyType, Action: v1.WriteAccessPolicyAction, Resource: v1.RestrictedComponentsAccessPolicyResource},
+				{Type: v1.GlobalAccessPolicyType, Action: v1.ReadAccessPolicyAction, Resource: v1.PoliciesAccessPolicyResource},
+				{Type: v1.GlobalAccessPolicyType, Action: v1.WriteAccessPolicyAction, Resource: v1.PoliciesAccessPolicyResource},
+				{Type: v1.GlobalAccessPolicyType, Action: v1.ReadAccessPolicyAction, Resource: v1.TenantsAccessPolicyResource},
+				{Type: v1.GlobalAccessPolicyType, Action: v1.WriteAccessPolicyAction, Resource: v1.TenantsAccessPolicyResource},
 			},
 		},
 	}

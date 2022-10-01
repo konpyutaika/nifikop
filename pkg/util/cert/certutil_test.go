@@ -5,10 +5,10 @@ import (
 	"crypto/x509"
 	"encoding/asn1"
 	"encoding/pem"
+	"github.com/konpyutaika/nifikop/api/v1"
 	"reflect"
 	"testing"
 
-	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 )
 
@@ -119,13 +119,13 @@ func TesEnsureSecretPassJKS(t *testing.T) {
 	secret.Data = map[string][]byte{
 		corev1.TLSCertKey:       cert,
 		corev1.TLSPrivateKeyKey: key,
-		v1alpha1.CoreCACertKey:  cert,
+		v1.CoreCACertKey:        cert,
 	}
 
 	if injectedSecret, err := EnsureSecretPassJKS(secret); err != nil {
 		t.Error("Expected injected corev1 secret, got error:", err)
 	} else {
-		if _, ok := injectedSecret.Data[v1alpha1.PasswordKey]; !ok {
+		if _, ok := injectedSecret.Data[v1.PasswordKey]; !ok {
 			t.Error("Expected generated password in injected secret")
 		}
 

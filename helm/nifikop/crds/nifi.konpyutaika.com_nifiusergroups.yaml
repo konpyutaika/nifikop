@@ -15,7 +15,7 @@ spec:
     singular: nifiusergroup
   scope: Namespaced
   versions:
-  - name: v1alpha1
+  - name: v1
     schema:
       openAPIV3Schema:
         description: NifiUserGroup is the Schema for the nifiusergroups API

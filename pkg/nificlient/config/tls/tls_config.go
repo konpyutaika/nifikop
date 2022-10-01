@@ -1,7 +1,7 @@
 package tls
 
 import (
-	"github.com/konpyutaika/nifikop/api/v1alpha1"
+	"github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/pkg/k8sutil"
 	"github.com/konpyutaika/nifikop/pkg/nificlient/config/common"
 	"github.com/konpyutaika/nifikop/pkg/nificlient/config/nificluster"
@@ -11,7 +11,7 @@ import (
 )
 
 func (n *tls) BuildConfig() (*clientconfig.NifiConfig, error) {
-	var cluster *v1alpha1.NifiCluster
+	var cluster *v1.NifiCluster
 	var err error
 	if cluster, err = k8sutil.LookupNifiCluster(n.client, n.clusterRef.Name, n.clusterRef.Namespace); err != nil {
 		return nil, err
@@ -20,7 +20,7 @@ func (n *tls) BuildConfig() (*clientconfig.NifiConfig, error) {
 }
 
 func (n *tls) BuildConnect() (cluster clientconfig.ClusterConnect, err error) {
-	var c *v1alpha1.NifiCluster
+	var c *v1.NifiCluster
 	if c, err = k8sutil.LookupNifiCluster(n.client, n.clusterRef.Name, n.clusterRef.Namespace); err != nil {
 		return
 	}
@@ -48,7 +48,7 @@ func (n *tls) BuildConnect() (cluster clientconfig.ClusterConnect, err error) {
 	return
 }
 
-func clusterConfig(client client.Client, cluster *v1alpha1.NifiCluster) (*clientconfig.NifiConfig, error) {
+func clusterConfig(client client.Client, cluster *v1.NifiCluster) (*clientconfig.NifiConfig, error) {
 	conf := common.ClusterConfig(cluster)
 
 	if conf.UseSSL {

@@ -3,8 +3,8 @@ package pki
 import (
 	"context"
 	"crypto/tls"
+	"github.com/konpyutaika/nifikop/api/v1"
 
-	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/pki/certmanagerpki"
 	"github.com/konpyutaika/nifikop/pkg/util/pki"
 	"go.uber.org/zap"
@@ -13,14 +13,14 @@ import (
 )
 
 // MockBackend is used for mocking during testing
-var MockBackend = v1alpha1.PKIBackend("mock")
+var MockBackend = v1.PKIBackend("mock")
 
 // GetPKIManager returns a PKI/User manager interface for a given cluster
-func GetPKIManager(client client.Client, cluster *v1alpha1.NifiCluster) pki.Manager {
+func GetPKIManager(client client.Client, cluster *v1.NifiCluster) pki.Manager {
 	switch cluster.Spec.ListenersConfig.SSLSecrets.PKIBackend {
 
 	// Use cert-manager for pki backend
-	case v1alpha1.PKIBackendCertManager:
+	case v1.PKIBackendCertManager:
 		return certmanagerpki.New(client, cluster)
 
 	// TODO : Add vault
@@ -44,10 +44,10 @@ func GetPKIManager(client client.Client, cluster *v1alpha1.NifiCluster) pki.Mana
 type mockPKIManager struct {
 	pki.Manager
 	client  client.Client
-	cluster *v1alpha1.NifiCluster
+	cluster *v1.NifiCluster
 }
 
-func newMockPKIManager(client client.Client, cluster *v1alpha1.NifiCluster) pki.Manager {
+func newMockPKIManager(client client.Client, cluster *v1.NifiCluster) pki.Manager {
 	return &mockPKIManager{client: client, cluster: cluster}
 }
 
@@ -59,11 +59,11 @@ func (m *mockPKIManager) FinalizePKI(ctx context.Context, logger zap.Logger) err
 	return nil
 }
 
-func (m *mockPKIManager) ReconcileUserCertificate(ctx context.Context, user *v1alpha1.NifiUser, scheme *runtime.Scheme) (*pki.UserCertificate, error) {
+func (m *mockPKIManager) ReconcileUserCertificate(ctx context.Context, user *v1.NifiUser, scheme *runtime.Scheme) (*pki.UserCertificate, error) {
 	return &pki.UserCertificate{}, nil
 }
 
-func (m *mockPKIManager) FinalizeUserCertificate(ctx context.Context, user *v1alpha1.NifiUser) error {
+func (m *mockPKIManager) FinalizeUserCertificate(ctx context.Context, user *v1.NifiUser) error {
 	return nil
 }
 

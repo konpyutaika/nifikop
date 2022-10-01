@@ -2,9 +2,9 @@ package tls
 
 import (
 	"fmt"
+	"github.com/konpyutaika/nifikop/api/v1"
 	"testing"
 
-	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/pki"
 	"github.com/stretchr/testify/assert"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -22,41 +22,41 @@ type mockClient struct {
 	client.Client
 }
 
-func testCluster(t *testing.T) *v1alpha1.NifiCluster {
+func testCluster(t *testing.T) *v1.NifiCluster {
 	t.Helper()
-	cluster := &v1alpha1.NifiCluster{}
+	cluster := &v1.NifiCluster{}
 
 	cluster.Name = clusterName
 	cluster.Namespace = clusterNamespace
-	cluster.Spec = v1alpha1.NifiClusterSpec{}
-	cluster.Spec.ListenersConfig = &v1alpha1.ListenersConfig{}
+	cluster.Spec = v1.NifiClusterSpec{}
+	cluster.Spec.ListenersConfig = &v1.ListenersConfig{}
 
-	cluster.Status.NodesState = make(map[string]v1alpha1.NodeState)
-	cluster.Status.NodesState["1"] = v1alpha1.NodeState{
-		GracefulActionState: v1alpha1.GracefulActionState{
-			State: v1alpha1.GracefulDownscaleRunning,
+	cluster.Status.NodesState = make(map[string]v1.NodeState)
+	cluster.Status.NodesState["1"] = v1.NodeState{
+		GracefulActionState: v1.GracefulActionState{
+			State: v1.GracefulDownscaleRunning,
 		},
 	}
 
-	cluster.Status.NodesState["2"] = v1alpha1.NodeState{
-		GracefulActionState: v1alpha1.GracefulActionState{
-			State: v1alpha1.GracefulUpscaleRequired,
+	cluster.Status.NodesState["2"] = v1.NodeState{
+		GracefulActionState: v1.GracefulActionState{
+			State: v1.GracefulUpscaleRequired,
 		},
 	}
 
-	cluster.Status.NodesState["3"] = v1alpha1.NodeState{
-		GracefulActionState: v1alpha1.GracefulActionState{
-			ActionStep: v1alpha1.RemoveStatus,
+	cluster.Status.NodesState["3"] = v1.NodeState{
+		GracefulActionState: v1.GracefulActionState{
+			ActionStep: v1.RemoveStatus,
 		},
 	}
 
-	cluster.Status.NodesState[fmt.Sprint(succeededNodeId)] = v1alpha1.NodeState{
-		GracefulActionState: v1alpha1.GracefulActionState{
-			State: v1alpha1.GracefulDownscaleSucceeded,
+	cluster.Status.NodesState[fmt.Sprint(succeededNodeId)] = v1.NodeState{
+		GracefulActionState: v1.GracefulActionState{
+			State: v1.GracefulDownscaleSucceeded,
 		},
 	}
 
-	cluster.Spec.ListenersConfig.InternalListeners = []v1alpha1.InternalListenerConfig{
+	cluster.Spec.ListenersConfig.InternalListeners = []v1.InternalListenerConfig{
 		{Type: "https", ContainerPort: httpContainerPort},
 		{Type: "http", ContainerPort: 8080},
 		{Type: "cluster", ContainerPort: 8083},
@@ -66,9 +66,9 @@ func testCluster(t *testing.T) *v1alpha1.NifiCluster {
 	return cluster
 }
 
-func testSecuredCluster(t *testing.T) *v1alpha1.NifiCluster {
+func testSecuredCluster(t *testing.T) *v1.NifiCluster {
 	cluster := testCluster(t)
-	cluster.Spec.ListenersConfig.SSLSecrets = &v1alpha1.SSLSecrets{
+	cluster.Spec.ListenersConfig.SSLSecrets = &v1.SSLSecrets{
 		PKIBackend: pki.MockBackend,
 	}
 
@@ -82,7 +82,7 @@ func TestClusterConfig(t *testing.T) {
 	testClusterConfig(t, cluster, true)
 }
 
-func testClusterConfig(t *testing.T, cluster *v1alpha1.NifiCluster, expectedUseSSL bool) {
+func testClusterConfig(t *testing.T, cluster *v1.NifiCluster, expectedUseSSL bool) {
 	assert := assert.New(t)
 	conf, err := clusterConfig(mockClient{}, cluster)
 	assert.Nil(err)

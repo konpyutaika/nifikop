@@ -1,7 +1,7 @@
 package registryclient
 
 import (
-	"github.com/konpyutaika/nifikop/api/v1alpha1"
+	"github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers"
 	"github.com/konpyutaika/nifikop/pkg/common"
 	"github.com/konpyutaika/nifikop/pkg/nificlient"
@@ -11,7 +11,7 @@ import (
 
 var log = common.CustomLogger().Named("registryclient-method")
 
-func ExistRegistryClient(registryClient *v1alpha1.NifiRegistryClient, config *clientconfig.NifiConfig) (bool, error) {
+func ExistRegistryClient(registryClient *v1.NifiRegistryClient, config *clientconfig.NifiConfig) (bool, error) {
 
 	if registryClient.Status.Id == "" {
 		return false, nil
@@ -33,8 +33,8 @@ func ExistRegistryClient(registryClient *v1alpha1.NifiRegistryClient, config *cl
 	return entity != nil, nil
 }
 
-func CreateRegistryClient(registryClient *v1alpha1.NifiRegistryClient,
-	config *clientconfig.NifiConfig) (*v1alpha1.NifiRegistryClientStatus, error) {
+func CreateRegistryClient(registryClient *v1.NifiRegistryClient,
+	config *clientconfig.NifiConfig) (*v1.NifiRegistryClientStatus, error) {
 	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
 		return nil, err
@@ -48,14 +48,14 @@ func CreateRegistryClient(registryClient *v1alpha1.NifiRegistryClient,
 		return nil, err
 	}
 
-	return &v1alpha1.NifiRegistryClientStatus{
+	return &v1.NifiRegistryClientStatus{
 		Id:      entity.Id,
 		Version: *entity.Revision.Version,
 	}, nil
 }
 
-func SyncRegistryClient(registryClient *v1alpha1.NifiRegistryClient,
-	config *clientconfig.NifiConfig) (*v1alpha1.NifiRegistryClientStatus, error) {
+func SyncRegistryClient(registryClient *v1.NifiRegistryClient,
+	config *clientconfig.NifiConfig) (*v1.NifiRegistryClientStatus, error) {
 
 	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
@@ -82,7 +82,7 @@ func SyncRegistryClient(registryClient *v1alpha1.NifiRegistryClient,
 	return &status, nil
 }
 
-func RemoveRegistryClient(registryClient *v1alpha1.NifiRegistryClient,
+func RemoveRegistryClient(registryClient *v1.NifiRegistryClient,
 	config *clientconfig.NifiConfig) error {
 	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
@@ -103,13 +103,13 @@ func RemoveRegistryClient(registryClient *v1alpha1.NifiRegistryClient,
 	return clientwrappers.ErrorRemoveOperation(log, err, "Remove registry-client")
 }
 
-func registryClientIsSync(registryClient *v1alpha1.NifiRegistryClient, entity *nigoapi.RegistryClientEntity) bool {
+func registryClientIsSync(registryClient *v1.NifiRegistryClient, entity *nigoapi.RegistryClientEntity) bool {
 	return registryClient.Name == entity.Component.Name &&
 		registryClient.Spec.Description == entity.Component.Description &&
 		registryClient.Spec.Uri == entity.Component.Uri
 }
 
-func updateRegistryClientEntity(registryClient *v1alpha1.NifiRegistryClient, entity *nigoapi.RegistryClientEntity) {
+func updateRegistryClientEntity(registryClient *v1.NifiRegistryClient, entity *nigoapi.RegistryClientEntity) {
 
 	var defaultVersion int64 = 0
 

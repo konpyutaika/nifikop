@@ -15,7 +15,7 @@ spec:
     singular: nifiuser
   scope: Namespaced
   versions:
-  - name: v1alpha1
+  - name: v1
     schema:
       openAPIV3Schema:
         description: NifiUser is the Schema for the nifiusers API

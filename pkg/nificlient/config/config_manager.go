@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/konpyutaika/nifikop/api/v1alpha1"
+	"github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/pkg/k8sutil"
 	"github.com/konpyutaika/nifikop/pkg/nificlient/config/basic"
 	"github.com/konpyutaika/nifikop/pkg/nificlient/config/tls"
@@ -9,14 +9,14 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-var MockClientConfig = v1alpha1.ClientConfigType("mock")
+var MockClientConfig = v1.ClientConfigType("mock")
 
-func GetClientConfigManager(client client.Client, clusterRef v1alpha1.ClusterReference) clientconfig.Manager {
+func GetClientConfigManager(client client.Client, clusterRef v1.ClusterReference) clientconfig.Manager {
 	cluster, _ := k8sutil.LookupNifiCluster(client, clusterRef.Name, clusterRef.Namespace)
 	switch cluster.GetClientType() {
-	case v1alpha1.ClientConfigTLS:
+	case v1.ClientConfigTLS:
 		return tls.New(client, clusterRef)
-	case v1alpha1.ClientConfigBasic:
+	case v1.ClientConfigBasic:
 		return basic.New(client, clusterRef)
 	case MockClientConfig:
 		return NewMockClientConfig(client, clusterRef)
@@ -29,10 +29,10 @@ func GetClientConfigManager(client client.Client, clusterRef v1alpha1.ClusterRef
 type mockClientConfig struct {
 	clientconfig.Manager
 	client     client.Client
-	clusterRef v1alpha1.ClusterReference
+	clusterRef v1.ClusterReference
 }
 
-func NewMockClientConfig(client client.Client, clusterRef v1alpha1.ClusterReference) clientconfig.Manager {
+func NewMockClientConfig(client client.Client, clusterRef v1.ClusterReference) clientconfig.Manager {
 	return &mockClientConfig{client: client, clusterRef: clusterRef}
 }
 

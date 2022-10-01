@@ -9,7 +9,6 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/go-logr/logr v1.2.2
 	github.com/go-logr/zapr v1.2.3
-	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/imdario/mergo v0.3.12
 	github.com/jarcoal/httpmock v1.0.6
 	github.com/jetstack/cert-manager v1.7.2
