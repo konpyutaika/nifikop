@@ -2,6 +2,7 @@
 
 ### Added
 
+- [PR #168](https://github.com/konpyutaika/nifikop/pull/168) - **[Plugin]** Implementation on NiFiKop's plugin.
 - [PR #168](https://github.com/konpyutaika/nifikop/pull/168) - **[Operator/NifiConnection]** Implementation on NifiConnection controller.
 - [PR #165](https://github.com/konpyutaika/nifikop/pull/165) - **[NifiParameterContext]** Add parameter context inheritance.
 
