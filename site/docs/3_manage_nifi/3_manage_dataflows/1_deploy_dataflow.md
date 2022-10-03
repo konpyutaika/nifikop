@@ -34,7 +34,7 @@ Once you have deployed your [NifiRegistryClient], you have the possibility of de
 This configuration is defined using the [NifiParameterContext] CRD, which NiFiKop will convert into a [Parameter context](https://nifi.apache.org/docs/nifi-docs/html/user-guide.html#parameter-contexts).
 
 
-Below is an example of [NifiParameterContext] :
+Below is an example of [NifiParameterContext]:
 
 ```yaml
 apiVersion: nifi.konpyutaika.com/v1alpha1

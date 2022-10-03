@@ -27,10 +27,10 @@ spec:
     flowFileExpiration: 1 hour
     backPressureDataSizeThreshold: 100 GB
     backPressureObjectThreshold: 10000
-    LoadBalanceStrategy: PARTITION_BY_ATTRIBUTE
-    LoadBalancePartitionAttribute: partition_attribute
-    LoadBalanceCompression: DO_NOT_COMPRESS
-    Prioritizers: 
+    loadBalanceStrategy: PARTITION_BY_ATTRIBUTE
+    loadBalancePartitionAttribute: partition_attribute
+    loadBalanceCompression: DO_NOT_COMPRESS
+    prioritizers: 
       - NewestFlowFileFirstPrioritizer
       - FirstInFirstOutPrioritizer
     labelIndex: 0

@@ -93,6 +93,13 @@
             "3_manage_nifi/3_manage_dataflows/0_design_principles",
             "3_manage_nifi/3_manage_dataflows/1_deploy_dataflow"
           ]
+        },
+        {
+          "type": "category",
+          "label": "Manage Connections",
+          "items": [
+            "3_manage_nifi/4_manage_connections/1_deploy_connection"
+          ]
         }
       ]
     },
