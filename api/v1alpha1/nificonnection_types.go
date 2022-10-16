@@ -34,14 +34,18 @@ type ConnectionConfiguration struct {
 	// the maximum amount of time an object may be in the flow before it will be automatically aged out of the flow.
 	FlowFileExpiration string `json:"flowFileExpiration,omitempty"`
 	// the maximum data size of objects that can be queued before back pressure is applied.
+	// +kubebuilder:default="1 GB"
 	BackPressureDataSizeThreshold string `json:"backPressureDataSizeThreshold,omitempty"`
 	// the maximum number of objects that can be queued before back pressure is applied.
-	BackPressureObjectThreshold *int64 `json:"backPressureObjectThreshold,omitempty"`
+	// +kubebuilder:default=10000
+	BackPressureObjectThreshold int64 `json:"backPressureObjectThreshold,omitempty"`
 	// how to load balance the data in this Connection across the nodes in the cluster.
+	// +kubebuilder:default="DO_NOT_LOAD_BALANCE"
 	LoadBalanceStrategy ConnectionLoadBalanceStrategy `json:"loadBalanceStrategy,omitempty"`
 	// the FlowFile Attribute to use for determining which node a FlowFile will go to.
 	LoadBalancePartitionAttribute string `json:"loadBalancePartitionAttribute,omitempty"`
 	// whether or not data should be compressed when being transferred between nodes in the cluster.
+	// +kubebuilder:default="DO_NOT_COMPRESS"
 	LoadBalanceCompression ConnectionLoadBalanceCompression `json:"loadBalanceCompression,omitempty"`
 	// the comparators used to prioritize the queue.
 	Prioritizers []ConnectionPrioritizer `json:"prioritizers,omitempty"`
@@ -100,7 +104,7 @@ func (ref *ComponentReference) IsValid() bool {
 }
 
 func (conf *ConnectionConfiguration) IsValid() bool {
-	if conf.GetLoadBalanceStrategy() == StrategyPartitionByAttribute && len(conf.GetLoadBalancePartitionAttribute()) == 0 {
+	if conf.LoadBalanceStrategy == StrategyPartitionByAttribute && len(conf.GetLoadBalancePartitionAttribute()) == 0 {
 		return false
 	}
 	return true
@@ -110,36 +114,8 @@ func (conf *ConnectionConfiguration) GetFlowFileExpiration() string {
 	return conf.FlowFileExpiration
 }
 
-func (conf *ConnectionConfiguration) GetBackPressureDataSizeThreshold() string {
-	if len(conf.BackPressureDataSizeThreshold) > 0 {
-		return conf.BackPressureDataSizeThreshold
-	}
-	return "1 GB"
-}
-
-func (conf *ConnectionConfiguration) GetBackPressureObjectThreshold() int64 {
-	if conf.BackPressureObjectThreshold != nil {
-		return *conf.BackPressureObjectThreshold
-	}
-	return 10000
-}
-
-func (conf *ConnectionConfiguration) GetLoadBalanceStrategy() ConnectionLoadBalanceStrategy {
-	if len(conf.LoadBalanceStrategy) > 0 {
-		return conf.LoadBalanceStrategy
-	}
-	return StrategyDoNotLoadBalance
-}
-
 func (conf *ConnectionConfiguration) GetLoadBalancePartitionAttribute() string {
 	return conf.LoadBalancePartitionAttribute
-}
-
-func (conf *ConnectionConfiguration) GetLoadBalanceCompression() ConnectionLoadBalanceCompression {
-	if len(conf.LoadBalanceCompression) > 0 {
-		return conf.LoadBalanceCompression
-	}
-	return CompressionDoNotCompress
 }
 
 func (conf *ConnectionConfiguration) GetPrioritizers() []ConnectionPrioritizer {

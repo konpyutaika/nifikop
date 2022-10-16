@@ -50,11 +50,11 @@ func CreateConnection(connection *v1alpha1.NifiConnection, source *v1alpha1.Comp
 				GroupId: destination.GroupId,
 			},
 			FlowFileExpiration:            connection.Spec.Configuration.GetFlowFileExpiration(),
-			BackPressureDataSizeThreshold: connection.Spec.Configuration.GetBackPressureDataSizeThreshold(),
-			BackPressureObjectThreshold:   connection.Spec.Configuration.GetBackPressureObjectThreshold(),
-			LoadBalanceStrategy:           string(connection.Spec.Configuration.GetLoadBalanceStrategy()),
+			BackPressureDataSizeThreshold: connection.Spec.Configuration.BackPressureDataSizeThreshold,
+			BackPressureObjectThreshold:   connection.Spec.Configuration.BackPressureObjectThreshold,
+			LoadBalanceStrategy:           string(connection.Spec.Configuration.LoadBalanceStrategy),
 			LoadBalancePartitionAttribute: connection.Spec.Configuration.GetLoadBalancePartitionAttribute(),
-			LoadBalanceCompression:        string(connection.Spec.Configuration.GetLoadBalanceCompression()),
+			LoadBalanceCompression:        string(connection.Spec.Configuration.LoadBalancePartitionAttribute),
 			Prioritizers:                  connection.Spec.Configuration.GetStringPrioritizers(),
 			LabelIndex:                    connection.Spec.Configuration.GetLabelIndex(),
 			Bends:                         bends,
@@ -140,11 +140,11 @@ func SyncConnectionConfig(connection *v1alpha1.NifiConnection,
 		}
 
 		connectionEntity.Component.FlowFileExpiration = connection.Spec.Configuration.GetFlowFileExpiration()
-		connectionEntity.Component.BackPressureDataSizeThreshold = connection.Spec.Configuration.GetBackPressureDataSizeThreshold()
-		connectionEntity.Component.BackPressureObjectThreshold = connection.Spec.Configuration.GetBackPressureObjectThreshold()
-		connectionEntity.Component.LoadBalanceStrategy = string(connection.Spec.Configuration.GetLoadBalanceStrategy())
+		connectionEntity.Component.BackPressureDataSizeThreshold = connection.Spec.Configuration.BackPressureDataSizeThreshold
+		connectionEntity.Component.BackPressureObjectThreshold = connection.Spec.Configuration.BackPressureObjectThreshold
+		connectionEntity.Component.LoadBalanceStrategy = string(connection.Spec.Configuration.LoadBalanceStrategy)
 		connectionEntity.Component.LoadBalancePartitionAttribute = connection.Spec.Configuration.GetLoadBalancePartitionAttribute()
-		connectionEntity.Component.LoadBalanceCompression = string(connection.Spec.Configuration.GetLoadBalanceCompression())
+		connectionEntity.Component.LoadBalanceCompression = string(connection.Spec.Configuration.LoadBalanceCompression)
 		connectionEntity.Component.Prioritizers = connection.Spec.Configuration.GetStringPrioritizers()
 		connectionEntity.Component.LabelIndex = connection.Spec.Configuration.GetLabelIndex()
 		connectionEntity.Component.Bends = bends
@@ -197,11 +197,11 @@ func isConfigurationChanged(connectionEntity *nigoapi.ConnectionEntity, connecti
 	}
 
 	return connectionEntity.Component.FlowFileExpiration != connection.Spec.Configuration.GetFlowFileExpiration() ||
-		connectionEntity.Component.BackPressureDataSizeThreshold != connection.Spec.Configuration.GetBackPressureDataSizeThreshold() ||
-		connectionEntity.Component.BackPressureObjectThreshold != connection.Spec.Configuration.GetBackPressureObjectThreshold() ||
-		connectionEntity.Component.LoadBalanceStrategy != string(connection.Spec.Configuration.GetLoadBalanceStrategy()) ||
+		connectionEntity.Component.BackPressureDataSizeThreshold != connection.Spec.Configuration.BackPressureDataSizeThreshold ||
+		connectionEntity.Component.BackPressureObjectThreshold != connection.Spec.Configuration.BackPressureObjectThreshold ||
+		connectionEntity.Component.LoadBalanceStrategy != string(connection.Spec.Configuration.LoadBalanceStrategy) ||
 		connectionEntity.Component.LoadBalancePartitionAttribute != connection.Spec.Configuration.GetLoadBalancePartitionAttribute() ||
-		connectionEntity.Component.LoadBalanceCompression != string(connection.Spec.Configuration.GetLoadBalanceCompression()) ||
+		connectionEntity.Component.LoadBalanceCompression != string(connection.Spec.Configuration.LoadBalanceCompression) ||
 		!util.StringSliceStrictCompare(connectionEntity.Component.Prioritizers, connection.Spec.Configuration.GetStringPrioritizers()) ||
 		connectionEntity.Component.LabelIndex != connection.Spec.Configuration.GetLabelIndex() ||
 		isBendChanged(connectionEntity.Component.Bends, bends)

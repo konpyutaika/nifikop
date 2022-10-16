@@ -39,10 +39,12 @@ spec:
                 description: the Configuration of the connection.
                 properties:
                   backPressureDataSizeThreshold:
+                    default: 1 GB
                     description: the maximum data size of objects that can be queued
                       before back pressure is applied.
                     type: string
                   backPressureObjectThreshold:
+                    default: 10000
                     description: the maximum number of objects that can be queued
                       before back pressure is applied.
                     format: int64
@@ -71,6 +73,7 @@ spec:
                     format: int32
                     type: integer
                   loadBalanceCompression:
+                    default: DO_NOT_COMPRESS
                     description: whether or not data should be compressed when being
                       transferred between nodes in the cluster.
                     enum:
@@ -83,6 +86,7 @@ spec:
                       node a FlowFile will go to.
                     type: string
                   loadBalanceStrategy:
+                    default: DO_NOT_LOAD_BALANCE
                     description: how to load balance the data in this Connection across
                       the nodes in the cluster.
                     enum:
