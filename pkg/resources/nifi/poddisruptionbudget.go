@@ -50,7 +50,7 @@ func (r *Reconciler) podDisruptionBudget(log zap.Logger) (runtimeClient.Object, 
 	return &policyv1.PodDisruptionBudget{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "PodDisruptionBudget",
-			APIVersion: "policy/v1beta1",
+			APIVersion: "policy/v1",
 		},
 		ObjectMeta: templates.ObjectMetaWithAnnotations(
 			fmt.Sprintf("%s-pdb", r.NifiCluster.Name),
@@ -58,7 +58,7 @@ func (r *Reconciler) podDisruptionBudget(log zap.Logger) (runtimeClient.Object, 
 			r.NifiCluster.Spec.Service.Annotations,
 			r.NifiCluster,
 		),
-		Spec: policyv1beta1.PodDisruptionBudgetSpec{
+		Spec: policyv1.PodDisruptionBudgetSpec{
 			MinAvailable: &minAvailable,
 			Selector: &metav1.LabelSelector{
 				MatchLabels: nifiutil.LabelsForNifi(r.NifiCluster.Name),
