@@ -79,10 +79,10 @@ spec:
         - command:
             - /manager
           args:
-            - metrics-bind-address={{ .Values.metrics.port }}
-            - --leader-elect
+            - -metrics-bind-address=:{{ .Values.metrics.port }}
+            - -leader-elect
             {{- if .Values.certManager.enabled }}
-            - --cert-manager-enabled={{ .Values.certManager.enabled }}
+            - -cert-manager-enabled={{ .Values.certManager.enabled }}
             {{- end }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: "{{ .Values.image.pullPolicy }}"
