@@ -86,6 +86,40 @@ function Feature({imageUrl, title, description}) {
     );
 }
 
+function Organization({imageUrl, title, organizationLink}) {
+    const imgUrl = useBaseUrl(imageUrl);
+    return (
+        <div className={classnames('col col--4', styles.feature)}>
+            {imgUrl && (
+                <div className="text--center">
+                    <a href={organizationLink}>
+                        <img className={styles.featureImage} src={imgUrl} alt={title} />
+                    </a>
+                </div>
+            )}
+        </div>
+    );
+}
+
+const organizations = [
+    {
+        imageUrl: '',
+        title: '',
+        organizationLink: '/'
+    },
+    {
+        imageUrl: 'img/influxdata_full_navy.svg',
+        title: 'InfluxData',
+        organizationLink: 'https://www.influxdata.com/'
+    },
+    {
+        imageUrl: '',
+        title: '',
+        organizationLink: '/'
+    },
+
+];
+
 function Home() {
     const context = useDocusaurusContext();
     const {siteConfig: {customFields = {}} = {}} = context;
@@ -134,6 +168,26 @@ function Home() {
                             <div className="row">
                                 {features.map((props, idx) => (
                                     <Feature key={idx} {...props} />
+                                ))}
+                            </div>
+                        </div>
+                    </section>
+                )}
+            </div>
+            <div className={styles.section}>
+                <section>
+                    <div className={classnames(styles.announcement, styles.announcementDark)}>
+                        <div className={styles.announcementInner} >
+                            Join the open source community that uses and contributes to <span className={styles.heroProjectKeywords}>NiFiKop</span>, and reinvent how to work with <span className={styles.heroProjectKeywords}>Apache NiFi</span>!
+                        </div>
+                    </div>
+                </section>
+                {organizations && organizations.length && (
+                    <section className={styles.features}>
+                        <div className={classnames(styles.announcement, styles.announcementDark)}>
+                            <div className="row">
+                                {organizations.map((props, idx) => (
+                                    <Organization key={idx} {...props} />
                                 ))}
                             </div>
                         </div>
