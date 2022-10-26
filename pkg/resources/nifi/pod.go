@@ -187,7 +187,7 @@ done
 			Containers:                    r.injectAdditionalEnvVars(r.generateContainers(nodeConfig, node.Id, podVolumeMounts, zkAddress)),
 			HostAliases:                   allHostAliases,
 			Volumes:                       podVolumes,
-			RestartPolicy:                 corev1.RestartPolicyNever,
+			RestartPolicy:                 nodeConfig.GetRestartPolicy(),
 			TerminationGracePeriodSeconds: util.Int64Pointer(120),
 			DNSPolicy:                     corev1.DNSClusterFirst,
 			ImagePullSecrets:              nodeConfig.GetImagePullSecrets(),

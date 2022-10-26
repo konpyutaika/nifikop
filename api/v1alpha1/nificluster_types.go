@@ -312,6 +312,8 @@ type NodeConfig struct {
 	// priorityClassName can be used to set the priority class applied to the node
 	// +optional
 	PriorityClassName *string `json:"priorityClassName,omitempty"`
+	// restartPolicy specifies the restart policy for the node
+	RestartPolicy corev1.RestartPolicy `json:"restartPolicy,omitempty"`
 }
 
 type Metadata struct {
@@ -636,6 +638,14 @@ func (nConfig *NodeConfig) GetNodeSelector() map[string]string {
 // GetImagePullSecrets returns the list of Secrets needed to pull Containers images from private repositories
 func (nConfig *NodeConfig) GetImagePullSecrets() []corev1.LocalObjectReference {
 	return nConfig.ImagePullSecrets
+}
+
+// GetRestartPolicy returns the node restart policy, default is Never
+func (nConfig *NodeConfig) GetRestartPolicy() corev1.RestartPolicy {
+	if nConfig.RestartPolicy != "" {
+		return nConfig.RestartPolicy
+	}
+	return corev1.RestartPolicyNever
 }
 
 // GetImagePullPolicy returns the image pull policy to pull containers images
