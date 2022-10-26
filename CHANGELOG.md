@@ -10,6 +10,8 @@
 
 ### Fixed Bugs
 
+- [PR #189](https://github.com/konpyutaika/nifikop/pull/189) - **[Operator]** Fixed issue where nifikop's zookeeper init container would not tolerate multiple comma-delimited `host:port` pairs in the `NifiCluster.Spec.ZkAddress` configuration.
+
 ### Deprecated
 
 ### Removed
