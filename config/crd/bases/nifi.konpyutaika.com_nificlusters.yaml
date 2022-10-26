@@ -8423,9 +8423,9 @@ spec:
                 - internal
                 type: string
               zkAddress:
-                description: 'zKAddress specifies the ZooKeeper connection string
-                  in the form hostname:port where host and port are those of a Zookeeper
-                  server. TODO: rework for nice zookeeper connect string ='
+                description: zKAddress specifies the ZooKeeper connection string in
+                  the form hostname:port where host and port are those of a Zookeeper
+                  server.
                 type: string
               zkPath:
                 description: zKPath specifies the Zookeeper chroot path as part of
