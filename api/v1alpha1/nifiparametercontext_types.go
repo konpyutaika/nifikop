@@ -65,7 +65,6 @@ type ParameterContextUpdateRequest struct {
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
-// +kubebuilder:storageversion
 
 // NifiParameterContext is the Schema for the nifiparametercontexts API
 type NifiParameterContext struct {

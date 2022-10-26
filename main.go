@@ -53,7 +53,7 @@ func main() {
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
 	flag.BoolVar(&certManagerEnabled, "cert-manager-enabled", false, "Enable cert-manager integration")
-	flag.BoolVar(&webhookEnabled, "webhookEnabled", true, "Enable CRDs conversion webhook.")
+	flag.BoolVar(&webhookEnabled, "webhook-enabled", true, "Enable CRDs conversion webhook.")
 
 	flag.Parse()
 

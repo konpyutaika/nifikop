@@ -84,6 +84,9 @@ spec:
             {{- if .Values.certManager.enabled }}
             - -cert-manager-enabled={{ .Values.certManager.enabled }}
             {{- end }}
+            {{- if .Values.webhook.enabled }}
+            - -webhook-enabled={{ .Values.webhook.enabled }}
+            {{- end }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: "{{ .Values.image.pullPolicy }}"
           name: {{ template "nifikop.name" . }}

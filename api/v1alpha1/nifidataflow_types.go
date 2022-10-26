@@ -111,7 +111,6 @@ type NifiDataflowStatus struct {
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
-// +kubebuilder:storageversion
 
 // NifiDataflow is the Schema for the nifidataflows API
 type NifiDataflow struct {

@@ -36,7 +36,6 @@ type NifiUserStatus struct {
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
-// +kubebuilder:storageversion
 
 // NifiUser is the Schema for the nifiusers API
 type NifiUser struct {
