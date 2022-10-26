@@ -3,9 +3,10 @@ package main
 import (
 	"flag"
 	"fmt"
-	v1 "github.com/konpyutaika/nifikop/api/v1"
 	"os"
 	"strings"
+
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 
 	"github.com/go-logr/zapr"
 	certv1 "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1"
@@ -193,6 +194,30 @@ func main() {
 		RequeueOffset:   multipliers.RequeueOffset,
 	}).SetupWithManager(mgr); err != nil {
 		logger.Error("unable to create controller", zap.String("controller", "NifiNodeGroupAutoscaler"), zap.Error(err))
+		os.Exit(1)
+	}
+	if err = (&nifiv1alpha1.NifiUser{}).SetupWebhookWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create webhook", "webhook", "NifiUser")
+		os.Exit(1)
+	}
+	if err = (&nifiv1alpha1.NifiCluster{}).SetupWebhookWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create webhook", "webhook", "NifiCluster")
+		os.Exit(1)
+	}
+	if err = (&nifiv1alpha1.NifiDataflow{}).SetupWebhookWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create webhook", "webhook", "NifiDataflow")
+		os.Exit(1)
+	}
+	if err = (&nifiv1alpha1.NifiParameterContext{}).SetupWebhookWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create webhook", "webhook", "NifiParameterContext")
+		os.Exit(1)
+	}
+	if err = (&nifiv1alpha1.NifiRegistryClient{}).SetupWebhookWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create webhook", "webhook", "NifiRegistryClient")
+		os.Exit(1)
+	}
+	if err = (&nifiv1alpha1.NifiUserGroup{}).SetupWebhookWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create webhook", "webhook", "NifiUserGroup")
 		os.Exit(1)
 	}
 	// +kubebuilder:scaffold:builder

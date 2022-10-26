@@ -1,4 +1,4 @@
-package v1
+package v1alpha1
 
 import (
 	"fmt"
@@ -527,7 +527,6 @@ type PrometheusReportingTaskStatus struct {
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
-// +kubebuilder:storageversion
 
 // NifiCluster is the Schema for the nificlusters API
 type NifiCluster struct {
