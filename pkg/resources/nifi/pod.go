@@ -13,7 +13,6 @@ import (
 	"github.com/konpyutaika/nifikop/pkg/util"
 	nifiutil "github.com/konpyutaika/nifikop/pkg/util/nifi"
 	pkicommon "github.com/konpyutaika/nifikop/pkg/util/pki"
-	zk "github.com/konpyutaika/nifikop/pkg/util/zookeeper"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -40,11 +39,7 @@ const (
 )
 
 func (r *Reconciler) pod(node v1alpha1.Node, nodeConfig *v1alpha1.NodeConfig, pvcs []corev1.PersistentVolumeClaim, log zap.Logger) runtimeClient.Object {
-
 	zkAddress := r.NifiCluster.Spec.ZKAddress
-	zkHostname := zk.GetHostnameAddress(zkAddress)
-	zkPort := zk.GetPortAddress(zkAddress)
-
 	dataVolume, dataVolumeMount := generateDataVolumeAndVolumeMount(pvcs)
 
 	volume := []corev1.Volume{}
@@ -151,13 +146,36 @@ func (r *Reconciler) pod(node v1alpha1.Node, nodeConfig *v1alpha1.NodeConfig, pv
 					Name:            "zookeeper",
 					Image:           r.NifiCluster.Spec.GetInitContainerImage(),
 					ImagePullPolicy: nodeConfig.GetImagePullPolicy(),
-					Command: []string{"sh", "-c", fmt.Sprintf(`
-echo trying to contact Zookeeper: %s
-until nc -vzw 1 %s %s; do
-	echo "waiting for zookeeper..."
-	sleep 2
-done`,
-						zkAddress, zkHostname, zkPort)},
+					Env: []corev1.EnvVar{
+						{
+							Name:  "ZK_ADDRESS",
+							Value: zkAddress,
+						},
+					},
+					// The zookeeper init check here just ensures that at least one configured zookeeper host is alive
+					Command: []string{"bash", "-c", `
+set -e
+echo "Trying to contact Zookeeper using connection string: ${ZK_ADDRESS}"
+
+connected=0
+IFS=',' read -r -a zk_hosts <<< "${ZK_ADDRESS}"
+until [ $connected -eq 1 ]
+do
+	for zk_host in "${zk_hosts[@]}"
+	do
+		IFS=':' read -r -a zk_host_port <<< "${zk_host}"
+		
+		echo "Checking Zookeeper Host: [${zk_host_port[0]}] Port: [${zk_host_port[1]}]"
+		nc -vzw 1 ${zk_host_port[0]} ${zk_host_port[1]}
+		if [ $? -eq 0 ]; then
+			echo "Connected to ${zk_host_port}"
+			connected=1
+		fi
+	done
+
+	sleep 1
+done
+`},
 					Resources: generateInitContainerResources(),
 				},
 			}...)),
