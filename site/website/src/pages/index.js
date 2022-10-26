@@ -140,7 +140,7 @@ function Home() {
                     <div className={styles.indexCtas}>
                         <Link
                             className={styles.indexCtasGetStartedButton}
-                            to={useBaseUrl('docs/2_deploy_nifikop/1_quick_start     ')}>
+                            to={useBaseUrl('docs/2_deploy_nifikop/1_quick_start')}>
                             Get Started
                         </Link>
                         <span className={styles.indexCtasGitHubButtonWrapper}>
