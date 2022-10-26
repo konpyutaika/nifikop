@@ -939,6 +939,10 @@ spec:
                           x-kubernetes-int-or-string: true
                         type: object
                     type: object
+                  restartPolicy:
+                    description: restartPolicy specifies the restart policy for the
+                      node
+                    type: string
                   runAsUser:
                     format: int64
                     minimum: 1
