@@ -48,7 +48,6 @@ type NifiClusterSpec struct {
 	Pod PodPolicy `json:"pod,omitempty"`
 	// zKAddress specifies the ZooKeeper connection string
 	// in the form hostname:port where host and port are those of a Zookeeper server.
-	// TODO: rework for nice zookeeper connect string =
 	ZKAddress string `json:"zkAddress,omitempty"`
 	// zKPath specifies the Zookeeper chroot path as part
 	// of its Zookeeper connection string which puts its data under same path in the global ZooKeeper namespace.
@@ -581,7 +580,7 @@ func (nSpec *NifiClusterSpec) GetZkPath() string {
 func (nSpec *NifiClusterSpec) GetInitContainerImage() string {
 
 	if nSpec.InitContainerImage == "" {
-		return "busybox"
+		return "bash"
 	}
 	return nSpec.InitContainerImage
 }
