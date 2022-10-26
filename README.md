@@ -96,6 +96,11 @@ If you find this project useful, help us:
 - Help new users with issues they may encounter :muscle:
 - Send a pull request with your new features and bug fixes :rocket:
 
+## Companies
+
+If you are a company that uses or contributes to the Operator and you would like to help the operator to get more visibility, 
+you can create a Pull Request to add you to the [list of companies](https://github.com/konpyutaika/nifikop/blob/master/site/website/src/pages/index.js#L104) working on or with NiFiKop !
+
 ## Credits
 
 - Operator implementation based on [banzaicloud/kafka-operator](https://github.com/banzaicloud/kafka-operator)
