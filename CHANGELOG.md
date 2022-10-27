@@ -6,6 +6,8 @@
 
 ### Fixed Bugs
 
+- [PR #195](https://github.com/konpyutaika/nifikop/pull/195) - **[Helm Chart]** Fixed bug where default metrics port collided with default health probe port.
+
 ### Deprecated
 
 ### Removed
