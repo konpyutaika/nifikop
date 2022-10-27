@@ -49,7 +49,7 @@ serviceAccount:
 metrics:
   ## if true deploy service for metrics access
   enabled: false
-  port: 8081
+  port: 9090
 
 logLevel: Info
 logEncoding: json
