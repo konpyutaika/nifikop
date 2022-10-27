@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunkreact_native_website=self.webpackChunkreact_native_website||[]).push([[256],{5073:e=>{e.exports=JSON.parse('{"permalink":"/nifikop/blog/tags/secured","page":1,"postsPerPage":10,"totalPages":1,"totalCount":2,"blogDescription":"Blog","blogTitle":"Blog"}')}}]);
