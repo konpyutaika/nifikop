@@ -4,6 +4,8 @@
 
 ### Changed
 
+- [PR #190](https://github.com/konpyutaika/nifikop/pull/190) - **[CRDs]** Migrate v1alpha1 to v1
+
 ### Fixed Bugs
 
 - [PR #195](https://github.com/konpyutaika/nifikop/pull/195) - **[Helm Chart]** Fixed bug where default metrics port collided with default health probe port.
