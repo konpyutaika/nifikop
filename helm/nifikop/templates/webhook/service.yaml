@@ -1,0 +1,19 @@
+
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    component: app
+    app: {{ template "webhook.service.name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+  name: {{ template "webhook.service.name" . }}
+  namespace: {{ $.Release.Namespace }}
+spec:
+  ports:
+    - port: 443
+      protocol: TCP
+      targetPort: 9443
+  selector:
+    app: {{ template "nifikop.name" . }}

@@ -54,12 +54,18 @@ spec:
       serviceAccountName: {{ template "nifikop.name" . }}
       {{- end }}
       {{- end }}
-      {{- if .Values.vaultSecret }}
       volumes:
+        {{- if .Values.vaultSecret }}
         - name: {{ .Values.vaultSecret }}
           secret:
             secretName: {{ .Values.vaultSecret }}
-      {{- end }}
+        {{- end }}
+        {{- if .Values.webhook.enabled }}
+        - name: cert
+          secret:
+            defaultMode: 420
+            secretName: {{ template "webhook.secret.name" . }}
+        {{- end }}
       {{- if .Values.podSecurityContext }}
       {{- with .Values.podSecurityContext }}
       securityContext:
@@ -94,6 +100,11 @@ spec:
             - name: metrics
               containerPort: {{ .Values.metrics.port }}
               protocol: TCP
+            {{- if .Values.webhook.enabled }}
+            - containerPort: 9443
+              name: webhook-server
+              protocol: TCP
+            {{- end }}
           securityContext:
             allowPrivilegeEscalation: false
           env:
@@ -141,6 +152,11 @@ spec:
           {{- if .Values.vaultSecret }}
           - mountPath: /etc/vault/certs
             name: {{ .Values.vaultSecret }}
+            readOnly: true
+          {{- end }}
+          {{- if .Values.webhook.enabled }}
+          - mountPath: /tmp/k8s-webhook-server/serving-certs
+            name: cert
             readOnly: true
           {{- end }}
       terminationGracePeriodSeconds: 10
