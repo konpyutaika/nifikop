@@ -104,6 +104,37 @@ kubectl apply -f https://raw.githubusercontent.com/konpyutaika/nifikop/master/co
 kubectl apply -f https://raw.githubusercontent.com/konpyutaika/nifikop/master/config/crd/bases/nifi.konpyutaika.com_nifiregistryclients.yaml
 ```
 
+:::important Conversion webhook
+In case you keep the conversion webhook enabled (to handle the conversion of resources from `v1alpha1` to `v1`)
+you will need to add the following settings to your yaml definition of CRDs:
+
+```yaml
+...
+annotations:
+    cert-manager.io/inject-ca-from: ${namespace}/${certificate_name}
+...
+spec:
+  ...
+  conversion:
+    strategy: Webhook
+    webhook:
+      clientConfig:
+        service:
+          namespace: ${namespace}
+          name: ${webhook_service_name}
+          path: /convert
+      conversionReviewVersions:
+        - v1
+        - v1alpha1
+  ...
+```
+
+Where :
+- `namespace`: is the namespace in which you will deploy your helm chart.
+- `certificate_name`: is `${helm release name}-webhook-cert`
+- `webhook_service_name`: is `${helm release name}-webhook-cert`
+:::
+
 Now deploy the helm chart :
 
 ```bash
