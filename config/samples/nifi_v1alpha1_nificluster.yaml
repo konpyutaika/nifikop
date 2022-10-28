@@ -26,7 +26,7 @@ spec:
   zkPath: "/myNiFi"
   # initContainerImage can override the default image used into the init container to check if
   #	ZoooKeeper server is reachable.
-  #  initContainerImage: busybox
+  #  initContainerImage: bash
   # initContainers defines additional initContainers configurations
   #  initContainers:
   #    - image: eu.gcr.io/poc-rtc/nifi-proxydata-bundle:1.11.4-1.0.0
