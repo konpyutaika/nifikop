@@ -2,6 +2,7 @@ package v1alpha1
 
 import (
 	"fmt"
+
 	"github.com/konpyutaika/nifikop/api/v1"
 	"sigs.k8s.io/controller-runtime/pkg/conversion"
 )
@@ -210,6 +211,7 @@ func convertSecretConfigReference(src *SecretConfigReference) *v1.SecretConfigRe
 }
 
 func convertNifiClusterNodeConfigGroups(src map[string]NodeConfig, dst *v1.NifiCluster) {
+	dst.Spec.NodeConfigGroups = map[string]v1.NodeConfig{}
 	for key, val := range src {
 		dst.Spec.NodeConfigGroups[key] = convertNodeConfig(val)
 	}
@@ -421,6 +423,7 @@ func convertNifiClusterStatus(src *NifiClusterStatus, dst *v1.NifiCluster) error
 }
 
 func convertNifiClusterNodesState(src map[string]NodeState, dst *v1.NifiCluster) {
+	dst.Status.NodesState = map[string]v1.NodeState{}
 	for srcNodeId, srcNodeState := range src {
 		dstNodeState := v1.NodeState{
 			GracefulActionState: convertGracefulActionState(srcNodeState.GracefulActionState),
@@ -645,6 +648,7 @@ func convertFromSecretConfigReference(src *v1.SecretConfigReference) *SecretConf
 }
 
 func convertNifiClusterFromNodeConfigGroups(src map[string]v1.NodeConfig, dst *NifiCluster) {
+	dst.Spec.NodeConfigGroups = map[string]NodeConfig{}
 	for key, val := range src {
 		dst.Spec.NodeConfigGroups[key] = convertFromNodeConfig(val)
 	}
@@ -856,6 +860,7 @@ func convertNifiClusterFromStatus(src *v1.NifiClusterStatus, dst *NifiCluster) e
 }
 
 func convertNifiClusterFromNodesState(src map[string]v1.NodeState, dst *NifiCluster) {
+	dst.Status.NodesState = map[string]NodeState{}
 	for srcNodeId, srcNodeState := range src {
 		dstNodeState := NodeState{
 			GracefulActionState: convertFromGracefulActionState(srcNodeState.GracefulActionState),

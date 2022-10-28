@@ -7,7 +7,7 @@ sidebar_label: NiFi UserGroup
 `NifiUserGroup` is the Schema for the nifi user groups API.
 
 ```yaml
-apiVersion: nifi.konpyutaika.com/v1alpha1
+apiVersion: nifi.konpyutaika.com/v1
 kind: NifiUserGroup
 metadata:
   name: group-test

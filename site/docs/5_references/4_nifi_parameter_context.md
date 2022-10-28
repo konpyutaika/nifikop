@@ -7,7 +7,7 @@ sidebar_label: NiFi Parameter Context
 `NifiParameterContext` is the Schema for the NiFi parameter context API.
 
 ```yaml
-apiVersion: nifi.konpyutaika.com/v1alpha1
+apiVersion: nifi.konpyutaika.com/v1
 kind: NifiParameterContext
 metadata:
   name: dataflow-lifecycle
@@ -27,7 +27,7 @@ spec:
       description: toto
       sensistive: true
 ---
-apiVersion: nifi.konpyutaika.com/v1alpha1
+apiVersion: nifi.konpyutaika.com/v1
 kind: NifiParameterContext
 metadata:
   name: dataflow-lifecycle-child

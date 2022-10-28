@@ -582,7 +582,7 @@ func (nSpec *NifiClusterSpec) GetZkPath() string {
 func (nSpec *NifiClusterSpec) GetInitContainerImage() string {
 
 	if nSpec.InitContainerImage == "" {
-		return "busybox"
+		return "bash"
 	}
 	return nSpec.InitContainerImage
 }

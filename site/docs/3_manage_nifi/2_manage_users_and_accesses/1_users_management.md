@@ -13,7 +13,7 @@ When you create a `NifiUser` resource the operator will :
 2. If no user is found, the operator will create and manage it (i.e it will ensure the synchronisation with the NiFi Cluster).
 
 ```yaml
-apiVersion: nifi.konpyutaika.com/v1alpha1
+apiVersion: nifi.konpyutaika.com/v1
 kind: NifiUser
 metadata:
   name: aguitton
