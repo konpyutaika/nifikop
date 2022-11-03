@@ -991,8 +991,6 @@ func (r *Reconciler) UpdateCertificateStatusDate(ctx context.Context, pod *corev
 	nodeId := pod.Labels["nodeId"]
 
 	certRenewalTime := cert.Status.RenewalTime
-	// test := metav1.NewTime(time.Now())
-	// certRenewalTime := v1alpha1.CertificateExpireDate(&test)
 	certificateExpireDate := r.NifiCluster.Status.NodesState[nodeId].CertificateExpireDate
 	certificateExpireDateTime := metav1.Unix(0, 0).Time
 	if certificateExpireDate != nil {
