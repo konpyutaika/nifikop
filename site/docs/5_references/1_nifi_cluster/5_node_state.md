@@ -15,7 +15,8 @@ Holds information about nifi state
 |initClusterNode|[InitClusterNode](#initclusternode)| contains if this nodes was part of the initial cluster.| - | - |
 |podIsReady|bool| True if the pod for this node is up and running. Otherwise false.| - | - |
 |creationTime|[v1.Time](https://pkg.go.dev/k8s.io/apimachinery/pkg/apis/meta/v1#Time)| The time at which this node was created and added to the cluster| - | - |
-
+|LastUpdatedTime|[v1.Time](https://pkg.go.dev/k8s.io/apimachinery/pkg/apis/meta/v1#Time)|LastUpdatedTime is the last time at which this node was updated. This must be sortable.|-|-|
+|CertificateExpireDate|[v1.Time](https://pkg.go.dev/k8s.io/apimachinery/pkg/apis/meta/v1#Time)|Certificate expire date contains the date when the certificate should be renewed|-|-|
 
 ## GracefulActionState 
 
