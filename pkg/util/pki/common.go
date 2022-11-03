@@ -61,9 +61,6 @@ type Manager interface {
 
 	// IsCertificateExpired return true is the certificate of the cluster has expired
 	IsCertificateExpired(ctx context.Context, pod *corev1.Pod, logger zap.Logger) bool
-
-	// UpdateCertificateStatusDate update certificate expire date after rolling upgrade
-	UpdateCertificateStatusDate(ctx context.Context, pod *corev1.Pod, logger zap.Logger) error
 }
 
 // UserCertificate is a struct representing the key components of a user TLS certificate

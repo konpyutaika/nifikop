@@ -4723,6 +4723,11 @@ spec:
                     type: array
                   sslSecrets:
                     properties:
+                      TriggerNodeRestartOnCertifUpdate:
+                        description: ',"vault" set to true to enable nodes auto restart
+                          when cert-manager''s certificate expires, only works if
+                          the Issuer is cert-manager'
+                        type: boolean
                       clusterScoped:
                         type: boolean
                       create:

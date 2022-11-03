@@ -10,7 +10,6 @@ import (
 	certv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	certmeta "github.com/cert-manager/cert-manager/pkg/apis/meta/v1"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
-	"github.com/konpyutaika/nifikop/pkg/k8sutil"
 	"github.com/konpyutaika/nifikop/pkg/resources/templates"
 	pkicommon "github.com/konpyutaika/nifikop/pkg/util/pki"
 	"go.uber.org/zap"
@@ -56,35 +55,6 @@ func (c *certManager) IsCertificateExpired(ctx context.Context, pod *corev1.Pod,
 		certificateExpireDateTime = certificateExpireDate.Time
 	}
 	return certificateExpireDateTime != certRenewalTime
-}
-
-func (c *certManager) UpdateCertificateStatusDate(ctx context.Context, pod *corev1.Pod, logger zap.Logger) error {
-	nodeIdInt, _ := strconv.Atoi(pod.Labels["nodeId"])
-	cert, err := c.GetCertificate(ctx, nodeIdInt, logger)
-
-	if err != nil {
-		logger.Info("No certificate found", zap.Error(err))
-		return err
-	}
-
-	nodeId := pod.Labels["nodeId"]
-
-	certRenewalTime := cert.Status.RenewalTime
-	// test := metav1.NewTime(time.Now())
-	// certRenewalTime := v1alpha1.CertificateExpireDate(&test)
-	certificateExpireDate := c.cluster.Status.NodesState[nodeId].CertificateExpireDate
-	certificateExpireDateTime := metav1.Unix(0, 0).Time
-	if certificateExpireDate != nil {
-		certificateExpireDateTime = certificateExpireDate.Time
-	}
-
-	if certificateExpireDateTime != certRenewalTime.Time {
-		if err := k8sutil.UpdateNodeStatus(c.client, []string{nodeId}, c.cluster, certRenewalTime, logger); err != nil {
-			logger.Error("Fail to update CertificateExpireDate", zap.Error(err))
-			return err
-		}
-	}
-	return nil
 }
 
 func (c *certManager) FinalizePKI(ctx context.Context, logger zap.Logger) error {

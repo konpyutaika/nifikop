@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 	"time"
 
@@ -17,17 +18,22 @@ import (
 	"go.uber.org/zap"
 
 	"emperror.dev/errors"
-	"github.com/konpyutaika/nifikop/pkg/clientwrappers/controllersettings"
-	"github.com/konpyutaika/nifikop/pkg/clientwrappers/reportingtask"
-
 	"github.com/banzaicloud/k8s-objectmatcher/patch"
+	"github.com/konpyutaika/nifikop/pkg/clientwrappers/controllersettings"
+	"github.com/konpyutaika/nifikop/pkg/clientwrappers/dataflow"
+	"github.com/konpyutaika/nifikop/pkg/clientwrappers/reportingtask"
+	"github.com/konpyutaika/nifikop/pkg/clientwrappers/scale"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	"github.com/konpyutaika/nifikop/pkg/k8sutil"
+	"github.com/konpyutaika/nifikop/pkg/nificlient/config"
+	"github.com/konpyutaika/nifikop/pkg/pki"
 	"github.com/konpyutaika/nifikop/pkg/resources"
 	"github.com/konpyutaika/nifikop/pkg/resources/templates"
 	"github.com/konpyutaika/nifikop/pkg/util"
 	certutil "github.com/konpyutaika/nifikop/pkg/util/cert"
+	nifiutil "github.com/konpyutaika/nifikop/pkg/util/nifi"
 	pkicommon "github.com/konpyutaika/nifikop/pkg/util/pki"
+	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -183,7 +189,7 @@ func (r *Reconciler) Reconcile(log zap.Logger) error {
 				return errors.WrapIfWithDetails(err, "could not update status for node(s)",
 					"id(s)", o.(*corev1.Pod).Labels["nodeId"])
 			}
-			pki.GetPKIManager(r.Client, r.NifiCluster).UpdateCertificateStatusDate(context.TODO(), o.(*corev1.Pod), log)
+			r.UpdateCertificateStatusDate(context.TODO(), o.(*corev1.Pod), log)
 		}
 	}
 
@@ -662,7 +668,8 @@ func (r *Reconciler) reconcileNifiPod(log zap.Logger, desiredPod *corev1.Pod) (e
 		} else if patchResult.IsEmpty() {
 			if !k8sutil.IsPodTerminatedOrShutdown(currentPod) &&
 				r.NifiCluster.Status.NodesState[currentPod.Labels["nodeId"]].ConfigurationState == v1.ConfigInSync &&
-				!pki.GetPKIManager(r.Client, r.NifiCluster).IsCertificateExpired(context.TODO(), currentPod, log) {
+				!(pki.GetPKIManager(r.Client, r.NifiCluster).IsCertificateExpired(context.TODO(), currentPod, log) &&
+					r.NifiCluster.Spec.ListenersConfig.SSLSecrets.TriggerNodeRestartOnCertifUpdate) {
 
 				if val, found := r.NifiCluster.Status.NodesState[desiredPod.Labels["nodeId"]]; found &&
 					val.GracefulActionState.State == v1.GracefulUpscaleRunning &&
@@ -967,5 +974,36 @@ func (r *Reconciler) reconcileMaximumThreadCounts(log zap.Logger) error {
 		return errors.WrapIfWithDetails(err, "failed to sync MaximumThreadCount configuration")
 	}
 
+	return nil
+}
+
+func (r *Reconciler) UpdateCertificateStatusDate(ctx context.Context, pod *corev1.Pod, logger zap.Logger) error {
+	tmp, _ := strconv.ParseInt(pod.Labels["nodeId"], 10, 32)
+	nodeIdInt := int32(tmp)
+	c := pki.GetPKIManager(r.Client, r.NifiCluster)
+	cert, err := c.GetCertificate(ctx, nodeIdInt, logger)
+
+	if err != nil {
+		logger.Info("No certificate found", zap.Error(err))
+		return err
+	}
+
+	nodeId := pod.Labels["nodeId"]
+
+	certRenewalTime := cert.Status.RenewalTime
+	// test := metav1.NewTime(time.Now())
+	// certRenewalTime := v1alpha1.CertificateExpireDate(&test)
+	certificateExpireDate := r.NifiCluster.Status.NodesState[nodeId].CertificateExpireDate
+	certificateExpireDateTime := metav1.Unix(0, 0).Time
+	if certificateExpireDate != nil {
+		certificateExpireDateTime = certificateExpireDate.Time
+	}
+
+	if certificateExpireDateTime != certRenewalTime.Time {
+		if err := k8sutil.UpdateNodeStatus(r.Client, []string{nodeId}, r.NifiCluster, certRenewalTime, logger); err != nil {
+			logger.Error("Fail to update CertificateExpireDate", zap.Error(err))
+			return err
+		}
+	}
 	return nil
 }
