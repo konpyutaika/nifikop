@@ -61,7 +61,7 @@ Finally, our motivation is to build an open source solution and a community whic
 
 ## Installation
 
-To get up and running quickly, check our [Getting Started page](https://konpyutaika.github.io/nifikop/docs/2_setup/1_getting_started)
+To get up and running quickly, check our [Getting Started page](https://konpyutaika.github.io/nifikop/docs/2_deploy_nifikop/1_quick_start)
 
 ## Development
 
