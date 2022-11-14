@@ -20,7 +20,6 @@ which implements kubernetes custom ressource definition.
 
 The following tables lists the configurable parameters of the NiFi Operator Helm chart and their default values.
 
-<<<<<<< HEAD
 | Parameter                        | Description                                                                                                                                                                         | Default                  |
 |----------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------|
 | `image.repository`               | Image                                                                                                                                                                               | `konpyutaika/nifikop`    |
