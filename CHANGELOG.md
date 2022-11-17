@@ -2,6 +2,8 @@
 
 ### Added
 
+- [PR #202](https://github.com/konpyutaika/nifikop/pull/202) - **[Operator]** Updated the go version in nifikop to 1.19.
+
 ### Changed
 
 - [PR #205](https://github.com/konpyutaika/nifikop/pull/205) - **[Operator]** Updated operator-sdk to v1.25.2.
