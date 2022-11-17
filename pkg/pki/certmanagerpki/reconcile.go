@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"reflect"
 
-	certv1 "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1"
+	certv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"

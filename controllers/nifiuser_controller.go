@@ -24,7 +24,7 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/banzaicloud/k8s-objectmatcher/patch"
-	certv1 "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1"
+	certv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	usercli "github.com/konpyutaika/nifikop/pkg/clientwrappers/user"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	"github.com/konpyutaika/nifikop/pkg/k8sutil"
