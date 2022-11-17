@@ -128,7 +128,7 @@ func convertNifiClusterManagedAdminUsers(src []ManagedUser, dst *v1.NifiCluster)
 func convertNifiClusterManagedReaderUsers(src []ManagedUser, dst *v1.NifiCluster) {
 	dst.Spec.ManagedReaderUsers = []v1.ManagedUser{}
 	for _, user := range src {
-		dst.Spec.ManagedReaderUsers = append(dst.Spec.ManagedAdminUsers, v1.ManagedUser{
+		dst.Spec.ManagedReaderUsers = append(dst.Spec.ManagedReaderUsers, v1.ManagedUser{
 			Identity: user.Identity,
 			Name:     user.Name,
 		})
@@ -565,7 +565,7 @@ func convertNifiClusterFromManagedAdminUsers(src []v1.ManagedUser, dst *NifiClus
 func convertNifiClusterFromManagedReaderUsers(src []v1.ManagedUser, dst *NifiCluster) {
 	dst.Spec.ManagedReaderUsers = []ManagedUser{}
 	for _, user := range src {
-		dst.Spec.ManagedReaderUsers = append(dst.Spec.ManagedAdminUsers, ManagedUser{
+		dst.Spec.ManagedReaderUsers = append(dst.Spec.ManagedReaderUsers, ManagedUser{
 			Identity: user.Identity,
 			Name:     user.Name,
 		})
