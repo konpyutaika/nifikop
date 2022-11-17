@@ -3,6 +3,7 @@
 ### Added
 
 - [PR #202](https://github.com/konpyutaika/nifikop/pull/202) - **[Operator]** Updated the go version in nifikop to 1.19.
+- [PR #208](https://github.com/konpyutaika/nifikop/pull/208) - **[Operator]** Updated the cert-manager lib version to v1.10.0.
 
 ### Changed
 

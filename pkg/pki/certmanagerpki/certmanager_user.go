@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 
-	certv1 "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1"
-	certmeta "github.com/jetstack/cert-manager/pkg/apis/meta/v1"
+	certv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
+	certmeta "github.com/cert-manager/cert-manager/pkg/apis/meta/v1"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	"github.com/konpyutaika/nifikop/pkg/k8sutil"
