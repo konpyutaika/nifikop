@@ -12,6 +12,7 @@
 ### Fixed Bugs
 
 - [PR #195](https://github.com/konpyutaika/nifikop/pull/195) - **[Helm Chart]** Fixed bug where default metrics port collided with default health probe port.
+- [PR #210](https://github.com/konpyutaika/nifikop/pull/210) - **[NifiUser]** Fixed issue where `NifiUser` `Certificate` and `Secret` resources get re-created after the `NifiUser` has been marked for deletion and removed. This is most noticeable when deploying NiFi clusters via ArgoCD.
 
 ### Deprecated
 
