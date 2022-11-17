@@ -25,7 +25,7 @@ spec:
       description: tutu
     - name: test2
       description: toto
-      sensistive: true
+      sensitive: true
 ---
 apiVersion: nifi.konpyutaika.com/v1alpha1
 kind: NifiParameterContext
