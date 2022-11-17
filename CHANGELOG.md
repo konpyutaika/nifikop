@@ -7,6 +7,8 @@
 
 ### Changed
 
+- [PR #205](https://github.com/konpyutaika/nifikop/pull/205) - **[Operator]** Updated operator-sdk to v1.25.2.
+
 ### Fixed Bugs
 
 - [PR #195](https://github.com/konpyutaika/nifikop/pull/195) - **[Helm Chart]** Fixed bug where default metrics port collided with default health probe port.
