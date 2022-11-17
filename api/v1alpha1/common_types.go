@@ -49,9 +49,9 @@ type InitClusterNode bool
 type PKIBackend string
 
 // ClientConfigType represents an interface implementing the ClientConfigManager
+type ClientConfigType string
 
 // ClusterType represents an interface implementing the  ClientConfigManager
-type ClientConfigType string
 type ClusterType string
 
 // AccessPolicyType represents the type of access policy
