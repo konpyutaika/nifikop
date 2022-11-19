@@ -1,6 +1,7 @@
 package autoscale
 
 import (
+	v12 "github.com/konpyutaika/nifikop/api/v1"
 	"reflect"
 	"testing"
 	"time"
@@ -24,17 +25,17 @@ var lifo = LIFOHorizontalDownscaleStrategy{
 			},
 		},
 	},
-	NifiCluster: &v1alpha1.NifiCluster{
-		Spec: v1alpha1.NifiClusterSpec{
-			Nodes: []v1alpha1.Node{
+	NifiCluster: &v12.NifiCluster{
+		Spec: v12.NifiClusterSpec{
+			Nodes: []v12.Node{
 				{Id: 2, NodeConfigGroup: "scale-group", Labels: map[string]string{"scale_me": "true"}},
 				{Id: 3, NodeConfigGroup: "scale-group", Labels: map[string]string{"scale_me": "true"}},
 				{Id: 4, NodeConfigGroup: "scale-group", Labels: map[string]string{"scale_me": "true"}},
 				{Id: 5, NodeConfigGroup: "other-group", Labels: map[string]string{"other_group": "true"}},
 			},
 		},
-		Status: v1alpha1.NifiClusterStatus{
-			NodesState: map[string]v1alpha1.NodeState{
+		Status: v12.NifiClusterStatus{
+			NodesState: map[string]v12.NodeState{
 				"2": {
 					CreationTime: &time1,
 				},
@@ -60,17 +61,17 @@ var simple = SimpleHorizontalUpscaleStrategy{
 			},
 		},
 	},
-	NifiCluster: &v1alpha1.NifiCluster{
-		Spec: v1alpha1.NifiClusterSpec{
-			Nodes: []v1alpha1.Node{
+	NifiCluster: &v12.NifiCluster{
+		Spec: v12.NifiClusterSpec{
+			Nodes: []v12.Node{
 				{Id: 2, NodeConfigGroup: "scale-group", Labels: map[string]string{"scale_me": "true"}},
 				{Id: 3, NodeConfigGroup: "scale-group", Labels: map[string]string{"scale_me": "true"}},
 				{Id: 4, NodeConfigGroup: "scale-group", Labels: map[string]string{"scale_me": "true"}},
 				{Id: 5, NodeConfigGroup: "other-group", Labels: map[string]string{"other_group": "true"}},
 			},
 		},
-		Status: v1alpha1.NifiClusterStatus{
-			NodesState: map[string]v1alpha1.NodeState{
+		Status: v12.NifiClusterStatus{
+			NodesState: map[string]v12.NodeState{
 				"2": {
 					CreationTime: &time1,
 				},
@@ -171,7 +172,7 @@ func TestSimpleAddNoNodes(t *testing.T) {
 }
 
 func TestComputeNewNodeIds(t *testing.T) {
-	nodeList := []v1alpha1.Node{
+	nodeList := []v12.Node{
 		{
 			Id: 1,
 		},

@@ -9,7 +9,7 @@ This part is supported by the operator using the `NifiUserGroup` resource :
 
 
 ```yaml
-apiVersion: nifi.konpyutaika.com/v1alpha1
+apiVersion: nifi.konpyutaika.com/v1
 kind: NifiUserGroup
 metadata:
   name: group-test

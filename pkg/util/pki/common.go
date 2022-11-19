@@ -4,8 +4,8 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"github.com/konpyutaika/nifikop/api/v1"
 
-	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/resources/templates"
 	certutil "github.com/konpyutaika/nifikop/pkg/util/cert"
 	"github.com/konpyutaika/nifikop/pkg/util/nifi"
@@ -45,10 +45,10 @@ type Manager interface {
 	FinalizePKI(ctx context.Context, logger zap.Logger) error
 
 	// ReconcileUserCertificate ensures and returns a user certificate - should be idempotent
-	ReconcileUserCertificate(ctx context.Context, user *v1alpha1.NifiUser, scheme *runtime.Scheme) (*UserCertificate, error)
+	ReconcileUserCertificate(ctx context.Context, user *v1.NifiUser, scheme *runtime.Scheme) (*UserCertificate, error)
 
 	// FinalizeUserCertificate removes/revokes a user certificate
-	FinalizeUserCertificate(ctx context.Context, user *v1alpha1.NifiUser) error
+	FinalizeUserCertificate(ctx context.Context, user *v1.NifiUser) error
 
 	// GetControllerTLSConfig retrieves a TLS configuration for a controller nifi client
 	GetControllerTLSConfig() (*tls.Config, error)
@@ -80,18 +80,18 @@ func (u *UserCertificate) DN() string {
 }
 
 // GetInternalDNSNames returns all potential DNS names for a nifi cluster - including nodes
-func GetInternalDNSNames(cluster *v1alpha1.NifiCluster, nodeId int32) (dnsNames []string) {
+func GetInternalDNSNames(cluster *v1.NifiCluster, nodeId int32) (dnsNames []string) {
 	dnsNames = make([]string, 0)
 	dnsNames = append(dnsNames, ClusterDNSNames(cluster, nodeId)...)
 	return
 }
 
-//func GetCommonName(cluster *v1alpha1.NifiCluster) string {
+//func GetCommonName(cluster *v1.NifiCluster) string {
 //	return nifi.ComputeNiFiHostname(cluster.Name, cluster.Namespace, cluster.Spec.Service.HeadlessEnabled,
 //		cluster.Spec.ListenersConfig.GetClusterDomain(), cluster.Spec.ListenersConfig.UseExternalDNS)
 //}
 
-func GetNodeUserName(cluster *v1alpha1.NifiCluster, nodeId int32) string {
+func GetNodeUserName(cluster *v1.NifiCluster, nodeId int32) string {
 	if cluster.Spec.NodeUserIdentityTemplate != nil {
 		return fmt.Sprintf(*cluster.Spec.NodeUserIdentityTemplate, nodeId)
 	}
@@ -101,7 +101,7 @@ func GetNodeUserName(cluster *v1alpha1.NifiCluster, nodeId int32) string {
 }
 
 // ClusterDNSNames returns all the possible DNS Names for a NiFi Cluster
-func ClusterDNSNames(cluster *v1alpha1.NifiCluster, nodeId int32) (names []string) {
+func ClusterDNSNames(cluster *v1.NifiCluster, nodeId int32) (names []string) {
 	names = make([]string, 0)
 
 	// FQDN
@@ -160,10 +160,10 @@ func LabelsForNifiPKI(name string) map[string]string {
 }
 
 // NodeUsersForCluster returns a NifiUser CR for the node certificates in a NifiCluster
-func NodeUsersForCluster(cluster *v1alpha1.NifiCluster, additionalHostnames []string) []*v1alpha1.NifiUser {
+func NodeUsersForCluster(cluster *v1.NifiCluster, additionalHostnames []string) []*v1.NifiUser {
 	additionalHostnames = append(additionalHostnames)
 
-	var nodeUsers []*v1alpha1.NifiUser
+	var nodeUsers []*v1.NifiUser
 
 	for _, node := range cluster.Spec.Nodes {
 		nodeUsers = append(nodeUsers, nodeUserForClusterNode(cluster, node.Id, additionalHostnames))
@@ -173,57 +173,57 @@ func NodeUsersForCluster(cluster *v1alpha1.NifiCluster, additionalHostnames []st
 }
 
 // NodeUserForClusterNode returns a NifiUser CR for the node certificates in a NifiCluster
-func nodeUserForClusterNode(cluster *v1alpha1.NifiCluster, nodeId int32, additionalHostnames []string) *v1alpha1.NifiUser {
+func nodeUserForClusterNode(cluster *v1.NifiCluster, nodeId int32, additionalHostnames []string) *v1.NifiUser {
 	additionalHostnames = append(additionalHostnames)
-	return &v1alpha1.NifiUser{
+	return &v1.NifiUser{
 		ObjectMeta: templates.ObjectMeta(GetNodeUserName(cluster, nodeId), LabelsForNifiPKI(cluster.Name), cluster),
-		Spec: v1alpha1.NifiUserSpec{
+		Spec: v1.NifiUserSpec{
 			SecretName: fmt.Sprintf(NodeServerCertTemplate, cluster.Name, nodeId),
 			DNSNames:   append(GetInternalDNSNames(cluster, nodeId), additionalHostnames...),
 			IncludeJKS: true,
-			ClusterRef: v1alpha1.ClusterReference{
+			ClusterRef: v1.ClusterReference{
 				Name:      cluster.Name,
 				Namespace: cluster.Namespace,
 			},
-			AccessPolicies: []v1alpha1.AccessPolicy{
-				{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.ReadAccessPolicyAction, Resource: v1alpha1.ProxyAccessPolicyResource},
-				{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.WriteAccessPolicyAction, Resource: v1alpha1.ProxyAccessPolicyResource},
+			AccessPolicies: []v1.AccessPolicy{
+				{Type: v1.GlobalAccessPolicyType, Action: v1.ReadAccessPolicyAction, Resource: v1.ProxyAccessPolicyResource},
+				{Type: v1.GlobalAccessPolicyType, Action: v1.WriteAccessPolicyAction, Resource: v1.ProxyAccessPolicyResource},
 			},
 		},
 	}
 }
 
 // ControllerUserForCluster returns a NifiUser CR for the controller/cc certificates in a NifiCluster
-func ControllerUserForCluster(cluster *v1alpha1.NifiCluster) *v1alpha1.NifiUser {
+func ControllerUserForCluster(cluster *v1.NifiCluster) *v1.NifiUser {
 	/*nodeControllerName := fmt.Sprintf(NodeControllerFQDNTemplate,
 	cluster.GetNifiControllerUserIdentity(),
 	cluster.Namespace,
 	cluster.Spec.ListenersConfig.GetClusterDomain())*/
 
-	return &v1alpha1.NifiUser{
+	return &v1.NifiUser{
 		ObjectMeta: templates.ObjectMeta(
 			cluster.GetNifiControllerUserIdentity(),
 			LabelsForNifiPKI(cluster.Name), cluster,
 		),
-		Spec: v1alpha1.NifiUserSpec{
+		Spec: v1.NifiUserSpec{
 			DNSNames:   []string{cluster.GetNifiControllerUserIdentity()},
 			SecretName: cluster.GetNifiControllerUserIdentity(),
 			IncludeJKS: true,
-			ClusterRef: v1alpha1.ClusterReference{
+			ClusterRef: v1.ClusterReference{
 				Name:      cluster.Name,
 				Namespace: cluster.Namespace,
 			},
-			AccessPolicies: []v1alpha1.AccessPolicy{
-				{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.ReadAccessPolicyAction, Resource: v1alpha1.FlowAccessPolicyResource},
-				{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.WriteAccessPolicyAction, Resource: v1alpha1.FlowAccessPolicyResource},
-				{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.ReadAccessPolicyAction, Resource: v1alpha1.ControllerAccessPolicyResource},
-				{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.WriteAccessPolicyAction, Resource: v1alpha1.ControllerAccessPolicyResource},
-				{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.ReadAccessPolicyAction, Resource: v1alpha1.RestrictedComponentsAccessPolicyResource},
-				{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.WriteAccessPolicyAction, Resource: v1alpha1.RestrictedComponentsAccessPolicyResource},
-				{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.ReadAccessPolicyAction, Resource: v1alpha1.PoliciesAccessPolicyResource},
-				{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.WriteAccessPolicyAction, Resource: v1alpha1.PoliciesAccessPolicyResource},
-				{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.ReadAccessPolicyAction, Resource: v1alpha1.TenantsAccessPolicyResource},
-				{Type: v1alpha1.GlobalAccessPolicyType, Action: v1alpha1.WriteAccessPolicyAction, Resource: v1alpha1.TenantsAccessPolicyResource},
+			AccessPolicies: []v1.AccessPolicy{
+				{Type: v1.GlobalAccessPolicyType, Action: v1.ReadAccessPolicyAction, Resource: v1.FlowAccessPolicyResource},
+				{Type: v1.GlobalAccessPolicyType, Action: v1.WriteAccessPolicyAction, Resource: v1.FlowAccessPolicyResource},
+				{Type: v1.GlobalAccessPolicyType, Action: v1.ReadAccessPolicyAction, Resource: v1.ControllerAccessPolicyResource},
+				{Type: v1.GlobalAccessPolicyType, Action: v1.WriteAccessPolicyAction, Resource: v1.ControllerAccessPolicyResource},
+				{Type: v1.GlobalAccessPolicyType, Action: v1.ReadAccessPolicyAction, Resource: v1.RestrictedComponentsAccessPolicyResource},
+				{Type: v1.GlobalAccessPolicyType, Action: v1.WriteAccessPolicyAction, Resource: v1.RestrictedComponentsAccessPolicyResource},
+				{Type: v1.GlobalAccessPolicyType, Action: v1.ReadAccessPolicyAction, Resource: v1.PoliciesAccessPolicyResource},
+				{Type: v1.GlobalAccessPolicyType, Action: v1.WriteAccessPolicyAction, Resource: v1.PoliciesAccessPolicyResource},
+				{Type: v1.GlobalAccessPolicyType, Action: v1.ReadAccessPolicyAction, Resource: v1.TenantsAccessPolicyResource},
+				{Type: v1.GlobalAccessPolicyType, Action: v1.WriteAccessPolicyAction, Resource: v1.TenantsAccessPolicyResource},
 			},
 		},
 	}

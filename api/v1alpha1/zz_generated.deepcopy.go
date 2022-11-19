@@ -23,6 +23,7 @@ package v1alpha1
 
 import (
 	metav1 "github.com/cert-manager/cert-manager/pkg/apis/meta/v1"
+	apiv1 "github.com/konpyutaika/nifikop/api/v1"
 	"k8s.io/api/core/v1"
 	apismetav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
@@ -776,12 +777,12 @@ func (in *NifiNodeGroupAutoscalerSpec) DeepCopyInto(out *NifiNodeGroupAutoscaler
 	}
 	if in.ReadOnlyConfig != nil {
 		in, out := &in.ReadOnlyConfig, &out.ReadOnlyConfig
-		*out = new(ReadOnlyConfig)
+		*out = new(apiv1.ReadOnlyConfig)
 		(*in).DeepCopyInto(*out)
 	}
 	if in.NodeConfig != nil {
 		in, out := &in.NodeConfig, &out.NodeConfig
-		*out = new(NodeConfig)
+		*out = new(apiv1.NodeConfig)
 		(*in).DeepCopyInto(*out)
 	}
 }

@@ -9,13 +9,13 @@ import (
 )
 
 //// NewFromCluster is a convenient wrapper around New() and ClusterConfig()
-//func NewFromCluster(k8sclient client.Client, cluster *v1alpha1.NifiCluster) (nificlient.NifiClient, error) {
+//func NewFromCluster(k8sclient client.Client, cluster *v1.NifiCluster) (nificlient.NifiClient, error) {
 //	var client nificlient.NifiClient
 //	var err error
 //	var opts *clientconfig.NifiConfig
 //
 //	if opts, err = tls.New(k8sclient,
-//		v1alpha1.ClusterReference{Name: cluster.Name, Namespace: cluster.Namespace}).BuildConfig(); err != nil {
+//		v1.ClusterReference{Name: cluster.Name, Namespace: cluster.Namespace}).BuildConfig(); err != nil {
 //		return nil, err
 //	}
 //	client = nificlient.New(opts)
@@ -33,7 +33,7 @@ import (
 //
 //// newNodeConnection is a convenience wrapper for creating a node connection
 //// and creating a safer close function
-//func NewNodeConnection(log zap.Logger, client client.Client, cluster *v1alpha1.NifiCluster) (node nificlient.NifiClient, err error) {
+//func NewNodeConnection(log zap.Logger, client client.Client, cluster *v1.NifiCluster) (node nificlient.NifiClient, err error) {
 //
 //	// Get a nifi connection
 //	log.Info(fmt.Sprintf("Retrieving Nifi client for %s/%s", cluster.Namespace, cluster.Name))

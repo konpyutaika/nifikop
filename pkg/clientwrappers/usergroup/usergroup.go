@@ -1,7 +1,7 @@
 package usergroup
 
 import (
-	"github.com/konpyutaika/nifikop/api/v1alpha1"
+	"github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/accesspolicies"
 	"github.com/konpyutaika/nifikop/pkg/common"
@@ -12,7 +12,7 @@ import (
 
 var log = common.CustomLogger().Named("usergroup-method")
 
-func ExistUserGroup(userGroup *v1alpha1.NifiUserGroup, config *clientconfig.NifiConfig) (bool, error) {
+func ExistUserGroup(userGroup *v1.NifiUserGroup, config *clientconfig.NifiConfig) (bool, error) {
 
 	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
@@ -36,8 +36,8 @@ func ExistUserGroup(userGroup *v1alpha1.NifiUserGroup, config *clientconfig.Nifi
 	return false, nil
 }
 
-func CreateUserGroup(userGroup *v1alpha1.NifiUserGroup,
-	users []*v1alpha1.NifiUser, config *clientconfig.NifiConfig) (*v1alpha1.NifiUserGroupStatus, error) {
+func CreateUserGroup(userGroup *v1.NifiUserGroup,
+	users []*v1.NifiUser, config *clientconfig.NifiConfig) (*v1.NifiUserGroupStatus, error) {
 	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
 		return nil, err
@@ -51,14 +51,14 @@ func CreateUserGroup(userGroup *v1alpha1.NifiUserGroup,
 		return nil, err
 	}
 
-	return &v1alpha1.NifiUserGroupStatus{
+	return &v1.NifiUserGroupStatus{
 		Id:      entity.Id,
 		Version: *entity.Revision.Version,
 	}, nil
 }
 
-func SyncUserGroup(userGroup *v1alpha1.NifiUserGroup, users []*v1alpha1.NifiUser,
-	config *clientconfig.NifiConfig) (*v1alpha1.NifiUserGroupStatus, error) {
+func SyncUserGroup(userGroup *v1.NifiUserGroup, users []*v1.NifiUser,
+	config *clientconfig.NifiConfig) (*v1.NifiUserGroupStatus, error) {
 
 	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
@@ -106,8 +106,8 @@ func SyncUserGroup(userGroup *v1alpha1.NifiUserGroup, users []*v1alpha1.NifiUser
 		contains := userGroupContainsAccessPolicy(userGroup, entity, config.RootProcessGroupId)
 		if !contains {
 			if err := accesspolicies.UpdateAccessPolicyEntity(&entity,
-				[]*v1alpha1.NifiUser{}, []*v1alpha1.NifiUser{},
-				[]*v1alpha1.NifiUserGroup{}, []*v1alpha1.NifiUserGroup{userGroup}, config); err != nil {
+				[]*v1.NifiUser{}, []*v1.NifiUser{},
+				[]*v1.NifiUserGroup{}, []*v1.NifiUserGroup{userGroup}, config); err != nil {
 				return &status, err
 			}
 		}
@@ -118,8 +118,8 @@ func SyncUserGroup(userGroup *v1alpha1.NifiUserGroup, users []*v1alpha1.NifiUser
 		contains := UserGroupEntityContainsAccessPolicy(entity, accessPolicy, config.RootProcessGroupId)
 		if !contains {
 			if err := accesspolicies.UpdateAccessPolicy(&accessPolicy,
-				[]*v1alpha1.NifiUser{}, []*v1alpha1.NifiUser{},
-				[]*v1alpha1.NifiUserGroup{userGroup}, []*v1alpha1.NifiUserGroup{}, config); err != nil {
+				[]*v1.NifiUser{}, []*v1.NifiUser{},
+				[]*v1.NifiUserGroup{userGroup}, []*v1.NifiUserGroup{}, config); err != nil {
 				return &status, err
 			}
 		}
@@ -128,7 +128,7 @@ func SyncUserGroup(userGroup *v1alpha1.NifiUserGroup, users []*v1alpha1.NifiUser
 	return &status, nil
 }
 
-func RemoveUserGroup(userGroup *v1alpha1.NifiUserGroup, users []*v1alpha1.NifiUser, config *clientconfig.NifiConfig) error {
+func RemoveUserGroup(userGroup *v1.NifiUserGroup, users []*v1.NifiUser, config *clientconfig.NifiConfig) error {
 	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
 		return err
@@ -149,8 +149,8 @@ func RemoveUserGroup(userGroup *v1alpha1.NifiUserGroup, users []*v1alpha1.NifiUs
 }
 
 func userGroupIsSync(
-	userGroup *v1alpha1.NifiUserGroup,
-	users []*v1alpha1.NifiUser,
+	userGroup *v1.NifiUserGroup,
+	users []*v1.NifiUser,
 	entity *nigoapi.UserGroupEntity) bool {
 
 	if userGroup.GetIdentity() != entity.Component.Identity {
@@ -172,7 +172,7 @@ func userGroupIsSync(
 	return true
 }
 
-func updateUserGroupEntity(userGroup *v1alpha1.NifiUserGroup, users []*v1alpha1.NifiUser, entity *nigoapi.UserGroupEntity) {
+func updateUserGroupEntity(userGroup *v1.NifiUserGroup, users []*v1.NifiUser, entity *nigoapi.UserGroupEntity) {
 
 	var defaultVersion int64 = 0
 
@@ -197,7 +197,7 @@ func updateUserGroupEntity(userGroup *v1alpha1.NifiUserGroup, users []*v1alpha1.
 	}
 }
 
-func userGroupContainsAccessPolicy(userGroup *v1alpha1.NifiUserGroup, entity nigoapi.AccessPolicyEntity, rootPGId string) bool {
+func userGroupContainsAccessPolicy(userGroup *v1.NifiUserGroup, entity nigoapi.AccessPolicyEntity, rootPGId string) bool {
 	for _, accessPolicy := range userGroup.Spec.AccessPolicies {
 		if entity.Component.Action == string(accessPolicy.Action) &&
 			entity.Component.Resource == accessPolicy.GetResource(rootPGId) {
@@ -207,7 +207,7 @@ func userGroupContainsAccessPolicy(userGroup *v1alpha1.NifiUserGroup, entity nig
 	return false
 }
 
-func UserGroupEntityContainsAccessPolicy(entity *nigoapi.UserGroupEntity, accessPolicy v1alpha1.AccessPolicy, rootPGId string) bool {
+func UserGroupEntityContainsAccessPolicy(entity *nigoapi.UserGroupEntity, accessPolicy v1.AccessPolicy, rootPGId string) bool {
 	for _, entity := range entity.Component.AccessPolicies {
 		if entity.Component.Action == string(accessPolicy.Action) &&
 			entity.Component.Resource == accessPolicy.GetResource(rootPGId) {

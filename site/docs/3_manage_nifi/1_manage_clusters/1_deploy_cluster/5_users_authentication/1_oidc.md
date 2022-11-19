@@ -17,7 +17,7 @@ nifi.security.identity.mapping.transform.dn=NONE
 To perform this with `NiFiKop` you just have to configure the `Spec.NifiProperties.OverrideConfigs` field with your OIDC configuration, for example :
 
 ```yaml
-apiVersion: nifi.konpyutaika.com/v1alpha1
+apiVersion: nifi.konpyutaika.com/v1
 kind: NifiCluster
 ...
 spec:

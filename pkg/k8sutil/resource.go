@@ -2,9 +2,9 @@ package k8sutil
 
 import (
 	"context"
+	v12 "github.com/konpyutaika/nifikop/api/v1"
 	"reflect"
 
-	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	"go.uber.org/zap"
 	v1 "k8s.io/api/core/v1"
@@ -19,7 +19,7 @@ import (
 )
 
 // Reconcile reconciles K8S resources
-func Reconcile(log zap.Logger, client runtimeClient.Client, desired runtimeClient.Object, cr *v1alpha1.NifiCluster) error {
+func Reconcile(log zap.Logger, client runtimeClient.Client, desired runtimeClient.Object, cr *v12.NifiCluster) error {
 	desiredType := reflect.TypeOf(desired)
 	current := desired.DeepCopyObject().(runtimeClient.Object)
 
@@ -60,13 +60,13 @@ func Reconcile(log zap.Logger, client runtimeClient.Client, desired runtimeClien
 	}
 	if err == nil {
 		switch desired.(type) {
-		case *v1alpha1.NifiUser:
-			user := desired.(*v1alpha1.NifiUser)
-			user.Status = current.(*v1alpha1.NifiUser).Status
+		case *v12.NifiUser:
+			user := desired.(*v12.NifiUser)
+			user.Status = current.(*v12.NifiUser).Status
 			desired = user
-		case *v1alpha1.NifiUserGroup:
-			group := desired.(*v1alpha1.NifiUserGroup)
-			group.Status = current.(*v1alpha1.NifiUserGroup).Status
+		case *v12.NifiUserGroup:
+			group := desired.(*v12.NifiUserGroup)
+			group.Status = current.(*v12.NifiUserGroup).Status
 			desired = group
 		}
 
@@ -91,7 +91,7 @@ func Reconcile(log zap.Logger, client runtimeClient.Client, desired runtimeClien
 				case *corev1.ConfigMap:
 					// Only update status when configmap belongs to node
 					if id, ok := desired.(*corev1.ConfigMap).Labels["nodeId"]; ok {
-						statusErr := UpdateNodeStatus(client, []string{id}, cr, v1alpha1.ConfigOutOfSync, log)
+						statusErr := UpdateNodeStatus(client, []string{id}, cr, v12.ConfigOutOfSync, log)
 						if statusErr != nil {
 							return errors.WrapIfWithDetails(err, "updating status for resource failed", "kind", desiredType)
 						}
@@ -99,7 +99,7 @@ func Reconcile(log zap.Logger, client runtimeClient.Client, desired runtimeClien
 				case *corev1.Secret:
 					// Only update status when secret belongs to node
 					if id, ok := desired.(*corev1.Secret).Labels["nodeId"]; ok {
-						statusErr := UpdateNodeStatus(client, []string{id}, cr, v1alpha1.ConfigOutOfSync, log)
+						statusErr := UpdateNodeStatus(client, []string{id}, cr, v12.ConfigOutOfSync, log)
 						if statusErr != nil {
 							return errors.WrapIfWithDetails(err, "updating status for resource failed", "kind", desiredType)
 						}

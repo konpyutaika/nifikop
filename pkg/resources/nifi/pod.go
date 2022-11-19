@@ -2,13 +2,13 @@ package nifi
 
 import (
 	"fmt"
+	"github.com/konpyutaika/nifikop/api/v1"
 	"sort"
 	"strings"
 
 	"go.uber.org/zap"
 	runtimeClient "sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/resources/templates"
 	"github.com/konpyutaika/nifikop/pkg/util"
 	nifiutil "github.com/konpyutaika/nifikop/pkg/util/nifi"
@@ -38,7 +38,7 @@ const (
 	ContainerName string = "nifi"
 )
 
-func (r *Reconciler) pod(node v1alpha1.Node, nodeConfig *v1alpha1.NodeConfig, pvcs []corev1.PersistentVolumeClaim, log zap.Logger) runtimeClient.Object {
+func (r *Reconciler) pod(node v1.Node, nodeConfig *v1.NodeConfig, pvcs []corev1.PersistentVolumeClaim, log zap.Logger) runtimeClient.Object {
 	zkAddress := r.NifiCluster.Spec.ZKAddress
 	dataVolume, dataVolumeMount := generateDataVolumeAndVolumeMount(pvcs)
 
@@ -299,7 +299,7 @@ func (r *Reconciler) generateDefaultContainerPort() []corev1.ContainerPort {
 		/*{
 			Name:          "metrics",
 			Protocol:      corev1.ProtocolTCP,
-			ContainerPort: v1alpha1.MetricsPort,
+			ContainerPort: v1.MetricsPort,
 		},*/
 	}
 
@@ -307,13 +307,13 @@ func (r *Reconciler) generateDefaultContainerPort() []corev1.ContainerPort {
 }
 
 // TODO : manage default port
-func GetServerPort(l *v1alpha1.ListenersConfig) int32 {
+func GetServerPort(l *v1.ListenersConfig) int32 {
 	var httpsServerPort int32
 	var httpServerPort int32
 	for _, iListener := range l.InternalListeners {
-		if iListener.Type == v1alpha1.HttpsListenerType {
+		if iListener.Type == v1.HttpsListenerType {
 			httpsServerPort = iListener.ContainerPort
-		} else if iListener.Type == v1alpha1.HttpListenerType {
+		} else if iListener.Type == v1.HttpListenerType {
 			httpServerPort = iListener.ContainerPort
 		}
 	}
@@ -323,7 +323,7 @@ func GetServerPort(l *v1alpha1.ListenersConfig) int32 {
 	return httpServerPort
 }
 
-func generateVolumesForSSL(cluster *v1alpha1.NifiCluster, nodeId int32) []corev1.Volume {
+func generateVolumesForSSL(cluster *v1.NifiCluster, nodeId int32) []corev1.Volume {
 	return []corev1.Volume{
 		{
 			Name: serverKeystoreVolume,
@@ -375,7 +375,7 @@ func generateInitContainerResources() corev1.ResourceRequirements {
 	}
 }
 
-func (r *Reconciler) generateContainers(nodeConfig *v1alpha1.NodeConfig, id int32, podVolumeMounts []corev1.VolumeMount, zkAddress string) []corev1.Container {
+func (r *Reconciler) generateContainers(nodeConfig *v1.NodeConfig, id int32, podVolumeMounts []corev1.VolumeMount, zkAddress string) []corev1.Container {
 	var containers []corev1.Container
 	containers = append(containers, r.createNifiNodeContainer(nodeConfig, id, podVolumeMounts, zkAddress))
 	containers = append(containers, r.NifiCluster.Spec.SidecarConfigs...)
@@ -386,7 +386,7 @@ func (r *Reconciler) generateContainers(nodeConfig *v1alpha1.NodeConfig, id int3
 	return containers
 }
 
-func (r *Reconciler) createNifiNodeContainer(nodeConfig *v1alpha1.NodeConfig, id int32, podVolumeMounts []corev1.VolumeMount, zkAddress string) corev1.Container {
+func (r *Reconciler) createNifiNodeContainer(nodeConfig *v1.NodeConfig, id int32, podVolumeMounts []corev1.VolumeMount, zkAddress string) corev1.Container {
 	// ContainersPorts initialization
 	nifiNodeContainersPorts := r.generateContainerPortForInternalListeners()
 
@@ -399,9 +399,9 @@ func (r *Reconciler) createNifiNodeContainer(nodeConfig *v1alpha1.NodeConfig, id
 	if r.NifiCluster.Spec.ListenersConfig.SSLSecrets != nil {
 		readinessCommand = fmt.Sprintf(`curl -kv --cert  %s/%s --key %s/%s https://$(hostname -f):%d/nifi`,
 			serverKeystorePath,
-			v1alpha1.TLSCert,
+			v1.TLSCert,
 			serverKeystorePath,
-			v1alpha1.TLSKey,
+			v1.TLSKey,
 			GetServerPort(r.NifiCluster.Spec.ListenersConfig))
 	}
 

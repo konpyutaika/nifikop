@@ -1,5 +1,5 @@
 # kubectl create secret generic secret-params --from-literal=secret1=yop --from-literal=secret2=yep
-apiVersion: nifi.konpyutaika.com/v1alpha1
+apiVersion: nifi.konpyutaika.com/v1
 kind: NifiParameterContext
 metadata:
   name: dataflow-lifecycle

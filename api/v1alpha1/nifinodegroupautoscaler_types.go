@@ -17,6 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"github.com/konpyutaika/nifikop/api/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -26,7 +27,7 @@ import (
 // NifiNodeGroupAutoscalerSpec defines the desired state of NifiNodeGroupAutoscaler
 type NifiNodeGroupAutoscalerSpec struct {
 	// contains the reference to the NifiCluster with the one the dataflow is linked.
-	ClusterRef ClusterReference `json:"clusterRef"`
+	ClusterRef v1.ClusterReference `json:"clusterRef"`
 	// reference to the nodeConfigGroup that will be set for nodes that are managed and autoscaled
 	// This Id is used to compute the names of some Kubernetes resources, so it must be a safe value.
 	// +kubebuilder:validation:Pattern:="[a-z0-9]([-a-z0-9]*[a-z0-9])?"
@@ -37,11 +38,11 @@ type NifiNodeGroupAutoscalerSpec struct {
 	NodeLabelsSelector *metav1.LabelSelector `json:"nodeLabelsSelector"`
 	// the node readOnlyConfig for each node in the node group
 	// +optional
-	ReadOnlyConfig *ReadOnlyConfig `json:"readOnlyConfig,omitempty"`
+	ReadOnlyConfig *v1.ReadOnlyConfig `json:"readOnlyConfig,omitempty"`
 	// the nodeConfig to use for each node in the node group. This will be merged with and is preferred to the configured
 	// nodeConfigGroupId
 	// +optional
-	NodeConfig *NodeConfig `json:"nodeConfig,omitempty"`
+	NodeConfig *v1.NodeConfig `json:"nodeConfig,omitempty"`
 	// current number of replicas expected for the node config group
 	// +kubebuilder:default:=0
 	// +optional

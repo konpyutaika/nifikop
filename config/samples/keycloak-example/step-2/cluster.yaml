@@ -1,5 +1,5 @@
 ---
-apiVersion: nifi.konpyutaika.com/v1alpha1
+apiVersion: nifi.konpyutaika.com/v1
 kind: NifiCluster
 metadata:
   name: nifi-cluster

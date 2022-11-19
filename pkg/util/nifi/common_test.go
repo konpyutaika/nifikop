@@ -6,7 +6,7 @@ package nifi
 //	"strings"
 //	"testing"
 //
-//	"github.com/konpyutaika/nifikop/api/v1alpha1"
+//	"github.com/konpyutaika/nifikop/api/v1"
 //	"github.com/stretchr/testify/assert"
 //)
 //
@@ -30,21 +30,21 @@ package nifi
 //	assert.Equal(expectedValue, parsed)
 //}
 //
-//func testClusterLocal(t *testing.T) *v1alpha1.NifiCluster {
+//func testClusterLocal(t *testing.T) *v1.NifiCluster {
 //	t.Helper()
-//	cluster := &v1alpha1.NifiCluster{}
+//	cluster := &v1.NifiCluster{}
 //
 //	cluster.Name = clusterName
 //	cluster.Namespace = clusterNamespace
-//	cluster.Spec = v1alpha1.NifiClusterSpec{}
+//	cluster.Spec = v1.NifiClusterSpec{}
 //
-//	cluster.Spec.Nodes = []v1alpha1.Node{
+//	cluster.Spec.Nodes = []v1.Node{
 //		{Id: 0},
 //		{Id: 1},
 //		{Id: 2},
 //	}
 //
-//	cluster.Spec.ListenersConfig.InternalListeners = []v1alpha1.InternalListenerConfig{
+//	cluster.Spec.ListenersConfig.InternalListeners = []v1.InternalListenerConfig{
 //		{Type: "https", ContainerPort: httpContainerPort},
 //		{Type: "http", ContainerPort: 8080},
 //		{Type: "cluster", ContainerPort: 8083},
@@ -53,14 +53,14 @@ package nifi
 //	return cluster
 //}
 //
-//func testClusterDemo(t *testing.T) *v1alpha1.NifiCluster {
+//func testClusterDemo(t *testing.T) *v1.NifiCluster {
 //	t.Helper()
 //	cluster := testClusterLocal(t)
 //	cluster.Spec.ListenersConfig.ClusterDomain = demoClusterDomain
 //	return cluster
 //}
 //
-//func testClusterExternalDNS(t *testing.T) *v1alpha1.NifiCluster {
+//func testClusterExternalDNS(t *testing.T) *v1.NifiCluster {
 //	t.Helper()
 //	cluster := testClusterLocal(t)
 //	cluster.Spec.ListenersConfig.ClusterDomain = externalDNSClusterDomain
@@ -76,7 +76,7 @@ package nifi
 //}
 //
 //func testNiFiAddressFromCluster(t *testing.T,
-//	cluster *v1alpha1.NifiCluster, expectedClusterDomain string, expectedUseExternalDNS bool) {
+//	cluster *v1.NifiCluster, expectedClusterDomain string, expectedUseExternalDNS bool) {
 //
 //	assert := assert.New(t)
 //
@@ -136,7 +136,7 @@ package nifi
 //	headlessServiceEnabled bool,
 //	clusterDomain string,
 //	useExternalDNS bool,
-//	internalListeners []v1alpha1.InternalListenerConfig,
+//	internalListeners []v1.InternalListenerConfig,
 //	expectedClusterDomain string, expectedUseExternalDNS bool) {
 //
 //	assert := assert.New(t)
@@ -239,7 +239,7 @@ package nifi
 //func TestGenerateNodeAddressFromCluster(t *testing.T) {
 //	assert := assert.New(t)
 //
-//	clusters := []*v1alpha1.NifiCluster{
+//	clusters := []*v1.NifiCluster{
 //		testClusterLocal(t),
 //		testClusterDemo(t),
 //		testClusterExternalDNS(t),
@@ -261,7 +261,7 @@ package nifi
 //func TestComputeNodeAddress(t *testing.T) {
 //	assert := assert.New(t)
 //
-//	clusters := []*v1alpha1.NifiCluster{
+//	clusters := []*v1.NifiCluster{
 //		testClusterLocal(t),
 //		testClusterDemo(t),
 //		testClusterExternalDNS(t),
@@ -295,7 +295,7 @@ package nifi
 //func TestComputeNodeHostname(t *testing.T) {
 //	assert := assert.New(t)
 //
-//	clusters := []*v1alpha1.NifiCluster{
+//	clusters := []*v1.NifiCluster{
 //		testClusterLocal(t),
 //		testClusterDemo(t),
 //		testClusterExternalDNS(t),
@@ -326,7 +326,7 @@ package nifi
 //func TestComputeNodeServiceNameFull(t *testing.T) {
 //	assert := assert.New(t)
 //
-//	clusters := []*v1alpha1.NifiCluster{
+//	clusters := []*v1.NifiCluster{
 //		testClusterLocal(t),
 //		testClusterDemo(t),
 //		testClusterExternalDNS(t),
@@ -361,7 +361,7 @@ package nifi
 //func TestComputeNodeServiceNameNs(t *testing.T) {
 //	assert := assert.New(t)
 //
-//	clusters := []*v1alpha1.NifiCluster{
+//	clusters := []*v1.NifiCluster{
 //		testClusterLocal(t),
 //		testClusterDemo(t),
 //		testClusterExternalDNS(t),
@@ -390,7 +390,7 @@ package nifi
 //func TestComputeNodeServiceName(t *testing.T) {
 //	assert := assert.New(t)
 //
-//	clusters := []*v1alpha1.NifiCluster{
+//	clusters := []*v1.NifiCluster{
 //		testClusterLocal(t),
 //		testClusterDemo(t),
 //		testClusterExternalDNS(t),
@@ -441,7 +441,7 @@ package nifi
 //	assert := assert.New(t)
 //
 //	internalListeners := testClusterLocal(t).Spec.ListenersConfig.InternalListeners
-//	assert.Equal(v1alpha1.InternalListenerConfig{ContainerPort: httpContainerPort, Type: "https"},
+//	assert.Equal(v1.InternalListenerConfig{ContainerPort: httpContainerPort, Type: "https"},
 //		InternalListenerForComm(internalListeners))
 //}
 //

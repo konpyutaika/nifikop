@@ -57,3 +57,6 @@ logEncoding: json
 certManager:
   enabled: true
   clusterScoped: false
+
+webhook:
+  enabled: true

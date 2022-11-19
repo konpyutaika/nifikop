@@ -20,6 +20,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/konpyutaika/nifikop/api/v1"
 	"reflect"
 
 	"emperror.dev/errors"
@@ -39,8 +40,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	"github.com/konpyutaika/nifikop/api/v1alpha1"
 )
 
 var parameterContextFinalizer = "nifiparametercontexts.nifi.konpyutaika.com/finalizer"
@@ -73,7 +72,7 @@ func (r *NifiParameterContextReconciler) Reconcile(ctx context.Context, req ctrl
 	var err error
 
 	// Fetch the NifiParameterContext instance
-	instance := &v1alpha1.NifiParameterContext{}
+	instance := &v1.NifiParameterContext{}
 	if err = r.Client.Get(ctx, req.NamespacedName, instance); err != nil {
 		if apierrors.IsNotFound(err) {
 			// Request object not found, could have been deleted after reconcile request.
@@ -97,10 +96,10 @@ func (r *NifiParameterContextReconciler) Reconcile(ctx context.Context, req ctrl
 	}
 
 	// Check if the cluster reference changed.
-	original := &v1alpha1.NifiParameterContext{}
+	original := &v1.NifiParameterContext{}
 	current := instance.DeepCopy()
 	json.Unmarshal(o, original)
-	if !v1alpha1.ClusterRefsEquals([]v1alpha1.ClusterReference{original.Spec.ClusterRef, instance.Spec.ClusterRef}) {
+	if !v1.ClusterRefsEquals([]v1.ClusterReference{original.Spec.ClusterRef, instance.Spec.ClusterRef}) {
 		instance.Spec.ClusterRef = original.Spec.ClusterRef
 	}
 
@@ -129,10 +128,10 @@ func (r *NifiParameterContextReconciler) Reconcile(ctx context.Context, req ctrl
 	}
 
 	// Get the referenced NiFiParameterContext referenced
-	var parameterContextRefs []*v1alpha1.NifiParameterContext
+	var parameterContextRefs []*v1.NifiParameterContext
 	for _, parameterContextRef := range instance.Spec.InheritedParameterContexts {
 		parameterContextNamespace := GetParameterContextRefNamespace(instance.Namespace, parameterContextRef)
-		var parameterContext *v1alpha1.NifiParameterContext
+		var parameterContext *v1.NifiParameterContext
 		if parameterContext, err = k8sutil.LookupNifiParameterContext(r.Client, parameterContextRef.Name, parameterContextNamespace); err != nil {
 			// This shouldn't trigger anymore, but leaving it here as a safetybelt
 			if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {
@@ -171,7 +170,7 @@ func (r *NifiParameterContextReconciler) Reconcile(ctx context.Context, req ctrl
 			return Reconciled()
 		}
 		// If the referenced cluster no more exist, just skip the deletion requirement in cluster ref change case.
-		if !v1alpha1.ClusterRefsEquals([]v1alpha1.ClusterReference{instance.Spec.ClusterRef, current.Spec.ClusterRef}) {
+		if !v1.ClusterRefsEquals([]v1.ClusterReference{instance.Spec.ClusterRef, current.Spec.ClusterRef}) {
 			if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(current); err != nil {
 				return RequeueWithError(r.Log, "could not apply last state to annotation for parameter context "+instance.Name, err)
 			}
@@ -225,7 +224,7 @@ func (r *NifiParameterContextReconciler) Reconcile(ctx context.Context, req ctrl
 	}
 
 	// Ìn case of the cluster reference changed.
-	if !v1alpha1.ClusterRefsEquals([]v1alpha1.ClusterReference{instance.Spec.ClusterRef, current.Spec.ClusterRef}) {
+	if !v1.ClusterRefsEquals([]v1.ClusterReference{instance.Spec.ClusterRef, current.Spec.ClusterRef}) {
 		// Delete the resource on the previous cluster.
 		if err := parametercontext.RemoveParameterContext(instance, parameterSecrets, parameterContextRefs, clientConfig); err != nil {
 			r.Recorder.Event(instance, corev1.EventTypeWarning, "RemoveError",
@@ -257,7 +256,7 @@ func (r *NifiParameterContextReconciler) Reconcile(ctx context.Context, req ctrl
 		r.Recorder.Event(instance, corev1.EventTypeNormal, "Creating",
 			fmt.Sprintf("Creating parameter context %s", instance.Name))
 
-		var status *v1alpha1.NifiParameterContextStatus
+		var status *v1.NifiParameterContextStatus
 
 		status, err = parametercontext.FindParameterContextByName(instance, clientConfig)
 		if err != nil {
@@ -337,18 +336,18 @@ func (r *NifiParameterContextReconciler) Reconcile(ctx context.Context, req ctrl
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *NifiParameterContextReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	logCtr, err := GetLogConstructor(mgr, &v1alpha1.NifiParameterContext{})
+	logCtr, err := GetLogConstructor(mgr, &v1.NifiParameterContext{})
 	if err != nil {
 		return err
 	}
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&v1alpha1.NifiParameterContext{}).
+		For(&v1.NifiParameterContext{}).
 		WithLogConstructor(logCtr).
 		Complete(r)
 }
 
 func (r *NifiParameterContextReconciler) ensureClusterLabel(ctx context.Context, cluster clientconfig.ClusterConnect,
-	parameterContext *v1alpha1.NifiParameterContext) (*v1alpha1.NifiParameterContext, error) {
+	parameterContext *v1.NifiParameterContext) (*v1.NifiParameterContext, error) {
 
 	labels := ApplyClusterReferenceLabel(cluster, parameterContext.GetLabels())
 	if !reflect.DeepEqual(labels, parameterContext.GetLabels()) {
@@ -359,7 +358,7 @@ func (r *NifiParameterContextReconciler) ensureClusterLabel(ctx context.Context,
 }
 
 func (r *NifiParameterContextReconciler) updateAndFetchLatest(ctx context.Context,
-	parameterContext *v1alpha1.NifiParameterContext) (*v1alpha1.NifiParameterContext, error) {
+	parameterContext *v1.NifiParameterContext) (*v1.NifiParameterContext, error) {
 
 	typeMeta := parameterContext.TypeMeta
 	err := r.Client.Update(ctx, parameterContext)
@@ -372,9 +371,9 @@ func (r *NifiParameterContextReconciler) updateAndFetchLatest(ctx context.Contex
 
 func (r *NifiParameterContextReconciler) checkFinalizers(
 	ctx context.Context,
-	parameterContext *v1alpha1.NifiParameterContext,
+	parameterContext *v1.NifiParameterContext,
 	parameterSecrets []*corev1.Secret,
-	parameterContextRefs []*v1alpha1.NifiParameterContext,
+	parameterContextRefs []*v1.NifiParameterContext,
 	config *clientconfig.NifiConfig) (reconcile.Result, error) {
 	r.Log.Info("NiFi parameter context is marked for deletion. Removing finalizers.",
 		zap.String("parameterContext", parameterContext.Name))
@@ -390,7 +389,7 @@ func (r *NifiParameterContextReconciler) checkFinalizers(
 	return Reconciled()
 }
 
-func (r *NifiParameterContextReconciler) removeFinalizer(ctx context.Context, paramCtxt *v1alpha1.NifiParameterContext) error {
+func (r *NifiParameterContextReconciler) removeFinalizer(ctx context.Context, paramCtxt *v1.NifiParameterContext) error {
 	r.Log.Debug("Removing finalizer for NifiParameterContext",
 		zap.String("paramaterContext", paramCtxt.Name))
 	paramCtxt.SetFinalizers(util.StringSliceRemove(paramCtxt.GetFinalizers(), parameterContextFinalizer))
@@ -399,9 +398,9 @@ func (r *NifiParameterContextReconciler) removeFinalizer(ctx context.Context, pa
 }
 
 func (r *NifiParameterContextReconciler) finalizeNifiParameterContext(
-	parameterContext *v1alpha1.NifiParameterContext,
+	parameterContext *v1.NifiParameterContext,
 	parameterSecrets []*corev1.Secret,
-	parameterContextRefs []*v1alpha1.NifiParameterContext,
+	parameterContextRefs []*v1.NifiParameterContext,
 	config *clientconfig.NifiConfig) error {
 
 	if err := parametercontext.RemoveParameterContext(parameterContext, parameterSecrets, parameterContextRefs, config); err != nil {
