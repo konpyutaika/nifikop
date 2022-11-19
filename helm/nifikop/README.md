@@ -20,6 +20,7 @@ which implements kubernetes custom ressource definition.
 
 The following tables lists the configurable parameters of the NiFi Operator Helm chart and their default values.
 
+<<<<<<< HEAD
 | Parameter                        | Description                                                                                                                                                                         | Default                  |
 |----------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------|
 | `image.repository`               | Image                                                                                                                                                                               | `konpyutaika/nifikop`    |
@@ -36,6 +37,24 @@ The following tables lists the configurable parameters of the NiFi Operator Helm
 | `metrics.port`                   | Set port for operator metrics                                                                                                                                                       | `8081`                   |
 | `debug.enabled`                  | activate DEBUG log level                                                                                                                                                            | `false`                  |
 | `certManager.clusterScoped`      | If true setup cluster scoped resources                                                                                                                                              | `false`                  |
+=======
+| Parameter                        | Description                                                                                                                                                                          | Default                  |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |--------------------------|
+| `image.repository`               | Image                                                                                                                                                                                | `konpyutaika/nifikop`    |
+| `image.tag`                      | Image tag                                                                                                                                                                            | `v0.16.0-release`        |
+| `image.pullPolicy`               | Image pull policy                                                                                                                                                                    | `Always`                 |
+| `image.imagePullSecrets.enabled` | Enable tue use of secret for docker image                                                                                                                                            | `false`                  |
+| `image.imagePullSecrets.name`    | Name of the secret to connect to docker registry                                                                                                                                     | -                        |
+| `certManager.enabled`            | Enable cert-manager integration                                                                                                                                                      | `true`                   |
+| `rbacEnable`                     | If true, create & use RBAC resources                                                                                                                                                 | `true`                   |
+| `labels`                         | Labels to add to all deployed resources                                                                                                                                              | `{}`                     |
+| `annotations`                         | Annotations to add to all deployed resources                                                                                                                                         | `{}`                     |
+| `resources`                      | Pod resource requests & limits                                                                                                                                                       | `{}`                     |
+| `metrics.enabled`                | deploy service for metrics                                                                                                                                                           | `false`                  |
+| `metrics.port`                   | Set port for operator metrics                                                                                                                                                        | `8081`                   |
+| `debug.enabled`                  | activate DEBUG log level                                                                                                                                                             | `false`                  |
+| `certManager.clusterScoped`      | If true setup cluster scoped resources                                                                                                                                               | `false`                  |
+>>>>>>> af2f43e74bee3f36566bece2d1301ba610c5d948
 | `namespaces`                     | List of namespaces where Operator watches for custom resources. Make sure the operator ServiceAccount is granted `get` permissions on this `Node` resource when using limited RBACs. | `""` i.e. all namespaces |
 | `nodeSelector`                   | Node selector configuration for operator pod                                                                                                                                        | `{}`                     |
 | `affinity`                       | Node affinity configuration for operator pod                                                                                                                                        | `{}`                     |

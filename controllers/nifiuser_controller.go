@@ -25,7 +25,7 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/banzaicloud/k8s-objectmatcher/patch"
-	certv1 "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1"
+	certv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	usercli "github.com/konpyutaika/nifikop/pkg/clientwrappers/user"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	"github.com/konpyutaika/nifikop/pkg/k8sutil"
@@ -172,60 +172,61 @@ func (r *NifiUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 		pkiManager := pki.GetPKIManager(r.Client, cluster)
 
-		// check if marked for deletion
+		// check if marked for deletion. Otherwise, reconcile the certificate
 		if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {
 			r.Log.Info("Nifi user is marked for deletion, revoking certificates and removing finalizers.",
 				zap.String("user", instance.Name))
 			if err = pkiManager.FinalizeUserCertificate(ctx, instance); err != nil {
 				return RequeueWithError(r.Log, "failed to finalize certificate for user "+instance.Name, err)
 			}
-		}
+		} else {
 
-		r.Recorder.Event(instance, corev1.EventTypeNormal, "ReconcilingCertificate",
-			fmt.Sprintf("Reconciling certificate for nifi user %s", instance.Name))
-		// Reconcile no matter what to get a user certificate instance for ACL management
-		// TODO (tinyzimmer): This can go wrong if the user made a mistake in their secret path
-		// using the vault backend, then tried to delete and fix it. Should probably
-		// have the PKIManager export a GetUserCertificate specifically for deletions
-		// that will allow the error to fall through if the certificate doesn't exist.
-		_, err := pkiManager.ReconcileUserCertificate(ctx, instance, r.Scheme)
-		if err != nil {
-			switch errors.Cause(err).(type) {
-			case errorfactory.ResourceNotReady:
-				r.Log.Debug("generated secret not found, may not be ready",
-					zap.String("user", instance.Name))
+			r.Recorder.Event(instance, corev1.EventTypeNormal, "ReconcilingCertificate",
+				fmt.Sprintf("Reconciling certificate for nifi user %s", instance.Name))
+			// Reconcile no matter what to get a user certificate instance for ACL management
+			// TODO (tinyzimmer): This can go wrong if the user made a mistake in their secret path
+			// using the vault backend, then tried to delete and fix it. Should probably
+			// have the PKIManager export a GetUserCertificate specifically for deletions
+			// that will allow the error to fall through if the certificate doesn't exist.
+			_, err := pkiManager.ReconcileUserCertificate(ctx, instance, r.Scheme)
+			if err != nil {
+				switch errors.Cause(err).(type) {
+				case errorfactory.ResourceNotReady:
+					r.Log.Debug("generated secret not found, may not be ready",
+						zap.String("user", instance.Name))
 
-				return ctrl.Result{
-					Requeue:      true,
-					RequeueAfter: interval,
-				}, nil
-			case errorfactory.FatalReconcileError:
-				// TODO: (tinyzimmer) - Sleep for longer for now to give user time to see the error
-				// But really we should catch these kinds of issues in a pre-admission hook in a future PR
-				// The user can fix while this is looping and it will pick it up next reconcile attempt
-				r.Log.Error("Fatal error attempting to reconcile the user certificate. If using vault perhaps a permissions issue or improperly configured PKI?",
-					zap.String("user", instance.Name),
-					zap.Error(err))
-				return ctrl.Result{
-					Requeue:      true,
-					RequeueAfter: interval,
-				}, nil
-			case errorfactory.VaultAPIFailure:
-				// Same as above in terms of things that could be checked pre-flight on the cluster
-				r.Log.Error("Vault API error attempting to reconcile the user certificate. If using vault perhaps a permissions issue or improperly configured PKI?",
-					zap.String("user", instance.Name),
-					zap.Error(err))
-				return ctrl.Result{
-					Requeue:      true,
-					RequeueAfter: interval,
-				}, nil
-			default:
-				return RequeueWithError(r.Log, "failed to reconcile secret for user "+instance.Name, err)
+					return ctrl.Result{
+						Requeue:      true,
+						RequeueAfter: interval,
+					}, nil
+				case errorfactory.FatalReconcileError:
+					// TODO: (tinyzimmer) - Sleep for longer for now to give user time to see the error
+					// But really we should catch these kinds of issues in a pre-admission hook in a future PR
+					// The user can fix while this is looping and it will pick it up next reconcile attempt
+					r.Log.Error("Fatal error attempting to reconcile the user certificate. If using vault perhaps a permissions issue or improperly configured PKI?",
+						zap.String("user", instance.Name),
+						zap.Error(err))
+					return ctrl.Result{
+						Requeue:      true,
+						RequeueAfter: interval,
+					}, nil
+				case errorfactory.VaultAPIFailure:
+					// Same as above in terms of things that could be checked pre-flight on the cluster
+					r.Log.Error("Vault API error attempting to reconcile the user certificate. If using vault perhaps a permissions issue or improperly configured PKI?",
+						zap.String("user", instance.Name),
+						zap.Error(err))
+					return ctrl.Result{
+						Requeue:      true,
+						RequeueAfter: interval,
+					}, nil
+				default:
+					return RequeueWithError(r.Log, "failed to reconcile secret for user "+instance.Name, err)
+				}
 			}
-		}
 
-		r.Recorder.Event(instance, corev1.EventTypeNormal, "ReconciledCertificate",
-			fmt.Sprintf("Reconciled certificate for nifi user %s", instance.Name))
+			r.Recorder.Event(instance, corev1.EventTypeNormal, "ReconciledCertificate",
+				fmt.Sprintf("Reconciled certificate for nifi user %s", instance.Name))
+		}
 	}
 
 	// Generate the client configuration.
@@ -434,5 +435,4 @@ func (r *NifiUserReconciler) addFinalizer(user *v1.NifiUser) {
 	r.Log.Debug("Adding Finalizer for the NifiUser",
 		zap.String("user", user.Name))
 	user.SetFinalizers(append(user.GetFinalizers(), userFinalizer))
-	return
 }

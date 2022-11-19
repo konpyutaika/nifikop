@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	cmmeta "github.com/jetstack/cert-manager/pkg/apis/meta/v1"
+	cmmeta "github.com/cert-manager/cert-manager/pkg/apis/meta/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -499,7 +499,8 @@ type LdapConfiguration struct {
 
 // NifiClusterTaskSpec specifies the configuration of the nifi cluster Tasks
 type NifiClusterTaskSpec struct {
-	// RetryDurationMinutes describes the amount of time the Operator waits for the task
+	// RetryDurationMinutes describes the time the operator waits before going back and retrying a cluster task,
+	// which can be: scale up, scale down, rolling upgrade.
 	RetryDurationMinutes int `json:"retryDurationMinutes"`
 }
 
