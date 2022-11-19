@@ -4,13 +4,17 @@
 
 ### Changed
 
-- [PR #190](https://github.com/konpyutaika/nifikop/pull/190) - **[CRDs]** Migrate v1alpha1 to v1
-
 ### Fixed Bugs
 
 ### Deprecated
 
 ### Removed
+
+## v1.0.0
+
+### Changed
+
+- [PR #190](https://github.com/konpyutaika/nifikop/pull/190) - **[CRDs]** Migrate v1alpha1 to v1
 
 ## v0.16.0
 

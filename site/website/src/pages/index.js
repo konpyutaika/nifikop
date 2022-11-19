@@ -103,9 +103,9 @@ function Organization({imageUrl, title, organizationLink}) {
 
 const organizations = [
     {
-        imageUrl: '',
-        title: '',
-        organizationLink: '/'
+        imageUrl: 'img/orange_logo.png',
+        title: 'Orange',
+        organizationLink: 'https://www.orange.fr/portail'
     },
     {
         imageUrl: 'img/influxdata_full_navy.svg',
