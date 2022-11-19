@@ -13,7 +13,7 @@ To simplify this, we implement in the operator 2 `managed groups` :
 You can directly define the list of users who belong to each of them in the `NifiCluster.Spec` field :
 
 ```yaml
-apiVersion: nifi.konpyutaika.com/v1alpha1
+apiVersion: nifi.konpyutaika.com/v1
 kind: NifiCluster
 metadata:
   name: mynifi

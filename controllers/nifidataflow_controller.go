@@ -20,6 +20,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/konpyutaika/nifikop/api/v1"
 	"reflect"
 	"strconv"
 
@@ -40,8 +41,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	"github.com/konpyutaika/nifikop/api/v1alpha1"
 )
 
 var dataflowFinalizer = "nifidataflows.nifi.konpyutaika.com/finalizer"
@@ -74,7 +73,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	var err error
 	interval := util.GetRequeueInterval(r.RequeueInterval, r.RequeueOffset)
 	// Fetch the NifiDataflow instance
-	instance := &v1alpha1.NifiDataflow{}
+	instance := &v1.NifiDataflow{}
 	if err = r.Client.Get(ctx, req.NamespacedName, instance); err != nil {
 		if apierrors.IsNotFound(err) {
 			// Request object not found, could have been deleted after reconcile request.
@@ -98,15 +97,15 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	}
 
 	// Check if the cluster reference changed.
-	original := &v1alpha1.NifiDataflow{}
+	original := &v1.NifiDataflow{}
 	current := instance.DeepCopy()
 	json.Unmarshal(o, original)
-	if !v1alpha1.ClusterRefsEquals([]v1alpha1.ClusterReference{original.Spec.ClusterRef, instance.Spec.ClusterRef}) {
+	if !v1.ClusterRefsEquals([]v1.ClusterReference{original.Spec.ClusterRef, instance.Spec.ClusterRef}) {
 		instance.Spec.ClusterRef = original.Spec.ClusterRef
 	}
 
 	// Get the referenced NifiRegistryClient
-	var registryClient *v1alpha1.NifiRegistryClient
+	var registryClient *v1.NifiRegistryClient
 	var registryClientNamespace string
 	if instance.Spec.RegistryClientRef != nil {
 		registryClientNamespace =
@@ -133,7 +132,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		}
 	}
 
-	var parameterContext *v1alpha1.NifiParameterContext
+	var parameterContext *v1.NifiParameterContext
 	var parameterContextNamespace string
 	if current.Spec.ParameterContextRef != nil {
 		parameterContextNamespace =
@@ -162,7 +161,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	}
 
 	// Check if cluster references are the same
-	var clusterRefs []v1alpha1.ClusterReference
+	var clusterRefs []v1.ClusterReference
 
 	registryClusterRef := registryClient.Spec.ClusterRef
 	registryClusterRef.Namespace = registryClientNamespace
@@ -178,7 +177,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	currentClusterRef.Namespace = GetClusterRefNamespace(current.Namespace, current.Spec.ClusterRef)
 	clusterRefs = append(clusterRefs, currentClusterRef)
 
-	if !v1alpha1.ClusterRefsEquals(clusterRefs) {
+	if !v1.ClusterRefsEquals(clusterRefs) {
 		msg := fmt.Sprintf("Failed to lookup reference cluster for dataflow %s : %s in %s",
 			instance.Name, instance.Spec.ClusterRef.Name, currentClusterRef.Namespace)
 		r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceClusterError", msg)
@@ -209,7 +208,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		}
 
 		// If the referenced cluster no more exist, just skip the deletion requirement in cluster ref change case.
-		if !v1alpha1.ClusterRefsEquals([]v1alpha1.ClusterReference{instance.Spec.ClusterRef, current.Spec.ClusterRef}) {
+		if !v1.ClusterRefsEquals([]v1.ClusterReference{instance.Spec.ClusterRef, current.Spec.ClusterRef}) {
 			if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(current); err != nil {
 				return RequeueWithError(r.Log, "could not apply last state to annotation for dataflow "+instance.Name, err)
 			}
@@ -260,7 +259,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	}
 
 	// Ìn case of the cluster reference changed.
-	if !v1alpha1.ClusterRefsEquals([]v1alpha1.ClusterReference{instance.Spec.ClusterRef, current.Spec.ClusterRef}) {
+	if !v1.ClusterRefsEquals([]v1.ClusterReference{instance.Spec.ClusterRef, current.Spec.ClusterRef}) {
 		// Delete the resource on the previous cluster.
 		if _, err := dataflow.RemoveDataflow(instance, clientConfig); err != nil {
 			msg := fmt.Sprintf("Failed to delete NifiDataflow %s from cluster %s before moving in %s",
@@ -279,7 +278,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	}
 
 	if (instance.Spec.SyncNever() && len(instance.Status.State) > 0) ||
-		(instance.Spec.SyncOnce() && instance.Status.State == v1alpha1.DataflowStateRan) {
+		(instance.Spec.SyncOnce() && instance.Status.State == v1.DataflowStateRan) {
 		return Reconciled()
 	}
 
@@ -312,7 +311,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 
 		// Set dataflow status
 		instance.Status = *processGroupStatus
-		instance.Status.State = v1alpha1.DataflowStateCreated
+		instance.Status.State = v1.DataflowStateCreated
 
 		if err := r.Client.Status().Update(ctx, instance); err != nil {
 			return RequeueWithError(r.Log, "failed to update status for NifiDataflow "+instance.Name, err)
@@ -342,7 +341,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	}
 
 	// In case where the flow is not sync
-	if instance.Status.State == v1alpha1.DataflowStateOutOfSync {
+	if instance.Status.State == v1.DataflowStateOutOfSync {
 		r.Recorder.Event(instance, corev1.EventTypeNormal, "Synchronizing",
 			fmt.Sprintf("Syncing dataflow %s based on flow {bucketId : %s, flowId: %s, version: %s}",
 				instance.Name, instance.Spec.BucketId,
@@ -372,7 +371,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 			}
 		}
 
-		instance.Status.State = v1alpha1.DataflowStateInSync
+		instance.Status.State = v1.DataflowStateInSync
 		if err := r.Client.Status().Update(ctx, instance); err != nil {
 			return RequeueWithError(r.Log, "failed to update status for NifiDataflow "+instance.Name, err)
 		}
@@ -390,7 +389,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	}
 
 	if isOutOfSink {
-		instance.Status.State = v1alpha1.DataflowStateOutOfSync
+		instance.Status.State = v1.DataflowStateOutOfSync
 		if err := r.Client.Status().Update(ctx, instance); err != nil {
 			return RequeueWithError(r.Log, "failed to update status for NifiDataflow "+instance.Name, err)
 		}
@@ -398,10 +397,10 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	}
 
 	// Schedule the flow
-	if instance.Status.State == v1alpha1.DataflowStateCreated ||
-		instance.Status.State == v1alpha1.DataflowStateStarting ||
-		instance.Status.State == v1alpha1.DataflowStateInSync ||
-		(!instance.Spec.SyncOnce() && instance.Status.State == v1alpha1.DataflowStateRan) {
+	if instance.Status.State == v1.DataflowStateCreated ||
+		instance.Status.State == v1.DataflowStateStarting ||
+		instance.Status.State == v1.DataflowStateInSync ||
+		(!instance.Spec.SyncOnce() && instance.Status.State == v1.DataflowStateRan) {
 
 		r.Log.Debug("Starting dataflow",
 			zap.String("clusterName", instance.Spec.ClusterRef.Name),
@@ -426,8 +425,8 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 			}
 		}
 
-		if instance.Status.State != v1alpha1.DataflowStateRan {
-			instance.Status.State = v1alpha1.DataflowStateRan
+		if instance.Status.State != v1.DataflowStateRan {
+			instance.Status.State = v1.DataflowStateRan
 			if err := r.Client.Status().Update(ctx, instance); err != nil {
 				return RequeueWithError(r.Log, "failed to update status for NifiDataflow "+instance.Name, err)
 			}
@@ -471,18 +470,18 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *NifiDataflowReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	logCtr, err := GetLogConstructor(mgr, &v1alpha1.NifiDataflow{})
+	logCtr, err := GetLogConstructor(mgr, &v1.NifiDataflow{})
 	if err != nil {
 		return err
 	}
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&v1alpha1.NifiDataflow{}).
+		For(&v1.NifiDataflow{}).
 		WithLogConstructor(logCtr).
 		Complete(r)
 }
 
 func (r *NifiDataflowReconciler) ensureClusterLabel(ctx context.Context, cluster clientconfig.ClusterConnect,
-	flow *v1alpha1.NifiDataflow) (*v1alpha1.NifiDataflow, error) {
+	flow *v1.NifiDataflow) (*v1.NifiDataflow, error) {
 
 	labels := ApplyClusterReferenceLabel(cluster, flow.GetLabels())
 	if !reflect.DeepEqual(labels, flow.GetLabels()) {
@@ -493,7 +492,7 @@ func (r *NifiDataflowReconciler) ensureClusterLabel(ctx context.Context, cluster
 }
 
 func (r *NifiDataflowReconciler) updateAndFetchLatest(ctx context.Context,
-	flow *v1alpha1.NifiDataflow) (*v1alpha1.NifiDataflow, error) {
+	flow *v1.NifiDataflow) (*v1.NifiDataflow, error) {
 
 	typeMeta := flow.TypeMeta
 	err := r.Client.Update(ctx, flow)
@@ -504,7 +503,7 @@ func (r *NifiDataflowReconciler) updateAndFetchLatest(ctx context.Context,
 	return flow, nil
 }
 
-func (r *NifiDataflowReconciler) checkFinalizers(ctx context.Context, flow *v1alpha1.NifiDataflow,
+func (r *NifiDataflowReconciler) checkFinalizers(ctx context.Context, flow *v1.NifiDataflow,
 	config *clientconfig.NifiConfig) (reconcile.Result, error) {
 	r.Log.Info("NiFi dataflow is marked for deletion",
 		zap.String("dataflow", flow.Name))
@@ -526,7 +525,7 @@ func (r *NifiDataflowReconciler) checkFinalizers(ctx context.Context, flow *v1al
 	return Reconciled()
 }
 
-func (r *NifiDataflowReconciler) removeFinalizer(ctx context.Context, flow *v1alpha1.NifiDataflow) error {
+func (r *NifiDataflowReconciler) removeFinalizer(ctx context.Context, flow *v1.NifiDataflow) error {
 	r.Log.Info("Removing finalizer for NifiDataflow",
 		zap.String("dataflow", flow.Name))
 	flow.SetFinalizers(util.StringSliceRemove(flow.GetFinalizers(), dataflowFinalizer))
@@ -534,7 +533,7 @@ func (r *NifiDataflowReconciler) removeFinalizer(ctx context.Context, flow *v1al
 	return err
 }
 
-func (r *NifiDataflowReconciler) finalizeNifiDataflow(flow *v1alpha1.NifiDataflow, config *clientconfig.NifiConfig) error {
+func (r *NifiDataflowReconciler) finalizeNifiDataflow(flow *v1.NifiDataflow, config *clientconfig.NifiConfig) error {
 
 	exists, err := dataflow.DataflowExist(flow, config)
 	if err != nil {

@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 	certv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	"github.com/go-logr/zapr"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
@@ -34,6 +35,7 @@ var (
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	utilruntime.Must(v1alpha1.AddToScheme(scheme))
+	utilruntime.Must(v1.AddToScheme(scheme))
 	// +kubebuilder:scaffold:scheme
 }
 
@@ -42,6 +44,7 @@ func main() {
 	var enableLeaderElection bool
 	var probeAddr string
 	var certManagerEnabled bool
+	var webhookEnabled bool
 
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":9090", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
@@ -49,6 +52,8 @@ func main() {
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
 	flag.BoolVar(&certManagerEnabled, "cert-manager-enabled", false, "Enable cert-manager integration")
+	flag.BoolVar(&webhookEnabled, "webhook-enabled", true, "Enable CRDs conversion webhook.")
+
 	flag.Parse()
 
 	logger := common.CustomLogger()
@@ -193,8 +198,35 @@ func main() {
 		logger.Error("unable to create controller", zap.String("controller", "NifiNodeGroupAutoscaler"), zap.Error(err))
 		os.Exit(1)
 	}
-	// +kubebuilder:scaffold:builder
 
+	if webhookEnabled {
+		if err = (&v1alpha1.NifiUser{}).SetupWebhookWithManager(mgr); err != nil {
+			logger.Error("unable to create webhook", zap.String("webhook", "NifiUser"), zap.Error(err))
+			os.Exit(1)
+		}
+		if err = (&v1alpha1.NifiCluster{}).SetupWebhookWithManager(mgr); err != nil {
+			logger.Error("unable to create webhook", zap.String("webhook", "NifiCluster"), zap.Error(err))
+			os.Exit(1)
+		}
+		if err = (&v1alpha1.NifiDataflow{}).SetupWebhookWithManager(mgr); err != nil {
+			logger.Error("unable to create webhook", zap.String("webhook", "NifiDataflow"), zap.Error(err))
+			os.Exit(1)
+		}
+		if err = (&v1alpha1.NifiParameterContext{}).SetupWebhookWithManager(mgr); err != nil {
+			logger.Error("unable to create webhook", zap.String("webhook", "NifiParameterContext"), zap.Error(err))
+			os.Exit(1)
+		}
+		if err = (&v1alpha1.NifiRegistryClient{}).SetupWebhookWithManager(mgr); err != nil {
+			logger.Error("unable to create webhook", zap.String("webhook", "NifiRegistryClient"), zap.Error(err))
+			os.Exit(1)
+		}
+		if err = (&v1alpha1.NifiUserGroup{}).SetupWebhookWithManager(mgr); err != nil {
+			logger.Error("unable to create webhook", zap.String("webhook", "NifiUserGroup"), zap.Error(err))
+			os.Exit(1)
+		}
+	}
+
+	// +kubebuilder:scaffold:builder
 	if err := mgr.AddHealthzCheck("health", healthz.Ping); err != nil {
 		logger.Error("unable to set up health check", zap.Error(err))
 		os.Exit(1)

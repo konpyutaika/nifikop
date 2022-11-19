@@ -2,10 +2,10 @@ package pki
 
 import (
 	"context"
+	"github.com/konpyutaika/nifikop/api/v1"
 	"reflect"
 	"testing"
 
-	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"go.uber.org/zap"
 	"k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -17,16 +17,16 @@ type mockClient struct {
 	client.Client
 }
 
-func newMockCluster() *v1alpha1.NifiCluster {
-	cluster := &v1alpha1.NifiCluster{}
+func newMockCluster() *v1.NifiCluster {
+	cluster := &v1.NifiCluster{}
 	cluster.Name = "test"
 	cluster.Namespace = "test"
-	cluster.Spec = v1alpha1.NifiClusterSpec{}
-	cluster.Spec.ListenersConfig = &v1alpha1.ListenersConfig{}
-	cluster.Spec.ListenersConfig.InternalListeners = []v1alpha1.InternalListenerConfig{
+	cluster.Spec = v1.NifiClusterSpec{}
+	cluster.Spec.ListenersConfig = &v1.ListenersConfig{}
+	cluster.Spec.ListenersConfig.InternalListeners = []v1.InternalListenerConfig{
 		{ContainerPort: 80},
 	}
-	cluster.Spec.ListenersConfig.SSLSecrets = &v1alpha1.SSLSecrets{
+	cluster.Spec.ListenersConfig.SSLSecrets = &v1.SSLSecrets{
 		PKIBackend: MockBackend,
 	}
 	return cluster
@@ -50,11 +50,11 @@ func TestGetPKIManager(t *testing.T) {
 		t.Error("Expected nil error got:", err)
 	}
 
-	if _, err = mock.ReconcileUserCertificate(ctx, &v1alpha1.NifiUser{}, scheme.Scheme); err != nil {
+	if _, err = mock.ReconcileUserCertificate(ctx, &v1.NifiUser{}, scheme.Scheme); err != nil {
 		t.Error("Expected nil error got:", err)
 	}
 
-	if err = mock.FinalizeUserCertificate(ctx, &v1alpha1.NifiUser{}); err != nil {
+	if err = mock.FinalizeUserCertificate(ctx, &v1.NifiUser{}); err != nil {
 		t.Error("Expected nil error got:", err)
 	}
 
@@ -63,7 +63,7 @@ func TestGetPKIManager(t *testing.T) {
 	}
 
 	// Test other getters
-	cluster.Spec.ListenersConfig.SSLSecrets.PKIBackend = v1alpha1.PKIBackendCertManager
+	cluster.Spec.ListenersConfig.SSLSecrets.PKIBackend = v1.PKIBackendCertManager
 	certmanager := GetPKIManager(&mockClient{}, cluster)
 	pkiType := reflect.TypeOf(certmanager).String()
 	expected := "*certmanagerpki.certManager"
@@ -72,7 +72,7 @@ func TestGetPKIManager(t *testing.T) {
 	}
 
 	// Default should be cert-manager also
-	cluster.Spec.ListenersConfig.SSLSecrets.PKIBackend = v1alpha1.PKIBackend("")
+	cluster.Spec.ListenersConfig.SSLSecrets.PKIBackend = v1.PKIBackend("")
 	certmanager = GetPKIManager(&mockClient{}, cluster)
 	pkiType = reflect.TypeOf(certmanager).String()
 	expected = "*certmanagerpki.certManager"

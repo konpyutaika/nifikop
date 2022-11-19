@@ -2,6 +2,7 @@ package nificlient
 
 import (
 	"fmt"
+	"github.com/konpyutaika/nifikop/api/v1"
 	"net/http"
 	"testing"
 
@@ -10,7 +11,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/jarcoal/httpmock"
-	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	nigoapi "github.com/konpyutaika/nigoapi/pkg/nifi"
 	"github.com/stretchr/testify/assert"
@@ -67,7 +67,7 @@ func TestBuild(t *testing.T) {
 									NodeId:  "1234556",
 									Address: fmt.Sprintf(nodeURITemplate, 1, httpContainerPort),
 									ApiPort: httpContainerPort,
-									Status:  string(v1alpha1.ConnectStatus),
+									Status:  string(v1.ConnectStatus),
 								},
 							},
 						},

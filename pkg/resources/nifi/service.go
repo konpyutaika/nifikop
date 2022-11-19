@@ -2,10 +2,10 @@ package nifi
 
 import (
 	"fmt"
+	"github.com/konpyutaika/nifikop/api/v1"
 	"strings"
 
 	"github.com/imdario/mergo"
-	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/resources/templates"
 	"github.com/konpyutaika/nifikop/pkg/util"
 	nifiutil "github.com/konpyutaika/nifikop/pkg/util/nifi"
@@ -77,7 +77,7 @@ func (r *Reconciler) externalServices(log zap.Logger) []runtimeClient.Object {
 	return services
 }
 
-func generateServicePortForInternalListeners(listeners []v1alpha1.InternalListenerConfig) []corev1.ServicePort {
+func generateServicePortForInternalListeners(listeners []v1.InternalListenerConfig) []corev1.ServicePort {
 	var usedPorts []corev1.ServicePort
 
 	for _, iListeners := range listeners {
@@ -92,7 +92,7 @@ func generateServicePortForInternalListeners(listeners []v1alpha1.InternalListen
 	return usedPorts
 }
 
-func (r *Reconciler) generateServicePortForExternalListeners(eService v1alpha1.ExternalServiceConfig) []corev1.ServicePort {
+func (r *Reconciler) generateServicePortForExternalListeners(eService v1.ExternalServiceConfig) []corev1.ServicePort {
 	var usedPorts []corev1.ServicePort
 
 	for _, port := range eService.Spec.PortConfigs {

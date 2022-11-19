@@ -4,7 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"github.com/konpyutaika/nifikop/api/v1alpha1"
+	"github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/pkg/pki"
 	"github.com/konpyutaika/nifikop/pkg/pki/certmanagerpki"
 	"github.com/konpyutaika/nifikop/pkg/util"
@@ -14,7 +14,7 @@ import (
 	"strings"
 )
 
-func TlsConfig(client client.Client, cluster *v1alpha1.NifiCluster) (config *tls.Config, err error) {
+func TlsConfig(client client.Client, cluster *v1.NifiCluster) (config *tls.Config, err error) {
 	if cluster.IsExternal() {
 		return certmanagerpki.GetControllerTLSConfigFromSecret(client, cluster.Spec.SecretRef)
 	}
@@ -22,7 +22,7 @@ func TlsConfig(client client.Client, cluster *v1alpha1.NifiCluster) (config *tls
 	return pki.GetPKIManager(client, cluster).GetControllerTLSConfig()
 }
 
-func ClusterConfig(cluster *v1alpha1.NifiCluster) *clientconfig.NifiConfig {
+func ClusterConfig(cluster *v1.NifiCluster) *clientconfig.NifiConfig {
 	if cluster.IsExternal() {
 		return externalClusterConfig(cluster)
 	}
@@ -30,7 +30,7 @@ func ClusterConfig(cluster *v1alpha1.NifiCluster) *clientconfig.NifiConfig {
 	return internalClusterConfig(cluster)
 }
 
-func externalClusterConfig(cluster *v1alpha1.NifiCluster) *clientconfig.NifiConfig {
+func externalClusterConfig(cluster *v1.NifiCluster) *clientconfig.NifiConfig {
 	conf := &clientconfig.NifiConfig{}
 	ref := cluster.Spec
 	nodesURI := generateNodesAddressFromTemplate(ref.Nodes, ref.NodeURITemplate)
@@ -47,7 +47,7 @@ func externalClusterConfig(cluster *v1alpha1.NifiCluster) *clientconfig.NifiConf
 	return conf
 }
 
-func internalClusterConfig(cluster *v1alpha1.NifiCluster) *clientconfig.NifiConfig {
+func internalClusterConfig(cluster *v1.NifiCluster) *clientconfig.NifiConfig {
 	conf := &clientconfig.NifiConfig{}
 	conf.RootProcessGroupId = cluster.Status.RootProcessGroupId
 	conf.NodeURITemplate = generateNodesURITemplate(cluster)
@@ -59,11 +59,11 @@ func internalClusterConfig(cluster *v1alpha1.NifiCluster) *clientconfig.NifiConf
 	return conf
 }
 
-func generateNodesAddress(cluster *v1alpha1.NifiCluster) map[int32]clientconfig.NodeUri {
+func generateNodesAddress(cluster *v1.NifiCluster) map[int32]clientconfig.NodeUri {
 	addresses := make(map[int32]clientconfig.NodeUri)
 
 	for nId, state := range cluster.Status.NodesState {
-		if !(state.GracefulActionState.State.IsRunningState() || state.GracefulActionState.State.IsRequiredState()) && state.GracefulActionState.ActionStep != v1alpha1.RemoveStatus {
+		if !(state.GracefulActionState.State.IsRunningState() || state.GracefulActionState.State.IsRequiredState()) && state.GracefulActionState.ActionStep != v1.RemoveStatus {
 			addresses[util.ConvertStringToInt32(nId)] = clientconfig.NodeUri{
 				HostListener: nifi.GenerateHostListenerNodeAddressFromCluster(util.ConvertStringToInt32(nId), cluster),
 				RequestHost:  nifi.GenerateRequestNiFiNodeAddressFromCluster(util.ConvertStringToInt32(nId), cluster),
@@ -73,7 +73,7 @@ func generateNodesAddress(cluster *v1alpha1.NifiCluster) map[int32]clientconfig.
 	return addresses
 }
 
-func generateNodesURITemplate(cluster *v1alpha1.NifiCluster) string {
+func generateNodesURITemplate(cluster *v1.NifiCluster) string {
 	nodeNameTemplate :=
 		fmt.Sprintf(nifi.PrefixNodeNameTemplate, cluster.Name) +
 			nifi.RootNodeNameTemplate +
@@ -84,7 +84,7 @@ func generateNodesURITemplate(cluster *v1alpha1.NifiCluster) string {
 	)
 }
 
-func generateNodesAddressFromTemplate(nodes []v1alpha1.Node, template string) map[int32]clientconfig.NodeUri {
+func generateNodesAddressFromTemplate(nodes []v1.Node, template string) map[int32]clientconfig.NodeUri {
 	addresses := make(map[int32]clientconfig.NodeUri)
 
 	for _, node := range nodes {
@@ -96,6 +96,6 @@ func generateNodesAddressFromTemplate(nodes []v1alpha1.Node, template string) ma
 	return addresses
 }
 
-func UseSSL(cluster *v1alpha1.NifiCluster) bool {
+func UseSSL(cluster *v1.NifiCluster) bool {
 	return cluster.Spec.ListenersConfig.SSLSecrets != nil
 }

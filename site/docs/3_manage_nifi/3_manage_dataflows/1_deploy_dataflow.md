@@ -16,7 +16,7 @@ To deploy a [NifiDataflow] you have to start by deploying a [NifiRegistryClient]
 Below is an example of [NifiRegistryClient] :
 
 ```yaml
-apiVersion: nifi.konpyutaika.com/v1alpha1
+apiVersion: nifi.konpyutaika.com/v1
 kind: NifiRegistryClient
 metadata:
   name: registry-client-example
@@ -37,7 +37,7 @@ This configuration is defined using the [NifiParameterContext] CRD, which NiFiKo
 Below is an example of [NifiParameterContext] :
 
 ```yaml
-apiVersion: nifi.konpyutaika.com/v1alpha1
+apiVersion: nifi.konpyutaika.com/v1
 kind: NifiParameterContext
 metadata:
   name: dataflow-lifecycle
@@ -83,7 +83,7 @@ or you can simply create a new [NifiParameterContext] and refer it into your [Ni
 You can now deploy your [NifiDataflow] by referencing the previous objects :
 
 ```yaml
-apiVersion: nifi.konpyutaika.com/v1alpha1
+apiVersion: nifi.konpyutaika.com/v1
 kind: NifiDataflow
 metadata:
   name: dataflow-lifecycle

@@ -7,7 +7,7 @@ sidebar_label: NiFi User
 `NifiUser` is the Schema for the nifi users API.
 
 ```yaml
-apiVersion: nifi.konpyutaika.com/v1alpha1
+apiVersion: nifi.konpyutaika.com/v1
 kind: NifiUser
 metadata:
   name: aguitton

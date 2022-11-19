@@ -19,7 +19,7 @@ To deploy different resources (`NifiRegistryClient`, `NifiUser`, `NifiUserGroup`
 To declare an external cluster you have to follow this kind of configuration :
 
 ```yaml
-apiVersion: nifi.konpyutaika.com/v1alpha1
+apiVersion: nifi.konpyutaika.com/v1
 kind: NifiCluster
 metadata:
   name: externalcluster

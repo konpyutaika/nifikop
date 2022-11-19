@@ -9,7 +9,7 @@ The `NiFi operator` makes securing your NiFi cluster with SSL. You may provide y
 Below this is an example configuration required to secure your cluster with SSL :
 
 ```yaml
-apiVersion: nifi.konpyutaika.com/v1alpha1
+apiVersion: nifi.konpyutaika.com/v1
 kind: NifiCluster
 ...
 spec:
@@ -90,7 +90,7 @@ spec:
 2. Setup External dns and correctly create your issuer into your cluster configuration :
 
 ```yaml 
-apiVersion: nifi.konpyutaika.com/v1alpha1
+apiVersion: nifi.konpyutaika.com/v1
 kind: NifiCluster
 ...
 spec:
@@ -118,7 +118,7 @@ To create a new client you will need to generate new certificates sign by the CA
 
 ```console
 cat << EOF | kubectl apply -n nifi -f -
-apiVersion:  nifi.konpyutaika.com/v1alpha1
+apiVersion:  nifi.konpyutaika.com/v1
 kind: NifiUser
 metadata:
   name: example-client
