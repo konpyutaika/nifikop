@@ -1,6 +1,7 @@
 package v1alpha1
 
 import (
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -16,7 +17,7 @@ type NifiConnectionSpec struct {
 	// the Configuration of the connection.
 	Configuration ConnectionConfiguration `json:"configuration,omitempty"`
 	// describes the way the operator will deal with data when a connection will be updated : drop or drain.
-	UpdateStrategy ComponentUpdateStrategy `json:"updateStrategy"`
+	UpdateStrategy v1.ComponentUpdateStrategy `json:"updateStrategy"`
 }
 
 type ComponentReference struct {

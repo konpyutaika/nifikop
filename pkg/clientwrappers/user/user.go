@@ -1,7 +1,7 @@
 package user
 
 import (
-	"github.com/konpyutaika/nifikop/api/v1alpha1"
+	"github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/accesspolicies"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/usergroup"
@@ -13,7 +13,7 @@ import (
 
 var log = common.CustomLogger().Named("user-method")
 
-func ExistUser(user *v1alpha1.NifiUser, config *clientconfig.NifiConfig) (bool, error) {
+func ExistUser(user *v1.NifiUser, config *clientconfig.NifiConfig) (bool, error) {
 
 	if user.Status.Id == "" {
 		return false, nil
@@ -35,7 +35,7 @@ func ExistUser(user *v1alpha1.NifiUser, config *clientconfig.NifiConfig) (bool, 
 	return entity != nil, nil
 }
 
-func FindUserByIdentity(user *v1alpha1.NifiUser, config *clientconfig.NifiConfig) (*v1alpha1.NifiUserStatus, error) {
+func FindUserByIdentity(user *v1.NifiUser, config *clientconfig.NifiConfig) (*v1.NifiUserStatus, error) {
 
 	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
@@ -52,7 +52,7 @@ func FindUserByIdentity(user *v1alpha1.NifiUser, config *clientconfig.NifiConfig
 
 	for _, entity := range entities {
 		if user.GetIdentity() == entity.Component.Identity {
-			return &v1alpha1.NifiUserStatus{
+			return &v1.NifiUserStatus{
 				Id:      entity.Id,
 				Version: *entity.Revision.Version,
 			}, nil
@@ -62,7 +62,7 @@ func FindUserByIdentity(user *v1alpha1.NifiUser, config *clientconfig.NifiConfig
 	return nil, nil
 }
 
-func CreateUser(user *v1alpha1.NifiUser, config *clientconfig.NifiConfig) (*v1alpha1.NifiUserStatus, error) {
+func CreateUser(user *v1.NifiUser, config *clientconfig.NifiConfig) (*v1.NifiUserStatus, error) {
 
 	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
@@ -77,13 +77,13 @@ func CreateUser(user *v1alpha1.NifiUser, config *clientconfig.NifiConfig) (*v1al
 		return nil, err
 	}
 
-	return &v1alpha1.NifiUserStatus{
+	return &v1.NifiUserStatus{
 		Id:      entity.Id,
 		Version: *entity.Revision.Version,
 	}, nil
 }
 
-func SyncUser(user *v1alpha1.NifiUser, config *clientconfig.NifiConfig) (*v1alpha1.NifiUserStatus, error) {
+func SyncUser(user *v1.NifiUser, config *clientconfig.NifiConfig) (*v1.NifiUserStatus, error) {
 
 	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
@@ -130,8 +130,8 @@ func SyncUser(user *v1alpha1.NifiUser, config *clientconfig.NifiConfig) (*v1alph
 						Action:   ent.Component.Action,
 					},
 				},
-				[]*v1alpha1.NifiUser{}, []*v1alpha1.NifiUser{user},
-				[]*v1alpha1.NifiUserGroup{}, []*v1alpha1.NifiUserGroup{}, config); err != nil {
+				[]*v1.NifiUser{}, []*v1.NifiUser{user},
+				[]*v1.NifiUserGroup{}, []*v1.NifiUserGroup{}, config); err != nil {
 				return &status, err
 			}
 		}
@@ -153,8 +153,8 @@ func SyncUser(user *v1alpha1.NifiUser, config *clientconfig.NifiConfig) (*v1alph
 		}
 		if !contains && !userEntityContainsAccessPolicy(entity, accessPolicy, config.RootProcessGroupId) {
 			if err := accesspolicies.UpdateAccessPolicy(&accessPolicy,
-				[]*v1alpha1.NifiUser{user}, []*v1alpha1.NifiUser{},
-				[]*v1alpha1.NifiUserGroup{}, []*v1alpha1.NifiUserGroup{}, config); err != nil {
+				[]*v1.NifiUser{user}, []*v1.NifiUser{},
+				[]*v1.NifiUserGroup{}, []*v1.NifiUserGroup{}, config); err != nil {
 				return &status, err
 			}
 		}
@@ -163,7 +163,7 @@ func SyncUser(user *v1alpha1.NifiUser, config *clientconfig.NifiConfig) (*v1alph
 	return &status, nil
 }
 
-func RemoveUser(user *v1alpha1.NifiUser, config *clientconfig.NifiConfig) error {
+func RemoveUser(user *v1.NifiUser, config *clientconfig.NifiConfig) error {
 	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
 		return err
@@ -183,11 +183,11 @@ func RemoveUser(user *v1alpha1.NifiUser, config *clientconfig.NifiConfig) error 
 	return clientwrappers.ErrorRemoveOperation(log, err, "Remove user")
 }
 
-func userIsSync(user *v1alpha1.NifiUser, entity *nigoapi.UserEntity) bool {
+func userIsSync(user *v1.NifiUser, entity *nigoapi.UserEntity) bool {
 	return user.GetIdentity() == entity.Component.Identity
 }
 
-func updateUserEntity(user *v1alpha1.NifiUser, entity *nigoapi.UserEntity) {
+func updateUserEntity(user *v1.NifiUser, entity *nigoapi.UserEntity) {
 
 	var defaultVersion int64 = 0
 
@@ -208,7 +208,7 @@ func updateUserEntity(user *v1alpha1.NifiUser, entity *nigoapi.UserEntity) {
 	entity.Component.Identity = user.GetIdentity()
 }
 
-func userContainsAccessPolicy(user *v1alpha1.NifiUser, entity nigoapi.AccessPolicySummaryEntity, rootPGId string) bool {
+func userContainsAccessPolicy(user *v1.NifiUser, entity nigoapi.AccessPolicySummaryEntity, rootPGId string) bool {
 	for _, accessPolicy := range user.Spec.AccessPolicies {
 		if entity.Component.Action == string(accessPolicy.Action) &&
 			entity.Component.Resource == accessPolicy.GetResource(rootPGId) {
@@ -218,7 +218,7 @@ func userContainsAccessPolicy(user *v1alpha1.NifiUser, entity nigoapi.AccessPoli
 	return false
 }
 
-func userEntityContainsAccessPolicy(entity *nigoapi.UserEntity, accessPolicy v1alpha1.AccessPolicy, rootPGId string) bool {
+func userEntityContainsAccessPolicy(entity *nigoapi.UserEntity, accessPolicy v1.AccessPolicy, rootPGId string) bool {
 	for _, entity := range entity.Component.AccessPolicies {
 		if entity.Component.Action == string(accessPolicy.Action) &&
 			entity.Component.Resource == accessPolicy.GetResource(rootPGId) {

@@ -1,4 +1,4 @@
-apiVersion: nifi.konpyutaika.com/v1alpha1
+apiVersion: nifi.konpyutaika.com/v1
 kind: NifiCluster
 metadata:
   name: simplenifi
@@ -20,7 +20,7 @@ spec:
             port: 8080
         type: LoadBalancer
   clusterImage: "apache/nifi:1.15.3"
-  initContainerImage: 'busybox:1.34.0'
+  initContainerImage: 'bash:5.2.2'
   oneNifiNodePerNode: true
   readOnlyConfig:
     nifiProperties:

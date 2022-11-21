@@ -23,6 +23,7 @@ import (
 	"reflect"
 
 	"github.com/banzaicloud/k8s-objectmatcher/patch"
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/registryclient"
 	"github.com/konpyutaika/nifikop/pkg/k8sutil"
 	"github.com/konpyutaika/nifikop/pkg/nificlient/config"
@@ -37,11 +38,9 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	"github.com/konpyutaika/nifikop/api/v1alpha1"
 )
 
-var registryClientFinalizer = fmt.Sprintf("nifiregistryclients.%s/finalizer", v1alpha1.GroupVersion.Group)
+var registryClientFinalizer = fmt.Sprintf("nifiregistryclients.%s/finalizer", v1.GroupVersion.Group)
 
 // NifiRegistryClientReconciler reconciles a NifiRegistryClient object
 type NifiRegistryClientReconciler struct {
@@ -71,7 +70,7 @@ func (r *NifiRegistryClientReconciler) Reconcile(ctx context.Context, req ctrl.R
 	var err error
 
 	// Fetch the NifiRegistryClient instance
-	var instance = &v1alpha1.NifiRegistryClient{}
+	var instance = &v1.NifiRegistryClient{}
 	if err = r.Client.Get(ctx, req.NamespacedName, instance); err != nil {
 		if apierrors.IsNotFound(err) {
 			// Request object not found, could have been deleted after reconcile request.
@@ -95,10 +94,10 @@ func (r *NifiRegistryClientReconciler) Reconcile(ctx context.Context, req ctrl.R
 	}
 
 	// Check if the cluster reference changed.
-	original := &v1alpha1.NifiRegistryClient{}
+	original := &v1.NifiRegistryClient{}
 	current := instance.DeepCopy()
 	json.Unmarshal(o, original)
-	if !v1alpha1.ClusterRefsEquals([]v1alpha1.ClusterReference{original.Spec.ClusterRef, instance.Spec.ClusterRef}) {
+	if !v1.ClusterRefsEquals([]v1.ClusterReference{original.Spec.ClusterRef, instance.Spec.ClusterRef}) {
 		instance.Spec.ClusterRef = original.Spec.ClusterRef
 	}
 
@@ -124,7 +123,7 @@ func (r *NifiRegistryClientReconciler) Reconcile(ctx context.Context, req ctrl.R
 			return Reconciled()
 		}
 		// If the referenced cluster no more exist, just skip the deletion requirement in cluster ref change case.
-		if !v1alpha1.ClusterRefsEquals([]v1alpha1.ClusterReference{instance.Spec.ClusterRef, current.Spec.ClusterRef}) {
+		if !v1.ClusterRefsEquals([]v1.ClusterReference{instance.Spec.ClusterRef, current.Spec.ClusterRef}) {
 			if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(current); err != nil {
 				return RequeueWithError(r.Log, "could not apply last state to annotation to registry client "+instance.Name, err)
 			}
@@ -176,7 +175,7 @@ func (r *NifiRegistryClientReconciler) Reconcile(ctx context.Context, req ctrl.R
 	}
 
 	// Ìn case of the cluster reference changed.
-	if !v1alpha1.ClusterRefsEquals([]v1alpha1.ClusterReference{instance.Spec.ClusterRef, current.Spec.ClusterRef}) {
+	if !v1.ClusterRefsEquals([]v1.ClusterReference{instance.Spec.ClusterRef, current.Spec.ClusterRef}) {
 		// Delete the resource on the previous cluster.
 		if err := registryclient.RemoveRegistryClient(instance, clientConfig); err != nil {
 			r.Recorder.Event(instance, corev1.EventTypeWarning, "RemoveError",
@@ -275,18 +274,18 @@ func (r *NifiRegistryClientReconciler) Reconcile(ctx context.Context, req ctrl.R
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *NifiRegistryClientReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	logCtr, err := GetLogConstructor(mgr, &v1alpha1.NifiRegistryClient{})
+	logCtr, err := GetLogConstructor(mgr, &v1.NifiRegistryClient{})
 	if err != nil {
 		return err
 	}
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&v1alpha1.NifiRegistryClient{}).
+		For(&v1.NifiRegistryClient{}).
 		WithLogConstructor(logCtr).
 		Complete(r)
 }
 
 func (r *NifiRegistryClientReconciler) ensureClusterLabel(ctx context.Context, cluster clientconfig.ClusterConnect,
-	registryClient *v1alpha1.NifiRegistryClient) (*v1alpha1.NifiRegistryClient, error) {
+	registryClient *v1.NifiRegistryClient) (*v1.NifiRegistryClient, error) {
 
 	labels := ApplyClusterReferenceLabel(cluster, registryClient.GetLabels())
 	if !reflect.DeepEqual(labels, registryClient.GetLabels()) {
@@ -297,7 +296,7 @@ func (r *NifiRegistryClientReconciler) ensureClusterLabel(ctx context.Context, c
 }
 
 func (r *NifiRegistryClientReconciler) updateAndFetchLatest(ctx context.Context,
-	registryClient *v1alpha1.NifiRegistryClient) (*v1alpha1.NifiRegistryClient, error) {
+	registryClient *v1.NifiRegistryClient) (*v1.NifiRegistryClient, error) {
 
 	typeMeta := registryClient.TypeMeta
 	err := r.Client.Update(ctx, registryClient)
@@ -309,7 +308,7 @@ func (r *NifiRegistryClientReconciler) updateAndFetchLatest(ctx context.Context,
 }
 
 func (r *NifiRegistryClientReconciler) checkFinalizers(ctx context.Context,
-	registryClient *v1alpha1.NifiRegistryClient, config *clientconfig.NifiConfig) (reconcile.Result, error) {
+	registryClient *v1.NifiRegistryClient, config *clientconfig.NifiConfig) (reconcile.Result, error) {
 	r.Log.Info("NiFi registry client is marked for deletion. Removing finalizers.",
 		zap.String("registryClient", registryClient.Name))
 	var err error
@@ -324,7 +323,7 @@ func (r *NifiRegistryClientReconciler) checkFinalizers(ctx context.Context,
 	return Reconciled()
 }
 
-func (r *NifiRegistryClientReconciler) removeFinalizer(ctx context.Context, registryClient *v1alpha1.NifiRegistryClient) error {
+func (r *NifiRegistryClientReconciler) removeFinalizer(ctx context.Context, registryClient *v1.NifiRegistryClient) error {
 	r.Log.Debug("Removing finalizer for NifiRegistryClient",
 		zap.String("registryClient", registryClient.Name))
 	registryClient.SetFinalizers(util.StringSliceRemove(registryClient.GetFinalizers(), registryClientFinalizer))
@@ -332,7 +331,7 @@ func (r *NifiRegistryClientReconciler) removeFinalizer(ctx context.Context, regi
 	return err
 }
 
-func (r *NifiRegistryClientReconciler) finalizeNifiRegistryClient(registryClient *v1alpha1.NifiRegistryClient,
+func (r *NifiRegistryClientReconciler) finalizeNifiRegistryClient(registryClient *v1.NifiRegistryClient,
 	config *clientconfig.NifiConfig) error {
 
 	if err := registryclient.RemoveRegistryClient(registryClient, config); err != nil {

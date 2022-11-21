@@ -16,7 +16,7 @@ To deploy a [NifiDataflow] you have to start by deploying a [NifiRegistryClient]
 Below is an example of [NifiRegistryClient] :
 
 ```yaml
-apiVersion: nifi.konpyutaika.com/v1alpha1
+apiVersion: nifi.konpyutaika.com/v1
 kind: NifiRegistryClient
 metadata:
   name: registry-client-example
@@ -37,7 +37,7 @@ This configuration is defined using the [NifiParameterContext] CRD, which NiFiKo
 Below is an example of [NifiParameterContext]:
 
 ```yaml
-apiVersion: nifi.konpyutaika.com/v1alpha1
+apiVersion: nifi.konpyutaika.com/v1
 kind: NifiParameterContext
 metadata:
   name: dataflow-lifecycle
@@ -83,7 +83,7 @@ or you can simply create a new [NifiParameterContext] and refer it into your [Ni
 You can now deploy your [NifiDataflow] by referencing the previous objects :
 
 ```yaml
-apiVersion: nifi.konpyutaika.com/v1alpha1
+apiVersion: nifi.konpyutaika.com/v1
 kind: NifiDataflow
 metadata:
   name: dataflow-lifecycle
@@ -118,7 +118,7 @@ You have two modes of control from your dataflow by the operator :
 3 - `Spec.SyncMode == always` : The operator will deploy and ensure the dataflow lifecycle, it will avoid all manual modification directly from the Cluster (e.g remove the process group, remove the versioning, update the parent process group, make some local changes ...). If you want to perform update, rollback or stuff like this, you have to simply update the [NifiDataflow] resource.
 
 :::important
-More information about `Spec.UpdateStrategy` [here](../../5_references/5_nifi_dataflow#dataflowupdatestrategy)
+More information about `Spec.UpdateStrategy` [here](../../5_references/5_nifi_dataflow#componentupdatestrategy)
 :::
 
 [NifiDataflow]: ../../5_references/5_nifi_dataflow

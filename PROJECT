@@ -14,6 +14,16 @@ resources:
   kind: NifiCluster
   path: github.com/konpyutaika/nifikop/api/v1alpha1
   version: v1alpha1
+  webhooks:
+    conversion: true
+    webhookVersion: v1
+- api:
+    crdVersion: v1
+  domain: konpyutaika.com
+  group: nifi
+  kind: NifiCluster
+  path: github.com/konpyutaika/nifikop/api/v1
+  version: v1
 - api:
     crdVersion: v1
   domain: konpyutaika.com
@@ -21,20 +31,50 @@ resources:
   kind: NifiUserGroup
   path: github.com/konpyutaika/nifikop/api/v1alpha1
   version: v1alpha1
+  webhooks:
+    conversion: true
+    webhookVersion: v1
+- api:
+    crdVersion: v1
+  domain: konpyutaika.com
+  group: nifi
+  kind: NifiUserGroup
+  path: github.com/konpyutaika/nifikop/api/v1
+  version: v1
 - api:
     crdVersion: v1
   domain: konpyutaika.com
   group: nifi
   kind: NifiUser
-  path: github.com/Okonpyutaika/nifikop/api/v1alpha1
+  path: github.com/konpyutaika/nifikop/api/v1alpha1
   version: v1alpha1
+  webhooks:
+    conversion: true
+    webhookVersion: v1
+- api:
+    crdVersion: v1
+  domain: konpyutaika.com
+  group: nifi
+  kind: NifiUser
+  path: github.com/konpyutaika/nifikop/api/v1
+  version: v1
 - api:
     crdVersion: v1
   domain: konpyutaika.com
   group: nifi
   kind: NifiRegistryClient
-  path: github.com/Okonpyutaika/nifikop/api/v1alpha1
+  path: github.com/konpyutaika/nifikop/api/v1alpha1
   version: v1alpha1
+  webhooks:
+    conversion: true
+    webhookVersion: v1
+- api:
+    crdVersion: v1
+  domain: konpyutaika.com
+  group: nifi
+  kind: NifiRegistryClient
+  path: github.com/konpyutaika/nifikop/api/v1
+  version: v1
 - api:
     crdVersion: v1
   domain: konpyutaika.com
@@ -42,6 +82,16 @@ resources:
   kind: NifiDataflow
   path: github.com/konpyutaika/nifikop/api/v1alpha1
   version: v1alpha1
+  webhooks:
+    conversion: true
+    webhookVersion: v1
+- api:
+    crdVersion: v1
+  domain: konpyutaika.com
+  group: nifi
+  kind: NifiDataflow
+  path: github.com/konpyutaika/nifikop/api/v1
+  version: v1
 - api:
     crdVersion: v1
   domain: konpyutaika.com
@@ -49,6 +99,16 @@ resources:
   kind: NifiParameterContext
   path: github.com/konpyutaika/nifikop/api/v1alpha1
   version: v1alpha1
+  webhooks:
+    conversion: true
+    webhookVersion: v1
+- api:
+    crdVersion: v1
+  domain: konpyutaika.com
+  group: nifi
+  kind: NifiParameterContext
+  path: github.com/konpyutaika/nifikop/api/v1
+  version: v1
 - api:
     crdVersion: v1
     namespaced: true

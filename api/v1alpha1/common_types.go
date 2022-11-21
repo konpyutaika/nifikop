@@ -3,8 +3,21 @@ package v1alpha1
 import (
 	"fmt"
 
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
+
+// NodeGroupAutoscalerState holds info autoscaler state
+type NodeGroupAutoscalerState string
+
+// ClusterReplicas holds info about the current number of replicas in the cluster
+type ClusterReplicas int32
+
+// ClusterReplicaSelector holds info about the pod selector for cluster replicas
+type ClusterReplicaSelector string
+
+// ClusterScalingStrategy holds info about how a cluster should be scaled
+type ClusterScalingStrategy string
 
 // DataflowState defines the state of a NifiDataflow
 type DataflowState string
@@ -30,18 +43,6 @@ type ActionStep string
 
 // ClusterState holds info about the cluster state
 type ClusterState string
-
-// NodeGroupAutoscalerState holds info autoscaler state
-type NodeGroupAutoscalerState string
-
-// ClusterReplicas holds info about the current number of replicas in the cluster
-type ClusterReplicas int32
-
-// ClusterReplicaSelector holds info about the pod selector for cluster replicas
-type ClusterReplicaSelector string
-
-// ClusterScalingStrategy holds info about how a cluster should be scaled
-type ClusterScalingStrategy string
 
 // ConfigurationState holds info about the configuration state
 type ConfigurationState string
@@ -426,24 +427,6 @@ const (
 	NotInitClusterNode InitClusterNode = false
 )
 
-const (
-	// AutoscalerStateOutOfSync describes the status of a NifiNodeGroupAutoscaler as out of sync
-	AutoscalerStateOutOfSync NodeGroupAutoscalerState = "OutOfSync"
-	// AutoscalerStateInSync describes the status of a NifiNodeGroupAutoscaler as in sync
-	AutoscalerStateInSync NodeGroupAutoscalerState = "InSync"
-
-	// upscale strategy representing 'Scale > Disconnect the nodes > Offload data > Reconnect the node' strategy
-	GracefulClusterUpscaleStrategy ClusterScalingStrategy = "graceful"
-	// simply add a node to the cluster and nothing else
-	SimpleClusterUpscaleStrategy ClusterScalingStrategy = "simple"
-	// downscale strategy to remove the last node added
-	LIFOClusterDownscaleStrategy ClusterScalingStrategy = "lifo"
-	// downscale strategy avoiding primary/coordinator nodes
-	NonPrimaryClusterDownscaleStrategy ClusterScalingStrategy = "nonprimary"
-	// downscale strategy targeting nodes which are least busy in terms of # flowfiles in queues
-	LeastBusyClusterDownscaleStrategy ClusterScalingStrategy = "leastbusy"
-)
-
 func ClusterRefsEquals(clusterRefs []ClusterReference) bool {
 	c1 := clusterRefs[0]
 	name := c1.Name
@@ -492,6 +475,24 @@ const (
 	SyncAlways DataflowSyncMode = "always"
 )
 
+const (
+	// AutoscalerStateOutOfSync describes the status of a NifiNodeGroupAutoscaler as out of sync
+	AutoscalerStateOutOfSync NodeGroupAutoscalerState = "OutOfSync"
+	// AutoscalerStateInSync describes the status of a NifiNodeGroupAutoscaler as in sync
+	AutoscalerStateInSync NodeGroupAutoscalerState = "InSync"
+
+	// upscale strategy representing 'Scale > Disconnect the nodes > Offload data > Reconnect the node' strategy
+	GracefulClusterUpscaleStrategy ClusterScalingStrategy = "graceful"
+	// simply add a node to the cluster and nothing else
+	SimpleClusterUpscaleStrategy ClusterScalingStrategy = "simple"
+	// downscale strategy to remove the last node added
+	LIFOClusterDownscaleStrategy ClusterScalingStrategy = "lifo"
+	// downscale strategy avoiding primary/coordinator nodes
+	NonPrimaryClusterDownscaleStrategy ClusterScalingStrategy = "nonprimary"
+	// downscale strategy targeting nodes which are least busy in terms of # flowfiles in queues
+	LeastBusyClusterDownscaleStrategy ClusterScalingStrategy = "leastbusy"
+)
+
 // Change the list to {"dataflow","input-port","output-port","processor","process-group"} when all the type are available
 // +kubebuilder:validation:Enum={"dataflow"}
 type ComponentType string
@@ -506,11 +507,11 @@ const (
 )
 
 type ComponentInformation struct {
-	Id            string           `json:"id"`
-	GroupId       string           `json:"groupId"`
-	Type          string           `json:"type"`
-	ParentGroupId string           `json:"parentGroupId"`
-	ClusterRef    ClusterReference `json:"clusterRef"`
+	Id            string              `json:"id"`
+	GroupId       string              `json:"groupId"`
+	Type          string              `json:"type"`
+	ParentGroupId string              `json:"parentGroupId"`
+	ClusterRef    v1.ClusterReference `json:"clusterRef"`
 }
 
 // +kubebuilder:validation:Enum={"DO_NOT_LOAD_BALANCE","PARTITION_BY_ATTRIBUTE","ROUND_ROBIN","SINGLE"}

@@ -8,13 +8,13 @@ import (
 	"crypto/x509/pkix"
 	"encoding/pem"
 	"errors"
+	"github.com/konpyutaika/nifikop/api/v1"
 	"math/big"
 	mathrand "math/rand"
 	"strings"
 	"time"
 
-	certv1 "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1"
-	"github.com/konpyutaika/nifikop/api/v1alpha1"
+	certv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	keystore "github.com/pavel-v-chernykh/keystore-go"
 	corev1 "k8s.io/api/core/v1"
 )
@@ -76,12 +76,12 @@ func GeneratePass(length int) (passw []byte) {
 func EnsureSecretPassJKS(secret *corev1.Secret) (injected *corev1.Secret, err error) {
 
 	// If the JKS Pass is already present - return
-	if _, ok := secret.Data[v1alpha1.PasswordKey]; ok {
+	if _, ok := secret.Data[v1.PasswordKey]; ok {
 		return secret, nil
 	}
 
 	injected = secret.DeepCopy()
-	injected.Data[v1alpha1.PasswordKey] = GeneratePass(16)
+	injected.Data[v1.PasswordKey] = GeneratePass(16)
 	return
 }
 

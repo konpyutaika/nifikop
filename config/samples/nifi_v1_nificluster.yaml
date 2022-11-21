@@ -1,0 +1,415 @@
+apiVersion: nifi.konpyutaika.com/v1
+kind: NifiCluster
+metadata:
+  name: mynifi
+spec:
+  service:
+    # headlessEnabled specifies if the cluster should use headlessService for Nifi or individual services
+    # using service per nodes may come an handy case of service mesh.
+    headlessEnabled: true
+    # serviceTemplate specifies the template to be used when naming the service (e.g. %s-mysuffix)
+    serviceTemplate:  "%s-svc"
+    # Annotations specifies the annotations to attach to services the operator creates
+    # annotations:
+    # Labels specifies the labels to attach to services the operator creates
+    # labels:
+  # pod:
+    # Annotations specifies the annotations to attach to pods the operator creates
+    # annotations:    
+    # Labels specifies the labels to attach to pods the operator creates
+    # labels:
+  # zKAddress specifies the ZooKeeper connection string
+  # in the form hostname:port where host and port are those of a Zookeeper server.
+  zkAddress: "zookeepercluster-client.zookeeper:2181"
+  # zKPath specifies the Zookeeper chroot path as part
+  # of its Zookeeper connection string which puts its data under same path in the global ZooKeeper namespace.
+  zkPath: "/myNiFi"
+  # initContainerImage can override the default image used into the init container to check if
+  #	ZoooKeeper server is reachable.
+  #  initContainerImage: bash
+  # initContainers defines additional initContainers configurations
+  #  initContainers:
+  #    - image: eu.gcr.io/poc-rtc/nifi-proxydata-bundle:1.11.4-1.0.0
+  #      name: nifi-proxydata-lib
+  #      imagePullPolicy: IfNotPresent
+  #      command: ["sh", "-c", "cp -vr /nifi_lib/* /nifi_lib_volume/"]
+  #      volumeMounts:
+  #        - name: extensions-repository
+  #          mountPath: /nifi_lib_volume
+  #        - name: logs
+  #          mountPath: /logs
+  # clusterImage can specify the whole nificluster image in one place
+  clusterImage: "apache/nifi:1.17.0"
+  # oneNifiNodePerNode if set to true every nifi node is started on a new node, if there is not enough node to do that
+  # it will stay in pending state. If set to false the operator also tries to schedule the nifi node to a unique node
+  # but if the node number is insufficient the nifi node will be scheduled to a node where a nifi node is already running.
+  oneNifiNodePerNode: false
+  #
+  propagateLabels: true
+  #  managedAdminUsers:
+  #    -  identity : "alexandre.guitton@orange.com"
+  #       name: "aguitton"
+  #  managedReaderUsers:
+  #    -  identity : "toto@orange.com"
+  #       name: "toto"
+  # readOnlyConfig specifies the read-only type Nifi config cluster wide, all theses
+  # will be merged with node specified readOnly configurations, so it can be overwritten per node.
+  readOnlyConfig:
+    # MaximumTimerDrivenThreadCount define the maximum number of threads for timer driven processors available to the system.
+    maximumTimerDrivenThreadCount: 30
+    # Logback configuration that will be applied to the node
+    logbackConfig:
+      # logback.xml configuration that will replace the one produced based on template
+      replaceConfigMap:
+        # The key of the value,in data content, that we want use.
+        data: logback.xml
+        # Name of the configmap that we want to refer.
+        name: raw
+        # Namespace where is located the secret that we want to refer.
+        namespace: nifikop
+      # logback.xml configuration that will replace the one produced based on template and overrideConfigMap
+      replaceSecretConfig:
+        # The key of the value,in data content, that we want use.
+        data: logback.xml
+        # Name of the configmap that we want to refer.
+        name: raw
+        # Namespace where is located the secret that we want to refer.
+        namespace: nifikop
+    # NifiProperties configuration that will be applied to the node.
+    nifiProperties:
+      # Additionnals nifi.properties configuration that will override the one produced based on template and
+      # configuration
+      overrideConfigMap:
+        # The key of the value,in data content, that we want use.
+        data: nifi.properties
+        # Name of the configmap that we want to refer.
+        name: raw
+        # Namespace where is located the secret that we want to refer.
+        namespace: nifikop.
+      # Additionnals nifi.properties configuration that will override the one produced based
+      #	on template, configurations, overrideConfigMap and overrideConfigs.
+      overrideSecretConfig:
+        # The key of the value,in data content, that we want use.
+        data: nifi.properties
+        # Name of the configmap that we want to refer.
+        name: raw
+        # Namespace where is located the secret that we want to refer.
+        namespace: nifikop
+      # Additionnals nifi.properties configuration that will override the one produced based
+      #	on template, configurations and overrideConfigMap
+      overrideConfigs: |
+        nifi.ui.banner.text=NiFiKop
+        nifi.sensitive.props.key=thisIsABadSensitiveKeyPassword
+      # A comma separated list of allowed HTTP Host header values to consider when NiFi
+      # is running securely and will be receiving requests to a different host[:port] than it is bound to.
+      # https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#web-properties
+      #      webProxyHosts:
+      # Nifi security client auth
+      needClientAuth: false
+      # Indicates which of the configured authorizers in the authorizers.xml file to use
+      # https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#authorizer-configuration
+    #      authorizer:
+    # ZookeeperProperties configuration that will be applied to the node.
+    zookeeperProperties:
+#      # Additionnals zookeeeper.properties configuration that will override the one produced based on template and
+#      # configuration
+#      overrideConfigMap:
+#        # The key of the value,in data content, that we want use.
+#        data: zookeeeper.properties
+#        # Name of the configmap that we want to refer.
+#        name: raw
+#        # Namespace where is located the secret that we want to refer.
+#        namespace: nifikop.
+#      # Additionnals zookeeeper.properties configuration that will override the one produced based
+#      #	on template, configurations, overrideConfigMap and overrideConfigs.
+#      overrideSecretConfig:
+#        # The key of the value,in data content, that we want use.
+#        data: zookeeeper.properties
+#        # Name of the configmap that we want to refer.
+#        name: raw
+#        # Namespace where is located the secret that we want to refer.
+#        namespace: nifikop
+      # Additionnals zookeeper.properties configuration that will override the one produced based
+      # on template and configurations.
+      overrideConfigs: |
+        initLimit=15
+        autopurge.purgeInterval=24
+        syncLimit=5
+        tickTime=2000
+        dataDir=./state/zookeeper
+        autopurge.snapRetainCount=30
+    # BootstrapProperties configuration that will be applied to the node.
+    bootstrapProperties:
+#      # Additionnals bootstrap.properties configuration that will override the one produced based on template and
+#      # configuration
+#      overrideConfigMap:
+#        # The key of the value,in data content, that we want use.
+#        data: bootstrap.properties
+#        # Name of the configmap that we want to refer.
+#        name: raw
+#        # Namespace where is located the secret that we want to refer.
+#        namespace: nifikop.
+#      # Additionnals bootstrap.properties configuration that will override the one produced based
+#      #	on template, configurations, overrideConfigMap and overrideConfigs.
+#      overrideSecretConfig:
+#        # The key of the value,in data content, that we want use.
+#        data: bootstrap.properties
+#        # Name of the configmap that we want to refer.
+#        name: raw
+#        # Namespace where is located the secret that we want to refer.
+#        namespace: nifikop
+      # JVM memory settings
+      nifiJvmMemory: "512m"
+      # Additionnals bootstrap.properties configuration that will override the one produced based
+      # on template and configurations.
+      # https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#bootstrap_properties
+      overrideConfigs: |
+        # java.arg.4=-Djava.net.preferIPv4Stack=true
+  # nodeUserIdentityTemplate specifies the template to be used when naming the node user identity (e.g. node-%d-mysuffix)
+  nodeUserIdentityTemplate: "n-%d"
+  # nodeConfigGroups specifies multiple node configs with unique name
+  nodeConfigGroups:
+    default_group:
+      # provenanceStorage allow to specify the maximum amount of data provenance information to store at a time
+      # https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#write-ahead-provenance-repository-properties
+      provenanceStorage: "10 GB"
+      #RunAsUser define the id of the user to run in the Nifi image
+      # +kubebuilder:validation:Minimum=1
+      runAsUser: 1000
+      # Set this to true if the instance is a node in a cluster.
+      # https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#basic-cluster-setup
+      isNode: true
+      # Additionnal metadata to merge to the pod associated
+      # podMetadata:
+      #   annotations:
+      #   labels:
+      # Docker image used by the operator to create the node associated
+      # https://hub.docker.com/r/apache/nifi/
+      #      image: "apache/nifi:1.11.2"
+      # nodeAffinity can be specified, operator populates this value if new pvc added later to node
+      # https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#node-affinity
+      #      nodeAffinity:
+      # imagePullPolicy define the pull policy for NiFi cluster docker image
+      imagePullPolicy: IfNotPresent
+      # externalVolumeConfigs specifies a list of volume to mount into the main container.
+      externalVolumeConfigs:
+        - name: example-volume
+          mountPath: "/opt/nifi/example"
+          secret:
+            secretName: "raw-controller"
+      # storageConfigs specifies the node related configs
+      storageConfigs:
+        # Name of the storage config, used to name PV to reuse into sidecars for example.
+        - name: provenance-repository
+          # Path where the volume will be mount into the main nifi container inside the pod.
+          mountPath: "/opt/nifi/provenance_repository"
+          # Kubernetes PVC spec
+          # https://kubernetes.io/docs/tasks/configure-pod-container/configure-persistent-volume-storage/#create-a-persistentvolumeclaim
+          pvcSpec:
+            accessModes:
+              - ReadWriteOnce
+            storageClassName: "standard"
+            resources:
+              requests:
+                storage: 10Gi
+        - mountPath: "/opt/nifi/nifi-current/logs"
+          name: logs
+          pvcSpec:
+            accessModes:
+              - ReadWriteOnce
+            storageClassName: "standard"
+            resources:
+              requests:
+                storage: 10Gi
+      # serviceAccountName specifies the serviceAccount used for this specific node
+      serviceAccountName: "default"
+      # resourceRequirements works exactly like Container resources, the user can specify the limit and the requests
+      # through this property
+      # https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
+      resourcesRequirements:
+        limits:
+          cpu: "2"
+          memory: 3Gi
+        requests:
+          cpu: "1"
+          memory: 1Gi
+      # imagePullSecrets specifies the secret to use when using private registry
+      # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#localobjectreference-v1-core
+      #       imagePullSecrets:
+      # nodeSelector can be specified, which set the pod to fit on a node
+      # https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#nodeselector
+      #      nodeSelector:
+      # tolerations can be specified, which set the pod's tolerations
+      # https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/#concepts
+      #      tolerations:
+      # Additionnal annotation to attach to the pod associated
+      # https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#syntax-and-character-set
+  #      nodeAnnotations:
+  # disruptionBudget defines the configuration for PodDisruptionBudget
+  disruptionBudget:
+    # create will enable the PodDisruptionBudget when set to true
+    create: false
+  # The budget to set for the PDB, can either be static number or a percentage
+  #   budget: "1"
+  # all node requires an image, unique id, and storageConfigs settings
+  nodes:
+    # Unique Node id
+    - id: 0
+      # nodeConfigGroup can be used to ease the node configuration, if set only the id is required
+      nodeConfigGroup: "default_group"
+      # readOnlyConfig can be used to pass Nifi node config
+      # which has type read-only these config changes will trigger rolling upgrade
+      readOnlyConfig:
+        nifiProperties:
+          overrideConfigs: |
+            nifi.ui.banner.text=NiFiKop - Node 0
+      # node configuration
+    #       nodeConfig:
+    - id: 2
+      # readOnlyConfig can be used to pass Nifi node config
+      # which has type read-only these config changes will trigger rolling upgrade
+      readOnlyConfig:
+        overrideConfigs: |
+          nifi.ui.banner.text=NiFiKop - Node 2
+      # node configuration
+      nodeConfig:
+        resourcesRequirements:
+          limits:
+            cpu: "2"
+            memory: 3Gi
+          requests:
+            cpu: "1"
+            memory: 1Gi
+        storageConfigs:
+          # Name of the storage config, used to name PV to reuse into sidecars for example.
+          - name: provenance-repository
+            # Path where the volume will be mount into the main nifi container inside the pod.
+            mountPath: "/opt/nifi/provenance_repository"
+            # Kubernetes PVC spec
+            # https://kubernetes.io/docs/tasks/configure-pod-container/configure-persistent-volume-storage/#create-a-persistentvolumeclaim
+            pvcSpec:
+              accessModes:
+                - ReadWriteOnce
+              storageClassName: "standard"
+              resources:
+                requests:
+                  storage: 8Gi
+  # LdapConfiguration specifies the configuration if you want to use LDAP
+  ldapConfiguration:
+    # If set to true, we will enable ldap usage into nifi.properties configuration.
+    enabled: false
+    # Space-separated list of URLs of the LDAP servers (i.e. ldap://<hostname>:<port>).
+    #      url:
+    # Base DN for searching for users (i.e. CN=Users,DC=example,DC=com).
+    #    searchBase:
+    # Filter for searching for users against the 'User Search Base'.
+    # (i.e. sAMAccountName={0}). The user specified name is inserted into '{0}'.
+  #      searchFilter:
+  # NifiClusterTaskSpec specifies the configuration of the nifi cluster Tasks
+  nifiClusterTaskSpec:
+    # retryDurationMinutes describes the amount of time the Operator waits for the task
+    retryDurationMinutes: 10
+  # listenerConfig specifies nifi's listener specifig configs
+  listenersConfig:
+    # internalListeners specifies settings required to access nifi internally
+    internalListeners:
+      # (Optional field) Type allow to specify if we are in a specific nifi listener
+      # it's allowing to define some required information such as Cluster Port,
+      # Http Port, Https Port, S2S port, Prometheus port, or Load Balance port.
+      # {"cluster", "http", "https", "s2s", "prometheus", "load-balance"}
+      - type: "http"
+        # An identifier for the port which will be configured.
+        name: "http"
+        # The container port.
+        containerPort: 8080
+      - type: "cluster"
+        name: "cluster"
+        containerPort: 6007
+      - type: "s2s"
+        name: "s2s"
+        containerPort: 10000
+      - name: "rsyslog"
+        containerPort: 10001
+      - type: "prometheus"
+        name: "prometheus"
+        containerPort: 9090
+      - type: "load-balance"
+        name: "load-balance"
+        containerPort: 9090      
+      # sslSecrets contains information about ssl related kubernetes secrets if one of the
+      # listener setting type set to ssl these fields must be populated to
+      #    sslSecrets:
+      # tlsSecretName should contain all ssl certs required by nifi including: caCert, caKey, clientCert, clientKey
+      #	serverCert, serverKey, peerCert, peerKey
+      #      tlsSecretName: "test-nifikop"
+      # create tells the installed cert manager to create the required certs keys
+      #      create: true
+      # clusterScoped defines if the Issuer created is cluster or namespace scoped
+      #      clusterScoped: false
+      # issuerRef allow to use an existing issuer to act as CA :
+      #	https://cert-manager.io/docs/concepts/issuer/
+#      issuerRef:
+#        name: letsencrypt-staging
+#        kind: Issuer
+  externalServices:
+    - name: "clusterip"
+      spec:
+        type: ClusterIP
+        portConfigs:
+          - port: 8080
+            internalListenerName: "http"
+      metadata:
+        annotations:
+          toto: tata
+        labels:
+          titi: tutu
+    - name: "loadbalancer"
+      spec:
+        type: LoadBalancer
+        portConfigs:
+          - port: 8080
+            internalListenerName: "http"
+      metadata:
+        annotations:
+          toto: tata
+        labels:
+          titi: tutu
+    - name: "nodepart"
+      spec:
+        type: NodePort
+        portConfigs:
+          - port: 8080
+            internalListenerName: "http"
+      metadata:
+        annotations:
+          toto: tata
+        labels:
+          titi: tutu
+  sidecarConfigs:
+    - name: app-log
+      image: "busybox:1.32.0"
+      args: [ tail, -n+1, -F, /var/log/nifi-app.log ]
+      resources: &log_resources
+        requests:
+          cpu: 50m
+          memory: 50Mi
+        limits:
+          cpu: 50m
+          memory: 50Mi
+        volumeMounts:
+          - name: logs
+            mountPath: /var/log
+    - name: bootstrap-log
+      image: "busybox:1.32.0"
+      args: [tail, -n+1, -F, /var/log/nifi-bootstrap.log]
+      resources: *log_resources
+      volumeMounts:
+        - name: logs
+          mountPath: /var/log
+    - name: user-log
+      image: "busybox:1.32.0"
+      args: [tail, -n+1, -F, /var/log/nifi-user.log]
+      resources: *log_resources
+      volumeMounts:
+        - name: logs
+          mountPath: /var/log

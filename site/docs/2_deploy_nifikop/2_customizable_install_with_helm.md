@@ -35,7 +35,7 @@ The following tables lists the configurable parameters of the NiFi Operator Helm
 | Parameter                        | Description                                                                                                                                                                          | Default                                     |
 |----------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------|
 | `image.repository`               | Image                                                                                                                                                                                | `ghcr.io/konpyutaika/docker-images/nifikop` |
-| `image.tag`                      | Image tag                                                                                                                                                                            | `v0.15.0-release`                           |
+| `image.tag`                      | Image tag                                                                                                                                                                            | `v1.0.0-release`                            |
 | `image.pullPolicy`               | Image pull policy                                                                                                                                                                    | `Always`                                    |
 | `image.imagePullSecrets.enabled` | Enable tue use of secret for docker image                                                                                                                                            | `false`                                     |
 | `image.imagePullSecrets.name`    | Name of the secret to connect to docker registry                                                                                                                                     | -                                           |
@@ -55,6 +55,7 @@ The following tables lists the configurable parameters of the NiFi Operator Helm
 | `tolerations`                    | Toleration configuration for operator pod                                                                                                                                            | `{}`                                        |
 | `serviceAccount.create`          | Whether the SA creation is delegated to the chart or not                                                                                                                             | `true`                                      |
 | `serviceAccount.name`            | Name of the SA used for NiFiKop deployment                                                                                                                                           | release name                                |
+| `webhook.enabled`                | Enable webhook migration                                                                                                                                                 | `true`                                      |
 
 Specify each parameter using the `--set key=value[,key=value]` argument to `helm install`. For example,
 
@@ -82,6 +83,37 @@ kubectl apply -f https://raw.githubusercontent.com/konpyutaika/nifikop/master/co
 kubectl apply -f https://raw.githubusercontent.com/konpyutaika/nifikop/master/config/crd/bases/nifi.konpyutaika.com_nificonnections.yaml
 ```
 
+:::
+
+:::important Conversion webhook
+In case you keep the conversions webhook enabled (to handle the conversion of resources from `v1alpha1` to `v1`)
+you will need to add the following settings to your yaml definition of CRDs:
+
+```yaml
+...
+annotations:
+    cert-manager.io/inject-ca-from: ${namespace}/${certificate_name}
+...
+spec:
+  ...
+  conversion:
+    strategy: Webhook
+    webhook:
+      clientConfig:
+        service:
+          namespace: ${namespace}
+          name: ${webhook_service_name}
+          path: /convert
+      conversionReviewVersions:
+        - v1
+        - v1alpha1
+  ...
+```
+
+Where : 
+- `namespace`: is the namespace in which you will deploy your helm chart.
+- `certificate_name`: is `${helm release name}-webhook-cert`
+- `webhook_service_name`: is `${helm release name}-webhook-cert`
 :::
 
 <Tabs

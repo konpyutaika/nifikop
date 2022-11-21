@@ -22,6 +22,8 @@ import (
 	"fmt"
 	"reflect"
 
+	v1 "github.com/konpyutaika/nifikop/api/v1"
+
 	"emperror.dev/errors"
 	"github.com/banzaicloud/k8s-objectmatcher/patch"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/usergroup"
@@ -38,11 +40,9 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	"github.com/konpyutaika/nifikop/api/v1alpha1"
 )
 
-var userGroupFinalizer = fmt.Sprintf("nifiusergroups.%s/finalizer", v1alpha1.GroupVersion.Group)
+var userGroupFinalizer = fmt.Sprintf("nifiusergroups.%s/finalizer", v1.GroupVersion.Group)
 
 // NifiUserGroupReconciler reconciles a NifiUserGroup object
 type NifiUserGroupReconciler struct {
@@ -72,7 +72,7 @@ func (r *NifiUserGroupReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	var err error
 
 	// Fetch the NifiUserGroup instance
-	instance := &v1alpha1.NifiUserGroup{}
+	instance := &v1.NifiUserGroup{}
 	if err = r.Client.Get(ctx, req.NamespacedName, instance); err != nil {
 		if apierrors.IsNotFound(err) {
 			// Request object not found, could have been deleted after reconcile request.
@@ -96,17 +96,17 @@ func (r *NifiUserGroupReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	}
 
 	// Check if the cluster reference changed.
-	original := &v1alpha1.NifiUserGroup{}
+	original := &v1.NifiUserGroup{}
 	current := instance.DeepCopy()
 	json.Unmarshal(o, original)
-	if !v1alpha1.ClusterRefsEquals([]v1alpha1.ClusterReference{original.Spec.ClusterRef, instance.Spec.ClusterRef}) {
+	if !v1.ClusterRefsEquals([]v1.ClusterReference{original.Spec.ClusterRef, instance.Spec.ClusterRef}) {
 		instance.Spec.ClusterRef = original.Spec.ClusterRef
 	}
 
 	// Ensure the cluster ref consistency with all users
-	var users []*v1alpha1.NifiUser
+	var users []*v1.NifiUser
 	for _, userRef := range instance.Spec.UsersRef {
-		var user *v1alpha1.NifiUser
+		var user *v1.NifiUser
 		userNamespace := GetUserRefNamespace(current.Namespace, userRef)
 		if user, err = k8sutil.LookupNifiUser(r.Client, userRef.Name, userNamespace); err != nil {
 
@@ -163,7 +163,7 @@ func (r *NifiUserGroupReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		}
 
 		// If the referenced cluster no more exist, just skip the deletion requirement in cluster ref change case.
-		if !v1alpha1.ClusterRefsEquals([]v1alpha1.ClusterReference{instance.Spec.ClusterRef, current.Spec.ClusterRef}) {
+		if !v1.ClusterRefsEquals([]v1.ClusterReference{instance.Spec.ClusterRef, current.Spec.ClusterRef}) {
 			if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(current); err != nil {
 				return RequeueWithError(r.Log, "could not apply last state to annotation for user group "+instance.Name, err)
 			}
@@ -216,7 +216,7 @@ func (r *NifiUserGroupReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	}
 
 	// Ìn case of the cluster reference changed.
-	if !v1alpha1.ClusterRefsEquals([]v1alpha1.ClusterReference{instance.Spec.ClusterRef, current.Spec.ClusterRef}) {
+	if !v1.ClusterRefsEquals([]v1.ClusterReference{instance.Spec.ClusterRef, current.Spec.ClusterRef}) {
 		// Delete the resource on the previous cluster.
 		if err := usergroup.RemoveUserGroup(instance, users, clientConfig); err != nil {
 			msg := fmt.Sprintf("Failed to delete NifiUserGroup %s from cluster %s before moving in %s",
@@ -308,18 +308,18 @@ func (r *NifiUserGroupReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *NifiUserGroupReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	logCtr, err := GetLogConstructor(mgr, &v1alpha1.NifiUserGroup{})
+	logCtr, err := GetLogConstructor(mgr, &v1.NifiUserGroup{})
 	if err != nil {
 		return err
 	}
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&v1alpha1.NifiUserGroup{}).
+		For(&v1.NifiUserGroup{}).
 		WithLogConstructor(logCtr).
 		Complete(r)
 }
 
 func (r *NifiUserGroupReconciler) ensureClusterLabel(ctx context.Context, cluster clientconfig.ClusterConnect,
-	userGroup *v1alpha1.NifiUserGroup) (*v1alpha1.NifiUserGroup, error) {
+	userGroup *v1.NifiUserGroup) (*v1.NifiUserGroup, error) {
 
 	labels := ApplyClusterReferenceLabel(cluster, userGroup.GetLabels())
 	if !reflect.DeepEqual(labels, userGroup.GetLabels()) {
@@ -330,7 +330,7 @@ func (r *NifiUserGroupReconciler) ensureClusterLabel(ctx context.Context, cluste
 }
 
 func (r *NifiUserGroupReconciler) updateAndFetchLatest(ctx context.Context,
-	userGroup *v1alpha1.NifiUserGroup) (*v1alpha1.NifiUserGroup, error) {
+	userGroup *v1.NifiUserGroup) (*v1.NifiUserGroup, error) {
 
 	typeMeta := userGroup.TypeMeta
 	err := r.Client.Update(ctx, userGroup)
@@ -341,8 +341,8 @@ func (r *NifiUserGroupReconciler) updateAndFetchLatest(ctx context.Context,
 	return userGroup, nil
 }
 
-func (r *NifiUserGroupReconciler) checkFinalizers(ctx context.Context, userGroup *v1alpha1.NifiUserGroup,
-	users []*v1alpha1.NifiUser, config *clientconfig.NifiConfig) (reconcile.Result, error) {
+func (r *NifiUserGroupReconciler) checkFinalizers(ctx context.Context, userGroup *v1.NifiUserGroup,
+	users []*v1.NifiUser, config *clientconfig.NifiConfig) (reconcile.Result, error) {
 	r.Log.Info("NiFi user group is marked for deletion. Removing finalizers.",
 		zap.String("userGroup", userGroup.Name))
 	var err error
@@ -357,7 +357,7 @@ func (r *NifiUserGroupReconciler) checkFinalizers(ctx context.Context, userGroup
 	return Reconciled()
 }
 
-func (r *NifiUserGroupReconciler) removeFinalizer(ctx context.Context, userGroup *v1alpha1.NifiUserGroup) error {
+func (r *NifiUserGroupReconciler) removeFinalizer(ctx context.Context, userGroup *v1.NifiUserGroup) error {
 	r.Log.Debug("Removing finalizer for NifiUserGroup",
 		zap.String("userGroup", userGroup.Name))
 	userGroup.SetFinalizers(util.StringSliceRemove(userGroup.GetFinalizers(), userGroupFinalizer))
@@ -366,8 +366,8 @@ func (r *NifiUserGroupReconciler) removeFinalizer(ctx context.Context, userGroup
 }
 
 func (r *NifiUserGroupReconciler) finalizeNifiNifiUserGroup(
-	userGroup *v1alpha1.NifiUserGroup,
-	users []*v1alpha1.NifiUser,
+	userGroup *v1.NifiUserGroup,
+	users []*v1.NifiUser,
 	config *clientconfig.NifiConfig) error {
 
 	if err := usergroup.RemoveUserGroup(userGroup, users, config); err != nil {

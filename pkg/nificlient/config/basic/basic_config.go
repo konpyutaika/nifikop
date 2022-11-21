@@ -5,13 +5,13 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"github.com/konpyutaika/nifikop/api/v1"
 	"strconv"
 	"strings"
 	"time"
 
 	"emperror.dev/errors"
-	"github.com/dgrijalva/jwt-go"
-	"github.com/konpyutaika/nifikop/api/v1alpha1"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/konpyutaika/nifikop/pkg/common"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	"github.com/konpyutaika/nifikop/pkg/k8sutil"
@@ -31,7 +31,7 @@ import (
 var log = common.CustomLogger().Named("basic_config")
 
 func (n *basic) BuildConfig() (*clientconfig.NifiConfig, error) {
-	var cluster *v1alpha1.NifiCluster
+	var cluster *v1.NifiCluster
 	var err error
 	if cluster, err = k8sutil.LookupNifiCluster(n.client, n.clusterRef.Name, n.clusterRef.Namespace); err != nil {
 		return nil, err
@@ -40,7 +40,7 @@ func (n *basic) BuildConfig() (*clientconfig.NifiConfig, error) {
 }
 
 func (n *basic) BuildConnect() (cluster clientconfig.ClusterConnect, err error) {
-	var c *v1alpha1.NifiCluster
+	var c *v1.NifiCluster
 	if c, err = k8sutil.LookupNifiCluster(n.client, n.clusterRef.Name, n.clusterRef.Namespace); err != nil {
 		return nil, err
 	}
@@ -73,7 +73,7 @@ type Claims struct {
 	jwt.StandardClaims
 }
 
-func clusterConfig(client client.Client, cluster *v1alpha1.NifiCluster) (*clientconfig.NifiConfig, error) {
+func clusterConfig(client client.Client, cluster *v1.NifiCluster) (*clientconfig.NifiConfig, error) {
 	conf := configcommon.ClusterConfig(cluster)
 
 	username, password, rootCAs, err := GetControllerBasicConfigFromSecret(client, cluster.Spec.SecretRef)
@@ -85,7 +85,7 @@ func clusterConfig(client client.Client, cluster *v1alpha1.NifiCluster) (*client
 	conf.SkipDescribeCluster = true
 
 	secretName := fmt.Sprintf(templates.ExternalClusterSecretTemplate, cluster.Name)
-	basicSecret, err := GetAccessTokenSecret(client, v1alpha1.SecretReference{Name: secretName, Namespace: cluster.Namespace})
+	basicSecret, err := GetAccessTokenSecret(client, v1.SecretReference{Name: secretName, Namespace: cluster.Namespace})
 
 	if basicSecret != nil && err == nil {
 		invalid := false
@@ -198,7 +198,7 @@ func clusterConfig(client client.Client, cluster *v1alpha1.NifiCluster) (*client
 	return conf, nil
 }
 
-func GetControllerBasicConfigFromSecret(cli client.Client, ref v1alpha1.SecretReference) (clientUsername, clientPassword string, rootCAs *x509.CertPool, err error) {
+func GetControllerBasicConfigFromSecret(cli client.Client, ref v1.SecretReference) (clientUsername, clientPassword string, rootCAs *x509.CertPool, err error) {
 	basicKeys := &corev1.Secret{}
 	err = cli.Get(context.TODO(),
 		types.NamespacedName{
@@ -216,7 +216,7 @@ func GetControllerBasicConfigFromSecret(cli client.Client, ref v1alpha1.SecretRe
 	clientPassword = strings.TrimSuffix(string(basicKeys.Data["password"]), "\n")
 	clientUsername = strings.TrimSuffix(string(basicKeys.Data["username"]), "\n")
 
-	caCert := basicKeys.Data[v1alpha1.CoreCACertKey]
+	caCert := basicKeys.Data[v1.CoreCACertKey]
 	if len(caCert) != 0 {
 		rootCAs = x509.NewCertPool()
 		rootCAs.AppendCertsFromPEM(caCert)
@@ -225,7 +225,7 @@ func GetControllerBasicConfigFromSecret(cli client.Client, ref v1alpha1.SecretRe
 	return
 }
 
-func GetAccessTokenSecret(cli client.Client, ref v1alpha1.SecretReference) (*corev1.Secret, error) {
+func GetAccessTokenSecret(cli client.Client, ref v1.SecretReference) (*corev1.Secret, error) {
 	accessToken := &corev1.Secret{}
 	err := cli.Get(context.TODO(),
 		types.NamespacedName{

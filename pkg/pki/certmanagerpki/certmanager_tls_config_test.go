@@ -2,10 +2,10 @@ package certmanagerpki
 
 import (
 	"context"
+	"github.com/konpyutaika/nifikop/api/v1"
 	"reflect"
 	"testing"
 
-	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	certutil "github.com/konpyutaika/nifikop/pkg/util/cert"
 	corev1 "k8s.io/api/core/v1"
@@ -20,7 +20,7 @@ func newMockControllerSecret(valid bool) *corev1.Secret {
 		secret.Data = map[string][]byte{
 			corev1.TLSCertKey:       cert,
 			corev1.TLSPrivateKeyKey: key,
-			v1alpha1.CoreCACertKey:  cert,
+			v1.CoreCACertKey:        cert,
 		}
 	}
 	return secret

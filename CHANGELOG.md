@@ -13,6 +13,28 @@
 
 ### Removed
 
+## v1.0.0
+
+### Changed
+
+- [PR #190](https://github.com/konpyutaika/nifikop/pull/190) - **[CRDs]** Migrate v1alpha1 to v1
+
+## v0.16.0
+
+### Added
+
+- [PR #202](https://github.com/konpyutaika/nifikop/pull/202) - **[Operator]** Updated the go version in nifikop to 1.19.
+- [PR #208](https://github.com/konpyutaika/nifikop/pull/208) - **[Operator]** Updated the cert-manager lib version to v1.10.0.
+
+### Changed
+
+- [PR #205](https://github.com/konpyutaika/nifikop/pull/205) - **[Operator]** Updated operator-sdk to v1.25.2.
+
+### Fixed Bugs
+
+- [PR #195](https://github.com/konpyutaika/nifikop/pull/195) - **[Helm Chart]** Fixed bug where default metrics port collided with default health probe port.
+- [PR #210](https://github.com/konpyutaika/nifikop/pull/210) - **[NifiUser]** Fixed issue where `NifiUser` `Certificate` and `Secret` resources get re-created after the `NifiUser` has been marked for deletion and removed. This is most noticeable when deploying NiFi clusters via ArgoCD.
+
 ## v0.15.0
 
 ### Added

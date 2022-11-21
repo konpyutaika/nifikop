@@ -4,10 +4,10 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"github.com/konpyutaika/nifikop/api/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"strings"
 
-	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -17,14 +17,14 @@ import (
 // GetControllerTLSConfig creates a TLS config from the user secret created for
 // cruise control and manager operations
 func (c *certManager) GetControllerTLSConfig() (config *tls.Config, err error) {
-	config, err = GetControllerTLSConfigFromSecret(c.client, v1alpha1.SecretReference{
+	config, err = GetControllerTLSConfigFromSecret(c.client, v1.SecretReference{
 		Namespace: c.cluster.Namespace,
 		Name:      c.cluster.GetNifiControllerUserIdentity(),
 	})
 	return
 }
 
-func GetControllerTLSConfigFromSecret(client client.Client, ref v1alpha1.SecretReference) (config *tls.Config, err error) {
+func GetControllerTLSConfigFromSecret(client client.Client, ref v1.SecretReference) (config *tls.Config, err error) {
 	config = &tls.Config{}
 	tlsKeys := &corev1.Secret{}
 	err = client.Get(context.TODO(),
@@ -42,7 +42,7 @@ func GetControllerTLSConfigFromSecret(client client.Client, ref v1alpha1.SecretR
 	}
 	clientCert := tlsKeys.Data[corev1.TLSCertKey]
 	clientKey := tlsKeys.Data[corev1.TLSPrivateKeyKey]
-	caCert := tlsKeys.Data[v1alpha1.CoreCACertKey]
+	caCert := tlsKeys.Data[v1.CoreCACertKey]
 
 	if len(caCert) == 0 {
 		certs := strings.SplitAfter(string(clientCert), "-----END CERTIFICATE-----")

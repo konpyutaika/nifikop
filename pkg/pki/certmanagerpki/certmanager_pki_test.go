@@ -3,10 +3,10 @@ package certmanagerpki
 import (
 	"context"
 	"fmt"
+	common2 "github.com/konpyutaika/nifikop/api/v1"
 	"reflect"
 	"testing"
 
-	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/common"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	certutil "github.com/konpyutaika/nifikop/pkg/util/cert"
@@ -25,7 +25,7 @@ func newNodeServerSecret(nodeId int32) *corev1.Secret {
 	secret.Data = map[string][]byte{
 		corev1.TLSCertKey:       cert,
 		corev1.TLSPrivateKeyKey: key,
-		v1alpha1.CoreCACertKey:  cert,
+		common2.CoreCACertKey:   cert,
 	}
 	return secret
 }
@@ -38,7 +38,7 @@ func newControllerSecret() *corev1.Secret {
 	secret.Data = map[string][]byte{
 		corev1.TLSCertKey:       cert,
 		corev1.TLSPrivateKeyKey: key,
-		v1alpha1.CoreCACertKey:  cert,
+		common2.CoreCACertKey:   cert,
 	}
 	return secret
 }
@@ -51,7 +51,7 @@ func newCASecret() *corev1.Secret {
 	secret.Data = map[string][]byte{
 		corev1.TLSCertKey:       cert,
 		corev1.TLSPrivateKeyKey: key,
-		v1alpha1.CoreCACertKey:  cert,
+		common2.CoreCACertKey:   cert,
 	}
 	return secret
 }
@@ -62,8 +62,8 @@ func newPreCreatedSecret() *corev1.Secret {
 	secret.Namespace = "test-namespace"
 	cert, key, _, _ := certutil.GenerateTestCert()
 	secret.Data = map[string][]byte{
-		v1alpha1.CAPrivateKeyKey: key,
-		v1alpha1.CACertKey:       cert,
+		common2.CAPrivateKeyKey: key,
+		common2.CACertKey:       cert,
 	}
 	return secret
 }

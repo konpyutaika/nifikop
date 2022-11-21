@@ -18,77 +18,51 @@ spec:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: NifiConnection is the Schema for the nificonnections API
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation
-              of an object. Servers should convert recognized schemas to the latest
-              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this
-              object represents. Servers may infer this from the endpoint the client
-              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
           spec:
-            description: NifiConnectionSpec defines the desired state of NifiConnection
             properties:
               configuration:
-                description: the Configuration of the connection.
                 properties:
                   backPressureDataSizeThreshold:
                     default: 1 GB
-                    description: the maximum data size of objects that can be queued
-                      before back pressure is applied.
                     type: string
                   backPressureObjectThreshold:
                     default: 10000
-                    description: the maximum number of objects that can be queued
-                      before back pressure is applied.
                     format: int64
                     type: integer
                   bends:
-                    description: the bend points on the connection.
                     items:
                       properties:
                         posX:
-                          description: The x coordinate.
                           format: int64
                           type: integer
                         posY:
-                          description: The y coordinate.
                           format: int64
                           type: integer
                       type: object
                     type: array
                   flowFileExpiration:
-                    description: the maximum amount of time an object may be in the
-                      flow before it will be automatically aged out of the flow.
                     type: string
                   labelIndex:
-                    description: the index of the bend point where to place the connection
-                      label.
                     format: int32
                     type: integer
                   loadBalanceCompression:
                     default: DO_NOT_COMPRESS
-                    description: whether or not data should be compressed when being
-                      transferred between nodes in the cluster.
                     enum:
                     - DO_NOT_COMPRESS
                     - COMPRESS_ATTRIBUTES_ONLY
                     - COMPRESS_ATTRIBUTES_AND_CONTENT
                     type: string
                   loadBalancePartitionAttribute:
-                    description: the FlowFile Attribute to use for determining which
-                      node a FlowFile will go to.
                     type: string
                   loadBalanceStrategy:
                     default: DO_NOT_LOAD_BALANCE
-                    description: how to load balance the data in this Connection across
-                      the nodes in the cluster.
                     enum:
                     - DO_NOT_LOAD_BALANCE
                     - PARTITION_BY_ATTRIBUTE
@@ -96,7 +70,6 @@ spec:
                     - SINGLE
                     type: string
                   prioritizers:
-                    description: the comparators used to prioritize the queue.
                     items:
                       enum:
                       - FirstInFirstOutPrioritizer
@@ -107,20 +80,14 @@ spec:
                     type: array
                 type: object
               destination:
-                description: the Destination component of the connection.
                 properties:
                   name:
-                    description: the name of the component.
                     type: string
                   namespace:
-                    description: the namespace of the component.
                     type: string
                   subName:
-                    description: the name of the sub component (e.g. queue or port
-                      name).
                     type: string
                   type:
-                    description: the type of the component (e.g. nifidataflow).
                     enum:
                     - dataflow
                     type: string
@@ -129,20 +96,14 @@ spec:
                 - type
                 type: object
               source:
-                description: the Source component of the connection.
                 properties:
                   name:
-                    description: the name of the component.
                     type: string
                   namespace:
-                    description: the namespace of the component.
                     type: string
                   subName:
-                    description: the name of the sub component (e.g. queue or port
-                      name).
                     type: string
                   type:
-                    description: the type of the component (e.g. nifidataflow).
                     enum:
                     - dataflow
                     type: string
@@ -151,8 +112,6 @@ spec:
                 - type
                 type: object
               updateStrategy:
-                description: 'describes the way the operator will deal with data when
-                  a connection will be updated : drop or drain.'
                 enum:
                 - drop
                 - drain
@@ -163,13 +122,10 @@ spec:
             - updateStrategy
             type: object
           status:
-            description: NifiConnectionStatus defines the observed state of NifiConnection
             properties:
               connectionID:
-                description: connection ID.
                 type: string
               state:
-                description: connection current state.
                 type: string
             required:
             - connectionID

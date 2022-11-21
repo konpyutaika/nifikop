@@ -33,6 +33,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	"github.com/banzaicloud/k8s-objectmatcher/patch"
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/connection"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/dataflow"
@@ -99,7 +100,7 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	cr, err := k8sutil.GetAnnotation(nifiutil.LastAppliedClusterAnnotation, instance)
 	// Create it if not exist.
 	if cr == nil {
-		jsonResource, err := json.Marshal(v1alpha1.ClusterReference{})
+		jsonResource, err := json.Marshal(v1.ClusterReference{})
 		if err != nil {
 			return RequeueWithError(r.Log, "could not apply last state to annotation for connection "+instance.Name, err)
 		}
@@ -116,7 +117,7 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 
 	// Check if the source or the destination changed
 	original := &v1alpha1.NifiConnection{}
-	originalClusterRef := &v1alpha1.ClusterReference{}
+	originalClusterRef := &v1.ClusterReference{}
 	current := instance.DeepCopy()
 	json.Unmarshal(o, original)
 	json.Unmarshal(cr, originalClusterRef)
@@ -166,7 +167,7 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	}
 
 	// Ìn case of the cluster reference changed.
-	if !v1alpha1.ClusterRefsEquals([]v1alpha1.ClusterReference{clusterRef, *currentClusterRef}) {
+	if !v1.ClusterRefsEquals([]v1.ClusterReference{clusterRef, *currentClusterRef}) {
 		// Prepare cluster connection configurations
 		var clientConfig *clientconfig.NifiConfig
 		var clusterConnect clientconfig.ClusterConnect
@@ -239,7 +240,7 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 				original.Spec.Destination.Name, original.Spec.Destination.Namespace, original.Spec.Destination.Type))
 
 		// Update the last view configuration to the current one.
-		clusterRefJsonResource, err := json.Marshal(v1alpha1.ClusterReference{})
+		clusterRefJsonResource, err := json.Marshal(v1.ClusterReference{})
 		if err != nil {
 			return RequeueWithError(r.Log, "could not apply last state to annotation for connection "+instance.Name, err)
 		}
@@ -669,7 +670,7 @@ func (r *NifiConnectionReconciler) DeleteConnection(ctx context.Context, clientC
 		}
 
 		// Check is the NifiDataflow's update strategy is on drain
-		if sourceInstance.Spec.UpdateStrategy == v1alpha1.DrainStrategy {
+		if sourceInstance.Spec.UpdateStrategy == v1.DrainStrategy {
 			// Check if the dataflow is empty
 			isEmpty, err := dataflow.IsDataflowEmpty(sourceInstance, clientConfig)
 			if err != nil {
@@ -694,7 +695,7 @@ func (r *NifiConnectionReconciler) DeleteConnection(ctx context.Context, clientC
 		}
 
 		// If the NifiDataflow's update strategy is on drop and the NifiConnection's too, stop the input-port of the dataflow
-		if destinationInstance.Spec.UpdateStrategy == v1alpha1.DropStrategy && instance.Spec.UpdateStrategy == v1alpha1.DropStrategy {
+		if destinationInstance.Spec.UpdateStrategy == v1.DropStrategy && instance.Spec.UpdateStrategy == v1.DropStrategy {
 			if err := r.StopDataflowComponent(ctx, original.Spec.Destination, false); err != nil {
 				return err
 			}
@@ -713,7 +714,7 @@ func (r *NifiConnectionReconciler) DeleteConnection(ctx context.Context, clientC
 		// force the dataflow to stay started
 		if !connectionEntity.Component.Source.Running &&
 			connectionEntity.Status.AggregateSnapshot.FlowFilesQueued != 0 &&
-			instance.Spec.UpdateStrategy == v1alpha1.DrainStrategy {
+			instance.Spec.UpdateStrategy == v1.DrainStrategy {
 			if err := r.ForceStartDataflowComponent(ctx, original.Spec.Destination); err != nil {
 				return err
 			}
@@ -730,8 +731,8 @@ func (r *NifiConnectionReconciler) DeleteConnection(ctx context.Context, clientC
 			// If the source is stopped, the destination is stopped, the connection is not empty and the destination's update strategy is on drop:
 			// empty the connection
 		} else if !connectionEntity.Component.Source.Running && !connectionEntity.Component.Destination.Running &&
-			connectionEntity.Status.AggregateSnapshot.FlowFilesQueued != 0 && destinationInstance.Spec.UpdateStrategy == v1alpha1.DropStrategy &&
-			instance.Spec.UpdateStrategy == v1alpha1.DropStrategy {
+			connectionEntity.Status.AggregateSnapshot.FlowFilesQueued != 0 && destinationInstance.Spec.UpdateStrategy == v1.DropStrategy &&
+			instance.Spec.UpdateStrategy == v1.DropStrategy {
 			if err := connection.DropConnectionFlowFiles(instance, clientConfig); err != nil {
 				return err
 			}
@@ -760,7 +761,7 @@ func (r *NifiConnectionReconciler) DeleteConnection(ctx context.Context, clientC
 }
 
 // Retrieve the clusterRef based on the source and the destination of the connection
-func (r *NifiConnectionReconciler) RetrieveNifiClusterRef(src v1alpha1.ComponentReference, dst v1alpha1.ComponentReference) (*v1alpha1.ClusterReference, error) {
+func (r *NifiConnectionReconciler) RetrieveNifiClusterRef(src v1alpha1.ComponentReference, dst v1alpha1.ComponentReference) (*v1.ClusterReference, error) {
 	r.Log.Debug("Retrieve the cluster reference from the source and the destination",
 		zap.String("sourceName", src.Name),
 		zap.String("sourceNamespace", src.Namespace),
@@ -769,7 +770,7 @@ func (r *NifiConnectionReconciler) RetrieveNifiClusterRef(src v1alpha1.Component
 		zap.String("destinationNamespace", dst.Namespace),
 		zap.String("destinationType", string(dst.Type)))
 
-	var srcClusterRef = v1alpha1.ClusterReference{}
+	var srcClusterRef = v1.ClusterReference{}
 	// Retrieve the source clusterRef from a NifiDataflow resource
 	if src.Type == v1alpha1.ComponentDataflow {
 		srcDataflow, err := k8sutil.LookupNifiDataflow(r.Client, src.Name, src.Namespace)
@@ -780,7 +781,7 @@ func (r *NifiConnectionReconciler) RetrieveNifiClusterRef(src v1alpha1.Component
 		srcClusterRef = srcDataflow.Spec.ClusterRef
 	}
 
-	var dstClusterRef = v1alpha1.ClusterReference{}
+	var dstClusterRef = v1.ClusterReference{}
 	// Retrieve the destination clusterRef from a NifiDataflow resource
 	if dst.Type == v1alpha1.ComponentDataflow {
 		dstDataflow, err := k8sutil.LookupNifiDataflow(r.Client, dst.Name, dst.Namespace)
@@ -792,7 +793,7 @@ func (r *NifiConnectionReconciler) RetrieveNifiClusterRef(src v1alpha1.Component
 	}
 
 	// Check that the source and the destination reference the same cluster
-	if !v1alpha1.ClusterRefsEquals([]v1alpha1.ClusterReference{srcClusterRef, dstClusterRef}) {
+	if !v1.ClusterRefsEquals([]v1.ClusterReference{srcClusterRef, dstClusterRef}) {
 		return nil, errors.New(fmt.Sprintf("Source cluster %s in %s is different from Destination cluster %s in %s",
 			srcClusterRef.Name, srcClusterRef.Namespace,
 			dstClusterRef.Name, dstClusterRef.Namespace))

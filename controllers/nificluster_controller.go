@@ -21,6 +21,8 @@ import (
 	"fmt"
 	"time"
 
+	v1 "github.com/konpyutaika/nifikop/api/v1"
+
 	"emperror.dev/errors"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	"github.com/konpyutaika/nifikop/pkg/k8sutil"
@@ -39,12 +41,10 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	"github.com/konpyutaika/nifikop/api/v1alpha1"
 )
 
-var clusterFinalizer string = fmt.Sprintf("nificlusters.%s/finalizer", v1alpha1.GroupVersion.Group)
-var clusterUsersFinalizer string = fmt.Sprintf("nificlusters.%s/users", v1alpha1.GroupVersion.Group)
+var clusterFinalizer string = fmt.Sprintf("nificlusters.%s/finalizer", v1.GroupVersion.Group)
+var clusterUsersFinalizer string = fmt.Sprintf("nificlusters.%s/users", v1.GroupVersion.Group)
 
 // NifiClusterReconciler reconciles a NifiCluster object
 type NifiClusterReconciler struct {
@@ -81,7 +81,7 @@ type NifiClusterReconciler struct {
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.7.0/pkg/reconcile
 func (r *NifiClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	// Fetch the NifiCluster instance
-	instance := &v1alpha1.NifiCluster{}
+	instance := &v1.NifiCluster{}
 	err := r.Client.Get(ctx, req.NamespacedName, instance)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
@@ -104,23 +104,23 @@ func (r *NifiClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return RequeueAfter(time.Duration(15) * time.Second)
 	}
 	//
-	if len(instance.Status.State) == 0 || instance.Status.State == v1alpha1.NifiClusterInitializing {
-		if err := k8sutil.UpdateCRStatus(r.Client, instance, v1alpha1.NifiClusterInitializing, r.Log); err != nil {
+	if len(instance.Status.State) == 0 || instance.Status.State == v1.NifiClusterInitializing {
+		if err := k8sutil.UpdateCRStatus(r.Client, instance, v1.NifiClusterInitializing, r.Log); err != nil {
 			return RequeueWithError(r.Log, err.Error(), err)
 		}
 		for nId := range instance.Spec.Nodes {
-			if err := k8sutil.UpdateNodeStatus(r.Client, []string{fmt.Sprint(instance.Spec.Nodes[nId].Id)}, instance, v1alpha1.IsInitClusterNode, r.Log); err != nil {
+			if err := k8sutil.UpdateNodeStatus(r.Client, []string{fmt.Sprint(instance.Spec.Nodes[nId].Id)}, instance, v1.IsInitClusterNode, r.Log); err != nil {
 				return RequeueWithError(r.Log, err.Error(), err)
 			}
 		}
-		if err := k8sutil.UpdateCRStatus(r.Client, instance, v1alpha1.NifiClusterInitialized, r.Log); err != nil {
+		if err := k8sutil.UpdateCRStatus(r.Client, instance, v1.NifiClusterInitialized, r.Log); err != nil {
 			return RequeueWithError(r.Log, err.Error(), err)
 		}
 	}
 
-	if instance.Status.State != v1alpha1.NifiClusterRollingUpgrading {
+	if instance.Status.State != v1.NifiClusterRollingUpgrading {
 		r.Log.Info("NifiCluster starting reconciliation", zap.String("clusterName", instance.Name))
-		r.Recorder.Event(instance, corev1.EventTypeNormal, string(v1alpha1.NifiClusterReconciling),
+		r.Recorder.Event(instance, corev1.EventTypeNormal, string(v1.NifiClusterReconciling),
 			"NifiCluster starting reconciliation")
 	}
 
@@ -162,7 +162,7 @@ func (r *NifiClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	}
 
 	//Update rolling upgrade last successful state
-	if instance.Status.State == v1alpha1.NifiClusterRollingUpgrading {
+	if instance.Status.State == v1.NifiClusterRollingUpgrading {
 		if err := k8sutil.UpdateRollingUpgradeState(r.Client, instance, time.Now(), r.Log); err != nil {
 			return RequeueWithError(r.Log, err.Error(), err)
 		}
@@ -170,9 +170,9 @@ func (r *NifiClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 
 	if !instance.IsReady() {
 		r.Log.Info("Successfully reconciled NifiCluster", zap.String("clusterName", instance.Name))
-		r.Recorder.Event(instance, corev1.EventTypeNormal, string(v1alpha1.NifiClusterRunning),
+		r.Recorder.Event(instance, corev1.EventTypeNormal, string(v1.NifiClusterRunning),
 			"Successfully reconciled NifiCluster")
-		if err := k8sutil.UpdateCRStatus(r.Client, instance, v1alpha1.NifiClusterRunning, r.Log); err != nil {
+		if err := k8sutil.UpdateCRStatus(r.Client, instance, v1.NifiClusterRunning, r.Log); err != nil {
 			return RequeueWithError(r.Log, err.Error(), err)
 		}
 	}
@@ -182,13 +182,13 @@ func (r *NifiClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *NifiClusterReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	logCtr, err := GetLogConstructor(mgr, &v1alpha1.NifiCluster{})
+	logCtr, err := GetLogConstructor(mgr, &v1.NifiCluster{})
 	if err != nil {
 		return err
 	}
 	if util.IsK8sPrior1_21() {
 		return ctrl.NewControllerManagedBy(mgr).
-			For(&v1alpha1.NifiCluster{}).
+			For(&v1.NifiCluster{}).
 			WithLogConstructor(logCtr).
 			Owns(&policyv1beta1.PodDisruptionBudget{}).
 			Owns(&corev1.Service{}).
@@ -199,7 +199,7 @@ func (r *NifiClusterReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	}
 
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&v1alpha1.NifiCluster{}).
+		For(&v1.NifiCluster{}).
 		WithLogConstructor(logCtr).
 		Owns(&policyv1.PodDisruptionBudget{}).
 		Owns(&corev1.Service{}).
@@ -210,7 +210,7 @@ func (r *NifiClusterReconciler) SetupWithManager(mgr ctrl.Manager) error {
 }
 
 func (r *NifiClusterReconciler) checkFinalizers(ctx context.Context,
-	cluster *v1alpha1.NifiCluster) (reconcile.Result, error) {
+	cluster *v1.NifiCluster) (reconcile.Result, error) {
 
 	r.Log.Info("NifiCluster is marked for deletion, checking for children", zap.String("clusterName", cluster.Name))
 
@@ -247,7 +247,7 @@ func (r *NifiClusterReconciler) checkFinalizers(ctx context.Context,
 			for _, ns := range namespaces {
 				if err := r.Client.DeleteAllOf(
 					ctx,
-					&v1alpha1.NifiUser{},
+					&v1.NifiUser{},
 					client.InNamespace(ns),
 					client.MatchingLabels{ClusterRefLabel: ClusterLabelString(cluster)},
 				); err != nil {
@@ -295,15 +295,15 @@ func (r *NifiClusterReconciler) checkFinalizers(ctx context.Context,
 	return Reconciled()
 }
 
-func (r *NifiClusterReconciler) removeFinalizer(ctx context.Context, cluster *v1alpha1.NifiCluster,
-	finalizer string) (updated *v1alpha1.NifiCluster, err error) {
+func (r *NifiClusterReconciler) removeFinalizer(ctx context.Context, cluster *v1.NifiCluster,
+	finalizer string) (updated *v1.NifiCluster, err error) {
 
 	cluster.SetFinalizers(util.StringSliceRemove(cluster.GetFinalizers(), finalizer))
 	return r.updateAndFetchLatest(ctx, cluster)
 }
 
 func (r *NifiClusterReconciler) updateAndFetchLatest(ctx context.Context,
-	cluster *v1alpha1.NifiCluster) (*v1alpha1.NifiCluster, error) {
+	cluster *v1.NifiCluster) (*v1.NifiCluster, error) {
 
 	typeMeta := cluster.TypeMeta
 	err := r.Client.Update(ctx, cluster)
@@ -315,7 +315,7 @@ func (r *NifiClusterReconciler) updateAndFetchLatest(ctx context.Context,
 }
 
 func (r *NifiClusterReconciler) ensureFinalizers(ctx context.Context,
-	cluster *v1alpha1.NifiCluster) (updated *v1alpha1.NifiCluster, err error) {
+	cluster *v1.NifiCluster) (updated *v1.NifiCluster, err error) {
 
 	finalizers := []string{clusterFinalizer}
 	if cluster.IsInternal() && cluster.Spec.ListenersConfig.SSLSecrets != nil {

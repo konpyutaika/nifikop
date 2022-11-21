@@ -3,12 +3,12 @@ package util
 import (
 	"testing"
 
-	"github.com/konpyutaika/nifikop/api/v1alpha1"
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 	corev1 "k8s.io/api/core/v1"
 )
 
 func TestSubtractNodes(t *testing.T) {
-	sourceList := []v1alpha1.Node{
+	sourceList := []v1.Node{
 		{
 			Id: 1,
 		},
@@ -20,7 +20,7 @@ func TestSubtractNodes(t *testing.T) {
 		},
 	}
 
-	nodesToSubtract := []v1alpha1.Node{
+	nodesToSubtract := []v1.Node{
 		{
 			Id: 3,
 		},
@@ -32,7 +32,7 @@ func TestSubtractNodes(t *testing.T) {
 	}
 
 	// subtract empty list
-	if results := SubtractNodes(sourceList, []v1alpha1.Node{}); len(results) != 3 {
+	if results := SubtractNodes(sourceList, []v1.Node{}); len(results) != 3 {
 		t.Error("there should be 3 results")
 	}
 
