@@ -32,9 +32,9 @@
   },
   "dependencies": {
     "@algolia/client-search": "^4.9.1",
-    "@docusaurus/core": "^2.1.0",
-    "@docusaurus/preset-classic": "^2.1.0",
-    "@docusaurus/theme-live-codeblock": "^2.1.0",
+    "@docusaurus/core": "^2.2.0",
+    "@docusaurus/preset-classic": "^2.2.0",
+    "@docusaurus/theme-live-codeblock": "^2.2.0",
     "classnames": "^2.3.1",
     "docusaurus-plugin-sass": "^0.2.2",
     "react": "^16.0.0",
