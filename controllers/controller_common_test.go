@@ -49,7 +49,7 @@ func TestGetClusterRefNamespace(t *testing.T) {
 
 func TestGetRegistryClientRefNamespace(t *testing.T) {
 	ns := "test-namespace"
-	ref := v1alpha1.RegistryClientReference{
+	ref := v1.RegistryClientReference{
 		Name: "test-cluster",
 	}
 	if refNS := GetRegistryClientRefNamespace(ns, ref); refNS != "test-namespace" {
@@ -63,7 +63,7 @@ func TestGetRegistryClientRefNamespace(t *testing.T) {
 
 func TestGetParameterContextRefNamespace(t *testing.T) {
 	ns := "test-namespace"
-	ref := v1alpha1.ParameterContextReference{
+	ref := v1.ParameterContextReference{
 		Name: "test-cluster",
 	}
 	if refNS := GetParameterContextRefNamespace(ns, ref); refNS != "test-namespace" {
