@@ -2,6 +2,8 @@
 
 ### Added
 
+- [PR #220](https://github.com/konpyutaika/nifikop/pull/220) - **[Operator/NifiCluster]** Made `Pod` readiness and liveness checks configurable.
+
 ### Changed
 
 ### Fixed Bugs
