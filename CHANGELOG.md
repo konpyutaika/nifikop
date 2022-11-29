@@ -2,6 +2,8 @@
 
 ### Added
 
+- [PR #218](https://github.com/konpyutaika/nifikop/pull/218) - **[Operator]** Add cross-platform support to nifikop docker image.
+
 ### Changed
 
 ### Fixed Bugs
