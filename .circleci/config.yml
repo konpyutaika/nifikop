@@ -75,7 +75,7 @@ orbs:
                 - build/_output
                 - vendor
 
-      # Build job, which build operator docker image (with operator-sdk build)
+      # Build job, which builds the cross-platform operator docker image (with operator-sdk build)
       build-operator:
         <<: *params_operator
         <<: *job_operator
@@ -89,22 +89,19 @@ orbs:
           - attach_workspace: # Attach artifact from workdir
               at: /home/circleci
           - run:
-              name: Build Operator
-              command: make build
+              name: Build & Push Operator to Github Container Registry
+              command: |
+                if [[ $(echo "$CIRCLE_BRANCH" | grep -c "pull") -gt 0 ]]; then
+                  echo "This is a PR, we don't push to GitHub."
+                else
+                  docker login ghcr.io -u $GH_NAME --password $GH_TOKEN
+                  make docker-buildx
+                fi
           - persist_to_workspace: # Create artifacts
               root: /home/circleci
               paths:
                 - << parameters.operatorDir >>/build/_output
                 - << parameters.operatorDir >>/vendor
-          - deploy:
-              name: Push image to Docker Hub
-              command: |
-                if [[ $(echo "$CIRCLE_BRANCH" | grep -c "pull") -gt 0 ]]; then
-                  echo "This is a PR, we don't push to Hub."
-                else
-                  docker login ghcr.io -u $GH_NAME --password $GH_TOKEN
-                  make docker-push
-                fi
           - save_cache:
               name: Save build artifacts in cache
               key: << parameters.operatorName >>-build-{{ .Branch }}-{{ checksum "go.sum" }}-{{ .Environment.CACHE_VERSION }}
