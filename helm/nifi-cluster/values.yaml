@@ -38,8 +38,8 @@ cluster:
     # -- Only set this if you want to override the chart AppVersion
     tag: ""
   initContainerImage:
-    repository: "busybox"
-    tag: "latest"
+    repository: "bash"
+    tag: "5.2.2"
 
   # -- list of init containers to run prior to the deployment
   initContainers: []
