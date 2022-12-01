@@ -1,6 +1,6 @@
 {{ range .Values.dataflows }}
 {{ if .enabled }}
-apiVersion: nifi.konpyutaika.com/v1alpha1
+apiVersion: nifi.konpyutaika.com/v1
 kind: NifiDataflow
 metadata:
   name: {{ include "nifi-cluster.fullname" $ }}-{{ regexReplaceAll "\\W+" .name "-" | lower }} # this needs to be k8s name compliant

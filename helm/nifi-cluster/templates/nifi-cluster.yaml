@@ -1,4 +1,4 @@
-apiVersion: nifi.konpyutaika.com/v1alpha1
+apiVersion: nifi.konpyutaika.com/v1
 kind: NifiCluster
 metadata:
   name: {{ include "nifi-cluster.fullname" . }}
@@ -18,6 +18,9 @@ spec:
   {{ end }}  
   {{ if .Values.cluster.pod.labels }}
     labels: {{ toYaml .Values.cluster.pod.labels | nindent 6}}
+  {{ end }}
+  {{ if .Values.cluster.pod.hostAliases }}
+    hostAliases: {{ toYaml .Values.cluster.pod.hostAliases | nindent 6}}
   {{ end }}
   zkAddress: {{ .Values.cluster.zkAddress }}
   zkPath: {{ .Values.cluster.zkPath }}

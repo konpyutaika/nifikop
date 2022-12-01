@@ -30,6 +30,8 @@ cluster:
     annotations: {}
     # -- Labels to apply to every pod
     labels: {}
+    # -- host aliases to assign to each pod
+    hostAlises: []
 
   image: 
     repository: "apache/nifi"
@@ -130,7 +132,7 @@ cluster:
     #       pvcSpec:
     #         accessModes:
     #           - ReadWriteOnce
-    #         storageClassName: "ceph-filesystem"
+    #         storageClassName: "standard"
     #         resources:
     #           requests:
     #             storage: 128Mi
@@ -404,5 +406,5 @@ zookeeper:
       cpu: 0.5m
       memory: 250Mi
   persistence:
-    storageClass: ceph-filesystem
+    storageClass: standard
     size: 10Gi

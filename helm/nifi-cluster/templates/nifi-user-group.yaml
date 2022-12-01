@@ -1,5 +1,5 @@
 {{ range .Values.userGroups }}
-apiVersion: nifi.konpyutaika.com/v1alpha1
+apiVersion: nifi.konpyutaika.com/v1
 kind: NifiUserGroup
 metadata:
   name: {{ include "nifi-cluster.fullname" $ }}-{{ .name }}

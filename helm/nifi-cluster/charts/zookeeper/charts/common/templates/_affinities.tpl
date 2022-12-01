@@ -1,7 +1,7 @@
 {{/* vim: set filetype=mustache: */}}
 
 {{/*
-Return a soft nodeAffinity definition 
+Return a soft nodeAffinity definition
 {{ include "common.affinities.nodes.soft" (dict "key" "FOO" "values" (list "BAR" "BAZ")) -}}
 */}}
 {{- define "common.affinities.nodes.soft" -}}
@@ -62,8 +62,6 @@ preferredDuringSchedulingIgnoredDuringExecution:
           {{- range $key, $value := $extraMatchLabels }}
           {{ $key }}: {{ $value | quote }}
           {{- end }}
-      namespaces:
-        - {{ .context.Release.Namespace | quote }}
       topologyKey: kubernetes.io/hostname
     weight: 1
 {{- end -}}
@@ -84,8 +82,6 @@ requiredDuringSchedulingIgnoredDuringExecution:
         {{- range $key, $value := $extraMatchLabels }}
         {{ $key }}: {{ $value | quote }}
         {{- end }}
-    namespaces:
-      - {{ .context.Release.Namespace | quote }}
     topologyKey: kubernetes.io/hostname
 {{- end -}}
 

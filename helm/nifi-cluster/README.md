@@ -1,14 +1,20 @@
 # nifi-cluster
 
-![Version: v1.1.0](https://img.shields.io/badge/Version-v1.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.15.3](https://img.shields.io/badge/AppVersion-1.15.3-informational?style=flat-square)
+![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.19.0](https://img.shields.io/badge/AppVersion-1.19.0-informational?style=flat-square)
 
 A Helm chart for deploying NiFi clusters in Kubernetes
+
+**Homepage:** <https://github.com/konpyutaika/nifikop>
+
+## Source Code
+
+* <https://github.com/konpyutaika/nifikop>
 
 ## Requirements
 
 | Repository | Name | Version |
 |------------|------|---------|
-| https://charts.bitnami.com/bitnami | zookeeper | 7.6.2 |
+| https://charts.bitnami.com/bitnami | zookeeper | 10.2.5 |
 
 ## Values
 
@@ -43,9 +49,10 @@ A Helm chart for deploying NiFi clusters in Kubernetes
 | cluster.nifiProperties.needClientAuth | bool | `false` | Nifi security client auth |
 | cluster.nifiProperties.webProxyHosts | string | `""` | A comma separated list of allowed HTTP Host header values to consider when NiFi is running securely and will be receiving requests to a different host[:port] than it is bound to. https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#web-properties |
 | cluster.nodeConfigGroups | object | `{}` | see https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster/3_node_config |
-| cluster.nodes | list | `[{"id":1,"nodeConfigGroup":"default_group"}]` | see https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster/1_nifi_cluster#nificlusterspec |
+| cluster.nodes | list | `[{"id":1,"nodeConfigGroup":"default-group"}]` | see https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster/1_nifi_cluster#nificlusterspec |
 | cluster.oneNifiNodePerNode | bool | `false` | whether or not to only deploy one nifi pod per node in this cluster |
 | cluster.pod.annotations | object | `{}` | Annotations to apply to every pod |
+| cluster.pod.hostAlises | list | `[]` | host aliases to assign to each pod |
 | cluster.pod.labels | object | `{}` | Labels to apply to every pod |
 | cluster.propagateLabels | bool | `true` |  |
 | cluster.retryDurationMinutes | int | `10` | The number of minutes the operator should wait for the cluster to be successfully deployed before retrying |
@@ -68,11 +75,12 @@ A Helm chart for deploying NiFi clusters in Kubernetes
 | logging.flow.filters | list | `[{"parser":{"parse":{"expression":"/^(?<time>\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2},\\d{3}) (?<level>[^\\s]+) \\[(?<thread>.*)\\] (?<message>.*)$/im","keep_time_key":true,"time_format":"%iso8601","time_key":"time","time_type":"string","type":"regexp"}}}]` | The filters and match configs should be configured just like in the CRDs (linked above) |
 | logging.outputs | object | `{"globalOutputRefs":["loki-cluster-output"]}` | Only global outputs that have been created separately to this helm chart supported for now may consider changing this to a Flow per cluster in future |
 | monitoring | object | `{"enabled":false}` | Monitoring is enabled by the Prometheus operator. This can be deployed stand-alone or as a part of the Rancher Monitoring application. Do not enable this unless you've installed rancher-logging or the Promtheus operator directly. https://rancher.com/docs/rancher/v2.6/en/monitoring-alerting/ Enabling logging creates a `ServiceResource` custom resource and routes logs to the output of your choice |
+| nodeGroupAutoscalers | list | `[{"downscaleStrategy":"lifo","enabled":false,"horizontalAutoscaler":{"maxReplicas":2,"minReplicas":1},"name":"default-group-autoscaler","nodeConfig":{},"nodeConfigGroupId":"default-group","nodeLabelsSelector":{"matchLabels":{"default-scale-group":"true"}},"readOnlyConfig":{},"upscaleStrategy":"simple"}]` | Nifi NodeGroup Autoscaler configurations. Use this to autoscale any NodeGroup specified in `cluster.nodeConfigGroups`. To autoscale  See https://konpyutaika.github.io/nifikop/docs/5_references/7_nifi_nodegroup_autoscaler |
 | parameterContexts | list | `[{"enabled":false,"name":"default","parameters":[{"description":"my foo bar property","name":"foo-prop","value":"bar-value"}],"secretRefs":[]}]` | Parameter context configurations. This is required if you wish to deploy versioned flows via the dataflow config. However,  it is not required to provide secret refs. You must provide at least one parameter or nifikop will choke on updating dataflows. The .name field must be safe in Kubernetes and match the pattern [A-Za-z0-9-] See https://konpyutaika.github.io/nifikop/docs/5_references/4_nifi_parameter_context |
 | registryClients | list | `[{"description":"Default NiFi Registry client","enabled":false,"endpoint":"http://nifi-registry","name":"default"},{"description":"Alternate NiFi Registry client","enabled":false,"endpoint":"http://nifi-registry","name":"alternate"}]` | registry client configurations. You'd use this to version control process groups & store the configuration in a registry bucket This is required if you wish to deploy versioned flows via the dataflow config The .name field must be safe in Kubernetes and match the pattern [A-Za-z0-9-] See https://konpyutaika.github.io/nifikop/docs/5_references/3_nifi_registry_client |
 | userGroups | list | `[]` | Configure user groups. Each will result in the creation of a `NiFiUserGroup` CRD in k8s, which the operator takes and applies to each nifi configuration See https://konpyutaika.github.io/nifikop/docs/5_references/6_nifi_usergroup |
 | users | list | `[]` | Configure users. Each will result in the creation of a `NiFiUser` CRD in k8s, which the operator takes and applies to each nifi configuration See https://konpyutaika.github.io/nifikop/docs/5_references/2_nifi_user the user's name is used for k8s resource metadata.name and so should be alphanumeric and hypenated |
-| zookeeper | object | `{"enabled":true,"image":{"pullPolicy":"IfNotPresent","registry":"docker.io","repository":"bitnami/zookeeper","tag":"3.7.0-debian-10-r127"},"persistence":{"size":"10Gi","storageClass":"ceph-filesystem"},"replicaCount":1,"resources":{"limits":{"cpu":2,"memory":"500Mi"},"requests":{"cpu":"0.5m","memory":"250Mi"}}}` | zookeeper chart overrides |
+| zookeeper | object | `{"enabled":false,"persistence":{"size":"10Gi","storageClass":"ceph-filesystem"},"replicaCount":1,"resources":{"limits":{"cpu":2,"memory":"500Mi"},"requests":{"cpu":"0.5m","memory":"250Mi"}}}` | zookeeper chart overrides |
 
 ----------------------------------------------
-Autogenerated from chart metadata using [helm-docs v1.5.0](https://github.com/norwoodj/helm-docs/releases/v1.5.0)
+Autogenerated from chart metadata using [helm-docs v1.11.0](https://github.com/norwoodj/helm-docs/releases/v1.11.0)

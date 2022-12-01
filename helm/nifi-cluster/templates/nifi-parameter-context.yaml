@@ -1,6 +1,6 @@
 {{ range .Values.parameterContexts }}
 {{ if .enabled }}
-apiVersion: nifi.konpyutaika.com/v1alpha1
+apiVersion: nifi.konpyutaika.com/v1
 kind: NifiParameterContext
 metadata:
   name: {{ include "nifi-cluster.fullname" $ }}-{{ .name }}-parameter-context

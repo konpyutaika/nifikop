@@ -1,6 +1,6 @@
 {{ range .Values.registryClients }}
 {{ if .enabled }}
-apiVersion: nifi.konpyutaika.com/v1alpha1
+apiVersion: nifi.konpyutaika.com/v1
 kind: NifiRegistryClient
 metadata:
   name: {{ include "nifi-cluster.fullname" $ }}-{{ .name }}-registry-client
