@@ -10,13 +10,6 @@ import (
 
 	v1 "github.com/konpyutaika/nifikop/api/v1"
 
-	"github.com/konpyutaika/nifikop/pkg/clientwrappers/dataflow"
-	"github.com/konpyutaika/nifikop/pkg/clientwrappers/scale"
-	"github.com/konpyutaika/nifikop/pkg/nificlient/config"
-	"github.com/konpyutaika/nifikop/pkg/pki"
-	nifiutil "github.com/konpyutaika/nifikop/pkg/util/nifi"
-	"go.uber.org/zap"
-
 	"emperror.dev/errors"
 	"github.com/banzaicloud/k8s-objectmatcher/patch"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/controllersettings"
