@@ -52,7 +52,7 @@ spec:
           number: 8080
 ```
 
-## Gateway configuration for HTTPS
+## Istio configuration for HTTPS
 
 In case you are deploying a cluster and you want enable the HTTPS protocol to manage user authentication, the configuration is more complex. To understand the reason of this, it is important to explain that in this scenario the HTTPS protocol with all certificates is managed directly by NiFi. This means that all requests passes through all Istio services in an encrypted way, so Istio can't manage a sticky session.
 To solve this issue, the tricky is so limit the HTTPS session till the gateway, then decrypt all requests in HTTP, manage the sticky session and then encrypt again in HTTPS before reach the NiFi node.
@@ -101,7 +101,20 @@ spec:
           number: 8443
 ```
 
-And finally the destination rule that redirect all HTTP traffic destinated to the cluster service to HTTPS encrypting it.
+Please note that the service name configured as destination of the virtual service is the name of the service created with the following section in the cluster deployment yaml
+
+```yaml
+spec:  
+  externalServices:  
+    - name: "nifi-cluster"
+      spec:
+        type: ClusterIP
+        portConfigs:
+          - port: 8443
+            internalListenerName: "https"
+```
+
+Finally the destination rule that redirect all HTTP traffic destinated to the cluster service to HTTPS encrypting it.
 
 ```yaml
 apiVersion: networking.istio.io/v1beta1
@@ -121,3 +134,4 @@ spec:
 ```
 
 As you can see in the previous example, the destination rule also define how manage the sticky session based on httpCookie property called __Secure-Authorization-Bearer.
+
