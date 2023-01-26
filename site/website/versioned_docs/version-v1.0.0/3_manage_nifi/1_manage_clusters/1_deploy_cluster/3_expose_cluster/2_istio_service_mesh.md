@@ -73,7 +73,7 @@ spec:
       protocol: HTTPS
     tls:
       mode: SIMPLE
-	  credentialName: my-secret
+      credentialName: my-secret
     hosts:
     - nifi.my-domain.com
 ```
