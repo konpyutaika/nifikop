@@ -2,9 +2,10 @@ package nifi
 
 import (
 	"fmt"
-	"github.com/konpyutaika/nifikop/api/v1"
 	"sort"
 	"strings"
+
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 
 	"go.uber.org/zap"
 	runtimeClient "sigs.k8s.io/controller-runtime/pkg/client"
@@ -192,7 +193,6 @@ done
 			ImagePullSecrets:              nodeConfig.GetImagePullSecrets(),
 			ServiceAccountName:            nodeConfig.GetServiceAccount(),
 			PriorityClassName:             nodeConfig.GetPriorityClass(),
-			SchedulerName:                 "default-scheduler",
 			Tolerations:                   nodeConfig.GetTolerations(),
 			NodeSelector:                  nodeConfig.GetNodeSelector(),
 		},
