@@ -80,8 +80,6 @@ func assertNifiClustersEqual(anc *NifiCluster, nc *v1.NifiCluster, t *testing.T)
 	}
 	if !reflect.DeepEqual(anc.Spec.Pod.Annotations, nc.Spec.Pod.Annotations) ||
 		!reflect.DeepEqual(anc.Spec.Pod.Labels, nc.Spec.Pod.Labels) ||
-		!reflect.DeepEqual(anc.Spec.Pod.LivenessProbe, nc.Spec.Pod.LivenessProbe) ||
-		!reflect.DeepEqual(anc.Spec.Pod.ReadinessProbe, nc.Spec.Pod.ReadinessProbe) ||
 		!reflect.DeepEqual(anc.Spec.Pod.HostAliases, nc.Spec.Pod.HostAliases) {
 		t.Error("pod policies not equal")
 	}
@@ -393,40 +391,6 @@ func createNifiCluster() *NifiCluster {
 					{
 						IP:        "1.2.3.4",
 						Hostnames: []string{"blah.host"},
-					},
-				},
-				ReadinessProbe: &corev1.Probe{
-					InitialDelaySeconds:           1,
-					TimeoutSeconds:                7,
-					PeriodSeconds:                 3,
-					SuccessThreshold:              6,
-					FailureThreshold:              8,
-					TerminationGracePeriodSeconds: new(int64),
-					ProbeHandler: corev1.ProbeHandler{
-						Exec: &corev1.ExecAction{
-							Command: []string{
-								"bash",
-								"-c",
-								"blah command",
-							},
-						},
-					},
-				},
-				LivenessProbe: &corev1.Probe{
-					InitialDelaySeconds:           1,
-					TimeoutSeconds:                7,
-					PeriodSeconds:                 3,
-					SuccessThreshold:              6,
-					FailureThreshold:              8,
-					TerminationGracePeriodSeconds: new(int64),
-					ProbeHandler: corev1.ProbeHandler{
-						Exec: &corev1.ExecAction{
-							Command: []string{
-								"bash",
-								"-c",
-								"blah command",
-							},
-						},
 					},
 				},
 			},
