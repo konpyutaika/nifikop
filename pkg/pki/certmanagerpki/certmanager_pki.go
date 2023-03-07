@@ -3,7 +3,9 @@ package certmanagerpki
 import (
 	"context"
 	"fmt"
-	"github.com/konpyutaika/nifikop/api/v1"
+	"strconv"
+
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 
 	certv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	certmeta "github.com/cert-manager/cert-manager/pkg/apis/meta/v1"
@@ -19,6 +21,41 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
+
+func (c *certManager) GetCertificate(ctx context.Context, nodeId int32, logger zap.Logger) (certv1.Certificate, error) {
+	cert := &certv1.Certificate{}
+
+	objName := types.NamespacedName{Name: pkicommon.GetNodeUserName(c.cluster, nodeId), Namespace: c.cluster.Namespace}
+	if err := c.client.Get(ctx, objName, cert); err != nil {
+		if apierrors.IsNotFound(err) {
+			logger.Error("No certificate found", zap.Error(err))
+			return *cert, err
+		}
+	}
+	return *cert, nil
+}
+
+func (c *certManager) IsCertificateExpired(ctx context.Context, pod *corev1.Pod, logger zap.Logger) bool {
+	logger.Info("Checking if the certificate is expired")
+
+	// Get certificate object
+	tmp, _ := strconv.ParseInt(pod.Labels["nodeId"], 10, 32)
+	nodeIdInt := int32(tmp)
+	cert, err := c.GetCertificate(ctx, nodeIdInt, logger)
+
+	if err != nil {
+		logger.Error("No certificate found", zap.Error(err))
+		return false
+	}
+
+	certRenewalTime := cert.Status.RenewalTime.Time
+	certificateExpireDate := c.cluster.Status.NodesState[pod.Labels["nodeId"]].CertificateExpireDate
+	certificateExpireDateTime := metav1.Unix(0, 0).Time
+	if certificateExpireDate != nil {
+		certificateExpireDateTime = certificateExpireDate.Time
+	}
+	return certificateExpireDateTime != certRenewalTime
+}
 
 func (c *certManager) FinalizePKI(ctx context.Context, logger zap.Logger) error {
 	logger.Info("Removing cert-manager certificates and secrets",

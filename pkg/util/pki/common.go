@@ -4,12 +4,15 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"github.com/konpyutaika/nifikop/api/v1"
 
+	v1 "github.com/konpyutaika/nifikop/api/v1"
+
+	certv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	"github.com/konpyutaika/nifikop/pkg/resources/templates"
 	certutil "github.com/konpyutaika/nifikop/pkg/util/cert"
 	"github.com/konpyutaika/nifikop/pkg/util/nifi"
 	"go.uber.org/zap"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -52,6 +55,12 @@ type Manager interface {
 
 	// GetControllerTLSConfig retrieves a TLS configuration for a controller nifi client
 	GetControllerTLSConfig() (*tls.Config, error)
+
+	// GetCertificate get the cert manager certificate object
+	GetCertificate(ctx context.Context, nodeId int32, logger zap.Logger) (certv1.Certificate, error)
+
+	// IsCertificateExpired return true is the certificate of the cluster has expired
+	IsCertificateExpired(ctx context.Context, pod *corev1.Pod, logger zap.Logger) bool
 }
 
 // UserCertificate is a struct representing the key components of a user TLS certificate

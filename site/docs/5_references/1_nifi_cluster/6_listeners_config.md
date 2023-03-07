@@ -56,4 +56,5 @@ Field|Type|Description|Required|Default|
 |clusterScoped|boolean| defines if the Issuer created is cluster or namespace scoped. | Yes | - |
 |issuerRef|[ObjectReference](https://docs.cert-manager.io/en/release-0.9/reference/api-docs/index.html#objectreference-v1alpha1)| IssuerRef allow to use an existing issuer to act as CA: https://cert-manager.io/docs/concepts/issuer/ | No | - |
 |pkiBackend|enum{"cert-manager"}| | Yes | - |
+|TriggerNodeRestartOnCertifUpdate| boolean | If set to true: the operator will restart the nodes if the certificate is updated (only works with certificates provided by the operator) | Yes | false |
 

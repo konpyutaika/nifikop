@@ -377,6 +377,10 @@ type SSLSecrets struct {
 	// +kubebuilder:validation:Enum={"cert-manager","vault"}
 	PKIBackend PKIBackend `json:"pkiBackend,omitempty"`
 	//,"vault"
+	// set to true to enable nodes auto restart when cert-manager's certificate expires, only works if the Issuer is
+	// cert-manager
+	// +kubebuild:default=false
+	TriggerNodeRestartOnCertifUpdate bool `json:"TriggerNodeRestartOnCertifUpdate,omitempty"`
 }
 
 // TODO : Add vault

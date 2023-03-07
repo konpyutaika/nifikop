@@ -2,6 +2,8 @@
 
 ### Added
 
+- [PR #152](https://github.com/konpyutaika/nifikop/pull/152) - **[NifiCluster]** Optional restart of nodes on operator provided node's certificates expiration date change
+
 ### Changed
 
 ### Fixed Bugs

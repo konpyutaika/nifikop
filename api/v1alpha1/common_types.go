@@ -345,6 +345,8 @@ type NodeState struct {
 	// LastUpdatedTime is the last time at which this node was updated. This must be sortable.
 	// +optional
 	LastUpdatedTime metav1.Time `json:"lastUpdatedTime,omitempty"`
+	// Certificate expire date contains the date when the certificate should be renewed
+	CertificateExpireDate *metav1.Time `json:"certificateExpireDate,omitempty"`
 }
 
 // RackAwarenessState holds info about rack awareness status
