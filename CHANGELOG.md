@@ -4,6 +4,8 @@
 
 ### Changed
 
+- [PR #236](https://github.com/konpyutaika/nifikop/pull/236) - **[Operator]** Patch infinite request searching.
+
 ### Fixed Bugs
 
 - [PR #223](https://github.com/konpyutaika/nifikop/pull/223) - **[Operator]** Fixed bug where an incorrect condition was used to determine whether or not to substitute a custom authorizers template.
