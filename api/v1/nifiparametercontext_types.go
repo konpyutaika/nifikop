@@ -61,6 +61,8 @@ type ParameterContextUpdateRequest struct {
 	PercentCompleted int32 `json:"percentCompleted"`
 	// the state of the request.
 	State string `json:"state"`
+	// whether or not this request was found.
+	NotFound bool `json:"notFound"`
 }
 
 // +kubebuilder:object:root=true

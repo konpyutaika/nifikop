@@ -122,6 +122,8 @@ spec:
                     type: string
                   lastUpdated:
                     type: string
+                  notFound:
+                    type: boolean
                   original:
                     type: string
                   originalCount:
@@ -149,6 +151,7 @@ spec:
                 - finished
                 - id
                 - lastUpdated
+                - notFound
                 - original
                 - originalCount
                 - originalSize
@@ -166,6 +169,8 @@ spec:
                     type: string
                   lastUpdated:
                     type: string
+                  notFound:
+                    type: boolean
                   percentCompleted:
                     format: int32
                     type: integer
@@ -180,6 +185,7 @@ spec:
                 - failureReason
                 - id
                 - lastUpdated
+                - notFound
                 - percentCompleted
                 - state
                 - type

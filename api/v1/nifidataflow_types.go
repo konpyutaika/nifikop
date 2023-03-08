@@ -61,6 +61,8 @@ type UpdateRequest struct {
 	PercentCompleted int32 `json:"percentCompleted"`
 	// the state of the request
 	State string `json:"state"`
+	// whether or not this request was found.
+	NotFound bool `json:"notFound"`
 }
 
 type DropRequest struct {
@@ -98,6 +100,8 @@ type DropRequest struct {
 	Dropped string `json:"dropped"`
 	// the state of the request
 	State string `json:"state"`
+	// whether or not this request was found.
+	NotFound bool `json:"notFound"`
 }
 
 // NifiDataflowStatus defines the observed state of NifiDataflow

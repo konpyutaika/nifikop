@@ -20,9 +20,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/konpyutaika/nifikop/api/v1"
 	"reflect"
 	"strconv"
+
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 
 	"emperror.dev/errors"
 	"github.com/banzaicloud/k8s-objectmatcher/patch"
@@ -361,6 +362,20 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 				errorfactory.NifiFlowDraining,
 				errorfactory.NifiFlowControllerServiceScheduling,
 				errorfactory.NifiFlowScheduling, errorfactory.NifiFlowSyncing:
+				return RequeueAfter(interval)
+			case errorfactory.NifiFlowUpdateRequestNotFound:
+				r.Log.Warn("The update request for dataflow is already gone, there is nothing we can do",
+					zap.String("updateRequest", instance.Status.LatestUpdateRequest.Id),
+					zap.String("clusterName", instance.Spec.ClusterRef.Name),
+					zap.String("flowId", instance.Spec.FlowId),
+					zap.String("dataflow", instance.Name))
+				return RequeueAfter(interval)
+			case errorfactory.NifiConnectionDropRequestNotFound:
+				r.Log.Warn("The drop request for dataflow is already gone, there is nothing we can do",
+					zap.String("updateRequest", instance.Status.LatestDropRequest.Id),
+					zap.String("clusterName", instance.Spec.ClusterRef.Name),
+					zap.String("flowId", instance.Spec.FlowId),
+					zap.String("dataflow", instance.Name))
 				return RequeueAfter(interval)
 			default:
 				r.Recorder.Event(instance, corev1.EventTypeWarning, "SynchronizingFailed",

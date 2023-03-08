@@ -1,7 +1,7 @@
 package parametercontext
 
 import (
-	"github.com/konpyutaika/nifikop/api/v1"
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers"
 	"github.com/konpyutaika/nifikop/pkg/common"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
@@ -104,7 +104,7 @@ func SyncParameterContext(
 	}
 
 	latestUpdateRequest := parameterContext.Status.LatestUpdateRequest
-	if latestUpdateRequest != nil && !latestUpdateRequest.Complete {
+	if latestUpdateRequest != nil && !latestUpdateRequest.Complete && !latestUpdateRequest.NotFound {
 		updateRequest, err := nClient.GetParameterContextUpdateRequest(parameterContext.Status.Id, latestUpdateRequest.Id)
 		if updateRequest != nil {
 			parameterContext.Status.LatestUpdateRequest = updateRequest2Status(updateRequest)
@@ -115,6 +115,11 @@ func SyncParameterContext(
 				return &parameterContext.Status, err
 			}
 			return &parameterContext.Status, errorfactory.NifiParameterContextUpdateRequestRunning{}
+		}
+
+		if err == nificlient.ErrNifiClusterReturned404 {
+			parameterContext.Status.LatestUpdateRequest.NotFound = true
+			return &parameterContext.Status, errorfactory.NifiParameterContextUpdateRequestNotFound{}
 		}
 	}
 
@@ -134,7 +139,7 @@ func SyncParameterContext(
 
 	var status *v1.NifiParameterContextStatus
 	if parameterContext.Status.Version != *entity.Revision.Version || parameterContext.Status.Id != entity.Id {
-		status := &parameterContext.Status
+		status = &parameterContext.Status
 		status.Version = *entity.Revision.Version
 		status.Id = entity.Id
 	}
@@ -361,5 +366,6 @@ func updateRequest2Status(updateRequest *nigoapi.ParameterContextUpdateRequestEn
 		FailureReason:    ur.FailureReason,
 		PercentCompleted: ur.PercentCompleted,
 		State:            ur.State,
+		NotFound:         false,
 	}
 }

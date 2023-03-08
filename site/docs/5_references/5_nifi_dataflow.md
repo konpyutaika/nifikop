@@ -98,6 +98,7 @@ spec:
 |failureReason|string| an explication of why the request failed, or null if this request has not failed. |Yes| - |
 |percentCompleted|int32|  the percentage complete of the request, between 0 and 100. |Yes| 0 |
 |state|string| the state of the request. |Yes| - |
+|notFound|bool| whether or not this request was found. |Yes| - |
 
 ## DropRequest
 
@@ -120,6 +121,7 @@ spec:
 |droppedSize|int64| the size of flow files currently queued in bytes. |Yes| 0 |
 |Dropped|string|the count and size of flow files that have been dropped thus far. |Yes| - |
 |state|string|the state of the request. |Yes| - |
+|notFound|bool|whether or not this request was found. |Yes| false |
 	
 ## DataflowUpdateRequestType
 

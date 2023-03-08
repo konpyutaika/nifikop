@@ -94,6 +94,8 @@ spec:
                     type: string
                   lastUpdated:
                     type: string
+                  notFound:
+                    type: boolean
                   percentCompleted:
                     format: int32
                     type: integer
@@ -108,6 +110,7 @@ spec:
                 - failureReason
                 - id
                 - lastUpdated
+                - notFound
                 - percentCompleted
                 - state
                 - submissionTime

@@ -1,8 +1,9 @@
 package dataflow
 
 import (
-	"github.com/konpyutaika/nifikop/api/v1"
 	"strings"
+
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
 
@@ -325,7 +326,7 @@ func SyncDataflow(
 	}
 
 	latestUpdateRequest := flow.Status.LatestUpdateRequest
-	if latestUpdateRequest != nil && !latestUpdateRequest.Complete {
+	if latestUpdateRequest != nil && !latestUpdateRequest.Complete && !latestUpdateRequest.NotFound {
 		var t v1.DataflowUpdateRequestType
 		var err error
 		var updateRequest *nigoapi.VersionedFlowUpdateRequestEntity
@@ -347,6 +348,11 @@ func SyncDataflow(
 				return &flow.Status, err
 			}
 			return &flow.Status, errorfactory.NifiFlowUpdateRequestRunning{}
+		}
+
+		if err == nificlient.ErrNifiClusterReturned404 {
+			flow.Status.LatestUpdateRequest.NotFound = true
+			return &flow.Status, errorfactory.NifiFlowUpdateRequestNotFound{}
 		}
 	}
 
@@ -440,7 +446,7 @@ func prepareUpdatePG(flow *v1.NifiDataflow, config *clientconfig.NifiConfig) (*v
 		}
 
 		//
-		if flow.Status.LatestDropRequest != nil && !flow.Status.LatestDropRequest.Finished {
+		if flow.Status.LatestDropRequest != nil && !flow.Status.LatestDropRequest.Finished && !flow.Status.LatestDropRequest.NotFound {
 
 			dropRequest, err :=
 				nClient.GetDropRequest(flow.Status.LatestDropRequest.ConnectionId, flow.Status.LatestDropRequest.Id)
@@ -454,6 +460,11 @@ func prepareUpdatePG(flow *v1.NifiDataflow, config *clientconfig.NifiConfig) (*v
 				if !dropRequest.DropRequest.Finished {
 					return &flow.Status, errorfactory.NifiConnectionDropping{}
 				}
+			}
+
+			if err == nificlient.ErrNifiClusterReturned404 {
+				flow.Status.LatestDropRequest.NotFound = true
+				return &flow.Status, errorfactory.NifiConnectionDropRequestNotFound{}
 			}
 		}
 
@@ -705,6 +716,7 @@ func updateRequest2Status(updateRequest *nigoapi.VersionedFlowUpdateRequestEntit
 		FailureReason:    ur.FailureReason,
 		PercentCompleted: ur.PercentCompleted,
 		State:            ur.State,
+		NotFound:         false,
 	}
 }
 
