@@ -110,7 +110,6 @@ spec:
                 - failureReason
                 - id
                 - lastUpdated
-                - notFound
                 - percentCompleted
                 - state
                 - submissionTime

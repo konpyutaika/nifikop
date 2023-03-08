@@ -62,7 +62,7 @@ type ParameterContextUpdateRequest struct {
 	// the state of the request.
 	State string `json:"state"`
 	// whether or not this request was found.
-	NotFound bool `json:"notFound"`
+	NotFound bool `json:"notFound,omitempty"`
 }
 
 // +kubebuilder:object:root=true

@@ -151,7 +151,6 @@ spec:
                 - finished
                 - id
                 - lastUpdated
-                - notFound
                 - original
                 - originalCount
                 - originalSize
@@ -185,7 +184,6 @@ spec:
                 - failureReason
                 - id
                 - lastUpdated
-                - notFound
                 - percentCompleted
                 - state
                 - type

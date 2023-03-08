@@ -62,7 +62,7 @@ type UpdateRequest struct {
 	// the state of the request
 	State string `json:"state"`
 	// whether or not this request was found.
-	NotFound bool `json:"notFound"`
+	NotFound bool `json:"notFound,omitempty"`
 }
 
 type DropRequest struct {
@@ -101,7 +101,7 @@ type DropRequest struct {
 	// the state of the request
 	State string `json:"state"`
 	// whether or not this request was found.
-	NotFound bool `json:"notFound"`
+	NotFound bool `json:"notFound,omitempty"`
 }
 
 // NifiDataflowStatus defines the observed state of NifiDataflow
