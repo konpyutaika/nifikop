@@ -4,7 +4,7 @@
 
 ### Changed
 
-- [PR #236](https://github.com/konpyutaika/nifikop/pull/236) - **[Operator]** Patch infinite request searching.
+- [PR #236](https://github.com/konpyutaika/nifikop/pull/236) - **[Operator]** Fixed issue where operator would infinitely retry requests if it cannot find `Dataflow`/`ParameterContext` update & drop requests.
 
 ### Fixed Bugs
 
