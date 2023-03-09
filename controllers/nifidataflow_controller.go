@@ -372,7 +372,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 				return RequeueAfter(interval)
 			case errorfactory.NifiConnectionDropRequestNotFound:
 				r.Log.Warn("The drop request for dataflow is already gone, there is nothing we can do",
-					zap.String("updateRequest", instance.Status.LatestDropRequest.Id),
+					zap.String("dropRequest", instance.Status.LatestDropRequest.Id),
 					zap.String("clusterName", instance.Spec.ClusterRef.Name),
 					zap.String("flowId", instance.Spec.FlowId),
 					zap.String("dataflow", instance.Name))
