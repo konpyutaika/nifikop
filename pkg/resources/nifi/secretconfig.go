@@ -462,7 +462,7 @@ func (r *Reconciler) getAuthorizersConfigString(nConfig *v1.NodeConfig, id int32
 		// Check for secret/configmap overrides. If there aren't any, then use the default template.
 		if r.NifiCluster.Spec.ReadOnlyConfig.AuthorizerConfig.ReplaceTemplateConfigMap != nil {
 			conf, err := r.getConfigMap(context.TODO(), *r.NifiCluster.Spec.ReadOnlyConfig.AuthorizerConfig.ReplaceTemplateConfigMap)
-			if err == nil {
+			if err != nil {
 				authorizersTemplate = conf
 			}
 			log.Error("error occurred during getting authorizer readonly configmap",
@@ -474,7 +474,7 @@ func (r *Reconciler) getAuthorizersConfigString(nConfig *v1.NodeConfig, id int32
 		// The secret takes precedence over the ConfigMap, if it exists.
 		if r.NifiCluster.Spec.ReadOnlyConfig.AuthorizerConfig.ReplaceTemplateSecretConfig != nil {
 			conf, err := r.getSecrectConfig(context.TODO(), *r.NifiCluster.Spec.ReadOnlyConfig.AuthorizerConfig.ReplaceTemplateSecretConfig)
-			if err == nil {
+			if err != nil {
 				authorizersTemplate = conf
 			}
 			log.Error("error occurred during getting authorizer readonly secret config",
