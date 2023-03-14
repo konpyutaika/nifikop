@@ -137,12 +137,13 @@ docker-build:
 	docker build -t $(REPOSITORY):$(VERSION) .
 
 .PHONY: build
-build: manager manifests
+build: manager manifests docker-build
 
 .PHONY: controller-gen
 controller-gen: $(CONTROLLER_GEN) ## Download controller-gen locally if necessary.
 $(CONTROLLER_GEN): $(LOCALBIN)
 	test -s $(LOCALBIN)/controller-gen || GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-tools/cmd/controller-gen@$(CONTROLLER_TOOLS_VERSION)
+
 
 # Run go fmt against code
 .PHONY: fmt
@@ -255,11 +256,7 @@ docker-buildx: test ## Build and push docker image for the manager for cross-pla
 	sed -e '1 s/\(^FROM\)/FROM --platform=\$$\{BUILDPLATFORM\}/; t' -e ' 1,// s//FROM --platform=\$$\{BUILDPLATFORM\}/' Dockerfile > Dockerfile.cross
 	- docker buildx create --name project-v3-builder
 	docker buildx use project-v3-builder
-ifdef PUSHLATEST
-	- docker buildx build --push --platform=$(PLATFORMS) --tag $(REPOSITORY):$(VERSION) --tag $(REPOSITORY):latest -f Dockerfile.cross .
-else
-	- docker buildx build --push --platform=$(PLATFORMS) --tag $(REPOSITORY):$(VERSION) -f Dockerfile.cross .
-endif
+	- docker buildx build --push --platform=$(PLATFORMS) --tag ${IMG} -f Dockerfile.cross
 	- docker buildx rm project-v3-builder
 	rm Dockerfile.cross
 
