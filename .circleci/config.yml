@@ -89,7 +89,15 @@ orbs:
           - attach_workspace: # Attach artifact from workdir
               at: /home/circleci
           - run:
-              name: Build & Push Operator to Github Container Registry
+              name: Build Operator
+              command: make build
+          - persist_to_workspace: # Create artifacts
+              root: /home/circleci
+              paths:
+                - << parameters.operatorDir >>/build/_output
+                - << parameters.operatorDir >>/vendor
+          - deploy:
+              name: Build & Push Operator Image to Github Container Registry
               command: |
                 if [[ $(echo "$CIRCLE_BRANCH" | grep -c "pull") -gt 0 ]]; then
                   echo "This is a PR, we don't push to GitHub."
@@ -97,11 +105,6 @@ orbs:
                   docker login ghcr.io -u $GH_NAME --password $GH_TOKEN
                   make docker-buildx
                 fi
-          - persist_to_workspace: # Create artifacts
-              root: /home/circleci
-              paths:
-                - << parameters.operatorDir >>/build/_output
-                - << parameters.operatorDir >>/vendor
           - save_cache:
               name: Save build artifacts in cache
               key: << parameters.operatorName >>-build-{{ .Branch }}-{{ checksum "go.sum" }}-{{ .Environment.CACHE_VERSION }}

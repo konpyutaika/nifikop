@@ -137,13 +137,12 @@ docker-build:
 	docker build -t $(REPOSITORY):$(VERSION) .
 
 .PHONY: build
-build: manager manifests docker-build
+build: manager manifests
 
 .PHONY: controller-gen
 controller-gen: $(CONTROLLER_GEN) ## Download controller-gen locally if necessary.
 $(CONTROLLER_GEN): $(LOCALBIN)
 	test -s $(LOCALBIN)/controller-gen || GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-tools/cmd/controller-gen@$(CONTROLLER_TOOLS_VERSION)
-
 
 # Run go fmt against code
 .PHONY: fmt
