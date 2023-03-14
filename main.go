@@ -6,9 +6,9 @@ import (
 	"os"
 	"strings"
 
-	v1 "github.com/konpyutaika/nifikop/api/v1"
 	certv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	"github.com/go-logr/zapr"
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 
 	"github.com/konpyutaika/nifikop/pkg/common"

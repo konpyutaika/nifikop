@@ -161,6 +161,8 @@ spec:
 | annotations | map\[string\]string | Annotations specifies the annotations to attach to pods the NiFiKop operator creates | No       | -       |
 | labels      | map\[string\]string | Labels specifies the Labels to attach to pods the NiFiKop operator creates           | No       | -       |
 | hostAliases      | \[\][HostAlias](https://pkg.go.dev/k8s.io/api/core/v1#HostAlias) | A list of host aliases to include in every pod's /etc/hosts configuration in the scenario where DNS is not available.           | No       | \[\]       |
+| readinessProbe      | [Probe](https://pkg.go.dev/k8s.io/api/core/v1#Probe) | The readiness probe that the `Pod` is configured with. If not provided, a default will be used.           | No       | nil       |
+| livenessProbe      | [Probe](https://pkg.go.dev/k8s.io/api/core/v1#Probe) | The liveness probe that the `Pod` is configured with. If not provided, a default will be used.           | No       | nil       |
 
 ## ManagedUsers
 
