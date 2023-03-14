@@ -3,7 +3,7 @@ package v1alpha1
 import (
 	"fmt"
 
-	"github.com/konpyutaika/nifikop/api/v1"
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 	"sigs.k8s.io/controller-runtime/pkg/conversion"
 )
 
@@ -100,9 +100,11 @@ func convertNifiClusterSecretRef(src SecretReference, dst *v1.NifiCluster) {
 
 func convertNifiClusterPodPolicy(src PodPolicy, dst *v1.NifiCluster) {
 	dst.Spec.Pod = v1.PodPolicy{
-		HostAliases: src.HostAliases,
-		Annotations: src.Annotations,
-		Labels:      src.Labels,
+		HostAliases:    src.HostAliases,
+		Annotations:    src.Annotations,
+		Labels:         src.Labels,
+		ReadinessProbe: nil,
+		LivenessProbe:  nil,
 	}
 }
 
@@ -356,6 +358,7 @@ func convertInternalListeners(src []InternalListenerConfig) []v1.InternalListene
 func convertSSLSecrets(src *SSLSecrets, dst *v1.ListenersConfig) {
 	if src == nil {
 		dst.SSLSecrets = nil
+		return
 	}
 	dst.SSLSecrets = &v1.SSLSecrets{
 		TLSSecretName: src.TLSSecretName,
@@ -793,6 +796,7 @@ func convertFromInternalListeners(src []v1.InternalListenerConfig) []InternalLis
 func convertFromSSLSecrets(src *v1.SSLSecrets, dst *ListenersConfig) {
 	if src == nil {
 		dst.SSLSecrets = nil
+		return
 	}
 	dst.SSLSecrets = &SSLSecrets{
 		TLSSecretName: src.TLSSecretName,

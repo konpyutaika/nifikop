@@ -1,6 +1,8 @@
 package v1alpha1
 
-import v1 "github.com/konpyutaika/nifikop/api/v1"
+import (
+	v1 "github.com/konpyutaika/nifikop/api/v1"
+)
 
 // SecretRef
 func getSecretRef(src v1.SecretReference) SecretReference {
