@@ -124,6 +124,9 @@ spec:
                     type: string
                   notFound:
                     type: boolean
+                  notFoundRetry:
+                    format: int32
+                    type: integer
                   original:
                     type: string
                   originalCount:
@@ -170,6 +173,9 @@ spec:
                     type: string
                   notFound:
                     type: boolean
+                  notFoundRetry:
+                    format: int32
+                    type: integer
                   percentCompleted:
                     format: int32
                     type: integer

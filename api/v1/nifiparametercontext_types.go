@@ -63,6 +63,8 @@ type ParameterContextUpdateRequest struct {
 	State string `json:"state"`
 	// whether or not this request was found.
 	NotFound bool `json:"notFound,omitempty"`
+	// the number of consecutive retries made in case of a NotFound error (limit: 3).
+	NotFoundRetry int32 `json:"notFoundRetry,omitempty"`
 }
 
 // +kubebuilder:object:root=true

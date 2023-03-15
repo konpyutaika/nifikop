@@ -104,7 +104,8 @@ spec:
 |failureReason|string| an explication of why the request failed, or null if this request has not failed. |Yes| - |
 |percentCompleted|int32| the percentage complete of the request, between 0 and 100. |Yes| - |
 |state|string| the state of the request. |Yes| - |
-|notFoudn|bool| whether or not this request was found. |Yes| false |
+|notFound|bool| whether or not this request was found. |Yes| false |
+|notFoundRetry|int32| the number of consecutive retries made in case of a NotFound error (limit: 3). |Yes| 0 |
 
 ## ParameterContextReference
 

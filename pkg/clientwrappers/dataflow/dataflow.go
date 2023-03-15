@@ -351,7 +351,10 @@ func SyncDataflow(
 		}
 
 		if err == nificlient.ErrNifiClusterReturned404 {
-			flow.Status.LatestUpdateRequest.NotFound = true
+			flow.Status.LatestUpdateRequest.NotFoundRetry += 1
+			if flow.Status.LatestUpdateRequest.NotFoundRetry >= 3 {
+				flow.Status.LatestUpdateRequest.NotFound = true
+			}
 			return &flow.Status, errorfactory.NifiFlowUpdateRequestNotFound{}
 		}
 	}
@@ -463,7 +466,10 @@ func prepareUpdatePG(flow *v1.NifiDataflow, config *clientconfig.NifiConfig) (*v
 			}
 
 			if err == nificlient.ErrNifiClusterReturned404 {
-				flow.Status.LatestDropRequest.NotFound = true
+				flow.Status.LatestDropRequest.NotFoundRetry += 1
+				if flow.Status.LatestDropRequest.NotFoundRetry >= 3 {
+					flow.Status.LatestDropRequest.NotFound = true
+				}
 				return &flow.Status, errorfactory.NifiConnectionDropRequestNotFound{}
 			}
 		}
