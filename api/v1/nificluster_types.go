@@ -133,7 +133,14 @@ type PodPolicy struct {
 	// Labels specifies additional labels to attach to the pods the operator creates
 	Labels map[string]string `json:"labels,omitempty"`
 	// A list of host aliases to include in every pod's /etc/hosts configuration in the scenario where DNS is not available.
+	// +optional
 	HostAliases []corev1.HostAlias `json:"hostAliases,omitempty"`
+	// Override the default readiness probe settings
+	// +optional
+	ReadinessProbe *corev1.Probe `json:"readinessProbe,omitempty"`
+	// Override the default liveness probe settings
+	// +optional
+	LivenessProbe *corev1.Probe `json:"livenessProbe,omitempty"`
 }
 
 // rollingUpgradeConfig specifies the rolling upgrade config for the cluster

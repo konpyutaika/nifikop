@@ -2,6 +2,8 @@
 
 ### Added
 
+- [PR #220](https://github.com/konpyutaika/nifikop/pull/220) - **[Operator/NifiCluster]** Made `Pod` readiness and liveness checks configurable.
+
 ### Changed
 
 - [PR #236](https://github.com/konpyutaika/nifikop/pull/236) - **[Operator]** Fixed issue where operator would infinitely retry requests if it cannot find `Dataflow`/`ParameterContext` update & drop requests.
