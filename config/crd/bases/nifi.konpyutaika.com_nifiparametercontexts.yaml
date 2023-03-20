@@ -96,7 +96,7 @@ spec:
                     type: string
                   notFound:
                     type: boolean
-                  notFoundRetry:
+                  notFoundRetryCount:
                     format: int32
                     type: integer
                   percentCompleted:

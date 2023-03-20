@@ -118,8 +118,8 @@ func SyncParameterContext(
 		}
 
 		if err == nificlient.ErrNifiClusterReturned404 {
-			parameterContext.Status.LatestUpdateRequest.NotFoundRetry += 1
-			if parameterContext.Status.LatestUpdateRequest.NotFoundRetry >= 3 {
+			parameterContext.Status.LatestUpdateRequest.NotFoundRetryCount += 1
+			if parameterContext.Status.LatestUpdateRequest.NotFoundRetryCount >= 3 {
 				parameterContext.Status.LatestUpdateRequest.NotFound = true
 			}
 			return &parameterContext.Status, errorfactory.NifiParameterContextUpdateRequestNotFound{}
@@ -361,15 +361,15 @@ func updateParameterContextEntity(
 func updateRequest2Status(updateRequest *nigoapi.ParameterContextUpdateRequestEntity) *v1.ParameterContextUpdateRequest {
 	ur := updateRequest.Request
 	return &v1.ParameterContextUpdateRequest{
-		Id:               ur.RequestId,
-		Uri:              ur.Uri,
-		SubmissionTime:   ur.SubmissionTime,
-		LastUpdated:      ur.LastUpdated,
-		Complete:         ur.Complete,
-		FailureReason:    ur.FailureReason,
-		PercentCompleted: ur.PercentCompleted,
-		State:            ur.State,
-		NotFound:         false,
-		NotFoundRetry:    0,
+		Id:                 ur.RequestId,
+		Uri:                ur.Uri,
+		SubmissionTime:     ur.SubmissionTime,
+		LastUpdated:        ur.LastUpdated,
+		Complete:           ur.Complete,
+		FailureReason:      ur.FailureReason,
+		PercentCompleted:   ur.PercentCompleted,
+		State:              ur.State,
+		NotFound:           false,
+		NotFoundRetryCount: 0,
 	}
 }

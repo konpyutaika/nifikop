@@ -64,7 +64,7 @@ type UpdateRequest struct {
 	// whether or not this request was found.
 	NotFound bool `json:"notFound,omitempty"`
 	// the number of consecutive retries made in case of a NotFound error (limit: 3).
-	NotFoundRetry int32 `json:"notFoundRetry,omitempty"`
+	NotFoundRetryCount int32 `json:"notFoundRetryCount,omitempty"`
 }
 
 type DropRequest struct {
@@ -105,7 +105,7 @@ type DropRequest struct {
 	// whether or not this request was found.
 	NotFound bool `json:"notFound,omitempty"`
 	// the number of consecutive retries made in case of a NotFound error (limit: 3).
-	NotFoundRetry int32 `json:"notFoundRetry,omitempty"`
+	NotFoundRetryCount int32 `json:"notFoundRetryCount,omitempty"`
 }
 
 // NifiDataflowStatus defines the observed state of NifiDataflow
