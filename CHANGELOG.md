@@ -2,6 +2,18 @@
 
 ### Added
 
+### Changed
+
+### Fixed Bugs
+
+### Deprecated
+
+### Removed
+
+## v1.1.0
+
+### Added
+
 - [PR #220](https://github.com/konpyutaika/nifikop/pull/220) - **[Operator/NifiCluster]** Made `Pod` readiness and liveness checks configurable.
 - [PR #218](https://github.com/konpyutaika/nifikop/pull/218) - **[Operator]** Add cross-platform support to nifikop docker image.
 
@@ -12,10 +24,6 @@
 ### Fixed Bugs
 
 - [PR #223](https://github.com/konpyutaika/nifikop/pull/223) - **[Operator]** Fixed bug where an incorrect condition was used to determine whether or not to substitute a custom authorizers template.
-
-### Deprecated
-
-### Removed
 
 ## v1.0.0
 
