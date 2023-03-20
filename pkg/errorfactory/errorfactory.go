@@ -56,14 +56,23 @@ type NifiClusterTaskFailure struct{ error }
 // NifiConnectionDropping states that flowfile drop is still running
 type NifiConnectionDropping struct{ error }
 
+// NifiConnectionDropRequestNotFound states that flowfile drop request was not found
+type NifiConnectionDropRequestNotFound struct{ error }
+
 // NifiFlowDraining states that flowfile drop is still draining
 type NifiFlowDraining struct{ error }
 
 // NifiParameterContextUpdateRequestRunning states that the parameter context update request is still running
 type NifiParameterContextUpdateRequestRunning struct{ error }
 
+// NifiParameterContextUpdateRequestNotFound states that the parameter context update request was not found
+type NifiParameterContextUpdateRequestNotFound struct{ error }
+
 // NifiFlowUpdateRequestRunning states that the flow update request is still running
 type NifiFlowUpdateRequestRunning struct{ error }
+
+// NifiFlowUpdateRequestNotFound states that the flow update request was not found
+type NifiFlowUpdateRequestNotFound struct{ error }
 
 // NifiFlowControllerServiceScheduling states that the flow's controller service are still scheduling
 type NifiFlowControllerServiceScheduling struct{ error }
