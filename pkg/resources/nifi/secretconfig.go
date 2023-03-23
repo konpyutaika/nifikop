@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/konpyutaika/nifikop/api/v1"
 	"sort"
 	"strings"
 	"text/template"
+
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	configcommon "github.com/konpyutaika/nifikop/pkg/nificlient/config/common"
@@ -462,25 +463,31 @@ func (r *Reconciler) getAuthorizersConfigString(nConfig *v1.NodeConfig, id int32
 		// Check for secret/configmap overrides. If there aren't any, then use the default template.
 		if r.NifiCluster.Spec.ReadOnlyConfig.AuthorizerConfig.ReplaceTemplateConfigMap != nil {
 			conf, err := r.getConfigMap(context.TODO(), *r.NifiCluster.Spec.ReadOnlyConfig.AuthorizerConfig.ReplaceTemplateConfigMap)
-			if err == nil {
+			if err != nil {
+				log.Error("error occurred during getting authorizer readonly configmap",
+					zap.String("clusterName", r.NifiCluster.Name),
+					zap.String("configMapName", r.NifiCluster.Spec.ReadOnlyConfig.AuthorizerConfig.ReplaceTemplateConfigMap.Name),
+					zap.String("configMapNamespace", r.NifiCluster.Spec.ReadOnlyConfig.AuthorizerConfig.ReplaceTemplateConfigMap.Namespace),
+					zap.Int32("nodeId", id),
+					zap.Error(err))
+			} else {
 				authorizersTemplate = conf
 			}
-			log.Error("error occurred during getting authorizer readonly configmap",
-				zap.String("clusterName", r.NifiCluster.Name),
-				zap.Int32("nodeId", id),
-				zap.Error(err))
 		}
 
 		// The secret takes precedence over the ConfigMap, if it exists.
 		if r.NifiCluster.Spec.ReadOnlyConfig.AuthorizerConfig.ReplaceTemplateSecretConfig != nil {
 			conf, err := r.getSecrectConfig(context.TODO(), *r.NifiCluster.Spec.ReadOnlyConfig.AuthorizerConfig.ReplaceTemplateSecretConfig)
-			if err == nil {
+			if err != nil {
+				log.Error("error occurred during getting authorizer readonly secret config",
+					zap.String("clusterName", r.NifiCluster.Name),
+					zap.String("secretName", r.NifiCluster.Spec.ReadOnlyConfig.AuthorizerConfig.ReplaceTemplateSecretConfig.Name),
+					zap.String("secretNamespace", r.NifiCluster.Spec.ReadOnlyConfig.AuthorizerConfig.ReplaceTemplateSecretConfig.Namespace),
+					zap.Int32("nodeId", id),
+					zap.Error(err))
+			} else {
 				authorizersTemplate = conf
 			}
-			log.Error("error occurred during getting authorizer readonly secret config",
-				zap.String("clusterName", r.NifiCluster.Name),
-				zap.Int32("nodeId", id),
-				zap.Error(err))
 		}
 
 		for nId, nodeState := range r.NifiCluster.Status.NodesState {

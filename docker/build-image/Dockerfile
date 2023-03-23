@@ -1,5 +1,9 @@
-#https://github.com/CircleCI-Public/circleci-dockerfiles/blob/master/golang/images/1.12.4/Dockerfile
 ARG GOLANG_VERSION
+
+FROM docker as docker-base
+COPY --from=docker/buildx-bin:latest /buildx /usr/libexec/docker/cli-plugins/docker-buildx
+
+#https://github.com/CircleCI-Public/circleci-dockerfiles/blob/master/golang/images/1.12.4/Dockerfile
 FROM golang:${GOLANG_VERSION}
 
 # Make Apt non-interactive
@@ -55,6 +59,9 @@ RUN set -ex \
   && rm -rf /tmp/docker /tmp/docker.tgz \
   && which docker \
   && (docker version || true)
+
+# Install docker-buildx plugin from docker/buildx-bin image
+COPY --from=docker-base /usr/libexec/docker/cli-plugins/docker-buildx /usr/libexec/docker/cli-plugins/docker-buildx
 
 RUN groupadd --gid 3434 circleci \
   && useradd --uid 3434 --gid circleci --shell /bin/bash --create-home circleci \

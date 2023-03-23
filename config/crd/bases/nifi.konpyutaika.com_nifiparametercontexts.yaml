@@ -94,6 +94,11 @@ spec:
                     type: string
                   lastUpdated:
                     type: string
+                  notFound:
+                    type: boolean
+                  notFoundRetryCount:
+                    format: int32
+                    type: integer
                   percentCompleted:
                     format: int32
                     type: integer

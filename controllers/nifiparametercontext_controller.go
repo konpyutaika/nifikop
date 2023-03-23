@@ -20,8 +20,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/konpyutaika/nifikop/api/v1"
 	"reflect"
+
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 
 	"emperror.dev/errors"
 	"github.com/banzaicloud/k8s-objectmatcher/patch"
@@ -297,6 +298,11 @@ func (r *NifiParameterContextReconciler) Reconcile(ctx context.Context, req ctrl
 	if err != nil {
 		switch errors.Cause(err).(type) {
 		case errorfactory.NifiParameterContextUpdateRequestRunning:
+			return RequeueAfter(interval)
+		case errorfactory.NifiParameterContextUpdateRequestNotFound:
+			r.Log.Warn("The update request for parameter context is already gone, there is nothing we can do",
+				zap.String("updateRequest", instance.Status.LatestUpdateRequest.Id),
+				zap.String("parameterContext", instance.Name))
 			return RequeueAfter(interval)
 		default:
 			r.Recorder.Event(instance, corev1.EventTypeNormal, "SynchronizingFailed",
