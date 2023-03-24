@@ -4,7 +4,8 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"github.com/konpyutaika/nifikop/api/v1"
+
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 
 	"github.com/konpyutaika/nifikop/pkg/resources/templates"
 	certutil "github.com/konpyutaika/nifikop/pkg/util/cert"
@@ -161,8 +162,6 @@ func LabelsForNifiPKI(name string) map[string]string {
 
 // NodeUsersForCluster returns a NifiUser CR for the node certificates in a NifiCluster
 func NodeUsersForCluster(cluster *v1.NifiCluster, additionalHostnames []string) []*v1.NifiUser {
-	additionalHostnames = append(additionalHostnames)
-
 	var nodeUsers []*v1.NifiUser
 
 	for _, node := range cluster.Spec.Nodes {
@@ -174,7 +173,6 @@ func NodeUsersForCluster(cluster *v1.NifiCluster, additionalHostnames []string) 
 
 // NodeUserForClusterNode returns a NifiUser CR for the node certificates in a NifiCluster
 func nodeUserForClusterNode(cluster *v1.NifiCluster, nodeId int32, additionalHostnames []string) *v1.NifiUser {
-	additionalHostnames = append(additionalHostnames)
 	return &v1.NifiUser{
 		ObjectMeta: templates.ObjectMeta(GetNodeUserName(cluster, nodeId), LabelsForNifiPKI(cluster.Name), cluster),
 		Spec: v1.NifiUserSpec{

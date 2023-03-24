@@ -2,9 +2,10 @@ package nifi
 
 import (
 	"fmt"
-	"github.com/konpyutaika/nifikop/api/v1"
 	"strconv"
 	"time"
+
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 )
 
 const (
@@ -256,19 +257,16 @@ func InternalListenerForComm(internalListeners []v1.InternalListenerConfig) v1.I
 }
 
 func determineInternalListenerForComm(internalListeners []v1.InternalListenerConfig) int {
-	var httpsServerPortId int
-	var httpServerPortId int
+	var serverPortId int
 	for id, iListener := range internalListeners {
 		if iListener.Type == v1.HttpsListenerType {
-			httpsServerPortId = id
+			serverPortId = id
+			break
 		} else if iListener.Type == v1.HttpListenerType {
-			httpServerPortId = id
+			serverPortId = id
 		}
 	}
-	if &httpsServerPortId != nil {
-		return httpsServerPortId
-	}
-	return httpServerPortId
+	return serverPortId
 }
 
 // LabelsForNifi returns the labels for selecting the resources
