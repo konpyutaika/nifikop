@@ -2,13 +2,13 @@ package nificlient
 
 import (
 	"fmt"
-	"github.com/konpyutaika/nifikop/api/v1"
 	"net/http"
 	"testing"
 
+	v1 "github.com/konpyutaika/nifikop/api/v1"
+
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
 	"go.uber.org/zap"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/jarcoal/httpmock"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
@@ -23,10 +23,6 @@ const (
 	clusterName      = "test-cluster"
 	clusterNamespace = "test-namespace"
 )
-
-type mockClient struct {
-	client.Client
-}
 
 var (
 	nodeURITemplate = fmt.Sprintf("%s-%s-node.%s.svc.cluster.local:%s",

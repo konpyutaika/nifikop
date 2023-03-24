@@ -18,7 +18,7 @@ func (n *nifiClient) GetAccessPolicy(action, resource string) (*nigoapi.AccessPo
 
 	// Request on Nifi Rest API to get the access policy informations
 
-	for true {
+	for {
 		if resource[0:1] == "/" {
 			resource = resource[1:]
 			continue

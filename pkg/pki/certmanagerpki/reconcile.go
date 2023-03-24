@@ -3,8 +3,9 @@ package certmanagerpki
 import (
 	"context"
 	"fmt"
-	"github.com/konpyutaika/nifikop/api/v1"
 	"reflect"
+
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 
 	certv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	"go.uber.org/zap"
@@ -17,22 +18,17 @@ import (
 
 // reconcile ensures the given kubernetes object
 func reconcile(ctx context.Context, log zap.Logger, client client.Client, object runtime.Object, cluster *v1.NifiCluster) (err error) {
-	switch object.(type) {
+	switch object := object.(type) {
 	case *certv1.Issuer:
-		issuer, _ := object.(*certv1.Issuer)
-		return reconcileIssuer(ctx, log, client, issuer, cluster)
+		return reconcileIssuer(ctx, log, client, object, cluster)
 	case *certv1.ClusterIssuer:
-		issuer, _ := object.(*certv1.ClusterIssuer)
-		return reconcileClusterIssuer(ctx, log, client, issuer, cluster)
+		return reconcileClusterIssuer(ctx, log, client, object, cluster)
 	case *certv1.Certificate:
-		cert, _ := object.(*certv1.Certificate)
-		return reconcileCertificate(ctx, log, client, cert, cluster)
+		return reconcileCertificate(ctx, log, client, object, cluster)
 	case *corev1.Secret:
-		secret, _ := object.(*corev1.Secret)
-		return reconcileSecret(ctx, log, client, secret, cluster)
+		return reconcileSecret(ctx, log, client, object, cluster)
 	case *v1.NifiUser:
-		user, _ := object.(*v1.NifiUser)
-		return reconcileUser(ctx, log, client, user, cluster)
+		return reconcileUser(ctx, log, client, object, cluster)
 	default:
 		panic(fmt.Sprintf("Invalid object type: %v", reflect.TypeOf(object)))
 	}
