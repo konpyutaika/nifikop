@@ -173,7 +173,7 @@ test: manifests generate fmt vet staticcheck govuln envtest
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(LOCALBIN) -p path)" go test ./... -coverprofile cover.out
 
 .PHONY: test-with-vendor
-test-with-vendor: manifests generate fmt vet envtest
+test-with-vendor: manifests generate fmt vet staticcheck govuln envtest
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(LOCALBIN) -p path)" go test -mod=vendor ./... -coverprofile cover.out
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
