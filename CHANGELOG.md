@@ -7,6 +7,7 @@
 ### Fixed Bugs
 
 - [PR #243](https://github.com/konpyutaika/nifikop/pull/243) - **[Operator]** Re-Fixed bug where an incorrect condition was used to determine whether or not to substitute a custom authorizers template.
+- [PR #245](https://github.com/konpyutaika/nifikop/pull/245) - **[Operator]** Added staticcheck linting and go vuln scanning to Makefile. Fixed all linting issues with operator
 
 ### Deprecated
 
