@@ -1,7 +1,7 @@
 package accesspolicies
 
 import (
-	"github.com/konpyutaika/nifikop/api/v1"
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers"
 	"github.com/konpyutaika/nifikop/pkg/common"
 	"github.com/konpyutaika/nifikop/pkg/nificlient"
@@ -84,7 +84,7 @@ func UpdateAccessPolicy(
 	}
 
 	updateAccessPolicyEntity(accessPolicy, addUsers, removeUsers, addUserGroups, removeUserGroups, config, entity)
-	entity, err = nClient.UpdateAccessPolicy(*entity)
+	_, _ = nClient.UpdateAccessPolicy(*entity)
 	return clientwrappers.ErrorUpdateOperation(log, err, "Update user")
 }
 
@@ -109,7 +109,7 @@ func UpdateAccessPolicyEntity(
 	addRemoveUsersFromAccessPolicyEntity(addUsers, removeUsers, entity)
 	addRemoveUserGroupsFromAccessPolicyEntity(addUserGroups, removeUserGroups, entity)
 
-	entity, err = nClient.UpdateAccessPolicy(*entity)
+	_, _ = nClient.UpdateAccessPolicy(*entity)
 	return clientwrappers.ErrorUpdateOperation(log, err, "Update user")
 }
 

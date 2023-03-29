@@ -1,9 +1,10 @@
 package certmanagerpki
 
 import (
-	"github.com/konpyutaika/nifikop/api/v1"
 	"reflect"
 	"testing"
+
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 
 	certv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -43,7 +44,7 @@ func newMock(cluster *v1.NifiCluster) *certManager {
 	v1.SchemeBuilder.AddToScheme(scheme.Scheme)
 	return &certManager{
 		cluster: cluster,
-		client:  fake.NewFakeClientWithScheme(scheme.Scheme),
+		client:  fake.NewClientBuilder().WithScheme(scheme.Scheme).Build(),
 	}
 }
 

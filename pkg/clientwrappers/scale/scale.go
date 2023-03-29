@@ -2,8 +2,9 @@ package scale
 
 import (
 	"fmt"
-	"github.com/konpyutaika/nifikop/api/v1"
 	"time"
+
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
 
@@ -216,7 +217,7 @@ func EnsureRemovedNodes(config *clientconfig.NifiConfig, cluster *v1.NifiCluster
 func generateNodeStateIdSlice(nodesState map[string]v1.NodeState) []int32 {
 	var nodeIdsSlice []int32
 
-	for nodeId, _ := range nodesState {
+	for nodeId := range nodesState {
 		int32NodeId, _ := nifiutil.ParseStringToInt32(nodeId)
 		nodeIdsSlice = append(nodeIdsSlice, int32NodeId)
 	}
