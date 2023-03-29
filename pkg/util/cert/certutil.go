@@ -64,10 +64,10 @@ func DecodeCertificate(raw []byte) (cert *x509.Certificate, err error) {
 
 // GeneratePass generates a random password
 func GeneratePass(length int) (passw []byte) {
-	mathrand.Seed(time.Now().UnixNano())
+	r := mathrand.New(mathrand.NewSource(time.Now().UnixNano()))
 	var b strings.Builder
 	for i := 0; i < length; i++ {
-		b.WriteRune(passChars[mathrand.Intn(len(passChars))])
+		b.WriteRune(passChars[r.Intn(len(passChars))])
 	}
 	passw = []byte(b.String())
 	return
