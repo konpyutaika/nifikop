@@ -89,7 +89,7 @@ func (r *Reconciler) computeMinAvailable(log zap.Logger) (intstr.IntOrString, er
 
 	// treat percentage budget
 	if strings.HasSuffix(disruptionBudget, "%") {
-		percentage, err := strconv.ParseFloat(disruptionBudget[:len(disruptionBudget)-1], 4)
+		percentage, err := strconv.ParseFloat(disruptionBudget[:len(disruptionBudget)-1], 64)
 		if err != nil {
 			log.Error("error occured during parsing the disruption budget",
 				zap.String("clusterName", r.NifiCluster.Name),

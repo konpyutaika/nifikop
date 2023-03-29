@@ -19,9 +19,10 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"github.com/konpyutaika/nifikop/api/v1"
 	"reflect"
 	"time"
+
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 
 	"emperror.dev/errors"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/scale"
@@ -145,7 +146,7 @@ func (r *NifiClusterTaskReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 	}
 
 	if len(nodesWithDownscaleSucceeded) > 0 {
-		err = r.handleNodeRemoveStatus(instance, nodesWithDownscaleSucceeded)
+		_ = r.handleNodeRemoveStatus(instance, nodesWithDownscaleSucceeded)
 	}
 
 	return Reconciled()

@@ -81,7 +81,7 @@ func testCreateRegistryClient(t *testing.T, entity *nigoapi.RegistryClientEntity
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	url := nifiAddress(cluster, fmt.Sprintf("/controller/registry-clients"))
+	url := nifiAddress(cluster, "/controller/registry-clients")
 	httpmock.RegisterResponder(http.MethodPost, url,
 		func(req *http.Request) (*http.Response, error) {
 			return httpmock.NewJsonResponse(
