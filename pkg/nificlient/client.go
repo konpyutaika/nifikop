@@ -161,7 +161,7 @@ func (n *nifiClient) Build() error {
 	n.client = n.newClient(config)
 
 	n.nodeClient = make(map[int32]*nigoapi.APIClient)
-	for nodeId, _ := range n.opts.NodesURI {
+	for nodeId := range n.opts.NodesURI {
 		nodeConfig := n.getNiNodeGoApiConfig(nodeId)
 		n.nodeClient[nodeId] = n.newClient(nodeConfig)
 	}
@@ -204,7 +204,6 @@ func (n *nifiClient) getNifiGoApiConfig() (config *nigoapi.Configuration) {
 	if n.opts.UseSSL {
 		transport = &http.Transport{}
 		config.Scheme = "HTTPS"
-		n.opts.TLSConfig.BuildNameToCertificate()
 		transport.TLSClientConfig = n.opts.TLSConfig
 		protocol = "https"
 	}
@@ -227,7 +226,7 @@ func (n *nifiClient) getNifiGoApiConfig() (config *nigoapi.Configuration) {
 	config.BasePath = fmt.Sprintf("%s://%s/nifi-api", protocol, n.opts.NifiURI)
 	config.Host = n.opts.NifiURI
 	if len(n.opts.NifiURI) == 0 {
-		for nodeId, _ := range n.opts.NodesURI {
+		for nodeId := range n.opts.NodesURI {
 			config.BasePath = fmt.Sprintf("%s://%s/nifi-api", protocol, n.opts.NodesURI[nodeId].RequestHost)
 			config.Host = n.opts.NodesURI[nodeId].RequestHost
 		}
@@ -244,7 +243,6 @@ func (n *nifiClient) getNiNodeGoApiConfig(nodeId int32) (config *nigoapi.Configu
 	if n.opts.UseSSL {
 		transport = &http.Transport{}
 		config.Scheme = "HTTPS"
-		n.opts.TLSConfig.BuildNameToCertificate()
 		transport.TLSClientConfig = n.opts.TLSConfig
 		protocol = "https"
 	}

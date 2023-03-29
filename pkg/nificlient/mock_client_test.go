@@ -1,8 +1,9 @@
 package nificlient
 
 import (
-	"github.com/konpyutaika/nifikop/api/v1"
 	"testing"
+
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 
 	"github.com/konpyutaika/nifikop/pkg/nificlient/config/common"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
@@ -19,10 +20,7 @@ var (
 
 type mockNiFiClient struct {
 	NifiClient
-	opts       *clientconfig.NifiConfig
-	client     *nigoapi.APIClient
-	nodeClient map[int32]*nigoapi.APIClient
-	nodes      []nigoapi.NodeDto
+	opts *clientconfig.NifiConfig
 
 	newClient func(*nigoapi.Configuration) *nigoapi.APIClient
 	failOpts  bool
@@ -44,12 +42,6 @@ func newMockClient() *nifiClient {
 		opts:      newMockOpts(),
 		newClient: newMockHttpClient,
 	}
-}
-
-func newBuildedMockClient() *nifiClient {
-	client := newMockClient()
-	client.Build()
-	return client
 }
 
 func NewMockNiFiClient() *nifiClient {

@@ -154,14 +154,26 @@ fmt:
 vet:
 	go vet ./...
 
+# Run https://staticcheck.io against code
+.PHONY: staticcheck
+staticcheck:
+	go install honnef.co/go/tools/cmd/staticcheck@latest
+	staticcheck ./...
+
+# RUN https://go.dev/blog/vuln against code for known CVEs
+.PHONY: govuln
+govuln:
+	go install golang.org/x/vuln/cmd/govulncheck@latest
+	govulncheck ./...
+
 # Run tests
 ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
 .PHONY: test
-test: manifests generate fmt vet envtest
+test: manifests generate fmt vet staticcheck govuln envtest
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(LOCALBIN) -p path)" go test ./... -coverprofile cover.out
 
 .PHONY: test-with-vendor
-test-with-vendor: manifests generate fmt vet envtest
+test-with-vendor: manifests generate fmt vet staticcheck govuln envtest
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(LOCALBIN) -p path)" go test -mod=vendor ./... -coverprofile cover.out
 
 # Run against the configured Kubernetes cluster in ~/.kube/config

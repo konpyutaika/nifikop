@@ -154,24 +154,15 @@ func (d *NifiDataflowSpec) GetSyncMode() DataflowSyncMode {
 }
 
 func (d *NifiDataflowSpec) SyncOnce() bool {
-	if d.GetSyncMode() == SyncOnce {
-		return true
-	}
-	return false
+	return d.GetSyncMode() == SyncOnce
 }
 
 func (d *NifiDataflowSpec) SyncAlways() bool {
-	if d.GetSyncMode() == SyncAlways {
-		return true
-	}
-	return false
+	return d.GetSyncMode() == SyncAlways
 }
 
 func (d *NifiDataflowSpec) SyncNever() bool {
-	if d.GetSyncMode() == SyncNever {
-		return true
-	}
-	return false
+	return d.GetSyncMode() == SyncNever
 }
 
 func (d *NifiDataflowSpec) GetParentProcessGroupID(rootProcessGroupId string) string {
