@@ -67,15 +67,15 @@ func convertNifiClusterSpec(src *NifiClusterSpec, dst *v1.NifiCluster) error {
 	dst.Spec.OneNifiNodePerNode = src.OneNifiNodePerNode
 	dst.Spec.PropagateLabels = src.PropagateLabels
 	if src.NodeUserIdentityTemplate != nil {
-		dst.Spec.NodeUserIdentityTemplate = &(*src.NodeUserIdentityTemplate)
+		dst.Spec.NodeUserIdentityTemplate = src.NodeUserIdentityTemplate
 	}
 	dst.Spec.SidecarConfigs = src.SidecarConfigs
 	dst.Spec.TopologySpreadConstraints = src.TopologySpreadConstraints
 	if src.NifiControllerTemplate != nil {
-		dst.Spec.NifiControllerTemplate = &(*src.NifiControllerTemplate)
+		dst.Spec.NifiControllerTemplate = src.NifiControllerTemplate
 	}
 	if src.ControllerUserIdentity != nil {
-		dst.Spec.ControllerUserIdentity = &(*src.ControllerUserIdentity)
+		dst.Spec.ControllerUserIdentity = src.ControllerUserIdentity
 	}
 
 	convertNifiClusterSecretRef(src.SecretRef, dst)
@@ -507,15 +507,15 @@ func convertNifiClusterFromSpec(src *v1.NifiClusterSpec, dst *NifiCluster) error
 	dst.Spec.OneNifiNodePerNode = src.OneNifiNodePerNode
 	dst.Spec.PropagateLabels = src.PropagateLabels
 	if src.NodeUserIdentityTemplate != nil {
-		dst.Spec.NodeUserIdentityTemplate = &(*src.NodeUserIdentityTemplate)
+		dst.Spec.NodeUserIdentityTemplate = src.NodeUserIdentityTemplate
 	}
 	dst.Spec.SidecarConfigs = src.SidecarConfigs
 	dst.Spec.TopologySpreadConstraints = src.TopologySpreadConstraints
 	if src.NifiControllerTemplate != nil {
-		dst.Spec.NifiControllerTemplate = &(*src.NifiControllerTemplate)
+		dst.Spec.NifiControllerTemplate = src.NifiControllerTemplate
 	}
 	if src.ControllerUserIdentity != nil {
-		dst.Spec.ControllerUserIdentity = &(*src.ControllerUserIdentity)
+		dst.Spec.ControllerUserIdentity = src.ControllerUserIdentity
 	}
 
 	convertNifiClusterFromSecretRef(src.SecretRef, dst)

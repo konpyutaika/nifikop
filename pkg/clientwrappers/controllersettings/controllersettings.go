@@ -1,7 +1,7 @@
 package controllersettings
 
 import (
-	"github.com/konpyutaika/nifikop/api/v1"
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers"
 	"github.com/konpyutaika/nifikop/pkg/common"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
@@ -29,7 +29,7 @@ func SyncConfiguration(config *clientconfig.NifiConfig, cluster *v1.NifiCluster)
 
 	if !controllerConfigIsSync(cluster, entity) {
 		updateControllerConfigEntity(cluster, entity)
-		entity, err = nClient.UpdateControllerConfig(*entity)
+		_, _ = nClient.UpdateControllerConfig(*entity)
 		if err := clientwrappers.ErrorUpdateOperation(log, err, "Update controller conif"); err != nil {
 			return err
 		}

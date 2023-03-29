@@ -1,8 +1,6 @@
 package nificluster
 
 import (
-	"fmt"
-
 	"github.com/konpyutaika/nifikop/pkg/common"
 	"github.com/konpyutaika/nifikop/pkg/nificlient"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
@@ -28,7 +26,7 @@ func (cluster *ExternalCluster) IsInternal() bool {
 }
 
 func (cluster *ExternalCluster) ClusterLabelString() string {
-	return fmt.Sprintf("%s", cluster.Name)
+	return cluster.Name
 }
 
 func (cluster ExternalCluster) IsReady(log zap.Logger) bool {

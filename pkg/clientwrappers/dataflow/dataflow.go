@@ -116,7 +116,7 @@ func ScheduleDataflow(flow *v1.NifiDataflow, config *clientconfig.NifiConfig) er
 	}
 
 	// Check all components are ok
-	processGroups, _, _, _, err := listComponents(config, flow.Status.ProcessGroupID)
+	processGroups, _, _, _, _ := listComponents(config, flow.Status.ProcessGroupID)
 	pGEntity, err := nClient.GetProcessGroup(flow.Status.ProcessGroupID)
 	if err := clientwrappers.ErrorGetOperation(log, err, "Get process group"); err != nil {
 		return err
@@ -665,7 +665,7 @@ func listComponents(config *clientconfig.NifiConfig,
 		return processGroups, processors, connections, inputPorts, err
 	}
 
-	flowEntity, err := nClient.GetFlow(processGroupID)
+	flowEntity, _ := nClient.GetFlow(processGroupID)
 	flow := flowEntity.ProcessGroupFlow.Flow
 
 	processGroups = flow.ProcessGroups

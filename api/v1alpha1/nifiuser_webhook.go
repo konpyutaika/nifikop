@@ -18,11 +18,7 @@ package v1alpha1
 
 import (
 	ctrl "sigs.k8s.io/controller-runtime"
-	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
-
-// log is for logging in this package.
-var nifiuserlog = logf.Log.WithName("nifiuser-resource")
 
 func (r *NifiUser) SetupWebhookWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewWebhookManagedBy(mgr).

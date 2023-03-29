@@ -2,12 +2,12 @@ package common
 
 import (
 	"fmt"
-	"github.com/konpyutaika/nifikop/api/v1"
 	"testing"
+
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 
 	"github.com/konpyutaika/nifikop/pkg/pki"
 	"github.com/stretchr/testify/assert"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
@@ -17,10 +17,6 @@ const (
 	clusterName      = "test-cluster"
 	clusterNamespace = "test-namespace"
 )
-
-type mockClient struct {
-	client.Client
-}
 
 func testCluster(t *testing.T) *v1.NifiCluster {
 	t.Helper()
