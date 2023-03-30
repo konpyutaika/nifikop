@@ -1,0 +1,23 @@
+{{ if .Values.nodeGroupAutoscalers }}
+{{ range .Values.nodeGroupAutoscalers }}
+{{ if .enabled }}
+apiVersion: nifi.konpyutaika.com/v1alpha1
+kind: NifiNodeGroupAutoscaler
+metadata:
+  name: {{ include "nifi-cluster.fullname" $ }}-{{ .nodeConfigGroupId }}
+  annotations: {{ toYaml .annotations | nindent 4 }}
+spec:
+  clusterRef:
+    name: {{ include "nifi-cluster.fullname" $ }}
+    namespace: {{ $.Release.Namespace }}
+  nodeConfigGroupId: {{ .nodeConfigGroupId }}
+  nodeLabelsSelector: 
+{{ toYaml .nodeLabelsSelector | indent 4 }}
+  {{ if .readOnlyConfig }}
+    readOnlyConfig: {{ .readOnlyConfig }}
+  {{ end }}
+  upscaleStrategy: {{ .upscaleStrategy }}
+  downscaleStrategy: {{ .downscaleStrategy }}
+{{ end }}
+{{ end }}
+{{ end }}

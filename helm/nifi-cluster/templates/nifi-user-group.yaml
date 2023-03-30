@@ -1,0 +1,15 @@
+{{ range .Values.userGroups }}
+apiVersion: nifi.konpyutaika.com/v1
+kind: NifiUserGroup
+metadata:
+  name: {{ include "nifi-cluster.fullname" $ }}-{{ .name }}
+spec:
+  clusterRef:
+    name: {{ include "nifi-cluster.fullname" $ }}
+    namespace: {{ $.Release.Namespace }}
+  usersRef:
+{{ toYaml .users | indent 4 }}
+  accessPolicies:
+{{ toYaml .accessPolicies | indent 4 }}
+---
+{{ end }}

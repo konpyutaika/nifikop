@@ -1,0 +1,410 @@
+# Default values for nifi-cluster.
+# All of these configurations are sourced from the nifikop docs:
+# https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster/1_nifi_cluster
+
+cluster:
+  # -- the full name of the cluster. This is used to set a portion of the name of various nifikop resources
+  nameOverride: "nifi-cluster"
+  fullnameOverride: ""
+  # -- the hostname and port of the zookeeper service
+  zkAddress: "nifi-cluster-zookeeper:2181"
+  # -- the path in zookeeper to store this cluster's state
+  zkPath: "/cluster"
+  # -- whether or not to only deploy one nifi pod per node in this cluster
+  oneNifiNodePerNode: false
+
+  # -- the template to use to create nodes.
+  # see https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster/1_nifi_cluster#nificlusterspec
+  # nodeUserIdentityTemplate: n-%d
+
+  service:
+    # -- Annotations to apply to each nifi service
+    annotations: {}
+    # -- Labels to apply to each nifi service
+    labels: {}
+    # -- Whether or not to create a headless service
+    headlessEnabled: true
+
+  pod:
+    # -- Annotations to apply to every pod
+    annotations: {}
+    # -- Labels to apply to every pod
+    labels: {}
+    # -- host aliases to assign to each pod
+    hostAlises: []
+
+  image: 
+    repository: "apache/nifi"
+    # -- Only set this if you want to override the chart AppVersion
+    tag: ""
+  initContainerImage:
+    repository: "bash"
+    tag: "5.2.2"
+
+  # -- list of init containers to run prior to the deployment
+  initContainers: []
+  
+  # --  MaximumTimerDrivenThreadCount defines the maximum number of threads for timer driven processors available to the system.
+  maximumTimerDrivenThreadCount: 10
+
+  # --  MaximumEventDrivenThreadCount defines the maximum number of threads for timer driven processors available to the system.
+  # This is a feature enabled by the following PR and should not be used unless you're running nifkop with this PR applied: https://github.com/Orange-OpenSource/nifikop/pull/184
+  maximumEventDrivenThreadCount: 10
+
+  # -- list of additional environment variables to attach to all init containers and the nifi container
+  # https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster/2_read_only_config#readonlyconfig
+  additionalSharedEnvs: []
+  # - name: MY_ENV_VAR
+  #   value: some value
+
+  # -- see https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster/1_nifi_cluster#managedusers
+  managedAdminUsers: []
+  # -- see https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster/1_nifi_cluster#managedusers
+  managedReaderUsers: []
+
+  # -- see https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster/1_nifi_cluster#disruptionbudget
+  disruptionBudget: {}
+
+  # -- see https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster/1_nifi_cluster#ldapconfiguration
+  ldapConfiguration: {}
+  
+  logbackConfig:
+    configPath: config/logback.xml
+    # You may provide your own secret/config map override of the logback configuration. It will override the default.
+
+    # -- A ConfigMap ref to override the default logback configuration
+    # see https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster/2_read_only_config#logbackconfig
+    replaceConfigMap: {}
+    #   data: logback.xml
+    #   name: logback-configmap
+    #   namespace: nifi
+
+    # -- A Secret ref to override the default logback configuration
+    # see https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster/2_read_only_config#logbackconfig
+    replaceSecretConfig: {}
+    #   data: logback.xml
+    #   name: logback-configmap
+    #   namespace: nifi
+
+  # -- You can override the individual properties via the overrideConfigs attribute. These will be provided to all pods via secrets.
+  # https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#system_properties
+  nifiProperties:
+    overrideConfigs: |
+      nifi.web.proxy.context.path=/nifi-cluster
+
+    # -- A comma separated list of allowed HTTP Host header values to consider when NiFi
+    # is running securely and will be receiving requests to a different host[:port] than it is bound to.
+    # https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#web-properties
+    webProxyHosts: ""
+
+    # -- Nifi security client auth
+    needClientAuth: false
+
+  # -- You can override individual properties in config/bootstrap.properties
+  # https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#bootstrap_properties
+  bootstrapProperties:
+    overrideConfigs: |
+      java.arg.4=-Djava.net.preferIPv4Stack=true
+      java.arg.log4shell=-Dlog4j2.formatMsgNoLookups=true
+    nifiJvmMemory: "512m"
+  
+  # -- This is only for embedded zookeeper configuration. This is ignored if an zookeeper.enabled is true.
+  zookeeperProperties:
+    overrideConfigs: |
+      initLimit=15
+      autopurge.purgeInterval=24
+      syncLimit=5
+      tickTime=2000
+      dataDir=./state/zookeeper
+      autopurge.snapRetainCount=30
+  
+  # -- see https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster/3_node_config
+  nodeConfigGroups: {}
+    # default-group:
+    #   isNode: true
+    #   # Extra volumes to add to the Pod spec.
+    #   # See https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster/3_node_config#externalvolumeconfig
+    #   #externalVolumeConfigs: []
+    #   imagePullPolicy: IfNotPresent
+    #   storageConfigs:
+    #     - mountPath: "/opt/nifi/data"
+    #       name: data
+    #       pvcSpec:
+    #         accessModes:
+    #           - ReadWriteOnce
+    #         storageClassName: "standard"
+    #         resources:
+    #           requests:
+    #             storage: 128Mi
+    #   serviceAccountName: "default"
+    #   resourcesRequirements:
+    #     limits:
+    #       cpu: 2
+    #       memory: 4Gi
+    #     requests:
+    #       cpu: 1
+    #       memory: 2Gi
+
+  # -- see https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster/1_nifi_cluster#nificlusterspec
+  nodes: 
+    - id: 1
+      nodeConfigGroup: "default-group"
+
+  propagateLabels: true
+  # -- The number of minutes the operator should wait for the cluster to be successfully deployed before retrying
+  retryDurationMinutes: 10
+
+  # -- https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster/6_listeners_config
+  listenersConfig:
+    internalListeners:
+      - type: "http"
+        name: "http"
+        containerPort: 8080
+      - type: "cluster"
+        name: "cluster"
+        containerPort: 6007
+      - type: "s2s"
+        name: "s2s"
+        containerPort: 10000
+        # If enabling monitoring, you need to have a port named prometheus as below
+      - type: "prometheus"
+        name: "prometheus"
+        containerPort: 9090
+    sslSecrets: null
+      # tlsSecretName: nifi-cluster-certs
+      # create: false
+  
+  externalServices:
+    - name: "nifi-cluster-ip"
+      spec:
+        type: ClusterIP
+        portConfigs:
+          - port: 8080
+            internalListenerName: "http"
+      metadata:
+        labels: {}
+        annotations: {}
+    # - name: "nifi-cluster-lb"
+    #   spec:
+    #     type: LoadBalancer
+    #     portConfigs:
+    #       - port: 8080
+    #         internalListenerName: "http"
+    #   metadata:
+    #     labels: {}
+    #     annotations: {}
+    #   serviceAnnotations: {}
+    # - name: "nifi-cluster-np"
+    #   spec:
+    #     type: NodePort
+    #     portConfigs:
+    #       - port: 8080
+    #         internalListenerName: "http"
+    #   metadata:
+    #     labels: {}
+    #     annotations: {}
+
+ingress:
+  enabled: false
+  className: nginx
+  annotations: {}
+    # nginx.ingress.kubernetes.io/rewrite-target: /$2
+    # nginx.ingress.kubernetes.io/configuration-snippet: |
+    #   proxy_set_header 'X-ProxyContextPath' '/nifi-cluster';
+    #   proxy_set_header 'X-ProxyPort' '8080';
+    #   proxy_set_header 'X-ProxyScheme' 'http';
+  hosts: []
+    # - host: my-host.example.com
+    #   paths:
+    #     - path: /nifi-cluster(/|$)(.*)
+    #       pathType: Prefix
+    #       backend:
+    #         # this needs to match the externalServices config above
+    #         service:
+    #           name: "nifi-cluster-ip"
+    #           port:
+    #             number: 8080
+  tls: []
+  #  - secretName: nifi-cluster-tls
+  #    hosts:
+  #      - my-host.example.com
+
+# -- Monitoring is enabled by the Prometheus operator. This can be deployed stand-alone or as a part of the Rancher Monitoring application.
+# Do not enable this unless you've installed rancher-logging or the Promtheus operator directly.
+# https://rancher.com/docs/rancher/v2.6/en/monitoring-alerting/
+# Enabling logging creates a `ServiceResource` custom resource and routes logs to the output of your choice
+monitoring:
+  enabled: false
+
+# Logging is enabled by the banzai cloud logging operator. This can be deployed stand-alone or as a part of the Rancher Logging application.
+# Do not enable this unless you've installed rancher-logging or the banzai logging operator directly.
+# https://rancher.com/docs/rancher/v2.6/en/logging/
+# Enabling logging creates `Flow` custom resources and outputs to the output of your choice
+logging:
+  # -- Whether or not log aggregation via the banzai cloud logging operator is enabled.
+  enabled: false
+
+  # -- https://banzaicloud.com/docs/one-eye/logging-operator/configuration/flow/
+  flow:
+    name: nifi-cluster-flow
+    # -- The filters and match configs should be configured just like in the CRDs (linked above)
+    filters:
+      - parser:
+          parse:
+            type: regexp
+            expression: '/^(?<time>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}) (?<level>[^\s]+) \[(?<thread>.*)\] (?<message>.*)$/im'
+            keep_time_key: true
+            time_key: time
+            time_format: '%iso8601'
+            time_type: string
+    match:
+      - select:
+          labels:
+            app: "nifi"
+  
+  # -- Only global outputs that have been created separately to this helm chart supported for now
+  # may consider changing this to a Flow per cluster in future
+  outputs:
+    globalOutputRefs:
+      - loki-cluster-output
+
+# -- Nifi NodeGroup Autoscaler configurations.
+# Use this to autoscale any NodeGroup specified in `cluster.nodeConfigGroups`. To autoscale 
+# See https://konpyutaika.github.io/nifikop/docs/5_references/7_nifi_nodegroup_autoscaler
+nodeGroupAutoscalers:
+  - name: default-group-autoscaler
+    enabled: false
+    nodeConfigGroupId: default-group
+    readOnlyConfig: {}
+    nodeConfig: {}
+    nodeLabelsSelector:
+      matchLabels:
+        default-scale-group: "true"
+    upscaleStrategy: simple
+    downscaleStrategy: lifo
+    # this is the horizontal pod autoscaler spec: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/
+    # you may include both metrics and behavior here.
+    horizontalAutoscaler:
+      maxReplicas: 2
+      minReplicas: 1    
+
+# -- registry client configurations.
+# You'd use this to version control process groups & store the configuration in a registry bucket
+# This is required if you wish to deploy versioned flows via the dataflow config
+# The .name field must be safe in Kubernetes and match the pattern [A-Za-z0-9-]
+# See https://konpyutaika.github.io/nifikop/docs/5_references/3_nifi_registry_client
+registryClients:
+  - name: default
+    enabled: false
+    endpoint: http://nifi-registry
+    description: "Default NiFi Registry client"
+  - name: alternate
+    enabled: false
+    endpoint: http://nifi-registry
+    description: "Alternate NiFi Registry client"
+
+# -- Parameter context configurations.
+# This is required if you wish to deploy versioned flows via the dataflow config. However, 
+# it is not required to provide secret refs. You must provide at least one parameter or nifikop
+# will choke on updating dataflows.
+# The .name field must be safe in Kubernetes and match the pattern [A-Za-z0-9-]
+# See https://konpyutaika.github.io/nifikop/docs/5_references/4_nifi_parameter_context
+parameterContexts:
+  - name: default
+    enabled: false
+    secretRefs: []
+      # - name: secret-params
+      #   namespace: nifi
+    parameters:
+    - name: foo-prop
+      value: bar-value
+      description: my foo bar property
+
+# -- Versioned dataflow configurations.
+# This is used to configure versioned dataflows to be deployed to this nifi cluster. Any number may be configured.
+# Note that a _registryClient_ and a _parameterContext_ must be enabled & present in order for a dataflow to be deployed to a cluster.
+# See https://konpyutaika.github.io/nifikop/docs/5_references/5_nifi_dataflow
+dataflows:
+  - enabled: false
+    name: My Special Dataflow
+    registryClientRef:
+      name: default
+      namespace: nifi
+    parameterContextRef:
+      name: default
+      namespace: nifi
+    # the bucket and flow Ids can be found in the bucket.yml created when version controlling process groups
+    bucketId: ""
+    flowId: ""
+    flowVersion: 1
+    # This is one of {never, always, once}
+    syncMode: always
+    skipInvalidControllerService: true
+    skipInvalidComponent: true
+    updateStrategy: drain
+
+# -- Configure users. Each will result in the creation of a `NiFiUser` CRD in k8s, which the operator
+# takes and applies to each nifi configuration
+# See https://konpyutaika.github.io/nifikop/docs/5_references/2_nifi_user
+# the user's name is used for k8s resource metadata.name and so should be alphanumeric and hypenated
+users: []
+  # - identity: CN=first last, OU=Apache NiFi, O=Apache, L=Santa Monica, ST=CA, C=US
+  #   name: alphanumeric-hypen-identity-name
+  #   secretName: ""
+  #   createCert: false
+  #   includeJKS: false
+  #   # Specify access policies for this individual or assign them to a group via identity in `userGroups`.
+  #   # These are optional.
+  #   accessPolicies: 
+  #       # type is either "global" or "component"
+  #     - type: global
+  #       # action is either "read" or "write"
+  #       action: read
+  #       resource: /counters
+  #       # These should all be used if type is "component"
+  #       componentType: ""
+  #       componentId: ""
+
+# -- Configure user groups. Each will result in the creation of a `NiFiUserGroup` CRD in k8s, which the operator
+# takes and applies to each nifi configuration
+# See https://konpyutaika.github.io/nifikop/docs/5_references/6_nifi_usergroup
+userGroups: []
+  # - name: "basic-user-group"
+  #   # Users listed here should match the identity of users provided via the `users` configuration
+  #   users:
+  #     - name: CN=first last, OU=Apache NiFi, O=Apache, L=Santa Monica, ST=CA, C=US
+  #   accessPolicies:
+  #       # type is either "global" or "component"
+  #     - type: global
+  #       # action is either "read" or "write"
+  #       action: read
+  #       resource: /counters
+  #       # These should all be used if type is "component"
+  #       componentType: ""
+  #       componentId: ""
+
+# -- A list of extra templated Kubernetes yamls to apply
+extraManifests: []
+#  - apiVersion: v1
+#    kind: ConfigMap
+#    metadata:
+#      name: "{{ .Release.Name }}-config-map"
+#    data:
+#      my-prop-1: foo
+#      my-prop-2: bar
+
+# -- zookeeper chart overrides
+zookeeper:
+  # Whether or not to deploy an independent zookeeper.
+  enabled: false
+  replicaCount: 1
+  resources:
+    limits:
+      cpu: 2
+      memory: 500Mi
+    requests:
+      cpu: 0.5m
+      memory: 250Mi
+  persistence:
+    storageClass: standard
+    size: 10Gi

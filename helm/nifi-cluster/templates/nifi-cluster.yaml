@@ -1,0 +1,127 @@
+apiVersion: nifi.konpyutaika.com/v1
+kind: NifiCluster
+metadata:
+  name: {{ include "nifi-cluster.fullname" . }}
+  labels:
+    {{- include "nifi-cluster.labels" . | nindent 4 }}
+spec:
+  {{ if .Values.cluster.type }}
+  type: {{ .Values.cluster.type }}
+  {{ end }}
+  service:
+    headlessEnabled: {{ .Values.cluster.service.headlessEnabled }}
+    annotations: {{ toYaml .Values.cluster.service.annotations | nindent 6 }}
+    labels: {{ toYaml .Values.cluster.service.labels | nindent 6 }}
+  pod:
+  {{ if .Values.cluster.pod.annotations }}
+    annotations: {{ toYaml .Values.cluster.pod.annotations | nindent 6}}
+  {{ end }}  
+  {{ if .Values.cluster.pod.labels }}
+    labels: {{ toYaml .Values.cluster.pod.labels | nindent 6}}
+  {{ end }}
+  {{ if .Values.cluster.pod.hostAliases }}
+    hostAliases: {{ toYaml .Values.cluster.pod.hostAliases | nindent 6}}
+  {{ end }}
+  zkAddress: {{ .Values.cluster.zkAddress }}
+  zkPath: {{ .Values.cluster.zkPath }}
+  clusterImage: "{{ .Values.cluster.image.repository }}:{{ default .Chart.AppVersion .Values.cluster.image.tag }}"
+  initContainerImage: "{{ .Values.cluster.initContainerImage.repository }}:{{ .Values.cluster.initContainerImage.tag }}"
+{{ if .Values.cluster.oneNifiNodePerNode }}
+  oneNifiNodePerNode: {{ .Values.cluster.oneNifiNodePerNode }}
+{{ end }}
+
+{{ if .Values.cluster.initContainers }}
+  initContainers:
+{{ toYaml .Values.cluster.initContainers | indent 4 }}
+{{ end }}
+
+{{ if .Values.cluster.nodeUserIdentityTemplate }}
+  nodeUserIdentityTemplate: {{ .Values.cluster.nodeUserIdentityTemplate }}
+{{ end }}
+{{ if .Values.cluster.controllerUserIdentity }}
+  controllerUserIdentity: {{ .Values.cluster.controllerUserIdentity }}
+{{ end }}
+
+{{ if .Values.cluster.managedAdminUsers }}
+  managedAdminUsers:
+{{ toYaml .Values.cluster.managedAdminUsers | indent 4 }}
+{{ end }}
+{{ if .Values.cluster.managedReaderUsers }}
+  managedReaderUsers:
+{{ toYaml .Values.cluster.managedReaderUsers | indent 4 }}
+{{ end }}
+
+  disruptionBudget:
+{{ toYaml .Values.cluster.disruptionBudget | indent 4 }}
+  
+  ldapConfiguration:
+{{ toYaml .Values.cluster.ldapConfiguration | indent 4 }}
+
+  readOnlyConfig:
+{{ if .Values.cluster.maximumTimerDrivenThreadCount }}
+    maximumTimerDrivenThreadCount: {{ .Values.cluster.maximumTimerDrivenThreadCount }}
+{{ end }}
+{{ if .Values.cluster.maximumEventDrivenThreadCount }}
+    maximumEventDrivenThreadCount: {{ .Values.cluster.maximumEventDrivenThreadCount }}
+{{ end }}
+{{ if .Values.cluster.additionalSharedEnvs }}
+    additionalSharedEnvs:
+{{ toYaml .Values.cluster.additionalSharedEnvs | indent 6 }}
+{{ end }}
+    logbackConfig:
+    {{ if .Values.cluster.logbackConfig.replaceSecretConfig }}
+      replaceSecretConfig:
+        data: {{ .Values.cluster.logbackConfig.replaceSecretConfig.data }}
+        name: {{ .Values.cluster.logbackConfig.replaceSecretConfig.name }}
+        namespace: {{ .Values.cluster.logbackConfig.replaceSecretConfig.namespace }}
+    {{ else }} # the default
+      replaceSecretConfig:
+        data: logback.xml
+        name: {{ include "nifi-cluster.fullname" . }}
+        namespace: {{ .Release.Namespace }}
+    {{ end }}
+    {{ if .Values.cluster.logbackConfig.replaceConfigMap }}
+      replaceConfigMap:
+        data: {{ .Values.cluster.logbackConfig.replaceConfigMap.data }}
+        name: {{ .Values.cluster.logbackConfig.replaceConfigMap.name }}
+        namespace: {{ .Values.cluster.logbackConfig.replaceConfigMap.namespace }}
+    {{ end }}
+
+    nifiProperties:
+      overrideSecretConfig:
+        data: nifi.properties
+        name: {{ include "nifi-cluster.fullname" . }}
+        namespace: {{ .Release.Namespace }}
+
+      webProxyHosts: {{ .Values.cluster.nifiProperties.webProxyHosts }}
+      {{ if .Values.cluster.nifiProperties.needClientAuth }}
+      needClientAuth: {{ .Values.cluster.nifiProperties.needClientAuth }}
+      {{ end }}
+
+    zookeeperProperties:
+      overrideSecretConfig:
+        data: zookeeper.properties
+        name: {{ include "nifi-cluster.fullname" . }}
+        namespace: {{ .Release.Namespace }}
+        
+    bootstrapProperties:
+      overrideSecretConfig:
+        data: bootstrap.properties
+        name: {{ include "nifi-cluster.fullname" . }}
+        namespace: {{ .Release.Namespace }}
+      nifiJvmMemory: {{ .Values.cluster.bootstrapProperties.nifiJvmMemory }}
+    
+  nodeConfigGroups:
+{{ toYaml .Values.cluster.nodeConfigGroups | indent 4 }}
+  nodes:
+{{ toYaml .Values.cluster.nodes | indent 4 }}
+
+  propagateLabels: true
+  nifiClusterTaskSpec:
+    retryDurationMinutes: {{ .Values.cluster.retryDurationMinutes }}
+
+  listenersConfig:
+{{ toYaml .Values.cluster.listenersConfig | indent 4 }}
+
+  externalServices:
+{{ toYaml .Values.cluster.externalServices | indent 4 }}

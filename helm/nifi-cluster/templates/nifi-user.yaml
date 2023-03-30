@@ -1,0 +1,27 @@
+{{ range .Values.users }}
+apiVersion: nifi.konpyutaika.com/v1
+kind: NifiUser
+metadata:
+  name: {{ include "nifi-cluster.fullname" $ }}-{{ regexReplaceAll "\\W+" .name "-" | lower }} # this needs to be k8s name compliant
+spec:
+  identity: {{ .identity }}
+  {{ if .secretName }}
+  secretName: {{ .secretName }}
+  {{ end }}
+  dnsNames:
+  {{ range .dnsNames }}
+    - {{ . }}
+  {{ end }}
+  {{ if .accessPolicies }}
+  accessPolicies:
+{{ toYaml .accessPolicies | indent 4 }}
+  {{ end }}
+  {{ if .includeJKS }}
+  includeJKS: {{ .includeJKS }}
+  {{ end }}
+  createCert: {{ default false .createCert }}
+  clusterRef:
+    name: {{ include "nifi-cluster.fullname" $ }}
+    namespace: {{ $.Release.Namespace }}
+---
+{{ end }}
