@@ -3,6 +3,8 @@
 ### Added
 - [PR #244](https://github.com/konpyutaika/nifikop/pull/244) - **[Operator]** Updated the go version in nifikop to 1.20.
 
+- [PR #141](https://github.com/konpyutaika/nifikop/pull/141) - **[Helm Chart]** Added nifi-cluster helm chart.
+
 ### Changed
 
 ### Fixed Bugs

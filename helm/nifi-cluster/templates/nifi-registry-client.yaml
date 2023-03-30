@@ -1,0 +1,16 @@
+{{ range .Values.registryClients }}
+{{ if .enabled }}
+apiVersion: nifi.konpyutaika.com/v1
+kind: NifiRegistryClient
+metadata:
+  name: {{ include "nifi-cluster.fullname" $ }}-{{ .name }}-registry-client
+  labels:
+    {{- include "nifi-cluster.labels" $ | nindent 4 }}
+spec:
+  clusterRef:
+    name: {{ include "nifi-cluster.fullname" $ }}
+  description: {{ default "NiFi Registry client" .description }}
+  uri: {{ .endpoint }}
+---
+{{ end }}
+{{ end }}

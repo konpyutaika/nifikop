@@ -1,0 +1,19 @@
+{{ range .Values.parameterContexts }}
+{{ if .enabled }}
+apiVersion: nifi.konpyutaika.com/v1
+kind: NifiParameterContext
+metadata:
+  name: {{ include "nifi-cluster.fullname" $ }}-{{ .name }}-parameter-context
+spec:
+  description: "{{ .name }} NiFi Cluster Parameter Context"
+  clusterRef:
+    name: {{ include "nifi-cluster.fullname" $ }}
+{{ if .secretRefs }}
+  secretRefs:
+{{ toYaml .secretRefs | indent 4}}
+{{ end }}
+  parameters:
+{{ toYaml .parameters | indent 4}}
+---
+{{ end }}
+{{ end }}

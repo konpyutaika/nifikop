@@ -1,0 +1,18 @@
+{{- $filePattern := printf "%s" .Values.cluster.logbackConfig.configPath -}}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "nifi-cluster.fullname" . }}
+  labels:
+    {{- include "nifi-cluster.labels" . | nindent 4 }}
+type: Opaque
+data:
+{{ if .Values.cluster.zookeeperProperties }}
+  zookeeper.properties: |-
+{{ .Values.cluster.zookeeperProperties.overrideConfigs | b64enc | indent 4  }}
+{{ end }}
+  nifi.properties: |-
+{{ .Values.cluster.nifiProperties.overrideConfigs | b64enc | indent 4 }}
+  bootstrap.properties: |-
+{{ .Values.cluster.bootstrapProperties.overrideConfigs | b64enc | indent 4 }}
+{{ (.Files.Glob $filePattern).AsSecrets | indent 2 }}
