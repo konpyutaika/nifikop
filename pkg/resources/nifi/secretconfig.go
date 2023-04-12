@@ -62,7 +62,7 @@ func (r *Reconciler) secretConfig(id int32, nodeConfig *v1.NodeConfig, serverPas
 
 func (r Reconciler) generateNifiPropertiesNodeConfig(id int32, nodeConfig *v1.NodeConfig, serverPass, clientPass string, superUsers []string, log zap.Logger) string {
 	var readOnlyClusterConfig map[string]string
-	if &r.NifiCluster.Spec.ReadOnlyConfig != nil && &r.NifiCluster.Spec.ReadOnlyConfig.NifiProperties != (&v1.NifiProperties{}) {
+	if &r.NifiCluster.Spec.ReadOnlyConfig != (&v1.ReadOnlyConfig{}) && &r.NifiCluster.Spec.ReadOnlyConfig.NifiProperties != (&v1.NifiProperties{}) {
 		r.generateReadOnlyConfig(
 			&readOnlyClusterConfig,
 			r.NifiCluster.Spec.ReadOnlyConfig.NifiProperties.OverrideSecretConfig,
@@ -189,7 +189,7 @@ func generateSuperUsers(users []string) (suStrings []string) {
 func (r Reconciler) generateZookeeperPropertiesNodeConfig(id int32, nodeConfig *v1.NodeConfig, log zap.Logger) string {
 	var readOnlyClusterConfig map[string]string
 
-	if &r.NifiCluster.Spec.ReadOnlyConfig != nil && &r.NifiCluster.Spec.ReadOnlyConfig.ZookeeperProperties != (&v1.ZookeeperProperties{}) {
+	if &r.NifiCluster.Spec.ReadOnlyConfig != (&v1.ReadOnlyConfig{}) && &r.NifiCluster.Spec.ReadOnlyConfig.ZookeeperProperties != (&v1.ZookeeperProperties{}) {
 		r.generateReadOnlyConfig(
 			&readOnlyClusterConfig,
 			r.NifiCluster.Spec.ReadOnlyConfig.ZookeeperProperties.OverrideSecretConfig,
@@ -535,7 +535,7 @@ func (r *Reconciler) getAuthorizersConfigString(nConfig *v1.NodeConfig, id int32
 func (r Reconciler) generateBootstrapPropertiesNodeConfig(id int32, nodeConfig *v1.NodeConfig, log zap.Logger) string {
 	var readOnlyClusterConfig map[string]string
 
-	if &r.NifiCluster.Spec.ReadOnlyConfig != nil && &r.NifiCluster.Spec.ReadOnlyConfig.BootstrapProperties != (&v1.BootstrapProperties{}) {
+	if &r.NifiCluster.Spec.ReadOnlyConfig != (&v1.ReadOnlyConfig{}) && &r.NifiCluster.Spec.ReadOnlyConfig.BootstrapProperties != (&v1.BootstrapProperties{}) {
 		r.generateReadOnlyConfig(
 			&readOnlyClusterConfig,
 			r.NifiCluster.Spec.ReadOnlyConfig.BootstrapProperties.OverrideSecretConfig,
