@@ -546,7 +546,7 @@ func (r Reconciler) generateBootstrapPropertiesNodeConfig(id int32, nodeConfig *
 	var readOnlyNodeConfig = map[string]string{}
 
 	for _, node := range r.NifiCluster.Spec.Nodes {
-		if node.Id == id && &node.ReadOnlyConfig.BootstrapProperties != (&v1.BootstrapProperties{}) {
+		if node.Id == id && node.ReadOnlyConfig != nil && &node.ReadOnlyConfig.BootstrapProperties != (&v1.BootstrapProperties{}) {
 			r.generateReadOnlyConfig(
 				&readOnlyNodeConfig,
 				node.ReadOnlyConfig.BootstrapProperties.OverrideSecretConfig,
