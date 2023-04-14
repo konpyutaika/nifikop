@@ -1,20 +1,26 @@
 ## Unreleased
 
 ### Added
-- [PR #244](https://github.com/konpyutaika/nifikop/pull/244) - **[Operator]** Updated the go version in nifikop to 1.20.
-
-- [PR #141](https://github.com/konpyutaika/nifikop/pull/141) - **[Helm Chart]** Added nifi-cluster helm chart.
 
 ### Changed
 
 ### Fixed Bugs
 
-- [PR #243](https://github.com/konpyutaika/nifikop/pull/243) - **[Operator]** Re-Fixed bug where an incorrect condition was used to determine whether or not to substitute a custom authorizers template.
-- [PR #245](https://github.com/konpyutaika/nifikop/pull/245) - **[Operator]** Added staticcheck linting and go vuln scanning to Makefile. Fixed all linting issues with operator
-
 ### Deprecated
 
 ### Removed
+
+## v1.1.1
+
+### Added
+- [PR #244](https://github.com/konpyutaika/nifikop/pull/244) - **[Operator]** Updated the go version in nifikop to 1.20.
+
+- [PR #141](https://github.com/konpyutaika/nifikop/pull/141) - **[Helm Chart]** Added nifi-cluster helm chart.
+
+### Fixed Bugs
+
+- [PR #243](https://github.com/konpyutaika/nifikop/pull/243) - **[Operator]** Re-Fixed bug where an incorrect condition was used to determine whether or not to substitute a custom authorizers template.
+- [PR #245](https://github.com/konpyutaika/nifikop/pull/245) - **[Operator]** Added staticcheck linting and go vuln scanning to Makefile. Fixed all linting issues with operator
 
 ## v1.1.0
 
