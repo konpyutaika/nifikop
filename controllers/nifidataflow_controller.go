@@ -58,7 +58,7 @@ type NifiDataflowReconciler struct {
 
 // +kubebuilder:rbac:groups=nifi.konpyutaika.com,resources=nifidataflows,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=nifi.konpyutaika.com,resources=nifidataflows/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=nifi.konpyutaika.com,resources=nifidataflows/finalizers,verbs=update
+// +kubebuilder:rbac:groups=nifi.konpyutaika.com,resources=nifidataflows/finalizers,verbs=get;create;update;patch;delete
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
