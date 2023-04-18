@@ -33,6 +33,9 @@ resources:
 ## Ref: https://kubernetes.io/docs/tasks/network/customize-hosts-file-for-pods/
 hostAliases: []
 
+## RunAsUser for OpenShift compatibility
+runAsUser: 1001
+
 ## If true, create & deploy the CRD
 ##
 createCustomResource: true
