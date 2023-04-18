@@ -1,7 +1,8 @@
 ## Unreleased
 
 ### Added
-
+- [PR #254](https://github.com/konpyutaika/nifikop/pull/254) - **[Operator]** Modify RBAC kubebuilder annotations so NiFiKop works on OpenShift
+- [PR #254](https://github.com/konpyutaika/nifikop/pull/254) - **[Helm Chart]** Add Parameter for RunAsUser for OpenShift
 ### Changed
 
 ### Fixed Bugs
