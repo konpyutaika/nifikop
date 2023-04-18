@@ -73,7 +73,7 @@ spec:
       {{- end }}
       {{- else }}
       securityContext:
-        runAsUser: 1000
+        runAsUser: {{- with .Values.runAsUser }}
       {{- end }}
       {{- if .Values.hostAliases }}
       {{- with .Values.hostAliases }}
