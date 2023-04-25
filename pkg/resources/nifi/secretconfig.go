@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/konpyutaika/nifikop/api/v1"
 	"sort"
 	"strings"
 	"text/template"
+
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	configcommon "github.com/konpyutaika/nifikop/pkg/nificlient/config/common"
@@ -61,7 +62,7 @@ func (r *Reconciler) secretConfig(id int32, nodeConfig *v1.NodeConfig, serverPas
 
 func (r Reconciler) generateNifiPropertiesNodeConfig(id int32, nodeConfig *v1.NodeConfig, serverPass, clientPass string, superUsers []string, log zap.Logger) string {
 	var readOnlyClusterConfig map[string]string
-	if &r.NifiCluster.Spec.ReadOnlyConfig != nil && &r.NifiCluster.Spec.ReadOnlyConfig.NifiProperties != nil {
+	if &r.NifiCluster.Spec.ReadOnlyConfig != (&v1.ReadOnlyConfig{}) && &r.NifiCluster.Spec.ReadOnlyConfig.NifiProperties != (&v1.NifiProperties{}) {
 		r.generateReadOnlyConfig(
 			&readOnlyClusterConfig,
 			r.NifiCluster.Spec.ReadOnlyConfig.NifiProperties.OverrideSecretConfig,
@@ -72,7 +73,7 @@ func (r Reconciler) generateNifiPropertiesNodeConfig(id int32, nodeConfig *v1.No
 	var readOnlyNodeConfig = map[string]string{}
 
 	for _, node := range r.NifiCluster.Spec.Nodes {
-		if node.Id == id && node.ReadOnlyConfig != nil && &node.ReadOnlyConfig.NifiProperties != nil {
+		if node.Id == id && node.ReadOnlyConfig != nil && &node.ReadOnlyConfig.NifiProperties != (&v1.NifiProperties{}) {
 			r.generateReadOnlyConfig(
 				&readOnlyNodeConfig,
 				node.ReadOnlyConfig.NifiProperties.OverrideSecretConfig,
@@ -188,7 +189,7 @@ func generateSuperUsers(users []string) (suStrings []string) {
 func (r Reconciler) generateZookeeperPropertiesNodeConfig(id int32, nodeConfig *v1.NodeConfig, log zap.Logger) string {
 	var readOnlyClusterConfig map[string]string
 
-	if &r.NifiCluster.Spec.ReadOnlyConfig != nil && &r.NifiCluster.Spec.ReadOnlyConfig.ZookeeperProperties != nil {
+	if &r.NifiCluster.Spec.ReadOnlyConfig != (&v1.ReadOnlyConfig{}) && &r.NifiCluster.Spec.ReadOnlyConfig.ZookeeperProperties != (&v1.ZookeeperProperties{}) {
 		r.generateReadOnlyConfig(
 			&readOnlyClusterConfig,
 			r.NifiCluster.Spec.ReadOnlyConfig.ZookeeperProperties.OverrideSecretConfig,
@@ -199,7 +200,7 @@ func (r Reconciler) generateZookeeperPropertiesNodeConfig(id int32, nodeConfig *
 	var readOnlyNodeConfig = map[string]string{}
 
 	for _, node := range r.NifiCluster.Spec.Nodes {
-		if node.Id == id && node.ReadOnlyConfig != nil && &node.ReadOnlyConfig.ZookeeperProperties != nil {
+		if node.Id == id && node.ReadOnlyConfig != nil && &node.ReadOnlyConfig.ZookeeperProperties != (&v1.ZookeeperProperties{}) {
 			r.generateReadOnlyConfig(
 				&readOnlyNodeConfig,
 				node.ReadOnlyConfig.ZookeeperProperties.OverrideSecretConfig,
@@ -249,7 +250,7 @@ func (r *Reconciler) getZookeeperPropertiesConfigString(nConfig *v1.NodeConfig, 
 
 	base := r.NifiCluster.Spec.ReadOnlyConfig.ZookeeperProperties.DeepCopy()
 	for _, node := range r.NifiCluster.Spec.Nodes {
-		if node.Id == id && node.ReadOnlyConfig != nil && &node.ReadOnlyConfig.ZookeeperProperties != nil {
+		if node.Id == id && node.ReadOnlyConfig != nil && &node.ReadOnlyConfig.ZookeeperProperties != (&v1.ZookeeperProperties{}) {
 			mergo.Merge(base, node.ReadOnlyConfig.ZookeeperProperties, mergo.WithOverride)
 		}
 	}
@@ -315,7 +316,7 @@ func (r *Reconciler) getLoginIdentityProvidersConfigString(nConfig *v1.NodeConfi
 func (r *Reconciler) getLogbackConfigString(nConfig *v1.NodeConfig, id int32, log zap.Logger) string {
 
 	for _, node := range r.NifiCluster.Spec.Nodes {
-		if node.Id == id && node.ReadOnlyConfig != nil && &node.ReadOnlyConfig.LogbackConfig != nil {
+		if node.Id == id && node.ReadOnlyConfig != nil && &node.ReadOnlyConfig.LogbackConfig != (&v1.LogbackConfig{}) {
 			if node.ReadOnlyConfig.LogbackConfig.ReplaceSecretConfig != nil {
 				conf, err := r.getSecrectConfig(context.TODO(), *node.ReadOnlyConfig.LogbackConfig.ReplaceSecretConfig)
 				if err == nil {
@@ -384,7 +385,7 @@ func (r *Reconciler) getLogbackConfigString(nConfig *v1.NodeConfig, id int32, lo
 func (r *Reconciler) getBootstrapNotificationServicesConfigString(nConfig *v1.NodeConfig, id int32, log zap.Logger) string {
 
 	for _, node := range r.NifiCluster.Spec.Nodes {
-		if node.Id == id && node.ReadOnlyConfig != nil && &node.ReadOnlyConfig.BootstrapNotificationServicesReplaceConfig != nil {
+		if node.Id == id && node.ReadOnlyConfig != nil && &node.ReadOnlyConfig.BootstrapNotificationServicesReplaceConfig != (&v1.BootstrapNotificationServicesConfig{}) {
 			if node.ReadOnlyConfig.BootstrapNotificationServicesReplaceConfig.ReplaceSecretConfig != nil {
 				conf, err := r.getSecrectConfig(context.TODO(), *node.ReadOnlyConfig.BootstrapNotificationServicesReplaceConfig.ReplaceSecretConfig)
 				if err == nil {
@@ -462,25 +463,31 @@ func (r *Reconciler) getAuthorizersConfigString(nConfig *v1.NodeConfig, id int32
 		// Check for secret/configmap overrides. If there aren't any, then use the default template.
 		if r.NifiCluster.Spec.ReadOnlyConfig.AuthorizerConfig.ReplaceTemplateConfigMap != nil {
 			conf, err := r.getConfigMap(context.TODO(), *r.NifiCluster.Spec.ReadOnlyConfig.AuthorizerConfig.ReplaceTemplateConfigMap)
-			if err == nil {
+			if err != nil {
+				log.Error("error occurred during getting authorizer readonly configmap",
+					zap.String("clusterName", r.NifiCluster.Name),
+					zap.String("configMapName", r.NifiCluster.Spec.ReadOnlyConfig.AuthorizerConfig.ReplaceTemplateConfigMap.Name),
+					zap.String("configMapNamespace", r.NifiCluster.Spec.ReadOnlyConfig.AuthorizerConfig.ReplaceTemplateConfigMap.Namespace),
+					zap.Int32("nodeId", id),
+					zap.Error(err))
+			} else {
 				authorizersTemplate = conf
 			}
-			log.Error("error occurred during getting authorizer readonly configmap",
-				zap.String("clusterName", r.NifiCluster.Name),
-				zap.Int32("nodeId", id),
-				zap.Error(err))
 		}
 
 		// The secret takes precedence over the ConfigMap, if it exists.
 		if r.NifiCluster.Spec.ReadOnlyConfig.AuthorizerConfig.ReplaceTemplateSecretConfig != nil {
 			conf, err := r.getSecrectConfig(context.TODO(), *r.NifiCluster.Spec.ReadOnlyConfig.AuthorizerConfig.ReplaceTemplateSecretConfig)
-			if err == nil {
+			if err != nil {
+				log.Error("error occurred during getting authorizer readonly secret config",
+					zap.String("clusterName", r.NifiCluster.Name),
+					zap.String("secretName", r.NifiCluster.Spec.ReadOnlyConfig.AuthorizerConfig.ReplaceTemplateSecretConfig.Name),
+					zap.String("secretNamespace", r.NifiCluster.Spec.ReadOnlyConfig.AuthorizerConfig.ReplaceTemplateSecretConfig.Namespace),
+					zap.Int32("nodeId", id),
+					zap.Error(err))
+			} else {
 				authorizersTemplate = conf
 			}
-			log.Error("error occurred during getting authorizer readonly secret config",
-				zap.String("clusterName", r.NifiCluster.Name),
-				zap.Int32("nodeId", id),
-				zap.Error(err))
 		}
 
 		for nId, nodeState := range r.NifiCluster.Status.NodesState {
@@ -528,7 +535,7 @@ func (r *Reconciler) getAuthorizersConfigString(nConfig *v1.NodeConfig, id int32
 func (r Reconciler) generateBootstrapPropertiesNodeConfig(id int32, nodeConfig *v1.NodeConfig, log zap.Logger) string {
 	var readOnlyClusterConfig map[string]string
 
-	if &r.NifiCluster.Spec.ReadOnlyConfig != nil && &r.NifiCluster.Spec.ReadOnlyConfig.BootstrapProperties != nil {
+	if &r.NifiCluster.Spec.ReadOnlyConfig != (&v1.ReadOnlyConfig{}) && &r.NifiCluster.Spec.ReadOnlyConfig.BootstrapProperties != (&v1.BootstrapProperties{}) {
 		r.generateReadOnlyConfig(
 			&readOnlyClusterConfig,
 			r.NifiCluster.Spec.ReadOnlyConfig.BootstrapProperties.OverrideSecretConfig,
@@ -539,7 +546,7 @@ func (r Reconciler) generateBootstrapPropertiesNodeConfig(id int32, nodeConfig *
 	var readOnlyNodeConfig = map[string]string{}
 
 	for _, node := range r.NifiCluster.Spec.Nodes {
-		if node.Id == id && node.ReadOnlyConfig != nil && &node.ReadOnlyConfig.BootstrapProperties != nil {
+		if node.Id == id && node.ReadOnlyConfig != nil && &node.ReadOnlyConfig.BootstrapProperties != (&v1.BootstrapProperties{}) {
 			r.generateReadOnlyConfig(
 				&readOnlyNodeConfig,
 				node.ReadOnlyConfig.BootstrapProperties.OverrideSecretConfig,
@@ -588,7 +595,7 @@ func (r Reconciler) generateBootstrapPropertiesNodeConfig(id int32, nodeConfig *
 func (r *Reconciler) getBootstrapPropertiesConfigString(nConfig *v1.NodeConfig, id int32, log zap.Logger) string {
 	base := r.NifiCluster.Spec.ReadOnlyConfig.BootstrapProperties.DeepCopy()
 	for _, node := range r.NifiCluster.Spec.Nodes {
-		if node.Id == id && node.ReadOnlyConfig != nil && &node.ReadOnlyConfig.BootstrapProperties != nil {
+		if node.Id == id && node.ReadOnlyConfig != nil && &node.ReadOnlyConfig.BootstrapProperties != (&v1.BootstrapProperties{}) {
 			mergo.Merge(base, node.ReadOnlyConfig.BootstrapProperties, mergo.WithOverride)
 		}
 	}
@@ -611,7 +618,7 @@ func (r *Reconciler) getBootstrapPropertiesConfigString(nConfig *v1.NodeConfig, 
 func (r *Reconciler) GetNifiPropertiesBase(id int32) *v1.NifiProperties {
 	base := r.NifiCluster.Spec.ReadOnlyConfig.NifiProperties.DeepCopy()
 	for _, node := range r.NifiCluster.Spec.Nodes {
-		if node.Id == id && node.ReadOnlyConfig != nil && &node.ReadOnlyConfig.NifiProperties != nil {
+		if node.Id == id && node.ReadOnlyConfig != nil && &node.ReadOnlyConfig.NifiProperties != (&v1.NifiProperties{}) {
 			mergo.Merge(base, node.ReadOnlyConfig.NifiProperties, mergo.WithOverride)
 		}
 	}

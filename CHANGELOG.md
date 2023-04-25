@@ -13,6 +13,33 @@
 
 ### Removed
 
+## v1.1.1
+
+### Added
+- [PR #244](https://github.com/konpyutaika/nifikop/pull/244) - **[Operator]** Updated the go version in nifikop to 1.20.
+
+- [PR #141](https://github.com/konpyutaika/nifikop/pull/141) - **[Helm Chart]** Added nifi-cluster helm chart.
+
+### Fixed Bugs
+
+- [PR #243](https://github.com/konpyutaika/nifikop/pull/243) - **[Operator]** Re-Fixed bug where an incorrect condition was used to determine whether or not to substitute a custom authorizers template.
+- [PR #245](https://github.com/konpyutaika/nifikop/pull/245) - **[Operator]** Added staticcheck linting and go vuln scanning to Makefile. Fixed all linting issues with operator
+
+## v1.1.0
+
+### Added
+
+- [PR #220](https://github.com/konpyutaika/nifikop/pull/220) - **[Operator/NifiCluster]** Made `Pod` readiness and liveness checks configurable.
+- [PR #218](https://github.com/konpyutaika/nifikop/pull/218) - **[Operator]** Add cross-platform support to nifikop docker image.
+
+### Changed
+
+- [PR #236](https://github.com/konpyutaika/nifikop/pull/236) - **[Operator]** Fixed issue where operator would infinitely retry requests if it cannot find `Dataflow`/`ParameterContext` update & drop requests.
+
+### Fixed Bugs
+
+- [PR #223](https://github.com/konpyutaika/nifikop/pull/223) - **[Operator]** Fixed bug where an incorrect condition was used to determine whether or not to substitute a custom authorizers template.
+
 ## v1.0.0
 
 ### Changed

@@ -2,12 +2,12 @@ package k8sutil
 
 import (
 	"context"
-	v12 "github.com/konpyutaika/nifikop/api/v1"
 	"reflect"
+
+	nifikopv1 "github.com/konpyutaika/nifikop/api/v1"
 
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	"go.uber.org/zap"
-	v1 "k8s.io/api/core/v1"
 
 	"emperror.dev/errors"
 	"github.com/banzaicloud/k8s-objectmatcher/patch"
@@ -19,7 +19,7 @@ import (
 )
 
 // Reconcile reconciles K8S resources
-func Reconcile(log zap.Logger, client runtimeClient.Client, desired runtimeClient.Object, cr *v12.NifiCluster) error {
+func Reconcile(log zap.Logger, client runtimeClient.Client, desired runtimeClient.Object, cr *nifikopv1.NifiCluster) error {
 	desiredType := reflect.TypeOf(desired)
 	current := desired.DeepCopyObject().(runtimeClient.Object)
 
@@ -60,13 +60,13 @@ func Reconcile(log zap.Logger, client runtimeClient.Client, desired runtimeClien
 	}
 	if err == nil {
 		switch desired.(type) {
-		case *v12.NifiUser:
-			user := desired.(*v12.NifiUser)
-			user.Status = current.(*v12.NifiUser).Status
+		case *nifikopv1.NifiUser:
+			user := desired.(*nifikopv1.NifiUser)
+			user.Status = current.(*nifikopv1.NifiUser).Status
 			desired = user
-		case *v12.NifiUserGroup:
-			group := desired.(*v12.NifiUserGroup)
-			group.Status = current.(*v12.NifiUserGroup).Status
+		case *nifikopv1.NifiUserGroup:
+			group := desired.(*nifikopv1.NifiUserGroup)
+			group.Status = current.(*nifikopv1.NifiUserGroup).Status
 			desired = group
 		}
 
@@ -87,19 +87,20 @@ func Reconcile(log zap.Logger, client runtimeClient.Client, desired runtimeClien
 			}
 
 			if cr != nil {
-				switch desired.(type) {
+				//switch desired.(type) {
+				switch desired := desired.(type) {
 				case *corev1.ConfigMap:
 					// Only update status when configmap belongs to node
-					if id, ok := desired.(*corev1.ConfigMap).Labels["nodeId"]; ok {
-						statusErr := UpdateNodeStatus(client, []string{id}, cr, v12.ConfigOutOfSync, log)
+					if id, ok := desired.Labels["nodeId"]; ok {
+						statusErr := UpdateNodeStatus(client, []string{id}, cr, nifikopv1.ConfigOutOfSync, log)
 						if statusErr != nil {
 							return errors.WrapIfWithDetails(err, "updating status for resource failed", "kind", desiredType)
 						}
 					}
 				case *corev1.Secret:
 					// Only update status when secret belongs to node
-					if id, ok := desired.(*corev1.Secret).Labels["nodeId"]; ok {
-						statusErr := UpdateNodeStatus(client, []string{id}, cr, v12.ConfigOutOfSync, log)
+					if id, ok := desired.Labels["nodeId"]; ok {
+						statusErr := UpdateNodeStatus(client, []string{id}, cr, nifikopv1.ConfigOutOfSync, log)
 						if statusErr != nil {
 							return errors.WrapIfWithDetails(err, "updating status for resource failed", "kind", desiredType)
 						}
@@ -163,12 +164,9 @@ func IsPodContainsPendingContainer(pod *corev1.Pod) bool {
 }
 
 func PodReady(pod *corev1.Pod) bool {
-	if &pod.Status != nil && len(pod.Status.Conditions) > 0 {
-		for _, condition := range pod.Status.Conditions {
-			if condition.Type == v1.PodReady &&
-				condition.Status == v1.ConditionTrue {
-				return true
-			}
+	for i := range pod.Status.Conditions {
+		if pod.Status.Conditions[i].Type == corev1.PodReady && pod.Status.Conditions[i].Status == corev1.ConditionTrue {
+			return true
 		}
 	}
 	return false

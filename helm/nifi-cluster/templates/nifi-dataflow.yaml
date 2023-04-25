@@ -1,0 +1,26 @@
+{{ range .Values.dataflows }}
+{{ if .enabled }}
+apiVersion: nifi.konpyutaika.com/v1
+kind: NifiDataflow
+metadata:
+  name: {{ include "nifi-cluster.fullname" $ }}-{{ regexReplaceAll "\\W+" .name "-" | lower }} # this needs to be k8s name compliant
+spec:
+  bucketId: {{ .bucketId }}
+  flowId: {{ .flowId }}
+  flowVersion: {{ .flowVersion }}
+  syncMode: {{ .syncMode }}
+  skipInvalidControllerService: {{ .skipInvalidControllerService }}
+  skipInvalidComponent: {{ .skipInvalidComponent }}
+  clusterRef:
+    name: {{ include "nifi-cluster.fullname" $ }}
+    namespace: {{ $.Release.Namespace }}
+  registryClientRef:
+    name: {{ include "nifi-cluster.fullname" $ }}-{{ .registryClientRef.name }}-registry-client
+    namespace: {{ .registryClientRef.namespace }}
+  parameterContextRef:
+    name: {{ include "nifi-cluster.fullname" $ }}-{{ .parameterContextRef.name }}-parameter-context
+    namespace: {{ .parameterContextRef.namespace }}
+  updateStrategy: {{ .updateStrategy }}
+---
+{{ end }}
+{{ end }}

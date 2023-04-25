@@ -2,9 +2,10 @@ package nifi
 
 import (
 	"fmt"
-	"github.com/konpyutaika/nifikop/api/v1"
 	"sort"
 	"strings"
+
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 
 	"go.uber.org/zap"
 	runtimeClient "sigs.k8s.io/controller-runtime/pkg/client"
@@ -192,7 +193,6 @@ done
 			ImagePullSecrets:              nodeConfig.GetImagePullSecrets(),
 			ServiceAccountName:            nodeConfig.GetServiceAccount(),
 			PriorityClassName:             nodeConfig.GetPriorityClass(),
-			SchedulerName:                 "default-scheduler",
 			Tolerations:                   nodeConfig.GetTolerations(),
 			NodeSelector:                  nodeConfig.GetNodeSelector(),
 		},
@@ -404,6 +404,48 @@ func (r *Reconciler) createNifiNodeContainer(nodeConfig *v1.NodeConfig, id int32
 			v1.TLSKey,
 			GetServerPort(r.NifiCluster.Spec.ListenersConfig))
 	}
+	// TODO : Manage https setup use cases https://github.com/cetic/helm-nifi/blob/master/templates/statefulset.yaml#L165
+	readinessProbe := &corev1.Probe{
+		InitialDelaySeconds: readinessInitialDelaySeconds,
+		TimeoutSeconds:      readinessHealthCheckTimeout,
+		PeriodSeconds:       readinessHealthCheckPeriod,
+		FailureThreshold:    readinessHealthCheckThreshold,
+		ProbeHandler: corev1.ProbeHandler{
+			/*HTTPGet: &corev1.HTTPGetAction{
+				Path: "/nifi-api",
+				Port: intstr.FromInt(int(GetServerPort(&r.NifiCluster.Spec.ListenersConfig))),
+				Scheme: corev1.URISchemeHTTPS,
+				//Host: nodeHostname,
+			},*/
+			Exec: &corev1.ExecAction{
+				Command: []string{
+					"bash",
+					"-c",
+					readinessCommand,
+				},
+			},
+		},
+	}
+	// if the readiness probe has been overridden, then use that
+	if r.NifiCluster.Spec.Pod.ReadinessProbe != nil {
+		readinessProbe = r.NifiCluster.Spec.Pod.ReadinessProbe
+	}
+
+	livenessProbe := &corev1.Probe{
+		InitialDelaySeconds: livenessInitialDelaySeconds,
+		TimeoutSeconds:      livenessHealthCheckTimeout,
+		PeriodSeconds:       livenessHealthCheckPeriod,
+		FailureThreshold:    livenessHealthCheckThreshold,
+		ProbeHandler: corev1.ProbeHandler{
+			TCPSocket: &corev1.TCPSocketAction{
+				Port: *util.IntstrPointer(int(GetServerPort(r.NifiCluster.Spec.ListenersConfig))),
+			},
+		},
+	}
+	// if the liveness probe has been overridden, then use that
+	if r.NifiCluster.Spec.Pod.LivenessProbe != nil {
+		livenessProbe = r.NifiCluster.Spec.Pod.LivenessProbe
+	}
 
 	nodeAddress := nifiutil.ComputeHostListenerNodeAddress(
 		id, r.NifiCluster.Name, r.NifiCluster.Namespace, r.NifiCluster.Spec.ListenersConfig.GetClusterDomain(),
@@ -445,39 +487,8 @@ exec bin/nifi.sh run`, resolveIp)}
 				},
 			},
 		},
-		// TODO : Manage https setup use cases https://github.com/cetic/helm-nifi/blob/master/templates/statefulset.yaml#L165
-		ReadinessProbe: &corev1.Probe{
-			InitialDelaySeconds: readinessInitialDelaySeconds,
-			TimeoutSeconds:      readinessHealthCheckTimeout,
-			PeriodSeconds:       readinessHealthCheckPeriod,
-			FailureThreshold:    readinessHealthCheckThreshold,
-			ProbeHandler: corev1.ProbeHandler{
-				/*HTTPGet: &corev1.HTTPGetAction{
-					Path: "/nifi-api",
-					Port: intstr.FromInt(int(GetServerPort(&r.NifiCluster.Spec.ListenersConfig))),
-					Scheme: corev1.URISchemeHTTPS,
-					//Host: nodeHostname,
-				},*/
-				Exec: &corev1.ExecAction{
-					Command: []string{
-						"bash",
-						"-c",
-						readinessCommand,
-					},
-				},
-			},
-		},
-		LivenessProbe: &corev1.Probe{
-			InitialDelaySeconds: livenessInitialDelaySeconds,
-			TimeoutSeconds:      livenessHealthCheckTimeout,
-			PeriodSeconds:       livenessHealthCheckPeriod,
-			FailureThreshold:    livenessHealthCheckThreshold,
-			ProbeHandler: corev1.ProbeHandler{
-				TCPSocket: &corev1.TCPSocketAction{
-					Port: *util.IntstrPointer(int(GetServerPort(r.NifiCluster.Spec.ListenersConfig))),
-				},
-			},
-		},
+		ReadinessProbe: readinessProbe,
+		LivenessProbe:  livenessProbe,
 		Env: []corev1.EnvVar{
 			{
 				Name:  "NIFI_ZOOKEEPER_CONNECT_STRING",

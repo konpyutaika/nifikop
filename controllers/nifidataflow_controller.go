@@ -89,7 +89,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 
 	patchInstance := client.MergeFrom(instance.DeepCopy())
 	// Get the last configuration viewed by the operator.
-	o, err := patch.DefaultAnnotator.GetOriginalConfiguration(instance)
+	o, _ := patch.DefaultAnnotator.GetOriginalConfiguration(instance)
 	// Create it if not exist.
 	if o == nil {
 		if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(instance); err != nil {
@@ -98,7 +98,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		if err := r.Client.Patch(ctx, instance, patchInstance); err != nil {
 			return RequeueWithError(r.Log, "failed to update NifiDataflow "+instance.Name, err)
 		}
-		o, err = patch.DefaultAnnotator.GetOriginalConfiguration(instance)
+		o, _ = patch.DefaultAnnotator.GetOriginalConfiguration(instance)
 	}
 
 	// Check if the cluster reference changed.
@@ -443,6 +443,20 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 				errorfactory.NifiFlowDraining,
 				errorfactory.NifiFlowControllerServiceScheduling,
 				errorfactory.NifiFlowScheduling, errorfactory.NifiFlowSyncing:
+				return RequeueAfter(interval)
+			case errorfactory.NifiFlowUpdateRequestNotFound:
+				r.Log.Warn("The update request for dataflow is already gone, there is nothing we can do",
+					zap.String("updateRequest", instance.Status.LatestUpdateRequest.Id),
+					zap.String("clusterName", instance.Spec.ClusterRef.Name),
+					zap.String("flowId", instance.Spec.FlowId),
+					zap.String("dataflow", instance.Name))
+				return RequeueAfter(interval)
+			case errorfactory.NifiConnectionDropRequestNotFound:
+				r.Log.Warn("The drop request for dataflow is already gone, there is nothing we can do",
+					zap.String("dropRequest", instance.Status.LatestDropRequest.Id),
+					zap.String("clusterName", instance.Spec.ClusterRef.Name),
+					zap.String("flowId", instance.Spec.FlowId),
+					zap.String("dataflow", instance.Name))
 				return RequeueAfter(interval)
 			default:
 				r.Recorder.Event(instance, corev1.EventTypeWarning, "SynchronizingFailed",

@@ -31,7 +31,7 @@ orbs:
     executors:
       operator-build:
         docker:
-          - image: ghcr.io/konpyutaika/docker-images/nifikop-build:1.19
+          - image: ghcr.io/konpyutaika/docker-images/nifikop-build:1.20
     # Define jobs list
     jobs:
       # Build job, which build operator docker image (with operator-sdk build)
@@ -75,7 +75,7 @@ orbs:
                 - build/_output
                 - vendor
 
-      # Build job, which build operator docker image (with operator-sdk build)
+      # Build job, which builds the cross-platform operator docker image (with operator-sdk build)
       build-operator:
         <<: *params_operator
         <<: *job_operator
@@ -97,13 +97,13 @@ orbs:
                 - << parameters.operatorDir >>/build/_output
                 - << parameters.operatorDir >>/vendor
           - deploy:
-              name: Push image to Docker Hub
+              name: Build & Push Operator Image to Github Container Registry
               command: |
                 if [[ $(echo "$CIRCLE_BRANCH" | grep -c "pull") -gt 0 ]]; then
-                  echo "This is a PR, we don't push to Hub."
+                  echo "This is a PR, we don't push to GitHub."
                 else
                   docker login ghcr.io -u $GH_NAME --password $GH_TOKEN
-                  make docker-push
+                  make docker-buildx
                 fi
           - save_cache:
               name: Save build artifacts in cache

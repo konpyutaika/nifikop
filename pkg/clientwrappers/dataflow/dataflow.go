@@ -137,7 +137,7 @@ func ScheduleDataflow(flow *v1.NifiDataflow, config *clientconfig.NifiConfig) er
 	}
 
 	// Check all components are ok
-	processGroups, _, _, _, err := listComponents(config, flow.Status.ProcessGroupID)
+	processGroups, _, _, _, _ := listComponents(config, flow.Status.ProcessGroupID)
 	pGEntity, err := nClient.GetProcessGroup(flow.Status.ProcessGroupID)
 	if err := clientwrappers.ErrorGetOperation(log, err, "Get process group"); err != nil {
 		return err
@@ -347,7 +347,7 @@ func SyncDataflow(
 	}
 
 	latestUpdateRequest := flow.Status.LatestUpdateRequest
-	if latestUpdateRequest != nil && !latestUpdateRequest.Complete {
+	if latestUpdateRequest != nil && !latestUpdateRequest.Complete && !latestUpdateRequest.NotFound {
 		var t v1.DataflowUpdateRequestType
 		var err error
 		var updateRequest *nigoapi.VersionedFlowUpdateRequestEntity
@@ -369,6 +369,14 @@ func SyncDataflow(
 				return &flow.Status, err
 			}
 			return &flow.Status, errorfactory.NifiFlowUpdateRequestRunning{}
+		}
+
+		if err == nificlient.ErrNifiClusterReturned404 {
+			flow.Status.LatestUpdateRequest.NotFoundRetryCount += 1
+			if flow.Status.LatestUpdateRequest.NotFoundRetryCount >= 3 {
+				flow.Status.LatestUpdateRequest.NotFound = true
+			}
+			return &flow.Status, errorfactory.NifiFlowUpdateRequestNotFound{}
 		}
 	}
 
@@ -462,7 +470,7 @@ func prepareUpdatePG(flow *v1.NifiDataflow, config *clientconfig.NifiConfig) (*v
 		}
 
 		//
-		if flow.Status.LatestDropRequest != nil && !flow.Status.LatestDropRequest.Finished {
+		if flow.Status.LatestDropRequest != nil && !flow.Status.LatestDropRequest.Finished && !flow.Status.LatestDropRequest.NotFound {
 
 			dropRequest, err :=
 				nClient.GetDropRequest(flow.Status.LatestDropRequest.ConnectionId, flow.Status.LatestDropRequest.Id)
@@ -476,6 +484,14 @@ func prepareUpdatePG(flow *v1.NifiDataflow, config *clientconfig.NifiConfig) (*v
 				if !dropRequest.DropRequest.Finished {
 					return &flow.Status, errorfactory.NifiConnectionDropping{}
 				}
+			}
+
+			if err == nificlient.ErrNifiClusterReturned404 {
+				flow.Status.LatestDropRequest.NotFoundRetryCount += 1
+				if flow.Status.LatestDropRequest.NotFoundRetryCount >= 3 {
+					flow.Status.LatestDropRequest.NotFound = true
+				}
+				return &flow.Status, errorfactory.NifiConnectionDropRequestNotFound{}
 			}
 		}
 
@@ -745,23 +761,25 @@ func listComponents(config *clientconfig.NifiConfig,
 func dropRequest2Status(connectionId string, dropRequest *nigoapi.DropRequestEntity) *v1.DropRequest {
 	dr := dropRequest.DropRequest
 	return &v1.DropRequest{
-		ConnectionId:     connectionId,
-		Id:               dr.Id,
-		Uri:              dr.Uri,
-		LastUpdated:      dr.LastUpdated,
-		Finished:         dr.Finished,
-		FailureReason:    dr.FailureReason,
-		PercentCompleted: dr.PercentCompleted,
-		CurrentCount:     dr.CurrentCount,
-		CurrentSize:      dr.CurrentSize,
-		Current:          dr.Current,
-		OriginalCount:    dr.OriginalCount,
-		OriginalSize:     dr.OriginalSize,
-		Original:         dr.Original,
-		DroppedCount:     dr.DroppedCount,
-		DroppedSize:      dr.DroppedSize,
-		Dropped:          dr.Dropped,
-		State:            dr.State,
+		ConnectionId:       connectionId,
+		Id:                 dr.Id,
+		Uri:                dr.Uri,
+		LastUpdated:        dr.LastUpdated,
+		Finished:           dr.Finished,
+		FailureReason:      dr.FailureReason,
+		PercentCompleted:   dr.PercentCompleted,
+		CurrentCount:       dr.CurrentCount,
+		CurrentSize:        dr.CurrentSize,
+		Current:            dr.Current,
+		OriginalCount:      dr.OriginalCount,
+		OriginalSize:       dr.OriginalSize,
+		Original:           dr.Original,
+		DroppedCount:       dr.DroppedCount,
+		DroppedSize:        dr.DroppedSize,
+		Dropped:            dr.Dropped,
+		State:              dr.State,
+		NotFound:           false,
+		NotFoundRetryCount: 0,
 	}
 }
 
@@ -769,14 +787,16 @@ func updateRequest2Status(updateRequest *nigoapi.VersionedFlowUpdateRequestEntit
 	updateType v1.DataflowUpdateRequestType) *v1.UpdateRequest {
 	ur := updateRequest.Request
 	return &v1.UpdateRequest{
-		Type:             updateType,
-		Id:               ur.RequestId,
-		Uri:              ur.Uri,
-		LastUpdated:      ur.LastUpdated,
-		Complete:         ur.Complete,
-		FailureReason:    ur.FailureReason,
-		PercentCompleted: ur.PercentCompleted,
-		State:            ur.State,
+		Type:               updateType,
+		Id:                 ur.RequestId,
+		Uri:                ur.Uri,
+		LastUpdated:        ur.LastUpdated,
+		Complete:           ur.Complete,
+		FailureReason:      ur.FailureReason,
+		PercentCompleted:   ur.PercentCompleted,
+		State:              ur.State,
+		NotFound:           false,
+		NotFoundRetryCount: 0,
 	}
 }
 

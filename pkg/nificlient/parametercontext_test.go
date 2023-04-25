@@ -85,7 +85,7 @@ func testCreateParameterContext(t *testing.T, entity *nigoapi.ParameterContextEn
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	url := nifiAddress(cluster, fmt.Sprintf("/parameter-contexts"))
+	url := nifiAddress(cluster, "/parameter-contexts")
 	httpmock.RegisterResponder(http.MethodPost, url,
 		func(req *http.Request) (*http.Response, error) {
 			return httpmock.NewJsonResponse(

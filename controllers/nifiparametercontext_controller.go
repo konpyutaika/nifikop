@@ -84,7 +84,7 @@ func (r *NifiParameterContextReconciler) Reconcile(ctx context.Context, req ctrl
 	}
 
 	// Get the last configuration viewed by the operator.
-	o, err := patch.DefaultAnnotator.GetOriginalConfiguration(instance)
+	o, _ := patch.DefaultAnnotator.GetOriginalConfiguration(instance)
 	// Create it if not exist.
 	if o == nil {
 		if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(instance); err != nil {
@@ -93,7 +93,7 @@ func (r *NifiParameterContextReconciler) Reconcile(ctx context.Context, req ctrl
 		if err := r.Client.Update(ctx, instance); err != nil {
 			return RequeueWithError(r.Log, "failed to update NifiParameterContext "+instance.Name, err)
 		}
-		o, err = patch.DefaultAnnotator.GetOriginalConfiguration(instance)
+		o, _ = patch.DefaultAnnotator.GetOriginalConfiguration(instance)
 	}
 
 	// Check if the cluster reference changed.
@@ -298,6 +298,11 @@ func (r *NifiParameterContextReconciler) Reconcile(ctx context.Context, req ctrl
 	if err != nil {
 		switch errors.Cause(err).(type) {
 		case errorfactory.NifiParameterContextUpdateRequestRunning:
+			return RequeueAfter(interval)
+		case errorfactory.NifiParameterContextUpdateRequestNotFound:
+			r.Log.Warn("The update request for parameter context is already gone, there is nothing we can do",
+				zap.String("updateRequest", instance.Status.LatestUpdateRequest.Id),
+				zap.String("parameterContext", instance.Name))
 			return RequeueAfter(interval)
 		default:
 			r.Recorder.Event(instance, corev1.EventTypeNormal, "SynchronizingFailed",

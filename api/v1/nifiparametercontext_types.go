@@ -61,6 +61,10 @@ type ParameterContextUpdateRequest struct {
 	PercentCompleted int32 `json:"percentCompleted"`
 	// the state of the request.
 	State string `json:"state"`
+	// whether or not this request was found.
+	NotFound bool `json:"notFound,omitempty"`
+	// the number of consecutive retries made in case of a NotFound error (limit: 3).
+	NotFoundRetryCount int32 `json:"notFoundRetryCount,omitempty"`
 }
 
 // +kubebuilder:object:root=true

@@ -4,7 +4,7 @@ DOCKER_REGISTRY_BASE 	?= ghcr.io/konpyutaika/docker-images
 IMAGE_TAG				?= $(shell git describe --tags --abbrev=0 --match '[0-9].*[0-9].*[0-9]' 2>/dev/null)
 IMAGE_NAME 				?= $(SERVICE_NAME)
 BUILD_IMAGE				?= ghcr.io/konpyutaika/docker-images/nifikop-build
-GOLANG_VERSION          ?= 1.19
+GOLANG_VERSION          ?= 1.20
 IMAGE_TAG_BASE ?= <registry>/<operator name>
 OS = $(shell go env GOOS)
 ARCH = $(shell go env GOARCH)
@@ -137,13 +137,12 @@ docker-build:
 	docker build -t $(REPOSITORY):$(VERSION) .
 
 .PHONY: build
-build: manager manifests docker-build
+build: manager manifests
 
 .PHONY: controller-gen
 controller-gen: $(CONTROLLER_GEN) ## Download controller-gen locally if necessary.
 $(CONTROLLER_GEN): $(LOCALBIN)
 	test -s $(LOCALBIN)/controller-gen || GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-tools/cmd/controller-gen@$(CONTROLLER_TOOLS_VERSION)
-
 
 # Run go fmt against code
 .PHONY: fmt
@@ -155,14 +154,26 @@ fmt:
 vet:
 	go vet ./...
 
+# Run https://staticcheck.io against code
+.PHONY: staticcheck
+staticcheck:
+	go install honnef.co/go/tools/cmd/staticcheck@latest
+	staticcheck ./...
+
+# RUN https://go.dev/blog/vuln against code for known CVEs
+.PHONY: govuln
+govuln:
+	go install golang.org/x/vuln/cmd/govulncheck@latest
+	govulncheck ./...
+
 # Run tests
 ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
 .PHONY: test
-test: manifests generate fmt vet envtest
+test: manifests generate fmt vet staticcheck govuln envtest
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(LOCALBIN) -p path)" go test ./... -coverprofile cover.out
 
 .PHONY: test-with-vendor
-test-with-vendor: manifests generate fmt vet envtest
+test-with-vendor: manifests generate fmt vet staticcheck govuln envtest
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(LOCALBIN) -p path)" go test -mod=vendor ./... -coverprofile cover.out
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
@@ -222,16 +233,22 @@ bundle-build:
 
 .PHONY: helm-package
 helm-package:
-	@echo Packaging $(CHART_VERSION)
+# package operator chart
+	@echo Packaging NiFiKop $(CHART_VERSION)
 ifdef CHART_VERSION
 	    echo $(CHART_VERSION)
 	    helm package --version $(CHART_VERSION) helm/nifikop
+			helm dependency update helm/nifi-cluster
+	    helm package --version $(CHART_VERSION) helm/nifi-cluster
 else
-		CHART_VERSION=$(HELM_VERSION)
-	    helm package helm/nifikop
+		CHART_VERSION=$(HELM_VERSION) helm package helm/nifikop
+		helm dependency update helm/nifi-cluster
+		CHART_VERSION=$(HELM_VERSION) helm package helm/nifi-cluster
 endif
 	mv nifikop-$(CHART_VERSION).tgz $(HELM_TARGET_DIR)
+	mv nifi-cluster-$(CHART_VERSION).tgz $(HELM_TARGET_DIR)
 	helm repo index $(HELM_TARGET_DIR)/
+
 
 # Push the docker image
 .PHONY: docker-push
@@ -256,7 +273,11 @@ docker-buildx: test ## Build and push docker image for the manager for cross-pla
 	sed -e '1 s/\(^FROM\)/FROM --platform=\$$\{BUILDPLATFORM\}/; t' -e ' 1,// s//FROM --platform=\$$\{BUILDPLATFORM\}/' Dockerfile > Dockerfile.cross
 	- docker buildx create --name project-v3-builder
 	docker buildx use project-v3-builder
-	- docker buildx build --push --platform=$(PLATFORMS) --tag ${IMG} -f Dockerfile.cross
+ifdef PUSHLATEST
+	- docker buildx build --push --platform=$(PLATFORMS) --tag $(REPOSITORY):$(VERSION) --tag $(REPOSITORY):latest -f Dockerfile.cross .
+else
+	- docker buildx build --push --platform=$(PLATFORMS) --tag $(REPOSITORY):$(VERSION) -f Dockerfile.cross .
+endif
 	- docker buildx rm project-v3-builder
 	rm Dockerfile.cross
 
