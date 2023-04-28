@@ -8,8 +8,9 @@ import (
 
 	certv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	"github.com/go-logr/zapr"
-	v1 "github.com/konpyutaika/nifikop/api/v1"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
+
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 
 	"github.com/konpyutaika/nifikop/pkg/common"
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
@@ -24,6 +25,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
+	nifiv1alpha1 "github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/controllers"
 	// +kubebuilder:scaffold:imports
 )
@@ -36,6 +38,7 @@ func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	utilruntime.Must(v1alpha1.AddToScheme(scheme))
 	utilruntime.Must(v1.AddToScheme(scheme))
+	utilruntime.Must(nifiv1alpha1.AddToScheme(scheme))
 	// +kubebuilder:scaffold:scheme
 }
 
@@ -196,6 +199,18 @@ func main() {
 		RequeueOffset:   multipliers.RequeueOffset,
 	}).SetupWithManager(mgr); err != nil {
 		logger.Error("unable to create controller", zap.String("controller", "NifiNodeGroupAutoscaler"), zap.Error(err))
+		os.Exit(1)
+	}
+
+	if err = (&controllers.NifiDataflowOrganizerReconciler{
+		Client:          mgr.GetClient(),
+		Log:             *logger.Named("controllers").Named("NifiDataflowOrganizer"),
+		Scheme:          mgr.GetScheme(),
+		Recorder:        mgr.GetEventRecorderFor("nifi-dataflow-organizer"),
+		RequeueInterval: multipliers.RegistryClientRequeueInterval,
+		RequeueOffset:   multipliers.RequeueOffset,
+	}).SetupWithManager(mgr); err != nil {
+		logger.Error("unable to create controller", zap.String("controller", "NifiDataflowOrganizer"), zap.Error(err))
 		os.Exit(1)
 	}
 

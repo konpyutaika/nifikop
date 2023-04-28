@@ -1,0 +1,12 @@
+apiVersion: nifi.konpyutaika.com/v1alpha1
+kind: NifiDataflowOrganizer
+metadata:
+  labels:
+    app.kubernetes.io/name: nifidatafloworganizer
+    app.kubernetes.io/instance: nifidatafloworganizer-sample
+    app.kubernetes.io/part-of: nifikop
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: nifikop
+  name: nifidatafloworganizer-sample
+spec:
+  # TODO(user): Add fields here

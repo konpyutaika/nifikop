@@ -5,4 +5,5 @@ resources:
 - nifi_v1_nifidataflow.yaml
 - nifi_v1_nifiparametercontext.yaml
 - nifi_v1_nifinodegroupautoscaler.yaml
+- nifi_v1alpha1_nifidatafloworganizer.yaml
 # +kubebuilder:scaffold:manifestskustomizesamples
