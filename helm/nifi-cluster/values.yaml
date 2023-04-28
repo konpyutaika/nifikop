@@ -337,6 +337,9 @@ dataflows:
     bucketId: ""
     flowId: ""
     flowVersion: 1
+    flowPosition:
+      posX: 0
+      posY: 0
     # This is one of {never, always, once}
     syncMode: always
     skipInvalidControllerService: true
