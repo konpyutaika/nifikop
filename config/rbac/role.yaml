@@ -133,6 +133,10 @@ rules:
   resources:
   - nificlusters/finalizers
   verbs:
+  - create
+  - delete
+  - get
+  - patch
   - update
 - apiGroups:
   - nifi.konpyutaika.com
@@ -159,6 +163,10 @@ rules:
   resources:
   - nifidataflows/finalizers
   verbs:
+  - create
+  - delete
+  - get
+  - patch
   - update
 - apiGroups:
   - nifi.konpyutaika.com
