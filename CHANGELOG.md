@@ -1,9 +1,14 @@
 ## Unreleased
 
 ### Added
+
 - [PR #254](https://github.com/konpyutaika/nifikop/pull/254) - **[Operator]** Modify RBAC kubebuilder annotations so NiFiKop works on OpenShift
 - [PR #254](https://github.com/konpyutaika/nifikop/pull/254) - **[Helm Chart]** Add Parameter for RunAsUser for OpenShift
+- [PR #258](https://github.com/konpyutaika/nifikop/pull/141) - **[Helm Chart]** Upgraded helm-deployed HPA to v2 and added flowPosition to NiFiDataflow
+
 ### Changed
+
+- [PR #257](https://github.com/konpyutaika/nifikop/pull/257) - **[Operator]** Updated the operator-sdk to 1.28.0.
 
 ### Fixed Bugs
 
