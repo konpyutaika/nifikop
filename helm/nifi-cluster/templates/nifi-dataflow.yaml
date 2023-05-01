@@ -8,6 +8,11 @@ spec:
   bucketId: {{ .bucketId }}
   flowId: {{ .flowId }}
   flowVersion: {{ .flowVersion }}
+ {{ if .flowPosition }}
+  flowPosition:
+    posX: {{ toYaml .flowPosition.posX}}
+    posY: {{ toYaml .flowPosition.posY}}
+  {{ end }}
   syncMode: {{ .syncMode }}
   skipInvalidControllerService: {{ .skipInvalidControllerService }}
   skipInvalidComponent: {{ .skipInvalidComponent }}
