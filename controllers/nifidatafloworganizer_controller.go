@@ -200,23 +200,32 @@ func (r *NifiDataflowOrganizerReconciler) Reconcile(ctx context.Context, req ctr
 	r.Recorder.Event(instance, corev1.EventTypeNormal, "Reconciling",
 		fmt.Sprintf("Reconciling NifiDataflowOrganizer %s", instance.Name))
 
-	// Check if the NiFi dataflow organizer resources already exist
-	exist, err := datafloworganizer.ExistDataflowOrganizer(instance, clientConfig)
-	if err != nil {
-		return RequeueWithError(r.Log, "failure checking for existing NifiDataflowOrganizer with name "+instance.Name, err)
+	if instance.Status.GroupStatus == nil {
+		instance.Status.GroupStatus = make([]v1alpha1.OrganizerGroupStatus, len(instance.Spec.Groups))
 	}
 
-	if !exist {
-		// Create NiFi dataflow organizer resources
-		r.Recorder.Event(instance, corev1.EventTypeNormal, "Creating",
-			fmt.Sprintf("Creating NifiDataflowOrganizer %s", instance.Name))
-
-		_, err := datafloworganizer.CreateDataflowOrganizer(instance, clientConfig)
+	// Check if the NiFi dataflow organizer resources already exist
+	for index, group := range instance.Spec.Groups {
+		groupStatus := instance.Status.GroupStatus[index]
+		exist, err := datafloworganizer.ExistDataflowOrganizer(group, groupStatus, clientConfig)
 		if err != nil {
-			r.Recorder.Event(instance, corev1.EventTypeWarning, "CreationFailed",
-				fmt.Sprintf("Creation failed NifiDataflowOrganizer %s",
-					instance.Name))
-			return RequeueWithError(r.Log, "failure creating NifiDataflowOrganizer "+instance.Name, err)
+			return RequeueWithError(r.Log, "failure checking for existing NifiDataflowOrganizer with name "+instance.Name, err)
+		}
+
+		if !exist {
+			// Create NiFi dataflow organizer resources
+			r.Recorder.Event(instance, corev1.EventTypeNormal, "Creating",
+				fmt.Sprintf("Creating NifiDataflowOrganizer %s", instance.Name))
+
+			status, err := datafloworganizer.CreateDataflowOrganizer(group, groupStatus, clientConfig)
+			if err != nil {
+				r.Recorder.Event(instance, corev1.EventTypeWarning, "CreationFailed",
+					fmt.Sprintf("Creation failed NifiDataflowOrganizer %s",
+						instance.Name))
+				return RequeueWithError(r.Log, "failure creating NifiDataflowOrganizer "+instance.Name, err)
+			}
+
+			instance.Status.GroupStatus[index] = *status
 		}
 	}
 

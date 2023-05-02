@@ -36,25 +36,45 @@ spec:
                 required:
                 - name
                 type: object
-              color:
-                pattern: ^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$
-                type: string
-              parentProcessGroupID:
-                type: string
+              groups:
+                items:
+                  properties:
+                    color:
+                      default: '#FFF7D7'
+                      pattern: ^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$
+                      type: string
+                    fontSize:
+                      default: 18px
+                      pattern: ^([0-9]+px)$
+                      type: string
+                    name:
+                      type: string
+                    parentProcessGroupID:
+                      type: string
+                  required:
+                  - name
+                  type: object
+                type: array
             required:
             - clusterRef
+            - groups
             type: object
           status:
             properties:
-              titleLabelStatus:
+              organizerStatus:
                 properties:
-                  id:
-                    type: string
+                  titleLabelStatus:
+                    properties:
+                      id:
+                        type: string
+                    required:
+                    - id
+                    type: object
                 required:
-                - id
+                - titleLabelStatus
                 type: object
             required:
-            - titleLabelStatus
+            - organizerStatus
             type: object
         type: object
     served: true

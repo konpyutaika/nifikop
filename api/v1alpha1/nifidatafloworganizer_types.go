@@ -9,16 +9,35 @@ import (
 type NifiDataflowOrganizerSpec struct {
 	// contains the reference to the NifiCluster with the one the user is linked
 	ClusterRef v1.ClusterReference `json:"clusterRef"`
-	// the UUID of the parent process group where you want to create your labels, if not set deploy at root level.
-	ParentProcessGroupID string `json:"parentProcessGroupID,omitempty"`
-	// Color of the label
+	// the groups of dataflow to organize
+	Groups []OrganizerGroup `json:"groups"`
+}
+
+type OrganizerGroup struct {
+	// the UUID of the parent process group where you want to create your group, if not set deploy at root level.
 	// +optional
+	ParentProcessGroupID string `json:"parentProcessGroupID,omitempty"`
+	// the name of the group
+	Name string `json:"name"`
+	// the color of the group
+	// +kubebuilder:default="#FFF7D7"
 	// +kubebuilder:validation:Pattern:="^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$"
+	// +optional
 	Color string `json:"color,omitempty"`
+	// the font size of the group
+	// +kubebuilder:default="18px"
+	// +kubebuilder:validation:Pattern:="^([0-9]+px)$"
+	// +optional
+	FontSize string `json:"fontSize,omitempty"`
 }
 
 // NifiDataflowOrganizerStatus defines the observed state of NifiDataflowOrganizer
 type NifiDataflowOrganizerStatus struct {
+	// the status of the groups.
+	GroupStatus []OrganizerGroupStatus `json:"organizerStatus"`
+}
+
+type OrganizerGroupStatus struct {
 	// the status of the title label.
 	TitleLabelStatus TitleLabelStatus `json:"titleLabelStatus"`
 }
@@ -53,9 +72,17 @@ func init() {
 	SchemeBuilder.Register(&NifiDataflowOrganizer{}, &NifiDataflowOrganizerList{})
 }
 
-func (d *NifiDataflowOrganizerSpec) GetParentProcessGroupID(rootProcessGroupId string) string {
+func (d *OrganizerGroup) GetParentProcessGroupID(rootProcessGroupId string) string {
 	if d.ParentProcessGroupID == "" {
 		return rootProcessGroupId
 	}
 	return d.ParentProcessGroupID
+}
+
+func (d *OrganizerGroup) GetTitleWidth() float64 {
+	return 50
+}
+
+func (d *OrganizerGroup) GetTitleHeight() float64 {
+	return 50
 }
