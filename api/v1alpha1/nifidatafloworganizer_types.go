@@ -1,7 +1,10 @@
 package v1alpha1
 
 import (
+	"strings"
+
 	v1 "github.com/konpyutaika/nifikop/api/v1"
+	"github.com/konpyutaika/nifikop/pkg/util"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -34,16 +37,23 @@ type OrganizerGroup struct {
 // NifiDataflowOrganizerStatus defines the observed state of NifiDataflowOrganizer
 type NifiDataflowOrganizerStatus struct {
 	// the status of the groups.
-	GroupStatus []OrganizerGroupStatus `json:"organizerStatus"`
+	GroupStatus []OrganizerGroupStatus `json:"groupStatus"`
 }
 
 type OrganizerGroupStatus struct {
 	// the status of the title label.
-	TitleLabelStatus TitleLabelStatus `json:"titleLabelStatus"`
+	TitleStatus OrganizerGroupTitleStatus `json:"titleStatus"`
+	// the status of the content label.
+	ContentStatus OrganizerGroupContentStatus `json:"contentStatus"`
 }
 
-type TitleLabelStatus struct {
+type OrganizerGroupTitleStatus struct {
 	// the id of the title label.
+	Id string `json:"id"`
+}
+
+type OrganizerGroupContentStatus struct {
+	// the id of the content label.
 	Id string `json:"id"`
 }
 
@@ -80,9 +90,9 @@ func (d *OrganizerGroup) GetParentProcessGroupID(rootProcessGroupId string) stri
 }
 
 func (d *OrganizerGroup) GetTitleWidth() float64 {
-	return 50
+	return float64(len(d.Name)) * util.ConvertStringToFloat64(strings.Split(d.FontSize, "px")[0]) * 0.65
 }
 
 func (d *OrganizerGroup) GetTitleHeight() float64 {
-	return 50
+	return util.ConvertStringToFloat64(strings.Split(d.FontSize, "px")[0]) * 1.75
 }

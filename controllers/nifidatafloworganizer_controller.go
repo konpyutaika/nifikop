@@ -215,17 +215,23 @@ func (r *NifiDataflowOrganizerReconciler) Reconcile(ctx context.Context, req ctr
 		if !exist {
 			// Create NiFi dataflow organizer resources
 			r.Recorder.Event(instance, corev1.EventTypeNormal, "Creating",
-				fmt.Sprintf("Creating NifiDataflowOrganizer %s", instance.Name))
+				fmt.Sprintf("Creating group %s of NifiDataflowOrganizer %s", group.Name, instance.Name))
 
 			status, err := datafloworganizer.CreateDataflowOrganizer(group, groupStatus, clientConfig)
 			if err != nil {
 				r.Recorder.Event(instance, corev1.EventTypeWarning, "CreationFailed",
-					fmt.Sprintf("Creation failed NifiDataflowOrganizer %s",
+					fmt.Sprintf("Creation failed group %s of NifiDataflowOrganizer %s",
+						group.Name,
 						instance.Name))
-				return RequeueWithError(r.Log, "failure creating NifiDataflowOrganizer "+instance.Name, err)
+				return RequeueWithError(r.Log, "failure creating group "+group.Name+" of NifiDataflowOrganizer "+instance.Name, err)
 			}
 
 			instance.Status.GroupStatus[index] = *status
+			if err := r.Client.Status().Update(ctx, instance); err != nil {
+				return RequeueWithError(r.Log, "failed to update status for NifiDataflowOrganizer "+instance.Name, err)
+			}
+			r.Recorder.Event(instance, corev1.EventTypeNormal, "Created",
+				fmt.Sprintf("Created group %s of NifiDataflowOrganizer %s", group.Name, instance.Name))
 		}
 	}
 

@@ -61,20 +61,30 @@ spec:
             type: object
           status:
             properties:
-              organizerStatus:
-                properties:
-                  titleLabelStatus:
-                    properties:
-                      id:
-                        type: string
-                    required:
-                    - id
-                    type: object
-                required:
-                - titleLabelStatus
-                type: object
+              groupStatus:
+                items:
+                  properties:
+                    contentStatus:
+                      properties:
+                        id:
+                          type: string
+                      required:
+                      - id
+                      type: object
+                    titleStatus:
+                      properties:
+                        id:
+                          type: string
+                      required:
+                      - id
+                      type: object
+                  required:
+                  - contentStatus
+                  - titleStatus
+                  type: object
+                type: array
             required:
-            - organizerStatus
+            - groupStatus
             type: object
         type: object
     served: true

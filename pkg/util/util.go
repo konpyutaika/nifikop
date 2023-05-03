@@ -3,13 +3,14 @@ package util
 import (
 	"crypto/sha1"
 	"fmt"
-	"github.com/konpyutaika/nifikop/api/v1"
 	"math/rand"
 	"os"
 	"reflect"
 	"strconv"
 	"strings"
 	"time"
+
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 
@@ -117,6 +118,15 @@ func ConvertStringToInt32(s string) int32 {
 		return -1
 	}
 	return int32(i)
+}
+
+// ConvertStringToFloat64 converts the given string to float64
+func ConvertStringToFloat64(s string) float64 {
+	i, err := strconv.ParseFloat(s, 64)
+	if err != nil {
+		return -1
+	}
+	return float64(i)
 }
 
 // IsSSLEnabledForInternalCommunication checks if ssl is enabled for internal communication

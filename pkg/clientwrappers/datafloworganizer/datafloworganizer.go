@@ -17,7 +17,7 @@ func ExistDataflowOrganizer(
 	groupStatus v1alpha1.OrganizerGroupStatus,
 	config *clientconfig.NifiConfig) (bool, error) {
 
-	if groupStatus.TitleLabelStatus.Id == "" {
+	if groupStatus.TitleStatus.Id == "" {
 		return false, nil
 	}
 
@@ -26,7 +26,7 @@ func ExistDataflowOrganizer(
 		return false, err
 	}
 
-	entity, err := nClient.GetLabel(groupStatus.TitleLabelStatus.Id)
+	entity, err := nClient.GetLabel(groupStatus.TitleStatus.Id)
 	if err := clientwrappers.ErrorGetOperation(log, err, "Get label"); err != nil {
 		if err == nificlient.ErrNifiClusterReturned404 {
 			return false, nil
@@ -53,11 +53,11 @@ func CreateDataflowOrganizer(
 
 	entity, err := nClient.CreateLabel(scratchEntity, group.GetParentProcessGroupID(config.RootProcessGroupId))
 
-	if err := clientwrappers.ErrorCreateOperation(log, err, "Create process-group"); err != nil {
+	if err := clientwrappers.ErrorCreateOperation(log, err, "Create label"); err != nil {
 		return nil, err
 	}
 
-	groupStatus.TitleLabelStatus.Id = entity.Id
+	groupStatus.TitleStatus.Id = entity.Id
 	return &groupStatus, nil
 }
 
