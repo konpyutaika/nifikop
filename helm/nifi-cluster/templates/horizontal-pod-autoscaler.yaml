@@ -1,7 +1,7 @@
 {{ if .Values.nodeGroupAutoscalers }}
 {{ range .Values.nodeGroupAutoscalers }}
 {{ if .enabled }}
-apiVersion: autoscaling/v2beta2
+apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: {{ include "nifi-cluster.fullname" $ }}-{{ .nodeConfigGroupId }}-hpa
