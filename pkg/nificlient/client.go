@@ -52,10 +52,10 @@ type NifiClient interface {
 	RemoveClusterNodeFromClusterNodeId(nId string) error
 
 	// Registry client func
-	GetRegistryClient(id string) (*nigoapi.RegistryClientEntity, error)
-	CreateRegistryClient(entity nigoapi.RegistryClientEntity) (*nigoapi.RegistryClientEntity, error)
-	UpdateRegistryClient(entity nigoapi.RegistryClientEntity) (*nigoapi.RegistryClientEntity, error)
-	RemoveRegistryClient(entity nigoapi.RegistryClientEntity) error
+	GetRegistryClient(id string) (*nigoapi.FlowRegistryClientEntity, error)
+	CreateRegistryClient(entity nigoapi.FlowRegistryClientEntity) (*nigoapi.FlowRegistryClientEntity, error)
+	UpdateRegistryClient(entity nigoapi.FlowRegistryClientEntity) (*nigoapi.FlowRegistryClientEntity, error)
+	RemoveRegistryClient(entity nigoapi.FlowRegistryClientEntity) error
 
 	// Flow client func
 	GetFlow(id string) (*nigoapi.ProcessGroupFlowEntity, error)
@@ -101,6 +101,7 @@ type NifiClient interface {
 	// Label func
 	GetLabel(id string) (*nigoapi.LabelEntity, error)
 	CreateLabel(entity nigoapi.LabelEntity, pgParentId string) (*nigoapi.LabelEntity, error)
+	UpdateLabel(entity nigoapi.LabelEntity) (*nigoapi.LabelEntity, error)
 
 	// User groups func
 	GetUserGroups() ([]nigoapi.UserGroupEntity, error)

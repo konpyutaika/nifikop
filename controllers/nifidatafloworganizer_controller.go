@@ -217,7 +217,7 @@ func (r *NifiDataflowOrganizerReconciler) Reconcile(ctx context.Context, req ctr
 			r.Recorder.Event(instance, corev1.EventTypeNormal, "Creating",
 				fmt.Sprintf("Creating group %s of NifiDataflowOrganizer %s", group.Name, instance.Name))
 
-			status, err := datafloworganizer.CreateDataflowOrganizer(group, groupStatus, clientConfig)
+			status, err := datafloworganizer.CreateDataflowOrganizerGroup(group, groupStatus, clientConfig)
 			if err != nil {
 				r.Recorder.Event(instance, corev1.EventTypeWarning, "CreationFailed",
 					fmt.Sprintf("Creation failed group %s of NifiDataflowOrganizer %s",
@@ -233,6 +233,37 @@ func (r *NifiDataflowOrganizerReconciler) Reconcile(ctx context.Context, req ctr
 			r.Recorder.Event(instance, corev1.EventTypeNormal, "Created",
 				fmt.Sprintf("Created group %s of NifiDataflowOrganizer %s", group.Name, instance.Name))
 		}
+
+		r.Recorder.Event(instance, corev1.EventTypeNormal, "Synchronizing",
+			fmt.Sprintf("Synchronizing group %s of NifiDataflowOrganizer %s", group.Name, instance.Name))
+		status, err := datafloworganizer.SyncDataflowOrganizerGroup(group, groupStatus, clientConfig)
+		if err != nil {
+			return RequeueWithError(r.Log, "failed to sync group "+group.Name+" of NifiDataflowOrganizer "+instance.Name, err)
+		}
+
+		instance.Status.GroupStatus[index] = *status
+		if err := r.Client.Status().Update(ctx, instance); err != nil {
+			return RequeueWithError(r.Log, "failed to update status for NifiDataflowOrganizer "+instance.Name, err)
+		}
+
+		r.Recorder.Event(instance, corev1.EventTypeNormal, "Synchronized",
+			fmt.Sprintf("Synchronized group %s of NifiDataflowOrganizer %s", group.Name, instance.Name))
+	}
+
+	// ensure a NifiDataflowOrganizer label
+	if instance, err = r.ensureClusterLabel(ctx, clusterConnect, instance); err != nil {
+		return RequeueWithError(r.Log, "failed to ensure NifiDataflowOrganizer label on "+current.Name, err)
+	}
+
+	// Ensure finalizer for cleanup on deletion
+	if !util.StringSliceContains(instance.GetFinalizers(), dataflowFinalizer) {
+		r.Log.Info("Adding Finalizer for NifiDataflowOrganizer " + instance.Name)
+		instance.SetFinalizers(append(instance.GetFinalizers(), dataflowFinalizer))
+	}
+
+	// Push any changes
+	if instance, err = r.updateAndFetchLatest(ctx, instance); err != nil {
+		return RequeueWithError(r.Log, "failed to update NifiDataflowOrganizer "+current.Name, err)
 	}
 
 	r.Recorder.Event(instance, corev1.EventTypeNormal, "Reconciled",

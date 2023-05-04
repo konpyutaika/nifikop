@@ -1,7 +1,7 @@
 package registryclient
 
 import (
-	"github.com/konpyutaika/nifikop/api/v1"
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers"
 	"github.com/konpyutaika/nifikop/pkg/common"
 	"github.com/konpyutaika/nifikop/pkg/nificlient"
@@ -40,7 +40,7 @@ func CreateRegistryClient(registryClient *v1.NifiRegistryClient,
 		return nil, err
 	}
 
-	scratchEntity := nigoapi.RegistryClientEntity{}
+	scratchEntity := nigoapi.FlowRegistryClientEntity{}
 	updateRegistryClientEntity(registryClient, &scratchEntity)
 
 	entity, err := nClient.CreateRegistryClient(scratchEntity)
@@ -103,18 +103,18 @@ func RemoveRegistryClient(registryClient *v1.NifiRegistryClient,
 	return clientwrappers.ErrorRemoveOperation(log, err, "Remove registry-client")
 }
 
-func registryClientIsSync(registryClient *v1.NifiRegistryClient, entity *nigoapi.RegistryClientEntity) bool {
+func registryClientIsSync(registryClient *v1.NifiRegistryClient, entity *nigoapi.FlowRegistryClientEntity) bool {
 	return registryClient.Name == entity.Component.Name &&
 		registryClient.Spec.Description == entity.Component.Description &&
 		registryClient.Spec.Uri == entity.Component.Uri
 }
 
-func updateRegistryClientEntity(registryClient *v1.NifiRegistryClient, entity *nigoapi.RegistryClientEntity) {
+func updateRegistryClientEntity(registryClient *v1.NifiRegistryClient, entity *nigoapi.FlowRegistryClientEntity) {
 
 	var defaultVersion int64 = 0
 
 	if entity == nil {
-		entity = &nigoapi.RegistryClientEntity{}
+		entity = &nigoapi.FlowRegistryClientEntity{}
 	}
 
 	if entity.Component == nil {
@@ -124,7 +124,7 @@ func updateRegistryClientEntity(registryClient *v1.NifiRegistryClient, entity *n
 	}
 
 	if entity.Component == nil {
-		entity.Component = &nigoapi.RegistryDto{}
+		entity.Component = &nigoapi.FlowRegistryClientDto{}
 	}
 
 	entity.Component.Name = registryClient.Name

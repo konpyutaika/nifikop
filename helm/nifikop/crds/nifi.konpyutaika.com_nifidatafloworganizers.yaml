@@ -51,6 +51,17 @@ spec:
                       type: string
                     parentProcessGroupID:
                       type: string
+                    position:
+                      properties:
+                        posX:
+                          default: 1
+                          format: int64
+                          type: integer
+                        posY:
+                          default: 1
+                          format: int64
+                          type: integer
+                      type: object
                   required:
                   - name
                   type: object

@@ -32,6 +32,20 @@ type OrganizerGroup struct {
 	// +kubebuilder:validation:Pattern:="^([0-9]+px)$"
 	// +optional
 	FontSize string `json:"fontSize,omitempty"`
+	// the position of the group
+	// +optional
+	Position OrganizerGroupPosition `json:"position,omitempty"`
+}
+
+type OrganizerGroupPosition struct {
+	// The x coordinate.
+	// +kubebuilder:default=1
+	// +optional
+	X float64 `json:"posX,omitempty"`
+	// The y coordinate.
+	// +kubebuilder:default=1
+	// +optional
+	Y float64 `json:"posY,omitempty"`
 }
 
 // NifiDataflowOrganizerStatus defines the observed state of NifiDataflowOrganizer
@@ -94,5 +108,29 @@ func (d *OrganizerGroup) GetTitleWidth() float64 {
 }
 
 func (d *OrganizerGroup) GetTitleHeight() float64 {
+	return util.ConvertStringToFloat64(strings.Split(d.FontSize, "px")[0]) * 1.75
+}
+
+func (d *OrganizerGroup) GetTitlePosX() float64 {
+	return d.Position.X
+}
+
+func (d *OrganizerGroup) GetTitlePosY() float64 {
+	return d.Position.Y
+}
+
+func (d *OrganizerGroup) GetContentPosX() float64 {
+	return d.Position.X
+}
+
+func (d *OrganizerGroup) GetContentPosY() float64 {
+	return d.Position.Y + d.GetTitleHeight()
+}
+
+func (d *OrganizerGroup) GetContentWidth() float64 {
+	return float64(len(d.Name)) * util.ConvertStringToFloat64(strings.Split(d.FontSize, "px")[0]) * 0.65
+}
+
+func (d *OrganizerGroup) GetContentHeight() float64 {
 	return util.ConvertStringToFloat64(strings.Split(d.FontSize, "px")[0]) * 1.75
 }
