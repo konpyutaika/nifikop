@@ -1,11 +1,13 @@
 ## Unreleased
 
 ### Added
+
 - [PR #258](https://github.com/konpyutaika/nifikop/pull/141) - **[Helm Chart]** Upgraded helm-deployed HPA to v2 and added flowPosition to NiFiDataflow
 
 ### Changed
 
 - [PR #257](https://github.com/konpyutaika/nifikop/pull/257) - **[Operator]** Updated the operator-sdk to 1.28.0.
+- [PR #263](https://github.com/konpyutaika/nifikop/pull/263) - **[NiGoApi]** Upgrade nigoapi to v0.0.8.
 
 ### Fixed Bugs
 
