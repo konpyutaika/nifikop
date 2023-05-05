@@ -22,6 +22,12 @@ var (
 	NifiDataVolumeMountKey = fmt.Sprintf("%s/nifi-data", v1.GroupVersion.Group)
 )
 
+var (
+	ProcessGroupWidth   = 384
+	ProcessGroupHeight  = 176
+	ProcessGroupPadding = 16
+)
+
 // ParseTimeStampToUnixTime parses the given CC timeStamp to time format
 func ParseTimeStampToUnixTime(timestamp string) (time.Time, error) {
 

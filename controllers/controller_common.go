@@ -2,9 +2,10 @@ package controllers
 
 import (
 	"fmt"
-	"github.com/konpyutaika/nifikop/api/v1"
 	"strings"
 	"time"
+
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 
 	"github.com/go-logr/logr"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
@@ -164,6 +165,17 @@ func GetUserRefNamespace(ns string, ref v1.UserReference) string {
 		return ns
 	}
 	return userNamespace
+}
+
+// GetDataflowRefNamespace returns the expected namespace for a Nifi dataflow
+// referenced by a parameter context CR. It takes the namespace of the CR as the first
+// argument and the reference itself as the second.
+func GetDataflowRefNamespace(ns string, ref v1.DataflowReference) string {
+	dataflowNamespace := ref.Namespace
+	if dataflowNamespace == "" {
+		return ns
+	}
+	return dataflowNamespace
 }
 
 func GetLogConstructor(mgr manager.Manager, obj runtime.Object) (func(*reconcile.Request) logr.Logger, error) {

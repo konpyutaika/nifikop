@@ -37,35 +37,50 @@ spec:
                 - name
                 type: object
               groups:
-                items:
+                additionalProperties:
                   properties:
                     color:
                       default: '#FFF7D7'
                       pattern: ^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$
                       type: string
+                    dataflowRef:
+                      items:
+                        properties:
+                          name:
+                            type: string
+                          namespace:
+                            type: string
+                        required:
+                        - name
+                        type: object
+                      type: array
                     fontSize:
                       default: 18px
                       pattern: ^([0-9]+px)$
                       type: string
-                    name:
-                      type: string
+                    maxColumnSize:
+                      default: 5
+                      minimum: 1
+                      type: integer
                     parentProcessGroupID:
                       type: string
-                    position:
-                      properties:
-                        posX:
-                          default: 1
-                          format: int64
-                          type: integer
-                        posY:
-                          default: 1
-                          format: int64
-                          type: integer
-                      type: object
-                  required:
-                  - name
                   type: object
-                type: array
+                type: object
+              initalPosition:
+                properties:
+                  posX:
+                    default: 0
+                    format: int64
+                    type: integer
+                  posY:
+                    default: 0
+                    format: int64
+                    type: integer
+                type: object
+              maxWidth:
+                default: 1000
+                minimum: 0
+                type: integer
             required:
             - clusterRef
             - groups
@@ -73,7 +88,7 @@ spec:
           status:
             properties:
               groupStatus:
-                items:
+                additionalProperties:
                   properties:
                     contentStatus:
                       properties:
@@ -93,7 +108,7 @@ spec:
                   - contentStatus
                   - titleStatus
                   type: object
-                type: array
+                type: object
             required:
             - groupStatus
             type: object

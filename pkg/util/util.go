@@ -120,6 +120,15 @@ func ConvertStringToInt32(s string) int32 {
 	return int32(i)
 }
 
+// ConvertStringToInt32 converts the given string to int64
+func ConvertStringToInt64(s string) int64 {
+	i, err := strconv.ParseInt(s, 10, 64)
+	if err != nil {
+		return -1
+	}
+	return int64(i)
+}
+
 // ConvertStringToFloat64 converts the given string to float64
 func ConvertStringToFloat64(s string) float64 {
 	i, err := strconv.ParseFloat(s, 64)

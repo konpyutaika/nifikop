@@ -1,6 +1,9 @@
 package nificlient
 
 import (
+	"strconv"
+
+	"github.com/antihax/optional"
 	nigoapi "github.com/konpyutaika/nigoapi/pkg/nifi"
 	"go.uber.org/zap"
 )
@@ -37,4 +40,21 @@ func (n *nifiClient) UpdateLabel(entity nigoapi.LabelEntity) (*nigoapi.LabelEnti
 	}
 
 	return &labelEntity, nil
+}
+
+func (n *nifiClient) RemoveLabel(entity nigoapi.LabelEntity) error {
+	// Get nigoapi client, favoring the one associated to the coordinator node.
+	client, context := n.privilegeCoordinatorClient()
+	if client == nil {
+		n.log.Error("Error during creating node client", zap.Error(ErrNoNodeClientsAvailable))
+		return ErrNoNodeClientsAvailable
+	}
+
+	// Request on Nifi Rest API to remove the label
+	_, rsp, body, err := client.LabelsApi.RemoveLabel(context, entity.Id,
+		&nigoapi.LabelsApiRemoveLabelOpts{
+			Version: optional.NewString(strconv.FormatInt(*entity.Revision.Version, 10)),
+		})
+
+	return errorDeleteOperation(rsp, body, err, n.log)
 }

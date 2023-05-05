@@ -39,6 +39,7 @@ import (
 	"github.com/konpyutaika/nifikop/pkg/nificlient/config"
 	"github.com/konpyutaika/nifikop/pkg/util"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
+	nifiutil "github.com/konpyutaika/nifikop/pkg/util/nifi"
 )
 
 var dataflowOrganizerFinalizer = "nifidatafloworganizers.nifi.konpyutaika.com/finalizer"
@@ -180,13 +181,16 @@ func (r *NifiDataflowOrganizerReconciler) Reconcile(ctx context.Context, req ctr
 	// Ìn case of the cluster reference changed.
 	if !v1.ClusterRefsEquals([]v1.ClusterReference{instance.Spec.ClusterRef, current.Spec.ClusterRef}) {
 		// Delete the resource on the previous cluster.
-		// TODO
-		// if err := dataflowOrganizer.RemoveDataflowOrganizer(instance, clientConfig); err != nil {
-		// 	r.Recorder.Event(instance, corev1.EventTypeWarning, "RemoveError",
-		// 		fmt.Sprintf("Failed to delete NifiDataflowOrganizer %s from cluster %s before moving in %s",
-		// 			instance.Name, original.Spec.ClusterRef.Name, original.Spec.ClusterRef.Name))
-		// 	return RequeueWithError(r.Log, "Failed to delete NifiParameterContext before moving "+instance.Name, err)
-		// }
+		for groupName := range instance.Spec.Groups {
+			groupStatus := instance.Status.GroupStatus[groupName]
+			if err := datafloworganizer.RemoveDataflowOrganizerGroup(groupStatus, clientConfig); err != nil {
+				r.Recorder.Event(instance, corev1.EventTypeWarning, "RemoveError",
+					fmt.Sprintf("Failed to delete group %s of NifiDataflowOrganizer %s from cluster %s before moving in %s",
+						groupName, instance.Name, original.Spec.ClusterRef.Name, original.Spec.ClusterRef.Name))
+				return RequeueWithError(r.Log, "Failed to delete group "+groupName+" NifiDataflowOrganizer before moving "+instance.Name, err)
+			}
+		}
+
 		// Update the last view configuration to the current one.
 		if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(current); err != nil {
 			return RequeueWithError(r.Log, "could not apply last state to annotation for NifiDataflowOrganizer "+instance.Name, err)
@@ -201,13 +205,43 @@ func (r *NifiDataflowOrganizerReconciler) Reconcile(ctx context.Context, req ctr
 		fmt.Sprintf("Reconciling NifiDataflowOrganizer %s", instance.Name))
 
 	if instance.Status.GroupStatus == nil {
-		instance.Status.GroupStatus = make([]v1alpha1.OrganizerGroupStatus, len(instance.Spec.Groups))
+		instance.Status.GroupStatus = make(map[string]v1alpha1.OrganizerGroupStatus)
 	}
 
+	// Check if some groups have been deleted
+	// TODO ADD DELETE OF DATAFLOW IN GROUP = DELETE  POSITION
+	for _, groupName := range original.Spec.GetGroupNames() {
+		if _, ok := instance.Spec.Groups[groupName]; !ok {
+			groupStatus := instance.Status.GroupStatus[groupName]
+			if err := datafloworganizer.RemoveDataflowOrganizerGroup(groupStatus, clientConfig); err != nil {
+				r.Recorder.Event(instance, corev1.EventTypeWarning, "RemoveGroupError",
+					fmt.Sprintf("Failed to delete group %s of NifiDataflowOrganizer %s",
+						groupName, instance.Name))
+				return RequeueWithError(r.Log, "Failed to delete group "+groupName+" NifiDataflowOrganizer "+instance.Name, err)
+			}
+
+			delete(instance.Status.GroupStatus, groupName)
+			if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(instance); err != nil {
+				return RequeueWithError(r.Log, "could not apply last state to annotation for NifiDataflowOrganizer "+instance.Name, err)
+			}
+			if err := r.Client.Status().Update(ctx, instance); err != nil {
+				return RequeueWithError(r.Log, "failed to update status for NifiDataflowOrganizer "+instance.Name, err)
+			}
+			if err := r.Client.Update(ctx, instance); err != nil {
+				return RequeueWithError(r.Log, "failed to update NifiDataflowOrganizer "+instance.Name, err)
+			}
+			r.Recorder.Event(instance, corev1.EventTypeNormal, "RemovedGroup",
+				fmt.Sprintf("Removed group %s of NifiDataflowOrganizer %s", groupName, instance.Name))
+			return RequeueAfter(interval)
+		}
+	}
+
+	groupPosX, groupPosY := float64(instance.Spec.InitialPosition.X), float64(instance.Spec.InitialPosition.Y)
 	// Check if the NiFi dataflow organizer resources already exist
-	for index, group := range instance.Spec.Groups {
-		groupStatus := instance.Status.GroupStatus[index]
-		exist, err := datafloworganizer.ExistDataflowOrganizer(group, groupStatus, clientConfig)
+	for _, groupName := range instance.Spec.GetGroupNames() {
+		group := instance.Spec.Groups[groupName]
+		groupStatus := instance.Status.GroupStatus[groupName]
+		exist, err := datafloworganizer.ExistDataflowOrganizerGroup(group, groupStatus, clientConfig)
 		if err != nil {
 			return RequeueWithError(r.Log, "failure checking for existing NifiDataflowOrganizer with name "+instance.Name, err)
 		}
@@ -215,39 +249,69 @@ func (r *NifiDataflowOrganizerReconciler) Reconcile(ctx context.Context, req ctr
 		if !exist {
 			// Create NiFi dataflow organizer resources
 			r.Recorder.Event(instance, corev1.EventTypeNormal, "Creating",
-				fmt.Sprintf("Creating group %s of NifiDataflowOrganizer %s", group.Name, instance.Name))
+				fmt.Sprintf("Creating group %s of NifiDataflowOrganizer %s", groupName, instance.Name))
 
-			status, err := datafloworganizer.CreateDataflowOrganizerGroup(group, groupStatus, clientConfig)
+			status, err := datafloworganizer.CreateDataflowOrganizerGroup(groupPosX, groupPosY, groupName, group, groupStatus, clientConfig)
 			if err != nil {
 				r.Recorder.Event(instance, corev1.EventTypeWarning, "CreationFailed",
 					fmt.Sprintf("Creation failed group %s of NifiDataflowOrganizer %s",
-						group.Name,
+						groupName,
 						instance.Name))
-				return RequeueWithError(r.Log, "failure creating group "+group.Name+" of NifiDataflowOrganizer "+instance.Name, err)
+				return RequeueWithError(r.Log, "failure creating group "+groupName+" of NifiDataflowOrganizer "+instance.Name, err)
 			}
 
-			instance.Status.GroupStatus[index] = *status
+			groupStatus = *status
+			instance.Status.GroupStatus[groupName] = groupStatus
 			if err := r.Client.Status().Update(ctx, instance); err != nil {
 				return RequeueWithError(r.Log, "failed to update status for NifiDataflowOrganizer "+instance.Name, err)
 			}
 			r.Recorder.Event(instance, corev1.EventTypeNormal, "Created",
-				fmt.Sprintf("Created group %s of NifiDataflowOrganizer %s", group.Name, instance.Name))
+				fmt.Sprintf("Created group %s of NifiDataflowOrganizer %s", groupName, instance.Name))
 		}
 
 		r.Recorder.Event(instance, corev1.EventTypeNormal, "Synchronizing",
-			fmt.Sprintf("Synchronizing group %s of NifiDataflowOrganizer %s", group.Name, instance.Name))
-		status, err := datafloworganizer.SyncDataflowOrganizerGroup(group, groupStatus, clientConfig)
+			fmt.Sprintf("Synchronizing group %s of NifiDataflowOrganizer %s", groupName, instance.Name))
+		status, err := datafloworganizer.SyncDataflowOrganizerGroup(groupPosX, groupPosY, groupName, group, groupStatus, clientConfig)
 		if err != nil {
-			return RequeueWithError(r.Log, "failed to sync group "+group.Name+" of NifiDataflowOrganizer "+instance.Name, err)
+			return RequeueWithError(r.Log, "failed to sync group "+groupName+" of NifiDataflowOrganizer "+instance.Name, err)
 		}
 
-		instance.Status.GroupStatus[index] = *status
+		instance.Status.GroupStatus[groupName] = *status
 		if err := r.Client.Status().Update(ctx, instance); err != nil {
 			return RequeueWithError(r.Log, "failed to update status for NifiDataflowOrganizer "+instance.Name, err)
 		}
-
 		r.Recorder.Event(instance, corev1.EventTypeNormal, "Synchronized",
-			fmt.Sprintf("Synchronized group %s of NifiDataflowOrganizer %s", group.Name, instance.Name))
+			fmt.Sprintf("Synchronized group %s of NifiDataflowOrganizer %s", groupName, instance.Name))
+
+		dfOffsetX, dfOffsetY := nifiutil.ProcessGroupPadding+int(groupPosX), nifiutil.ProcessGroupPadding+int(groupPosY)+int(group.GetTitleHeight(groupName))
+		for index, dfRef := range group.DataflowRef {
+			dfInstance, err := k8sutil.LookupNifiDataflow(r.Client, dfRef.Name, GetDataflowRefNamespace(instance.Namespace, dfRef))
+			if err != nil {
+				return RequeueWithError(r.Log, "failed to lookup NifiDataflow "+dfRef.Name, err)
+			}
+			dfInstanceOriginal := dfInstance.DeepCopy()
+
+			if index > 0 && index%group.MaxColumnSize == 0 {
+				dfOffsetX = nifiutil.ProcessGroupPadding + int(groupPosX)
+				dfOffsetY = dfOffsetY + nifiutil.ProcessGroupPadding + nifiutil.ProcessGroupHeight
+			}
+
+			dfInstance.Spec.FlowPosition = &v1.FlowPosition{
+				X: util.Int64Pointer(int64((index%group.MaxColumnSize)*nifiutil.ProcessGroupWidth + dfOffsetX)),
+				Y: util.Int64Pointer(int64(dfOffsetY)),
+			}
+
+			if err := r.Client.Patch(ctx, dfInstance, client.MergeFrom(dfInstanceOriginal)); err != nil {
+				return RequeueWithError(r.Log, "failed to patch NifiDataflow "+dfInstance.Name, err)
+			}
+			dfOffsetX = dfOffsetX + nifiutil.ProcessGroupPadding
+		}
+
+		if groupPosX > float64(instance.Spec.MaxWidth) {
+			groupPosX, groupPosY = 0.0, groupPosY+group.GetContentHeight()+group.GetTitleHeight(groupName)
+		} else {
+			groupPosX = groupPosY + group.GetContentWidth()
+		}
 	}
 
 	// ensure a NifiDataflowOrganizer label
@@ -256,9 +320,9 @@ func (r *NifiDataflowOrganizerReconciler) Reconcile(ctx context.Context, req ctr
 	}
 
 	// Ensure finalizer for cleanup on deletion
-	if !util.StringSliceContains(instance.GetFinalizers(), dataflowFinalizer) {
+	if !util.StringSliceContains(instance.GetFinalizers(), dataflowOrganizerFinalizer) {
 		r.Log.Info("Adding Finalizer for NifiDataflowOrganizer " + instance.Name)
-		instance.SetFinalizers(append(instance.GetFinalizers(), dataflowFinalizer))
+		instance.SetFinalizers(append(instance.GetFinalizers(), dataflowOrganizerFinalizer))
 	}
 
 	// Push any changes
@@ -339,9 +403,13 @@ func (r *NifiDataflowOrganizerReconciler) removeFinalizer(
 func (r *NifiDataflowOrganizerReconciler) finalizeNifiDataflowOrganizer(
 	dataflowOrganizer *v1alpha1.NifiDataflowOrganizer,
 	config *clientconfig.NifiConfig) error {
-	// if err := dataflowOrganizer.RemoveDataflowOrganizer(dataflowOrganizer, config); err != nil {
-	// 	return err
-	// }
+	// TODO ADD DELETE OF DATAFLOW IN GROUP = DELETE  POSITION
+	for groupName := range dataflowOrganizer.Spec.Groups {
+		groupStatus := dataflowOrganizer.Status.GroupStatus[groupName]
+		if err := datafloworganizer.RemoveDataflowOrganizerGroup(groupStatus, config); err != nil {
+			return err
+		}
+	}
 	r.Log.Info("Deleted NifiDataflowOrganizer",
 		zap.String("dataflowOrganizer", dataflowOrganizer.Name))
 

@@ -12,7 +12,7 @@ import (
 var log = common.CustomLogger().Named("datafloworganizer-method")
 
 // ExistDataflowOrganizer check if the NifiDataflowOrganizer exist on NiFi Cluster
-func ExistDataflowOrganizer(
+func ExistDataflowOrganizerGroup(
 	group v1alpha1.OrganizerGroup,
 	groupStatus v1alpha1.OrganizerGroupStatus,
 	config *clientconfig.NifiConfig) (bool, error) {
@@ -39,6 +39,8 @@ func ExistDataflowOrganizer(
 
 // CreateDataflowOrganizer will deploy the Group of NifiDataflowOrganizer on NiFi Cluster
 func CreateDataflowOrganizerGroup(
+	posX, posY float64,
+	groupName string,
 	group v1alpha1.OrganizerGroup,
 	groupStatus v1alpha1.OrganizerGroupStatus,
 	config *clientconfig.NifiConfig) (*v1alpha1.OrganizerGroupStatus, error) {
@@ -49,7 +51,7 @@ func CreateDataflowOrganizerGroup(
 	}
 
 	scratchTitleEntity := nigoapi.LabelEntity{}
-	updateTitleLabelEntity(group, &scratchTitleEntity)
+	updateTitleLabelEntity(posX, posY, groupName, group, &scratchTitleEntity)
 
 	titleEntity, err := nClient.CreateLabel(scratchTitleEntity, group.GetParentProcessGroupID(config.RootProcessGroupId))
 
@@ -60,7 +62,7 @@ func CreateDataflowOrganizerGroup(
 	groupStatus.TitleStatus.Id = titleEntity.Id
 
 	scratchContentEntity := nigoapi.LabelEntity{}
-	updateContentLabelEntity(group, &scratchContentEntity)
+	updateContentLabelEntity(posX, posY, groupName, group, &scratchContentEntity)
 
 	contentEntity, err := nClient.CreateLabel(scratchContentEntity, group.GetParentProcessGroupID(config.RootProcessGroupId))
 
@@ -74,6 +76,8 @@ func CreateDataflowOrganizerGroup(
 }
 
 func SyncDataflowOrganizerGroup(
+	posX, posY float64,
+	groupName string,
 	group v1alpha1.OrganizerGroup,
 	groupStatus v1alpha1.OrganizerGroupStatus,
 	config *clientconfig.NifiConfig) (*v1alpha1.OrganizerGroupStatus, error) {
@@ -88,8 +92,8 @@ func SyncDataflowOrganizerGroup(
 		return nil, err
 	}
 
-	if !titleLabelIsSync(group, titleEntity) {
-		updateTitleLabelEntity(group, titleEntity)
+	if !titleLabelIsSync(posX, posY, groupName, group, titleEntity) {
+		updateTitleLabelEntity(posX, posY, groupName, group, titleEntity)
 		titleEntity, err = nClient.UpdateLabel(*titleEntity)
 		if err := clientwrappers.ErrorUpdateOperation(log, err, "Update title label"); err != nil {
 			return nil, err
@@ -102,8 +106,8 @@ func SyncDataflowOrganizerGroup(
 		return nil, err
 	}
 
-	if !contentLabelIsSync(group, contentEntity) {
-		updateContentLabelEntity(group, contentEntity)
+	if !contentLabelIsSync(posX, posY, groupName, group, contentEntity) {
+		updateContentLabelEntity(posX, posY, groupName, group, contentEntity)
 		contentEntity, err = nClient.UpdateLabel(*contentEntity)
 		if err := clientwrappers.ErrorUpdateOperation(log, err, "Update content label"); err != nil {
 			return nil, err
@@ -114,25 +118,68 @@ func SyncDataflowOrganizerGroup(
 	return &groupStatus, nil
 }
 
+func RemoveDataflowOrganizerGroup(
+	groupStatus v1alpha1.OrganizerGroupStatus,
+	config *clientconfig.NifiConfig) error {
+	nClient, err := common.NewClusterConnection(log, config)
+	if err != nil {
+		return err
+	}
+
+	titleEntity, err := nClient.GetLabel(groupStatus.TitleStatus.Id)
+	if err := clientwrappers.ErrorGetOperation(log, err, "Get title label"); err != nil {
+		if err != nificlient.ErrNifiClusterReturned404 {
+			return err
+		}
+	} else {
+		err = nClient.RemoveLabel(*titleEntity)
+		if err := clientwrappers.ErrorRemoveOperation(log, err, "Remove title label"); err != nil {
+			return err
+		}
+	}
+
+	contentEntity, err := nClient.GetLabel(groupStatus.ContentStatus.Id)
+	if err := clientwrappers.ErrorGetOperation(log, err, "Get content label"); err != nil {
+		if err != nificlient.ErrNifiClusterReturned404 {
+			return err
+		}
+	} else {
+		err = nClient.RemoveLabel(*contentEntity)
+		if err := clientwrappers.ErrorRemoveOperation(log, err, "Remove content label"); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func titleLabelIsSync(
+	posX, posY float64,
+	groupName string,
 	group v1alpha1.OrganizerGroup,
 	entity *nigoapi.LabelEntity) bool {
-	return group.Name == entity.Component.Label && group.FontSize == entity.Component.Style["font-size"] &&
-		group.Color == entity.Component.Style["background-color"] && group.GetTitlePosX() == entity.Component.Position.X &&
-		group.GetTitlePosY() == entity.Component.Position.Y && group.GetTitleWidth() == entity.Component.Width &&
-		group.GetTitleHeight() == entity.Component.Height
+	return groupName == entity.Component.Label && group.FontSize == entity.Component.Style["font-size"] &&
+		group.Color == entity.Component.Style["background-color"] && posX == entity.Component.Position.X &&
+		posY == entity.Component.Position.Y && group.GetTitleWidth(groupName) == entity.Component.Width &&
+		group.GetTitleHeight(groupName) == entity.Component.Height
 }
 
 func contentLabelIsSync(
+	posX, posY float64,
+	groupName string,
 	group v1alpha1.OrganizerGroup,
 	entity *nigoapi.LabelEntity) bool {
 	return entity.Component.Label == "" && group.FontSize == entity.Component.Style["font-size"] &&
-		group.Color == entity.Component.Style["background-color"] && group.GetContentPosX() == entity.Component.Position.X &&
-		group.GetContentPosY() == entity.Component.Position.Y && group.GetContentWidth() == entity.Component.Width &&
+		group.Color == entity.Component.Style["background-color"] && float64(posX) == entity.Component.Position.X &&
+		group.GetTitleHeight(groupName)+float64(posY) == entity.Component.Position.Y && group.GetContentWidth() == entity.Component.Width &&
 		group.GetContentHeight() == entity.Component.Height
 }
 
-func updateTitleLabelEntity(group v1alpha1.OrganizerGroup, entity *nigoapi.LabelEntity) {
+func updateTitleLabelEntity(
+	posX, posY float64,
+	groupName string,
+	group v1alpha1.OrganizerGroup,
+	entity *nigoapi.LabelEntity) {
 	var defaultVersion int64 = 0
 
 	if entity == nil {
@@ -153,18 +200,22 @@ func updateTitleLabelEntity(group v1alpha1.OrganizerGroup, entity *nigoapi.Label
 		entity.Component.Style = make(map[string]string)
 	}
 
-	entity.Component.Label = group.Name
+	entity.Component.Label = groupName
 	entity.Component.Style["background-color"] = group.Color
 	entity.Component.Style["font-size"] = group.FontSize
-	entity.Component.Width = group.GetTitleWidth()
-	entity.Component.Height = group.GetTitleHeight()
+	entity.Component.Width = group.GetTitleWidth(groupName)
+	entity.Component.Height = group.GetTitleHeight(groupName)
 	entity.Component.Position = &nigoapi.PositionDto{
-		X: group.GetTitlePosX(),
-		Y: group.GetTitlePosY(),
+		X: posX,
+		Y: posY,
 	}
 }
 
-func updateContentLabelEntity(group v1alpha1.OrganizerGroup, entity *nigoapi.LabelEntity) {
+func updateContentLabelEntity(
+	posX, posY float64,
+	groupName string,
+	group v1alpha1.OrganizerGroup,
+	entity *nigoapi.LabelEntity) {
 	var defaultVersion int64 = 0
 
 	if entity == nil {
@@ -190,7 +241,7 @@ func updateContentLabelEntity(group v1alpha1.OrganizerGroup, entity *nigoapi.Lab
 	entity.Component.Width = group.GetContentWidth()
 	entity.Component.Height = group.GetContentHeight()
 	entity.Component.Position = &nigoapi.PositionDto{
-		X: group.GetContentPosX(),
-		Y: group.GetContentPosY(),
+		X: posX,
+		Y: group.GetTitleHeight(groupName) + posY,
 	}
 }
