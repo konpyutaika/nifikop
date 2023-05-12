@@ -209,7 +209,6 @@ func (r *NifiDataflowOrganizerReconciler) Reconcile(ctx context.Context, req ctr
 	}
 
 	// Check if some groups have been deleted
-	// TODO ADD DELETE OF DATAFLOW IN GROUP = DELETE  POSITION
 	for _, groupName := range original.Spec.GetGroupNames() {
 		if _, ok := instance.Spec.Groups[groupName]; !ok {
 			groupStatus := instance.Status.GroupStatus[groupName]
@@ -220,6 +219,7 @@ func (r *NifiDataflowOrganizerReconciler) Reconcile(ctx context.Context, req ctr
 				return RequeueWithError(r.Log, "Failed to delete group "+groupName+" NifiDataflowOrganizer "+instance.Name, err)
 			}
 
+			// TODO FIX THIS
 			delete(instance.Status.GroupStatus, groupName)
 			if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(instance); err != nil {
 				return RequeueWithError(r.Log, "could not apply last state to annotation for NifiDataflowOrganizer "+instance.Name, err)
@@ -233,9 +233,35 @@ func (r *NifiDataflowOrganizerReconciler) Reconcile(ctx context.Context, req ctr
 			r.Recorder.Event(instance, corev1.EventTypeNormal, "RemovedGroup",
 				fmt.Sprintf("Removed group %s of NifiDataflowOrganizer %s", groupName, instance.Name))
 			return RequeueAfter(interval)
+		} else {
+			for _, dataflowRefOrginal := range original.Spec.Groups[groupName].DataflowRef {
+				notFound := true
+				for _, dataflowRefInstance := range instance.Spec.Groups[groupName].DataflowRef {
+					if dataflowRefOrginal.Name == dataflowRefInstance.Name &&
+						GetDataflowRefNamespace(original.Namespace, dataflowRefOrginal) == GetDataflowRefNamespace(instance.Namespace, dataflowRefInstance) {
+						notFound = false
+						break
+					}
+				}
+
+				if notFound {
+					dfInstance, err := k8sutil.LookupNifiDataflow(r.Client, dataflowRefOrginal.Name, GetDataflowRefNamespace(original.Namespace, dataflowRefOrginal))
+					if err != nil {
+						return RequeueWithError(r.Log, "failed to lookup NifiDataflow "+dataflowRefOrginal.Name, err)
+					}
+					dfInstanceOriginal := dfInstance.DeepCopy()
+
+					dfInstance.Spec.FlowPosition = nil
+
+					if err := r.Client.Patch(ctx, dfInstance, client.MergeFrom(dfInstanceOriginal)); err != nil {
+						return RequeueWithError(r.Log, "failed to patch NifiDataflow "+dfInstance.Name, err)
+					}
+				}
+			}
 		}
 	}
 
+	// TODO IF TITLE WIDER THAT CONTENT MAKE CONTENT AT LEAST AS WIDE AS THE TITLE
 	groupPosX, groupPosY := float64(instance.Spec.InitialPosition.X), float64(instance.Spec.InitialPosition.Y)
 	// Check if the NiFi dataflow organizer resources already exist
 	for _, groupName := range instance.Spec.GetGroupNames() {
@@ -310,7 +336,7 @@ func (r *NifiDataflowOrganizerReconciler) Reconcile(ctx context.Context, req ctr
 		if groupPosX > float64(instance.Spec.MaxWidth) {
 			groupPosX, groupPosY = 0.0, groupPosY+group.GetContentHeight()+group.GetTitleHeight(groupName)
 		} else {
-			groupPosX = groupPosY + group.GetContentWidth()
+			groupPosX = groupPosX + group.GetContentWidth()
 		}
 	}
 
@@ -381,7 +407,7 @@ func (r *NifiDataflowOrganizerReconciler) checkFinalizers(
 		zap.String("dataflowOrganizer", dataflowOrganizer.Name))
 	var err error
 	if util.StringSliceContains(dataflowOrganizer.GetFinalizers(), dataflowOrganizerFinalizer) {
-		if err = r.finalizeNifiDataflowOrganizer(dataflowOrganizer, config); err != nil {
+		if err = r.finalizeNifiDataflowOrganizer(ctx, dataflowOrganizer, config); err != nil {
 			return RequeueWithError(r.Log, "failed to finalize NifiDataflowOrganizer "+dataflowOrganizer.Name, err)
 		}
 		if err = r.removeFinalizer(ctx, dataflowOrganizer); err != nil {
@@ -401,15 +427,31 @@ func (r *NifiDataflowOrganizerReconciler) removeFinalizer(
 }
 
 func (r *NifiDataflowOrganizerReconciler) finalizeNifiDataflowOrganizer(
+	ctx context.Context,
 	dataflowOrganizer *v1alpha1.NifiDataflowOrganizer,
 	config *clientconfig.NifiConfig) error {
-	// TODO ADD DELETE OF DATAFLOW IN GROUP = DELETE  POSITION
 	for groupName := range dataflowOrganizer.Spec.Groups {
 		groupStatus := dataflowOrganizer.Status.GroupStatus[groupName]
+
+		for _, dfRef := range dataflowOrganizer.Spec.Groups[groupName].DataflowRef {
+			dfInstance, err := k8sutil.LookupNifiDataflow(r.Client, dfRef.Name, GetDataflowRefNamespace(dataflowOrganizer.Namespace, dfRef))
+			if err != nil {
+				return err
+			}
+			dfInstanceOriginal := dfInstance.DeepCopy()
+
+			dfInstance.Spec.FlowPosition = nil
+
+			if err := r.Client.Patch(ctx, dfInstance, client.MergeFrom(dfInstanceOriginal)); err != nil {
+				return err
+			}
+		}
+
 		if err := datafloworganizer.RemoveDataflowOrganizerGroup(groupStatus, config); err != nil {
 			return err
 		}
 	}
+
 	r.Log.Info("Deleted NifiDataflowOrganizer",
 		zap.String("dataflowOrganizer", dataflowOrganizer.Name))
 
