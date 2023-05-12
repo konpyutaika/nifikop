@@ -199,6 +199,49 @@ func testRemoveProcessGroup(t *testing.T, entity *nigoapi.ProcessGroupEntity, st
 	return client.RemoveProcessGroup(*entity)
 }
 
+func TestCreateLabel(t *testing.T) {
+	assert := assert.New(t)
+
+	id := "41481c3b-a836-37fa-84d1-06e57a6dc2d8"
+	mockEntity := MockLabel(id, "test-unit", "5eee3064-0183-1000-0000-00004b62d089", 100, 100,
+		0, 0, map[string]string{"font-size": "18px", "background-color": "#FFF"})
+
+	entity, err := testCreateLabel(t, &mockEntity, 201)
+	assert.Nil(err)
+	assert.NotNil(entity)
+
+	entity, err = testCreateLabel(t, &mockEntity, 404)
+	assert.IsType(ErrNifiClusterReturned404, err)
+	assert.Nil(entity)
+
+	entity, err = testCreateLabel(t, &mockEntity, 500)
+	assert.IsType(ErrNifiClusterNotReturned200, err)
+	assert.Nil(entity)
+}
+
+func testCreateLabel(t *testing.T, entity *nigoapi.LabelEntity, status int) (*nigoapi.LabelEntity, error) {
+
+	cluster := testClusterMock(t)
+
+	client, err := testClientFromCluster(cluster, false)
+	if err != nil {
+		return nil, err
+	}
+
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	url := nifiAddress(cluster, fmt.Sprintf("/process-groups/%s/labels", entity.Component.ParentGroupId))
+	httpmock.RegisterResponder(http.MethodPost, url,
+		func(req *http.Request) (*http.Response, error) {
+			return httpmock.NewJsonResponse(
+				status,
+				entity)
+		})
+
+	return client.CreateLabel(*entity, entity.Component.ParentGroupId)
+}
+
 func MockProcessGroup(id, name, parentPGId, registryId, bucketId, flowId string, flowVersion int32) nigoapi.ProcessGroupEntity {
 	var version int64 = 10
 	return nigoapi.ProcessGroupEntity{
