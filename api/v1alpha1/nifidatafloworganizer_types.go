@@ -13,25 +13,25 @@ import (
 
 // NifiDataflowOrganizerSpec defines the desired state of NifiDataflowOrganizer
 type NifiDataflowOrganizerSpec struct {
-	// contains the reference to the NifiCluster with the one the user is linked
+	// contains the reference to the NifiCluster with the one the user is linked.
 	ClusterRef v1.ClusterReference `json:"clusterRef"`
-	// the groups of dataflow to organize
-	Groups map[string]OrganizerGroup `json:"groups"`
-	// the maximum width before moving to the next line
+	// the maximum width before moving to the next line.
 	// +kubebuilder:default=1000
 	// +kubebuilder:validation:Minimum=0
 	// +optional
 	MaxWidth int `json:"maxWidth,omitempty"`
-	// the initial position of all the groups
+	// the initial position of all the groups.
 	// +optional
 	InitialPosition OrganizerGroupPosition `json:"initalPosition,omitempty"`
+	// the groups of dataflow to organize
+	Groups map[string]OrganizerGroup `json:"groups"`
 }
 
 type OrganizerGroup struct {
 	// the UUID of the parent process group where you want to create your group, if not set deploy at root level.
 	// +optional
 	ParentProcessGroupID string `json:"parentProcessGroupID,omitempty"`
-	// the color of the group
+	// the color of the group.
 	// +kubebuilder:default="#FFF7D7"
 	// +kubebuilder:validation:Pattern:="^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$"
 	// +optional
@@ -41,21 +41,21 @@ type OrganizerGroup struct {
 	// +kubebuilder:validation:Pattern:="^([0-9]+px)$"
 	// +optional
 	FontSize string `json:"fontSize,omitempty"`
-	// contains the reference to the NifiDataflows associated to the group.
-	DataflowRef []v1.DataflowReference `json:"dataflowRef,omitempty"`
-	// the maximum number of dataflow on the same line
+	// the maximum number of dataflow on the same line.
 	// +kubebuilder:default=5
 	// +kubebuilder:validation:Minimum=1
 	// +optional
 	MaxColumnSize int `json:"maxColumnSize,omitempty"`
+	// contains the reference to the NifiDataflows associated to the group.
+	DataflowRef []v1.DataflowReference `json:"dataflowRef,omitempty"`
 }
 
 type OrganizerGroupPosition struct {
-	// The x coordinate.
+	// the x coordinate.
 	// +kubebuilder:default=0
 	// +optional
 	X int64 `json:"posX,omitempty"`
-	// The y coordinate.
+	// the y coordinate.
 	// +kubebuilder:default=0
 	// +optional
 	Y int64 `json:"posY,omitempty"`
@@ -117,15 +117,19 @@ func (d *OrganizerGroup) GetParentProcessGroupID(rootProcessGroupId string) stri
 }
 
 func (d *OrganizerGroup) GetTitleWidth(name string) float64 {
-	return float64(len(name)) * util.ConvertStringToFloat64(strings.Split(d.FontSize, "px")[0]) * 0.65
+	return float64(len(name)) * util.ConvertStringToFloat64(strings.Split(d.FontSize, "px")[0]) * 0.7
 }
 
 func (d *OrganizerGroup) GetTitleHeight(name string) float64 {
 	return util.ConvertStringToFloat64(strings.Split(d.FontSize, "px")[0]) * 1.75
 }
 
-func (d *OrganizerGroup) GetContentWidth() float64 {
-	return float64(nifiutil.ProcessGroupWidth+nifiutil.ProcessGroupPadding)*d.GetNumberOfColumns() + float64(nifiutil.ProcessGroupPadding)
+func (d *OrganizerGroup) GetContentWidth(name string) float64 {
+	calculatedWidth := float64(nifiutil.ProcessGroupWidth+nifiutil.ProcessGroupPadding)*d.GetNumberOfColumns() + float64(nifiutil.ProcessGroupPadding)
+	if calculatedWidth < d.GetTitleWidth(name) {
+		return d.GetTitleWidth(name)
+	}
+	return calculatedWidth
 }
 
 func (d *OrganizerGroup) GetContentHeight() float64 {

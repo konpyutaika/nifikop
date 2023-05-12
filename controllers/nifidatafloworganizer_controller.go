@@ -208,8 +208,8 @@ func (r *NifiDataflowOrganizerReconciler) Reconcile(ctx context.Context, req ctr
 		instance.Status.GroupStatus = make(map[string]v1alpha1.OrganizerGroupStatus)
 	}
 
-	// Check if some groups have been deleted
 	for _, groupName := range original.Spec.GetGroupNames() {
+		// Check if some groups have been deleted
 		if _, ok := instance.Spec.Groups[groupName]; !ok {
 			groupStatus := instance.Status.GroupStatus[groupName]
 			if err := datafloworganizer.RemoveDataflowOrganizerGroup(groupStatus, clientConfig); err != nil {
@@ -219,13 +219,8 @@ func (r *NifiDataflowOrganizerReconciler) Reconcile(ctx context.Context, req ctr
 				return RequeueWithError(r.Log, "Failed to delete group "+groupName+" NifiDataflowOrganizer "+instance.Name, err)
 			}
 
-			// TODO FIX THIS
-			delete(instance.Status.GroupStatus, groupName)
 			if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(instance); err != nil {
 				return RequeueWithError(r.Log, "could not apply last state to annotation for NifiDataflowOrganizer "+instance.Name, err)
-			}
-			if err := r.Client.Status().Update(ctx, instance); err != nil {
-				return RequeueWithError(r.Log, "failed to update status for NifiDataflowOrganizer "+instance.Name, err)
 			}
 			if err := r.Client.Update(ctx, instance); err != nil {
 				return RequeueWithError(r.Log, "failed to update NifiDataflowOrganizer "+instance.Name, err)
@@ -234,6 +229,7 @@ func (r *NifiDataflowOrganizerReconciler) Reconcile(ctx context.Context, req ctr
 				fmt.Sprintf("Removed group %s of NifiDataflowOrganizer %s", groupName, instance.Name))
 			return RequeueAfter(interval)
 		} else {
+			// Check if some dataflow references have been deleted
 			for _, dataflowRefOrginal := range original.Spec.Groups[groupName].DataflowRef {
 				notFound := true
 				for _, dataflowRefInstance := range instance.Spec.Groups[groupName].DataflowRef {
@@ -261,7 +257,16 @@ func (r *NifiDataflowOrganizerReconciler) Reconcile(ctx context.Context, req ctr
 		}
 	}
 
-	// TODO IF TITLE WIDER THAT CONTENT MAKE CONTENT AT LEAST AS WIDE AS THE TITLE
+	// Clean status
+	for groupName := range instance.Status.GroupStatus {
+		if _, ok := instance.Spec.Groups[groupName]; !ok {
+			delete(instance.Status.GroupStatus, groupName)
+			if err := r.Client.Status().Update(ctx, instance); err != nil {
+				return RequeueWithError(r.Log, "failed to update status for NifiDataflowOrganizer "+instance.Name, err)
+			}
+		}
+	}
+
 	groupPosX, groupPosY := float64(instance.Spec.InitialPosition.X), float64(instance.Spec.InitialPosition.Y)
 	// Check if the NiFi dataflow organizer resources already exist
 	for _, groupName := range instance.Spec.GetGroupNames() {
@@ -309,6 +314,7 @@ func (r *NifiDataflowOrganizerReconciler) Reconcile(ctx context.Context, req ctr
 		r.Recorder.Event(instance, corev1.EventTypeNormal, "Synchronized",
 			fmt.Sprintf("Synchronized group %s of NifiDataflowOrganizer %s", groupName, instance.Name))
 
+		// Set dataflow position in the group
 		dfOffsetX, dfOffsetY := nifiutil.ProcessGroupPadding+int(groupPosX), nifiutil.ProcessGroupPadding+int(groupPosY)+int(group.GetTitleHeight(groupName))
 		for index, dfRef := range group.DataflowRef {
 			dfInstance, err := k8sutil.LookupNifiDataflow(r.Client, dfRef.Name, GetDataflowRefNamespace(instance.Namespace, dfRef))
@@ -336,7 +342,7 @@ func (r *NifiDataflowOrganizerReconciler) Reconcile(ctx context.Context, req ctr
 		if groupPosX > float64(instance.Spec.MaxWidth) {
 			groupPosX, groupPosY = 0.0, groupPosY+group.GetContentHeight()+group.GetTitleHeight(groupName)
 		} else {
-			groupPosX = groupPosX + group.GetContentWidth()
+			groupPosX = groupPosX + group.GetContentWidth(groupName)
 		}
 	}
 

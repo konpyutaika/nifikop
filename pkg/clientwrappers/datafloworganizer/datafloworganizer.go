@@ -171,7 +171,7 @@ func contentLabelIsSync(
 	entity *nigoapi.LabelEntity) bool {
 	return entity.Component.Label == "" && group.FontSize == entity.Component.Style["font-size"] &&
 		group.Color == entity.Component.Style["background-color"] && float64(posX) == entity.Component.Position.X &&
-		group.GetTitleHeight(groupName)+float64(posY) == entity.Component.Position.Y && group.GetContentWidth() == entity.Component.Width &&
+		group.GetTitleHeight(groupName)+float64(posY) == entity.Component.Position.Y && group.GetContentWidth(groupName) == entity.Component.Width &&
 		group.GetContentHeight() == entity.Component.Height
 }
 
@@ -238,7 +238,7 @@ func updateContentLabelEntity(
 
 	entity.Component.Label = ""
 	entity.Component.Style["background-color"] = group.Color
-	entity.Component.Width = group.GetContentWidth()
+	entity.Component.Width = group.GetContentWidth(groupName)
 	entity.Component.Height = group.GetContentHeight()
 	entity.Component.Position = &nigoapi.PositionDto{
 		X: posX,
