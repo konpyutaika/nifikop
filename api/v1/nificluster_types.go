@@ -338,6 +338,8 @@ type StorageConfig struct {
 	Name string `json:"name"`
 	// Path where the volume will be mount into the main nifi container inside the pod.
 	MountPath string `json:"mountPath"`
+	// labels and annotations to attach to the PVC created
+	Metadata Metadata `json:"metadata,omitempty"`
 	// Kubernetes PVC spec
 	PVCSpec *corev1.PersistentVolumeClaimSpec `json:"pvcSpec"`
 }

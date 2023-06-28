@@ -261,6 +261,10 @@ func convertStorageConfigs(src []StorageConfig, dst *v1.NodeConfig) {
 		dstConfig := v1.StorageConfig{
 			Name:      srcConfig.Name,
 			MountPath: srcConfig.MountPath,
+			Metadata: v1.Metadata{
+				Labels: map[string]string{},
+				Annotations: map[string]string{},
+			},
 		}
 		if srcConfig.PVCSpec != nil {
 			dstConfig.PVCSpec = srcConfig.PVCSpec
