@@ -8,6 +8,7 @@
 
 - [PR #257](https://github.com/konpyutaika/nifikop/pull/257) - **[Operator]** Updated the operator-sdk to 1.28.0.
 - [PR #263](https://github.com/konpyutaika/nifikop/pull/263) - **[NiGoApi]** Upgrade nigoapi to v0.0.8.
+- [PR #263](https://github.com/konpyutaika/nifikop/pull/268) - **[Operator]** Upgrade golang to 1.20.5.
 
 ### Fixed Bugs
 
