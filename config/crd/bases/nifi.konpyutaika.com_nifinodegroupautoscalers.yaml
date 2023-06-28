@@ -948,6 +948,17 @@ spec:
                   storageConfigs:
                     items:
                       properties:
+                        metadata:
+                          properties:
+                            annotations:
+                              additionalProperties:
+                                type: string
+                              type: object
+                            labels:
+                              additionalProperties:
+                                type: string
+                              type: object
+                          type: object
                         mountPath:
                           type: string
                         name:

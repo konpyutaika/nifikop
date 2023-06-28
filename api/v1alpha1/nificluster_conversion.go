@@ -262,7 +262,7 @@ func convertStorageConfigs(src []StorageConfig, dst *v1.NodeConfig) {
 			Name:      srcConfig.Name,
 			MountPath: srcConfig.MountPath,
 			Metadata: v1.Metadata{
-				Labels: map[string]string{},
+				Labels:      map[string]string{},
 				Annotations: map[string]string{},
 			},
 		}

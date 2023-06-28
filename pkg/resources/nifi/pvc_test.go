@@ -5,28 +5,27 @@ import (
 
 	v1 "github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/pkg/resources"
+	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestPVC(t *testing.T) {
 	r := resources.Reconciler{
 		NifiCluster: &v1.NifiCluster{
 			ObjectMeta: metav1.ObjectMeta{
-				Name: "cluster",
+				Name:      "cluster",
 				Namespace: "namespace",
 			},
-			Spec: v1.NifiClusterSpec{
-			},
+			Spec: v1.NifiClusterSpec{},
 		},
 	}
 	rec := Reconciler{
 		Reconciler: r,
 	}
 	storage := v1.StorageConfig{
-		Name: "storage",
+		Name:      "storage",
 		MountPath: "/path",
 		Metadata: v1.Metadata{
 			Labels: map[string]string{
