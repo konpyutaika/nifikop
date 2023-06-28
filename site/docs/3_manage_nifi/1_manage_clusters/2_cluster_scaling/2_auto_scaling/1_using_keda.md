@@ -72,6 +72,11 @@ spec:
       storageConfigs:
         - mountPath: /opt/nifi/nifi-current/logs
           name: logs
+          metadata:
+            labels:
+              my-label: my-value
+            annotations:
+              my-annotation: my-value
           pvcSpec:
             accessModes:
               - ReadWriteOnce
@@ -81,6 +86,11 @@ spec:
             storageClassName: ssd-wait
         - mountPath: /opt/nifi/data
           name: data
+          metadata:
+            labels:
+              my-label: my-value
+            annotations:
+              my-annotation: my-value
           pvcSpec:
             accessModes:
               - ReadWriteOnce
@@ -90,6 +100,11 @@ spec:
             storageClassName: ssd-wait
         - mountPath: /opt/nifi/extensions
           name: extensions-repository
+          metadata:
+            labels:
+              my-label: my-value
+            annotations:
+              my-annotation: my-value
           pvcSpec:
             accessModes:
               - ReadWriteOnce
@@ -99,6 +114,11 @@ spec:
             storageClassName: ssd-wait
         - mountPath: /opt/nifi/flowfile_repository
           name: flowfile-repository
+          metadata:
+            labels:
+              my-label: my-value
+            annotations:
+              my-annotation: my-value
           pvcSpec:
             accessModes:
               - ReadWriteOnce
@@ -108,6 +128,11 @@ spec:
             storageClassName: ssd-wait
         - mountPath: /opt/nifi/nifi-current/conf
           name: conf
+          metadata:
+            labels:
+              my-label: my-value
+            annotations:
+              my-annotation: my-value
           pvcSpec:
             accessModes:
               - ReadWriteOnce
@@ -117,6 +142,11 @@ spec:
             storageClassName: ssd-wait
         - mountPath: /opt/nifi/content_repository
           name: content-repository
+          metadata:
+            labels:
+              my-label: my-value
+            annotations:
+              my-annotation: my-value
           pvcSpec:
             accessModes:
               - ReadWriteOnce
@@ -126,6 +156,11 @@ spec:
             storageClassName: ssd-wait
         - mountPath: /opt/nifi/provenance_repository
           name: provenance-repository
+          metadata:
+            labels:
+              my-label: my-value
+            annotations:
+              my-annotation: my-value
           pvcSpec:
             accessModes:
               - ReadWriteOnce

@@ -45,6 +45,12 @@ NodeConfig defines the node configuration
         - name: provenance-repository
           # Path where the volume will be mount into the main nifi container inside the pod.
           mountPath: "/opt/nifi/provenance_repository"
+          # Metadata to attach to the PVC that gets created
+          metadata:
+            labels:
+              my-label: my-value
+            annotations:
+              my-annotation: my-value
           # Kubernetes PVC spec
           # https://kubernetes.io/docs/tasks/configure-pod-container/configure-persistent-volume-storage/#create-a-persistentvolumeclaim
           pvcSpec:
@@ -83,7 +89,7 @@ NodeConfig defines the node configuration
 | imagePullSecrets      | \[  \][LocalObjectReference](https://godoc.org/k8s.io/api/core/v1#TypedLocalObjectReference) |specifies the secret to use when using private registry.|No|nil|
 | nodeSelector          | map\[string\]string                                                                          |nodeSelector can be specified, which set the pod to fit on a node [nodeselector](https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#nodeselector)|No|nil|
 | tolerations           | \[  \][Toleration](https://godoc.org/k8s.io/api/core/v1#Toleration)                          |tolerations can be specified, which set the pod's tolerations [taint-and-toleration](https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/#concepts).|No|nil|
-| podMetadata           | [Metadata](#metadata)                                                                        |define additionnal metadata to merge to the pod associated.|No|nil|
+| podMetadata           | [Metadata](#metadata)                                                                        |define additionnal metadata to merge to the Pod associated.|No|nil|
 | hostAliases      | \[\][HostAlias](https://pkg.go.dev/k8s.io/api/core/v1#HostAlias) | A list of host aliases to include in each pod's /etc/hosts configuration in the scenario where DNS is not available.           | No       | \[\]       |
 | priorityClassName     | string                                                                                       | Specify the name of the priority class to apply to pods created with this node config | No | nil|
 
@@ -93,6 +99,7 @@ NodeConfig defines the node configuration
 |-----|----|-----------|--------|--------|
 |name|string|Name of the storage config, used to name PV to reuse into sidecars for example.|Yes| - |
 |mountPath|string|Path where the volume will be mount into the main nifi container inside the pod.|Yes| - |
+|metadata|[Metadata](#metadata)|Define additional metadata to merge to the PVC associated.|No| - |
 |pvcSpec|[PersistentVolumeClaimSpec](https://godoc.org/k8s.io/api/core/v1#PersistentVolumeClaimSpec)|Kubernetes PVC spec. [create-a-persistentvolumeclaim](https://kubernetes.io/docs/tasks/configure-pod-container/configure-persistent-volume-storage/#create-a-persistentvolumeclaim).|Yes| - |
 
 ## ExternalVolumeConfig
@@ -106,5 +113,5 @@ NodeConfig defines the node configuration
 
 | Field                                                             |Type| Description |Required|Default|
 |-------------------------------------------------------------------|----|-------------|--------|--------|
-| annotations | map\[string\]string | Additionnal annotation to merge to the pod associated [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#syntax-and-character-set). |No|nil|
-| labels  | map\[string\]string | Additionnal labels to merge to the pod associated [labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#syntax-and-character-set).               |No|nil|
+| annotations | map\[string\]string | Additionnal annotation to merge to the resource associated [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#syntax-and-character-set). |No|nil|
+| labels  | map\[string\]string | Additionnal labels to merge to the resource associated [labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#syntax-and-character-set).               |No|nil|
