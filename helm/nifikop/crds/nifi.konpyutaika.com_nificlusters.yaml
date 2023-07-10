@@ -715,6 +715,14 @@ spec:
                     type: string
                   url:
                     type: string
+                  authenticationStrategy:
+                    type: string
+                  managerDn:
+                    type: string
+                  managerPassword:
+                    type: string
+                  identityStrategy:
+                    type: string
                 type: object
               listenersConfig:
                 properties:

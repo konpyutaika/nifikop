@@ -707,8 +707,16 @@ spec:
                 type: array
               ldapConfiguration:
                 properties:
+                  authenticationStrategy:
+                    type: string
                   enabled:
                     type: boolean
+                  identityStrategy:
+                    type: string
+                  managerDn:
+                    type: string
+                  managerPassword:
+                    type: string
                   searchBase:
                     type: string
                   searchFilter:

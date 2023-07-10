@@ -503,6 +503,18 @@ type LdapConfiguration struct {
 	// Filter for searching for users against the 'User Search Base'.
 	// (i.e. sAMAccountName={0}). The user specified name is inserted into '{0}'.
 	SearchFilter string `json:"searchFilter,omitempty"`
+	// How the connection to the LDAP server is authenticated.
+	// Possible values are ANONYMOUS, SIMPLE, LDAPS, or START_TLS.
+	AuthenticationStrategy string `json:"authenticationStrategy,omitempty"`
+	// The DN of the manager that is used to bind to the LDAP server to search for users.
+	ManagerDn string `json:"managerDn,omitempty"`
+	// The password of the manager that is used to bind to the LDAP server to search for users.
+	ManagerPassword string `json:"managerPassword,omitempty"`
+	// Strategy to identify users. Possible values are USE_DN and USE_USERNAME.
+	// The default functionality if this property is missing is USE_DN in order to retain backward compatibility.
+	// USE_DN will use the full DN of the user entry if possible.
+	// USE_USERNAME will use the username the user logged in with.
+	IdentityStrategy string `json:"identityStrategy,omitempty"`
 }
 
 // NifiClusterTaskSpec specifies the configuration of the nifi cluster Tasks
