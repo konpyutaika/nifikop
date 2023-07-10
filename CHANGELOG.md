@@ -11,6 +11,7 @@
 - [PR #263](https://github.com/konpyutaika/nifikop/pull/268) - **[Operator]** Upgrade golang to 1.20.5.
 - [PR #266](https://github.com/konpyutaika/nifikop/pull/266) - **[Operator]** Add AuthenticationStrategy, ManagerDn, ManagerPassword, IdentityStrategy properties for LDAP integration
 
+
 ### Fixed Bugs
 
 ### Deprecated
