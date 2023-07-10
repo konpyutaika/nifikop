@@ -36,7 +36,7 @@ The operator should reflect as much as possible the behavior of the solution we 
 This means that your cluster is not defined by what is deployed on it, and what you deploy on it does not depend on it.
 To be more explicit, just because I deploy a NiFi cluster doesn't mean the DataFlow deployed on it will stay there, we can move the DataFlow from one cluster to another.
 
-To manage this, we need to create different kinds of resources ([NifiCluster], [NifiDataflow], [NifiParameterContext], [NifiUser], [NifiUserGroup], [NifiRegistryClient], [NifiNodeGroupAutoscaler]) with one controller per resource that will manage its own resource.
+To manage this, we need to create different kinds of resources ([NifiCluster], [NifiDataflow], [NifiParameterContext], [NifiUser], [NifiUserGroup], [NifiRegistryClient], [NifiNodeGroupAutoscaler], [NifiDataflowOrganizer]) with one controller per resource that will manage its own resource.
 In this way, we can say:
 
 - I deploy a NiFiCluster
@@ -50,3 +50,4 @@ In this way, we can say:
 [NifiUserGroup]: ../5_references/6_nifi_usergroup
 [NifiRegistryClient]: ../5_references/3_nifi_registry_client
 [NifiNodeGroupAutoscaler]: ../5_references/7_nifi_nodegroup_autoscaler
+[NifiDataflowOrganizer]: ../5_references/8_nifi_dataflow_organizer

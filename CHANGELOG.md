@@ -2,7 +2,8 @@
 
 ### Added
 
-- [PR #258](https://github.com/konpyutaika/nifikop/pull/141) - **[Helm Chart]** Upgraded helm-deployed HPA to v2 and added flowPosition to NiFiDataflow
+- [PR #258](https://github.com/konpyutaika/nifikop/pull/141) - **[Helm Chart]** Upgraded helm-deployed HPA to v2 and added flowPosition to NiFiDataflow helm chart.
+- [PR #264](https://github.com/konpyutaika/nifikop/pull/264) - **[Operator/NifiDataflowOrganizer]** Implementation on NifiDataflowOrganizer controller.
 
 ### Changed
 

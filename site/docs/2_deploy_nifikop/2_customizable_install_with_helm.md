@@ -26,6 +26,7 @@ It will use Custom Ressources Definition CRDs:
 - `nifiparametercontexts.nifi.konpyutaika.com`,
 - `nifidataflows.nifi.konpyutaika.com`,
 - `nifinodegroupautoscalers.nifi.konpyutaika.com`,
+- `nifidatafloworganizers.nifi.konpyutaika.com`,
 
 ### Configuration
 
@@ -79,6 +80,7 @@ kubectl apply -f https://raw.githubusercontent.com/konpyutaika/nifikop/master/co
 kubectl apply -f https://raw.githubusercontent.com/konpyutaika/nifikop/master/config/crd/bases/nifi.konpyutaika.com_nifiparametercontexts.yaml
 kubectl apply -f https://raw.githubusercontent.com/konpyutaika/nifikop/master/config/crd/bases/nifi.konpyutaika.com_nifiregistryclients.yaml
 kubectl apply -f https://raw.githubusercontent.com/konpyutaika/nifikop/master/config/crd/bases/nifi.konpyutaika.com_nifinodegroupautoscalers.yaml
+kubectl apply -f https://raw.githubusercontent.com/konpyutaika/nifikop/master/config/crd/bases/nifi.konpyutaika.com_nifidatafloworganizers.yaml
 ```
 
 :::
@@ -187,6 +189,8 @@ kubectl delete crd nifiusergroups.nifi.konpyutaika.com
 kubectl delete crd nifiregistryclients.nifi.konpyutaika.com
 kubectl delete crd nifiparametercontexts.nifi.konpyutaika.com
 kubectl delete crd nifidataflows.nifi.konpyutaika.com
+kubectl delete crd nifinodegroupautoscalers.nifi.konpyutaika.com
+kubectl delete crd nifidatafloworganizers.nifi.konpyutaika.com
 ```
 
 :::warning

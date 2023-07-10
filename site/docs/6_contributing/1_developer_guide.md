@@ -10,11 +10,11 @@ sidebar_label: Developer guide
 
 NiFiKop has been validated with :
 
-- [go](https://golang.org/doc/install) version v1.17+.
+- [go](https://golang.org/doc/install) version v1.20+.
 - [docker](https://docs.docker.com/get-docker/) version 18.09+
 - [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) version v1.16+
 - [Helm](https://helm.sh/) version v3.4.2
-- [Operator sdk](https://github.com/operator-framework/operator-sdk) version v1.18.1
+- [Operator sdk](https://github.com/operator-framework/operator-sdk) version v1.20
 
 ### Initial setup
 
@@ -78,6 +78,8 @@ kubectl apply -f config/crd/bases/nifi.konpyutaika.com_nifiparametercontexts.yam
 kubectl apply -f config/crd/bases/nifi.konpyutaika.com_nifiregistryclients.yaml
 kubectl apply -f config/crd/bases/nifi.konpyutaika.com_nifiusergroups.yaml
 kubectl apply -f config/crd/bases/nifi.konpyutaika.com_nifiusers.yaml
+kubectl apply -f config/crd/bases/nifi.konpyutaika.com_nifinodegroupautoscalers.yaml
+kubectl apply -f config/crd/bases/nifi.konpyutaika.com_nifidatafloworganizers.yaml
 ```
 
 And deploy the operator.

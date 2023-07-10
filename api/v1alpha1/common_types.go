@@ -123,35 +123,54 @@ type SecretConfigReference struct {
 // ClusterReference states a reference to a cluster for dataflow/registryclient/user
 // provisioning
 type ClusterReference struct {
-	Name      string `json:"name"`
+	// Name of the NifiCluster.
+	Name string `json:"name"`
+	// NifiCluster namespace location.
 	Namespace string `json:"namespace,omitempty"`
 }
 
 // RegistryClientReference states a reference to a registry client for dataflow
 // provisioning
 type RegistryClientReference struct {
-	Name      string `json:"name"`
+	// Name of the NifiRegistryClient.
+	Name string `json:"name"`
+	// NifiRegistryClient namespace location.
 	Namespace string `json:"namespace,omitempty"`
 }
 
 // ParameterContextReference states a reference to a parameter context for dataflow
 // provisioning
 type ParameterContextReference struct {
-	Name      string `json:"name"`
+	// Name of the NifiParameterContext.
+	Name string `json:"name"`
+	// NifiParameterContext namespace location.
 	Namespace string `json:"namespace,omitempty"`
 }
 
 // SecretReference states a reference to a secret for parameter context
 // provisioning
 type SecretReference struct {
-	Name      string `json:"name"`
+	// Name of the Secret.
+	Name string `json:"name"`
+	// Secret namespace location.
 	Namespace string `json:"namespace,omitempty"`
 }
 
 // UserReference states a reference to a user for user group
 // provisioning
 type UserReference struct {
-	Name      string `json:"name"`
+	// Name of the NifiUser.
+	Name string `json:"name"`
+	// NifiUser namespace location.
+	Namespace string `json:"namespace,omitempty"`
+}
+
+// DataflowReference states a reference to a dataflow for dataflow organizer
+// provisioning
+type DataflowReference struct {
+	// Name of the NifiDataflow.
+	Name string `json:"name"`
+	// NifiDataflow namespace location.
 	Namespace string `json:"namespace,omitempty"`
 }
 

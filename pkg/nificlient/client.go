@@ -98,6 +98,12 @@ type NifiClient interface {
 	CreateParameterContextUpdateRequest(contextId string, entity nigoapi.ParameterContextEntity) (*nigoapi.ParameterContextUpdateRequestEntity, error)
 	GetParameterContextUpdateRequest(contextId, id string) (*nigoapi.ParameterContextUpdateRequestEntity, error)
 
+	// Label func
+	GetLabel(id string) (*nigoapi.LabelEntity, error)
+	CreateLabel(entity nigoapi.LabelEntity, pgParentId string) (*nigoapi.LabelEntity, error)
+	UpdateLabel(entity nigoapi.LabelEntity) (*nigoapi.LabelEntity, error)
+	RemoveLabel(entity nigoapi.LabelEntity) error
+
 	// User groups func
 	GetUserGroups() ([]nigoapi.UserGroupEntity, error)
 	GetUserGroup(id string) (*nigoapi.UserGroupEntity, error)

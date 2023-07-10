@@ -145,6 +145,32 @@ rules:
 - apiGroups:
   - nifi.konpyutaika.com
   resources:
+  - nifidatafloworganizers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - nifi.konpyutaika.com
+  resources:
+  - nifidatafloworganizers/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - nifi.konpyutaika.com
+  resources:
+  - nifidatafloworganizers/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - nifi.konpyutaika.com
+  resources:
   - nifidataflows
   verbs:
   - create

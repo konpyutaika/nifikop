@@ -2,7 +2,8 @@ package k8sutil
 
 import (
 	"context"
-	"github.com/konpyutaika/nifikop/api/v1"
+
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 	corev1 "k8s.io/api/core/v1"
 
 	"k8s.io/apimachinery/pkg/types"
@@ -41,5 +42,12 @@ func LookupSecret(client runtimeClient.Client, secretName, secretNamespace strin
 func LookupNifiUser(client runtimeClient.Client, userName, userNamespace string) (user *v1.NifiUser, err error) {
 	user = &v1.NifiUser{}
 	err = client.Get(context.TODO(), types.NamespacedName{Name: userName, Namespace: userNamespace}, user)
+	return
+}
+
+// LookupNifiDataflow returns the dataflow instance based on its name and namespace
+func LookupNifiDataflow(client runtimeClient.Client, dataflowName, dataflowNamespace string) (dataflow *v1.NifiDataflow, err error) {
+	dataflow = &v1.NifiDataflow{}
+	err = client.Get(context.TODO(), types.NamespacedName{Name: dataflowName, Namespace: dataflowNamespace}, dataflow)
 	return
 }
