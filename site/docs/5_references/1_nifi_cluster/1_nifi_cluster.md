@@ -43,6 +43,12 @@ spec:
       storageConfigs:
         - mountPath: '/opt/nifi/nifi-current/logs'
           name: logs
+          # Metadata to attach to the PVC that gets created
+          metadata:
+            labels:
+              my-label: my-value
+            annotations:
+              my-annotation: my-value
           pvcSpec:
             accessModes:
               - ReadWriteOnce

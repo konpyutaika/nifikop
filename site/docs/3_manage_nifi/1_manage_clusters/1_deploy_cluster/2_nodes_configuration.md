@@ -98,6 +98,7 @@ The first way to define data persistence is to use the [Spec.NodeConfigGroup.Sto
 
 This field allows you to define a storage set giving:
 - `name`: a unique name to identify the storage config
+- `metadata`: labels and annotations to attach to the PVC getting created.
 - `pvcSpec` : a Kubernetes PVC spec definition
 - `mountPath` : the path where the volume will be mounted into the main nifi container inside the pod (i.e the path were you want the data to be persisted).
 
@@ -122,6 +123,11 @@ Here is an example we use in production for to persist data:
 storageConfigs:
   - mountPath: /opt/nifi/nifi-current/logs
     name: logs
+    metadata:
+      labels:
+        my-label: my-value
+      annotations:
+        my-annotation: my-value
     pvcSpec:
       accessModes:
         - ReadWriteOnce
@@ -131,6 +137,11 @@ storageConfigs:
       storageClassName: ssd-wait
   - mountPath: /opt/nifi/data
     name: data
+    metadata:
+      labels:
+        my-label: my-value
+      annotations:
+        my-annotation: my-value
     pvcSpec:
       accessModes:
         - ReadWriteOnce
@@ -140,6 +151,11 @@ storageConfigs:
       storageClassName: ssd-wait
   - mountPath: /opt/nifi/extensions
     name: extensions-repository
+    metadata:
+      labels:
+        my-label: my-value
+      annotations:
+        my-annotation: my-value
     pvcSpec:
       accessModes:
         - ReadWriteOnce
@@ -149,6 +165,11 @@ storageConfigs:
       storageClassName: ssd-wait
   - mountPath: /opt/nifi/flowfile_repository
     name: flowfile-repository
+    metadata:
+      labels:
+        my-label: my-value
+      annotations:
+        my-annotation: my-value
     pvcSpec:
       accessModes:
         - ReadWriteOnce
@@ -158,6 +179,11 @@ storageConfigs:
       storageClassName: ssd-wait
   - mountPath: /opt/nifi/nifi-current/conf
     name: conf
+    metadata:
+      labels:
+        my-label: my-value
+      annotations:
+        my-annotation: my-value
     pvcSpec:
       accessModes:
         - ReadWriteOnce
@@ -167,6 +193,11 @@ storageConfigs:
       storageClassName: ssd-wait
   - mountPath: /opt/nifi/content_repository
     name: content-repository
+    metadata:
+      labels:
+        my-label: my-value
+      annotations:
+        my-annotation: my-value
     pvcSpec:
       accessModes:
         - ReadWriteOnce
@@ -176,6 +207,11 @@ storageConfigs:
       storageClassName: ssd-wait
   - mountPath: /opt/nifi/provenance_repository
     name: provenance-repository
+    metadata:
+      labels:
+        my-label: my-value
+      annotations:
+        my-annotation: my-value
     pvcSpec:
       accessModes:
         - ReadWriteOnce
@@ -283,6 +319,11 @@ Here is an example of how to do this in the `NiFiCluster` configuration:
       storageConfigs:
       - mountPath: "/opt/nifi/content-additional/dir1"
         name: content-repository-dir1
+        metadata:
+          labels:
+            my-label: my-value
+          annotations:
+            my-annotation: my-value
         pvcSpec:
           accessModes:
             - ReadWriteOnce
@@ -292,6 +333,11 @@ Here is an example of how to do this in the `NiFiCluster` configuration:
               storage: 100G
       - mountPath: "/opt/nifi/content-additional/dir2"
         name: content-repository-dir2
+        metadata:
+          labels:
+            my-label: my-value
+          annotations:
+            my-annotation: my-value
         pvcSpec:
           accessModes:
             - ReadWriteOnce
@@ -301,6 +347,11 @@ Here is an example of how to do this in the `NiFiCluster` configuration:
               storage: 100G
       - mountPath: "/opt/nifi/content-additional/dir3"
         name: content-repository-dir3
+        metadata:
+          labels:
+            my-label: my-value
+          annotations:
+            my-annotation: my-value
         pvcSpec:
           accessModes:
             - ReadWriteOnce
@@ -310,6 +361,11 @@ Here is an example of how to do this in the `NiFiCluster` configuration:
               storage: 100G
       - mountPath: "/opt/nifi/provenance-additional/dir1"
         name: provenance-repository-dir1
+        metadata:
+          labels:
+            my-label: my-value
+          annotations:
+            my-annotation: my-value
         pvcSpec:
           accessModes:
             - ReadWriteOnce
@@ -319,6 +375,11 @@ Here is an example of how to do this in the `NiFiCluster` configuration:
               storage: 100G
       - mountPath: "/opt/nifi/provenance-additional/dir2"
         name: provenance-repository-dir2
+        metadata:
+          labels:
+            my-label: my-value
+          annotations:
+            my-annotation: my-value
         pvcSpec:
           accessModes:
             - ReadWriteOnce

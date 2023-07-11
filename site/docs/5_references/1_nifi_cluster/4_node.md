@@ -38,6 +38,12 @@ Node defines the nifi node basic configuration
           - name: provenance-repository
             # Path where the volume will be mount into the main nifi container inside the pod.
             mountPath: "/opt/nifi/provenance_repository"
+            # Metadata to attach to the PVC that gets created
+            metadata:
+              labels:
+                my-label: my-value
+              annotations:
+                my-annotation: my-value
             # Kubernetes PVC spec
             # https://kubernetes.io/docs/tasks/configure-pod-container/configure-persistent-volume-storage/#create-a-persistentvolumeclaim
             pvcSpec:
