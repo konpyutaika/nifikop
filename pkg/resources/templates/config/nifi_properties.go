@@ -163,6 +163,8 @@ nifi.security.needClientAuth={{ .NeedClientAuth }}
 nifi.security.user.authorizer={{ .Authorizer }}
 {{if .LdapConfiguration.Enabled}}
 nifi.security.user.login.identity.provider=ldap-provider
+{{else if .SingleUserEnabled}}
+nifi.security.user.login.identity.provider=single-user-provider
 {{else}}
 nifi.security.user.login.identity.provider=
 {{end}}
