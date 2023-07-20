@@ -101,6 +101,7 @@ type NifiClusterSpec struct {
 	// ControllerUserIdentity specifies what to call the static admin user's identity
 	// Warning: once defined don't change this value either the operator will no longer be able to manage the cluster
 	ControllerUserIdentity *string `json:"controllerUserIdentity,omitempty"`
+	SingleUserEnabled      bool    `json:"singleUserEnabled,omitempty"`
 
 	// @TODO: Block Controller change
 }

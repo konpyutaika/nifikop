@@ -3168,6 +3168,8 @@ spec:
                 type: array
               oneNifiNodePerNode:
                 type: boolean
+              singleUserEnabled:
+                type: boolean
               pod:
                 properties:
                   annotations:
