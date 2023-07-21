@@ -100,10 +100,16 @@ type NifiClusterSpec struct {
 	NifiControllerTemplate *string `json:"nifiControllerTemplate,omitempty"`
 	// ControllerUserIdentity specifies what to call the static admin user's identity
 	// Warning: once defined don't change this value either the operator will no longer be able to manage the cluster
-	ControllerUserIdentity *string `json:"controllerUserIdentity,omitempty"`
-	SingleUserEnabled      bool    `json:"singleUserEnabled,omitempty"`
+	ControllerUserIdentity  *string                 `json:"controllerUserIdentity,omitempty"`
+	SingleUserConfiguration SingleUserConfiguration `json:"singleUserConfiguration,omitempty"`
 
 	// @TODO: Block Controller change
+}
+
+type SingleUserConfiguration struct {
+	Enabled   bool            `json:"enabled,omitempty"`
+	SecretRef SecretReference `json:"secretRef,omitempty"`
+	//AuthorizerEnabled bool            `json:"authorizerEnabled,omitempty"`
 }
 
 // DisruptionBudget defines the configuration for PodDisruptionBudget

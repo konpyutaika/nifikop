@@ -3168,6 +3168,22 @@ spec:
                 type: array
               oneNifiNodePerNode:
                 type: boolean
+              singleUserConfiguration:
+                properties:
+                  enabled:
+                    type: boolean
+                  secretRef:
+                    properties:
+                      name:
+                        type: string
+                      namespace:
+                        type: string
+                    required:
+                    - name
+                    type: object
+                  #authorizerEnabled:
+                   # type: boolean
+                type: object
               pod:
                 properties:
                   annotations:
