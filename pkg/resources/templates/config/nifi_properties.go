@@ -161,7 +161,11 @@ nifi.security.truststoreType=JKS
 nifi.security.truststorePasswd={{ .ServerKeystorePassword }}
 {{ end }}
 nifi.security.needClientAuth={{ .NeedClientAuth }}
+{{if .SingleUserConfiguration.AuthorizerEnabled}}
+nifi.security.user.authorizer=single-user-authorizer
+{{else}}
 nifi.security.user.authorizer={{ .Authorizer }}
+{{end}}
 {{if .LdapConfiguration.Enabled}}
 nifi.security.user.login.identity.provider=ldap-provider
 {{else if .SingleUserConfiguration.Enabled}}

@@ -3181,8 +3181,8 @@ spec:
                     required:
                     - name
                     type: object
-                  #authorizerEnabled:
-                   # type: boolean
+                  authorizerEnabled:
+                    type: boolean
                 type: object
               pod:
                 properties:

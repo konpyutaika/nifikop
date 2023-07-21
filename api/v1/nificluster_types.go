@@ -107,9 +107,9 @@ type NifiClusterSpec struct {
 }
 
 type SingleUserConfiguration struct {
-	Enabled   bool            `json:"enabled,omitempty"`
-	SecretRef SecretReference `json:"secretRef,omitempty"`
-	//AuthorizerEnabled bool            `json:"authorizerEnabled,omitempty"`
+	Enabled           bool            `json:"enabled,omitempty"`
+	AuthorizerEnabled bool            `json:"authorizerEnabled,omitempty"`
+	SecretRef         SecretReference `json:"secretRef,omitempty"`
 }
 
 // DisruptionBudget defines the configuration for PodDisruptionBudget

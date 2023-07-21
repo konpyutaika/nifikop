@@ -27,6 +27,7 @@ cluster:
 
   singleUserConfiguration:
     enabled: false
+    authorizerEnabled: false
     secretRef: {}
 
   pod:
