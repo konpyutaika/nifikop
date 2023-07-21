@@ -92,7 +92,7 @@ var LoginIdentityProvidersTemplate = `<?xml version="1.0" encoding="UTF-8" stand
         <property name="Identity Strategy">{{or .LdapConfiguration.IdentityStrategy "USE_DN"}}</property>
         <property name="Authentication Expiration">12 hours</property>
     </provider>
-    {{else if .SingleUserEnabled}}
+    {{else if .SingleUserConfiguration.Enabled}}
     <provider>
         <identifier>single-user-provider</identifier>
         <class>org.apache.nifi.authentication.single.user.SingleUserLoginIdentityProvider</class>

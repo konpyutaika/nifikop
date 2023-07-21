@@ -162,11 +162,11 @@ func (r *Reconciler) getNifiPropertiesConfigString(nConfig *v1.NodeConfig, id in
 		"ServerKeystorePassword":             serverPass,
 		"ClientKeystorePassword":             clientPass,
 		//
-		"LdapConfiguration":      r.NifiCluster.Spec.LdapConfiguration,
-		"SingleUserEnabled":      r.NifiCluster.Spec.SingleUserEnabled,
-		"IsNode":                 nConfig.GetIsNode(),
-		"ZookeeperConnectString": r.NifiCluster.Spec.ZKAddress,
-		"ZookeeperPath":          r.NifiCluster.Spec.GetZkPath(),
+		"LdapConfiguration":       r.NifiCluster.Spec.LdapConfiguration,
+		"SingleUserConfiguration": r.NifiCluster.Spec.SingleUserConfiguration,
+		"IsNode":                  nConfig.GetIsNode(),
+		"ZookeeperConnectString":  r.NifiCluster.Spec.ZKAddress,
+		"ZookeeperPath":           r.NifiCluster.Spec.GetZkPath(),
 	}); err != nil {
 		log.Error("error occurred during parsing the config template",
 			zap.String("clusterName", r.NifiCluster.Name),
@@ -298,10 +298,10 @@ func (r *Reconciler) getLoginIdentityProvidersConfigString(nConfig *v1.NodeConfi
 	var out bytes.Buffer
 	t := template.Must(template.New("nConfig-config").Parse(config.LoginIdentityProvidersTemplate))
 	if err := t.Execute(&out, map[string]interface{}{
-		"NifiCluster":       r.NifiCluster,
-		"Id":                id,
-		"LdapConfiguration": r.NifiCluster.Spec.LdapConfiguration,
-		"SingleUserEnabled": r.NifiCluster.Spec.SingleUserEnabled,
+		"NifiCluster":             r.NifiCluster,
+		"Id":                      id,
+		"LdapConfiguration":       r.NifiCluster.Spec.LdapConfiguration,
+		"SingleUserConfiguration": r.NifiCluster.Spec.SingleUserConfiguration,
 	}); err != nil {
 		log.Error("error occurred during parsing the config template",
 			zap.String("clusterName", r.NifiCluster.Name),

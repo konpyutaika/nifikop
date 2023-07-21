@@ -25,6 +25,10 @@ cluster:
     # -- Whether or not to create a headless service
     headlessEnabled: true
 
+  singleUserConfiguration:
+    enabled: false
+    secretRef: {}
+
   pod:
     # -- Annotations to apply to every pod
     annotations: {}
