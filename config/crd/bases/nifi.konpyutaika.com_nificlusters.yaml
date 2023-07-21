@@ -739,6 +739,8 @@ spec:
                     type: object
                   #authorizerEnabled:
                    # type: boolean
+                required:
+                - enabled
                 type: object
               listenersConfig:
                 properties:

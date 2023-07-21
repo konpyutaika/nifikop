@@ -41,6 +41,7 @@ const (
 
 func (r *Reconciler) pod(node v1.Node, nodeConfig *v1.NodeConfig, pvcs []corev1.PersistentVolumeClaim, log zap.Logger) runtimeClient.Object {
 	zkAddress := r.NifiCluster.Spec.ZKAddress
+	singleUserConfiguration := r.NifiCluster.Spec.SingleUserConfiguration
 	dataVolume, dataVolumeMount := generateDataVolumeAndVolumeMount(pvcs)
 
 	volume := []corev1.Volume{}
@@ -184,7 +185,7 @@ done
 				PodAntiAffinity: generatePodAntiAffinity(r.NifiCluster.Name, r.NifiCluster.Spec.OneNifiNodePerNode),
 			},
 			TopologySpreadConstraints:     r.NifiCluster.Spec.TopologySpreadConstraints,
-			Containers:                    r.injectAdditionalEnvVars(r.generateContainers(nodeConfig, node.Id, podVolumeMounts, zkAddress)),
+			Containers:                    r.injectAdditionalEnvVars(r.generateContainers(nodeConfig, node.Id, podVolumeMounts, zkAddress, singleUserConfiguration)),
 			HostAliases:                   allHostAliases,
 			Volumes:                       podVolumes,
 			RestartPolicy:                 corev1.RestartPolicyNever,
@@ -375,9 +376,9 @@ func generateInitContainerResources() corev1.ResourceRequirements {
 	}
 }
 
-func (r *Reconciler) generateContainers(nodeConfig *v1.NodeConfig, id int32, podVolumeMounts []corev1.VolumeMount, zkAddress string) []corev1.Container {
+func (r *Reconciler) generateContainers(nodeConfig *v1.NodeConfig, id int32, podVolumeMounts []corev1.VolumeMount, zkAddress string, singleUserConfiguration v1.SingleUserConfiguration) []corev1.Container {
 	var containers []corev1.Container
-	containers = append(containers, r.createNifiNodeContainer(nodeConfig, id, podVolumeMounts, zkAddress))
+	containers = append(containers, r.createNifiNodeContainer(nodeConfig, id, podVolumeMounts, zkAddress, singleUserConfiguration))
 	containers = append(containers, r.NifiCluster.Spec.SidecarConfigs...)
 	sort.Slice(containers, func(i, j int) bool {
 		return containers[i].Name < containers[j].Name
@@ -386,7 +387,7 @@ func (r *Reconciler) generateContainers(nodeConfig *v1.NodeConfig, id int32, pod
 	return containers
 }
 
-func (r *Reconciler) createNifiNodeContainer(nodeConfig *v1.NodeConfig, id int32, podVolumeMounts []corev1.VolumeMount, zkAddress string) corev1.Container {
+func (r *Reconciler) createNifiNodeContainer(nodeConfig *v1.NodeConfig, id int32, podVolumeMounts []corev1.VolumeMount, zkAddress string, singleUserConfiguration v1.SingleUserConfiguration) corev1.Container {
 	// ContainersPorts initialization
 	nifiNodeContainersPorts := r.generateContainerPortForInternalListeners()
 
@@ -452,6 +453,12 @@ func (r *Reconciler) createNifiNodeContainer(nodeConfig *v1.NodeConfig, id int32
 		r.NifiCluster.Spec.ListenersConfig.UseExternalDNS, r.NifiCluster.Spec.ListenersConfig.InternalListeners,
 		r.NifiCluster.Spec.Service.GetServiceTemplate())
 
+	singleUser := ""
+
+	if r.NifiCluster.Spec.Service.SingleUserConfiguration.Enabled {
+		singleUser = "./bin/nifi.sh set-single-user-credentials ${SINGLE_USER_CREDENTIALS_USERNAME} ${SINGLE_USER_CREDENTIALS_PASSWORD}"
+	}
+
 	resolveIp := ""
 
 	if r.NifiCluster.Spec.Service.HeadlessEnabled {
@@ -474,7 +481,8 @@ echo "Hostname is successfully binded withy IP adress"`, nodeAddress, nodeAddres
 	}
 	command := []string{"bash", "-ce", fmt.Sprintf(`cp ${NIFI_HOME}/tmp/* ${NIFI_HOME}/conf/
 %s
-exec bin/nifi.sh run`, resolveIp)}
+%s
+exec bin/nifi.sh run`, resolveIp, singleUser)}
 
 	return corev1.Container{
 		Name:            ContainerName,
@@ -500,6 +508,28 @@ exec bin/nifi.sh run`, resolveIp)}
 					FieldRef: &corev1.ObjectFieldSelector{
 						APIVersion: "v1",
 						FieldPath:  "status.podIP",
+					},
+				},
+			},
+			{
+				Name: "SINGLE_USER_CREDENTIALS_USERNAME",
+				ValueFrom: &corev1.EnvVarSource{
+					SecretKeyRef: &corev1.SecretKeySelector{
+						LocalObjectReference: corev1.LocalObjectReference{
+							Name: singleUserConfiguration.SecretRef.Name,
+						},
+						Key: "username",
+					},
+				},
+			},
+			{
+				Name: "SINGLE_USER_CREDENTIALS_PASSWORD",
+				ValueFrom: &corev1.EnvVarSource{
+					SecretKeyRef: &corev1.SecretKeySelector{
+						LocalObjectReference: corev1.LocalObjectReference{
+							Name: singleUserConfiguration.SecretRef.Name,
+						},
+						Key: "password",
 					},
 				},
 			},

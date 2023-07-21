@@ -132,6 +132,8 @@ type ServicePolicy struct {
 	Annotations map[string]string `json:"annotations,omitempty"`
 	// Labels specifies the labels to attach to services the operator creates
 	Labels map[string]string `json:"labels,omitempty"`
+	// To enable singleuser authentication
+	SingleUserConfiguration SingleUserConfiguration `json:"singleUserConfiguration,omitempty"`
 }
 
 type PodPolicy struct {
