@@ -11,6 +11,7 @@
 - [PR #263](https://github.com/konpyutaika/nifikop/pull/263) - **[NiGoApi]** Upgrade nigoapi to v0.0.8.
 - [PR #263](https://github.com/konpyutaika/nifikop/pull/268) - **[Operator]** Upgrade golang to 1.20.5.
 - [PR #266](https://github.com/konpyutaika/nifikop/pull/266) - **[Operator]** Add AuthenticationStrategy, ManagerDn, ManagerPassword, IdentityStrategy properties for LDAP integration
+- [PR #276](https://github.com/konpyutaika/nifikop/pull/276) - **[Operator]** Upgrade golang to 1.20.6.
 
 
 ### Fixed Bugs
