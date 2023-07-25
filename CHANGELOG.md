@@ -2,6 +2,18 @@
 
 ### Added
 
+### Changed
+
+### Fixed Bugs
+
+### Deprecated
+
+### Removed
+
+## v1.2.0
+
+### Added
+
 - [PR #258](https://github.com/konpyutaika/nifikop/pull/141) - **[Helm Chart]** Upgraded helm-deployed HPA to v2 and added flowPosition to NiFiDataflow
 - [PR #269](https://github.com/konpyutaika/nifikop/pull/269) - **[Operator/NifiCluster]** Added ability to attach labels and annotations to PVCs that nifikop creates.
 
@@ -12,18 +24,10 @@
 - [PR #263](https://github.com/konpyutaika/nifikop/pull/268) - **[Operator]** Upgrade golang to 1.20.5.
 - [PR #266](https://github.com/konpyutaika/nifikop/pull/266) - **[Operator]** Add AuthenticationStrategy, ManagerDn, ManagerPassword, IdentityStrategy properties for LDAP integration
 
-
-### Fixed Bugs
-
-### Deprecated
-
-### Removed
-
 ## v1.1.1
 
 ### Added
 - [PR #244](https://github.com/konpyutaika/nifikop/pull/244) - **[Operator]** Updated the go version in nifikop to 1.20.
-
 - [PR #141](https://github.com/konpyutaika/nifikop/pull/141) - **[Helm Chart]** Added nifi-cluster helm chart.
 
 ### Fixed Bugs
