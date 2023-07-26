@@ -3,7 +3,7 @@ package config
 import (
 	"fmt"
 
-	v1 "github.com/konpyutaika/nifikop/api/v1"
+	"github.com/konpyutaika/nifikop/api/v1"
 
 	"github.com/konpyutaika/nifikop/pkg/util/nifi"
 	"go.uber.org/zap"
