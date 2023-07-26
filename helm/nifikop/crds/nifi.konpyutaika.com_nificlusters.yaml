@@ -3172,6 +3172,8 @@ spec:
                 properties:
                   enabled:
                     type: boolean
+                  authorizerEnabled:
+                    type: boolean
                   secretRef:
                     properties:
                       name:
@@ -3181,8 +3183,6 @@ spec:
                     required:
                     - name
                     type: object
-                  authorizerEnabled:
-                    type: boolean
                 type: object
               pod:
                 properties:
