@@ -455,7 +455,7 @@ func (r *Reconciler) createNifiNodeContainer(nodeConfig *v1.NodeConfig, id int32
 
 	singleUser := ""
 
-	if r.NifiCluster.Spec.Service.SingleUserConfiguration.Enabled {
+	if singleUserConfiguration.Enabled {
 		singleUser = "./bin/nifi.sh set-single-user-credentials ${SINGLE_USER_CREDENTIALS_USERNAME} ${SINGLE_USER_CREDENTIALS_PASSWORD}"
 	}
 

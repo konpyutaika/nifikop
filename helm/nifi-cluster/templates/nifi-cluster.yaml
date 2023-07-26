@@ -23,13 +23,13 @@ spec:
     hostAliases: {{ toYaml .Values.cluster.pod.hostAliases | nindent 6}}
   {{ end }}
   singleUserConfiguration:
-    {{ if .Values.cluser.singleUserConfiguration.enabled }}
+    {{ if .Values.cluster.singleUserConfiguration.enabled }}
       enabled: {{ .Values.cluster.enabled }}
     {{ end }}
     {{ if .Values.cluster.singleUserConfiguration.secretRef }}
-      secretRef: {{ toYaml .Values.cluser.singleUserConfiguration.secretRef | nindent 6 }}
+      secretRef: {{ toYaml .Values.cluster.singleUserConfiguration.secretRef | nindent 6 }}
     {{ end }}
-    {{ if .Values.cluser.singleUserConfiguration.authorizerEnabled }}
+    {{ if .Values.cluster.singleUserConfiguration.authorizerEnabled }}
       authorizerEnabled: {{ .Values.cluster.authorizerEnabled }}
     {{ end }}
   zkAddress: {{ .Values.cluster.zkAddress }}

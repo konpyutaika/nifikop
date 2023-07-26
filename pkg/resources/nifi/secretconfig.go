@@ -514,12 +514,13 @@ func (r *Reconciler) getAuthorizersConfigString(nConfig *v1.NodeConfig, id int32
 	}*/
 
 	if err := t.Execute(&out, map[string]interface{}{
-		"NifiCluster":    r.NifiCluster,
-		"Id":             id,
-		"ClusterName":    r.NifiCluster.Name,
-		"Namespace":      r.NifiCluster.Namespace,
-		"NodeList":       nodeList,
-		"ControllerUser": r.NifiCluster.GetNifiControllerUserIdentity(),
+		"NifiCluster":             r.NifiCluster,
+		"Id":                      id,
+		"ClusterName":             r.NifiCluster.Name,
+		"Namespace":               r.NifiCluster.Namespace,
+		"NodeList":                nodeList,
+		"ControllerUser":          r.NifiCluster.GetNifiControllerUserIdentity(),
+		"SingleUserConfiguration": r.NifiCluster.Spec.SingleUserConfiguration,
 	}); err != nil {
 		log.Error("error occurred during parsing the config template",
 			zap.String("clusterName", r.NifiCluster.Name),
