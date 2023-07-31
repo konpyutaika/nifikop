@@ -453,10 +453,48 @@ func (r *Reconciler) createNifiNodeContainer(nodeConfig *v1.NodeConfig, id int32
 		r.NifiCluster.Spec.ListenersConfig.UseExternalDNS, r.NifiCluster.Spec.ListenersConfig.InternalListeners,
 		r.NifiCluster.Spec.Service.GetServiceTemplate())
 
+	envVar := []corev1.EnvVar{
+		{
+			Name:  "NIFI_ZOOKEEPER_CONNECT_STRING",
+			Value: zkAddress,
+		},
+		{
+			Name: "POD_IP",
+			ValueFrom: &corev1.EnvVarSource{
+				FieldRef: &corev1.ObjectFieldSelector{
+					APIVersion: "v1",
+					FieldPath:  "status.podIP",
+				},
+			},
+		},
+	}
 	singleUser := ""
 
-	if singleUserConfiguration.Enabled {
+	if singleUserConfiguration.Enabled && singleUserConfiguration.SecretRef != (v1.SecretReference{}) {
 		singleUser = "./bin/nifi.sh set-single-user-credentials ${SINGLE_USER_CREDENTIALS_USERNAME} ${SINGLE_USER_CREDENTIALS_PASSWORD}"
+		single_user_username := corev1.EnvVar{
+			Name: "SINGLE_USER_CREDENTIALS_USERNAME",
+			ValueFrom: &corev1.EnvVarSource{
+				SecretKeyRef: &corev1.SecretKeySelector{
+					LocalObjectReference: corev1.LocalObjectReference{
+						Name: singleUserConfiguration.SecretRef.Name,
+					},
+					Key: "username",
+				},
+			}}
+
+		single_user_password := corev1.EnvVar{
+			Name: "SINGLE_USER_CREDENTIALS_PASSWORD",
+			ValueFrom: &corev1.EnvVarSource{
+				SecretKeyRef: &corev1.SecretKeySelector{
+					LocalObjectReference: corev1.LocalObjectReference{
+						Name: singleUserConfiguration.SecretRef.Name,
+					},
+					Key: "password",
+				},
+			},
+		}
+		envVar = append(envVar, single_user_username, single_user_password)
 	}
 
 	resolveIp := ""
@@ -497,47 +535,11 @@ exec bin/nifi.sh run`, resolveIp, singleUser)}
 		},
 		ReadinessProbe: readinessProbe,
 		LivenessProbe:  livenessProbe,
-		Env: []corev1.EnvVar{
-			{
-				Name:  "NIFI_ZOOKEEPER_CONNECT_STRING",
-				Value: zkAddress,
-			},
-			{
-				Name: "POD_IP",
-				ValueFrom: &corev1.EnvVarSource{
-					FieldRef: &corev1.ObjectFieldSelector{
-						APIVersion: "v1",
-						FieldPath:  "status.podIP",
-					},
-				},
-			},
-			{
-				Name: "SINGLE_USER_CREDENTIALS_USERNAME",
-				ValueFrom: &corev1.EnvVarSource{
-					SecretKeyRef: &corev1.SecretKeySelector{
-						LocalObjectReference: corev1.LocalObjectReference{
-							Name: singleUserConfiguration.SecretRef.Name,
-						},
-						Key: "username",
-					},
-				},
-			},
-			{
-				Name: "SINGLE_USER_CREDENTIALS_PASSWORD",
-				ValueFrom: &corev1.EnvVarSource{
-					SecretKeyRef: &corev1.SecretKeySelector{
-						LocalObjectReference: corev1.LocalObjectReference{
-							Name: singleUserConfiguration.SecretRef.Name,
-						},
-						Key: "password",
-					},
-				},
-			},
-		},
-		Command:      command,
-		Ports:        nifiNodeContainersPorts,
-		VolumeMounts: podVolumeMounts,
-		Resources:    *nodeConfig.GetResources(),
+		Env:            envVar,
+		Command:        command,
+		Ports:          nifiNodeContainersPorts,
+		VolumeMounts:   podVolumeMounts,
+		Resources:      *nodeConfig.GetResources(),
 	}
 }
 

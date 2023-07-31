@@ -455,7 +455,6 @@ func (r *Reconciler) getBootstrapNotificationServicesConfigString(nConfig *v1.No
 
 // TODO: Check if cases where is it necessary before using it (seems to be used for secured use cases)
 func (r *Reconciler) getAuthorizersConfigString(nConfig *v1.NodeConfig, id int32, log zap.Logger) string {
-
 	nodeList := make(map[string]string)
 
 	authorizersTemplate := config.EmptyAuthorizersTemplate

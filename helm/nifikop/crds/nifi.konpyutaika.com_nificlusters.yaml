@@ -707,21 +707,21 @@ spec:
                 type: array
               ldapConfiguration:
                 properties:
+                  authenticationStrategy:
+                    type: string
                   enabled:
                     type: boolean
-                  searchBase:
-                    type: string
-                  searchFilter:
-                    type: string
-                  url:
-                    type: string
-                  authenticationStrategy:
+                  identityStrategy:
                     type: string
                   managerDn:
                     type: string
                   managerPassword:
                     type: string
-                  identityStrategy:
+                  searchBase:
+                    type: string
+                  searchFilter:
+                    type: string
+                  url:
                     type: string
                 type: object
               listenersConfig:
