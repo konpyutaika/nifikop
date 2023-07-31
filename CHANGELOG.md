@@ -14,7 +14,7 @@
 
 ### Added
 
-- [PR #000](https://github.com/konpyutaika/nifikop/pull/000) - **[Operator]** Added the single-user-authentication method.
+- [PR #278](https://github.com/konpyutaika/nifikop/pull/278) - **[Operator]** Added the single-user-authentication method.
 
 ## v1.2.0
 
