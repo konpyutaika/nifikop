@@ -160,7 +160,7 @@ nifi.security.truststoreType=JKS
 nifi.security.truststorePasswd={{ .ServerKeystorePassword }}
 {{ end }}
 nifi.security.needClientAuth={{ .NeedClientAuth }}
-{{if .SingleUserConfiguration.AuthorizerEnabled}}
+{{if and .SingleUserConfiguration.AuthorizerEnabled .SingleUserConfiguration.Enabled}}
 nifi.security.user.authorizer=single-user-authorizer
 {{else}}
 nifi.security.user.authorizer={{ .Authorizer }}

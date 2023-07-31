@@ -10,11 +10,17 @@
 
 ### Removed
 
+## v1.3.0
+
+### Added
+
+- [PR #000](https://github.com/konpyutaika/nifikop/pull/000) - **[Operator]** Added the single-user-authentication method.
+
 ## v1.2.0
 
 ### Added
 
-- [PR #258](https://github.com/konpyutaika/nifikop/pull/141) - **[Helm Chart]** Upgraded helm-deployed HPA to v2 and added flowPosition to NiFiDataflow.
+- [PR #258](https://github.com/konpyutaika/nifikop/pull/141) - **[Operator]** Upgraded helm-deployed HPA to v2 and added flowPosition to NiFiDataflow.
 - [PR #269](https://github.com/konpyutaika/nifikop/pull/269) - **[Operator/NifiCluster]** Added ability to attach labels and annotations to PVCs that nifikop creates.
 
 ### Changed
