@@ -100,16 +100,29 @@ type NifiClusterSpec struct {
 	NifiControllerTemplate *string `json:"nifiControllerTemplate,omitempty"`
 	// ControllerUserIdentity specifies what to call the static admin user's identity
 	// Warning: once defined don't change this value either the operator will no longer be able to manage the cluster
-	ControllerUserIdentity  *string                 `json:"controllerUserIdentity,omitempty"`
+	ControllerUserIdentity *string `json:"controllerUserIdentity,omitempty"`
+	// SingleUserConfiguration if enabled handles the information related to this authentication method
 	SingleUserConfiguration SingleUserConfiguration `json:"singleUserConfiguration,omitempty"`
 
 	// @TODO: Block Controller change
 }
 
 type SingleUserConfiguration struct {
-	Enabled           bool            `json:"enabled,omitempty"`
-	AuthorizerEnabled bool            `json:"authorizerEnabled,omitempty"`
-	SecretRef         SecretReference `json:"secretRef,omitempty"`
+	// +kubebuilder:default:=false
+	Enabled bool `json:"enabled"`
+	// +kubebuilder:default:=false
+	AuthorizerEnabled bool `json:"authorizerEnabled"`
+	// +optional
+	SecretRef *SecretReference `json:"secretRef,omitempty"`
+	// +optional
+	SecretKeys *SecretKeys `json:"secretKeys,omitempty"`
+}
+
+type SecretKeys struct {
+	// +kubebuilder:default:=username
+	Username string `json:"username,omitempty"`
+	// +kubebuilder:default:=password
+	Password string `json:"password,omitempty"`
 }
 
 // DisruptionBudget defines the configuration for PodDisruptionBudget
