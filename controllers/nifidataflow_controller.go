@@ -461,6 +461,11 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 						instance.Name, instance.Spec.BucketId,
 						instance.Spec.FlowId, strconv.FormatInt(int64(*instance.Spec.FlowVersion), 10)))
 			}
+		} else {
+			r.Log.Debug("Dataflow already running, nothing to do",
+				zap.String("clusterName", instance.Spec.ClusterRef.Name),
+				zap.String("flowId", instance.Spec.FlowId),
+				zap.String("dataflow", instance.Name))
 		}
 	}
 
