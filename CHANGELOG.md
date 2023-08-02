@@ -2,6 +2,8 @@
 
 ### Added
 
+- [PR #27](https://github.com/konpyutaika/nifikop/pull/279) - **[Operator/NifDataflow]** Added check to control if a dataflow is unscheduled in order to schedule it.
+
 ### Changed
 
 ### Fixed Bugs

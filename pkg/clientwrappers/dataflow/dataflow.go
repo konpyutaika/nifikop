@@ -78,6 +78,7 @@ func CreateDataflow(flow *v1.NifiDataflow, config *clientconfig.NifiConfig,
 	return &flow.Status, nil
 }
 
+// IsDataflowUnscheduled control if the deployed dataflow has unscheduled controller services and components.
 func IsDataflowUnscheduled(flow *v1.NifiDataflow, config *clientconfig.NifiConfig) (bool, error) {
 	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
