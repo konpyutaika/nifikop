@@ -1,6 +1,8 @@
 package parametercontext
 
 import (
+	"strings"
+
 	v1 "github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers"
 	"github.com/konpyutaika/nifikop/pkg/common"
@@ -329,7 +331,7 @@ func updateParameterContextEntity(
 	}
 
 	for _, parameter := range parameterContext.Spec.Parameters {
-		desc := parameter.Description
+		desc := strings.TrimSpace(parameter.Description)
 		parameters = append(parameters, nigoapi.ParameterEntity{
 			Parameter: &nigoapi.ParameterDto{
 				Name:        parameter.Name,

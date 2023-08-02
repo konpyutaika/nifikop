@@ -19,8 +19,9 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"github.com/konpyutaika/nifikop/api/v1"
 	"time"
+
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 
 	"emperror.dev/errors"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
