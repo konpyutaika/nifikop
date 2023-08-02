@@ -417,42 +417,50 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		instance.Status.State == v1.DataflowStateInSync ||
 		(!instance.Spec.SyncOnce() && instance.Status.State == v1.DataflowStateRan) {
 
-		r.Log.Debug("Starting dataflow",
-			zap.String("clusterName", instance.Spec.ClusterRef.Name),
-			zap.String("flowId", instance.Spec.FlowId),
-			zap.String("dataflow", instance.Name))
-
-		r.Recorder.Event(instance, corev1.EventTypeNormal, "Starting",
-			fmt.Sprintf("Starting dataflow %s based on flow {bucketId : %s, flowId: %s, version: %s}",
-				instance.Name, instance.Spec.BucketId,
-				instance.Spec.FlowId, strconv.FormatInt(int64(*instance.Spec.FlowVersion), 10)))
-
-		if err := dataflow.ScheduleDataflow(instance, clientConfig); err != nil {
-			switch errors.Cause(err).(type) {
-			case errorfactory.NifiFlowControllerServiceScheduling, errorfactory.NifiFlowScheduling:
-				return RequeueAfter(interval)
-			default:
-				r.Recorder.Event(instance, corev1.EventTypeWarning, "StartingFailed",
-					fmt.Sprintf("Starting dataflow %s based on flow {bucketId : %s, flowId: %s, version: %s} failed.",
-						instance.Name, instance.Spec.BucketId,
-						instance.Spec.FlowId, strconv.FormatInt(int64(*instance.Spec.FlowVersion), 10)))
-				return RequeueWithError(r.Log, "failed to run NifiDataflow "+instance.Name, err)
-			}
+		// Check if the flow is unscheduled
+		isUnscheduled, err := dataflow.IsDataflowUnscheduled(instance, clientConfig)
+		if err != nil {
+			return RequeueWithError(r.Log, "failed to check schedule for NifiDataflow "+instance.Name, err)
 		}
 
-		if instance.Status.State != v1.DataflowStateRan {
-			instance.Status.State = v1.DataflowStateRan
-			if err := r.Client.Status().Update(ctx, instance); err != nil {
-				return RequeueWithError(r.Log, "failed to update status for NifiDataflow "+instance.Name, err)
-			}
-			r.Log.Info("Successfully ran dataflow",
+		if isUnscheduled {
+			r.Log.Debug("Starting dataflow",
 				zap.String("clusterName", instance.Spec.ClusterRef.Name),
 				zap.String("flowId", instance.Spec.FlowId),
 				zap.String("dataflow", instance.Name))
-			r.Recorder.Event(instance, corev1.EventTypeNormal, "Ran",
-				fmt.Sprintf("Ran dataflow %s based on flow {bucketId : %s, flowId: %s, version: %s}",
+
+			r.Recorder.Event(instance, corev1.EventTypeNormal, "Starting",
+				fmt.Sprintf("Starting dataflow %s based on flow {bucketId : %s, flowId: %s, version: %s}",
 					instance.Name, instance.Spec.BucketId,
 					instance.Spec.FlowId, strconv.FormatInt(int64(*instance.Spec.FlowVersion), 10)))
+
+			if err := dataflow.ScheduleDataflow(instance, clientConfig); err != nil {
+				switch errors.Cause(err).(type) {
+				case errorfactory.NifiFlowControllerServiceScheduling, errorfactory.NifiFlowScheduling:
+					return RequeueAfter(interval)
+				default:
+					r.Recorder.Event(instance, corev1.EventTypeWarning, "StartingFailed",
+						fmt.Sprintf("Starting dataflow %s based on flow {bucketId : %s, flowId: %s, version: %s} failed.",
+							instance.Name, instance.Spec.BucketId,
+							instance.Spec.FlowId, strconv.FormatInt(int64(*instance.Spec.FlowVersion), 10)))
+					return RequeueWithError(r.Log, "failed to run NifiDataflow "+instance.Name, err)
+				}
+			}
+
+			if instance.Status.State != v1.DataflowStateRan {
+				instance.Status.State = v1.DataflowStateRan
+				if err := r.Client.Status().Update(ctx, instance); err != nil {
+					return RequeueWithError(r.Log, "failed to update status for NifiDataflow "+instance.Name, err)
+				}
+				r.Log.Info("Successfully ran dataflow",
+					zap.String("clusterName", instance.Spec.ClusterRef.Name),
+					zap.String("flowId", instance.Spec.FlowId),
+					zap.String("dataflow", instance.Name))
+				r.Recorder.Event(instance, corev1.EventTypeNormal, "Ran",
+					fmt.Sprintf("Ran dataflow %s based on flow {bucketId : %s, flowId: %s, version: %s}",
+						instance.Name, instance.Spec.BucketId,
+						instance.Spec.FlowId, strconv.FormatInt(int64(*instance.Spec.FlowVersion), 10)))
+			}
 		}
 	}
 
