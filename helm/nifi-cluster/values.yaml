@@ -25,10 +25,18 @@ cluster:
     # -- Whether or not to create a headless service
     headlessEnabled: true
 
+  # -- see https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster/1_nifi_cluster#singleuserconfiguration
   singleUserConfiguration:
     enabled: false
     authorizerEnabled: false
-    secretRef: {}
+    secretRef: {
+      "name": "single-user-credentials",
+      "namespace": "nifi"
+    }
+    secretKeys: {
+      username: "username",
+      password: "password"
+    }
 
   pod:
     # -- Annotations to apply to every pod

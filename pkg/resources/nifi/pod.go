@@ -471,7 +471,7 @@ func (r *Reconciler) createNifiNodeContainer(nodeConfig *v1.NodeConfig, id int32
 
 	singleUser := ""
 
-	if singleUserConfiguration.Enabled && singleUserConfiguration.SecretRef == nil {
+	if singleUserConfiguration.Enabled && singleUserConfiguration.SecretRef != nil {
 		singleUser = "./bin/nifi.sh set-single-user-credentials ${SINGLE_USER_CREDENTIALS_USERNAME} ${SINGLE_USER_CREDENTIALS_PASSWORD}"
 		single_user_username := corev1.EnvVar{
 			Name: "SINGLE_USER_CREDENTIALS_USERNAME",
@@ -480,7 +480,7 @@ func (r *Reconciler) createNifiNodeContainer(nodeConfig *v1.NodeConfig, id int32
 					LocalObjectReference: corev1.LocalObjectReference{
 						Name: singleUserConfiguration.SecretRef.Name,
 					},
-					Key: "username",
+					Key: singleUserConfiguration.SecretKeys.Username,
 				},
 			}}
 
@@ -491,7 +491,7 @@ func (r *Reconciler) createNifiNodeContainer(nodeConfig *v1.NodeConfig, id int32
 					LocalObjectReference: corev1.LocalObjectReference{
 						Name: singleUserConfiguration.SecretRef.Name,
 					},
-					Key: "password",
+					Key: singleUserConfiguration.SecretKeys.Password,
 				},
 			},
 		}
