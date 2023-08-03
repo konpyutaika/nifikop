@@ -107,13 +107,18 @@ type NifiClusterSpec struct {
 	// @TODO: Block Controller change
 }
 
+// You can look into single-user access here: https://exceptionfactory.com/posts/2021/07/21/single-user-access-and-https-in-apache-nifi/
 type SingleUserConfiguration struct {
+	// Set to true to activate the single-user authentication
 	// +kubebuilder:default:=false
 	Enabled bool `json:"enabled"`
+	// Set to true to use the single-user-authorizer instead of the managed-authorizer
 	// +kubebuilder:default:=false
 	AuthorizerEnabled bool `json:"authorizerEnabled"`
+	// The reference to a kubernetes secret ressource's name and the namespace it's associated with
 	// +optional
 	SecretRef *SecretReference `json:"secretRef,omitempty"`
+	// The keys referencing the username and password
 	// +optional
 	SecretKeys *SecretKeys `json:"secretKeys,omitempty"`
 }
