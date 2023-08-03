@@ -201,7 +201,7 @@ spec:
 | enabled           | boolean          | if set to true, we will enable single-user usage into nifi.properties configuration.                                                                     | No       | false   |
 | authorizerEnabled | boolean          | if set to true, we will use the single-user-authorizer instead of the managed-authorizer.                                                                | No       | false   |
 | secretRef         | [*SecretReference](../4_nifi_parameter_context#secretreference)   | the reference to the username and password. If not configured, will use auto generated username and password that will appear once in the logs at startup.      | No       | nil     |
-| secretKeys         | *SecretKeys   | the keys of the username and password.      | No       | username= "username"\npassword="password"     |
+| secretKeys         | *SecretKeys   | the keys of the username and password.      | No       | {username= "username", password="password"}     |
 
 ## NifiClusterTaskSpec
 
