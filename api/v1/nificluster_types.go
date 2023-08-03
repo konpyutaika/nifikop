@@ -115,7 +115,7 @@ type SingleUserConfiguration struct {
 	// Set to true to use the single-user-authorizer instead of the managed-authorizer
 	// +kubebuilder:default:=false
 	AuthorizerEnabled bool `json:"authorizerEnabled"`
-	// The reference to a kubernetes secret ressource's name and the namespace it's associated with
+	// The reference to a kubernetes secret ressource's. It should contain a "name" with the secret's name and a "namespace" with the namespace the secret is associated with.
 	// +optional
 	SecretRef *SecretReference `json:"secretRef,omitempty"`
 	// The keys referencing the username and password
