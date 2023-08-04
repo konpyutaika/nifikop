@@ -19,7 +19,8 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"github.com/konpyutaika/nifikop/api/v1"
+
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 
 	"go.uber.org/zap"
 
