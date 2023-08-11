@@ -7,6 +7,8 @@
 
 ### Changed
 
+- [PR #281](https://github.com/konpyutaika/nifikop/pull/281) - **[Operator]** Upgrade golang to 1.21.0.
+
 ### Fixed Bugs
 
 - [PR #279](https://github.com/konpyutaika/nifikop/pull/279) - **[Operator/NifDataflow]** Trim parameter's description from parameter context.
