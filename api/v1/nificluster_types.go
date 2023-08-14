@@ -124,8 +124,10 @@ type SingleUserConfiguration struct {
 }
 
 type SecretKeys struct {
+	// The name of the secret key to retrieve the username
 	// +kubebuilder:default:=username
 	Username string `json:"username,omitempty"`
+	// The name of the secret key to retrieve the password
 	// +kubebuilder:default:=password
 	Password string `json:"password,omitempty"`
 }

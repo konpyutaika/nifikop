@@ -41,7 +41,7 @@ var AuthorizersTemplate = `{{- $nodeList := .NodeList }}
         <property name="Access Policy Provider">file-access-policy-provider</property>
     </authorizer>
 </authorizers>
-{{end}}
+{{- end}}
 `
 
 // Empty authorizer.xml template, used by new node joining the cluster
@@ -73,7 +73,7 @@ var EmptyAuthorizersTemplate = `{{- if and .SingleUserConfiguration.AuthorizerEn
         <property name="Access Policy Provider">file-access-policy-provider</property>
     </authorizer>
 </authorizers>
-{{end}}
+{{- end}}
 `
 
 /*

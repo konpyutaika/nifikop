@@ -30,8 +30,8 @@ cluster:
     enabled: false
     authorizerEnabled: false
     secretRef: {
-      "name": "single-user-credentials",
-      "namespace": "nifi"
+      name: "single-user-credentials",
+      namespace: "nifi"
     }
     secretKeys: {
       username: "username",

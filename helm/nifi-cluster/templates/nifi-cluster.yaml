@@ -30,7 +30,7 @@ spec:
       secretRef: {{ toYaml .Values.cluster.singleUserConfiguration.secretRef | nindent 6 }}
     {{ end }}
     {{ if .Values.cluster.singleUserConfiguration.secretKeys }}
-      secretRef: {{ toYaml .Values.cluster.singleUserConfiguration.secretKeys | nindent 6 }}
+      secretKeys: {{ toYaml .Values.cluster.singleUserConfiguration.secretKeys | nindent 6 }}
     {{ end }}
     {{ if .Values.cluster.singleUserConfiguration.authorizerEnabled }}
       authorizerEnabled: {{ .Values.cluster.authorizerEnabled }}
