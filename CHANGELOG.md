@@ -2,6 +2,18 @@
 
 ### Added
 
+### Changed
+
+### Fixed Bugs
+
+### Deprecated
+
+### Removed
+
+## v1.3.0
+
+### Added
+
 - [PR #278](https://github.com/konpyutaika/nifikop/pull/278) - **[Operator//NifiCluster]** Added the single-user-authentication method.
 - [PR #279](https://github.com/konpyutaika/nifikop/pull/279) - **[Operator/NifDataflow]** Added check to control if a dataflow is unscheduled in order to schedule it.
 
@@ -12,10 +24,6 @@
 ### Fixed Bugs
 
 - [PR #279](https://github.com/konpyutaika/nifikop/pull/279) - **[Operator/NifDataflow]** Trim parameter's description from parameter context.
-
-### Deprecated
-
-### Removed
 
 ## v1.2.0
 
