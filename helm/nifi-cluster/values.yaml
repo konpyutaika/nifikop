@@ -29,14 +29,12 @@ cluster:
   singleUserConfiguration:
     enabled: false
     authorizerEnabled: false
-    secretRef: {
-      name: "single-user-credentials",
+    secretRef:
+      name: "single-user-credentials"
       namespace: "nifi"
-    }
-    secretKeys: {
-      username: "username",
+    secretKeys:
+      username: "username"
       password: "password"
-    }
 
   pod:
     # -- Annotations to apply to every pod
