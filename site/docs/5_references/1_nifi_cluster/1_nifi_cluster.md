@@ -132,7 +132,8 @@ spec:
 |nodeConfigGroups| map\[string\][NodeConfig](./3_node_config)                                        | specifies multiple node configs with unique name                                                                                                                                                                                                                                                                                         |No| nil                      |
 |nodes| \[ \][Node](./3_node_config)                                                      | specifies the list of cluster nodes, all node requires an image, unique id, and storageConfigs settings                                                                                                                                                                                                                                  |Yes| nil
 |disruptionBudget| [DisruptionBudget](#disruptionbudget)                                               | defines the configuration for PodDisruptionBudget.                                                                                                                                                                                                                                                                                       |No| nil                      |
-|ldapConfiguration| [LdapConfiguration](#ldapconfiguration)                                             | specifies the configuration if you want to use LDAP.                                                                                                                                                                                                                                                                                     |No| nil                      |
+|ldapConfiguration| [LdapConfiguration](#ldapconfiguration)                                             | specifies the configuration if you want to use LDAP.                                                                                                                                                                                                                                                                                      |No| nil                      |
+|singleUserConfiguration| [SingleUserConfiguration](#singleuserconfiguration)                                             | specifies the configuration if you want to use SingleUser.                                                                                                                                                                                                                                                                                      |No| nil                      |
 |nifiClusterTaskSpec| [NifiClusterTaskSpec](#nificlustertaskspec)                                         | specifies the configuration of the nifi cluster Tasks.                                                                                                                                                                                                                                                                                   |No| nil                      |
 |listenersConfig| [ListenersConfig](./6_listeners_config)                                           | specifies nifi's listener specifig configs.                                                                                                                                                                                                                                                                                              |No| -                        |
 |sidecarConfigs| \[ \][Container](https://godoc.org/k8s.io/api/core/v1#Container)                    | Defines additional sidecar configurations. [Check documentation for more informations]                                                                                                                                                                                                                                                   |
@@ -193,6 +194,15 @@ spec:
 | searchBase   | string  | base DN for searching for users (i.e. CN=Users,DC=example,DC=com).                                                                        | No       | ""      |
 | searchFilter | string  | Filter for searching for users against the 'User Search Base'. (i.e. sAMAccountName={0}). The user specified name is inserted into '{0}'. | No       | ""      |
 
+## SingleUserConfiguration
+
+| Field             | Type    | Description                                                                                                                               | Required | Default |
+| ----------------- | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------- |
+| enabled           | boolean          | if set to true, we will enable single-user usage into nifi.properties configuration.                                                                     | No       | false   |
+| authorizerEnabled | boolean          | if set to true, we will use the single-user-authorizer instead of the managed-authorizer.                                                                | No       | false   |
+| secretRef         | [*SecretReference](../4_nifi_parameter_context#secretreference)   | the reference to the username and password. If not configured, will use auto generated username and password that will appear once in the logs at startup.      | No       | nil     |
+| secretKeys         | [*SecretKeys](#secretkeys)   | the keys of the username and password.      | No       | {username= "username", password="password"}     |
+
 ## NifiClusterTaskSpec
 
 | Field                | Type | Description                                                   | Required | Default |
@@ -208,3 +218,10 @@ spec:
 | NifiClusterReconciling      | ClusterReconciling      | states that the cluster is still in reconciling stage  |
 | NifiClusterRollingUpgrading | ClusterRollingUpgrading | states that the cluster is rolling upgrading           |
 | NifiClusterRunning          | ClusterRunning          | states that the cluster is in running state            |
+
+## SecretKeys
+
+|Field|Type|Description|Required|Default|
+|-----|----|-----------|--------|--------|
+|username|string| key of the username. |No|username|
+|password|string| key of the password. |No|password|

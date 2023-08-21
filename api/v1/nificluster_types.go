@@ -101,8 +101,35 @@ type NifiClusterSpec struct {
 	// ControllerUserIdentity specifies what to call the static admin user's identity
 	// Warning: once defined don't change this value either the operator will no longer be able to manage the cluster
 	ControllerUserIdentity *string `json:"controllerUserIdentity,omitempty"`
+	// SingleUserConfiguration if enabled handles the information related to this authentication method
+	SingleUserConfiguration SingleUserConfiguration `json:"singleUserConfiguration,omitempty"`
 
 	// @TODO: Block Controller change
+}
+
+// You can look into single-user access here: https://exceptionfactory.com/posts/2021/07/21/single-user-access-and-https-in-apache-nifi/
+type SingleUserConfiguration struct {
+	// Set to true to activate the single-user authentication
+	// +kubebuilder:default:=false
+	Enabled bool `json:"enabled"`
+	// Set to true to use the single-user-authorizer instead of the managed-authorizer
+	// +kubebuilder:default:=false
+	AuthorizerEnabled bool `json:"authorizerEnabled"`
+	// The reference to a kubernetes secret ressource's. It should contain a "name" with the secret's name and a "namespace" with the namespace the secret is associated with.
+	// +optional
+	SecretRef *SecretReference `json:"secretRef,omitempty"`
+	// The keys referencing the username and password
+	// +optional
+	SecretKeys *SecretKeys `json:"secretKeys,omitempty"`
+}
+
+type SecretKeys struct {
+	// The name of the secret key to retrieve the username
+	// +kubebuilder:default:=username
+	Username string `json:"username,omitempty"`
+	// The name of the secret key to retrieve the password
+	// +kubebuilder:default:=password
+	Password string `json:"password,omitempty"`
 }
 
 // DisruptionBudget defines the configuration for PodDisruptionBudget

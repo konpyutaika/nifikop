@@ -22,6 +22,19 @@ spec:
   {{ if .Values.cluster.pod.hostAliases }}
     hostAliases: {{ toYaml .Values.cluster.pod.hostAliases | nindent 6}}
   {{ end }}
+  singleUserConfiguration:
+    {{ if .Values.cluster.singleUserConfiguration.enabled }}
+      enabled: {{ .Values.cluster.enabled }}
+    {{ end }}
+    {{ if .Values.cluster.singleUserConfiguration.secretRef }}
+      secretRef: {{ toYaml .Values.cluster.singleUserConfiguration.secretRef | nindent 6 }}
+    {{ end }}
+    {{ if .Values.cluster.singleUserConfiguration.secretKeys }}
+      secretKeys: {{ toYaml .Values.cluster.singleUserConfiguration.secretKeys | nindent 6 }}
+    {{ end }}
+    {{ if .Values.cluster.singleUserConfiguration.authorizerEnabled }}
+      authorizerEnabled: {{ .Values.cluster.authorizerEnabled }}
+    {{ end }}
   zkAddress: {{ .Values.cluster.zkAddress }}
   zkPath: {{ .Values.cluster.zkPath }}
   clusterImage: "{{ .Values.cluster.image.repository }}:{{ default .Chart.AppVersion .Values.cluster.image.tag }}"

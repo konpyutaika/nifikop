@@ -162,10 +162,11 @@ func (r *Reconciler) getNifiPropertiesConfigString(nConfig *v1.NodeConfig, id in
 		"ServerKeystorePassword":             serverPass,
 		"ClientKeystorePassword":             clientPass,
 		//
-		"LdapConfiguration":      r.NifiCluster.Spec.LdapConfiguration,
-		"IsNode":                 nConfig.GetIsNode(),
-		"ZookeeperConnectString": r.NifiCluster.Spec.ZKAddress,
-		"ZookeeperPath":          r.NifiCluster.Spec.GetZkPath(),
+		"LdapConfiguration":       r.NifiCluster.Spec.LdapConfiguration,
+		"SingleUserConfiguration": r.NifiCluster.Spec.SingleUserConfiguration,
+		"IsNode":                  nConfig.GetIsNode(),
+		"ZookeeperConnectString":  r.NifiCluster.Spec.ZKAddress,
+		"ZookeeperPath":           r.NifiCluster.Spec.GetZkPath(),
 	}); err != nil {
 		log.Error("error occurred during parsing the config template",
 			zap.String("clusterName", r.NifiCluster.Name),
@@ -297,9 +298,10 @@ func (r *Reconciler) getLoginIdentityProvidersConfigString(nConfig *v1.NodeConfi
 	var out bytes.Buffer
 	t := template.Must(template.New("nConfig-config").Parse(config.LoginIdentityProvidersTemplate))
 	if err := t.Execute(&out, map[string]interface{}{
-		"NifiCluster":       r.NifiCluster,
-		"Id":                id,
-		"LdapConfiguration": r.NifiCluster.Spec.LdapConfiguration,
+		"NifiCluster":             r.NifiCluster,
+		"Id":                      id,
+		"LdapConfiguration":       r.NifiCluster.Spec.LdapConfiguration,
+		"SingleUserConfiguration": r.NifiCluster.Spec.SingleUserConfiguration,
 	}); err != nil {
 		log.Error("error occurred during parsing the config template",
 			zap.String("clusterName", r.NifiCluster.Name),
@@ -453,7 +455,6 @@ func (r *Reconciler) getBootstrapNotificationServicesConfigString(nConfig *v1.No
 
 // TODO: Check if cases where is it necessary before using it (seems to be used for secured use cases)
 func (r *Reconciler) getAuthorizersConfigString(nConfig *v1.NodeConfig, id int32, log zap.Logger) string {
-
 	nodeList := make(map[string]string)
 
 	authorizersTemplate := config.EmptyAuthorizersTemplate
@@ -512,12 +513,13 @@ func (r *Reconciler) getAuthorizersConfigString(nConfig *v1.NodeConfig, id int32
 	}*/
 
 	if err := t.Execute(&out, map[string]interface{}{
-		"NifiCluster":    r.NifiCluster,
-		"Id":             id,
-		"ClusterName":    r.NifiCluster.Name,
-		"Namespace":      r.NifiCluster.Namespace,
-		"NodeList":       nodeList,
-		"ControllerUser": r.NifiCluster.GetNifiControllerUserIdentity(),
+		"NifiCluster":             r.NifiCluster,
+		"Id":                      id,
+		"ClusterName":             r.NifiCluster.Name,
+		"Namespace":               r.NifiCluster.Namespace,
+		"NodeList":                nodeList,
+		"ControllerUser":          r.NifiCluster.GetNifiControllerUserIdentity(),
+		"SingleUserConfiguration": r.NifiCluster.Spec.SingleUserConfiguration,
 	}); err != nil {
 		log.Error("error occurred during parsing the config template",
 			zap.String("clusterName", r.NifiCluster.Name),

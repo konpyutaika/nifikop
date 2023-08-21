@@ -4234,6 +4234,36 @@ spec:
                   - name
                   type: object
                 type: array
+              singleUserConfiguration:
+                properties:
+                  authorizerEnabled:
+                    default: false
+                    type: boolean
+                  enabled:
+                    default: false
+                    type: boolean
+                  secretKeys:
+                    properties:
+                      password:
+                        default: password
+                        type: string
+                      username:
+                        default: username
+                        type: string
+                    type: object
+                  secretRef:
+                    properties:
+                      name:
+                        type: string
+                      namespace:
+                        type: string
+                    required:
+                    - name
+                    type: object
+                required:
+                - authorizerEnabled
+                - enabled
+                type: object
               topologySpreadConstraints:
                 items:
                   properties:

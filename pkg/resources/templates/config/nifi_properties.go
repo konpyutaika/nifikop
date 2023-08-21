@@ -2,7 +2,8 @@ package config
 
 import (
 	"fmt"
-	"github.com/konpyutaika/nifikop/api/v1"
+
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 
 	"github.com/konpyutaika/nifikop/pkg/util/nifi"
 	"go.uber.org/zap"
@@ -160,9 +161,15 @@ nifi.security.truststoreType=JKS
 nifi.security.truststorePasswd={{ .ServerKeystorePassword }}
 {{ end }}
 nifi.security.needClientAuth={{ .NeedClientAuth }}
+{{if and .SingleUserConfiguration.AuthorizerEnabled .SingleUserConfiguration.Enabled}}
+nifi.security.user.authorizer=single-user-authorizer
+{{else}}
 nifi.security.user.authorizer={{ .Authorizer }}
+{{end}}
 {{if .LdapConfiguration.Enabled}}
 nifi.security.user.login.identity.provider=ldap-provider
+{{else if .SingleUserConfiguration.Enabled}}
+nifi.security.user.login.identity.provider=single-user-provider
 {{else}}
 nifi.security.user.login.identity.provider=
 {{end}}

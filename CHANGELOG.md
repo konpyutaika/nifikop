@@ -2,6 +2,7 @@
 
 ### Added
 
+- [PR #278](https://github.com/konpyutaika/nifikop/pull/278) - **[Operator//NifiCluster]** Added the single-user-authentication method.
 - [PR #279](https://github.com/konpyutaika/nifikop/pull/279) - **[Operator/NifDataflow]** Added check to control if a dataflow is unscheduled in order to schedule it.
 
 ### Changed
