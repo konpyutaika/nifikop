@@ -2,6 +2,8 @@
 
 ### Added
 
+- [PR #286](https://github.com/konpyutaika/nifikop/pull/286) - **[Operator/NifiCluster]** Update resource's status only on change.
+
 ### Changed
 
 ### Fixed Bugs
@@ -14,7 +16,7 @@
 
 ### Added
 
-- [PR #278](https://github.com/konpyutaika/nifikop/pull/278) - **[Operator//NifiCluster]** Added the single-user-authentication method.
+- [PR #278](https://github.com/konpyutaika/nifikop/pull/278) - **[Operator/NifiCluster]** Added the single-user-authentication method.
 - [PR #279](https://github.com/konpyutaika/nifikop/pull/279) - **[Operator/NifDataflow]** Added check to control if a dataflow is unscheduled in order to schedule it.
 
 ### Changed
