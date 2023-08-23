@@ -19,6 +19,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"reflect"
 
 	v1 "github.com/konpyutaika/nifikop/api/v1"
 
@@ -87,6 +88,7 @@ func (r *NifiNodeGroupAutoscalerReconciler) Reconcile(ctx context.Context, req c
 		// Error reading the object - requeue the request.
 		return RequeueWithError(r.Log, err.Error(), err)
 	}
+	current := nodeGroupAutoscaler.DeepCopy()
 
 	// Check if marked for deletion and run finalizers
 	if k8sutil.IsMarkedForDeletion(nodeGroupAutoscaler.ObjectMeta) {
@@ -125,7 +127,7 @@ func (r *NifiNodeGroupAutoscalerReconciler) Reconcile(ctx context.Context, req c
 	// Additionally, if the autoscaler state is currently out of sync then scale up/down
 	if numDesiredReplicas != numCurrentReplicas || nodeGroupAutoscaler.Status.State == v1alpha1.AutoscalerStateOutOfSync {
 		r.Log.Info(fmt.Sprintf("Replicas changed from %d to %d", numCurrentReplicas, numDesiredReplicas))
-		if err = r.updateAutoscalerReplicaState(ctx, nodeGroupAutoscaler, v1alpha1.AutoscalerStateOutOfSync); err != nil {
+		if err = r.updateAutoscalerReplicaState(ctx, nodeGroupAutoscaler, current.Status, v1alpha1.AutoscalerStateOutOfSync); err != nil {
 			return RequeueWithError(r.Log, fmt.Sprintf("Failed to udpate node group autoscaler state for node group %s", nodeGroupAutoscaler.Spec.NodeConfigGroupId), err)
 		}
 
@@ -159,7 +161,7 @@ func (r *NifiNodeGroupAutoscalerReconciler) Reconcile(ctx context.Context, req c
 		}
 
 		// update autoscaler state to InSync.
-		if err = r.updateAutoscalerReplicaState(ctx, nodeGroupAutoscaler, v1alpha1.AutoscalerStateInSync); err != nil {
+		if err = r.updateAutoscalerReplicaState(ctx, nodeGroupAutoscaler, current.Status, v1alpha1.AutoscalerStateInSync); err != nil {
 			return RequeueWithError(r.Log, fmt.Sprintf("Failed to udpate node group autoscaler state for node group %s", nodeGroupAutoscaler.Spec.NodeConfigGroupId), err)
 		}
 	} else {
@@ -167,7 +169,7 @@ func (r *NifiNodeGroupAutoscalerReconciler) Reconcile(ctx context.Context, req c
 	}
 
 	// update replica and replica status
-	if err = r.updateAutoscalerReplicaStatus(ctx, cluster, nodeGroupAutoscaler); err != nil {
+	if err = r.updateAutoscalerReplicaStatus(ctx, cluster, current.Status, nodeGroupAutoscaler); err != nil {
 		return RequeueWithError(r.Log, fmt.Sprintf("Failed to update node group autoscaler replica status for node group %s", nodeGroupAutoscaler.Spec.NodeConfigGroupId), err)
 	}
 
@@ -227,7 +229,8 @@ func (r *NifiNodeGroupAutoscalerReconciler) scaleDown(autoscaler *v1alpha1.NifiN
 }
 
 // updateAutoscalerReplicaState updates the state of the autoscaler
-func (r *NifiNodeGroupAutoscalerReconciler) updateAutoscalerReplicaState(ctx context.Context, autoscaler *v1alpha1.NifiNodeGroupAutoscaler, state v1alpha1.NodeGroupAutoscalerState) error {
+func (r *NifiNodeGroupAutoscalerReconciler) updateAutoscalerReplicaState(ctx context.Context, autoscaler *v1alpha1.NifiNodeGroupAutoscaler,
+	currentStatus v1alpha1.NifiNodeGroupAutoscalerStatus, state v1alpha1.NodeGroupAutoscalerState) error {
 	autoscaler.Status.State = state
 	switch state {
 	case v1alpha1.AutoscalerStateInSync:
@@ -235,12 +238,13 @@ func (r *NifiNodeGroupAutoscalerReconciler) updateAutoscalerReplicaState(ctx con
 	case v1alpha1.AutoscalerStateOutOfSync:
 		r.Recorder.Event(autoscaler, corev1.EventTypeNormal, "Synchronizing", "The number of replicas for this node group has changed. Synchronizing.")
 	}
-	return r.Client.Status().Update(ctx, autoscaler)
+	return r.updateStatus(ctx, autoscaler, currentStatus)
 }
 
 // TODO : discuss about replacing by looking for NifiCluster.Spec.Nodes instead
 // updateAutoscalerReplicaStatus updates autoscaler replica status to inform the k8s scale subresource
-func (r *NifiNodeGroupAutoscalerReconciler) updateAutoscalerReplicaStatus(ctx context.Context, nifiCluster *v1.NifiCluster, autoscaler *v1alpha1.NifiNodeGroupAutoscaler) error {
+func (r *NifiNodeGroupAutoscalerReconciler) updateAutoscalerReplicaStatus(ctx context.Context, nifiCluster *v1.NifiCluster,
+	currentStatus v1alpha1.NifiNodeGroupAutoscalerStatus, autoscaler *v1alpha1.NifiNodeGroupAutoscaler) error {
 	podList, err := r.getCurrentReplicaPods(ctx, autoscaler)
 	if err != nil {
 		return err
@@ -258,7 +262,7 @@ func (r *NifiNodeGroupAutoscalerReconciler) updateAutoscalerReplicaStatus(ctx co
 	autoscaler.Status.Replicas = replicas
 	autoscaler.Status.Selector = replicaSelector
 
-	return r.Client.Status().Update(ctx, autoscaler)
+	return r.updateStatus(ctx, autoscaler, currentStatus)
 }
 
 // getCurrentReplicaPods searches for any pods created in this node scaler's node group
@@ -339,4 +343,11 @@ func (r *NifiNodeGroupAutoscalerReconciler) updateAndFetchLatest(ctx context.Con
 	}
 	autoscaler.TypeMeta = typeMeta
 	return autoscaler, nil
+}
+
+func (r *NifiNodeGroupAutoscalerReconciler) updateStatus(ctx context.Context, autoscaler *v1alpha1.NifiNodeGroupAutoscaler, currentStatus v1alpha1.NifiNodeGroupAutoscalerStatus) error {
+	if !reflect.DeepEqual(autoscaler.Status, currentStatus) {
+		return r.Client.Status().Update(ctx, autoscaler)
+	}
+	return nil
 }

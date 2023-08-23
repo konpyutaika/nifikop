@@ -314,7 +314,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		instance.Status = *processGroupStatus
 		instance.Status.State = v1.DataflowStateCreated
 
-		if err := r.Client.Status().Update(ctx, instance); err != nil {
+		if err := r.updateStatus(ctx, instance, current.Status); err != nil {
 			return RequeueWithError(r.Log, "failed to update status for NifiDataflow "+instance.Name, err)
 		}
 
@@ -351,7 +351,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		status, err := dataflow.SyncDataflow(instance, clientConfig, registryClient, parameterContext)
 		if status != nil {
 			instance.Status = *status
-			if err := r.Client.Status().Update(ctx, instance); err != nil {
+			if err := r.updateStatus(ctx, instance, current.Status); err != nil {
 				return RequeueWithError(r.Log, "failed to update status for  NifiDataflow "+instance.Name, err)
 			}
 		}
@@ -387,7 +387,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		}
 
 		instance.Status.State = v1.DataflowStateInSync
-		if err := r.Client.Status().Update(ctx, instance); err != nil {
+		if err := r.updateStatus(ctx, instance, current.Status); err != nil {
 			return RequeueWithError(r.Log, "failed to update status for NifiDataflow "+instance.Name, err)
 		}
 
@@ -405,7 +405,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 
 	if isOutOfSink {
 		instance.Status.State = v1.DataflowStateOutOfSync
-		if err := r.Client.Status().Update(ctx, instance); err != nil {
+		if err := r.updateStatus(ctx, instance, current.Status); err != nil {
 			return RequeueWithError(r.Log, "failed to update status for NifiDataflow "+instance.Name, err)
 		}
 		return Requeue()
@@ -449,7 +449,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 
 			if instance.Status.State != v1.DataflowStateRan {
 				instance.Status.State = v1.DataflowStateRan
-				if err := r.Client.Status().Update(ctx, instance); err != nil {
+				if err := r.updateStatus(ctx, instance, current.Status); err != nil {
 					return RequeueWithError(r.Log, "failed to update status for NifiDataflow "+instance.Name, err)
 				}
 				r.Log.Info("Successfully ran dataflow",
@@ -586,5 +586,12 @@ func (r *NifiDataflowReconciler) finalizeNifiDataflow(flow *v1.NifiDataflow, con
 			zap.String("dataflow", flow.Name))
 	}
 
+	return nil
+}
+
+func (r *NifiDataflowReconciler) updateStatus(ctx context.Context, flow *v1.NifiDataflow, currentStatus v1.NifiDataflowStatus) error {
+	if !reflect.DeepEqual(flow.Status, currentStatus) {
+		return r.Client.Status().Update(ctx, flow)
+	}
 	return nil
 }

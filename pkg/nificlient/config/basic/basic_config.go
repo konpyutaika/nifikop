@@ -5,10 +5,11 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"github.com/konpyutaika/nifikop/api/v1"
 	"strconv"
 	"strings"
 	"time"
+
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 
 	"emperror.dev/errors"
 	"github.com/golang-jwt/jwt/v4"
@@ -190,7 +191,7 @@ func clusterConfig(client client.Client, cluster *v1.NifiCluster) (*clientconfig
 		),
 		Data: data,
 	}
-	err = k8sutil.Reconcile(*log, client, secret, nil)
+	err = k8sutil.Reconcile(*log, client, secret, nil, nil)
 	if err != nil {
 		return nil, errors.WrapIfWithDetails(err, "failed to reconcile resource", "resource", secret.GetObjectKind().GroupVersionKind())
 	}
