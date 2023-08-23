@@ -277,7 +277,7 @@ func (r *NifiParameterContextReconciler) Reconcile(ctx context.Context, req ctrl
 		}
 
 		instance.Status = *status
-		if err := r.Client.Status().Update(ctx, instance); err != nil {
+		if err := r.updateStatus(ctx, instance, current.Status); err != nil {
 			return RequeueWithError(r.Log, "failed to update status for NifiParameterContext "+instance.Name, err)
 		}
 
@@ -291,7 +291,7 @@ func (r *NifiParameterContextReconciler) Reconcile(ctx context.Context, req ctrl
 	status, err := parametercontext.SyncParameterContext(instance, parameterSecrets, parameterContextRefs, clientConfig)
 	if status != nil {
 		instance.Status = *status
-		if err := r.Client.Status().Update(ctx, instance); err != nil {
+		if err := r.updateStatus(ctx, instance, current.Status); err != nil {
 			return RequeueWithError(r.Log, "failed to update status for NifiParameterContext "+instance.Name, err)
 		}
 	}
@@ -415,5 +415,12 @@ func (r *NifiParameterContextReconciler) finalizeNifiParameterContext(
 	r.Log.Info("Deleted NifiParameter Context",
 		zap.String("parameterContext", parameterContext.Name))
 
+	return nil
+}
+
+func (r *NifiParameterContextReconciler) updateStatus(ctx context.Context, parameterContext *v1.NifiParameterContext, currentStatus v1.NifiParameterContextStatus) error {
+	if !reflect.DeepEqual(parameterContext.Status, currentStatus) {
+		return r.Client.Status().Update(ctx, parameterContext)
+	}
 	return nil
 }

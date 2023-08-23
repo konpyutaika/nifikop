@@ -312,7 +312,7 @@ func (r *NifiUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		}
 
 		instance.Status = *status
-		if err := r.Client.Status().Update(ctx, instance); err != nil {
+		if err := r.updateStatus(ctx, instance, current.Status); err != nil {
 			return RequeueWithError(r.Log, "failed to update status for NifiUser "+instance.Name, err)
 		}
 		r.Recorder.Event(instance, corev1.EventTypeNormal, "Created",
@@ -328,7 +328,7 @@ func (r *NifiUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	instance.Status = *status
-	if err := r.Client.Status().Update(ctx, instance); err != nil {
+	if err := r.updateStatus(ctx, instance, current.Status); err != nil {
 		return RequeueWithError(r.Log, "failed to update status for NifiUser "+instance.Name, err)
 	}
 
@@ -436,4 +436,11 @@ func (r *NifiUserReconciler) addFinalizer(user *v1.NifiUser) {
 	r.Log.Debug("Adding Finalizer for the NifiUser",
 		zap.String("user", user.Name))
 	user.SetFinalizers(append(user.GetFinalizers(), userFinalizer))
+}
+
+func (r *NifiUserReconciler) updateStatus(ctx context.Context, user *v1.NifiUser, currentStatus v1.NifiUserStatus) error {
+	if !reflect.DeepEqual(user.Status, currentStatus) {
+		return r.Client.Status().Update(ctx, user)
+	}
+	return nil
 }

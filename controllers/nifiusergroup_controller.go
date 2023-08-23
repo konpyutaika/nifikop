@@ -254,7 +254,7 @@ func (r *NifiUserGroupReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		}
 
 		instance.Status = *status
-		if err := r.Client.Status().Update(ctx, instance); err != nil {
+		if err := r.updateStatus(ctx, instance, current.Status); err != nil {
 			return RequeueWithError(r.Log, "failed to update status for NifiUserGroup "+instance.Name, err)
 		}
 
@@ -273,7 +273,7 @@ func (r *NifiUserGroupReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	}
 
 	instance.Status = *status
-	if err := r.Client.Status().Update(ctx, instance); err != nil {
+	if err := r.updateStatus(ctx, instance, current.Status); err != nil {
 		return RequeueWithError(r.Log, "failed to update status for NifiUserGroup "+instance.Name, err)
 	}
 
@@ -377,5 +377,12 @@ func (r *NifiUserGroupReconciler) finalizeNifiNifiUserGroup(
 	r.Log.Info("Deleted NifiUserGroup",
 		zap.String("userGroup", userGroup.Name))
 
+	return nil
+}
+
+func (r *NifiUserGroupReconciler) updateStatus(ctx context.Context, userGroup *v1.NifiUserGroup, currentStatus v1.NifiUserGroupStatus) error {
+	if !reflect.DeepEqual(userGroup.Status, currentStatus) {
+		return r.Client.Status().Update(ctx, userGroup)
+	}
 	return nil
 }
