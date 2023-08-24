@@ -230,6 +230,15 @@ func (r *NifiUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		}
 	}
 
+	// Block the user creation in NiFi, if pure single user authentication
+	if cluster.IsPureSingleUser() {
+		r.Log.Debug("Cluster is in pure single user authentication, can't create user.",
+			zap.String("user", instance.Name),
+			zap.String("clusterName", clusterRef.Name))
+
+		return RequeueAfter(interval)
+	}
+
 	// Generate the client configuration.
 	clientConfig, err = configManager.BuildConfig()
 	if err != nil {

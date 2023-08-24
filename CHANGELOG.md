@@ -7,8 +7,11 @@
 ### Changed
 
 - [PR #287](https://github.com/konpyutaika/nifikop/pull/287) - **[NiGoApi]** Upgrade nigoapi to v0.0.9.
+- [PR #288](https://github.com/konpyutaika/nifikop/pull/288) - **[Operator/NifiCluster]** Block user and user group creation in NiFi with pure single user authentication.
 
 ### Fixed Bugs
+
+- [PR #288](https://github.com/konpyutaika/nifikop/pull/288) - **[Operator/NifiCluster]** Fix single user authentication default secret keys.
 
 ### Deprecated
 

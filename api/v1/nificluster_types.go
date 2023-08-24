@@ -109,26 +109,31 @@ type NifiClusterSpec struct {
 
 // You can look into single-user access here: https://exceptionfactory.com/posts/2021/07/21/single-user-access-and-https-in-apache-nifi/
 type SingleUserConfiguration struct {
-	// Set to true to activate the single-user authentication
+	// enabled specifies whether or not the cluster should use single user authentication for Nifi
 	// +kubebuilder:default:=false
+	// +optional
 	Enabled bool `json:"enabled"`
-	// Set to true to use the single-user-authorizer instead of the managed-authorizer
-	// +kubebuilder:default:=false
-	AuthorizerEnabled bool `json:"authorizerEnabled"`
-	// The reference to a kubernetes secret ressource's. It should contain a "name" with the secret's name and a "namespace" with the namespace the secret is associated with.
+	// authorizerEnabled specifies if the cluster should use use the single-user-authorizer instead of the managed-authorizer
+	// +kubebuilder:default:=true
+	// +optional
+	AuthorizerEnabled bool `json:"authorizerEnabled,omitempty"`
+	// secretRef references the secret containing the informations required to authentiticate to the cluster
 	// +optional
 	SecretRef *SecretReference `json:"secretRef,omitempty"`
-	// The keys referencing the username and password
+	// secretKeys references the keys from the secret containing the user name and password
+	// +kubebuilder:default:={"username": "username", "password": "password"}
 	// +optional
-	SecretKeys *SecretKeys `json:"secretKeys,omitempty"`
+	SecretKeys UserSecretKeys `json:"secretKeys,omitempty"`
 }
 
-type SecretKeys struct {
-	// The name of the secret key to retrieve the username
+type UserSecretKeys struct {
+	// username specifies he name of the secret key to retrieve the user name
 	// +kubebuilder:default:=username
+	// +optional
 	Username string `json:"username,omitempty"`
-	// The name of the secret key to retrieve the password
+	// password specifies he name of the secret key to retrieve the user password
 	// +kubebuilder:default:=password
+	// +optional
 	Password string `json:"password,omitempty"`
 }
 
@@ -839,6 +844,10 @@ func (c *NifiCluster) IsInternal() bool {
 
 func (c NifiCluster) IsExternal() bool {
 	return c.GetType() != InternalCluster
+}
+
+func (c NifiCluster) IsPureSingleUser() bool {
+	return c.Spec.SingleUserConfiguration.Enabled && c.Spec.SingleUserConfiguration.AuthorizerEnabled
 }
 
 func (cluster NifiCluster) IsReady() bool {

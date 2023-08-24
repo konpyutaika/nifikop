@@ -4237,12 +4237,15 @@ spec:
               singleUserConfiguration:
                 properties:
                   authorizerEnabled:
-                    default: false
+                    default: true
                     type: boolean
                   enabled:
                     default: false
                     type: boolean
                   secretKeys:
+                    default:
+                      password: password
+                      username: username
                     properties:
                       password:
                         default: password
@@ -4260,9 +4263,6 @@ spec:
                     required:
                     - name
                     type: object
-                required:
-                - authorizerEnabled
-                - enabled
                 type: object
               topologySpreadConstraints:
                 items:

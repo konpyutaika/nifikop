@@ -198,10 +198,10 @@ spec:
 
 | Field             | Type    | Description                                                                                                                               | Required | Default |
 | ----------------- | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------- |
-| enabled           | boolean          | if set to true, we will enable single-user usage into nifi.properties configuration.                                                                     | No       | false   |
-| authorizerEnabled | boolean          | if set to true, we will use the single-user-authorizer instead of the managed-authorizer.                                                                | No       | false   |
-| secretRef         | [SecretReference](../4_nifi_parameter_context#secretreference)   | the reference to the username and password. If not configured, will use auto generated username and password that will appear once in the logs at startup.      | No       | nil     |
-| secretKeys         | [SecretKeys](#secretkeys)   | the keys of the username and password.      | No       | {username= "username", password="password"}     |
+| enabled           | boolean          | specifies whether or not the cluster should use single user authentication for Nifi                                                                     | No       | false   |
+| authorizerEnabled | boolean          | specifies if the cluster should use use the single-user-authorizer instead of the managed-authorizer (if enabled, the creation of users and user groups will not work in NiFi, and the single user will have no rights by default.)                                                               | No       | true   |
+| secretRef         | [SecretReference](../4_nifi_parameter_context#secretreference)   | references the secret containing the informations required to authentiticate to the cluster      | No       | nil     |
+| secretKeys         | [UserSecretKeys](#usersecretkeys)   | references the keys from the secret containing the user name and password.      | No       | {username:"username", password:"password"}     |
 
 ## NifiClusterTaskSpec
 
@@ -219,9 +219,9 @@ spec:
 | NifiClusterRollingUpgrading | ClusterRollingUpgrading | states that the cluster is rolling upgrading           |
 | NifiClusterRunning          | ClusterRunning          | states that the cluster is in running state            |
 
-## SecretKeys
+## UserSecretKeys
 
-| Field    | Type   | Description                                      | Required | Default  |
-| -------- | ------ | ------------------------------------------------ | -------- | -------- |
-| username | string | name of the secret key to retrieve the username. | No       | username |
-| password | string | name of the secret key to retrieve the password. | No       | password |
+| Field    | Type   | Description                                                        | Required | Default  |
+| -------- | ------ | ------------------------------------------------------------------ | -------- | -------- |
+| username | string | specifies he name of the secret key to retrieve the user name.     | No       | username |
+| password | string | specifies he name of the secret key to retrieve the user password. | No       | password |
