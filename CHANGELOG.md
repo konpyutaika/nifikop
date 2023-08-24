@@ -4,6 +4,8 @@
 
 ### Changed
 
+- [PR #290](https://github.com/konpyutaika/nifikop/pull/290) - **[Operator/NifiCluster]** Change default sensitive algorithm
+
 ### Fixed Bugs
 
 ### Deprecated

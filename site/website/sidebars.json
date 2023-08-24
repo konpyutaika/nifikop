@@ -137,7 +137,8 @@
       "items": [
         "7_upgrade_guides/1_v0.7.x_to_v0.8.0",
         "7_upgrade_guides/2_v0.14.1_to_v0.15.0",
-        "7_upgrade_guides/3_v0.16.0_to_v1.0.0"
+        "7_upgrade_guides/3_v0.16.0_to_v1.0.0",
+        "7_upgrade_guides/4_v1.3.1_to_v1.4.0"
       ]
     }
   ]
