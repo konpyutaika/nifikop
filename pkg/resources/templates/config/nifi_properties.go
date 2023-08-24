@@ -147,7 +147,7 @@ nifi.web.jetty.threads=200
 # security properties #
 nifi.sensitive.props.key=
 nifi.sensitive.props.key.protected=
-nifi.sensitive.props.algorithm=PBEWITHMD5AND256BITAES-CBC-OPENSSL
+nifi.sensitive.props.algorithm=NIFI_PBKDF2_AES_GCM_256
 nifi.sensitive.props.provider=BC
 nifi.sensitive.props.additional.keys=
 
