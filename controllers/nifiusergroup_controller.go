@@ -181,6 +181,21 @@ func (r *NifiUserGroupReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		return RequeueWithError(r.Log, "failed to lookup referenced cluster for user group "+instance.Name, err)
 	}
 
+	// Get the referenced NifiCluster
+	var cluster *v1.NifiCluster
+	if cluster, err = k8sutil.LookupNifiCluster(r.Client, instance.Spec.ClusterRef.Name, clusterRef.Namespace); err != nil {
+		// This shouldn't trigger anymore, but leaving it here as a safetybelt
+		if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {
+			r.Log.Error("Cluster is gone already, there is nothing we can do",
+				zap.String("userGroup", instance.Name),
+				zap.String("clusterName", clusterRef.Name))
+			if err = r.removeFinalizer(ctx, instance); err != nil {
+				return RequeueWithError(r.Log, "failed to remove finalizer from NifiUserGroup "+instance.Name, err)
+			}
+			return Reconciled()
+		}
+	}
+
 	// Generate the client configuration.
 	clientConfig, err = configManager.BuildConfig()
 	if err != nil {
@@ -231,6 +246,15 @@ func (r *NifiUserGroupReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		if err := r.Client.Update(ctx, current); err != nil {
 			return RequeueWithError(r.Log, "failed to update NifiUserGroup "+instance.Name, err)
 		}
+		return RequeueAfter(interval)
+	}
+
+	// Block the user creation in NiFi, if pure single user authentication
+	if cluster.IsPureSingleUser() {
+		r.Log.Debug("Cluster is in pure single user authentication, can't create user group.",
+			zap.String("user", instance.Name),
+			zap.String("clusterName", clusterRef.Name))
+
 		return RequeueAfter(interval)
 	}
 

@@ -24,7 +24,7 @@ spec:
       resource: /counters
 ```
 
-## NifiUser
+## NifiUserGroup
 |Field|Type|Description|Required|Default|
 |-----|----|-----------|--------|--------|
 |metadata|[ObjectMetadata](https://godoc.org/k8s.io/apimachinery/pkg/apis/meta/v1#ObjectMeta)|is metadata that all persisted resources must have, which includes all objects usergroups must create.|No|nil|

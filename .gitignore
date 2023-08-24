@@ -76,7 +76,7 @@ tags
 .vscode/*
 .history
 .config/*
-__debug_bin
+__debug_bin*
 # End of https://www.gitignore.io/api/go,vim,emacs,visualstudiocode
 
 .DS_Store
