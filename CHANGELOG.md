@@ -2,6 +2,18 @@
 
 ### Added
 
+### Changed
+
+### Fixed Bugs
+
+### Deprecated
+
+### Removed
+
+## v1.3.1
+
+### Added
+
 - [PR #286](https://github.com/konpyutaika/nifikop/pull/286) - **[Operator/NifiCluster]** Update resource's status only on change.
 
 ### Changed
@@ -12,10 +24,6 @@
 ### Fixed Bugs
 
 - [PR #288](https://github.com/konpyutaika/nifikop/pull/288) - **[Operator/NifiCluster]** Fix single user authentication default secret keys.
-
-### Deprecated
-
-### Removed
 
 ## v1.3.0
 
