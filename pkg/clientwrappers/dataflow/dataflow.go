@@ -708,52 +708,52 @@ func processGroupFromFlow(
 	return nil
 }
 
-// inputConnectionFromFlow retrieve all input connection from a list of input ports
-func inputConnectionFromFlow(flowEntity *nigoapi.ProcessGroupFlowEntity,
-	inputPorts []nigoapi.PortEntity) []nigoapi.ConnectionEntity {
-	var connections []nigoapi.ConnectionEntity
+// // inputConnectionFromFlow retrieve all input connection from a list of input ports
+// func inputConnectionFromFlow(flowEntity *nigoapi.ProcessGroupFlowEntity,
+// 	inputPorts []nigoapi.PortEntity) []nigoapi.ConnectionEntity {
+// 	var connections []nigoapi.ConnectionEntity
 
-	for _, connection := range flowEntity.ProcessGroupFlow.Flow.Connections {
-		for _, inputPort := range inputPorts {
-			if connection.DestinationId == inputPort.Id {
-				connections = append(connections, connection)
-			}
-		}
-	}
+// 	for _, connection := range flowEntity.ProcessGroupFlow.Flow.Connections {
+// 		for _, inputPort := range inputPorts {
+// 			if connection.DestinationId == inputPort.Id {
+// 				connections = append(connections, connection)
+// 			}
+// 		}
+// 	}
 
-	return connections
-}
+// 	return connections
+// }
 
-// hasInputConnectionsActive will determine if a flow has input connections that are still active
-func hasInputConnectionsActive(flow *v1.NifiDataflow, config *clientconfig.NifiConfig) (*bool, error) {
-	var connections []nigoapi.ConnectionEntity
+// // hasInputConnectionsActive will determine if a flow has input connections that are still active
+// func hasInputConnectionsActive(flow *v1.NifiDataflow, config *clientconfig.NifiConfig) (*bool, error) {
+// 	var connections []nigoapi.ConnectionEntity
 
-	nClient, err := common.NewClusterConnection(log, config)
-	if err != nil {
-		return nil, err
-	}
+// 	nClient, err := common.NewClusterConnection(log, config)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	flowEntity, err := nClient.GetFlow(flow.Status.ProcessGroupID)
-	if err != nil {
-		return nil, err
-	}
+// 	flowEntity, err := nClient.GetFlow(flow.Status.ProcessGroupID)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	parentFlowEntity, err := nClient.GetFlow(flowEntity.ProcessGroupFlow.ParentGroupId)
-	if err != nil {
-		return nil, err
-	}
+// 	parentFlowEntity, err := nClient.GetFlow(flowEntity.ProcessGroupFlow.ParentGroupId)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	connections = inputConnectionFromFlow(parentFlowEntity, flowEntity.ProcessGroupFlow.Flow.InputPorts)
+// 	connections = inputConnectionFromFlow(parentFlowEntity, flowEntity.ProcessGroupFlow.Flow.InputPorts)
 
-	var hasConnectionActive bool = false
-	for _, inputConnection := range connections {
-		if inputConnection.Status.AggregateSnapshot.FlowFilesQueued > 0 || inputConnection.Component.Source.Running {
-			hasConnectionActive = true
-		}
-	}
+// 	var hasConnectionActive bool = false
+// 	for _, inputConnection := range connections {
+// 		if inputConnection.Status.AggregateSnapshot.FlowFilesQueued > 0 || inputConnection.Component.Source.Running {
+// 			hasConnectionActive = true
+// 		}
+// 	}
 
-	return &hasConnectionActive, nil
-}
+// 	return &hasConnectionActive, nil
+// }
 
 // listComponents will get all ProcessGroups, Processors, Connections and Ports recursively
 func listComponents(config *clientconfig.NifiConfig,

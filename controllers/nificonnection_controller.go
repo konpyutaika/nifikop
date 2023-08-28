@@ -125,7 +125,8 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	// Validate component
 	if !instance.Spec.Configuration.IsValid() {
 		r.Recorder.Event(instance, corev1.EventTypeWarning, "ConfigurationInvalid",
-			fmt.Sprintf("Failed to validate the connection configuration"))
+			fmt.Sprintf("Failed to validate the connection configuration: %s in %s of type %s",
+				instance.Spec.Source.Name, instance.Spec.Source.Namespace, instance.Spec.Source.Type))
 		return RequeueWithError(r.Log, "failed to validate the configuration of connection "+instance.Name, err)
 	}
 
@@ -134,7 +135,7 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	// If the source component is invalid, requeue with error
 	if !instance.Spec.Source.IsValid() {
 		r.Recorder.Event(instance, corev1.EventTypeWarning, "SourceInvalid",
-			fmt.Sprintf("Failed to validate the source component : %s in %s of type %s",
+			fmt.Sprintf("Failed to validate the source component: %s in %s of type %s",
 				instance.Spec.Source.Name, instance.Spec.Source.Namespace, instance.Spec.Source.Type))
 		return RequeueWithError(r.Log, "failed to validate source component "+instance.Spec.Source.Name, err)
 	}
@@ -144,7 +145,7 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	// If the destination component is invalid, requeue with error
 	if !instance.Spec.Destination.IsValid() {
 		r.Recorder.Event(instance, corev1.EventTypeWarning, "DestinationInvalid",
-			fmt.Sprintf("Failed to validate the destination component : %s in %s of type %s",
+			fmt.Sprintf("Failed to validate the destination component: %s in %s of type %s",
 				instance.Spec.Destination.Name, instance.Spec.Destination.Namespace, instance.Spec.Destination.Type))
 		return RequeueWithError(r.Log, "failed to validate destination component "+instance.Spec.Destination.Name, err)
 	}
@@ -191,7 +192,7 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		clientConfig, err = configManager.BuildConfig()
 		if err != nil {
 			r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceClusterError",
-				fmt.Sprintf("Failed to create HTTP client for the referenced cluster : %s in %s",
+				fmt.Sprintf("Failed to create HTTP client for the referenced cluster: %s in %s",
 					clusterRef.Name, clusterRef.Namespace))
 
 			// the cluster does not exist - should have been caught pre-flight
@@ -204,7 +205,7 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 				zap.String("clusterName", clusterRef.Name),
 				zap.String("connection", instance.Name))
 			r.Recorder.Event(instance, corev1.EventTypeNormal, "ReferenceClusterNotReady",
-				fmt.Sprintf("The referenced cluster is not ready yet for connection %s : %s in %s",
+				fmt.Sprintf("The referenced cluster is not ready yet for connection %s: %s in %s",
 					instance.Name, clusterRef.Name, clusterConnect.Id()))
 		}
 
@@ -266,7 +267,7 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	// If the source cannot be found, requeue with error
 	if err != nil {
 		r.Recorder.Event(instance, corev1.EventTypeWarning, "SourceNotFound",
-			fmt.Sprintf("Failed to retrieve source component information : %s in %s of type %s",
+			fmt.Sprintf("Failed to retrieve source component information: %s in %s of type %s",
 				instance.Spec.Source.Name, instance.Spec.Source.Namespace, instance.Spec.Source.Type))
 		return RequeueWithError(r.Log, "failed to retrieve source component "+instance.Spec.Source.Name, err)
 	}
@@ -280,7 +281,7 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	// If the destination cannot be found, requeue with error
 	if err != nil {
 		r.Recorder.Event(instance, corev1.EventTypeWarning, "DestinationNotFound",
-			fmt.Sprintf("Failed to retrieve destination component information : %s in %s of type %s",
+			fmt.Sprintf("Failed to retrieve destination component information: %s in %s of type %s",
 				instance.Spec.Destination.Name, instance.Spec.Destination.Namespace, instance.Spec.Destination.Type))
 		return RequeueWithError(r.Log, "failed to retrieve destination component "+instance.Spec.Destination.Name, err)
 	}
@@ -318,7 +319,7 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	clientConfig, err = configManager.BuildConfig()
 	if err != nil {
 		r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceClusterError",
-			fmt.Sprintf("Failed to create HTTP client for the referenced cluster : %s in %s",
+			fmt.Sprintf("Failed to create HTTP client for the referenced cluster: %s in %s",
 				clusterRef.Name, clusterRef.Namespace))
 		// the cluster is gone, so just remove the finalizer
 		if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {
@@ -342,7 +343,7 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 			zap.String("clusterName", clusterRef.Name),
 			zap.String("connection", instance.Name))
 		r.Recorder.Event(instance, corev1.EventTypeNormal, "ReferenceClusterNotReady",
-			fmt.Sprintf("The referenced cluster is not ready yet for connection %s : %s in %s",
+			fmt.Sprintf("The referenced cluster is not ready yet for connection %s: %s in %s",
 				instance.Name, clusterRef.Name, clusterConnect.Id()))
 
 		// the cluster does not exist - should have been caught pre-flight
@@ -878,7 +879,7 @@ func (r *NifiConnectionReconciler) GetDataflowComponentInformation(c v1alpha1.Co
 
 		// Error if the targeted port is not found
 		if !foundTarget {
-			return nil, errors.New(fmt.Sprintf("Port %s not found : %s in %s", c.SubName, instance.Name, instance.Namespace))
+			return nil, errors.New(fmt.Sprintf("Port %s not found: %s in %s", c.SubName, instance.Name, instance.Namespace))
 		}
 
 		// Return all the information on the targetted port of the dataflow

@@ -192,16 +192,19 @@ func TestStringSliceContains(t *testing.T) {
 
 func TestStringSliceRemove(t *testing.T) {
 	list := []string{"a", "b", "c"}
+	listCopy := make([]string, len(list))
 
+	copy(listCopy, list)
 	// item in the list
-	if results := StringSliceRemove(list, "a"); len(results) == len(list) &&
-		list[0] == list[1] && list[1] == list[2] {
+	if results := StringSliceRemove(listCopy, "a"); len(results) != len(list)-1 ||
+		results[0] != list[1] || results[1] != list[2] {
 		t.Error("The list must have an item less")
 	}
 
+	copy(listCopy, list)
 	// item not in the list
-	if results := StringSliceRemove(list, "1"); len(results) != len(list) &&
-		list[0] == list[0] && list[1] == list[1] && list[2] == list[2] {
+	if results := StringSliceRemove(listCopy, "1"); len(results) != len(list) ||
+		results[0] != list[0] || results[1] != list[1] || results[2] != list[2] {
 		t.Error("The list should be the same")
 	}
 }
