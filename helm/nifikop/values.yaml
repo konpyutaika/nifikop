@@ -29,6 +29,9 @@ resources:
     cpu: 1
     memory: 512Mi
 
+## RunAsUser for OpenShift compatibility
+runAsUser: 1000
+
 ## pod spec host aliases for the operator
 ## Ref: https://kubernetes.io/docs/tasks/network/customize-hosts-file-for-pods/
 hostAliases: []
