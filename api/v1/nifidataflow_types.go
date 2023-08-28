@@ -22,7 +22,6 @@ type NifiDataflowSpec struct {
 	// contains the reference to the ParameterContext with the one the dataflow is linked.
 	ParameterContextRef *ParameterContextReference `json:"parameterContextRef,omitempty"`
 	// if the flow will be synchronized once, continuously or never
-	// +kubebuilder:validation:Enum={"never","always","once"}
 	SyncMode *DataflowSyncMode `json:"syncMode,omitempty"`
 	// whether the flow is considered as ran if some controller services are still invalid or not.
 	SkipInvalidControllerService bool `json:"skipInvalidControllerService,omitempty"`
@@ -33,8 +32,7 @@ type NifiDataflowSpec struct {
 	// contains the reference to the NifiRegistry with the one the dataflow is linked.
 	RegistryClientRef *RegistryClientReference `json:"registryClientRef,omitempty"`
 	// describes the way the operator will deal with data when a dataflow will be updated : drop or drain
-	// +kubebuilder:validation:Enum={"drop","drain"}
-	UpdateStrategy DataflowUpdateStrategy `json:"updateStrategy"`
+	UpdateStrategy ComponentUpdateStrategy `json:"updateStrategy"`
 }
 
 type FlowPosition struct {

@@ -42,7 +42,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-var userGroupFinalizer = "nifiusergroups.nifi.konpyutaika.com/finalizer"
+var userGroupFinalizer = fmt.Sprintf("nifiusergroups.%s/finalizer", v1.GroupVersion.Group)
 
 // NifiUserGroupReconciler reconciles a NifiUserGroup object
 type NifiUserGroupReconciler struct {

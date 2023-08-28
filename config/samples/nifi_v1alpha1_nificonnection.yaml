@@ -1,0 +1,55 @@
+apiVersion: nifi.konpyutaika.com/v1alpha1
+kind: NifiConnection
+metadata:
+  name: nificonnection-sample
+spec:
+  # the Source component of the connection.
+  source:
+    # the name of the source component.
+    name: input
+    # the namespace of the source component.
+    namespace: nifikop
+    # the name of the source sub component (e.g. queue or port name).
+    subName: output
+    # the type of the source component (e.g. nifidataflow).
+    type: dataflow
+  # the Destination component of the connection.
+  destination:
+    # the name of the destination component.
+    name: output
+    # the namespace of the destination component.
+    namespace: nifikop
+    # the name of the destination sub component (e.g. queue or port name).
+    subName: input
+    # the type of the destination component (e.g. nifidataflow).
+    type: dataflow
+  # the Configuration of the connection.
+  configuration:
+    # the maximum amount of time an object may be in the flow before it will be automatically aged out of the flow.
+    flowFileExpiration: 1 hour
+    # the maximum data size of objects that can be queued before back pressure is applied.
+    backPressureDataSizeThreshold: 100 GB
+    # the maximum number of objects that can be queued before back pressure is applied.
+    backPressureObjectThreshold: 10000
+    # how to load balance the data in this Connection across the nodes in the cluster.
+    LoadBalanceStrategy: PARTITION_BY_ATTRIBUTE
+    # the FlowFile Attribute to use for determining which node a FlowFile will go to.
+    LoadBalancePartitionAttribute: partition_attribute
+    # whether or not data should be compressed when being transferred between nodes in the cluster.
+    LoadBalanceCompression: DO_NOT_COMPRESS
+    # the comparators used to prioritize the queue.
+    Prioritizers: 
+      - NewestFlowFileFirstPrioritizer
+      - FirstInFirstOutPrioritizer
+    # the index of the bend point where to place the connection label.
+    labelIndex: 0
+    # the bend points on the connection.
+    bends:
+      - posX: 550
+        posY: 550
+      - posX: 550
+        posY: 440
+      - posX: 550
+        posY: 88
+  # describes the way the operator will deal with data when a connection will be updated : drop or drain.
+  updateStrategy: drain

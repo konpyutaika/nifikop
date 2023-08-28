@@ -34,7 +34,7 @@ Once you have deployed your [NifiRegistryClient], you have the possibility of de
 This configuration is defined using the [NifiParameterContext] CRD, which NiFiKop will convert into a [Parameter context](https://nifi.apache.org/docs/nifi-docs/html/user-guide.html#parameter-contexts).
 
 
-Below is an example of [NifiParameterContext] :
+Below is an example of [NifiParameterContext]:
 
 ```yaml
 apiVersion: nifi.konpyutaika.com/v1
@@ -118,7 +118,7 @@ You have two modes of control from your dataflow by the operator :
 3 - `Spec.SyncMode == always` : The operator will deploy and ensure the dataflow lifecycle, it will avoid all manual modification directly from the Cluster (e.g remove the process group, remove the versioning, update the parent process group, make some local changes ...). If you want to perform update, rollback or stuff like this, you have to simply update the [NifiDataflow] resource.
 
 :::important
-More information about `Spec.UpdateStrategy` [here](../../5_references/5_nifi_dataflow#dataflowupdatestrategy)
+More information about `Spec.UpdateStrategy` [here](../../5_references/5_nifi_dataflow#componentupdatestrategy)
 :::
 
 [NifiDataflow]: ../../5_references/5_nifi_dataflow

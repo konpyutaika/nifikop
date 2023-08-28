@@ -72,6 +72,7 @@ type NifiClient interface {
 	CreateProcessGroup(entity nigoapi.ProcessGroupEntity, pgParentId string) (*nigoapi.ProcessGroupEntity, error)
 	UpdateProcessGroup(entity nigoapi.ProcessGroupEntity) (*nigoapi.ProcessGroupEntity, error)
 	RemoveProcessGroup(entity nigoapi.ProcessGroupEntity) error
+	CreateConnection(entity nigoapi.ConnectionEntity) (*nigoapi.ConnectionEntity, error)
 
 	// Version func
 	CreateVersionUpdateRequest(pgId string, entity nigoapi.VersionControlInformationEntity) (*nigoapi.VersionedFlowUpdateRequestEntity, error)
@@ -86,9 +87,15 @@ type NifiClient interface {
 	// Processor func
 	UpdateProcessor(entity nigoapi.ProcessorEntity) (*nigoapi.ProcessorEntity, error)
 	UpdateProcessorRunStatus(id string, entity nigoapi.ProcessorRunStatusEntity) (*nigoapi.ProcessorEntity, error)
+	GetProcessor(id string) (*nigoapi.ProcessorEntity, error)
 
 	// Input port func
 	UpdateInputPortRunStatus(id string, entity nigoapi.PortRunStatusEntity) (*nigoapi.ProcessorEntity, error)
+	GetInputPort(id string) (*nigoapi.PortEntity, error)
+
+	// Output port func
+	UpdateOutputPortRunStatus(id string, entity nigoapi.PortRunStatusEntity) (*nigoapi.ProcessorEntity, error)
+	GetOutputPort(id string) (*nigoapi.PortEntity, error)
 
 	// Parameter context func
 	GetParameterContexts() ([]nigoapi.ParameterContextEntity, error)
@@ -128,6 +135,11 @@ type NifiClient interface {
 	// ControllerConfig func
 	GetControllerConfig() (*nigoapi.ControllerConfigurationEntity, error)
 	UpdateControllerConfig(entity nigoapi.ControllerConfigurationEntity) (*nigoapi.ControllerConfigurationEntity, error)
+
+	// Connections func
+	GetConnection(id string) (*nigoapi.ConnectionEntity, error)
+	UpdateConnection(entity nigoapi.ConnectionEntity) (*nigoapi.ConnectionEntity, error)
+	DeleteConnection(entity nigoapi.ConnectionEntity) error
 
 	Build() error
 }

@@ -3,6 +3,7 @@ package v1alpha1
 import (
 	"fmt"
 
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -21,11 +22,15 @@ type ClusterScalingStrategy string
 // DataflowState defines the state of a NifiDataflow
 type DataflowState string
 
+// ConnectionState defines the state of a NifiConnection
+type ConnectionState string
+
 // DataflowUpdateRequestType defines the type of versioned flow update request
 type DataflowUpdateRequestType string
 
-// DataflowUpdateStrategy defines the type of strategy to update a flow
-type DataflowUpdateStrategy string
+// ComponentUpdateStrategy defines the type of strategy to update a component
+// +kubebuilder:validation:Enum={"drop","drain"}
+type ComponentUpdateStrategy string
 
 // RackAwarenessState stores info about rack awareness status
 type RackAwarenessState string
@@ -46,12 +51,15 @@ type ConfigurationState string
 type InitClusterNode bool
 
 // PKIBackend represents an interface implementing the PKIManager
+// +kubebuilder:validation:Enum={"cert-manager","vault"}
 type PKIBackend string
 
 // ClientConfigType represents an interface implementing the ClientConfigManager
+// +kubebuilder:validation:Enum={"tls","basic"}
 type ClientConfigType string
 
 // ClusterType represents an interface implementing the  ClientConfigManager
+// +kubebuilder:validation:Enum={"external","internal"}
 type ClusterType string
 
 // AccessPolicyType represents the type of access policy
@@ -278,6 +286,13 @@ const (
 	// DataflowStateInSync describes the status of a NifiDataflow as in sync
 	DataflowStateInSync DataflowState = "InSync"
 
+	// ConnectionStateOutOfSync describes the status of a NifiConnection as out of sync
+	ConnectionStateOutOfSync ConnectionState = "OutOfSync"
+	// ConnectionStateInSync describes the status of a NifiConnection as in sync
+	ConnectionStateInSync ConnectionState = "InSync"
+	// ConnectionStateCreated describes the status of a NifiConnection as created
+	ConnectionStateCreated ConnectionState = "Created"
+
 	// RevertRequestType defines a revert changes request.
 	RevertRequestType DataflowUpdateRequestType = "Revert"
 	// UpdateRequestType defines an update version request.
@@ -285,9 +300,9 @@ const (
 
 	// DrainStrategy leads to shutting down only input components (Input processors, remote input process group)
 	// and dropping all flowfiles from the flow.
-	DrainStrategy DataflowUpdateStrategy = "drain"
+	DrainStrategy ComponentUpdateStrategy = "drain"
 	// DropStrategy leads to shutting down all components and dropping all flowfiles from the flow.
-	DropStrategy DataflowUpdateStrategy = "drop"
+	DropStrategy ComponentUpdateStrategy = "drop"
 
 	// UserStateCreated describes the status of a NifiUser as created
 	UserStateCreated UserState = "created"
@@ -437,6 +452,21 @@ func SecretRefsEquals(secretRefs []SecretReference) bool {
 	return true
 }
 
+func ComponentRefsEquals(componentRefs []ComponentReference) bool {
+	c1 := componentRefs[0]
+	name := c1.Name
+	ns := c1.Namespace
+
+	for _, component := range componentRefs {
+		if name != component.Name || ns != component.Namespace || ns != string(component.Type) || ns != component.SubName {
+			return false
+		}
+	}
+
+	return true
+}
+
+// +kubebuilder:validation:Enum={"never","always","once"}
 type DataflowSyncMode string
 
 const (
@@ -461,4 +491,65 @@ const (
 	NonPrimaryClusterDownscaleStrategy ClusterScalingStrategy = "nonprimary"
 	// downscale strategy targeting nodes which are least busy in terms of # flowfiles in queues
 	LeastBusyClusterDownscaleStrategy ClusterScalingStrategy = "leastbusy"
+)
+
+// Change the list to {"dataflow","input-port","output-port","processor","process-group"} when all the type are available
+// +kubebuilder:validation:Enum={"dataflow"}
+type ComponentType string
+
+const (
+	ComponentDataflow     ComponentType = "dataflow"
+	ComponentInputPort    ComponentType = "input-port"
+	ComponentOutputPort   ComponentType = "output-port"
+	ComponentProcessor    ComponentType = "processor"
+	ComponentFunnel       ComponentType = "funnel"
+	ComponentProcessGroup ComponentType = "process-group"
+)
+
+type ComponentInformation struct {
+	Id            string              `json:"id"`
+	GroupId       string              `json:"groupId"`
+	Type          string              `json:"type"`
+	ParentGroupId string              `json:"parentGroupId"`
+	ClusterRef    v1.ClusterReference `json:"clusterRef"`
+}
+
+// +kubebuilder:validation:Enum={"DO_NOT_LOAD_BALANCE","PARTITION_BY_ATTRIBUTE","ROUND_ROBIN","SINGLE"}
+type ConnectionLoadBalanceStrategy string
+
+const (
+	// Do not load balance FlowFiles between nodes in the cluster.
+	StrategyDoNotLoadBalance ConnectionLoadBalanceStrategy = "DO_NOT_LOAD_BALANCE"
+	// Determine which node to send a given FlowFile to based on the value of a user-specified FlowFile Attribute. All FlowFiles that have the same value for said Attribute will be sent to the same node in the cluster.
+	StrategyPartitionByAttribute ConnectionLoadBalanceStrategy = "PARTITION_BY_ATTRIBUTE"
+	// FlowFiles will be distributed to nodes in the cluster in a Round-Robin fashion. However, if a node in the cluster is not able to receive data as fast as other nodes, that node may be skipped in one or more iterations in order to maximize throughput of data distribution across the cluster.
+	StrategyRoundRobin ConnectionLoadBalanceStrategy = "ROUND_ROBIN"
+	// All FlowFiles will be sent to the same node. Which node they are sent to is not defined.
+	StrategySingle ConnectionLoadBalanceStrategy = "SINGLE"
+)
+
+// +kubebuilder:validation:Enum={"DO_NOT_COMPRESS","COMPRESS_ATTRIBUTES_ONLY","COMPRESS_ATTRIBUTES_AND_CONTENT"}
+type ConnectionLoadBalanceCompression string
+
+const (
+	// FlowFiles will not be compressed.
+	CompressionDoNotCompress ConnectionLoadBalanceCompression = "DO_NOT_COMPRESS"
+	// FlowFiles' attributes will be compressed, but the FlowFiles' contents will not be
+	CompressionCompressAttributesOnly ConnectionLoadBalanceCompression = "COMPRESS_ATTRIBUTES_ONLY"
+	// FlowFiles' attributes and content will be compressed
+	CompressionCompressAttributesAndContent ConnectionLoadBalanceCompression = "COMPRESS_ATTRIBUTES_AND_CONTENT"
+)
+
+// +kubebuilder:validation:Enum={"FirstInFirstOutPrioritizer","NewestFlowFileFirstPrioritizer","OldestFlowFileFirstPrioritizer","PriorityAttributePrioritizer"}
+type ConnectionPrioritizer string
+
+const (
+	// Given two FlowFiles, the one that reached the connection first will be processed first.
+	PrioritizerFirstInFirstOutPrioritizer ConnectionPrioritizer = "FirstInFirstOutPrioritizer"
+	// Given two FlowFiles, the one that is newest in the dataflow will be processed first.
+	PrioritizerNewestFlowFileFirstPrioritizer ConnectionPrioritizer = "NewestFlowFileFirstPrioritizer"
+	// Given two FlowFiles, the one that is oldest in the dataflow will be processed first. 'This is the default scheme that is used if no prioritizers are selected'.
+	PrioritizerOldestFlowFileFirstPrioritizer ConnectionPrioritizer = "OldestFlowFileFirstPrioritizer"
+	// Given two FlowFiles, an attribute called “priority” will be extracted. The one that has the lowest priority value will be processed first.
+	PrioritizerPriorityAttributePrioritizer ConnectionPrioritizer = "PriorityAttributePrioritizer"
 )

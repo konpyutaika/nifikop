@@ -44,7 +44,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-var autoscalerFinalizer = "nifinodegroupautoscalers.nifi.konpyutaika.com/finalizer"
+var autoscalerFinalizer string = fmt.Sprintf("nifinodegroupautoscalers.%s/finalizer", v1alpha1.GroupVersion.Group)
 
 // NifiNodeGroupAutoscalerReconciler reconciles a NifiNodeGroupAutoscaler object
 type NifiNodeGroupAutoscalerReconciler struct {
