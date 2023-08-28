@@ -2,6 +2,7 @@ package v1alpha1
 
 import (
 	"fmt"
+
 	v1 "github.com/konpyutaika/nifikop/api/v1"
 	"sigs.k8s.io/controller-runtime/pkg/conversion"
 )
@@ -66,7 +67,7 @@ func convertNifiDataflowSpec(src *NifiDataflowSpec, dst *v1.NifiDataflow) error 
 	dst.Spec.SkipInvalidComponent = src.SkipInvalidComponent
 	convertNifiDataflowClusterRef(src.ClusterRef, dst)
 	convertNifiDataflowRegistryClientRef(src.RegistryClientRef, dst)
-	dst.Spec.UpdateStrategy = v1.DataflowUpdateStrategy(src.UpdateStrategy)
+	dst.Spec.UpdateStrategy = v1.ComponentUpdateStrategy(src.UpdateStrategy)
 
 	return nil
 }
@@ -198,7 +199,7 @@ func convertFromNifiDataflowSpec(src *v1.NifiDataflowSpec, dst *NifiDataflow) er
 	dst.Spec.SkipInvalidComponent = src.SkipInvalidComponent
 	convertFromNifiDataflowClusterRef(src.ClusterRef, dst)
 	convertFromNifiDataflowRegistryClientRef(src.RegistryClientRef, dst)
-	dst.Spec.UpdateStrategy = DataflowUpdateStrategy(src.UpdateStrategy)
+	dst.Spec.UpdateStrategy = ComponentUpdateStrategy(src.UpdateStrategy)
 
 	return nil
 }

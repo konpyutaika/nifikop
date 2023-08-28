@@ -52,8 +52,8 @@ spec:
 |Field|Type|Description|Required|Default|
 |-----|----|-----------|--------|--------|
 |metadata|[ObjectMetadata](https://godoc.org/k8s.io/apimachinery/pkg/apis/meta/v1#ObjectMeta)|is metadata that all persisted resources must have, which includes all objects parameter contexts must create.|No|nil|
-|spec|[NifiParameterContextSpec](#NifiParameterContextspec)|defines the desired state of NifiParameterContext.|No|nil|
-|status|[NifiParameterContextStatus](#NifiParameterContextstatus)|defines the observed state of NifiParameterContext.|No|nil|
+|spec|[NifiParameterContextSpec](#nifiparametercontextspec)|defines the desired state of NifiParameterContext.|No|nil|
+|status|[NifiParameterContextStatus](#nifiparametercontextstatus)|defines the observed state of NifiParameterContext.|No|nil|
 
 ## NifiParameterContextsSpec
 

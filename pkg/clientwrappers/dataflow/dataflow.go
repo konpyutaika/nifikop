@@ -56,6 +56,27 @@ func RootProcessGroup(config *clientconfig.NifiConfig) (string, error) {
 	return rootPg.ProcessGroupFlow.Id, nil
 }
 
+func GetDataflowInformation(flow *v1.NifiDataflow, config *clientconfig.NifiConfig) (*nigoapi.ProcessGroupFlowEntity, error) {
+	if flow.Status.ProcessGroupID == "" {
+		return nil, nil
+	}
+
+	nClient, err := common.NewClusterConnection(log, config)
+	if err != nil {
+		return nil, err
+	}
+
+	flowEntity, err := nClient.GetFlow(flow.Status.ProcessGroupID)
+	if err := clientwrappers.ErrorGetOperation(log, err, "Get flow"); err != nil {
+		if err == nificlient.ErrNifiClusterReturned404 {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return flowEntity, nil
+}
+
 // CreateDataflow will deploy the NifiDataflow on NiFi Cluster
 func CreateDataflow(flow *v1.NifiDataflow, config *clientconfig.NifiConfig,
 	registry *v1.NifiRegistryClient) (*v1.NifiDataflowStatus, error) {
@@ -518,12 +539,12 @@ func prepareUpdatePG(flow *v1.NifiDataflow, config *clientconfig.NifiConfig) (*v
 		for _, connection := range connections {
 			if connection.Status.AggregateSnapshot.FlowFilesQueued != 0 {
 				dropRequest, err := nClient.CreateDropRequest(connection.Id)
-				if err := clientwrappers.ErrorCreateOperation(log, err, "Create drop-request"); err != nil {
+				if err := clientwrappers.ErrorUpdateOperation(log, err, "Create drop-request"); err != nil {
 					return nil, err
 				}
 
 				flow.Status.LatestDropRequest =
-					dropRequest2Status(flow.Status.LatestDropRequest.ConnectionId, dropRequest)
+					dropRequest2Status(connection.Id, dropRequest)
 
 				return &flow.Status, errorfactory.NifiConnectionDropping{}
 			}
@@ -548,7 +569,7 @@ func prepareUpdatePG(flow *v1.NifiDataflow, config *clientconfig.NifiConfig) (*v
 				return nil, err
 			}
 
-			// list input port
+			// Unlist all processors with input connections
 			for _, connection := range connections {
 				processors = removeProcessor(processors, connection.DestinationId)
 			}
@@ -687,6 +708,53 @@ func processGroupFromFlow(
 	return nil
 }
 
+// // inputConnectionFromFlow retrieve all input connection from a list of input ports
+// func inputConnectionFromFlow(flowEntity *nigoapi.ProcessGroupFlowEntity,
+// 	inputPorts []nigoapi.PortEntity) []nigoapi.ConnectionEntity {
+// 	var connections []nigoapi.ConnectionEntity
+
+// 	for _, connection := range flowEntity.ProcessGroupFlow.Flow.Connections {
+// 		for _, inputPort := range inputPorts {
+// 			if connection.DestinationId == inputPort.Id {
+// 				connections = append(connections, connection)
+// 			}
+// 		}
+// 	}
+
+// 	return connections
+// }
+
+// // hasInputConnectionsActive will determine if a flow has input connections that are still active
+// func hasInputConnectionsActive(flow *v1.NifiDataflow, config *clientconfig.NifiConfig) (*bool, error) {
+// 	var connections []nigoapi.ConnectionEntity
+
+// 	nClient, err := common.NewClusterConnection(log, config)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	flowEntity, err := nClient.GetFlow(flow.Status.ProcessGroupID)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	parentFlowEntity, err := nClient.GetFlow(flowEntity.ProcessGroupFlow.ParentGroupId)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	connections = inputConnectionFromFlow(parentFlowEntity, flowEntity.ProcessGroupFlow.Flow.InputPorts)
+
+// 	var hasConnectionActive bool = false
+// 	for _, inputConnection := range connections {
+// 		if inputConnection.Status.AggregateSnapshot.FlowFilesQueued > 0 || inputConnection.Component.Source.Running {
+// 			hasConnectionActive = true
+// 		}
+// 	}
+
+// 	return &hasConnectionActive, nil
+// }
+
 // listComponents will get all ProcessGroups, Processors, Connections and Ports recursively
 func listComponents(config *clientconfig.NifiConfig,
 	processGroupID string) ([]nigoapi.ProcessGroupEntity, []nigoapi.ProcessorEntity, []nigoapi.ConnectionEntity, []nigoapi.PortEntity, error) {
@@ -701,7 +769,10 @@ func listComponents(config *clientconfig.NifiConfig,
 		return processGroups, processors, connections, inputPorts, err
 	}
 
-	flowEntity, _ := nClient.GetFlow(processGroupID)
+	flowEntity, err := nClient.GetFlow(processGroupID)
+	if err != nil {
+		return processGroups, processors, connections, inputPorts, err
+	}
 	flow := flowEntity.ProcessGroupFlow.Flow
 
 	processGroups = flow.ProcessGroups
@@ -839,4 +910,24 @@ func removeProcessor(processors []nigoapi.ProcessorEntity, toRemoveId string) []
 	}
 
 	return tmp
+}
+
+// Check if a dataflow contains flowfile
+func IsDataflowEmpty(flow *v1.NifiDataflow, config *clientconfig.NifiConfig) (bool, error) {
+	nClient, err := common.NewClusterConnection(log, config)
+	if err != nil {
+		return false, err
+	}
+
+	flowEntity, err := nClient.GetFlow(flow.Spec.GetParentProcessGroupID(config.RootProcessGroupId))
+	if err := clientwrappers.ErrorGetOperation(log, err, "Get flow"); err != nil {
+		return false, err
+	}
+
+	pgEntity := processGroupFromFlow(flowEntity, flow)
+	if pgEntity == nil {
+		return false, errorfactory.NifiFlowDraining{}
+	}
+
+	return pgEntity.Status.AggregateSnapshot.FlowFilesQueued == 0, nil
 }

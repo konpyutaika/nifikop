@@ -199,6 +199,18 @@ func main() {
 		os.Exit(1)
 	}
 
+	if err = (&controllers.NifiConnectionReconciler{
+		Client:          mgr.GetClient(),
+		Log:             *logger.Named("controllers").Named("NifiConnection"),
+		Scheme:          mgr.GetScheme(),
+		Recorder:        mgr.GetEventRecorderFor("nifi-connection"),
+		RequeueInterval: multipliers.RegistryClientRequeueInterval,
+		RequeueOffset:   multipliers.RequeueOffset,
+	}).SetupWithManager(mgr); err != nil {
+		logger.Error("unable to create controller", zap.String("controller", "NifiConnection"), zap.Error(err))
+		os.Exit(1)
+	}
+
 	if webhookEnabled {
 		if err = (&v1alpha1.NifiUser{}).SetupWebhookWithManager(mgr); err != nil {
 			logger.Error("unable to create webhook", zap.String("webhook", "NifiUser"), zap.Error(err))

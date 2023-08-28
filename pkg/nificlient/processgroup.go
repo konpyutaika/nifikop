@@ -83,3 +83,20 @@ func (n *nifiClient) RemoveProcessGroup(entity nigoapi.ProcessGroupEntity) error
 
 	return errorDeleteOperation(rsp, body, err, n.log)
 }
+
+func (n *nifiClient) CreateConnection(entity nigoapi.ConnectionEntity) (*nigoapi.ConnectionEntity, error) {
+	// Get nigoapi client, favoring the one associated to the coordinator node.
+	client, context := n.privilegeCoordinatorClient()
+	if client == nil {
+		n.log.Error("Error during creating node client", zap.Error(ErrNoNodeClientsAvailable))
+		return nil, ErrNoNodeClientsAvailable
+	}
+
+	// Request on Nifi Rest API to create a connection
+	conEntity, rsp, body, err := client.ProcessGroupsApi.CreateConnection(context, entity.Component.ParentGroupId, entity)
+	if err := errorCreateOperation(rsp, body, err, n.log); err != nil {
+		return nil, err
+	}
+
+	return &conEntity, nil
+}

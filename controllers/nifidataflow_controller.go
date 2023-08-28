@@ -28,6 +28,8 @@ import (
 	"emperror.dev/errors"
 	"github.com/banzaicloud/k8s-objectmatcher/patch"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/dataflow"
+	"github.com/konpyutaika/nifikop/pkg/clientwrappers/inputport"
+	"github.com/konpyutaika/nifikop/pkg/clientwrappers/outputport"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	"github.com/konpyutaika/nifikop/pkg/k8sutil"
 	"github.com/konpyutaika/nifikop/pkg/nificlient/config"
@@ -39,12 +41,13 @@ import (
 	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
+	nifiutil "github.com/konpyutaika/nifikop/pkg/util/nifi"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-var dataflowFinalizer = "nifidataflows.nifi.konpyutaika.com/finalizer"
+var dataflowFinalizer string = fmt.Sprintf("nifidataflows.%s/finalizer", v1.GroupVersion.Group)
 
 // NifiDataflowReconciler reconciles a NifiDataflow object
 type NifiDataflowReconciler struct {
@@ -84,6 +87,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		return RequeueWithError(r.Log, err.Error(), err)
 	}
 
+	patchInstance := client.MergeFrom(instance.DeepCopy())
 	// Get the last configuration viewed by the operator.
 	o, _ := patch.DefaultAnnotator.GetOriginalConfiguration(instance)
 	// Create it if not exist.
@@ -91,7 +95,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(instance); err != nil {
 			return RequeueWithError(r.Log, "could not apply last state to annotation for dataflow "+instance.Name, err)
 		}
-		if err := r.Client.Update(ctx, instance); err != nil {
+		if err := r.Client.Patch(ctx, instance, patchInstance); err != nil {
 			return RequeueWithError(r.Log, "failed to update NifiDataflow "+instance.Name, err)
 		}
 		o, _ = patch.DefaultAnnotator.GetOriginalConfiguration(instance)
@@ -100,6 +104,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	// Check if the cluster reference changed.
 	original := &v1.NifiDataflow{}
 	current := instance.DeepCopy()
+	patchCurrent := client.MergeFrom(current.DeepCopy())
 	json.Unmarshal(o, original)
 	if !v1.ClusterRefsEquals([]v1.ClusterReference{original.Spec.ClusterRef, instance.Spec.ClusterRef}) {
 		instance.Spec.ClusterRef = original.Spec.ClusterRef
@@ -119,7 +124,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 			if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {
 				r.Log.Info("Dataflow is already gone, there is nothing we can do",
 					zap.String("dataflow", instance.Name))
-				if err = r.removeFinalizer(ctx, instance); err != nil {
+				if err = r.removeFinalizer(ctx, instance, patchInstance); err != nil {
 					return RequeueWithError(r.Log, "failed to remove finalizer for dataflow "+instance.Name, err)
 				}
 				return Reconciled()
@@ -146,7 +151,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 			if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {
 				r.Log.Info("Dataflow context is already gone, there is nothing we can do",
 					zap.String("dataflow", instance.Name))
-				if err = r.removeFinalizer(ctx, instance); err != nil {
+				if err = r.removeFinalizer(ctx, instance, patchInstance); err != nil {
 					return RequeueWithError(r.Log, "failed to remove finalizer for dataflow "+instance.Name, err)
 				}
 				return Reconciled()
@@ -202,7 +207,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 			r.Log.Info("Cluster is already gone, there is nothing we can do",
 				zap.String("clusterName", clusterRef.Name),
 				zap.String("dataflow", instance.Name))
-			if err = r.removeFinalizer(ctx, instance); err != nil {
+			if err = r.removeFinalizer(ctx, instance, patchInstance); err != nil {
 				return RequeueWithError(r.Log, "failed to remove finalizer for dataflow "+instance.Name, err)
 			}
 			return Reconciled()
@@ -213,7 +218,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 			if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(current); err != nil {
 				return RequeueWithError(r.Log, "could not apply last state to annotation for dataflow "+instance.Name, err)
 			}
-			if err := r.Client.Update(ctx, current); err != nil {
+			if err := r.Client.Patch(ctx, current, patchCurrent); err != nil {
 				return RequeueWithError(r.Log, "failed to update NifiDataflow with updated NifiCluster reference "+instance.Name, err)
 			}
 			return RequeueAfter(interval)
@@ -233,7 +238,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceClusterError", msg)
 		// the cluster is gone, so just remove the finalizer
 		if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {
-			if err = r.removeFinalizer(ctx, instance); err != nil {
+			if err = r.removeFinalizer(ctx, instance, patchInstance); err != nil {
 				return RequeueWithError(r.Log, fmt.Sprintf("failed to remove finalizer from NifiDataflow %s", instance.Name), err)
 			}
 			return Reconciled()
@@ -242,9 +247,85 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		return RequeueWithError(r.Log, "failed to create HTTP client the for referenced cluster", err)
 	}
 
+	// Maintenance operation(s) via label
+	// Check if maintenance operation is needed
+	var maintenanceOpNeeded bool = false
+	for labelKey := range instance.Labels {
+		if labelKey == nifiutil.StopInputPortLabel || labelKey == nifiutil.StopOutputPortLabel ||
+			labelKey == nifiutil.ForceStartLabel || labelKey == nifiutil.ForceStopLabel {
+			maintenanceOpNeeded = true
+		}
+	}
+
+	// Maintenance operation is needed
+	if maintenanceOpNeeded {
+		r.Recorder.Event(instance, corev1.EventTypeNormal, "MaintenanceOperationInProgress",
+			fmt.Sprintf("Syncing dataflow %s based on flow {bucketId : %s, flowId: %s, version: %s}",
+				instance.Name, instance.Spec.BucketId,
+				instance.Spec.FlowId, strconv.FormatInt(int64(*instance.Spec.FlowVersion), 10)))
+
+		dataflowInformation, err := dataflow.GetDataflowInformation(instance, clientConfig)
+		if err != nil {
+			return RequeueWithError(r.Log, "failed to get NifiDataflow information", err)
+		} else {
+			if labelValue, ok := instance.Labels[nifiutil.ForceStopLabel]; ok {
+				// Stop dataflow operation
+				if labelValue == "true" {
+					err = dataflow.UnscheduleDataflow(instance, clientConfig)
+					if err != nil {
+						return RequeueWithError(r.Log, "failed to stop dataflow "+instance.Name, err)
+					}
+				}
+				return reconcile.Result{
+					RequeueAfter: interval / 3,
+				}, nil
+			} else if labelValue, ok := instance.Labels[nifiutil.ForceStartLabel]; ok {
+				// Start dataflow operation
+				if labelValue == "true" {
+					err = dataflow.ScheduleDataflow(instance, clientConfig)
+					if err != nil {
+						return RequeueWithError(r.Log, "failed to start dataflow "+instance.Name, err)
+					}
+				}
+				return reconcile.Result{
+					RequeueAfter: interval / 3,
+				}, nil
+			} else {
+				if labelValue, ok := instance.Labels[nifiutil.StopInputPortLabel]; ok {
+					// Stop input port operation
+					for _, port := range dataflowInformation.ProcessGroupFlow.Flow.InputPorts {
+						if port.Component.Name == labelValue {
+							_, err := inputport.StopPort(port, clientConfig)
+							if err != nil {
+								return RequeueWithError(r.Log, "failed to stop input port "+labelValue, err)
+							}
+						}
+					}
+					return reconcile.Result{
+						RequeueAfter: interval / 3,
+					}, nil
+				}
+				if labelValue, ok := instance.Labels[nifiutil.StopOutputPortLabel]; ok {
+					// Stop output port operation
+					for _, port := range dataflowInformation.ProcessGroupFlow.Flow.OutputPorts {
+						if port.Component.Name == labelValue {
+							_, err := outputport.StopPort(port, clientConfig)
+							if err != nil {
+								return RequeueWithError(r.Log, "failed to stop output port "+labelValue, err)
+							}
+						}
+					}
+					return reconcile.Result{
+						RequeueAfter: interval / 3,
+					}, nil
+				}
+			}
+		}
+	}
+
 	// Check if marked for deletion and if so run finalizers
 	if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {
-		return r.checkFinalizers(ctx, instance, clientConfig)
+		return r.checkFinalizers(ctx, instance, clientConfig, patchInstance)
 	}
 
 	// Ensure the cluster is ready to receive actions
@@ -272,7 +353,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(current); err != nil {
 			return RequeueWithError(r.Log, "could not apply last state to annotation for dataflow "+instance.Name, err)
 		}
-		if err := r.Client.Update(ctx, current); err != nil {
+		if err := r.Client.Patch(ctx, current, patchCurrent); err != nil {
 			return RequeueWithError(r.Log, "failed to update NifiDataflow "+instance.Name, err)
 		}
 		return RequeueAfter(interval)
@@ -283,8 +364,8 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		return Reconciled()
 	}
 
-	r.Recorder.Event(instance, corev1.EventTypeWarning, "Reconciling",
-		fmt.Sprintf("Reconciling failed dataflow %s based on flow {bucketId : %s, flowId: %s, version: %s}",
+	r.Recorder.Event(instance, corev1.EventTypeNormal, "Reconciling",
+		fmt.Sprintf("Reconciling dataflow %s based on flow {bucketId : %s, flowId: %s, version: %s}",
 			instance.Name, instance.Spec.BucketId,
 			instance.Spec.FlowId, strconv.FormatInt(int64(*instance.Spec.FlowVersion), 10)))
 
@@ -314,8 +395,8 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		instance.Status = *processGroupStatus
 		instance.Status.State = v1.DataflowStateCreated
 
-		if err := r.updateStatus(ctx, instance, current.Status); err != nil {
-			return RequeueWithError(r.Log, "failed to update status for NifiDataflow "+instance.Name, err)
+		if err := r.patchStatus(ctx, instance, patchInstance, current.Status); err != nil {
+			return RequeueWithError(r.Log, "failed to patch status for NifiDataflow "+instance.Name, err)
 		}
 
 		r.Recorder.Event(instance, corev1.EventTypeNormal, "Created",
@@ -333,7 +414,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	}
 
 	// Push any changes
-	if instance, err = r.updateAndFetchLatest(ctx, instance); err != nil {
+	if instance, err = r.updateAndFetchLatest(ctx, instance, patchInstance); err != nil {
 		return RequeueWithError(r.Log, "failed to update NifiDataflow "+current.Name, err)
 	}
 
@@ -351,8 +432,8 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		status, err := dataflow.SyncDataflow(instance, clientConfig, registryClient, parameterContext)
 		if status != nil {
 			instance.Status = *status
-			if err := r.updateStatus(ctx, instance, current.Status); err != nil {
-				return RequeueWithError(r.Log, "failed to update status for  NifiDataflow "+instance.Name, err)
+			if err := r.patchStatus(ctx, instance, patchInstance, current.Status); err != nil {
+				return RequeueWithError(r.Log, "failed to patch status for  NifiDataflow "+instance.Name, err)
 			}
 		}
 		if err != nil {
@@ -387,8 +468,8 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		}
 
 		instance.Status.State = v1.DataflowStateInSync
-		if err := r.updateStatus(ctx, instance, current.Status); err != nil {
-			return RequeueWithError(r.Log, "failed to update status for NifiDataflow "+instance.Name, err)
+		if err := r.patchStatus(ctx, instance, patchInstance, current.Status); err != nil {
+			return RequeueWithError(r.Log, "failed to patch status for NifiDataflow "+instance.Name, err)
 		}
 
 		r.Recorder.Event(instance, corev1.EventTypeNormal, "Synchronized",
@@ -405,8 +486,8 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 
 	if isOutOfSink {
 		instance.Status.State = v1.DataflowStateOutOfSync
-		if err := r.updateStatus(ctx, instance, current.Status); err != nil {
-			return RequeueWithError(r.Log, "failed to update status for NifiDataflow "+instance.Name, err)
+		if err := r.patchStatus(ctx, instance, patchInstance, current.Status); err != nil {
+			return RequeueWithError(r.Log, "failed to patch status for NifiDataflow "+instance.Name, err)
 		}
 		return Requeue()
 	}
@@ -449,7 +530,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 
 			if instance.Status.State != v1.DataflowStateRan {
 				instance.Status.State = v1.DataflowStateRan
-				if err := r.updateStatus(ctx, instance, current.Status); err != nil {
+				if err := r.patchStatus(ctx, instance, patchInstance, current.Status); err != nil {
 					return RequeueWithError(r.Log, "failed to update status for NifiDataflow "+instance.Name, err)
 				}
 				r.Log.Info("Successfully ran dataflow",
@@ -470,12 +551,12 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	}
 
 	// Ensure NifiCluster label
-	if instance, err = r.ensureClusterLabel(ctx, clusterConnect, instance); err != nil {
+	if instance, err = r.ensureClusterLabel(ctx, clusterConnect, instance, patchInstance); err != nil {
 		return RequeueWithError(r.Log, "failed to ensure NifiCluster label on dataflow "+instance.Name, err)
 	}
 
 	// Push any changes
-	if instance, err = r.updateAndFetchLatest(ctx, instance); err != nil {
+	if instance, err = r.updateAndFetchLatest(ctx, instance, patchInstance); err != nil {
 		return RequeueWithError(r.Log, "failed to update NifiDataflow "+current.Name, err)
 	}
 
@@ -484,7 +565,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		zap.String("flowId", instance.Spec.FlowId),
 		zap.String("dataflow", instance.Name))
 
-	r.Recorder.Event(instance, corev1.EventTypeWarning, "Reconciled",
+	r.Recorder.Event(instance, corev1.EventTypeNormal, "Reconciled",
 		fmt.Sprintf("Success fully ensured dataflow %s based on flow {bucketId : %s, flowId: %s, version: %s}",
 			instance.Name, instance.Spec.BucketId,
 			instance.Spec.FlowId, strconv.FormatInt(int64(*instance.Spec.FlowVersion), 10)))
@@ -509,18 +590,18 @@ func (r *NifiDataflowReconciler) SetupWithManager(mgr ctrl.Manager) error {
 }
 
 func (r *NifiDataflowReconciler) ensureClusterLabel(ctx context.Context, cluster clientconfig.ClusterConnect,
-	flow *v1.NifiDataflow) (*v1.NifiDataflow, error) {
+	flow *v1.NifiDataflow, patcher client.Patch) (*v1.NifiDataflow, error) {
 
 	labels := ApplyClusterReferenceLabel(cluster, flow.GetLabels())
 	if !reflect.DeepEqual(labels, flow.GetLabels()) {
 		flow.SetLabels(labels)
-		return r.updateAndFetchLatest(ctx, flow)
+		return r.updateAndFetchLatest(ctx, flow, patcher)
 	}
 	return flow, nil
 }
 
 func (r *NifiDataflowReconciler) updateAndFetchLatest(ctx context.Context,
-	flow *v1.NifiDataflow) (*v1.NifiDataflow, error) {
+	flow *v1.NifiDataflow, patcher client.Patch) (*v1.NifiDataflow, error) {
 
 	typeMeta := flow.TypeMeta
 	err := r.Client.Update(ctx, flow)
@@ -532,7 +613,7 @@ func (r *NifiDataflowReconciler) updateAndFetchLatest(ctx context.Context,
 }
 
 func (r *NifiDataflowReconciler) checkFinalizers(ctx context.Context, flow *v1.NifiDataflow,
-	config *clientconfig.NifiConfig) (reconcile.Result, error) {
+	config *clientconfig.NifiConfig, patcher client.Patch) (reconcile.Result, error) {
 	r.Log.Info("NiFi dataflow is marked for deletion",
 		zap.String("dataflow", flow.Name))
 	var err error
@@ -545,7 +626,7 @@ func (r *NifiDataflowReconciler) checkFinalizers(ctx context.Context, flow *v1.N
 				return RequeueWithError(r.Log, "failed to finalize NiFiDataflow "+flow.Name, err)
 			}
 		}
-		if err = r.removeFinalizer(ctx, flow); err != nil {
+		if err = r.removeFinalizer(ctx, flow, patcher); err != nil {
 			return RequeueWithError(r.Log, "failed to remove finalizer from dataflow "+flow.Name, err)
 		}
 	}
@@ -553,11 +634,11 @@ func (r *NifiDataflowReconciler) checkFinalizers(ctx context.Context, flow *v1.N
 	return Reconciled()
 }
 
-func (r *NifiDataflowReconciler) removeFinalizer(ctx context.Context, flow *v1.NifiDataflow) error {
+func (r *NifiDataflowReconciler) removeFinalizer(ctx context.Context, flow *v1.NifiDataflow, patcher client.Patch) error {
 	r.Log.Info("Removing finalizer for NifiDataflow",
 		zap.String("dataflow", flow.Name))
 	flow.SetFinalizers(util.StringSliceRemove(flow.GetFinalizers(), dataflowFinalizer))
-	_, err := r.updateAndFetchLatest(ctx, flow)
+	_, err := r.updateAndFetchLatest(ctx, flow, patcher)
 	return err
 }
 
@@ -589,9 +670,9 @@ func (r *NifiDataflowReconciler) finalizeNifiDataflow(flow *v1.NifiDataflow, con
 	return nil
 }
 
-func (r *NifiDataflowReconciler) updateStatus(ctx context.Context, flow *v1.NifiDataflow, currentStatus v1.NifiDataflowStatus) error {
+func (r *NifiDataflowReconciler) patchStatus(ctx context.Context, flow *v1.NifiDataflow, patchFlow client.Patch, currentStatus v1.NifiDataflowStatus) error {
 	if !reflect.DeepEqual(flow.Status, currentStatus) {
-		return r.Client.Status().Update(ctx, flow)
+		return r.Client.Status().Patch(ctx, flow, patchFlow)
 	}
 	return nil
 }

@@ -43,7 +43,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-var parameterContextFinalizer = "nifiparametercontexts.nifi.konpyutaika.com/finalizer"
+var parameterContextFinalizer = fmt.Sprintf("nifiparametercontexts.%s/finalizer", v1.GroupVersion.Group)
 
 // NifiParameterContextReconciler reconciles a NifiParameterContext object
 type NifiParameterContextReconciler struct {

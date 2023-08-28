@@ -32,7 +32,7 @@ func (n *nifiClient) CreateDropRequest(connectionId string) (*nigoapi.DropReques
 
 	// Request on Nifi Rest API to create the drop Request
 	entity, rsp, body, err := client.FlowfileQueuesApi.CreateDropRequest(context, connectionId)
-	if err := errorCreateOperation(rsp, body, err, n.log); err != nil {
+	if err := errorUpdateOperation(rsp, body, err, n.log); err != nil {
 		return nil, err
 	}
 
