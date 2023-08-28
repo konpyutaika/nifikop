@@ -68,9 +68,10 @@ var LoginIdentityProvidersTemplate = `<?xml version="1.0" encoding="UTF-8" stand
     <provider>
         <identifier>ldap-provider</identifier>
         <class>org.apache.nifi.ldap.LdapProvider</class>
-        <property name="Authentication Strategy">START_TLS</property>
-        <property name="Manager DN"></property>
-        <property name="Manager Password"></property>
+        <property name="Authentication Strategy">{{.LdapConfiguration.AuthenticationStrategy}}</property>
+        <property name="Authentication Strategy">{{or .LdapConfiguration.AuthenticationStrategy "START_TLS"}}</property>
+        <property name="Manager DN">{{.LdapConfiguration.ManagerDn}}</property>
+        <property name="Manager Password">{{.LdapConfiguration.ManagerPassword}}</property>
         <property name="TLS - Keystore"></property>
         <property name="TLS - Keystore Password"></property>
         <property name="TLS - Keystore Type"></property>
@@ -87,8 +88,16 @@ var LoginIdentityProvidersTemplate = `<?xml version="1.0" encoding="UTF-8" stand
         <property name="Url">{{.LdapConfiguration.Url}}</property>
         <property name="User Search Base">{{.LdapConfiguration.SearchBase}}</property>
         <property name="User Search Filter">{{.LdapConfiguration.SearchFilter}}</property>
-        <property name="Identity Strategy">USE_DN</property>
+        <property name="Identity Strategy">{{.LdapConfiguration.IdentityStrategy}}</property>
+        <property name="Identity Strategy">{{or .LdapConfiguration.IdentityStrategy "USE_DN"}}</property>
         <property name="Authentication Expiration">12 hours</property>
+    </provider>
+    {{else if .SingleUserConfiguration.Enabled}}
+    <provider>
+        <identifier>single-user-provider</identifier>
+        <class>org.apache.nifi.authentication.single.user.SingleUserLoginIdentityProvider</class>
+        <property name="Username"/>
+        <property name="Password"/>
     </provider>
     {{end}}
     <!--

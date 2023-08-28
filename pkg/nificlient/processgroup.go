@@ -36,7 +36,11 @@ func (n *nifiClient) CreateProcessGroup(
 	}
 
 	// Request on Nifi Rest API to create the versioned process group
-	pgEntity, rsp, body, err := client.ProcessGroupsApi.CreateProcessGroup(context, pgParentId, entity)
+	pgEntity, rsp, body, err := client.ProcessGroupsApi.CreateProcessGroup(
+		context,
+		pgParentId,
+		entity,
+		&nigoapi.ProcessGroupsApiCreateProcessGroupOpts{ParameterContextHandlingStrategy: optional.NewString("KEEP_EXISTING")})
 	if err := errorCreateOperation(rsp, body, err, n.log); err != nil {
 		return nil, err
 	}

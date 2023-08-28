@@ -1108,6 +1108,14 @@ spec:
                   description: Space-separated list of URLs of the LDAP servers (i.e.
                     ldap://<hostname>:<port>).
                   type: string
+                authenticationStrategy:
+                  type: string
+                managerDn:
+                  type: string
+                managerPassword:
+                  type: string
+                identityStrategy:
+                  type: string
               type: object
             listenersConfig:
               description: listenerConfig specifies nifi's listener specifig configs

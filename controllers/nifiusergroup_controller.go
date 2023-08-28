@@ -181,6 +181,21 @@ func (r *NifiUserGroupReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		return RequeueWithError(r.Log, "failed to lookup referenced cluster for user group "+instance.Name, err)
 	}
 
+	// Get the referenced NifiCluster
+	var cluster *v1.NifiCluster
+	if cluster, err = k8sutil.LookupNifiCluster(r.Client, instance.Spec.ClusterRef.Name, clusterRef.Namespace); err != nil {
+		// This shouldn't trigger anymore, but leaving it here as a safetybelt
+		if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {
+			r.Log.Error("Cluster is gone already, there is nothing we can do",
+				zap.String("userGroup", instance.Name),
+				zap.String("clusterName", clusterRef.Name))
+			if err = r.removeFinalizer(ctx, instance); err != nil {
+				return RequeueWithError(r.Log, "failed to remove finalizer from NifiUserGroup "+instance.Name, err)
+			}
+			return Reconciled()
+		}
+	}
+
 	// Generate the client configuration.
 	clientConfig, err = configManager.BuildConfig()
 	if err != nil {
@@ -234,6 +249,15 @@ func (r *NifiUserGroupReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		return RequeueAfter(interval)
 	}
 
+	// Block the user creation in NiFi, if pure single user authentication
+	if cluster.IsPureSingleUser() {
+		r.Log.Debug("Cluster is in pure single user authentication, can't create user group.",
+			zap.String("user", instance.Name),
+			zap.String("clusterName", clusterRef.Name))
+
+		return RequeueAfter(interval)
+	}
+
 	r.Recorder.Event(instance, corev1.EventTypeNormal, "Reconciling",
 		fmt.Sprintf("Reconciling user group %s", instance.Name))
 
@@ -254,7 +278,7 @@ func (r *NifiUserGroupReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		}
 
 		instance.Status = *status
-		if err := r.Client.Status().Update(ctx, instance); err != nil {
+		if err := r.updateStatus(ctx, instance, current.Status); err != nil {
 			return RequeueWithError(r.Log, "failed to update status for NifiUserGroup "+instance.Name, err)
 		}
 
@@ -273,7 +297,7 @@ func (r *NifiUserGroupReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	}
 
 	instance.Status = *status
-	if err := r.Client.Status().Update(ctx, instance); err != nil {
+	if err := r.updateStatus(ctx, instance, current.Status); err != nil {
 		return RequeueWithError(r.Log, "failed to update status for NifiUserGroup "+instance.Name, err)
 	}
 
@@ -377,5 +401,12 @@ func (r *NifiUserGroupReconciler) finalizeNifiNifiUserGroup(
 	r.Log.Info("Deleted NifiUserGroup",
 		zap.String("userGroup", userGroup.Name))
 
+	return nil
+}
+
+func (r *NifiUserGroupReconciler) updateStatus(ctx context.Context, userGroup *v1.NifiUserGroup, currentStatus v1.NifiUserGroupStatus) error {
+	if !reflect.DeepEqual(userGroup.Status, currentStatus) {
+		return r.Client.Status().Update(ctx, userGroup)
+	}
 	return nil
 }

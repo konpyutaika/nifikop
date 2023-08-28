@@ -4,7 +4,7 @@ DOCKER_REGISTRY_BASE 	?= ghcr.io/konpyutaika/docker-images
 IMAGE_TAG				?= $(shell git describe --tags --abbrev=0 --match '[0-9].*[0-9].*[0-9]' 2>/dev/null)
 IMAGE_NAME 				?= $(SERVICE_NAME)
 BUILD_IMAGE				?= ghcr.io/konpyutaika/docker-images/nifikop-build
-GOLANG_VERSION          ?= 1.20
+GOLANG_VERSION          ?= 1.21.0
 IMAGE_TAG_BASE ?= <registry>/<operator name>
 OS = $(shell go env GOOS)
 ARCH = $(shell go env GOARCH)
@@ -28,7 +28,7 @@ ENVTEST ?= $(LOCALBIN)/setup-envtest
 ## Tool Versions
 KUSTOMIZE_VERSION ?= v4.5.5
 CONTROLLER_TOOLS_VERSION ?= v0.9.2
-ENVTEST_K8S_VERSION = 1.24
+ENVTEST_K8S_VERSION = 1.26
 
 DEV_DIR := docker/build-image
 
@@ -116,7 +116,7 @@ SHELL = /usr/bin/env bash -o pipefail
 
 # Build manager binary
 .PHONY: manager
-manager: generate fmt vet
+manager: manifests generate fmt vet
 	go build -o bin/manager main.go
 
 # Generate code

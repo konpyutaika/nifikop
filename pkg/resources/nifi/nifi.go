@@ -3,10 +3,11 @@ package nifi
 import (
 	"context"
 	"fmt"
-	"github.com/konpyutaika/nifikop/api/v1"
 	"reflect"
 	"strings"
 	"time"
+
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/dataflow"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/scale"
@@ -54,13 +55,14 @@ type Reconciler struct {
 }
 
 // New creates a new reconciler for Nifi
-func New(client client.Client, directClient client.Reader, scheme *runtime.Scheme, cluster *v1.NifiCluster) *Reconciler {
+func New(client client.Client, directClient client.Reader, scheme *runtime.Scheme, cluster *v1.NifiCluster, currentStatus v1.NifiClusterStatus) *Reconciler {
 	return &Reconciler{
 		Scheme: scheme,
 		Reconciler: resources.Reconciler{
-			Client:       client,
-			DirectClient: directClient,
-			NifiCluster:  cluster,
+			Client:                   client,
+			DirectClient:             directClient,
+			NifiCluster:              cluster,
+			NifiClusterCurrentStatus: currentStatus,
 		},
 	}
 }
@@ -121,13 +123,13 @@ func (r *Reconciler) Reconcile(log zap.Logger) error {
 
 	if r.NifiCluster.Spec.Service.HeadlessEnabled {
 		o := r.headlessService()
-		err := k8sutil.Reconcile(log, r.Client, o, r.NifiCluster)
+		err := k8sutil.Reconcile(log, r.Client, o, r.NifiCluster, &r.NifiClusterCurrentStatus)
 		if err != nil {
 			return errors.WrapIfWithDetails(err, "failed to reconcile resource", "resource", o.GetObjectKind().GroupVersionKind())
 		}
 	} else {
 		o := r.allNodeService()
-		err := k8sutil.Reconcile(log, r.Client, o, r.NifiCluster)
+		err := k8sutil.Reconcile(log, r.Client, o, r.NifiCluster, &r.NifiClusterCurrentStatus)
 		if err != nil {
 			return errors.WrapIfWithDetails(err, "failed to reconcile resource", "resource", o.GetObjectKind().GroupVersionKind())
 		}
@@ -154,7 +156,7 @@ func (r *Reconciler) Reconcile(log zap.Logger) error {
 		}
 
 		o := r.secretConfig(node.Id, nodeConfig, serverPass, clientPass, superUsers, log)
-		err = k8sutil.Reconcile(log, r.Client, o, r.NifiCluster)
+		err = k8sutil.Reconcile(log, r.Client, o, r.NifiCluster, &r.NifiClusterCurrentStatus)
 		if err != nil {
 			return errors.WrapIfWithDetails(err, "failed to reconcile resource", "resource", o.GetObjectKind().GroupVersionKind())
 		}
@@ -166,7 +168,7 @@ func (r *Reconciler) Reconcile(log zap.Logger) error {
 
 		if !r.NifiCluster.Spec.Service.HeadlessEnabled {
 			o := r.service(node.Id, log)
-			err := k8sutil.Reconcile(log, r.Client, o, r.NifiCluster)
+			err := k8sutil.Reconcile(log, r.Client, o, r.NifiCluster, &r.NifiClusterCurrentStatus)
 			if err != nil {
 				return errors.WrapIfWithDetails(err, "failed to reconcile resource", "resource", o.GetObjectKind().GroupVersionKind())
 			}
@@ -178,7 +180,7 @@ func (r *Reconciler) Reconcile(log zap.Logger) error {
 		}
 		if nodeState, ok := r.NifiCluster.Status.NodesState[o.(*corev1.Pod).Labels["nodeId"]]; ok &&
 			nodeState.PodIsReady != isReady {
-			if err = k8sutil.UpdateNodeStatus(r.Client, []string{o.(*corev1.Pod).Labels["nodeId"]}, r.NifiCluster, isReady, log); err != nil {
+			if err = k8sutil.UpdateNodeStatus(r.Client, []string{o.(*corev1.Pod).Labels["nodeId"]}, r.NifiCluster, r.NifiClusterCurrentStatus, isReady, log); err != nil {
 				return errors.WrapIfWithDetails(err, "could not update status for node(s)",
 					"id(s)", o.(*corev1.Pod).Labels["nodeId"])
 			}
@@ -189,7 +191,7 @@ func (r *Reconciler) Reconcile(log zap.Logger) error {
 	// Reconcile external services
 	services := r.externalServices(log)
 	for _, o := range services {
-		err = k8sutil.Reconcile(log, r.Client, o, r.NifiCluster)
+		err = k8sutil.Reconcile(log, r.Client, o, r.NifiCluster, &r.NifiClusterCurrentStatus)
 		if err != nil {
 			return errors.WrapIfWithDetails(err, "failed to reconcile resource", "resource", o.GetObjectKind().GroupVersionKind())
 		}
@@ -201,7 +203,7 @@ func (r *Reconciler) Reconcile(log zap.Logger) error {
 		if err != nil {
 			return errors.WrapIfWithDetails(err, "failed to compute podDisruptionBudget")
 		}
-		err = k8sutil.Reconcile(log, r.Client, o, r.NifiCluster)
+		err = k8sutil.Reconcile(log, r.Client, o, r.NifiCluster, &r.NifiClusterCurrentStatus)
 		if err != nil {
 			return errors.WrapIfWithDetails(err, "failed to reconcile resource", "resource", o.GetObjectKind().GroupVersionKind())
 		}
@@ -234,7 +236,7 @@ func (r *Reconciler) Reconcile(log zap.Logger) error {
 		return err
 	}
 
-	if err := k8sutil.UpdateRootProcessGroupIdStatus(r.Client, r.NifiCluster, pgRootId, log); err != nil {
+	if err := k8sutil.UpdateRootProcessGroupIdStatus(r.Client, r.NifiCluster, r.NifiClusterCurrentStatus, pgRootId, log); err != nil {
 		return err
 	}
 
@@ -305,7 +307,7 @@ OUTERLOOP:
 			}
 
 			if len(nodesPendingGracefulDownscale) > 0 {
-				err = k8sutil.UpdateNodeStatus(r.Client, nodesPendingGracefulDownscale, r.NifiCluster,
+				err = k8sutil.UpdateNodeStatus(r.Client, nodesPendingGracefulDownscale, r.NifiCluster, r.NifiClusterCurrentStatus,
 					v1.GracefulActionState{
 						State: v1.GracefulDownscaleRequired,
 					}, log)
@@ -335,7 +337,7 @@ OUTERLOOP:
 				continue
 			}
 
-			err = k8sutil.UpdateNodeStatus(r.Client, []string{node.Labels["nodeId"]}, r.NifiCluster,
+			err = k8sutil.UpdateNodeStatus(r.Client, []string{node.Labels["nodeId"]}, r.NifiCluster, r.NifiClusterCurrentStatus,
 				v1.GracefulActionState{ActionStep: v1.RemovePodAction, State: v1.GracefulDownscaleRunning,
 					TaskStarted: r.NifiCluster.Status.NodesState[node.Labels["nodeId"]].GracefulActionState.TaskStarted}, log)
 
@@ -398,7 +400,7 @@ OUTERLOOP:
 				}
 			}
 
-			err = k8sutil.UpdateNodeStatus(r.Client, []string{node.Labels["nodeId"]}, r.NifiCluster,
+			err = k8sutil.UpdateNodeStatus(r.Client, []string{node.Labels["nodeId"]}, r.NifiCluster, r.NifiClusterCurrentStatus,
 				v1.GracefulActionState{
 					ActionStep:  v1.RemovePodStatus,
 					State:       v1.GracefulDownscaleSucceeded,
@@ -585,14 +587,14 @@ func (r *Reconciler) reconcileNifiPod(log zap.Logger, desiredPod *corev1.Pod) (e
 		}
 
 		// Update status to Config InSync because node is configured to go
-		statusErr := k8sutil.UpdateNodeStatus(r.Client, []string{desiredPod.Labels["nodeId"]}, r.NifiCluster, v1.ConfigInSync, log)
+		statusErr := k8sutil.UpdateNodeStatus(r.Client, []string{desiredPod.Labels["nodeId"]}, r.NifiCluster, r.NifiClusterCurrentStatus, v1.ConfigInSync, log)
 		if statusErr != nil {
 			return errorfactory.New(errorfactory.StatusUpdateError{},
 				statusErr, "updating status for resource failed", "kind", desiredType), false
 		}
 
 		// set node creation time
-		statusErr = k8sutil.UpdateNodeStatus(r.Client, []string{desiredPod.Labels["nodeId"]}, r.NifiCluster, metav1.NewTime(time.Now().UTC()), log)
+		statusErr = k8sutil.UpdateNodeStatus(r.Client, []string{desiredPod.Labels["nodeId"]}, r.NifiCluster, r.NifiClusterCurrentStatus, metav1.NewTime(time.Now().UTC()), log)
 		if statusErr != nil {
 			return errorfactory.New(errorfactory.StatusUpdateError{},
 				statusErr, "failed to update node status creation time", "kind", desiredType), false
@@ -606,7 +608,7 @@ func (r *Reconciler) reconcileNifiPod(log zap.Logger, desiredPod *corev1.Pod) (e
 				gracefulActionState = v1.GracefulActionState{ErrorMessage: "", State: v1.GracefulUpscaleRequired}
 			}
 
-			statusErr = k8sutil.UpdateNodeStatus(r.Client, []string{desiredPod.Labels["nodeId"]}, r.NifiCluster, gracefulActionState, log)
+			statusErr = k8sutil.UpdateNodeStatus(r.Client, []string{desiredPod.Labels["nodeId"]}, r.NifiCluster, r.NifiClusterCurrentStatus, gracefulActionState, log)
 			if statusErr != nil {
 				return errorfactory.New(errorfactory.StatusUpdateError{},
 					statusErr, "could not update node graceful action state"), false
@@ -666,7 +668,7 @@ func (r *Reconciler) reconcileNifiPod(log zap.Logger, desiredPod *corev1.Pod) (e
 					val.GracefulActionState.ActionStep == v1.ConnectStatus &&
 					k8sutil.PodReady(currentPod) {
 
-					if err := k8sutil.UpdateNodeStatus(r.Client, []string{desiredPod.Labels["nodeId"]}, r.NifiCluster,
+					if err := k8sutil.UpdateNodeStatus(r.Client, []string{desiredPod.Labels["nodeId"]}, r.NifiCluster, r.NifiClusterCurrentStatus,
 						v1.GracefulActionState{ErrorMessage: "", State: v1.GracefulUpscaleSucceeded}, log); err != nil {
 						return errorfactory.New(errorfactory.StatusUpdateError{},
 							err, "could not update node graceful action state"), false
@@ -694,7 +696,7 @@ func (r *Reconciler) reconcileNifiPod(log zap.Logger, desiredPod *corev1.Pod) (e
 		if !k8sutil.IsPodTerminatedOrShutdown(currentPod) {
 
 			if r.NifiCluster.Status.State != v1.NifiClusterRollingUpgrading {
-				if err := k8sutil.UpdateCRStatus(r.Client, r.NifiCluster, v1.NifiClusterRollingUpgrading, log); err != nil {
+				if err := k8sutil.UpdateCRStatus(r.Client, r.NifiCluster, r.NifiClusterCurrentStatus, v1.NifiClusterRollingUpgrading, log); err != nil {
 					return errorfactory.New(errorfactory.StatusUpdateError{},
 						err, "setting state to rolling upgrade failed"), false
 				}
@@ -889,13 +891,13 @@ func (r *Reconciler) reconcileNifiUsersAndGroups(log zap.Logger) error {
 	}
 
 	for _, user := range users {
-		if err := k8sutil.Reconcile(log, r.Client, user, r.NifiCluster); err != nil {
+		if err := k8sutil.Reconcile(log, r.Client, user, r.NifiCluster, &r.NifiClusterCurrentStatus); err != nil {
 			return errors.WrapIfWithDetails(err, "failed to reconcile resource", "resource", user.GetObjectKind().GroupVersionKind())
 		}
 	}
 
 	for _, group := range groups {
-		if err := k8sutil.Reconcile(log, r.Client, group, r.NifiCluster); err != nil {
+		if err := k8sutil.Reconcile(log, r.Client, group, r.NifiCluster, &r.NifiClusterCurrentStatus); err != nil {
 			return errors.WrapIfWithDetails(err, "failed to reconcile resource", "resource", group.GetObjectKind().GroupVersionKind())
 		}
 	}
@@ -930,8 +932,10 @@ func (r *Reconciler) reconcilePrometheusReportingTask(log zap.Logger) error {
 		}
 
 		r.NifiCluster.Status.PrometheusReportingTask = *status
-		if err := r.Client.Status().Update(context.TODO(), r.NifiCluster); err != nil {
-			return errors.WrapIfWithDetails(err, "failed to update PrometheusReportingTask status")
+		if !reflect.DeepEqual(r.NifiCluster.Status, r.NifiClusterCurrentStatus) {
+			if err := r.Client.Status().Update(context.TODO(), r.NifiCluster); err != nil {
+				return errors.WrapIfWithDetails(err, "failed to update PrometheusReportingTask status")
+			}
 		}
 	}
 
@@ -942,8 +946,10 @@ func (r *Reconciler) reconcilePrometheusReportingTask(log zap.Logger) error {
 	}
 
 	r.NifiCluster.Status.PrometheusReportingTask = *status
-	if err := r.Client.Status().Update(context.TODO(), r.NifiCluster); err != nil {
-		return errors.WrapIfWithDetails(err, "failed to update PrometheusReportingTask status")
+	if !reflect.DeepEqual(r.NifiCluster.Status, r.NifiClusterCurrentStatus) {
+		if err := r.Client.Status().Update(context.TODO(), r.NifiCluster); err != nil {
+			return errors.WrapIfWithDetails(err, "failed to update PrometheusReportingTask status")
+		}
 	}
 	return nil
 }

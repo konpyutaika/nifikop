@@ -19,7 +19,7 @@ import (
 )
 
 // Reconcile reconciles K8S resources
-func Reconcile(log zap.Logger, client runtimeClient.Client, desired runtimeClient.Object, cr *nifikopv1.NifiCluster) error {
+func Reconcile(log zap.Logger, client runtimeClient.Client, desired runtimeClient.Object, cr *nifikopv1.NifiCluster, currentStatus *nifikopv1.NifiClusterStatus) error {
 	desiredType := reflect.TypeOf(desired)
 	current := desired.DeepCopyObject().(runtimeClient.Object)
 
@@ -92,7 +92,7 @@ func Reconcile(log zap.Logger, client runtimeClient.Client, desired runtimeClien
 				case *corev1.ConfigMap:
 					// Only update status when configmap belongs to node
 					if id, ok := desired.Labels["nodeId"]; ok {
-						statusErr := UpdateNodeStatus(client, []string{id}, cr, nifikopv1.ConfigOutOfSync, log)
+						statusErr := UpdateNodeStatus(client, []string{id}, cr, *currentStatus, nifikopv1.ConfigOutOfSync, log)
 						if statusErr != nil {
 							return errors.WrapIfWithDetails(err, "updating status for resource failed", "kind", desiredType)
 						}
@@ -100,7 +100,7 @@ func Reconcile(log zap.Logger, client runtimeClient.Client, desired runtimeClien
 				case *corev1.Secret:
 					// Only update status when secret belongs to node
 					if id, ok := desired.Labels["nodeId"]; ok {
-						statusErr := UpdateNodeStatus(client, []string{id}, cr, nifikopv1.ConfigOutOfSync, log)
+						statusErr := UpdateNodeStatus(client, []string{id}, cr, *currentStatus, nifikopv1.ConfigOutOfSync, log)
 						if statusErr != nil {
 							return errors.WrapIfWithDetails(err, "updating status for resource failed", "kind", desiredType)
 						}

@@ -707,8 +707,16 @@ spec:
                 type: array
               ldapConfiguration:
                 properties:
+                  authenticationStrategy:
+                    type: string
                   enabled:
                     type: boolean
+                  identityStrategy:
+                    type: string
+                  managerDn:
+                    type: string
+                  managerPassword:
+                    type: string
                   searchBase:
                     type: string
                   searchFilter:
@@ -1712,6 +1720,17 @@ spec:
                     storageConfigs:
                       items:
                         properties:
+                          metadata:
+                            properties:
+                              annotations:
+                                additionalProperties:
+                                  type: string
+                                type: object
+                              labels:
+                                additionalProperties:
+                                  type: string
+                                type: object
+                            type: object
                           mountPath:
                             type: string
                           name:
@@ -2756,6 +2775,17 @@ spec:
                         storageConfigs:
                           items:
                             properties:
+                              metadata:
+                                properties:
+                                  annotations:
+                                    additionalProperties:
+                                      type: string
+                                    type: object
+                                  labels:
+                                    additionalProperties:
+                                      type: string
+                                    type: object
+                                type: object
                               mountPath:
                                 type: string
                               name:
@@ -4204,6 +4234,36 @@ spec:
                   - name
                   type: object
                 type: array
+              singleUserConfiguration:
+                properties:
+                  authorizerEnabled:
+                    default: true
+                    type: boolean
+                  enabled:
+                    default: false
+                    type: boolean
+                  secretKeys:
+                    default:
+                      password: password
+                      username: username
+                    properties:
+                      password:
+                        default: password
+                        type: string
+                      username:
+                        default: username
+                        type: string
+                    type: object
+                  secretRef:
+                    properties:
+                      name:
+                        type: string
+                      namespace:
+                        type: string
+                    required:
+                    - name
+                    type: object
+                type: object
               topologySpreadConstraints:
                 items:
                   properties:

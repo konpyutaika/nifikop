@@ -212,7 +212,7 @@ func (r *NifiRegistryClientReconciler) Reconcile(ctx context.Context, req ctrl.R
 		}
 
 		instance.Status = *status
-		if err := r.Client.Status().Update(ctx, instance); err != nil {
+		if err := r.updateStatus(ctx, instance, current.Status); err != nil {
 			return RequeueWithError(r.Log, "failed to update status for NifiRegistryClient "+instance.Name, err)
 		}
 
@@ -240,7 +240,7 @@ func (r *NifiRegistryClientReconciler) Reconcile(ctx context.Context, req ctrl.R
 	}
 
 	instance.Status = *status
-	if err := r.Client.Status().Update(ctx, instance); err != nil {
+	if err := r.updateStatus(ctx, instance, current.Status); err != nil {
 		return RequeueWithError(r.Log, "failed to update status for NifiRegistryClient "+instance.Name, err)
 	}
 
@@ -340,5 +340,12 @@ func (r *NifiRegistryClientReconciler) finalizeNifiRegistryClient(registryClient
 	r.Log.Info("Deleted Registry client",
 		zap.String("registryClient", registryClient.Name))
 
+	return nil
+}
+
+func (r *NifiRegistryClientReconciler) updateStatus(ctx context.Context, registryClient *v1.NifiRegistryClient, currentStatus v1.NifiRegistryClientStatus) error {
+	if !reflect.DeepEqual(registryClient.Status, currentStatus) {
+		return r.Client.Status().Update(ctx, registryClient)
+	}
 	return nil
 }

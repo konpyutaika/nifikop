@@ -1,7 +1,7 @@
 package resources
 
 import (
-	"github.com/konpyutaika/nifikop/api/v1"
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -11,8 +11,9 @@ import (
 // Reconciler holds CR for Nifi
 type Reconciler struct {
 	client.Client
-	DirectClient client.Reader
-	NifiCluster  *v1.NifiCluster
+	DirectClient             client.Reader
+	NifiCluster              *v1.NifiCluster
+	NifiClusterCurrentStatus v1.NifiClusterStatus
 }
 
 // ComponentReconciler describes the Reconcile method

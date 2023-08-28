@@ -99,8 +99,40 @@ type NifiClusterSpec struct {
 	// ControllerUserIdentity specifies what to call the static admin user's identity
 	// Warning: once defined don't change this value either the operator will no longer be able to manage the cluster
 	ControllerUserIdentity *string `json:"controllerUserIdentity,omitempty"`
+	// SingleUserConfiguration if enabled handles the information related to this authentication method
+	SingleUserConfiguration SingleUserConfiguration `json:"singleUserConfiguration,omitempty"`
 
 	// @TODO: Block Controller change
+}
+
+// You can look into single-user access here: https://exceptionfactory.com/posts/2021/07/21/single-user-access-and-https-in-apache-nifi/
+type SingleUserConfiguration struct {
+	// enabled specifies whether or not the cluster should use single user authentication for Nifi
+	// +kubebuilder:default:=false
+	// +optional
+	Enabled bool `json:"enabled"`
+	// authorizerEnabled specifies if the cluster should use use the single-user-authorizer instead of the managed-authorizer
+	// +kubebuilder:default:=true
+	// +optional
+	AuthorizerEnabled bool `json:"authorizerEnabled,omitempty"`
+	// secretRef references the secret containing the informations required to authentiticate to the cluster
+	// +optional
+	SecretRef *SecretReference `json:"secretRef,omitempty"`
+	// secretKeys references the keys from the secret containing the user name and password
+	// +kubebuilder:default:={"username": "username", "password": "password"}
+	// +optional
+	SecretKeys UserSecretKeys `json:"secretKeys,omitempty"`
+}
+
+type UserSecretKeys struct {
+	// username specifies he name of the secret key to retrieve the user name
+	// +kubebuilder:default:=username
+	// +optional
+	Username string `json:"username,omitempty"`
+	// password specifies he name of the secret key to retrieve the user password
+	// +kubebuilder:default:=password
+	// +optional
+	Password string `json:"password,omitempty"`
 }
 
 // DisruptionBudget defines the configuration for PodDisruptionBudget
@@ -336,6 +368,8 @@ type StorageConfig struct {
 	Name string `json:"name"`
 	// Path where the volume will be mount into the main nifi container inside the pod.
 	MountPath string `json:"mountPath"`
+	// labels and annotations to attach to the PVC created
+	Metadata Metadata `json:"metadata,omitempty"`
 	// Kubernetes PVC spec
 	PVCSpec *corev1.PersistentVolumeClaimSpec `json:"pvcSpec"`
 }
@@ -500,6 +534,18 @@ type LdapConfiguration struct {
 	// Filter for searching for users against the 'User Search Base'.
 	// (i.e. sAMAccountName={0}). The user specified name is inserted into '{0}'.
 	SearchFilter string `json:"searchFilter,omitempty"`
+	// How the connection to the LDAP server is authenticated.
+	// Possible values are ANONYMOUS, SIMPLE, LDAPS, or START_TLS.
+	AuthenticationStrategy string `json:"authenticationStrategy,omitempty"`
+	// The DN of the manager that is used to bind to the LDAP server to search for users.
+	ManagerDn string `json:"managerDn,omitempty"`
+	// The password of the manager that is used to bind to the LDAP server to search for users.
+	ManagerPassword string `json:"managerPassword,omitempty"`
+	// Strategy to identify users. Possible values are USE_DN and USE_USERNAME.
+	// The default functionality if this property is missing is USE_DN in order to retain backward compatibility.
+	// USE_DN will use the full DN of the user entry if possible.
+	// USE_USERNAME will use the username the user logged in with.
+	IdentityStrategy string `json:"identityStrategy,omitempty"`
 }
 
 // NifiClusterTaskSpec specifies the configuration of the nifi cluster Tasks
@@ -795,6 +841,10 @@ func (c *NifiCluster) IsInternal() bool {
 
 func (c NifiCluster) IsExternal() bool {
 	return c.GetType() != InternalCluster
+}
+
+func (c NifiCluster) IsPureSingleUser() bool {
+	return c.Spec.SingleUserConfiguration.Enabled && c.Spec.SingleUserConfiguration.AuthorizerEnabled
 }
 
 func (cluster NifiCluster) IsReady() bool {

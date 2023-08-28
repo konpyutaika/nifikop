@@ -105,15 +105,15 @@ func (r *NifiClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	}
 	//
 	if len(instance.Status.State) == 0 || instance.Status.State == v1.NifiClusterInitializing {
-		if err := k8sutil.UpdateCRStatus(r.Client, instance, v1.NifiClusterInitializing, r.Log); err != nil {
+		if err := k8sutil.UpdateCRStatus(r.Client, instance, current.Status, v1.NifiClusterInitializing, r.Log); err != nil {
 			return RequeueWithError(r.Log, err.Error(), err)
 		}
 		for nId := range instance.Spec.Nodes {
-			if err := k8sutil.UpdateNodeStatus(r.Client, []string{fmt.Sprint(instance.Spec.Nodes[nId].Id)}, instance, v1.IsInitClusterNode, r.Log); err != nil {
+			if err := k8sutil.UpdateNodeStatus(r.Client, []string{fmt.Sprint(instance.Spec.Nodes[nId].Id)}, instance, current.Status, v1.IsInitClusterNode, r.Log); err != nil {
 				return RequeueWithError(r.Log, err.Error(), err)
 			}
 		}
-		if err := k8sutil.UpdateCRStatus(r.Client, instance, v1.NifiClusterInitialized, r.Log); err != nil {
+		if err := k8sutil.UpdateCRStatus(r.Client, instance, current.Status, v1.NifiClusterInitialized, r.Log); err != nil {
 			return RequeueWithError(r.Log, err.Error(), err)
 		}
 	}
@@ -125,7 +125,7 @@ func (r *NifiClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	}
 
 	reconcilers := []resources.ComponentReconciler{
-		nifi.New(r.Client, r.DirectClient, r.Scheme, instance),
+		nifi.New(r.Client, r.DirectClient, r.Scheme, instance, current.Status),
 	}
 
 	intervalNotReady := util.GetRequeueInterval(r.RequeueIntervals["CLUSTER_TASK_NOT_READY_REQUEUE_INTERVAL"], r.RequeueOffset)
@@ -163,7 +163,7 @@ func (r *NifiClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 
 	//Update rolling upgrade last successful state
 	if instance.Status.State == v1.NifiClusterRollingUpgrading {
-		if err := k8sutil.UpdateRollingUpgradeState(r.Client, instance, time.Now(), r.Log); err != nil {
+		if err := k8sutil.UpdateRollingUpgradeState(r.Client, instance, current.Status, time.Now(), r.Log); err != nil {
 			return RequeueWithError(r.Log, err.Error(), err)
 		}
 	}
@@ -172,7 +172,7 @@ func (r *NifiClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		r.Log.Info("Successfully reconciled NifiCluster", zap.String("clusterName", instance.Name))
 		r.Recorder.Event(instance, corev1.EventTypeNormal, string(v1.NifiClusterRunning),
 			"Successfully reconciled NifiCluster")
-		if err := k8sutil.UpdateCRStatus(r.Client, instance, v1.NifiClusterRunning, r.Log); err != nil {
+		if err := k8sutil.UpdateCRStatus(r.Client, instance, current.Status, v1.NifiClusterRunning, r.Log); err != nil {
 			return RequeueWithError(r.Log, err.Error(), err)
 		}
 	}

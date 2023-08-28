@@ -32,7 +32,7 @@ RUN apt-get update \
   && apt-get install -y \
     git apt \
     locales sudo openssh-client ca-certificates tar gzip \
-    net-tools netcat unzip zip bzip2 gnupg curl wget
+    net-tools netcat-traditional unzip zip bzip2 gnupg curl wget
 
 # Set timezone to UTC by default
 RUN ln -sf /usr/share/zoneinfo/Etc/UTC /etc/localtime

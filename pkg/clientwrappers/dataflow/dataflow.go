@@ -99,6 +99,42 @@ func CreateDataflow(flow *v1.NifiDataflow, config *clientconfig.NifiConfig,
 	return &flow.Status, nil
 }
 
+// IsDataflowUnscheduled control if the deployed dataflow has unscheduled controller services and components.
+func IsDataflowUnscheduled(flow *v1.NifiDataflow, config *clientconfig.NifiConfig) (bool, error) {
+	nClient, err := common.NewClusterConnection(log, config)
+	if err != nil {
+		return false, err
+	}
+
+	// Check all controller services are enabled
+	csEntities, err := nClient.GetFlowControllerServices(flow.Status.ProcessGroupID)
+	if err := clientwrappers.ErrorGetOperation(log, err, "Get flow controller services"); err != nil {
+		return false, err
+	}
+	for _, csEntity := range csEntities.ControllerServices {
+		if csEntity.Status.RunStatus != "ENABLED" &&
+			!(flow.Spec.SkipInvalidControllerService && csEntity.Status.ValidationStatus == "INVALID") {
+			return true, nil
+		}
+	}
+
+	// Check all components are ok
+	processGroups, _, _, _, _ := listComponents(config, flow.Status.ProcessGroupID)
+	pGEntity, err := nClient.GetProcessGroup(flow.Status.ProcessGroupID)
+	if err := clientwrappers.ErrorGetOperation(log, err, "Get process group"); err != nil {
+		return false, err
+	}
+	processGroups = append(processGroups, *pGEntity)
+
+	for _, pgEntity := range processGroups {
+		if pgEntity.StoppedCount > 0 || (!flow.Spec.SkipInvalidComponent && pgEntity.InvalidCount > 0) {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
 // ScheduleDataflow will schedule the controller services and components of the NifiDataflow.
 func ScheduleDataflow(flow *v1.NifiDataflow, config *clientconfig.NifiConfig) error {
 	nClient, err := common.NewClusterConnection(log, config)

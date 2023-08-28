@@ -7,17 +7,63 @@
 - 
 ### Changed
 
+- [PR #290](https://github.com/konpyutaika/nifikop/pull/290) - **[Operator/NifiCluster]** Change default sensitive algorithm
+
 ### Fixed Bugs
 
 ### Deprecated
 
 ### Removed
 
+## v1.3.1
+
+### Added
+
+- [PR #286](https://github.com/konpyutaika/nifikop/pull/286) - **[Operator/NifiCluster]** Update resource's status only on change.
+
+### Changed
+
+- [PR #287](https://github.com/konpyutaika/nifikop/pull/287) - **[NiGoApi]** Upgrade nigoapi to v0.0.9.
+- [PR #288](https://github.com/konpyutaika/nifikop/pull/288) - **[Operator/NifiCluster]** Block user and user group creation in NiFi with pure single user authentication.
+
+### Fixed Bugs
+
+- [PR #288](https://github.com/konpyutaika/nifikop/pull/288) - **[Operator/NifiCluster]** Fix single user authentication default secret keys.
+
+## v1.3.0
+
+### Added
+
+- [PR #278](https://github.com/konpyutaika/nifikop/pull/278) - **[Operator/NifiCluster]** Added the single-user-authentication method.
+- [PR #279](https://github.com/konpyutaika/nifikop/pull/279) - **[Operator/NifDataflow]** Added check to control if a dataflow is unscheduled in order to schedule it.
+
+### Changed
+
+- [PR #281](https://github.com/konpyutaika/nifikop/pull/281) - **[Operator]** Upgrade golang to 1.21.0.
+
+### Fixed Bugs
+
+- [PR #279](https://github.com/konpyutaika/nifikop/pull/279) - **[Operator/NifDataflow]** Trim parameter's description from parameter context.
+
+## v1.2.0
+
+### Added
+
+- [PR #258](https://github.com/konpyutaika/nifikop/pull/141) - **[Helm Chart]** Upgraded helm-deployed HPA to v2 and added flowPosition to NiFiDataflow.
+- [PR #269](https://github.com/konpyutaika/nifikop/pull/269) - **[Operator/NifiCluster]** Added ability to attach labels and annotations to PVCs that nifikop creates.
+
+### Changed
+
+- [PR #257](https://github.com/konpyutaika/nifikop/pull/257) - **[Operator]** Updated the operator-sdk to 1.28.0.
+- [PR #263](https://github.com/konpyutaika/nifikop/pull/263) - **[NiGoApi]** Upgrade nigoapi to v0.0.8.
+- [PR #263](https://github.com/konpyutaika/nifikop/pull/268) - **[Operator]** Upgrade golang to 1.20.5.
+- [PR #266](https://github.com/konpyutaika/nifikop/pull/266) - **[Operator]** Add AuthenticationStrategy, ManagerDn, ManagerPassword, IdentityStrategy properties for LDAP integration.
+- [PR #276](https://github.com/konpyutaika/nifikop/pull/276) - **[Operator]** Upgrade golang to 1.20.6.
+
 ## v1.1.1
 
 ### Added
 - [PR #244](https://github.com/konpyutaika/nifikop/pull/244) - **[Operator]** Updated the go version in nifikop to 1.20.
-
 - [PR #141](https://github.com/konpyutaika/nifikop/pull/141) - **[Helm Chart]** Added nifi-cluster helm chart.
 
 ### Fixed Bugs

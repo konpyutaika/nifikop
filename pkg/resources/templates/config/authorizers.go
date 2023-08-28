@@ -4,6 +4,14 @@ package config
 var AuthorizersTemplate = `{{- $nodeList := .NodeList }}
 {{- $clusterName := .ClusterName }}
 {{- $namespace := .Namespace }}<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+{{- if and .SingleUserConfiguration.AuthorizerEnabled .SingleUserConfiguration.Enabled}}
+<authorizers>
+    <authorizer>
+    <identifier>single-user-authorizer</identifier>
+    <class>org.apache.nifi.authorization.single.user.SingleUserAuthorizer</class>
+    </authorizer>
+</authorizers>
+{{- else}}
 <authorizers>
     <userGroupProvider>
         <identifier>file-user-group-provider</identifier>
@@ -33,10 +41,19 @@ var AuthorizersTemplate = `{{- $nodeList := .NodeList }}
         <property name="Access Policy Provider">file-access-policy-provider</property>
     </authorizer>
 </authorizers>
+{{- end}}
 `
 
 // Empty authorizer.xml template, used by new node joining the cluster
-var EmptyAuthorizersTemplate = `<authorizers>
+var EmptyAuthorizersTemplate = `{{- if and .SingleUserConfiguration.AuthorizerEnabled .SingleUserConfiguration.Enabled}}
+<authorizers>
+    <authorizer>
+    <identifier>single-user-authorizer</identifier>
+    <class>org.apache.nifi.authorization.single.user.SingleUserAuthorizer</class>
+    </authorizer>
+</authorizers>
+{{- else}}
+<authorizers>
     <userGroupProvider>
         <identifier>file-user-group-provider</identifier>
         <class>org.apache.nifi.authorization.FileUserGroupProvider</class>
@@ -56,6 +73,7 @@ var EmptyAuthorizersTemplate = `<authorizers>
         <property name="Access Policy Provider">file-access-policy-provider</property>
     </authorizer>
 </authorizers>
+{{- end}}
 `
 
 /*
