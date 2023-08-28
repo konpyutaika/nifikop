@@ -83,7 +83,7 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	}
 
 	// Get the last configuration viewed by the operator.
-	o, err := patch.DefaultAnnotator.GetOriginalConfiguration(instance)
+	o, _ := patch.DefaultAnnotator.GetOriginalConfiguration(instance)
 	// Create it if not exist.
 	if o == nil {
 		if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(instance); err != nil {
@@ -93,11 +93,11 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		if err := r.Client.Update(ctx, instance); err != nil {
 			return RequeueWithError(r.Log, "failed to update NifiConnection "+instance.Name, err)
 		}
-		o, err = patch.DefaultAnnotator.GetOriginalConfiguration(instance)
+		o, _ = patch.DefaultAnnotator.GetOriginalConfiguration(instance)
 	}
 
 	// Get the last NiFiCluster viewed by the operator.
-	cr, err := k8sutil.GetAnnotation(nifiutil.LastAppliedClusterAnnotation, instance)
+	cr, _ := k8sutil.GetAnnotation(nifiutil.LastAppliedClusterAnnotation, instance)
 	// Create it if not exist.
 	if cr == nil {
 		jsonResource, err := json.Marshal(v1.ClusterReference{})
@@ -112,7 +112,7 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		if err := r.Client.Update(ctx, instance); err != nil {
 			return RequeueWithError(r.Log, "failed to update NifiConnection "+instance.Name, err)
 		}
-		cr, err = patch.DefaultAnnotator.GetOriginalConfiguration(instance)
+		cr, _ = patch.DefaultAnnotator.GetOriginalConfiguration(instance)
 	}
 
 	// Check if the source or the destination changed
