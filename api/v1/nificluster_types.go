@@ -27,10 +27,8 @@ const (
 // NifiClusterSpec defines the desired state of NifiCluster
 type NifiClusterSpec struct {
 	// clientType defines if the operator will use basic or tls authentication to query the NiFi cluster.
-	// +kubebuilder:validation:Enum={"tls","basic"}
 	ClientType ClientConfigType `json:"clientType,omitempty"`
 	// type defines if the cluster is internal (i.e manager by the operator) or external.
-	// +kubebuilder:validation:Enum={"external","internal"}
 	Type ClusterType `json:"type,omitempty"`
 	// nodeURITemplate used to dynamically compute node uri (used if external type)
 	NodeURITemplate string `json:"nodeURITemplate,omitempty"`
@@ -415,7 +413,6 @@ type SSLSecrets struct {
 	// https://cert-manager.io/docs/concepts/issuer/
 	IssuerRef *cmmeta.ObjectReference `json:"issuerRef,omitempty"`
 	// TODO : add vault
-	// +kubebuilder:validation:Enum={"cert-manager","vault"}
 	PKIBackend PKIBackend `json:"pkiBackend,omitempty"`
 	//,"vault"
 }

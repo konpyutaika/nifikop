@@ -24,8 +24,9 @@ type DataflowState string
 // DataflowUpdateRequestType defines the type of versioned flow update request
 type DataflowUpdateRequestType string
 
-// DataflowUpdateStrategy defines the type of strategy to update a flow
-type DataflowUpdateStrategy string
+// ComponentUpdateStrategy defines the type of strategy to update a component
+// +kubebuilder:validation:Enum={"drop","drain"}
+type ComponentUpdateStrategy string
 
 // RackAwarenessState stores info about rack awareness status
 type RackAwarenessState string
@@ -46,12 +47,15 @@ type ConfigurationState string
 type InitClusterNode bool
 
 // PKIBackend represents an interface implementing the PKIManager
+// +kubebuilder:validation:Enum={"cert-manager","vault"}
 type PKIBackend string
 
 // ClientConfigType represents an interface implementing the ClientConfigManager
+// +kubebuilder:validation:Enum={"tls","basic"}
 type ClientConfigType string
 
 // ClusterType represents an interface implementing the  ClientConfigManager
+// +kubebuilder:validation:Enum={"external","internal"}
 type ClusterType string
 
 // AccessPolicyType represents the type of access policy
@@ -285,9 +289,9 @@ const (
 
 	// DrainStrategy leads to shutting down only input components (Input processors, remote input process group)
 	// and dropping all flowfiles from the flow.
-	DrainStrategy DataflowUpdateStrategy = "drain"
+	DrainStrategy ComponentUpdateStrategy = "drain"
 	// DropStrategy leads to shutting down all components and dropping all flowfiles from the flow.
-	DropStrategy DataflowUpdateStrategy = "drop"
+	DropStrategy ComponentUpdateStrategy = "drop"
 
 	// UserStateCreated describes the status of a NifiUser as created
 	UserStateCreated UserState = "created"
@@ -437,6 +441,7 @@ func SecretRefsEquals(secretRefs []SecretReference) bool {
 	return true
 }
 
+// +kubebuilder:validation:Enum={"never","always","once"}
 type DataflowSyncMode string
 
 const (

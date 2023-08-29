@@ -40,7 +40,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-var registryClientFinalizer = "nifiregistryclients.nifi.konpyutaika.com/finalizer"
+var registryClientFinalizer = fmt.Sprintf("nifiregistryclients.%s/finalizer", v1.GroupVersion.Group)
 
 // NifiRegistryClientReconciler reconciles a NifiRegistryClient object
 type NifiRegistryClientReconciler struct {

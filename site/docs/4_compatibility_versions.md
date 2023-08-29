@@ -13,7 +13,7 @@ sidebar_label: Compatibility versions
 |----------------------------|---------|-----------|
 | Cluster deployment         | Yes     | Yes       |
 | Standalone deployment      | No      | No        |
-| Cluster nodes configuration | Yes     | Yes       |
+| Cluster nodes configuration| Yes     | Yes       |
 | Cluster rolling upgrade    | Yes     | Yes       |
 | Cluster scaling            | Yes     | Yes       |
 | Cluster auto-scaling       | Yes     | Yes       |
@@ -68,6 +68,6 @@ sidebar_label: Compatibility versions
 
 | Feature                      | NiFi 1.16 | NiFi 1.17 |
 |------------------------------|-----------|-----------|
-| Connection deployment        | No        | No        |
-| Connection cluster migration | No        | No        |
+| Connection deployment        | Yes       | Yes       |
+| Connection cluster migration | Yes       | Yes       |
 | Connection multi cluster     | No        | No        |

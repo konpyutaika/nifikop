@@ -15,7 +15,8 @@
       "label": "Deploy NiFiKop",
       "items": [
         "2_deploy_nifikop/1_quick_start",
-        "2_deploy_nifikop/2_customizable_install_with_helm"
+        "2_deploy_nifikop/2_customizable_install_with_helm",
+        "2_deploy_nifikop/3_kubectl_plugin"
       ]
     },
     {
@@ -92,6 +93,13 @@
             "3_manage_nifi/3_manage_dataflows/0_design_principles",
             "3_manage_nifi/3_manage_dataflows/1_deploy_dataflow"
           ]
+        },
+        {
+          "type": "category",
+          "label": "Manage Connections",
+          "items": [
+            "3_manage_nifi/4_manage_connections/1_deploy_connection"
+          ]
         }
       ]
     },
@@ -118,7 +126,8 @@
         "5_references/4_nifi_parameter_context",
         "5_references/5_nifi_dataflow",
         "5_references/6_nifi_usergroup",
-        "5_references/7_nifi_nodegroup_autoscaler"
+        "5_references/7_nifi_nodegroup_autoscaler",
+        "5_references/8_nifi_connection"
       ]
     },
     {

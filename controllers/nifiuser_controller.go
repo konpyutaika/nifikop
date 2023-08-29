@@ -44,7 +44,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
-var userFinalizer = "nifiusers.nifi.konpyutaika.com/finalizer"
+var userFinalizer = fmt.Sprintf("nifiusers.%s/finalizer", v1.GroupVersion.Group)
 
 // NifiUserReconciler reconciles a NifiUser object
 type NifiUserReconciler struct {

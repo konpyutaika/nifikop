@@ -18,7 +18,7 @@ func TestCreateDropRequest(t *testing.T) {
 		"16cfd2ec-0174-1000-0000-00004b9b35cc", connectionId, "",
 		"", "", 50, 10, 15, 5, false)
 
-	entity, err := testCreateDropRequest(t, &mockEntity, connectionId, 201)
+	entity, err := testCreateDropRequest(t, &mockEntity, connectionId, 202)
 	assert.Nil(err)
 	assert.NotNil(entity)
 
