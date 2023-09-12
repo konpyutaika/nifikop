@@ -56,6 +56,7 @@ The following tables lists the configurable parameters of the NiFi Operator Helm
 | `serviceAccount.create`          | Whether the SA creation is delegated to the chart or not                                                                                                                             | `true`                                      |
 | `serviceAccount.name`            | Name of the SA used for NiFiKop deployment                                                                                                                                           | release name                                |
 | `webhook.enabled`                | Enable webhook migration                                                                                                                                                 | `true`                                      |
+| `runAsUser` | Specify RunAsUser uid for NiFiKop operator pod | `1000` |
 
 Specify each parameter using the `--set key=value[,key=value]` argument to `helm install`. For example,
 

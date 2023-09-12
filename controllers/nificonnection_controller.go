@@ -400,7 +400,7 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 			connectionStatus.State = v1alpha1.ConnectionStateCreated
 		}
 		instance.Status = *connectionStatus
-		if err := r.Client.Status().Update(ctx, instance); err != nil {
+		if err := r.updateStatus(ctx, instance, current.Status); err != nil {
 			return RequeueWithError(r.Log, "failed to update status for NifiConnection "+instance.Name, err)
 		}
 
@@ -427,7 +427,7 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		status, err := connection.SyncConnectionConfig(instance, sourceComponent, destinationComponent, clientConfig)
 		if status != nil {
 			instance.Status = *status
-			if err := r.Client.Status().Update(ctx, instance); err != nil {
+			if err := r.updateStatus(ctx, instance, current.Status); err != nil {
 				return RequeueWithError(r.Log, "failed to update status for NifiConnection "+instance.Name, err)
 			}
 		}
@@ -498,7 +498,7 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 
 		// Update the state of the connection to indicate that it is synced
 		instance.Status.State = v1alpha1.ConnectionStateInSync
-		if err := r.Client.Status().Update(ctx, instance); err != nil {
+		if err := r.updateStatus(ctx, instance, current.Status); err != nil {
 			return RequeueWithError(r.Log, "failed to update status for NifiConnection "+instance.Name, err)
 		}
 
@@ -518,7 +518,7 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	// If the connection is out of sync, update the state of the connection to indicate it
 	if isOutOfSink {
 		instance.Status.State = v1alpha1.ConnectionStateOutOfSync
-		if err := r.Client.Status().Update(ctx, instance); err != nil {
+		if err := r.updateStatus(ctx, instance, current.Status); err != nil {
 			return RequeueWithError(r.Log, "failed to update status for NifiConnection "+instance.Name, err)
 		}
 		return RequeueAfter(interval / 3)
@@ -1025,4 +1025,11 @@ func (r *NifiConnectionReconciler) UnForceStartDataflowComponent(ctx context.Con
 		instance.SetLabels(labels)
 		return r.Client.Patch(ctx, instance, client.MergeFrom(instanceOriginal))
 	}
+}
+
+func (r *NifiConnectionReconciler) updateStatus(ctx context.Context, connection *v1alpha1.NifiConnection, currentStatus v1alpha1.NifiConnectionStatus) error {
+	if !reflect.DeepEqual(connection.Status, currentStatus) {
+		return r.Client.Status().Update(ctx, connection)
+	}
+	return nil
 }
