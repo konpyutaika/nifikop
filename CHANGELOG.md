@@ -10,6 +10,7 @@
 ### Changed
 
 - [PR #290](https://github.com/konpyutaika/nifikop/pull/290) - **[Operator/NifiCluster]** Change default sensitive algorithm.
+- [PR #295](https://github.com/konpyutaika/nifikop/pull/295) - **[Operator]** Upgrade golang to 1.21.1.
 
 ### Fixed Bugs
 
