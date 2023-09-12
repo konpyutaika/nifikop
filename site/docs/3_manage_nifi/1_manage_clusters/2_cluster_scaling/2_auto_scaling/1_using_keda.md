@@ -242,7 +242,7 @@ helm install prometheus prometheus/kube-prometheus-stack --namespace monitoring-
     --set prometheusOperator.createCustomResource=false \
     --set prometheusOperator.logLevel=debug \
     --set prometheusOperator.alertmanagerInstanceNamespaces=monitoring-system \
-    --set prometheusOperator.namespaces.additional=monitoring-system \
+    --set prometheusOperator.namespaces.additional[0]=monitoring-system \
     --set prometheusOperator.prometheusInstanceNamespaces=monitoring-system \
     --set prometheusOperator.thanosRulerInstanceNamespaces=monitoring-system \
     --set defaultRules.enable=false \
