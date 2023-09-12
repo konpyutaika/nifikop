@@ -48,7 +48,7 @@ spec:
 |nodeConfig| [NodeConfig](./1_nifi_cluster/3_node_config)                | defines a nodeConfig to apply to each node in this node group. Any settings here will override those set in the configured `nodeConfigGroupId`. |Yes| - |
 |upscaleStrategy| string                                                                              | The strategy NiFiKop will use to scale up the nodes managed by this autoscaler. Must be one of {`simple`}. |Yes| - |
 |downscaleStrategy| string                                                                              | The strategy NiFiKop will use to scale down the nodes managed by this autoscaler. Must be one of {`lifo`}. |Yes| - |
-|replicas| int                                                                                 | the initial number of replicas to configure the `HorizontalPodAutoscaler` with. After the initial configuration, this `replicas` configuration will be automatically updated by the Kubernetes `HorizontalPodAutoscaler` controller. |No| 1 |
+|replicas| int                                                                                 | the initial number of replicas to configure the `HorizontalPodAutoscaler` with. After the initial configuration, this `replicas` configuration will be automatically updated by the Kubernetes `HorizontalPodAutoscaler` controller. |No| 0 |
 
 ## NifiNodeGroupAutoscalerStatus
 
