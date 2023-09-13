@@ -30,7 +30,7 @@ If you do not already have the CLI tool `kubectl` installed, please follow [thes
 
 ### Configure kubectl
 
-Configure `kubectl` to connect to your cluster by using `kubectl use-context my-cluster-name`.
+Configure `kubectl` to connect to your cluster by using `kubectl config use-context my-cluster-name`.
 
 - For GKE
   - Configure `gcloud` with `gcloud auth login`.
