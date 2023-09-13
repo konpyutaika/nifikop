@@ -50,9 +50,7 @@ helm install zookeeper bitnami/zookeeper \
     --set resources.limits.cpu=250m \
     --set global.storageClass=standard \
     --set networkPolicy.enabled=true \
-    --set replicaCount=3 \
-    --set namespace={"nifi"}
-
+    --set replicaCount=3
 ```
 
 :::warning
