@@ -43,6 +43,7 @@ helm repo add bitnami https://charts.bitnami.com/bitnami
 ```bash
 # You have to create the namespace before executing following command
 helm install zookeeper bitnami/zookeeper \
+    --namespace=nifi \
     --set resources.requests.memory=256Mi \
     --set resources.requests.cpu=250m \
     --set resources.limits.memory=256Mi \
