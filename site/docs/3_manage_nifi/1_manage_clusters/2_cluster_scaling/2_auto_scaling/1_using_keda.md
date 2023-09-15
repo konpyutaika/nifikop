@@ -4,7 +4,6 @@ title: Using KEDA
 sidebar_label: Using KEDA
 ---
 
-
 ## Deploy KDEA
 
 ### What is KEDA ?
@@ -44,7 +43,7 @@ helm install keda kedacore/keda --namespace keda
 
 ### Deploy NiFI cluster
 
-Use your own NiFi cluster deployment, for this example we will add a specific `NodeConfigGroup` which will be used for auto-scaling nodes, and add the configuration for Prometheus :
+Use your own NiFi cluster deployment, for this example we will add a specific `NodeConfigGroup` which will be used for auto-scaling nodes, and add the configuration for Prometheus:
 
 ```yaml
 ...
@@ -173,7 +172,7 @@ spec:
 
 ### Deploy NiFi cluster autoscaling group
 
-Now we will deploy a `NifiNodeGroupAutoscaler` to define how and what we want to autoscale : 
+Now we will deploy a `NifiNodeGroupAutoscaler` to define how and what we want to autoscale: 
 
 ```yaml
 apiVersion: nifi.konpyutaika.com/v1alpha1
@@ -211,7 +210,7 @@ spec:
   downscaleStrategy: lifo
 ```
 
-Here we will autoscale using the `NodeConfigGroup` : auto_scaling.
+Here we will autoscale using the `NodeConfigGroup`: auto_scaling.
 
 ### Deploy Prometheus
 
@@ -259,7 +258,55 @@ helm install prometheus prometheus/kube-prometheus-stack --namespace monitoring-
     --set prometheus.enabled=false
 ```
 
-- Deploy the prometheus resource : 
+- Deploy the `ServiceAccount`, `ClusterRole` and `ClusterRoleBinding` resources:
+
+```yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: prometheus
+  namespace: monitoring-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: prometheus
+rules:
+- apiGroups: [""]
+  resources:
+  - nodes
+  - nodes/metrics
+  - services
+  - endpoints
+  - pods
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources:
+  - configmaps
+  verbs: ["get"]
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - ingresses
+  verbs: ["get", "list", "watch"]
+- nonResourceURLs: ["/metrics"]
+  verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: prometheus
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: prometheus
+subjects:
+- kind: ServiceAccount
+  name: prometheus
+  namespace: monitoring-system
+```
+
+- Deploy the `Prometheus` resource: 
 
 ```yaml
 apiVersion: monitoring.coreos.com/v1
@@ -290,7 +337,7 @@ spec:
       - nifi-cluster
 ```
 
-- Deploy `ServiceMonitor` resource:
+- Deploy the `ServiceMonitor` resource:
 
 ```yaml
 apiVersion: monitoring.coreos.com/v1
@@ -345,7 +392,7 @@ You should be able to connect to your prometheus instance on `http://localhost:9
 
 ### Deploy Scale object
 
-The last step is to deploy your [ScaledObject](https://keda.sh/docs/2.8/concepts/scaling-deployments/#scaledobject-spec) to define how to scale your NiFi node : 
+The last step is to deploy your [ScaledObject](https://keda.sh/docs/2.10/concepts/scaling-deployments/#scaledobject-spec) to define how to scale your NiFi node: 
 
 ```yaml
 apiVersion: keda.sh/v1alpha1
@@ -387,7 +434,7 @@ spec:
         query: <prometheus query>
 ```
 
-Now everything is ready, you must have an `HPA` deployed that manage you `NifiNodeGroupAutoscaler`
+Now everything is ready, you must have an `HPA` deployed that manage your `NifiNodeGroupAutoscaler`
 
 ```console
 kubectl get -n clusters hpa

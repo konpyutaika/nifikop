@@ -1,12 +1,13 @@
 package autoscale
 
 import (
-	"github.com/konpyutaika/nifikop/api/v1"
+	"sort"
+
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/util"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
-	"sort"
 )
 
 type HorizontalDownscaleStrategy interface {
@@ -123,8 +124,7 @@ func ComputeNewNodeIds(nodes []v1.Node, numNewNodes int32) []int32 {
 	index := int32(0)
 
 	// assign IDs in any gaps in the existing node list, starting with zero
-	var i int32
-	for i = int32(0); i < nodeIdList[len(nodeIdList)-1] && int32(len(newNodeIds)) < numNewNodes; i++ {
+	for i := int32(0); len(nodeIdList) > 0 && i < nodeIdList[len(nodeIdList)-1] && int32(len(newNodeIds)) < numNewNodes; i++ {
 		if nodeIdList[index] == i {
 			index++
 		} else {
@@ -132,11 +132,15 @@ func ComputeNewNodeIds(nodes []v1.Node, numNewNodes int32) []int32 {
 		}
 	}
 
+	// retrieve the max id to start from it
+	max, err := util.MaxSlice32(nodeIdList)
+	if err != nil {
+		max = -1
+	}
 	// add any remaining nodes needed
 	remainder := numNewNodes - int32(len(newNodeIds))
-	for j := int32(1); j <= remainder; j++ {
-		newNodeIds = append(newNodeIds, i+j)
+	for j := int32(max + 1); j <= remainder+max; j++ {
+		newNodeIds = append(newNodeIds, j)
 	}
-
 	return newNodeIds
 }

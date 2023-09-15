@@ -2,9 +2,11 @@ package v1
 
 import (
 	"fmt"
+	"math"
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	cmmeta "github.com/cert-manager/cert-manager/pkg/apis/meta/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -76,6 +78,8 @@ type NifiClusterSpec struct {
 	// NodeUserIdentityTemplate specifies the template to be used when naming the node user identity (e.g. node-%d-mysuffix)
 	NodeUserIdentityTemplate *string `json:"nodeUserIdentityTemplate,omitempty"`
 	// all node requires an image, unique id, and storageConfigs settings
+	// +kubebuilder:default:={}
+	// +optional
 	Nodes []Node `json:"nodes" patchStrategy:"merge" patchMergeKey:"id"`
 	// Defines the configuration for PodDisruptionBudget
 	DisruptionBudget DisruptionBudget `json:"disruptionBudget,omitempty"`
@@ -880,7 +884,11 @@ func (cluster *NifiCluster) GetCreationTimeOrderedNodes() []Node {
 	nodeIdCreationPairs := PairList{}
 
 	for k, v := range cluster.Status.NodesState {
-		nodeIdCreationPairs = append(nodeIdCreationPairs, Pair{k, *v.CreationTime})
+		if v.CreationTime == nil {
+			nodeIdCreationPairs = append(nodeIdCreationPairs, Pair{k, metav1.NewTime(time.Now().UTC().Add(time.Duration(math.MaxInt64)))})
+		} else {
+			nodeIdCreationPairs = append(nodeIdCreationPairs, Pair{k, *v.CreationTime})
+		}
 	}
 
 	// nodeIdCreationPairs is now sorted by creation time in ascending order.

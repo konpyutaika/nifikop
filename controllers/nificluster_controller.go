@@ -103,8 +103,19 @@ func (r *NifiClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	if instance.IsExternal() {
 		return RequeueAfter(time.Duration(15) * time.Second)
 	}
+
+	if len(instance.Spec.Nodes) == 0 && len(instance.Status.NodesState) == 0 {
+		intervalNoNode := util.GetRequeueInterval(r.RequeueIntervals["CLUSTER_TASK_NO_NODE_INTERVAL"], r.RequeueOffset)
+		r.Recorder.Event(instance, corev1.EventTypeNormal, string(v1.NifiClusterNoNodes),
+			"NifiCluster has no node, nothing to do")
+		if err := k8sutil.UpdateCRStatus(r.Client, instance, current.Status, v1.NifiClusterNoNodes, r.Log); err != nil {
+			return RequeueWithError(r.Log, err.Error(), err)
+		}
+		return RequeueAfter(intervalNoNode)
+	}
+
 	//
-	if len(instance.Status.State) == 0 || instance.Status.State == v1.NifiClusterInitializing {
+	if len(instance.Spec.Nodes) > 0 && (len(instance.Status.State) == 0 || instance.Status.State == v1.NifiClusterInitializing || instance.Status.State == v1.NifiClusterNoNodes) {
 		if err := k8sutil.UpdateCRStatus(r.Client, instance, current.Status, v1.NifiClusterInitializing, r.Log); err != nil {
 			return RequeueWithError(r.Log, err.Error(), err)
 		}

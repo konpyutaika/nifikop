@@ -3,13 +3,14 @@ package util
 import (
 	"crypto/sha1"
 	"fmt"
-	"github.com/konpyutaika/nifikop/api/v1"
 	"math/rand"
 	"os"
 	"reflect"
 	"strconv"
 	"strings"
 	"time"
+
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 
@@ -281,6 +282,38 @@ func Max(x, y int) int {
 		return y
 	}
 	return x
+}
+
+// computes the max in a int32 slice
+func MaxSlice32(s []int32) (int32, error) {
+	if len(s) == 0 {
+		return 0, errors.New("Cannot detect a maximum value in an empty slice")
+	}
+
+	max := s[0]
+	for _, v := range s {
+		if v > max {
+			max = v
+		}
+	}
+
+	return max, nil
+}
+
+// computes the max in a int32 slice
+func MinSlice32(s []int32) (int32, error) {
+	if len(s) == 0 {
+		return 0, errors.New("Cannot detect a minimum value in an empty slice")
+	}
+
+	min := s[0]
+	for _, v := range s {
+		if v < min {
+			min = v
+		}
+	}
+
+	return min, nil
 }
 
 func Hash(s string) string {

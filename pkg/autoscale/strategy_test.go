@@ -1,13 +1,14 @@
 package autoscale
 
 import (
-	v12 "github.com/konpyutaika/nifikop/api/v1"
 	"reflect"
 	"testing"
 	"time"
 
+	v12 "github.com/konpyutaika/nifikop/api/v1"
+
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
-	"k8s.io/apimachinery/pkg/apis/meta/v1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var (
@@ -32,6 +33,7 @@ var lifo = LIFOHorizontalDownscaleStrategy{
 				{Id: 3, NodeConfigGroup: "scale-group", Labels: map[string]string{"scale_me": "true"}},
 				{Id: 4, NodeConfigGroup: "scale-group", Labels: map[string]string{"scale_me": "true"}},
 				{Id: 5, NodeConfigGroup: "other-group", Labels: map[string]string{"other_group": "true"}},
+				{Id: 6, NodeConfigGroup: "scale-group", Labels: map[string]string{"scale_me": "true"}},
 			},
 		},
 		Status: v12.NifiClusterStatus{
@@ -47,6 +49,9 @@ var lifo = LIFOHorizontalDownscaleStrategy{
 				},
 				"5": {
 					CreationTime: &time4,
+				},
+				"6": {
+					CreationTime: nil,
 				},
 			},
 		},
@@ -68,6 +73,7 @@ var simple = SimpleHorizontalUpscaleStrategy{
 				{Id: 3, NodeConfigGroup: "scale-group", Labels: map[string]string{"scale_me": "true"}},
 				{Id: 4, NodeConfigGroup: "scale-group", Labels: map[string]string{"scale_me": "true"}},
 				{Id: 5, NodeConfigGroup: "other-group", Labels: map[string]string{"other_group": "true"}},
+				{Id: 6, NodeConfigGroup: "scale-group", Labels: map[string]string{"scale_me": "true"}},
 			},
 		},
 		Status: v12.NifiClusterStatus{
@@ -83,6 +89,9 @@ var simple = SimpleHorizontalUpscaleStrategy{
 				},
 				"5": {
 					CreationTime: &time4,
+				},
+				"6": {
+					CreationTime: nil,
 				},
 			},
 		},
@@ -111,7 +120,7 @@ func TestLIFORemoveSomeNodes(t *testing.T) {
 	if len(nodesToRemove) != 2 {
 		t.Errorf("Did not remove correct number of nodes: %v+", nodesToRemove)
 	}
-	if nodesToRemove[0].Id != 3 && nodesToRemove[0].Id != 4 {
+	if nodesToRemove[0].Id != 4 || nodesToRemove[1].Id != 6 {
 		t.Errorf("Incorrect results. Nodes: %v+", nodesToRemove)
 	}
 }
@@ -126,7 +135,7 @@ func TestLIFORemoveOneNode(t *testing.T) {
 		t.Errorf("Did not remove correct number of nodes: %v+", nodesToRemove)
 	}
 
-	if nodesToRemove[0].Id != 4 {
+	if nodesToRemove[0].Id != 6 {
 		t.Errorf("Incorrect results. Nodes: %v+", nodesToRemove)
 	}
 }
@@ -154,7 +163,7 @@ func TestSimpleAddNodes(t *testing.T) {
 		t.Error("nodesToAdd should have been 2")
 	}
 
-	if nodesToAdd[0].Id != 0 || nodesToAdd[1].Id != 1 || nodesToAdd[2].Id != 6 {
+	if nodesToAdd[0].Id != 0 || nodesToAdd[1].Id != 1 || nodesToAdd[2].Id != 7 {
 		t.Errorf("nodesToAdd Ids are not correct: %v+", nodesToAdd)
 	}
 }
