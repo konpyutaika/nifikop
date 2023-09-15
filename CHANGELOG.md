@@ -2,10 +2,10 @@
 
 ### Added
 
-- [PR #292](https://github.com/konpyutaika/nifikop/pull/292) - **[Operator/NifiCluster]** Modify RBAC kubebuilder annotations so NiFiKop works on OpenShift.
-- [PR #292](https://github.com/konpyutaika/nifikop/pull/292) - **[Helm Chart]** Add Parameter for RunAsUser for OpenShift.
 - [PR #291](https://github.com/konpyutaika/nifikop/pull/291) - **[Plugin]** Implementation of NiFiKop's plugin.
 - [PR #291](https://github.com/konpyutaika/nifikop/pull/291) - **[Operator/NifiConnection]** Implementation of NifiConnection controller.
+- [PR #292](https://github.com/konpyutaika/nifikop/pull/292) - **[Operator/NifiCluster]** Modify RBAC kubebuilder annotations so NiFiKop works on OpenShift.
+- [PR #292](https://github.com/konpyutaika/nifikop/pull/292) - **[Helm Chart]** Add Parameter for RunAsUser for OpenShift.
 - [PR #300](https://github.com/konpyutaika/nifikop/pull/300) - **[Operator/NifiCluster]** Manage no node cluster.
 - [PR #300](https://github.com/konpyutaika/nifikop/pull/300) - **[Operator/NifiNodeGroupAutoscaler]** Manage autoscale to 0.
 
