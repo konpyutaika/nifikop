@@ -91,7 +91,7 @@ func (r *Reconciler) Reconcile(log zap.Logger) error {
 		zap.String("clusterNamespace", r.NifiCluster.Namespace),
 	)
 
-	if r.NifiCluster.IsExternal() {
+	if r.NifiCluster.IsExternal() || r.NifiCluster.Status.State == v1.NifiClusterNoNodes {
 		log.Debug("reconciled",
 			zap.String("component", componentName),
 			zap.String("clusterName", r.NifiCluster.Name),
@@ -326,15 +326,17 @@ OUTERLOOP:
 				continue
 			}
 
-			if nodeState, ok := r.NifiCluster.Status.NodesState[node.Labels["nodeId"]]; ok &&
-				nodeState.GracefulActionState.ActionStep != v1.OffloadStatus && nodeState.GracefulActionState.ActionStep != v1.RemovePodAction {
+			if len(r.NifiCluster.Spec.Nodes) > 0 {
+				if nodeState, ok := r.NifiCluster.Status.NodesState[node.Labels["nodeId"]]; ok &&
+					nodeState.GracefulActionState.ActionStep != v1.OffloadStatus && nodeState.GracefulActionState.ActionStep != v1.RemovePodAction {
 
-				if nodeState.GracefulActionState.State == v1.GracefulDownscaleRunning {
-					log.Info("Nifi task is still running for node",
-						zap.String("nodeId", node.Labels["nodeId"]),
-						zap.String("ActionStep", string(nodeState.GracefulActionState.ActionStep)))
+					if nodeState.GracefulActionState.State == v1.GracefulDownscaleRunning {
+						log.Info("Nifi task is still running for node",
+							zap.String("nodeId", node.Labels["nodeId"]),
+							zap.String("ActionStep", string(nodeState.GracefulActionState.ActionStep)))
+					}
+					continue
 				}
-				continue
 			}
 
 			err = k8sutil.UpdateNodeStatus(r.Client, []string{node.Labels["nodeId"]}, r.NifiCluster, r.NifiClusterCurrentStatus,

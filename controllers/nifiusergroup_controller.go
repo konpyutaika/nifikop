@@ -224,7 +224,7 @@ func (r *NifiUserGroupReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 			zap.String("userGroup", instance.Name),
 			zap.String("clusterName", clusterRef.Name))
 		r.Recorder.Event(instance, corev1.EventTypeNormal, "ReferenceClusterNotReady",
-			fmt.Sprintf("The referenced cluster is not ready yet : %s in %s",
+			fmt.Sprintf("The referenced cluster is not ready yet: %s in %s",
 				instance.Spec.ClusterRef.Name, clusterConnect.Id()))
 		// the cluster does not exist - should have been caught pre-flight
 		return RequeueAfter(interval)
@@ -249,10 +249,10 @@ func (r *NifiUserGroupReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		return RequeueAfter(interval)
 	}
 
-	// Block the user creation in NiFi, if pure single user authentication
+	// Block the userGroup creation in NiFi, if pure single user authentication
 	if cluster.IsPureSingleUser() {
 		r.Log.Debug("Cluster is in pure single user authentication, can't create user group.",
-			zap.String("user", instance.Name),
+			zap.String("userGroup", instance.Name),
 			zap.String("clusterName", clusterRef.Name))
 
 		return RequeueAfter(interval)

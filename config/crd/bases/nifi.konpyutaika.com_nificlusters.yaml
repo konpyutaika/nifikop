@@ -4325,8 +4325,6 @@ spec:
                 type: string
               zkPath:
                 type: string
-            required:
-            - nodes
             type: object
           status:
             properties:

@@ -383,6 +383,8 @@ const (
 	NifiClusterRollingUpgrading ClusterState = "ClusterRollingUpgrading"
 	// NifiClusterRunning states that the cluster is in running state
 	NifiClusterRunning ClusterState = "ClusterRunning"
+	// NifiClusterNoNodes states that the cluster has no nodes
+	NifiClusterNoNodes ClusterState = "NifiClusterNoNodes"
 
 	// ConfigInSync states that the generated nodeConfig is in sync with the Node
 	ConfigInSync ConfigurationState = "ConfigInSync"
