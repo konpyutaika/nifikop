@@ -2,6 +2,18 @@
 
 ### Added
 
+### Changed
+
+### Fixed Bugs
+
+### Deprecated
+
+### Removed
+
+## v1.4.0
+
+### Added
+
 - [PR #291](https://github.com/konpyutaika/nifikop/pull/291) - **[Plugin]** Implementation of NiFiKop's plugin.
 - [PR #291](https://github.com/konpyutaika/nifikop/pull/291) - **[Operator/NifiConnection]** Implementation of NifiConnection controller.
 - [PR #292](https://github.com/konpyutaika/nifikop/pull/292) - **[Operator/NifiCluster]** Modify RBAC kubebuilder annotations so NiFiKop works on OpenShift.
@@ -18,10 +30,6 @@
 ### Fixed Bugs
 
 - [PR #300](https://github.com/konpyutaika/nifikop/pull/300) - **[Operator/NifiNodeGroupAutoscaler]** Empty `CreationTime` in node states crashes the operator.
-
-### Deprecated
-
-### Removed
 
 ## v1.3.1
 
