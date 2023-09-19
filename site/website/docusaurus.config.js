@@ -77,7 +77,6 @@ module.exports = {
         alt: 'NiFiKop Logo',
         src: 'img/nifikop.png',
       },
-      style: 'dark',
       items: [
         {to: 'docs/1_concepts/1_start_here', className: 'header-doc-link', 'aria-label': 'Documentation', position: 'right'},
         {to: 'blog', className: 'header-blog-link', 'aria-label': 'Blog', position: 'right'},

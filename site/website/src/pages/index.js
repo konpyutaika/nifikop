@@ -155,10 +155,12 @@ function Home() {
                     </div>
                 </div>
             </div>
-            <div className={classnames(styles.announcement, styles.announcementDark)}>
-                <div className={styles.announcementInner}>
-                    The <span className={styles.heroProjectKeywords}>NiFiKop</span> NiFi Kubernetes operator makes it <span className={styles.heroProjectKeywords}>easy</span> to run Apache NiFi on Kubernetes.
-                    Apache NiFI is a free, open-source solution that support powerful and <span className={styles.heroProjectKeywords}>scalable</span> directed graphs of <span className={styles.heroProjectKeywords}>data routing</span>, transformation, and system <span className={styles.heroProjectKeywords}>mediation logic</span>.
+            <div>
+                <div className={classnames(styles.announcement, styles.announcementDark)}>
+                    <div className={styles.announcementInner}>
+                        The <span className={styles.heroProjectKeywords}>NiFiKop</span> NiFi Kubernetes operator makes it <span className={styles.heroProjectKeywords}>easy</span> to run Apache NiFi on Kubernetes.
+                        Apache NiFI is a free, open-source solution that support powerful and <span className={styles.heroProjectKeywords}>scalable</span> directed graphs of <span className={styles.heroProjectKeywords}>data routing</span>, transformation, and system <span className={styles.heroProjectKeywords}>mediation logic</span>.
+                    </div>
                 </div>
             </div>
             <div className={styles.section}>
@@ -174,7 +176,7 @@ function Home() {
                     </section>
                 )}
             </div>
-            <div className={styles.section}>
+            <div>
                 <section>
                     <div className={classnames(styles.announcement, styles.announcementDark)}>
                         <div className={styles.announcementInner} >
@@ -185,7 +187,7 @@ function Home() {
                 {organizations && organizations.length && (
                     <section className={styles.features}>
                         <div className={classnames(styles.announcement, styles.announcementDark)}>
-                            <div className="row">
+                            <div className="row row--align-center">
                                 {organizations.map((props, idx) => (
                                     <Organization key={idx} {...props} />
                                 ))}

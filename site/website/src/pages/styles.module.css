@@ -21,6 +21,7 @@
   max-width: 60%;
   max-height: 128px;
   margin: 0 auto;
+  stroke: red;
 }
 
 .announcement {
@@ -32,7 +33,7 @@
 }
 
 .announcementDark {
-  background-color: #20232a;
+  background-color: #292d35;
   color: #fff;
 }
 
