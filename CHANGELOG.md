@@ -6,6 +6,8 @@
 
 ### Fixed Bugs
 
+- [PR #302](https://github.com/konpyutaika/nifikop/pull/302) - **[Operator/NifiNodeGroupAutoscaler]** Set default namespace in NifiNodeGroupAutoscaler's clusterRef.
+
 ### Deprecated
 
 ### Removed
