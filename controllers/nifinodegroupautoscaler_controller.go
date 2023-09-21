@@ -103,15 +103,17 @@ func (r *NifiNodeGroupAutoscalerReconciler) Reconcile(ctx context.Context, req c
 
 	// lookup NifiCluster reference
 	// we do not want cached objects here. We want an accurate state of what the cluster is right now, so bypass the client cache by using the APIReader directly.
+	clusterRef := nodeGroupAutoscaler.Spec.ClusterRef
+	clusterRef.Namespace = GetClusterRefNamespace(nodeGroupAutoscaler.Namespace, clusterRef)
 	cluster := &v1.NifiCluster{}
 	err = r.APIReader.Get(ctx,
 		types.NamespacedName{
-			Name:      nodeGroupAutoscaler.Spec.ClusterRef.Name,
-			Namespace: nodeGroupAutoscaler.Spec.ClusterRef.Namespace,
+			Name:      clusterRef.Name,
+			Namespace: clusterRef.Namespace,
 		},
 		cluster)
 	if err != nil {
-		return RequeueWithError(r.Log, fmt.Sprintf("failed to look up cluster reference %v+", nodeGroupAutoscaler.Spec.ClusterRef), err)
+		return RequeueWithError(r.Log, fmt.Sprintf("failed to look up cluster reference %v+", clusterRef), err)
 	}
 
 	// Determine how many replicas there currently are and how many are desired for the appropriate node group
