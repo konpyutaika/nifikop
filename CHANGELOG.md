@@ -7,6 +7,7 @@
 ### Fixed Bugs
 
 - [PR #302](https://github.com/konpyutaika/nifikop/pull/302) - **[Operator/NifiNodeGroupAutoscaler]** Set default namespace in NifiNodeGroupAutoscaler's clusterRef.
+- [PR #305](https://github.com/konpyutaika/nifikop/pull/305) - **[Operator/NifiRegistryClient]** Registry client URI can't be updated.
 
 ### Deprecated
 
