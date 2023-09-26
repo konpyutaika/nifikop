@@ -127,7 +127,10 @@ func updateRegistryClientEntity(registryClient *v1.NifiRegistryClient, entity *n
 		entity.Component = &nigoapi.FlowRegistryClientDto{}
 	}
 
+	entity.Component.Properties = make(map[string]string)
+
 	entity.Component.Name = registryClient.Name
 	entity.Component.Description = registryClient.Spec.Description
 	entity.Component.Uri = registryClient.Spec.Uri
+	entity.Component.Properties["url"] = registryClient.Spec.Uri
 }
