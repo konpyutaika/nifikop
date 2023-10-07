@@ -118,6 +118,9 @@ spec:
                 - submissionTime
                 - uri
                 type: object
+              secretUpdated:
+                default: false
+                type: boolean
               version:
                 format: int64
                 type: integer

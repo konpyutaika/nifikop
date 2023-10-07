@@ -139,6 +139,7 @@ func SyncParameterContext(
 
 		parameterContext.Status.LatestUpdateRequest =
 			updateRequest2Status(updateRequest)
+		parameterContext.Status.SecretUpdated = false
 		return &parameterContext.Status, errorfactory.NifiParameterContextUpdateRequestRunning{}
 	}
 
@@ -200,9 +201,10 @@ func parameterContextIsSync(
 					!((expected.Parameter.Value == nil && param.Parameter.Value == nil) ||
 						((expected.Parameter.Value != nil && param.Parameter.Value != nil) &&
 							(*expected.Parameter.Value == *param.Parameter.Value)))) ||
-					!((expected.Parameter.Description == nil && param.Parameter.Description == nil) ||
-						((expected.Parameter.Description != nil && param.Parameter.Description != nil) &&
-							(*expected.Parameter.Description == *param.Parameter.Description))) {
+					(parameterContext.Status.SecretUpdated ||
+						!((expected.Parameter.Description == nil && param.Parameter.Description == nil) ||
+							((expected.Parameter.Description != nil && param.Parameter.Description != nil) &&
+								(*expected.Parameter.Description == *param.Parameter.Description)))) {
 
 					return false
 				}
@@ -262,9 +264,10 @@ func updateRequestPrepare(
 					!((expected.Parameter.Value == nil && param.Parameter.Value == nil) ||
 						((expected.Parameter.Value != nil && param.Parameter.Value != nil) &&
 							(*expected.Parameter.Value == *param.Parameter.Value)))) ||
-					!((expected.Parameter.Description == nil && param.Parameter.Description == nil) ||
-						((expected.Parameter.Description != nil && param.Parameter.Description != nil) &&
-							(*expected.Parameter.Description == *param.Parameter.Description))) {
+					(parameterContext.Status.SecretUpdated ||
+						!((expected.Parameter.Description == nil && param.Parameter.Description == nil) ||
+							((expected.Parameter.Description != nil && param.Parameter.Description != nil) &&
+								(*expected.Parameter.Description == *param.Parameter.Description)))) {
 
 					notFound = false
 					if expected.Parameter.Value == nil && param.Parameter.Value != nil {

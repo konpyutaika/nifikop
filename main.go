@@ -174,6 +174,18 @@ func main() {
 		os.Exit(1)
 	}
 
+	if err = (&controllers.NifiParameterContextSecretReconciler{
+		Client:          mgr.GetClient(),
+		Log:             *logger.Named("controllers").Named("NifiParameterContextSecret"),
+		Scheme:          mgr.GetScheme(),
+		Recorder:        mgr.GetEventRecorderFor("nifi-parameter-context-secret"),
+		RequeueInterval: multipliers.ParameterContextSecretRequeueInterval,
+		RequeueOffset:   multipliers.RequeueOffset,
+	}).SetupWithManager(mgr); err != nil {
+		logger.Error("unable to create controller", zap.String("controller", "NifiParameterContextSecret"), zap.Error(err))
+		os.Exit(1)
+	}
+
 	if err = (&controllers.NifiRegistryClientReconciler{
 		Client:          mgr.GetClient(),
 		Log:             *logger.Named("controllers").Named("NifiRegistryClient"),
@@ -204,7 +216,7 @@ func main() {
 		Log:             *logger.Named("controllers").Named("NifiConnection"),
 		Scheme:          mgr.GetScheme(),
 		Recorder:        mgr.GetEventRecorderFor("nifi-connection"),
-		RequeueInterval: multipliers.RegistryClientRequeueInterval,
+		RequeueInterval: multipliers.ConnectionRequeueInterval,
 		RequeueOffset:   multipliers.RequeueOffset,
 	}).SetupWithManager(mgr); err != nil {
 		logger.Error("unable to create controller", zap.String("controller", "NifiConnection"), zap.Error(err))
