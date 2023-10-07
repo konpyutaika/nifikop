@@ -21,6 +21,9 @@ type ClusterScalingStrategy string
 // DataflowState defines the state of a NifiDataflow
 type DataflowState string
 
+// ParameterContextSecretState defines the state of NifiParameterContext secrets state
+type ParameterContextSecretState string
+
 // DataflowUpdateRequestType defines the type of versioned flow update request
 type DataflowUpdateRequestType string
 
@@ -281,6 +284,13 @@ const (
 	DataflowStateOutOfSync DataflowState = "OutOfSync"
 	// DataflowStateInSync describes the status of a NifiDataflow as in sync
 	DataflowStateInSync DataflowState = "InSync"
+
+	// ParameterContextSecretStateUpToDate describes the status of NifiParameterContext secrets as up-to-date
+	ParameterContextSecretStateUpToDate ParameterContextSecretState = "UpToDate"
+	// ParameterContextSecretStateUpdating describes the status of NifiParameterContext secrets as updating
+	ParameterContextSecretStateUpdating ParameterContextSecretState = "Updating"
+	// ParameterContextSecretStateOutOfDate describes the status of NifiParameterContext secrets as out-of-date
+	ParameterContextSecretStateOutOfDate ParameterContextSecretState = "OutOfDate"
 
 	// RevertRequestType defines a revert changes request.
 	RevertRequestType DataflowUpdateRequestType = "Revert"

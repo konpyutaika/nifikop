@@ -81,7 +81,7 @@ func (r *NifiParameterContextSecretReconciler) Reconcile(ctx context.Context, re
 	}
 
 	current := instance.DeepCopy()
-	instance.Status.SecretUpdated = true
+	instance.Status.SecretsState = v1.ParameterContextSecretStateOutOfDate
 	if err := r.updateStatus(ctx, instance, current.Status); err != nil {
 		return RequeueWithError(r.Log, "failed to update status for NifiParameterContext "+instance.Name, err)
 	}

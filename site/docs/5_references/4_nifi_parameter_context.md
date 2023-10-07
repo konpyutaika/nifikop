@@ -74,6 +74,7 @@ spec:
 |version|int64| the last nifi parameter context revision version catched. |Yes| - |
 |latestUpdateRequest|[ParameterContextUpdateRequest](#parametercontextupdaterequest)|the latest update request. |Yes| - |
 |version|int64| the last nifi parameter context revision version catched. |Yes| - |
+|secretsState|[ParameterContextSecretState](#parametercontextsecretstate)| the state of the secrets. |Yes| - |
 
 ## Parameter
 
@@ -90,7 +91,6 @@ spec:
 |-----|----|-----------|--------|--------|
 |name|string| name of the secret. |Yes| - |
 |namespace|string| the secret namespace location. |Yes| - |
-
 
 ## ParameterContextUpdateRequest
 
@@ -113,3 +113,11 @@ spec:
 |-----|----|-----------|--------|--------|
 |name|string| name of the NifiParameterContext. |Yes| - |
 |namespace|string| the NifiParameterContext namespace location. |No| - |
+
+## ParameterContextSecretState
+
+|Name|Value|Description|
+|-----|----|------------|
+|ParameterContextSecretStateUpToDate|UpToDate|describes the status of NifiParameterContext secrets as up-to-date.|
+|ParameterContextSecretStateUpdating|Updating|describes the status of NifiParameterContext secrets as updating.|
+|ParameterContextSecretStateOutOfDate|OutOfDate|describes the status of NifiParameterContext secrets as out-of-date.|

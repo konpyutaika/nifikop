@@ -139,7 +139,7 @@ func SyncParameterContext(
 
 		parameterContext.Status.LatestUpdateRequest =
 			updateRequest2Status(updateRequest)
-		parameterContext.Status.SecretUpdated = false
+		parameterContext.Status.SecretsState = v1.ParameterContextSecretStateUpdating
 		return &parameterContext.Status, errorfactory.NifiParameterContextUpdateRequestRunning{}
 	}
 
@@ -148,6 +148,7 @@ func SyncParameterContext(
 		status = &parameterContext.Status
 		status.Version = *entity.Revision.Version
 		status.Id = entity.Id
+		status.SecretsState = v1.ParameterContextSecretStateUpToDate
 	}
 
 	return status, nil
@@ -201,7 +202,7 @@ func parameterContextIsSync(
 					!((expected.Parameter.Value == nil && param.Parameter.Value == nil) ||
 						((expected.Parameter.Value != nil && param.Parameter.Value != nil) &&
 							(*expected.Parameter.Value == *param.Parameter.Value)))) ||
-					(parameterContext.Status.SecretUpdated ||
+					(parameterContext.Status.SecretsState == v1.ParameterContextSecretStateOutOfDate ||
 						!((expected.Parameter.Description == nil && param.Parameter.Description == nil) ||
 							((expected.Parameter.Description != nil && param.Parameter.Description != nil) &&
 								(*expected.Parameter.Description == *param.Parameter.Description)))) {
@@ -264,7 +265,7 @@ func updateRequestPrepare(
 					!((expected.Parameter.Value == nil && param.Parameter.Value == nil) ||
 						((expected.Parameter.Value != nil && param.Parameter.Value != nil) &&
 							(*expected.Parameter.Value == *param.Parameter.Value)))) ||
-					(parameterContext.Status.SecretUpdated ||
+					(parameterContext.Status.SecretsState == v1.ParameterContextSecretStateOutOfDate ||
 						!((expected.Parameter.Description == nil && param.Parameter.Description == nil) ||
 							((expected.Parameter.Description != nil && param.Parameter.Description != nil) &&
 								(*expected.Parameter.Description == *param.Parameter.Description)))) {
