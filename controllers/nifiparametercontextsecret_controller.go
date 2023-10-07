@@ -130,7 +130,6 @@ func (r *NifiParameterContextSecretReconciler) findObjectsForSecret(secret clien
 	if err != nil {
 		return []reconcile.Request{}
 	}
-	// return []reconcile.Request{}
 	requests := make([]reconcile.Request, len(attachedNifiParameterContext.Items))
 	for i, item := range attachedNifiParameterContext.Items {
 		requests[i] = reconcile.Request{
