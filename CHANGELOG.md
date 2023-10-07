@@ -2,6 +2,8 @@
 
 ### Added
 
+- [PR #309](https://github.com/konpyutaika/nifikop/pull/309) - **[Operator/NifiParameterContext]** Parameter context's secret update detection.
+
 ### Changed
 
 - [PR #307](https://github.com/konpyutaika/nifikop/pull/307) - **[Operator]** Upgrade golang to 1.21.2.
