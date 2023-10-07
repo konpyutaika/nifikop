@@ -55,8 +55,9 @@ func FindParameterContextByName(parameterContext *v1.NifiParameterContext, confi
 	for _, entity := range entities {
 		if parameterContext.GetName() == entity.Component.Name {
 			return &v1.NifiParameterContextStatus{
-				Id:      entity.Id,
-				Version: *entity.Revision.Version,
+				Id:           entity.Id,
+				Version:      *entity.Revision.Version,
+				SecretsState: v1.ParameterContextSecretStateOutOfDate,
 			}, nil
 		}
 	}
