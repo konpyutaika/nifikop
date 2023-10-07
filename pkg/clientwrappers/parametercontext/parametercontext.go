@@ -85,6 +85,7 @@ func CreateParameterContext(
 
 	parameterContext.Status.Id = entity.Id
 	parameterContext.Status.Version = *entity.Revision.Version
+	parameterContext.Status.SecretsState = v1.ParameterContextSecretStateUpToDate
 
 	return &parameterContext.Status, nil
 }
