@@ -204,7 +204,7 @@ func main() {
 		Log:             *logger.Named("controllers").Named("NifiConnection"),
 		Scheme:          mgr.GetScheme(),
 		Recorder:        mgr.GetEventRecorderFor("nifi-connection"),
-		RequeueInterval: multipliers.RegistryClientRequeueInterval,
+		RequeueInterval: multipliers.ConnectionRequeueInterval,
 		RequeueOffset:   multipliers.RequeueOffset,
 	}).SetupWithManager(mgr); err != nil {
 		logger.Error("unable to create controller", zap.String("controller", "NifiConnection"), zap.Error(err))
