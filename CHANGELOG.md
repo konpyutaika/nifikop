@@ -10,7 +10,7 @@
 
 ### Fixed Bugs
 
-- [PR #309](https://github.com/konpyutaika/nifikop/pull/309) - **[Operator/NifiConnection]** Doesn't have its own requeue interval.
+- [PR #311](https://github.com/konpyutaika/nifikop/pull/311) - **[Operator/NifiConnection]** Doesn't have its own requeue interval.
 
 ### Deprecated
 
