@@ -43,6 +43,8 @@ type NifiParameterContextStatus struct {
 	// the latest update request.
 	LatestUpdateRequest *ParameterContextUpdateRequest `json:"latestUpdateRequest,omitempty"`
 	// the state of the secrets.
+	// +kubebuilder:default:=UpToDate
+	// +optional
 	SecretsState ParameterContextSecretState `json:"secretsState"`
 }
 

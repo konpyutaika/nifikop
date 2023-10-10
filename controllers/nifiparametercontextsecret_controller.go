@@ -120,9 +120,6 @@ func (r *NifiParameterContextSecretReconciler) SetupWithManager(mgr ctrl.Manager
 
 func (r *NifiParameterContextSecretReconciler) findObjectsForSecret(secret client.Object) []reconcile.Request {
 	attachedNifiParameterContext := &v1.NifiParameterContextList{}
-	if secret.GetNamespace() != "instances" {
-		return []reconcile.Request{}
-	}
 	listOps := &client.ListOptions{
 		FieldSelector: fields.OneTermEqualSelector(secretRefField, fmt.Sprintf("%s;%s", secret.GetName(), secret.GetNamespace())),
 	}
