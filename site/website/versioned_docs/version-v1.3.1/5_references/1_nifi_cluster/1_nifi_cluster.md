@@ -190,7 +190,7 @@ spec:
 | Field        | Type    | Description                                                                                                                               | Required | Default |
 | ------------ | ------- | ----------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------- |
 | enabled      | boolean | if set to true, we will enable ldap usage into nifi.properties configuration.                                                             | No       | false   |
-| url          | string  | space-separated list of URLs of the LDAP servers (i.e. ldap://${hostname}:${port}).                                                       | No       | ""      |
+| url          | string  | space-separated list of URLs of the LDAP servers (i.e. ldap://$\{hostname}:$\{port}).                                                       | No       | ""      |
 | searchBase   | string  | base DN for searching for users (i.e. CN=Users,DC=example,DC=com).                                                                        | No       | ""      |
 | searchFilter | string  | Filter for searching for users against the 'User Search Base'. (i.e. sAMAccountName={0}). The user specified name is inserted into '{0}'. | No       | ""      |
 
@@ -201,7 +201,7 @@ spec:
 | enabled           | boolean          | specifies whether or not the cluster should use single user authentication for Nifi                                                                     | No       | false   |
 | authorizerEnabled | boolean          | specifies if the cluster should use use the single-user-authorizer instead of the managed-authorizer (if enabled, the creation of users and user groups will not work in NiFi, and the single user will have no rights by default.)                                                               | No       | true   |
 | secretRef         | [SecretReference](../4_nifi_parameter_context#secretreference)   | references the secret containing the informations required to authentiticate to the cluster      | No       | nil     |
-| secretKeys         | [UserSecretKeys](#usersecretkeys)   | references the keys from the secret containing the user name and password.      | No       | {username:"username", password:"password"}     |
+| secretKeys         | [UserSecretKeys](#usersecretkeys)   | references the keys from the secret containing the user name and password.      | No       | \{username:"username", password:"password"}     |
 
 ## NifiClusterTaskSpec
 
