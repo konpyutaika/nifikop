@@ -181,7 +181,7 @@ spec:
 | Field        | Type    | Description                                                                                                                               | Required | Default |
 | ------------ | ------- | ----------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------- |
 | enabled      | boolean | if set to true, we will enable ldap usage into nifi.properties configuration.                                                             | No       | false   |
-| url          | string  | space-separated list of URLs of the LDAP servers (i.e. ldap://${hostname}:${port}).                                                       | No       | ""      |
+| url          | string  | space-separated list of URLs of the LDAP servers (i.e. ldap://$\{hostname}:$\{port}).                                                       | No       | ""      |
 | searchBase   | string  | base DN for searching for users (i.e. CN=Users,DC=example,DC=com).                                                                        | No       | ""      |
 | searchFilter | string  | Filter for searching for users against the 'User Search Base'. (i.e. sAMAccountName={0}). The user specified name is inserted into '{0}'. | No       | ""      |
 
