@@ -31,7 +31,7 @@ orbs:
     executors:
       operator-build:
         docker:
-          - image: ghcr.io/konpyutaika/docker-images/nifikop-build:1.21.2
+          - image: ghcr.io/konpyutaika/docker-images/nifikop-build:1.21.3
     # Define jobs list
     jobs:
       # Build job, which build operator docker image (with operator-sdk build)
@@ -220,7 +220,7 @@ jobs:
   deploy-website:
     working_directory: /home/circleci/nifikop/site
     docker: # run the steps with Docker
-      - image: node:20.8.0
+      - image: node:20.9.0
     steps:
       - checkout:
           path: /home/circleci/nifikop

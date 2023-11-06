@@ -80,8 +80,8 @@ You can configure variables before running the deployment in the file `terraform
 - **region** : GCP region
 - **zone** : GCP zone
 - **cluster_machines_types** : defines the machine type for GKE cluster nodes
-- **min_node** : minimum number of nodes in the NodePool. Must be >=0 and <= max_node_count.
-- **max_node** : maximum number of nodes in the NodePool. Must be >= min_node_count.
+- **min_node** : minimum number of nodes in the NodePool. Must be \>=0 and \<= max_node_count.
+- **max_node** : maximum number of nodes in the NodePool. Must be \>= min_node_count.
 - **initial_node_count** : the number of nodes to create in this cluster's default node pool.
 - **preemptible** : true/false using preemptibles nodes.
 

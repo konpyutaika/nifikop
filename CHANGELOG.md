@@ -5,6 +5,8 @@
 ### Changed
 
 - [PR #307](https://github.com/konpyutaika/nifikop/pull/307) - **[Operator]** Upgrade golang to 1.21.2.
+- [PR #314](https://github.com/konpyutaika/nifikop/pull/314) - **[Operator]** Upgrade golang to 1.21.3.
+- [PR #314](https://github.com/konpyutaika/nifikop/pull/314) - **[Documentation]** Upgrade node 20.9.0, Docusaurus 3, React 18 and other dependencies.
 
 ### Fixed Bugs
 

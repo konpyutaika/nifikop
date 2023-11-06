@@ -1,5 +1,5 @@
 {
-  "version-v0.14.0/docs": [
+  "docs": [
     {
       "collapsed": true,
       "type": "category",
@@ -7,19 +7,19 @@
       "items": [
         {
           "type": "doc",
-          "id": "version-v0.14.0/1_concepts/1_introduction"
+          "id": "1_concepts/1_introduction"
         },
         {
           "type": "doc",
-          "id": "version-v0.14.0/1_concepts/2_design_principes"
+          "id": "1_concepts/2_design_principes"
         },
         {
           "type": "doc",
-          "id": "version-v0.14.0/1_concepts/3_features"
+          "id": "1_concepts/3_features"
         },
         {
           "type": "doc",
-          "id": "version-v0.14.0/1_concepts/4_roadmap"
+          "id": "1_concepts/4_roadmap"
         }
       ]
     },
@@ -30,7 +30,7 @@
       "items": [
         {
           "type": "doc",
-          "id": "version-v0.14.0/2_setup/1_getting_started"
+          "id": "2_setup/1_getting_started"
         },
         {
           "collapsed": true,
@@ -39,11 +39,11 @@
           "items": [
             {
               "type": "doc",
-              "id": "version-v0.14.0/2_setup/2_platform_setup/1_gke"
+              "id": "2_setup/2_platform_setup/1_gke"
             },
             {
               "type": "doc",
-              "id": "version-v0.14.0/2_setup/2_platform_setup/2_k3d"
+              "id": "2_setup/2_platform_setup/2_k3d"
             }
           ]
         },
@@ -54,7 +54,7 @@
           "items": [
             {
               "type": "doc",
-              "id": "version-v0.14.0/2_setup/3_install/1_customizable_install_with_helm"
+              "id": "2_setup/3_install/1_customizable_install_with_helm"
             }
           ]
         }
@@ -72,11 +72,11 @@
           "items": [
             {
               "type": "doc",
-              "id": "version-v0.14.0/3_tasks/1_nifi_cluster/2_cluster_scaling"
+              "id": "3_tasks/1_nifi_cluster/2_cluster_scaling"
             },
             {
               "type": "doc",
-              "id": "version-v0.14.0/3_tasks/1_nifi_cluster/4_external_cluster"
+              "id": "3_tasks/1_nifi_cluster/4_external_cluster"
             }
           ]
         },
@@ -87,7 +87,7 @@
           "items": [
             {
               "type": "doc",
-              "id": "version-v0.14.0/3_tasks/2_security/1_ssl"
+              "id": "3_tasks/2_security/1_ssl"
             },
             {
               "collapsed": true,
@@ -96,7 +96,7 @@
               "items": [
                 {
                   "type": "doc",
-                  "id": "version-v0.14.0/3_tasks/2_security/2_authentication/1_oidc"
+                  "id": "3_tasks/2_security/2_authentication/1_oidc"
                 }
               ]
             },
@@ -107,7 +107,7 @@
               "items": [
                 {
                   "type": "doc",
-                  "id": "version-v0.14.0/3_tasks/2_security/2_authorization/1_authorizer"
+                  "id": "3_tasks/2_security/2_authorization/1_authorizer"
                 }
               ]
             }
@@ -115,11 +115,11 @@
         },
         {
           "type": "doc",
-          "id": "version-v0.14.0/3_tasks/3_nifi_dataflow"
+          "id": "3_tasks/3_nifi_dataflow"
         },
         {
           "type": "doc",
-          "id": "version-v0.14.0/3_tasks/4_nifi_user_group"
+          "id": "3_tasks/4_nifi_user_group"
         }
       ]
     },
@@ -135,57 +135,57 @@
           "items": [
             {
               "type": "doc",
-              "id": "version-v0.14.0/5_references/1_nifi_cluster/1_nifi_cluster"
+              "id": "5_references/1_nifi_cluster/1_nifi_cluster"
             },
             {
               "type": "doc",
-              "id": "version-v0.14.0/5_references/1_nifi_cluster/2_read_only_config"
+              "id": "5_references/1_nifi_cluster/2_read_only_config"
             },
             {
               "type": "doc",
-              "id": "version-v0.14.0/5_references/1_nifi_cluster/3_node_config"
+              "id": "5_references/1_nifi_cluster/3_node_config"
             },
             {
               "type": "doc",
-              "id": "version-v0.14.0/5_references/1_nifi_cluster/4_node"
+              "id": "5_references/1_nifi_cluster/4_node"
             },
             {
               "type": "doc",
-              "id": "version-v0.14.0/5_references/1_nifi_cluster/5_node_state"
+              "id": "5_references/1_nifi_cluster/5_node_state"
             },
             {
               "type": "doc",
-              "id": "version-v0.14.0/5_references/1_nifi_cluster/6_listeners_config"
+              "id": "5_references/1_nifi_cluster/6_listeners_config"
             },
             {
               "type": "doc",
-              "id": "version-v0.14.0/5_references/1_nifi_cluster/7_external_service_config"
+              "id": "5_references/1_nifi_cluster/7_external_service_config"
             }
           ]
         },
         {
           "type": "doc",
-          "id": "version-v0.14.0/5_references/2_nifi_user"
+          "id": "5_references/2_nifi_user"
         },
         {
           "type": "doc",
-          "id": "version-v0.14.0/5_references/3_nifi_registry_client"
+          "id": "5_references/3_nifi_registry_client"
         },
         {
           "type": "doc",
-          "id": "version-v0.14.0/5_references/4_nifi_parameter_context"
+          "id": "5_references/4_nifi_parameter_context"
         },
         {
           "type": "doc",
-          "id": "version-v0.14.0/5_references/5_nifi_dataflow"
+          "id": "5_references/5_nifi_dataflow"
         },
         {
           "type": "doc",
-          "id": "version-v0.14.0/5_references/6_nifi_usergroup"
+          "id": "5_references/6_nifi_usergroup"
         },
         {
           "type": "doc",
-          "id": "version-v0.14.0/5_references/7_nifi_nodegroup_autoscaler"
+          "id": "5_references/7_nifi_nodegroup_autoscaler"
         }
       ]
     },
@@ -196,19 +196,19 @@
       "items": [
         {
           "type": "doc",
-          "id": "version-v0.14.0/6_contributing/0_contribution_organization"
+          "id": "6_contributing/0_contribution_organization"
         },
         {
           "type": "doc",
-          "id": "version-v0.14.0/6_contributing/1_developer_guide"
+          "id": "6_contributing/1_developer_guide"
         },
         {
           "type": "doc",
-          "id": "version-v0.14.0/6_contributing/2_reporting_bugs"
+          "id": "6_contributing/2_reporting_bugs"
         },
         {
           "type": "doc",
-          "id": "version-v0.14.0/6_contributing/3_credits"
+          "id": "6_contributing/3_credits"
         }
       ]
     },
@@ -219,7 +219,7 @@
       "items": [
         {
           "type": "doc",
-          "id": "version-v0.14.0/7_upgrade/1_v0.7.x_to_v0.8.0"
+          "id": "7_upgrade/1_v0.7.x_to_v0.8.0"
         }
       ]
     }
