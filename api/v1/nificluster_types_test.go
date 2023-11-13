@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -47,5 +48,30 @@ func TestGetCreationTimeOrderedNodes(t *testing.T) {
 	}
 	if nodeList[0].Id != 2 || nodeList[1].Id != 4 || nodeList[2].Id != 3 || nodeList[3].Id != 5 {
 		t.Errorf("Incorrect node list: %v+", nodeList)
+	}
+}
+
+func TestListenersConfig(t *testing.T) {
+	cluster := &NifiCluster{
+		Spec: NifiClusterSpec{
+			Nodes: []Node{
+				{Id: 2, NodeConfigGroup: "scale-group", Labels: map[string]string{"scale_me": "true"}},
+				{Id: 3, NodeConfigGroup: "scale-group", Labels: map[string]string{"scale_me": "true"}},
+				{Id: 4, NodeConfigGroup: "scale-group", Labels: map[string]string{"scale_me": "true"}},
+				{Id: 5, NodeConfigGroup: "other-group", Labels: map[string]string{"other_group": "true"}},
+			},
+			ListenersConfig: &ListenersConfig{
+				InternalListeners: []InternalListenerConfig{
+					{
+						Name:     "foo",
+						Protocol: corev1.ProtocolTCP,
+					},
+				},
+			},
+		},
+	}
+
+	if cluster.Spec.ListenersConfig.InternalListeners[0].Protocol != "" {
+		t.Errorf("incorrect protocol")
 	}
 }
