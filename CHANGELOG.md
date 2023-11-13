@@ -2,6 +2,8 @@
 
 ### Added
 
+- [PR #320](https://github.com/konpyutaika/nifikop/pull/320) - **[Operator/NifiCluster]** Added ability to set NiFi container port protocol via `InternalListenersConfig`.
+
 ### Changed
 
 - [PR #307](https://github.com/konpyutaika/nifikop/pull/307) - **[Operator]** Upgrade golang to 1.21.2.

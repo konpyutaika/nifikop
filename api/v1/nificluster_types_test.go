@@ -64,14 +64,19 @@ func TestListenersConfig(t *testing.T) {
 				InternalListeners: []InternalListenerConfig{
 					{
 						Name:     "foo",
-						Protocol: corev1.ProtocolTCP,
 					},
 				},
 			},
 		},
 	}
 
+	// assert blank by default
 	if cluster.Spec.ListenersConfig.InternalListeners[0].Protocol != "" {
 		t.Errorf("incorrect protocol")
+	}
+	// set protocol
+	cluster.Spec.ListenersConfig.InternalListeners[0].Protocol = corev1.ProtocolUDP
+	if cluster.Spec.ListenersConfig.InternalListeners[0].Protocol != corev1.ProtocolUDP {
+		t.Errorf("incorrect protocol. Should have been UDP")
 	}
 }
