@@ -2,8 +2,9 @@ package nifi
 
 import (
 	"fmt"
-	"github.com/konpyutaika/nifikop/api/v1"
 	"strings"
+
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 
 	"github.com/imdario/mergo"
 	"github.com/konpyutaika/nifikop/pkg/resources/templates"
@@ -98,12 +99,17 @@ func (r *Reconciler) generateServicePortForExternalListeners(eService v1.Externa
 	for _, port := range eService.Spec.PortConfigs {
 		for _, iListener := range r.NifiCluster.Spec.ListenersConfig.InternalListeners {
 			if port.InternalListenerName == iListener.Name {
-				usedPorts = append(usedPorts, corev1.ServicePort{
+				newPort := corev1.ServicePort{
 					Name:       strings.ReplaceAll(iListener.Name, "_", ""),
 					Port:       port.Port,
 					TargetPort: intstr.FromInt(int(iListener.ContainerPort)),
 					Protocol:   corev1.ProtocolTCP,
-				})
+				}
+
+				if eService.Spec.Type == corev1.ServiceTypeNodePort && port.NodePort != nil {
+					newPort.NodePort = *port.NodePort
+				}
+				usedPorts = append(usedPorts, newPort)
 			}
 		}
 	}

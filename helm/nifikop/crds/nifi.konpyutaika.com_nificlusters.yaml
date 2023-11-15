@@ -81,6 +81,9 @@ spec:
                             properties:
                               internalListenerName:
                                 type: string
+                              nodePort:
+                                format: int32
+                                type: integer
                               port:
                                 format: int32
                                 type: integer
