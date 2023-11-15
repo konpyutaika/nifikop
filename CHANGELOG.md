@@ -2,6 +2,8 @@
 
 ### Added
 
+- [PR #323](https://github.com/konpyutaika/nifikop/pull/323) - **[Operator/NifiCluster]** Added abitility to set `nodePort`.
+
 ### Changed
 
 - [PR #307](https://github.com/konpyutaika/nifikop/pull/307) - **[Operator]** Upgrade golang to 1.21.2.
