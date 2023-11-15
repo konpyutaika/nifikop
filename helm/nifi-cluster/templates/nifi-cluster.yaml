@@ -24,16 +24,16 @@ spec:
   {{ end }}
   singleUserConfiguration:
     {{ if .Values.cluster.singleUserConfiguration.enabled }}
-      enabled: {{ .Values.cluster.enabled }}
+      enabled: {{ .Values.cluster.singleUserConfiguration.enabled }}
     {{ end }}
     {{ if .Values.cluster.singleUserConfiguration.secretRef }}
-      secretRef: {{ toYaml .Values.cluster.singleUserConfiguration.secretRef | nindent 6 }}
+      secretRef: {{ toYaml .Values.cluster.singleUserConfiguration.secretRef | nindent 8 }}
     {{ end }}
     {{ if .Values.cluster.singleUserConfiguration.secretKeys }}
-      secretKeys: {{ toYaml .Values.cluster.singleUserConfiguration.secretKeys | nindent 6 }}
+      secretKeys: {{ toYaml .Values.cluster.singleUserConfiguration.secretKeys | nindent 8 }}
     {{ end }}
     {{ if .Values.cluster.singleUserConfiguration.authorizerEnabled }}
-      authorizerEnabled: {{ .Values.cluster.authorizerEnabled }}
+      authorizerEnabled: {{ .Values.cluster.singleUserConfiguration.authorizerEnabled }}
     {{ end }}
   zkAddress: {{ .Values.cluster.zkAddress }}
   zkPath: {{ .Values.cluster.zkPath }}
