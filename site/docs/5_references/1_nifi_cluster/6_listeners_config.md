@@ -24,6 +24,9 @@ ListenersConfig defines the Nifi listener types :
       - type: "load-balance"
         name: "load-balance"
         containerPort: 6342
+      - name: "my-custom-listener-port"
+        containerPort: 1234
+        protocol: "TCP"
     sslSecrets:
       tlsSecretName: "test-nifikop"
       create: true
@@ -45,6 +48,7 @@ Field|Type|Description|Required|Default|
 |type|enum{ "cluster", "http", "https", "s2s", "prometheus", "load-balance"}| allow to specify if we are in a specific nifi listener it's allowing to define some required information such as Cluster Port, Http Port, Https Port, S2S, Load Balance port, or Prometheus port| Yes | - |
 |name|string| an identifier for the port which will be configured. | Yes | - |
 |containerPort|int32| the containerPort. | Yes | - |
+|protocol|[Protocol](https://pkg.go.dev/k8s.io/api/core/v1#Protocol)| the network protocol for this listener. Must be one of the protocol enum values (i.e. TCP, UDP, SCTP).  | No | `TCP` |
 
 
 ## SSLSecrets

@@ -267,11 +267,14 @@ func generatePodAntiAffinity(clusterName string, hardRuleEnabled bool) *corev1.P
 
 func (r *Reconciler) generateContainerPortForInternalListeners() []corev1.ContainerPort {
 	var usedPorts []corev1.ContainerPort
-
 	for _, iListeners := range r.NifiCluster.Spec.ListenersConfig.InternalListeners {
+		protocol := iListeners.Protocol
+		if protocol == "" {
+			protocol = corev1.ProtocolTCP
+		}
 		usedPorts = append(usedPorts, corev1.ContainerPort{
 			Name:          strings.ReplaceAll(iListeners.Name, "_", ""),
-			Protocol:      corev1.ProtocolTCP,
+			Protocol:      protocol,
 			ContainerPort: iListeners.ContainerPort,
 		})
 	}
