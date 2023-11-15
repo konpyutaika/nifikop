@@ -525,6 +525,8 @@ type PortConfig struct {
 	Port int32 `json:"port" protobuf:"varint,3,opt,name=port"`
 	// The name of the listener which will be used as target container.
 	InternalListenerName string `json:"internalListenerName"`
+	// TBD.
+	NodePort *int32 `json:"nodePort,omitempty"`
 }
 
 // LdapConfiguration specifies the configuration if you want to use LDAP
