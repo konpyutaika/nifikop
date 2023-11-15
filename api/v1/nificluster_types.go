@@ -445,7 +445,8 @@ type InternalListenerConfig struct {
 	Name string `json:"name"`
 	// The container port.
 	ContainerPort int32 `json:"containerPort"`
-	// +kubebuilder:validation:Enum={"TCP", "UDP", "SCTP"}
+	// +kubebuilder:validation:Enum:={"TCP", "UDP", "SCTP"}
+	// +kubebuilder:default:="TCP"
 	// The network protocol for this listener. Options defined here: https://pkg.go.dev/k8s.io/api/core/v1#Protocol
 	Protocol corev1.Protocol `json:"protocol,omitempty"`
 }

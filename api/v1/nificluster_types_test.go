@@ -50,33 +50,3 @@ func TestGetCreationTimeOrderedNodes(t *testing.T) {
 		t.Errorf("Incorrect node list: %v+", nodeList)
 	}
 }
-
-func TestListenersConfig(t *testing.T) {
-	cluster := &NifiCluster{
-		Spec: NifiClusterSpec{
-			Nodes: []Node{
-				{Id: 2, NodeConfigGroup: "scale-group", Labels: map[string]string{"scale_me": "true"}},
-				{Id: 3, NodeConfigGroup: "scale-group", Labels: map[string]string{"scale_me": "true"}},
-				{Id: 4, NodeConfigGroup: "scale-group", Labels: map[string]string{"scale_me": "true"}},
-				{Id: 5, NodeConfigGroup: "other-group", Labels: map[string]string{"other_group": "true"}},
-			},
-			ListenersConfig: &ListenersConfig{
-				InternalListeners: []InternalListenerConfig{
-					{
-						Name:     "foo",
-					},
-				},
-			},
-		},
-	}
-
-	// assert blank by default
-	if cluster.Spec.ListenersConfig.InternalListeners[0].Protocol != "" {
-		t.Errorf("incorrect protocol")
-	}
-	// set protocol
-	cluster.Spec.ListenersConfig.InternalListeners[0].Protocol = corev1.ProtocolUDP
-	if cluster.Spec.ListenersConfig.InternalListeners[0].Protocol != corev1.ProtocolUDP {
-		t.Errorf("incorrect protocol. Should have been UDP")
-	}
-}
