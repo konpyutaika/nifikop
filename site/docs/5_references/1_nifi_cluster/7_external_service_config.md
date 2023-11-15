@@ -46,7 +46,8 @@ Field|Type|Description|Required|Default|
 Field|Type|Description|Required|Default|
 |-----|----|-----------|--------|--------|
 |port|int32| The port that will be exposed by this service. | Yes | - |
-|internalListenerName| string| The name of the listener which will be used as target container. | Yes | - |
+|internalListenerName|string| The name of the listener which will be used as target container. | Yes | - |
+|nodePort|int32| The port that will expose this service externally. (Only if the service is of type NodePort) | No | - |
 
 ## Metadata
 

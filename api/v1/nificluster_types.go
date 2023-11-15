@@ -525,7 +525,8 @@ type PortConfig struct {
 	Port int32 `json:"port" protobuf:"varint,3,opt,name=port"`
 	// The name of the listener which will be used as target container.
 	InternalListenerName string `json:"internalListenerName"`
-	// TBD.
+	// The port that will expose this service externally. (Only if the service is of type NodePort)
+	// +optional
 	NodePort *int32 `json:"nodePort,omitempty"`
 }
 
