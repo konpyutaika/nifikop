@@ -2,6 +2,7 @@
 
 ### Added
 
+- [PR #320](https://github.com/konpyutaika/nifikop/pull/320) - **[Operator/NifiCluster]** Added ability to set NiFi container port protocol via `InternalListenersConfig`.
 - [PR #323](https://github.com/konpyutaika/nifikop/pull/323) - **[Operator/NifiCluster]** Added abitility to set `nodePort`.
 
 ### Changed

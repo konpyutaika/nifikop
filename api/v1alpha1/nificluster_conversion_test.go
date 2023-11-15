@@ -204,7 +204,9 @@ func internalListenersConfigsEqual(lc1 []InternalListenerConfig, lc2 []v1.Intern
 	for i, lc := range lc1 {
 		if lc.ContainerPort != lc2[i].ContainerPort ||
 			lc.Name != lc2[i].Name ||
-			lc.Type != lc2[i].Type {
+			lc.Type != lc2[i].Type ||
+			// this protocol assertion verifies the default gets set properly
+			lc2[i].Protocol != corev1.ProtocolTCP {
 			return false
 		}
 	}

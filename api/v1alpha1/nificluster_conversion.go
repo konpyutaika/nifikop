@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	v1 "github.com/konpyutaika/nifikop/api/v1"
+	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/conversion"
 )
 
@@ -353,6 +354,8 @@ func convertInternalListeners(src []InternalListenerConfig) []v1.InternalListene
 			Type:          srcInternalListenerConfig.Type,
 			Name:          srcInternalListenerConfig.Name,
 			ContainerPort: srcInternalListenerConfig.ContainerPort,
+			// default to TCP when converting from v1alpha1 to v1
+			Protocol: corev1.ProtocolTCP,
 		})
 	}
 

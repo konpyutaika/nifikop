@@ -739,6 +739,13 @@ spec:
                           type: integer
                         name:
                           type: string
+                        protocol:
+                          default: TCP
+                          enum:
+                          - TCP
+                          - UDP
+                          - SCTP
+                          type: string
                         type:
                           enum:
                           - cluster
