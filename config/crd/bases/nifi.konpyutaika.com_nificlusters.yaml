@@ -737,9 +737,7 @@ spec:
                         name:
                           type: string
                         protocol:
-                          allOf:
-                          - default: TCP
-                          - default: TCP
+                          default: TCP
                           enum:
                           - TCP
                           - UDP
