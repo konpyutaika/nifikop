@@ -2,6 +2,18 @@
 
 ### Added
 
+### Changed
+
+### Fixed Bugs
+
+### Deprecated
+
+### Removed
+
+## v1.5.0
+
+### Added
+
 - [PR #320](https://github.com/konpyutaika/nifikop/pull/320) - **[Operator/NifiCluster]** Added ability to set NiFi container port protocol via `InternalListenersConfig`.
 - [PR #323](https://github.com/konpyutaika/nifikop/pull/323) - **[Operator/NifiCluster]** Added abitility to set `nodePort`.
 
@@ -16,10 +28,6 @@
 
 - [PR #311](https://github.com/konpyutaika/nifikop/pull/311) - **[Operator/NifiConnection]** Doesn't have its own requeue interval.
 - [PR #322](https://github.com/konpyutaika/nifikop/pull/322) - **[Helm Chart]** SingleUserConfiguration block in Helm chart refers to incorrect values and has incorrect indentation.
-
-### Deprecated
-
-### Removed
 
 ## v1.4.1
 

@@ -45,7 +45,7 @@ body:
     attributes:
       label: NiFiKop version
       description: NiFiKop release or git SHA
-      placeholder: v1.4.1-release
+      placeholder: v1.5.0-release
     validations:
       required: true
 
