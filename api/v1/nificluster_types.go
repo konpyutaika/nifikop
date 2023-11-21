@@ -373,7 +373,12 @@ type StorageConfig struct {
 	// Path where the volume will be mount into the main nifi container inside the pod.
 	MountPath string `json:"mountPath"`
 	// labels and annotations to attach to the PVC created
+	// +optional
 	Metadata Metadata `json:"metadata,omitempty"`
+	// +optional
+	// +kubebuilder:default=Delete
+	// +kubebuilder:validation:Enum={"Delete","Retain"}
+	ReclaimPolicy corev1.PersistentVolumeReclaimPolicy `json:"reclaimPolicy,omitempty"`
 	// Kubernetes PVC spec
 	PVCSpec *corev1.PersistentVolumeClaimSpec `json:"pvcSpec"`
 }

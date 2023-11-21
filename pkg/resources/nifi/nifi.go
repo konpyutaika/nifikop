@@ -147,23 +147,46 @@ func (r *Reconciler) Reconcile(log zap.Logger) error {
 		if err != nil {
 			return errors.WrapIf(err, "failed to reconcile resource")
 		}
+		// look up any existing PVCs for this node
+		pvcs, err := getCreatedPVCForNode(r.Client, node.Id, r.NifiCluster.Namespace, r.NifiCluster.Name)
+		if err != nil {
+			return errors.WrapIfWithDetails(err, "failed to list PVC's")
+		}
+
 		for _, storage := range nodeConfig.StorageConfigs {
-			o := r.pvc(node.Id, storage, log)
-			err := r.reconcileNifiPVC(log, o.(*corev1.PersistentVolumeClaim))
-			if err != nil {
-				return errors.WrapIfWithDetails(err, "failed to reconcile resource", "resource", o.GetObjectKind().GroupVersionKind())
+			var pvc *corev1.PersistentVolumeClaim
+			pvcExists, existingPvc := r.storageConfigPVCExists(pvcs, storage.Name)
+			// if the (volume reclaim policy is Retain and the PVC doesn't exist) OR the reclaim policy is Delete, then create it.
+			if (storage.ReclaimPolicy == corev1.PersistentVolumeReclaimRetain && !pvcExists) ||
+				storage.ReclaimPolicy == corev1.PersistentVolumeReclaimDelete {
+				o := r.pvc(node.Id, storage, log)
+				pvc = o.(*corev1.PersistentVolumeClaim)
+			} else {
+				// volume reclaim policy is Retain and the PVC exists
+				log.Info("Volume reclaim policy is Retain. Re-using existing PVC",
+					zap.String("clusterName", r.NifiCluster.Name),
+					zap.Int32("nodeId", node.Id),
+					zap.String("storageName", storage.Name))
+				// ensure we apply the reclaim policy label to handle PVC deletion properly for pre-existing PVCs
+				existingPvc.Labels[nifiutil.NifiVolumeReclaimPolicyKey] = string(storage.ReclaimPolicy)
+				pvc = existingPvc
 			}
+			err := r.reconcileNifiPVC(node.Id, log, pvc)
+			if err != nil {
+				return errors.WrapIfWithDetails(err, "failed to reconcile resource", "resource", pvc.GetObjectKind().GroupVersionKind())
+			}
+		}
+
+		// re-lookup the PVCs after we've created any we need to create.
+		pvcs, err = getCreatedPVCForNode(r.Client, node.Id, r.NifiCluster.Namespace, r.NifiCluster.Name)
+		if err != nil {
+			return errors.WrapIfWithDetails(err, "failed to list PVC's")
 		}
 
 		o := r.secretConfig(node.Id, nodeConfig, serverPass, clientPass, superUsers, log)
 		err = k8sutil.Reconcile(log, r.Client, o, r.NifiCluster, &r.NifiClusterCurrentStatus)
 		if err != nil {
 			return errors.WrapIfWithDetails(err, "failed to reconcile resource", "resource", o.GetObjectKind().GroupVersionKind())
-		}
-
-		pvcs, err := getCreatedPVCForNode(r.Client, node.Id, r.NifiCluster.Namespace, r.NifiCluster.Name)
-		if err != nil {
-			return errors.WrapIfWithDetails(err, "failed to list PVC's")
 		}
 
 		if !r.NifiCluster.Spec.Service.HeadlessEnabled {
@@ -365,7 +388,8 @@ OUTERLOOP:
 					return errors.WrapIfWithDetails(err, "could not get pvc for node", "id", node.Labels["nodeId"])
 				}
 
-				if pvcFound.Labels[nifiutil.NifiDataVolumeMountKey] == "true" {
+				// If this is a nifi data volume AND it has a Delete reclaim policy, then delete it. Otherwise, it is configured to be retained.
+				if pvcFound.Labels[nifiutil.NifiDataVolumeMountKey] == "true" && pvcFound.Labels[nifiutil.NifiVolumeReclaimPolicyKey] == string(corev1.PersistentVolumeReclaimDelete) {
 					err = r.Client.Delete(context.TODO(), &corev1.PersistentVolumeClaim{ObjectMeta: metav1.ObjectMeta{
 						Name:      volume.PersistentVolumeClaim.ClaimName,
 						Namespace: r.NifiCluster.Namespace,
@@ -472,7 +496,7 @@ func generateNodeIdsFromPodSlice(pods []corev1.Pod) []string {
 	return ids
 }
 
-func (r *Reconciler) reconcileNifiPVC(log zap.Logger, desiredPVC *corev1.PersistentVolumeClaim) error {
+func (r *Reconciler) reconcileNifiPVC(nodeId int32, log zap.Logger, desiredPVC *corev1.PersistentVolumeClaim) error {
 	var currentPVC = desiredPVC.DeepCopy()
 	desiredType := reflect.TypeOf(desiredPVC)
 	log.Debug("searching for pvc with label because name is empty",
@@ -480,21 +504,15 @@ func (r *Reconciler) reconcileNifiPVC(log zap.Logger, desiredPVC *corev1.Persist
 		zap.String("nodeId", desiredPVC.Labels["nodeId"]),
 		zap.String("kind", desiredType.String()))
 
-	pvcList := &corev1.PersistentVolumeClaimList{}
-	matchingLabels := client.MatchingLabels{
-		"nifi_cr": r.NifiCluster.Name,
-		"nodeId":  desiredPVC.Labels["nodeId"],
-	}
-	err := r.Client.List(context.TODO(), pvcList,
-		client.InNamespace(currentPVC.Namespace), matchingLabels)
-	if err != nil && len(pvcList.Items) == 0 {
+	pvcList, err := getCreatedPVCForNode(r.Client, nodeId, currentPVC.Namespace, r.NifiCluster.Name)
+	if err != nil && len(pvcList) == 0 {
 		return errorfactory.New(errorfactory.APIFailure{}, err, "getting resource failed", "kind", desiredType)
 	}
 	mountPath := currentPVC.Annotations["mountPath"]
 	storageName := currentPVC.Annotations["storageName"]
 
 	// Creating the first PersistentVolume For Pod
-	if len(pvcList.Items) == 0 {
+	if len(pvcList) == 0 {
 		if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(desiredPVC); err != nil {
 			return errors.WrapIf(err, "could not apply last state to annotation")
 		}
@@ -508,7 +526,7 @@ func (r *Reconciler) reconcileNifiPVC(log zap.Logger, desiredPVC *corev1.Persist
 		return nil
 	}
 	alreadyCreated := false
-	for _, pvc := range pvcList.Items {
+	for _, pvc := range pvcList {
 		if mountPath == pvc.Annotations["mountPath"] && storageName == pvc.Annotations["storageName"] {
 			currentPVC = pvc.DeepCopy()
 			alreadyCreated = true

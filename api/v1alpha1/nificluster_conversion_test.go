@@ -301,6 +301,7 @@ func storageConfigsEqual(sc1 []StorageConfig, sc2 []v1.StorageConfig) bool {
 	for i, sc := range sc1 {
 		if sc.MountPath != sc2[i].MountPath ||
 			sc.Name != sc2[i].Name ||
+			corev1.PersistentVolumeReclaimDelete != sc2[i].ReclaimPolicy ||
 			!reflect.DeepEqual(sc.PVCSpec, sc2[i].PVCSpec) {
 			return false
 		}

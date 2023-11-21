@@ -260,8 +260,9 @@ func convertStorageConfigs(src []StorageConfig, dst *v1.NodeConfig) {
 	dst.StorageConfigs = []v1.StorageConfig{}
 	for _, srcConfig := range src {
 		dstConfig := v1.StorageConfig{
-			Name:      srcConfig.Name,
-			MountPath: srcConfig.MountPath,
+			Name:          srcConfig.Name,
+			MountPath:     srcConfig.MountPath,
+			ReclaimPolicy: corev1.PersistentVolumeReclaimDelete,
 			Metadata: v1.Metadata{
 				Labels:      map[string]string{},
 				Annotations: map[string]string{},
