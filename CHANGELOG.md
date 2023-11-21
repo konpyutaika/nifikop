@@ -2,6 +2,8 @@
 
 ### Added
 
+- [PR #325](https://github.com/konpyutaika/nifikop/pull/325) - **[Operator/NifiCluster]** Added ability to configure `ReclaimPolicy` for `StorageConfig` persistent volumes.
+
 ### Changed
 
 ### Fixed Bugs
