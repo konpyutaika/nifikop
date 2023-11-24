@@ -201,6 +201,12 @@ func TestStringSliceRemove(t *testing.T) {
 		t.Error("The list must have an item less")
 	}
 
+	// empty the list
+	newlist := []string{"a"}
+	if results := StringSliceRemove(newlist, "a"); len(results) != 0 {
+		t.Error("The list must have two items less")
+	}
+
 	copy(listCopy, list)
 	// item not in the list
 	if results := StringSliceRemove(listCopy, "1"); len(results) != len(list) ||

@@ -77,9 +77,6 @@ func getCreatedPVCForNode(c client.Client, nodeID int32, namespace, crName strin
 	if err != nil {
 		return nil, err
 	}
-	if len(foundPVCList.Items) == 0 {
-		return nil, fmt.Errorf("no persistentvolume found for node %d", nodeID)
-	}
 	return foundPVCList.Items, nil
 }
 
@@ -149,8 +146,9 @@ func (r *Reconciler) Reconcile(log zap.Logger) error {
 		}
 		// look up any existing PVCs for this node
 		pvcs, err := getCreatedPVCForNode(r.Client, node.Id, r.NifiCluster.Namespace, r.NifiCluster.Name)
-		if err != nil {
-			return errors.WrapIfWithDetails(err, "failed to list PVC's")
+		// if pvcs is nil, then an error occured. otherwise, it's just an empty list.
+		if err != nil && pvcs == nil {
+			return errors.WrapIfWithDetails(err, "failed to list PVCs")
 		}
 
 		for _, storage := range nodeConfig.StorageConfigs {
@@ -180,7 +178,7 @@ func (r *Reconciler) Reconcile(log zap.Logger) error {
 		// re-lookup the PVCs after we've created any we need to create.
 		pvcs, err = getCreatedPVCForNode(r.Client, node.Id, r.NifiCluster.Namespace, r.NifiCluster.Name)
 		if err != nil {
-			return errors.WrapIfWithDetails(err, "failed to list PVC's")
+			return errors.WrapIfWithDetails(err, "failed to list PVCs")
 		}
 
 		o := r.secretConfig(node.Id, nodeConfig, serverPass, clientPass, superUsers, log)
@@ -402,9 +400,12 @@ OUTERLOOP:
 
 						return errors.WrapIfWithDetails(err, "could not delete pvc for node", "id", node.Labels["nodeId"])
 					}
+				} else {
+					log.Debug("Not deleting PVC because it should be retained.", zap.String("nodeId", node.Labels["nodeId"]), zap.String("pvcName", pvcFound.Name))
 				}
 			}
 
+			log.Debug("Deleting pod.", zap.String("pod", node.Name))
 			err = r.Client.Delete(context.TODO(), &node)
 			if err != nil {
 				return errors.WrapIfWithDetails(err, "could not delete node", "id", node.Labels["nodeId"])
@@ -559,6 +560,8 @@ func (r *Reconciler) reconcileNifiPVC(nodeId int32, log zap.Logger, desiredPVC *
 			desiredPVC = currentPVC.DeepCopy()
 			desiredPVC.Spec.Resources.Requests = resReq
 			desiredPVC.Labels = labels
+			// we set the owner references here because they can be removed if a PVC was ever configured to be retained.
+			desiredPVC.SetOwnerReferences([]metav1.OwnerReference{templates.ClusterOwnerReference(r.NifiCluster)})
 
 			if err := r.Client.Update(context.TODO(), desiredPVC); err != nil {
 				return errorfactory.New(errorfactory.APIFailure{}, err, "updating resource failed", "kind", desiredType)

@@ -1,7 +1,7 @@
 package templates
 
 import (
-	"github.com/konpyutaika/nifikop/api/v1"
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/pkg/util"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -13,14 +13,7 @@ func ObjectMeta(name string, labels map[string]string, cluster *v1.NifiCluster) 
 		Namespace: cluster.Namespace,
 		Labels:    ObjectMetaLabels(cluster, labels),
 		OwnerReferences: []metav1.OwnerReference{
-			{
-				APIVersion:         cluster.APIVersion,
-				Kind:               cluster.Kind,
-				Name:               cluster.Name,
-				UID:                cluster.UID,
-				Controller:         util.BoolPointer(true),
-				BlockOwnerDeletion: util.BoolPointer(true),
-			},
+			ClusterOwnerReference(cluster),
 		},
 	}
 }
@@ -32,15 +25,20 @@ func ObjectMetaWithGeneratedName(namePrefix string, labels map[string]string, cl
 		Namespace:    cluster.Namespace,
 		Labels:       ObjectMetaLabels(cluster, labels),
 		OwnerReferences: []metav1.OwnerReference{
-			{
-				APIVersion:         cluster.APIVersion,
-				Kind:               cluster.Kind,
-				Name:               cluster.Name,
-				UID:                cluster.UID,
-				Controller:         util.BoolPointer(true),
-				BlockOwnerDeletion: util.BoolPointer(true),
-			},
+			ClusterOwnerReference(cluster),
 		},
+	}
+}
+
+// ClusterOwnerReference returns the appropriate metadata to attach to an object to make the provided NifiCluster an owner of some object
+func ClusterOwnerReference(cluster *v1.NifiCluster) metav1.OwnerReference {
+	return metav1.OwnerReference{
+		APIVersion:         cluster.APIVersion,
+		Kind:               cluster.Kind,
+		Name:               cluster.Name,
+		UID:                cluster.UID,
+		Controller:         util.BoolPointer(true),
+		BlockOwnerDeletion: util.BoolPointer(true),
 	}
 }
 
@@ -71,14 +69,7 @@ func ObjectMetaClusterScope(name string, labels map[string]string, cluster *v1.N
 		Name:   name,
 		Labels: ObjectMetaLabels(cluster, labels),
 		OwnerReferences: []metav1.OwnerReference{
-			{
-				APIVersion:         cluster.APIVersion,
-				Kind:               cluster.Kind,
-				Name:               cluster.Name,
-				UID:                cluster.UID,
-				Controller:         util.BoolPointer(true),
-				BlockOwnerDeletion: util.BoolPointer(true),
-			},
+			ClusterOwnerReference(cluster),
 		},
 	}
 }

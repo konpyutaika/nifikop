@@ -30,6 +30,7 @@ import (
 	"github.com/konpyutaika/nifikop/pkg/resources"
 	"github.com/konpyutaika/nifikop/pkg/resources/nifi"
 	"github.com/konpyutaika/nifikop/pkg/util"
+	nifiutil "github.com/konpyutaika/nifikop/pkg/util/nifi"
 	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
 	policyv1 "k8s.io/api/policy/v1"
@@ -248,6 +249,10 @@ func (r *NifiClusterReconciler) checkFinalizers(ctx context.Context,
 		namespaces = r.Namespaces
 	}
 
+	if result, err := r.finalizePVCs(ctx, cluster); err != nil {
+		return result, err
+	}
+
 	if cluster.IsInternal() && cluster.Spec.ListenersConfig.SSLSecrets != nil {
 		// If we haven't deleted all nifiusers yet, iterate namespaces and delete all nifiusers
 		// with the matching label.
@@ -290,7 +295,6 @@ func (r *NifiClusterReconciler) checkFinalizers(ctx context.Context,
 				return RequeueWithError(r.Log, "failed to finalize PKI", err)
 			}
 		}
-
 	}
 
 	r.Log.Info("Finalizing deletion of nificluster instance", zap.String("clusterName", cluster.Name))
@@ -303,6 +307,29 @@ func (r *NifiClusterReconciler) checkFinalizers(ctx context.Context,
 		return RequeueWithError(r.Log, "failed to remove main finalizer from NifiCluser "+cluster.Name, err)
 	}
 
+	return Reconciled()
+}
+
+func (r *NifiClusterReconciler) finalizePVCs(ctx context.Context, cluster *v1.NifiCluster) (reconcile.Result, error) {
+	// remove PVC owner references if they're configured to be retained. This will prevent the PVC from getting garbage collected.
+	foundPVCList := &corev1.PersistentVolumeClaimList{}
+	matchingLabels := client.MatchingLabels{
+		"nifi_cr":                           cluster.Name,
+		nifiutil.NifiDataVolumeMountKey:     "true",
+		nifiutil.NifiVolumeReclaimPolicyKey: string(corev1.PersistentVolumeReclaimRetain),
+	}
+	if err := r.Client.List(context.TODO(), foundPVCList, client.ListOption(client.InNamespace(cluster.Namespace)), client.ListOption(matchingLabels)); err != nil {
+		return RequeueWithError(r.Log, "failed to get PVC list from k8s api", err)
+	}
+	for _, pvc := range foundPVCList.Items {
+		r.Log.Debug("Removing owner references for PVC as it is configured to be retained.", zap.String("clusterName", cluster.Name), zap.String("pvcName", pvc.Name))
+		patch := client.MergeFrom(pvc.DeepCopy())
+		// clear owner refs so that the PVC does not get deleted when the NifiCluster is deleted.
+		pvc.SetOwnerReferences(nil)
+		if err := r.Client.Patch(ctx, &pvc, patch); err != nil {
+			return RequeueWithError(r.Log, "failed to delete owner references for PVC "+pvc.Name, err)
+		}
+	}
 	return Reconciled()
 }
 
