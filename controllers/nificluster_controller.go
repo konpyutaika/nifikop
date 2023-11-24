@@ -318,7 +318,7 @@ func (r *NifiClusterReconciler) finalizePVCs(ctx context.Context, cluster *v1.Ni
 		nifiutil.NifiDataVolumeMountKey:     "true",
 		nifiutil.NifiVolumeReclaimPolicyKey: string(corev1.PersistentVolumeReclaimRetain),
 	}
-	if err := r.Client.List(context.TODO(), foundPVCList, client.ListOption(client.InNamespace(cluster.Namespace)), client.ListOption(matchingLabels)); err != nil {
+	if err := r.Client.List(ctx, foundPVCList, client.ListOption(client.InNamespace(cluster.Namespace)), client.ListOption(matchingLabels)); err != nil {
 		return RequeueWithError(r.Log, "failed to get PVC list from k8s api", err)
 	}
 	for _, pvc := range foundPVCList.Items {
