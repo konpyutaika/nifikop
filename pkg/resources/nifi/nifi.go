@@ -164,6 +164,7 @@ func (r *Reconciler) Reconcile(log zap.Logger) error {
 				log.Info("Volume reclaim policy is Retain. Re-using existing PVC",
 					zap.String("clusterName", r.NifiCluster.Name),
 					zap.Int32("nodeId", node.Id),
+					zap.String("pvcName", existingPvc.Name),
 					zap.String("storageName", storage.Name))
 				// ensure we apply the reclaim policy label to handle PVC deletion properly for pre-existing PVCs
 				existingPvc.Labels[nifiutil.NifiVolumeReclaimPolicyKey] = string(storage.ReclaimPolicy)
