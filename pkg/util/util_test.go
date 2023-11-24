@@ -204,7 +204,7 @@ func TestStringSliceRemove(t *testing.T) {
 	// empty the list
 	newlist := []string{"a"}
 	if results := StringSliceRemove(newlist, "a"); len(results) != 0 {
-		t.Error("The list must have two items less")
+		t.Error("The list must be empty")
 	}
 
 	copy(listCopy, list)
