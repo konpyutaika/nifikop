@@ -11,18 +11,17 @@ sidebar_label: Compatibility versions
 
 Nifikop supports the following NiFi cluster features: 
 
-| NiFi Version                    | Cluster deployment | Standalone deployment | Cluster nodes configuration | Cluster rolling upgrade | Cluster scaling | Cluster auto-scaling | Prometheus Reporting |
-|----------------------------|---------|-----------|---------|-----------|---------|-----------|---------|
-| NiFi 1.16                  | Yes     | No        | Yes     | Yes       | Yes     | Yes       | Yes     |
-| NiFi 1.17                  | Yes     | No        | Yes     | Yes       | Yes     | Yes       | Yes     |
-| NiFi 1.18                  | Yes     | No        | Yes     | Yes       | Yes     | Yes       | Yes     |
-| NiFi 1.19                  | Yes     | No        | Yes     | Yes       | Yes     | Yes       | Yes     |
-| NiFi 1.20                  | Yes     | No        | Yes     | Yes       | Yes     | Yes       | Yes     |
-| NiFi 1.21                  | Yes     | No        | Yes     | Yes       | Yes     | Yes       | Yes     |
-| NiFi 1.22                  | Yes     | No        | Yes     | Yes       | Yes     | Yes       | Yes     |
-| NiFi 1.23                  | Yes     | No        | Yes     | Yes       | Yes     | Yes       | Yes     |
-| NiFi 1.24                  | Yes     | No        | Yes     | Yes       | Yes     | Yes       | Yes     |
-
+| NiFi Version | Cluster deployment | Standalone deployment | Cluster nodes configuration | Cluster rolling upgrade | Cluster scaling | Cluster auto-scaling | Prometheus Reporting |
+|--------------|--------------------|-----------------------|-----------------------------|-------------------------|-----------------|----------------------|----------------------|
+| NiFi 1.16    | Yes                | No                    | Yes                         | Yes                     | Yes             | Yes                  | Yes                  |
+| NiFi 1.17    | Yes                | No                    | Yes                         | Yes                     | Yes             | Yes                  | Yes                  |
+| NiFi 1.18    | Yes                | No                    | Yes                         | Yes                     | Yes             | Yes                  | Yes                  |
+| NiFi 1.19    | Yes                | No                    | Yes                         | Yes                     | Yes             | Yes                  | Yes                  |
+| NiFi 1.20    | Yes                | No                    | Yes                         | Yes                     | Yes             | Yes                  | Yes                  |
+| NiFi 1.21    | Yes                | No                    | Yes                         | Yes                     | Yes             | Yes                  | Yes                  |
+| NiFi 1.22    | Yes                | No                    | Yes                         | Yes                     | Yes             | Yes                  | Yes                  |
+| NiFi 1.23    | Yes                | No                    | Yes                         | Yes                     | Yes             | Yes                  | Yes                  |
+| NiFi 1.24    | Yes                | No                    | Yes                         | Yes                     | Yes             | Yes                  | Yes                  |
 
 ### NiFi external cluster
 
