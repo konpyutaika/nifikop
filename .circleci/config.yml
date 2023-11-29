@@ -88,7 +88,7 @@ orbs:
               at: /home/circleci
           - run:
               name: Lint Code
-              command: make lint-warn # currently only do lint warn
+              command: make lint
       # Build job, which builds the cross-platform operator docker image (with operator-sdk build)
       build-operator:
         <<: *params_operator

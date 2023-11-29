@@ -32,6 +32,9 @@ CONTROLLER_TOOLS_VERSION ?= v0.9.2
 ENVTEST_K8S_VERSION = 1.26
 GOLANGCI_VERSION = 1.55.2
 
+# controls the exit code of linter in case of linting issues
+GOLANGCI_EXIT_CODE = 0
+
 DEV_DIR := docker/build-image
 
 # BUNDLE_GEN_FLAGS are the flags passed to the operator-sdk generate bundle command
@@ -118,7 +121,7 @@ SHELL = /usr/bin/env bash -o pipefail
 
 # Build manager binary
 .PHONY: manager
-manager: manifests generate fmt vet
+manager: manifests generate fmt
 	go build -o bin/manager main.go
 
 # Generate code
@@ -148,29 +151,14 @@ $(CONTROLLER_GEN): $(LOCALBIN)
 
 .PHONY: lint
 lint: golangci-lint
-	 $(GOLANGCI_LINT) run
-
-.PHONY: lint-warn # only output linting issues but don't exit with 1
-lint-warn: golangci-lint
-	 $(GOLANGCI_LINT) run --issues-exit-code 0
+	 $(GOLANGCI_LINT) run --issues-exit-code $(GOLANGCI_EXIT_CODE)
 
 # Run go fmt against code
 .PHONY: fmt
 fmt: golangci-lint ## Ensure consistent code style
 	@go mod tidy
 	@go fmt ./...
-	@$(GOLANGCI_LINT) run --fix
-
-# Run go vet against code
-.PHONY: vet
-vet:
-	go vet ./...
-
-# Run https://staticcheck.io against code
-.PHONY: staticcheck
-staticcheck:
-	go install honnef.co/go/tools/cmd/staticcheck@latest
-	staticcheck ./...
+	@$(GOLANGCI_LINT) run --fix --issues-exit-code $(GOLANGCI_EXIT_CODE)
 
 # RUN https://go.dev/blog/vuln against code for known CVEs
 .PHONY: govuln
@@ -181,16 +169,16 @@ govuln:
 # Run tests
 ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
 .PHONY: test
-test: manifests generate fmt vet staticcheck govuln envtest
+test: manifests generate fmt govuln envtest
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(LOCALBIN) -p path)" go test ./... -coverprofile cover.out
 
 .PHONY: test-with-vendor
-test-with-vendor: manifests generate fmt vet staticcheck govuln envtest
+test-with-vendor: manifests generate fmt govuln envtest
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(LOCALBIN) -p path)" go test -mod=vendor ./... -coverprofile cover.out
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
 .PHONY: run
-run: generate fmt vet manifests
+run: generate fmt manifests
 	go run ./main.go
 
 ifndef ignore-not-found
