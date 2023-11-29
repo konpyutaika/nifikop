@@ -74,7 +74,21 @@ orbs:
               paths:
                 - build/_output
                 - vendor
-
+      lint:
+        <<: *params_operator
+        <<: *job_operator
+        steps:
+          - checkout:
+              path: /home/circleci/nifikop
+          - setup_remote_docker # Creates a separate environment for each build for security.
+          - restore_cache: # If exist, restore dependencies libs download cache, from previous pipeline execution.
+              keys: # Use checksum of go.sum to version cache.
+                - << parameters.operatorName >>-build-{{ .Branch }}-{{ checksum "go.sum" }}-{{ .Environment.CACHE_VERSION }}
+          - attach_workspace: # Attach artifact from workdir
+              at: /home/circleci
+          - run:
+              name: Lint Code
+              command: make lint-warn # currently only do lint warn
       # Build job, which builds the cross-platform operator docker image (with operator-sdk build)
       build-operator:
         <<: *params_operator
@@ -277,10 +291,16 @@ workflows:
           name: generate-nifikop
           <<: *everytime_filter
 
+      - operator/lint:
+          name: lint-nifikop
+          requires:
+            - generate-nifikop
+          <<: *everytime_filter
+
       - operator/test-unit:
           name: unit-test-nifikop
           requires:
-            - generate-nifikop
+            - lint-nifikop
           <<: *everytime_filter
 
       - operator/build-operator:
