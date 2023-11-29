@@ -24,11 +24,13 @@ $(LOCALBIN):
 KUSTOMIZE ?= $(LOCALBIN)/kustomize
 CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen
 ENVTEST ?= $(LOCALBIN)/setup-envtest
+GOLANGCI_LINT ?= $(LOCALBIN)/golangci-lint
 
 ## Tool Versions
 KUSTOMIZE_VERSION ?= v4.5.5
 CONTROLLER_TOOLS_VERSION ?= v0.9.2
 ENVTEST_K8S_VERSION = 1.26
+GOLANGCI_VERSION = 1.55.2
 
 DEV_DIR := docker/build-image
 
@@ -144,10 +146,20 @@ controller-gen: $(CONTROLLER_GEN) ## Download controller-gen locally if necessar
 $(CONTROLLER_GEN): $(LOCALBIN)
 	test -s $(LOCALBIN)/controller-gen || GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-tools/cmd/controller-gen@$(CONTROLLER_TOOLS_VERSION)
 
+.PHONY: lint
+lint: golangci-lint
+	 $(GOLANGCI_LINT) run
+
+.PHONY: lint-warn # only output linting issues but don't exit with 1
+lint-warn: golangci-lint
+	 $(GOLANGCI_LINT) run --issues-exit-code 0
+
 # Run go fmt against code
 .PHONY: fmt
-fmt:
-	go fmt ./...
+fmt: golangci-lint ## Ensure consistent code style
+	@go mod tidy
+	@go fmt ./...
+	@$(GOLANGCI_LINT) run --fix
 
 # Run go vet against code
 .PHONY: vet
@@ -338,6 +350,7 @@ debug-telepresence-with-alias:
 build-ci-image:
 	docker build --cache-from $(BUILD_IMAGE):latest \
 	  --build-arg GOLANG_VERSION=$(GOLANG_VERSION) \
+	  --build-arg GOLANGCI_VERSION=$(GOLANGCI_VERSION) \
 		-t $(BUILD_IMAGE):latest \
 		-t $(BUILD_IMAGE):$(GOLANG_VERSION) \
 		-f $(DEV_DIR)/Dockerfile \
@@ -401,3 +414,10 @@ catalog-push: ## Push a catalog image.
 .PHONY: kubectl-nifikop
 kubectl-nifikop:
 	go build -o bin/kubectl-nifikop ./cmd/kubectl-nifikop/main.go
+
+.PHONY: golangci-lint
+.PHONY: $(GOLANGCI_LINT)
+golangci-lint: $(GOLANGCI_LINT) ## Download golangci-lint locally if necessary.
+$(GOLANGCI_LINT): $(LOCALBIN)
+	test -s $(LOCALBIN)/golangci-lint && $(LOCALBIN)/golangci-lint version --format short | grep -q $(GOLANGCI_VERSION) || \
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(LOCALBIN) v$(GOLANGCI_VERSION)

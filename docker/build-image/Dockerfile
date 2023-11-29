@@ -1,4 +1,5 @@
 ARG GOLANG_VERSION
+ARG GOLANGCI_VERSION
 
 FROM docker as docker-base
 COPY --from=docker/buildx-bin:latest /buildx /usr/libexec/docker/cli-plugins/docker-buildx
@@ -73,7 +74,7 @@ RUN curl -sSL https://github.com/gotestyourself/gotestsum/releases/download/v0.3
   tar -xz -C /usr/local/bin gotestsum
 
 # Install official golang CI linter
-RUN wget -O- -nv https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.49.0
+RUN wget -O- -nv https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v${GOLANGCI_VERSION}
 
 # Install kubectl cli
 RUN curl -L https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl -o /usr/local/bin/kubectl  \
