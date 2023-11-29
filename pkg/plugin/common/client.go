@@ -3,16 +3,17 @@ package common
 import (
 	"fmt"
 
-	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
+
+	"github.com/konpyutaika/nifikop/api/v1alpha1"
 )
 
-// NewClient returns a new controller-runtime client instance
+// NewClient returns a new controller-runtime client instance.
 func NewClient(clientConfig clientcmd.ClientConfig) (client.Client, error) {
 	restConfig, err := clientConfig.ClientConfig()
 	if err != nil {
@@ -40,7 +41,7 @@ func NewClient(clientConfig clientcmd.ClientConfig) (client.Client, error) {
 	return newClient, nil
 }
 
-// NewClientset returns a new client-go instance
+// NewClientset returns a new client-go instance.
 func NewClientset(clientConfig clientcmd.ClientConfig) (*kubernetes.Clientset, error) {
 	restConfig, err := clientConfig.ClientConfig()
 	if err != nil {

@@ -1,8 +1,9 @@
 package clientwrappers
 
 import (
-	"github.com/konpyutaika/nifikop/pkg/nificlient"
 	"go.uber.org/zap"
+
+	"github.com/konpyutaika/nifikop/pkg/nificlient"
 )
 
 func ErrorUpdateOperation(log *zap.Logger, err error, action string) error {

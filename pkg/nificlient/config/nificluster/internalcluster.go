@@ -2,9 +2,10 @@ package nificluster
 
 import (
 	"fmt"
-	"github.com/konpyutaika/nifikop/api/v1"
 
 	"go.uber.org/zap"
+
+	"github.com/konpyutaika/nifikop/api/v1"
 )
 
 type InternalCluster struct {

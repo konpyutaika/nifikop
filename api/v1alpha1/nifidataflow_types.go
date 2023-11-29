@@ -4,7 +4,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// NifiDataflowSpec defines the desired state of NifiDataflow
+// NifiDataflowSpec defines the desired state of NifiDataflow.
 type NifiDataflowSpec struct {
 	// the UUID of the parent process group where you want to deploy your dataflow, if not set deploy at root level.
 	ParentProcessGroupID string `json:"parentProcessGroupID,omitempty"`
@@ -95,7 +95,7 @@ type DropRequest struct {
 	State string `json:"state"`
 }
 
-// NifiDataflowStatus defines the observed state of NifiDataflow
+// NifiDataflowStatus defines the observed state of NifiDataflow.
 type NifiDataflowStatus struct {
 	// process Group ID
 	ProcessGroupID string `json:"processGroupID"`
@@ -110,7 +110,7 @@ type NifiDataflowStatus struct {
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 
-// NifiDataflow is the Schema for the nifidataflows API
+// NifiDataflow is the Schema for the nifidataflows API.
 type NifiDataflow struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -121,7 +121,7 @@ type NifiDataflow struct {
 
 // +kubebuilder:object:root=true
 
-// NifiDataflowList contains a list of NifiDataflow
+// NifiDataflowList contains a list of NifiDataflow.
 type NifiDataflowList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`

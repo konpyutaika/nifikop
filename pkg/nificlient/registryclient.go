@@ -16,7 +16,7 @@ func (n *nifiClient) GetRegistryClient(id string) (*nigoapi.FlowRegistryClientEn
 		return nil, ErrNoNodeClientsAvailable
 	}
 
-	// Request on Nifi Rest API to get the registy client informations
+	// Request on Nifi Rest API to get the registry client informations
 	regCliEntity, rsp, body, err := client.ControllerApi.GetFlowRegistryClient(context, id)
 
 	if err := errorGetOperation(rsp, body, err, n.log); err != nil {

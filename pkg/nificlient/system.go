@@ -131,7 +131,6 @@ func (n *nifiClient) setClusterNodeStatus(nId int32, status, expectedActionStatu
 	// TODO : ensure it may not leads to inconsistent situations
 	if targetedNode.Status == expectedActionStatus ||
 		targetedNode.Status == status {
-
 		node := nigoapi.NodeEntity{Node: targetedNode}
 		return &node, nil
 	}

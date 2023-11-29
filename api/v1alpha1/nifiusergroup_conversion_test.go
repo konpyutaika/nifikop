@@ -3,8 +3,9 @@ package v1alpha1
 import (
 	"testing"
 
-	v1 "github.com/konpyutaika/nifikop/api/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 )
 
 func TestNifiUserGroupConversion(t *testing.T) {

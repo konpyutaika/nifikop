@@ -17,7 +17,7 @@ type Manager interface {
 }
 
 type ClusterConnect interface {
-	//NodeConnection(log zap.Logger, client client.Client) (node nificlient.NifiClient, err error)
+	// NodeConnection(log zap.Logger, client client.Client) (node nificlient.NifiClient, err error)
 	IsInternal() bool
 	IsExternal() bool
 	ClusterLabelString() string
@@ -25,7 +25,7 @@ type ClusterConnect interface {
 	Id() string
 }
 
-// NifiConfig are the options to creating a new ClusterAdmin client
+// NifiConfig are the options to creating a new ClusterAdmin client.
 type NifiConfig struct {
 	NodeURITemplate string
 	NodesURI        map[int32]NodeUri

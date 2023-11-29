@@ -1,13 +1,14 @@
 package tls
 
 import (
+	"sigs.k8s.io/controller-runtime/pkg/client"
+
 	"github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/pkg/k8sutil"
 	"github.com/konpyutaika/nifikop/pkg/nificlient/config/common"
 	"github.com/konpyutaika/nifikop/pkg/nificlient/config/nificluster"
 	"github.com/konpyutaika/nifikop/pkg/util"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func (n *tls) BuildConfig() (*clientconfig.NifiConfig, error) {

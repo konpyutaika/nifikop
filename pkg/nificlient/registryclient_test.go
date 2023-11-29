@@ -29,7 +29,6 @@ func TestGetRegistryClient(t *testing.T) {
 }
 
 func testGetRegistryClient(t *testing.T, id string, status int) (*nigoapi.FlowRegistryClientEntity, error) {
-
 	cluster := testClusterMock(t)
 
 	client, err := testClientFromCluster(cluster, false)
@@ -70,7 +69,6 @@ func TestCreateRegistryClient(t *testing.T) {
 }
 
 func testCreateRegistryClient(t *testing.T, entity *nigoapi.FlowRegistryClientEntity, status int) (*nigoapi.FlowRegistryClientEntity, error) {
-
 	cluster := testClusterMock(t)
 
 	client, err := testClientFromCluster(cluster, false)
@@ -111,7 +109,6 @@ func TestUpdateRegistryClient(t *testing.T) {
 }
 
 func testUpdateRegistryClient(t *testing.T, entity *nigoapi.FlowRegistryClientEntity, status int) (*nigoapi.FlowRegistryClientEntity, error) {
-
 	cluster := testClusterMock(t)
 
 	client, err := testClientFromCluster(cluster, false)
@@ -149,7 +146,6 @@ func TestRemoveRegistryClient(t *testing.T) {
 }
 
 func testRemoveRegistryClient(t *testing.T, entity *nigoapi.FlowRegistryClientEntity, status int) error {
-
 	cluster := testClusterMock(t)
 
 	client, err := testClientFromCluster(cluster, false)

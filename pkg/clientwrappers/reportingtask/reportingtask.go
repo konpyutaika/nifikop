@@ -1,16 +1,17 @@
 package reportingtask
 
 import (
-	"github.com/konpyutaika/nifikop/api/v1"
 	"strconv"
 
+	nigoapi "github.com/konpyutaika/nigoapi/pkg/nifi"
+	"go.uber.org/zap"
+
+	"github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers"
 	"github.com/konpyutaika/nifikop/pkg/common"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	"github.com/konpyutaika/nifikop/pkg/nificlient"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
-	nigoapi "github.com/konpyutaika/nigoapi/pkg/nifi"
-	"go.uber.org/zap"
 )
 
 var log = common.CustomLogger().Named("reportingtask-method")
@@ -26,7 +27,6 @@ const (
 )
 
 func ExistReportingTaks(config *clientconfig.NifiConfig, cluster *v1.NifiCluster) (bool, error) {
-
 	if cluster.Status.PrometheusReportingTask.Id == "" {
 		return false, nil
 	}
@@ -68,7 +68,6 @@ func CreateReportingTask(config *clientconfig.NifiConfig, cluster *v1.NifiCluste
 }
 
 func SyncReportingTask(config *clientconfig.NifiConfig, cluster *v1.NifiCluster) (*v1.PrometheusReportingTaskStatus, error) {
-
 	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
 		return nil, err
@@ -101,7 +100,6 @@ func SyncReportingTask(config *clientconfig.NifiConfig, cluster *v1.NifiCluster)
 		if err := clientwrappers.ErrorUpdateOperation(log, err, "Update reporting-task"); err != nil {
 			return nil, err
 		}
-
 	}
 
 	if entity.Status.ValidationStatus == "INVALID" {
@@ -155,7 +153,6 @@ func reportingTaksIsSync(cluster *v1.NifiCluster, entity *nigoapi.ReportingTaskE
 }
 
 func updateReportingTaskEntity(cluster *v1.NifiCluster, entity *nigoapi.ReportingTaskEntity) {
-
 	var defaultVersion int64 = 0
 
 	if entity == nil {

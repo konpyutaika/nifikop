@@ -5,19 +5,17 @@ import (
 	"time"
 
 	v1 "github.com/konpyutaika/nifikop/api/v1"
-
-	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
-
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers"
 	"github.com/konpyutaika/nifikop/pkg/common"
 	"github.com/konpyutaika/nifikop/pkg/nificlient"
+	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
 	nifiutil "github.com/konpyutaika/nifikop/pkg/util/nifi"
 )
 
 var log = common.CustomLogger().Named("scale-method")
 
 // TODO : rework upscale to check that the node is connected before ending operation.
-// UpScaleCluster upscales Nifi cluster
+// UpScaleCluster upscales Nifi cluster.
 func UpScaleCluster(nodeId, namespace, clusterName string) (v1.ActionStep, string, error) {
 	actionStep := v1.ConnectNodeAction
 	currentTime := time.Now()
@@ -25,7 +23,7 @@ func UpScaleCluster(nodeId, namespace, clusterName string) (v1.ActionStep, strin
 	return actionStep, startTimeStamp, nil
 }
 
-// DisconnectClusterNode, perform a node disconnection
+// DisconnectClusterNode, perform a node disconnection.
 func DisconnectClusterNode(config *clientconfig.NifiConfig, nodeId string) (v1.ActionStep, string, error) {
 	var err error
 
@@ -135,7 +133,7 @@ func RemoveClusterNode(config *clientconfig.NifiConfig, nodeId string) (v1.Actio
 
 // TODO : rework to check if state is consistent (If waiting removing but disconnected ...
 // CheckIfCCTaskFinished checks whether the given CC Task ID finished or not
-// headlessServiceEnabled bool, availableNodes []v1.Node, serverPort int32, nodeId, namespace, clusterName string
+// headlessServiceEnabled bool, availableNodes []v1.Node, serverPort int32, nodeId, namespace, clusterName string.
 func CheckIfNCActionStepFinished(actionStep v1.ActionStep, config *clientconfig.NifiConfig, nodeId string) (bool, error) {
 	var err error
 
@@ -161,7 +159,6 @@ func CheckIfNCActionStepFinished(actionStep v1.ActionStep, config *clientconfig.
 
 	nodeStatus := nodeEntity.Node.Status
 	switch actionStep {
-
 	case v1.DisconnectNodeAction:
 		if nodeStatus == string(v1.DisconnectStatus) {
 			return true, nil
@@ -201,9 +198,7 @@ func EnsureRemovedNodes(config *clientconfig.NifiConfig, cluster *v1.NifiCluster
 		stateAdresses[nifiutil.GenerateHostListenerNodeAddressFromCluster(nodeId, cluster)] = nodeId
 	}
 	for _, nodeDto := range clusterEntity.Cluster.Nodes {
-
 		if _, ok := stateAdresses[fmt.Sprintf("%s:%d", nodeDto.Address, nodeDto.ApiPort)]; !ok {
-
 			err = nClient.RemoveClusterNodeFromClusterNodeId(nodeDto.NodeId)
 			if err := clientwrappers.ErrorRemoveOperation(log, err, "Remove node gracefully"); err != nil {
 				return err

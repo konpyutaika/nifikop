@@ -7,7 +7,7 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// NifiDataflowSpec defines the desired state of NifiDataflow
+// NifiDataflowSpec defines the desired state of NifiDataflow.
 type NifiDataflowSpec struct {
 	// the UUID of the parent process group where you want to deploy your dataflow, if not set deploy at root level.
 	ParentProcessGroupID string `json:"parentProcessGroupID,omitempty"`
@@ -106,7 +106,7 @@ type DropRequest struct {
 	NotFoundRetryCount int32 `json:"notFoundRetryCount,omitempty"`
 }
 
-// NifiDataflowStatus defines the observed state of NifiDataflow
+// NifiDataflowStatus defines the observed state of NifiDataflow.
 type NifiDataflowStatus struct {
 	// process Group ID
 	ProcessGroupID string `json:"processGroupID"`
@@ -122,7 +122,7 @@ type NifiDataflowStatus struct {
 // +kubebuilder:subresource:status
 // +kubebuilder:storageversion
 
-// NifiDataflow is the Schema for the nifidataflows API
+// NifiDataflow is the Schema for the nifidataflows API.
 type NifiDataflow struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -133,7 +133,7 @@ type NifiDataflow struct {
 
 // +kubebuilder:object:root=true
 
-// NifiDataflowList contains a list of NifiDataflow
+// NifiDataflowList contains a list of NifiDataflow.
 type NifiDataflowList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`

@@ -2,15 +2,16 @@ package nificlient
 
 import (
 	"fmt"
-	"github.com/konpyutaika/nifikop/api/v1"
 	"net/http"
 	"testing"
 
 	"github.com/jarcoal/httpmock"
-	nifiutil "github.com/konpyutaika/nifikop/pkg/util/nifi"
 	nigoapi "github.com/konpyutaika/nigoapi/pkg/nifi"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
+
+	"github.com/konpyutaika/nifikop/api/v1"
+	nifiutil "github.com/konpyutaika/nifikop/pkg/util/nifi"
 )
 
 func TestDescribeCluster(t *testing.T) {
@@ -30,7 +31,6 @@ func TestDescribeCluster(t *testing.T) {
 }
 
 func testDescribeCluster(t *testing.T, status int) (*nigoapi.ClusterEntity, error) {
-
 	cluster := testClusterMock(t)
 
 	client, err := testClientFromCluster(cluster, false)
@@ -53,7 +53,6 @@ func testDescribeCluster(t *testing.T, status int) (*nigoapi.ClusterEntity, erro
 }
 
 func TestGetClusterNode(t *testing.T) {
-
 	assert := assert.New(t)
 
 	cluster := testClusterMock(t)
@@ -74,7 +73,6 @@ func TestGetClusterNode(t *testing.T) {
 }
 
 func testGetClusterNode(t *testing.T, cluster *v1.NifiCluster, nodeId int32, status int) (*nigoapi.NodeEntity, error) {
-
 	client, err := testClientFromCluster(cluster, false)
 	if err != nil {
 		return nil, err
@@ -119,7 +117,6 @@ func TestDisconnectClusterNode(t *testing.T) {
 }
 
 func testDisconnectClusterNode(t *testing.T, cluster *v1.NifiCluster, nodeId int32, status int) (*nigoapi.NodeEntity, error) {
-
 	client, err := testClientFromCluster(cluster, false)
 	if err != nil {
 		return nil, err
@@ -164,7 +161,6 @@ func TestConnectClusterNode(t *testing.T) {
 }
 
 func testConnectClusterNode(t *testing.T, cluster *v1.NifiCluster, nodeId int32, status int) (*nigoapi.NodeEntity, error) {
-
 	client, err := testClientFromCluster(cluster, false)
 	if err != nil {
 		return nil, err
@@ -209,7 +205,6 @@ func TestOffloadClusterNode(t *testing.T) {
 }
 
 func testOffloadClusterNode(t *testing.T, cluster *v1.NifiCluster, nodeId int32, status int) (*nigoapi.NodeEntity, error) {
-
 	client, err := testClientFromCluster(cluster, false)
 	if err != nil {
 		return nil, err
@@ -250,7 +245,6 @@ func TestRemoveClusterNode(t *testing.T) {
 }
 
 func testRemoveClusterNode(t *testing.T, cluster *v1.NifiCluster, nodeId int32, status int) error {
-
 	client, err := testClientFromCluster(cluster, false)
 	if err != nil {
 		return err
@@ -291,7 +285,6 @@ func TestRemoveClusterNodeFromClusterNodeId(t *testing.T) {
 }
 
 func testRemoveClusterNodeFromClusterNodeId(t *testing.T, cluster *v1.NifiCluster, nodeId int32, status int) error {
-
 	client, err := testClientFromCluster(cluster, false)
 	if err != nil {
 		return err

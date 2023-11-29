@@ -31,7 +31,6 @@ func TestUpdateProcessorRunStatus(t *testing.T) {
 }
 
 func testUpdateProcessorRunStatus(t *testing.T, entity nigoapi.ProcessorRunStatusEntity, id string, status int) (*nigoapi.ProcessorEntity, error) {
-
 	cluster := testClusterMock(t)
 
 	client, err := testClientFromCluster(cluster, false)

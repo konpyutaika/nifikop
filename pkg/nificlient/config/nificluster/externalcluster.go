@@ -1,10 +1,11 @@
 package nificluster
 
 import (
+	"go.uber.org/zap"
+
 	"github.com/konpyutaika/nifikop/pkg/common"
 	"github.com/konpyutaika/nifikop/pkg/nificlient"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
-	"go.uber.org/zap"
 )
 
 type ExternalCluster struct {

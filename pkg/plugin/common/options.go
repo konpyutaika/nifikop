@@ -10,7 +10,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-// Options encapsulates the common fields of command options
+// Options encapsulates the common fields of command options.
 type Options struct {
 	ConfigFlags   *genericclioptions.ConfigFlags
 	Client        client.Client
@@ -18,7 +18,7 @@ type Options struct {
 	UserNamespace string
 }
 
-// Init initialize the common config of command options
+// Init initialize the common config of command options.
 func (o *Options) Init(cmd *cobra.Command) error {
 	clientConfig := o.GetClientConfig()
 
@@ -53,27 +53,27 @@ func (o *Options) Init(cmd *cobra.Command) error {
 	return nil
 }
 
-// SetNamespace configures the namespace
+// SetNamespace configures the namespace.
 func (o *Options) SetNamespace(ns string) {
 	o.UserNamespace = ns
 }
 
-// SetClient configures the client
+// SetClient configures the client.
 func (o *Options) SetClient(client client.Client) {
 	o.Client = client
 }
 
-// SetClientset configures the clientset
+// SetClientset configures the clientset.
 func (o *Options) SetClientset(clientset *kubernetes.Clientset) {
 	o.Clientset = clientset
 }
 
-// GetClientConfig returns the client config
+// GetClientConfig returns the client config.
 func (o *Options) GetClientConfig() clientcmd.ClientConfig {
 	return o.ConfigFlags.ToRawKubeConfigLoader()
 }
 
-// SetConfigFlags configures the config flags
+// SetConfigFlags configures the config flags.
 func (o *Options) SetConfigFlags() {
 	o.ConfigFlags = genericclioptions.NewConfigFlags(false)
 }

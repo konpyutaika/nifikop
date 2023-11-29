@@ -6,11 +6,10 @@ import (
 	"testing"
 	"time"
 
-	v1 "github.com/konpyutaika/nifikop/api/v1"
-	"github.com/konpyutaika/nifikop/api/v1alpha1"
-
 	"go.uber.org/zap"
 
+	v1 "github.com/konpyutaika/nifikop/api/v1"
+	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 )
 

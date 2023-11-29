@@ -29,7 +29,6 @@ func TestGetParameterContext(t *testing.T) {
 }
 
 func testGetParameterContext(t *testing.T, id string, status int) (*nigoapi.ParameterContextEntity, error) {
-
 	cluster := testClusterMock(t)
 
 	client, err := testClientFromCluster(cluster, false)
@@ -74,7 +73,6 @@ func TestCreateParameterContext(t *testing.T) {
 }
 
 func testCreateParameterContext(t *testing.T, entity *nigoapi.ParameterContextEntity, status int) (*nigoapi.ParameterContextEntity, error) {
-
 	cluster := testClusterMock(t)
 
 	client, err := testClientFromCluster(cluster, false)
@@ -114,7 +112,6 @@ func TestRemoveParameterContext(t *testing.T) {
 }
 
 func testRemoveParameterContext(t *testing.T, entity *nigoapi.ParameterContextEntity, status int) error {
-
 	cluster := testClusterMock(t)
 
 	client, err := testClientFromCluster(cluster, false)
@@ -161,7 +158,6 @@ func testCreateParameterContextUpdateRequest(
 	t *testing.T,
 	entity *nigoapi.ParameterContextEntity,
 	status int) (*nigoapi.ParameterContextUpdateRequestEntity, error) {
-
 	cluster := testClusterMock(t)
 
 	client, err := testClientFromCluster(cluster, false)
@@ -211,7 +207,6 @@ func testGetParameterContextUpdateRequest(
 	t *testing.T,
 	entity *nigoapi.ParameterContextEntity,
 	id string, status int) (*nigoapi.ParameterContextUpdateRequestEntity, error) {
-
 	cluster := testClusterMock(t)
 
 	client, err := testClientFromCluster(cluster, false)
@@ -237,7 +232,6 @@ func testGetParameterContextUpdateRequest(
 func MockParameterContext(
 	id, name, description string,
 	params, sensitivesParameters map[string]string) nigoapi.ParameterContextEntity {
-
 	var version int64 = 10
 	parameters := map2Parameters(params, false)
 	parameters = append(parameters, map2Parameters(sensitivesParameters, true)...)

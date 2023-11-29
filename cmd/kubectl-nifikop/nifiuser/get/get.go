@@ -7,14 +7,14 @@ import (
 	"io"
 	"strconv"
 
-	"github.com/konpyutaika/nifikop/api/v1alpha1"
-	"github.com/konpyutaika/nifikop/pkg/plugin/common"
-
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/konpyutaika/nifikop/api/v1alpha1"
+	"github.com/konpyutaika/nifikop/pkg/plugin/common"
 )
 
 var getExample = `

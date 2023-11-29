@@ -3,11 +3,12 @@ package v1alpha1
 import (
 	"fmt"
 
-	v1 "github.com/konpyutaika/nifikop/api/v1"
 	"sigs.k8s.io/controller-runtime/pkg/conversion"
+
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 )
 
-// ConvertNifiClusterTo converts a v1alpha1 to v1 (Hub)
+// ConvertNifiClusterTo converts a v1alpha1 to v1 (Hub).
 func (src *NifiDataflow) ConvertTo(dst conversion.Hub) error {
 	ncV1 := dst.(*v1.NifiDataflow)
 
@@ -18,7 +19,7 @@ func (src *NifiDataflow) ConvertTo(dst conversion.Hub) error {
 	return nil
 }
 
-// ConvertFrom converts a v1 (Hub) to v1alpha1 (local)
+// ConvertFrom converts a v1 (Hub) to v1alpha1 (local).
 func (dst *NifiDataflow) ConvertFrom(src conversion.Hub) error { //nolint
 	ncV1 := src.(*v1.NifiDataflow)
 	dst.ObjectMeta = ncV1.ObjectMeta
@@ -30,7 +31,7 @@ func (dst *NifiDataflow) ConvertFrom(src conversion.Hub) error { //nolint
 
 // ---- Convert TO ----
 
-// ConvertNifiDataflowTo use to convert v1alpha1.NifiDataflow to v1.NifiDataflow
+// ConvertNifiDataflowTo use to convert v1alpha1.NifiDataflow to v1.NifiDataflow.
 func ConvertNifiDataflowTo(src *NifiDataflow, dst *v1.NifiDataflow) error {
 	// Copying ObjectMeta as a whole
 	dst.ObjectMeta = src.ObjectMeta
@@ -47,7 +48,7 @@ func ConvertNifiDataflowTo(src *NifiDataflow, dst *v1.NifiDataflow) error {
 	return nil
 }
 
-// Convert the top level structs
+// Convert the top level structs.
 func convertNifiDataflowSpec(src *NifiDataflowSpec, dst *v1.NifiDataflow) error {
 	if src == nil {
 		return nil
@@ -162,7 +163,7 @@ func convertNifiDataflowLatestDropRequest(src *DropRequest, dst *v1.NifiDataflow
 
 // ---- Convert FROM ----
 
-// ConvertNifiDatflowFrom use to convert v1alpha1.NifiCluster from v1.NifiCluster
+// ConvertNifiDatflowFrom use to convert v1alpha1.NifiCluster from v1.NifiCluster.
 func ConvertNifiDatflowFrom(dst *NifiDataflow, src *v1.NifiDataflow) error {
 	// Copying ObjectMeta as a whole
 	dst.ObjectMeta = src.ObjectMeta
@@ -179,7 +180,7 @@ func ConvertNifiDatflowFrom(dst *NifiDataflow, src *v1.NifiDataflow) error {
 	return nil
 }
 
-// Convert the top level structs
+// Convert the top level structs.
 func convertFromNifiDataflowSpec(src *v1.NifiDataflowSpec, dst *NifiDataflow) error {
 	if src == nil {
 		return nil

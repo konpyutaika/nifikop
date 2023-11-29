@@ -5,11 +5,12 @@ import (
 	"crypto/x509"
 	"encoding/asn1"
 	"encoding/pem"
-	"github.com/konpyutaika/nifikop/api/v1"
 	"reflect"
 	"testing"
 
 	corev1 "k8s.io/api/core/v1"
+
+	"github.com/konpyutaika/nifikop/api/v1"
 )
 
 type PKCS8Key struct {
@@ -77,8 +78,8 @@ func TestDecodeCertificate(t *testing.T) {
 }
 
 func TestGeneratePass(t *testing.T) {
-	if generated := GeneratePass(16); len(string(generated)) != 16 {
-		t.Error("Expected to generate a 16 char pass, got:", len(string(generated)))
+	if generated := GeneratePass(16); len(generated) != 16 {
+		t.Error("Expected to generate a 16 char pass, got:", len(generated))
 	}
 }
 

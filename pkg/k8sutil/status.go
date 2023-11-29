@@ -7,34 +7,32 @@ import (
 	"strings"
 	"time"
 
-	v1 "github.com/konpyutaika/nifikop/api/v1"
-
-	"go.uber.org/zap"
-
 	"emperror.dev/errors"
+	"go.uber.org/zap"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 )
 
-// IsAlreadyOwnedError checks if a controller already own the instance
+// IsAlreadyOwnedError checks if a controller already own the instance.
 func IsAlreadyOwnedError(err error) bool {
 	return errors.Is(err, &controllerutil.AlreadyOwnedError{})
 }
 
-// IsMarkedForDeletion determines if the object is marked for deletion
+// IsMarkedForDeletion determines if the object is marked for deletion.
 func IsMarkedForDeletion(m metav1.ObjectMeta) bool {
 	return m.GetDeletionTimestamp() != nil
 }
 
-// UpdateNodeStatus updates the node status with rack and configuration infos
+// UpdateNodeStatus updates the node status with rack and configuration infos.
 func UpdateNodeStatus(c client.Client, nodeIds []string, cluster *v1.NifiCluster, currentStatus v1.NifiClusterStatus, state interface{}, logger zap.Logger) error {
 	typeMeta := cluster.TypeMeta
 
 	for _, nodeId := range nodeIds {
-
 		if cluster.Status.NodesState == nil {
 			switch s := state.(type) {
 			case v1.GracefulActionState:
@@ -108,7 +106,6 @@ func UpdateNodeStatus(c client.Client, nodeIds []string, cluster *v1.NifiCluster
 			}
 
 			for _, nodeId := range nodeIds {
-
 				if cluster.Status.NodesState == nil {
 					switch s := state.(type) {
 					case v1.GracefulActionState:
@@ -178,7 +175,7 @@ func UpdateNodeStatus(c client.Client, nodeIds []string, cluster *v1.NifiCluster
 	return nil
 }
 
-// DeleteStatus deletes the given node state from the CR
+// DeleteStatus deletes the given node state from the CR.
 func DeleteStatus(c client.Client, nodeId string, cluster *v1.NifiCluster, currentStatus v1.NifiClusterStatus, logger zap.Logger) error {
 	typeMeta := cluster.TypeMeta
 
@@ -222,7 +219,7 @@ func DeleteStatus(c client.Client, nodeId string, cluster *v1.NifiCluster, curre
 	return nil
 }
 
-// UpdateCRStatus updates the cluster state
+// UpdateCRStatus updates the cluster state.
 func UpdateCRStatus(c client.Client, cluster *v1.NifiCluster, currentStatus v1.NifiClusterStatus, state interface{}, logger zap.Logger) error {
 	typeMeta := cluster.TypeMeta
 
@@ -263,7 +260,7 @@ func UpdateCRStatus(c client.Client, cluster *v1.NifiCluster, currentStatus v1.N
 	return nil
 }
 
-// UpdateRootProcessGroupIdStatus updates the cluster root process group id
+// UpdateRootProcessGroupIdStatus updates the cluster root process group id.
 func UpdateRootProcessGroupIdStatus(c client.Client, cluster *v1.NifiCluster, currentStatus v1.NifiClusterStatus, id string, logger zap.Logger) error {
 	typeMeta := cluster.TypeMeta
 
@@ -301,7 +298,7 @@ func UpdateRootProcessGroupIdStatus(c client.Client, cluster *v1.NifiCluster, cu
 	return nil
 }
 
-// UpdateRollingUpgradeState updates the state of the cluster with rolling upgrade info
+// UpdateRollingUpgradeState updates the state of the cluster with rolling upgrade info.
 func UpdateRollingUpgradeState(c client.Client, cluster *v1.NifiCluster, currentStatus v1.NifiClusterStatus, time time.Time, logger zap.Logger) error {
 	typeMeta := cluster.TypeMeta
 

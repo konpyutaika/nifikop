@@ -7,7 +7,7 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// NifiParameterContextSpec defines the desired state of NifiParameterContext
+// NifiParameterContextSpec defines the desired state of NifiParameterContext.
 type NifiParameterContextSpec struct {
 	// the Description of the Parameter Context.
 	Description string `json:"description,omitempty"`
@@ -34,7 +34,7 @@ type Parameter struct {
 	Sensitive bool `json:"sensitive,omitempty"`
 }
 
-// NifiParameterContextStatus defines the observed state of NifiParameterContext
+// NifiParameterContextStatus defines the observed state of NifiParameterContext.
 type NifiParameterContextStatus struct {
 	// the nifi parameter context id.
 	Id string `json:"id"`
@@ -66,7 +66,7 @@ type ParameterContextUpdateRequest struct {
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 
-// NifiParameterContext is the Schema for the nifiparametercontexts API
+// NifiParameterContext is the Schema for the nifiparametercontexts API.
 type NifiParameterContext struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -77,7 +77,7 @@ type NifiParameterContext struct {
 
 // +kubebuilder:object:root=true
 
-// NifiParameterContextList contains a list of NifiParameterContext
+// NifiParameterContextList contains a list of NifiParameterContext.
 type NifiParameterContextList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`

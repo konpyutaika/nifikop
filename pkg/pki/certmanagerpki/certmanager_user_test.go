@@ -2,14 +2,15 @@ package certmanagerpki
 
 import (
 	"context"
-	"github.com/konpyutaika/nifikop/api/v1"
 	"reflect"
 	"testing"
 
-	"github.com/konpyutaika/nifikop/pkg/errorfactory"
-	certutil "github.com/konpyutaika/nifikop/pkg/util/cert"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes/scheme"
+
+	"github.com/konpyutaika/nifikop/api/v1"
+	"github.com/konpyutaika/nifikop/pkg/errorfactory"
+	certutil "github.com/konpyutaika/nifikop/pkg/util/cert"
 )
 
 func newMockUser() *v1.NifiUser {

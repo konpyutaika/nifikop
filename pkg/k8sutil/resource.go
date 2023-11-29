@@ -4,21 +4,20 @@ import (
 	"context"
 	"reflect"
 
-	nifikopv1 "github.com/konpyutaika/nifikop/api/v1"
-
-	"github.com/konpyutaika/nifikop/pkg/errorfactory"
-	"go.uber.org/zap"
-
 	"emperror.dev/errors"
 	"github.com/banzaicloud/k8s-objectmatcher/patch"
+	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	runtimeClient "sigs.k8s.io/controller-runtime/pkg/client"
+
+	nifikopv1 "github.com/konpyutaika/nifikop/api/v1"
+	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 )
 
-// Reconcile reconciles K8S resources
+// Reconcile reconciles K8S resources.
 func Reconcile(log zap.Logger, client runtimeClient.Client, desired runtimeClient.Object, cr *nifikopv1.NifiCluster, currentStatus *nifikopv1.NifiClusterStatus) error {
 	desiredType := reflect.TypeOf(desired)
 	current := desired.DeepCopyObject().(runtimeClient.Object)
@@ -71,7 +70,6 @@ func Reconcile(log zap.Logger, client runtimeClient.Client, desired runtimeClien
 		}
 
 		if CheckIfObjectUpdated(log, desiredType, current, desired) {
-
 			if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(desired); err != nil {
 				return errors.WrapIf(err, "could not apply last state to annotation")
 			}
@@ -87,7 +85,7 @@ func Reconcile(log zap.Logger, client runtimeClient.Client, desired runtimeClien
 			}
 
 			if cr != nil {
-				//switch desired.(type) {
+				// switch desired.(type) {
 				switch desired := desired.(type) {
 				case *corev1.ConfigMap:
 					// Only update status when configmap belongs to node
@@ -117,12 +115,11 @@ func Reconcile(log zap.Logger, client runtimeClient.Client, desired runtimeClien
 			zap.String("name", desired.GetName()),
 			zap.String("namespace", desired.GetNamespace()),
 			zap.String("kind", desired.GetObjectKind().GroupVersionKind().Kind))
-
 	}
 	return nil
 }
 
-// CheckIfObjectUpdated checks if the given object is updated using K8sObjectMatcher
+// CheckIfObjectUpdated checks if the given object is updated using K8sObjectMatcher.
 func CheckIfObjectUpdated(log zap.Logger, desiredType reflect.Type, current, desired runtime.Object) bool {
 	patchResult, err := patch.DefaultPatchMaker.Calculate(current, desired)
 	if err != nil {

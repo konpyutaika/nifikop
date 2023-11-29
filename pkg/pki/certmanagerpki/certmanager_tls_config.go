@@ -4,18 +4,19 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
-	"github.com/konpyutaika/nifikop/api/v1"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	"strings"
 
-	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/konpyutaika/nifikop/api/v1"
+	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 )
 
 // GetControllerTLSConfig creates a TLS config from the user secret created for
-// cruise control and manager operations
+// cruise control and manager operations.
 func (c *certManager) GetControllerTLSConfig() (config *tls.Config, err error) {
 	config, err = GetControllerTLSConfigFromSecret(c.client, v1.SecretReference{
 		Namespace: c.cluster.Namespace,

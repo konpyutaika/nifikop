@@ -23,26 +23,26 @@ import (
 	"reflect"
 
 	"github.com/banzaicloud/k8s-objectmatcher/patch"
+	"go.uber.org/zap"
+	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/tools/record"
+	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+
 	v1 "github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/registryclient"
 	"github.com/konpyutaika/nifikop/pkg/k8sutil"
 	"github.com/konpyutaika/nifikop/pkg/nificlient/config"
 	"github.com/konpyutaika/nifikop/pkg/util"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
-	"go.uber.org/zap"
-	corev1 "k8s.io/api/core/v1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/client-go/tools/record"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-
-	"k8s.io/apimachinery/pkg/runtime"
-	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 var registryClientFinalizer = fmt.Sprintf("nifiregistryclients.%s/finalizer", v1.GroupVersion.Group)
 
-// NifiRegistryClientReconciler reconciles a NifiRegistryClient object
+// NifiRegistryClientReconciler reconciles a NifiRegistryClient object.
 type NifiRegistryClientReconciler struct {
 	client.Client
 	Log             zap.Logger
@@ -288,7 +288,6 @@ func (r *NifiRegistryClientReconciler) SetupWithManager(mgr ctrl.Manager) error 
 
 func (r *NifiRegistryClientReconciler) ensureClusterLabel(ctx context.Context, cluster clientconfig.ClusterConnect,
 	registryClient *v1.NifiRegistryClient, patcher client.Patch) (*v1.NifiRegistryClient, error) {
-
 	labels := ApplyClusterReferenceLabel(cluster, registryClient.GetLabels())
 	if !reflect.DeepEqual(labels, registryClient.GetLabels()) {
 		registryClient.SetLabels(labels)
@@ -299,7 +298,6 @@ func (r *NifiRegistryClientReconciler) ensureClusterLabel(ctx context.Context, c
 
 func (r *NifiRegistryClientReconciler) updateAndFetchLatest(ctx context.Context,
 	registryClient *v1.NifiRegistryClient, patcher client.Patch) (*v1.NifiRegistryClient, error) {
-
 	typeMeta := registryClient.TypeMeta
 	err := r.Client.Patch(ctx, registryClient, patcher)
 	if err != nil {
@@ -335,7 +333,6 @@ func (r *NifiRegistryClientReconciler) removeFinalizer(ctx context.Context, regi
 
 func (r *NifiRegistryClientReconciler) finalizeNifiRegistryClient(registryClient *v1.NifiRegistryClient,
 	config *clientconfig.NifiConfig) error {
-
 	if err := registryclient.RemoveRegistryClient(registryClient, config); err != nil {
 		return err
 	}

@@ -7,7 +7,7 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// NifiRegistryClientSpec defines the desired state of NifiRegistryClient
+// NifiRegistryClientSpec defines the desired state of NifiRegistryClient.
 type NifiRegistryClientSpec struct {
 	// The URI of the NiFi registry that should be used for pulling the flow.
 	Uri string `json:"uri"`
@@ -17,7 +17,7 @@ type NifiRegistryClientSpec struct {
 	ClusterRef ClusterReference `json:"clusterRef,omitempty"`
 }
 
-// NifiRegistryClientStatus defines the observed state of NifiRegistryClient
+// NifiRegistryClientStatus defines the observed state of NifiRegistryClient.
 type NifiRegistryClientStatus struct {
 	// The nifi registry client's id
 	Id string `json:"id"`
@@ -28,7 +28,7 @@ type NifiRegistryClientStatus struct {
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 
-// NifiRegistryClient is the Schema for the nifiregistryclients API
+// NifiRegistryClient is the Schema for the nifiregistryclients API.
 type NifiRegistryClient struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -39,7 +39,7 @@ type NifiRegistryClient struct {
 
 // +kubebuilder:object:root=true
 
-// NifiRegistryClientList contains a list of NifiRegistryClient
+// NifiRegistryClientList contains a list of NifiRegistryClient.
 type NifiRegistryClientList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`

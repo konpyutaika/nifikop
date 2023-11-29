@@ -3,10 +3,10 @@ package config
 import (
 	"fmt"
 
-	v1 "github.com/konpyutaika/nifikop/api/v1"
-
-	"github.com/konpyutaika/nifikop/pkg/util/nifi"
 	"go.uber.org/zap"
+
+	v1 "github.com/konpyutaika/nifikop/api/v1"
+	"github.com/konpyutaika/nifikop/pkg/util/nifi"
 )
 
 var NifiPropertiesTemplate = `# Licensed to the Apache Software Foundation (ASF) under one or more
@@ -121,7 +121,7 @@ nifi.provenance.repository.index.shard.size=500 MB
 # the repository. If the length of any attribute exceeds this value, it will be truncated when the event is retrieved.
 nifi.provenance.repository.max.attribute.length=65536
 
-# Volatile Provenance Respository Properties
+# Volatile Provenance Repository Properties
 nifi.provenance.repository.buffer.size=100000
 
 # Component Status Repository
@@ -259,7 +259,6 @@ func GenerateListenerSpecificConfig(
 	useExternalDNS bool,
 	serviceTemplate string,
 	log zap.Logger) string {
-
 	var nifiConfig string
 
 	hostListener := nifi.ComputeHostListenerNodeHostname(nodeId, crName, namespace,

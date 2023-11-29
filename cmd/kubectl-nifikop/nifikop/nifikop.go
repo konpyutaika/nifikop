@@ -1,6 +1,9 @@
 package nifikop
 
 import (
+	"github.com/spf13/cobra"
+	"k8s.io/cli-runtime/pkg/genericclioptions"
+
 	"github.com/konpyutaika/nifikop/cmd/kubectl-nifikop/nificluster"
 	"github.com/konpyutaika/nifikop/cmd/kubectl-nifikop/nificonnection"
 	"github.com/konpyutaika/nifikop/cmd/kubectl-nifikop/nifidataflow"
@@ -8,18 +11,15 @@ import (
 	"github.com/konpyutaika/nifikop/cmd/kubectl-nifikop/nifiregistryclient"
 	"github.com/konpyutaika/nifikop/cmd/kubectl-nifikop/nifiuser"
 	"github.com/konpyutaika/nifikop/cmd/kubectl-nifikop/nifiusergroup"
-
-	"github.com/spf13/cobra"
-	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
-// options provides information required by datadog command
+// options provides information required by datadog command.
 type options struct {
 	genericclioptions.IOStreams
 	configFlags *genericclioptions.ConfigFlags
 }
 
-// newOptions provides an instance of options with default values
+// newOptions provides an instance of options with default values.
 func newOptions(streams genericclioptions.IOStreams) *options {
 	return &options{
 		configFlags: genericclioptions.NewConfigFlags(false),
@@ -27,7 +27,7 @@ func newOptions(streams genericclioptions.IOStreams) *options {
 	}
 }
 
-// NewCmd provides a cobra command wrapping options for "datadog" command
+// NewCmd provides a cobra command wrapping options for "datadog" command.
 func NewCmd(streams genericclioptions.IOStreams) *cobra.Command {
 	cmd := &cobra.Command{
 		Use: "nifikop [subcommand] [flags]",

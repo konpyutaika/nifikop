@@ -4,12 +4,12 @@ import (
 	"reflect"
 	"testing"
 
-	v1 "github.com/konpyutaika/nifikop/api/v1"
-
 	certv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 )
 
 type mockClient struct {

@@ -2,13 +2,14 @@ package v1
 
 import (
 	"fmt"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// NifiUserGroupSpec defines the desired state of NifiUserGroup
+// NifiUserGroupSpec defines the desired state of NifiUserGroup.
 type NifiUserGroupSpec struct {
 	// clusterRef contains the reference to the NifiCluster with the one the registry client is linked.
 	ClusterRef ClusterReference `json:"clusterRef"`
@@ -18,7 +19,7 @@ type NifiUserGroupSpec struct {
 	AccessPolicies []AccessPolicy `json:"accessPolicies,omitempty"`
 }
 
-// NifiUserGroupStatus defines the observed state of NifiUserGroup
+// NifiUserGroupStatus defines the observed state of NifiUserGroup.
 type NifiUserGroupStatus struct {
 	// The nifi usergroup's node id
 	Id string `json:"id"`
@@ -30,7 +31,7 @@ type NifiUserGroupStatus struct {
 // +kubebuilder:subresource:status
 // +kubebuilder:storageversion
 
-// NifiUserGroup is the Schema for the nifiusergroups API
+// NifiUserGroup is the Schema for the nifiusergroups API.
 type NifiUserGroup struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -41,7 +42,7 @@ type NifiUserGroup struct {
 
 // +kubebuilder:object:root=true
 
-// NifiUserGroupList contains a list of NifiUserGroup
+// NifiUserGroupList contains a list of NifiUserGroup.
 type NifiUserGroupList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`

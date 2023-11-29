@@ -3,12 +3,13 @@ package v1alpha1
 import (
 	"fmt"
 
-	v1 "github.com/konpyutaika/nifikop/api/v1"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/conversion"
+
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 )
 
-// ConvertNifiClusterTo converts a v1alpha1 to v1 (Hub)
+// ConvertNifiClusterTo converts a v1alpha1 to v1 (Hub).
 func (src *NifiCluster) ConvertTo(dst conversion.Hub) error {
 	ncV1 := dst.(*v1.NifiCluster)
 
@@ -19,7 +20,7 @@ func (src *NifiCluster) ConvertTo(dst conversion.Hub) error {
 	return nil
 }
 
-// ConvertFrom converts a v1 (Hub) to v1alpha1 (local)
+// ConvertFrom converts a v1 (Hub) to v1alpha1 (local).
 func (dst *NifiCluster) ConvertFrom(src conversion.Hub) error { //nolint
 	ncV1 := src.(*v1.NifiCluster)
 	dst.ObjectMeta = ncV1.ObjectMeta
@@ -31,7 +32,7 @@ func (dst *NifiCluster) ConvertFrom(src conversion.Hub) error { //nolint
 
 // ---- Convert TO ----
 
-// ConvertNifiClusterTo use to convert v1alpha1.NifiCluster to v1.NifiCluster
+// ConvertNifiClusterTo use to convert v1alpha1.NifiCluster to v1.NifiCluster.
 func ConvertNifiClusterTo(src *NifiCluster, dst *v1.NifiCluster) error {
 	// Copying ObjectMeta as a whole
 	dst.ObjectMeta = src.ObjectMeta
@@ -48,7 +49,7 @@ func ConvertNifiClusterTo(src *NifiCluster, dst *v1.NifiCluster) error {
 	return nil
 }
 
-// Convert the top level structs
+// Convert the top level structs.
 func convertNifiClusterSpec(src *NifiClusterSpec, dst *v1.NifiCluster) error {
 	if src == nil {
 		return nil
@@ -479,7 +480,7 @@ func convertNifiClusterPrometheusReportingTask(src PrometheusReportingTaskStatus
 
 // ---- Convert FROM ----
 
-// ConvertFrom use to convert v1alpha1.NifiCluster from v1.NifiCluster
+// ConvertFrom use to convert v1alpha1.NifiCluster from v1.NifiCluster.
 func ConvertNifiClusterFrom(dst *NifiCluster, src *v1.NifiCluster) error {
 	// Copying ObjectMeta as a whole
 	dst.ObjectMeta = src.ObjectMeta
@@ -496,7 +497,7 @@ func ConvertNifiClusterFrom(dst *NifiCluster, src *v1.NifiCluster) error {
 	return nil
 }
 
-// Convert the top level structs
+// Convert the top level structs.
 func convertNifiClusterFromSpec(src *v1.NifiClusterSpec, dst *NifiCluster) error {
 	if src == nil {
 		return nil

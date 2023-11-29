@@ -1,18 +1,18 @@
 package accesspolicies
 
 import (
+	nigoapi "github.com/konpyutaika/nigoapi/pkg/nifi"
+
 	v1 "github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers"
 	"github.com/konpyutaika/nifikop/pkg/common"
 	"github.com/konpyutaika/nifikop/pkg/nificlient"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
-	nigoapi "github.com/konpyutaika/nigoapi/pkg/nifi"
 )
 
 var log = common.CustomLogger().Named("accesspolicies-method")
 
 func ExistAccessPolicies(accessPolicy *v1.AccessPolicy, config *clientconfig.NifiConfig) (bool, error) {
-
 	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
 		return false, err
@@ -30,7 +30,6 @@ func ExistAccessPolicies(accessPolicy *v1.AccessPolicy, config *clientconfig.Nif
 }
 
 func CreateAccessPolicy(accessPolicy *v1.AccessPolicy, config *clientconfig.NifiConfig) (string, error) {
-
 	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
 		return "", err
@@ -59,7 +58,6 @@ func UpdateAccessPolicy(
 	addUserGroups []*v1.NifiUserGroup,
 	removeUserGroups []*v1.NifiUserGroup,
 	config *clientconfig.NifiConfig) error {
-
 	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
 		return err
@@ -95,7 +93,6 @@ func UpdateAccessPolicyEntity(
 	addUserGroups []*v1.NifiUserGroup,
 	removeUserGroups []*v1.NifiUserGroup,
 	config *clientconfig.NifiConfig) error {
-
 	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
 		return err
@@ -121,7 +118,6 @@ func updateAccessPolicyEntity(
 	removeUserGroups []*v1.NifiUserGroup,
 	config *clientconfig.NifiConfig,
 	entity *nigoapi.AccessPolicyEntity) {
-
 	var defaultVersion int64 = 0
 
 	if entity == nil {
@@ -149,7 +145,6 @@ func addRemoveUserGroupsFromAccessPolicyEntity(
 	addUserGroups []*v1.NifiUserGroup,
 	removeUserGroups []*v1.NifiUserGroup,
 	entity *nigoapi.AccessPolicyEntity) {
-
 	// Add new userGroup from the access policy
 	for _, userGroup := range addUserGroups {
 		entity.Component.UserGroups = append(entity.Component.UserGroups, nigoapi.TenantEntity{Id: userGroup.Status.Id})
@@ -178,7 +173,6 @@ func addRemoveUsersFromAccessPolicyEntity(
 	addUsers []*v1.NifiUser,
 	removeUsers []*v1.NifiUser,
 	entity *nigoapi.AccessPolicyEntity) {
-
 	// Add new user from the access policy
 	for _, user := range addUsers {
 		entity.Component.Users = append(entity.Component.Users, nigoapi.TenantEntity{Id: user.Status.Id})

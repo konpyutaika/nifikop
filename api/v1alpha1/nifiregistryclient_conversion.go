@@ -2,11 +2,13 @@ package v1alpha1
 
 import (
 	"fmt"
-	v1 "github.com/konpyutaika/nifikop/api/v1"
+
 	"sigs.k8s.io/controller-runtime/pkg/conversion"
+
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 )
 
-// ConvertTo converts a v1alpha1 to v1 (Hub)
+// ConvertTo converts a v1alpha1 to v1 (Hub).
 func (src *NifiRegistryClient) ConvertTo(dst conversion.Hub) error {
 	ncV1 := dst.(*v1.NifiRegistryClient)
 
@@ -17,7 +19,7 @@ func (src *NifiRegistryClient) ConvertTo(dst conversion.Hub) error {
 	return nil
 }
 
-// ConvertFrom converts a v1 (Hub) to v1alpha1 (local)
+// ConvertFrom converts a v1 (Hub) to v1alpha1 (local).
 func (dst *NifiRegistryClient) ConvertFrom(src conversion.Hub) error { //nolint
 	ncV1 := src.(*v1.NifiRegistryClient)
 	dst.ObjectMeta = ncV1.ObjectMeta
@@ -29,7 +31,7 @@ func (dst *NifiRegistryClient) ConvertFrom(src conversion.Hub) error { //nolint
 
 // ---- Convert TO ----
 
-// ConvertNifiRegistryClientTo use to convert v1alpha1.NifiRegistryClient to v1.NifiRegistryClient
+// ConvertNifiRegistryClientTo use to convert v1alpha1.NifiRegistryClient to v1.NifiRegistryClient.
 func ConvertNifiRegistryClientTo(src *NifiRegistryClient, dst *v1.NifiRegistryClient) error {
 	// Copying ObjectMeta as a whole
 	dst.ObjectMeta = src.ObjectMeta
@@ -46,7 +48,7 @@ func ConvertNifiRegistryClientTo(src *NifiRegistryClient, dst *v1.NifiRegistryCl
 	return nil
 }
 
-// Convert the top level structs
+// Convert the top level structs.
 func convertNifiRegistryClientSpec(src *NifiRegistryClientSpec, dst *v1.NifiRegistryClient) error {
 	if src == nil {
 		return nil
@@ -72,7 +74,7 @@ func convertNifiRegistryClientStatus(src *NifiRegistryClientStatus, dst *v1.Nifi
 
 // ---- Convert FROM ----
 
-// ConvertNifiRegistryClientFrom use to convert v1alpha1.NifiRegistryClient from v1.NifiRegistryClient
+// ConvertNifiRegistryClientFrom use to convert v1alpha1.NifiRegistryClient from v1.NifiRegistryClient.
 func ConvertNifiRegistryClientFrom(dst *NifiRegistryClient, src *v1.NifiRegistryClient) error {
 	// Copying ObjectMeta as a whole
 	dst.ObjectMeta = src.ObjectMeta
@@ -89,7 +91,7 @@ func ConvertNifiRegistryClientFrom(dst *NifiRegistryClient, src *v1.NifiRegistry
 	return nil
 }
 
-// Convert the top level structs
+// Convert the top level structs.
 func convertFromNifiRegistryClientSpec(src *v1.NifiRegistryClientSpec, dst *NifiRegistryClient) error {
 	if src == nil {
 		return nil

@@ -2,11 +2,13 @@ package v1alpha1
 
 import (
 	"fmt"
-	v1 "github.com/konpyutaika/nifikop/api/v1"
+
 	"sigs.k8s.io/controller-runtime/pkg/conversion"
+
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 )
 
-// ConvertTo converts a v1alpha1 to v1 (Hub)
+// ConvertTo converts a v1alpha1 to v1 (Hub).
 func (src *NifiUser) ConvertTo(dst conversion.Hub) error {
 	ncV1 := dst.(*v1.NifiUser)
 
@@ -17,7 +19,7 @@ func (src *NifiUser) ConvertTo(dst conversion.Hub) error {
 	return nil
 }
 
-// ConvertFrom converts a v1 (Hub) to v1alpha1 (local)
+// ConvertFrom converts a v1 (Hub) to v1alpha1 (local).
 func (dst *NifiUser) ConvertFrom(src conversion.Hub) error { //nolint
 	ncV1 := src.(*v1.NifiUser)
 	dst.ObjectMeta = ncV1.ObjectMeta
@@ -29,7 +31,7 @@ func (dst *NifiUser) ConvertFrom(src conversion.Hub) error { //nolint
 
 // ---- Convert TO ----
 
-// ConvertNifiUserTo use to convert v1alpha1.NifiUser to v1.NifiUser
+// ConvertNifiUserTo use to convert v1alpha1.NifiUser to v1.NifiUser.
 func ConvertNifiUserTo(src *NifiUser, dst *v1.NifiUser) error {
 	// Copying ObjectMeta as a whole
 	dst.ObjectMeta = src.ObjectMeta
@@ -46,7 +48,7 @@ func ConvertNifiUserTo(src *NifiUser, dst *v1.NifiUser) error {
 	return nil
 }
 
-// Convert the top level structs
+// Convert the top level structs.
 func convertNifiUserSpec(src *NifiUserSpec, dst *v1.NifiUser) error {
 	if src == nil {
 		return nil
@@ -85,7 +87,7 @@ func convertNifiUserStatus(src *NifiUserStatus, dst *v1.NifiUser) error {
 
 // ---- Convert FROM ----
 
-// ConvertNifiUserFrom use to convert v1alpha1.NifiUser from v1.NifiUser
+// ConvertNifiUserFrom use to convert v1alpha1.NifiUser from v1.NifiUser.
 func ConvertNifiUserFrom(dst *NifiUser, src *v1.NifiUser) error {
 	// Copying ObjectMeta as a whole
 	dst.ObjectMeta = src.ObjectMeta
@@ -102,7 +104,7 @@ func ConvertNifiUserFrom(dst *NifiUser, src *v1.NifiUser) error {
 	return nil
 }
 
-// Convert the top level structs
+// Convert the top level structs.
 func convertFromNifiUserSpec(src *v1.NifiUserSpec, dst *NifiUser) error {
 	if src == nil {
 		return nil

@@ -29,7 +29,6 @@ func TestGetProcessGroup(t *testing.T) {
 }
 
 func testGetProcessGroup(t *testing.T, id string, status int) (*nigoapi.ProcessGroupEntity, error) {
-
 	cluster := testClusterMock(t)
 
 	client, err := testClientFromCluster(cluster, false)
@@ -84,7 +83,6 @@ func TestCreateProcessGroup(t *testing.T) {
 }
 
 func testCreateProcessGroup(t *testing.T, entity *nigoapi.ProcessGroupEntity, status int) (*nigoapi.ProcessGroupEntity, error) {
-
 	cluster := testClusterMock(t)
 
 	client, err := testClientFromCluster(cluster, false)
@@ -132,7 +130,6 @@ func TestUpdateProcessGroup(t *testing.T) {
 }
 
 func testUpdateProcessGroup(t *testing.T, entity *nigoapi.ProcessGroupEntity, status int) (*nigoapi.ProcessGroupEntity, error) {
-
 	cluster := testClusterMock(t)
 
 	client, err := testClientFromCluster(cluster, false)
@@ -177,7 +174,6 @@ func TestRemoveProcessGroup(t *testing.T) {
 }
 
 func testRemoveProcessGroup(t *testing.T, entity *nigoapi.ProcessGroupEntity, status int) error {
-
 	cluster := testClusterMock(t)
 
 	client, err := testClientFromCluster(cluster, false)
@@ -222,7 +218,6 @@ func TestCreateConnection(t *testing.T) {
 }
 
 func testCreateConnection(t *testing.T, entity *nigoapi.ConnectionEntity, status int) (*nigoapi.ConnectionEntity, error) {
-
 	cluster := testClusterMock(t)
 
 	client, err := testClientFromCluster(cluster, false)

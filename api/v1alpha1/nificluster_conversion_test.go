@@ -4,13 +4,13 @@ import (
 	"reflect"
 	"testing"
 
-	"golang.org/x/exp/maps"
-
 	cmmeta "github.com/cert-manager/cert-manager/pkg/apis/meta/v1"
-	v1 "github.com/konpyutaika/nifikop/api/v1"
+	"golang.org/x/exp/maps"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 )
 
 func TestConvertNifiCluster(t *testing.T) {

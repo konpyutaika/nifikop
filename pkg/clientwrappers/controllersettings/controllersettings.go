@@ -1,11 +1,12 @@
 package controllersettings
 
 import (
+	nigoapi "github.com/konpyutaika/nigoapi/pkg/nifi"
+
 	v1 "github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers"
 	"github.com/konpyutaika/nifikop/pkg/common"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
-	nigoapi "github.com/konpyutaika/nigoapi/pkg/nifi"
 )
 
 var log = common.CustomLogger().Named("controllersettings-method")
@@ -16,7 +17,6 @@ func controllerConfigIsSync(cluster *v1.NifiCluster, entity *nigoapi.ControllerC
 }
 
 func SyncConfiguration(config *clientconfig.NifiConfig, cluster *v1.NifiCluster) error {
-
 	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
 		return err

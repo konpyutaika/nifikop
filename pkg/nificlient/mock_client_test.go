@@ -3,15 +3,14 @@ package nificlient
 import (
 	"testing"
 
-	v1 "github.com/konpyutaika/nifikop/api/v1"
-
-	"github.com/konpyutaika/nifikop/pkg/nificlient/config/common"
-	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
+	"github.com/jarcoal/httpmock"
+	nigoapi "github.com/konpyutaika/nigoapi/pkg/nifi"
 	"go.uber.org/zap"
 
-	"github.com/jarcoal/httpmock"
+	v1 "github.com/konpyutaika/nifikop/api/v1"
+	"github.com/konpyutaika/nifikop/pkg/nificlient/config/common"
+	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
 	nifiutil "github.com/konpyutaika/nifikop/pkg/util/nifi"
-	nigoapi "github.com/konpyutaika/nigoapi/pkg/nifi"
 )
 
 var (

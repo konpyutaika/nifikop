@@ -7,7 +7,7 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// NifiUserSpec defines the desired state of NifiUser
+// NifiUserSpec defines the desired state of NifiUser.
 type NifiUserSpec struct {
 	// identity field is used to define the user identity on NiFi cluster side, when the user's name doesn't
 	// suit with Kubernetes resource name.
@@ -26,7 +26,7 @@ type NifiUserSpec struct {
 	AccessPolicies []AccessPolicy `json:"accessPolicies,omitempty"`
 }
 
-// NifiUserStatus defines the observed state of NifiUser
+// NifiUserStatus defines the observed state of NifiUser.
 type NifiUserStatus struct {
 	// The nifi user's node id
 	Id string `json:"id"`
@@ -38,7 +38,7 @@ type NifiUserStatus struct {
 // +kubebuilder:subresource:status
 // +kubebuilder:storageversion
 
-// NifiUser is the Schema for the nifiusers API
+// NifiUser is the Schema for the nifiusers API.
 type NifiUser struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -49,7 +49,7 @@ type NifiUser struct {
 
 // +kubebuilder:object:root=true
 
-// NifiUserList contains a list of NifiUser
+// NifiUserList contains a list of NifiUser.
 type NifiUserList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`

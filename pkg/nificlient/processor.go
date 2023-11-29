@@ -8,7 +8,6 @@ import (
 func (n *nifiClient) UpdateProcessorRunStatus(
 	id string,
 	entity nigoapi.ProcessorRunStatusEntity) (*nigoapi.ProcessorEntity, error) {
-
 	// Get nigoapi client, favoring the one associated to the coordinator node.
 	client, context := n.privilegeCoordinatorClient()
 	if client == nil {

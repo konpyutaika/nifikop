@@ -1,18 +1,18 @@
 package registryclient
 
 import (
+	nigoapi "github.com/konpyutaika/nigoapi/pkg/nifi"
+
 	v1 "github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers"
 	"github.com/konpyutaika/nifikop/pkg/common"
 	"github.com/konpyutaika/nifikop/pkg/nificlient"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
-	nigoapi "github.com/konpyutaika/nigoapi/pkg/nifi"
 )
 
 var log = common.CustomLogger().Named("registryclient-method")
 
 func ExistRegistryClient(registryClient *v1.NifiRegistryClient, config *clientconfig.NifiConfig) (bool, error) {
-
 	if registryClient.Status.Id == "" {
 		return false, nil
 	}
@@ -56,7 +56,6 @@ func CreateRegistryClient(registryClient *v1.NifiRegistryClient,
 
 func SyncRegistryClient(registryClient *v1.NifiRegistryClient,
 	config *clientconfig.NifiConfig) (*v1.NifiRegistryClientStatus, error) {
-
 	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
 		return nil, err
@@ -110,7 +109,6 @@ func registryClientIsSync(registryClient *v1.NifiRegistryClient, entity *nigoapi
 }
 
 func updateRegistryClientEntity(registryClient *v1.NifiRegistryClient, entity *nigoapi.FlowRegistryClientEntity) {
-
 	var defaultVersion int64 = 0
 
 	if entity == nil {

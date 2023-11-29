@@ -3,8 +3,9 @@ package util
 import (
 	"testing"
 
-	v1 "github.com/konpyutaika/nifikop/api/v1"
 	corev1 "k8s.io/api/core/v1"
+
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 )
 
 func TestSubtractNodes(t *testing.T) {
