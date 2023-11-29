@@ -22,6 +22,7 @@ This document might contain links to known issues, another good reason to take a
 This is a rough outline of what a contributor's workflow looks like:
 
 - Create a topic branch from where to base the contribution. This is usually master.
+- Run `make fmt` to fix any linting issues in your changes.
 - Make commits of logical units.
 - Make sure commit messages are in the proper format (see below).
 - Push changes in a topic branch to a personal fork of the repository.
