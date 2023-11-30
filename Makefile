@@ -155,10 +155,9 @@ lint: golangci-lint
 
 # Run go fmt against code
 .PHONY: fmt
-fmt: golangci-lint ## Ensure consistent code style
+fmt:
 	@go mod tidy
 	@go fmt ./...
-	@$(GOLANGCI_LINT) run --fix --issues-exit-code $(GOLANGCI_EXIT_CODE)
 
 # RUN https://go.dev/blog/vuln against code for known CVEs
 .PHONY: govuln
@@ -169,11 +168,11 @@ govuln:
 # Run tests
 ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
 .PHONY: test
-test: manifests generate fmt govuln envtest
+test: manifests generate fmt lint govuln envtest
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(LOCALBIN) -p path)" go test ./... -coverprofile cover.out
 
 .PHONY: test-with-vendor
-test-with-vendor: manifests generate fmt govuln envtest
+test-with-vendor: manifests generate fmt lint govuln envtest
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(LOCALBIN) -p path)" go test -mod=vendor ./... -coverprofile cover.out
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
