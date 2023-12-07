@@ -4,6 +4,8 @@
 
 ### Changed
 
+- [PR #327](https://github.com/konpyutaika/nifikop/pull/327) - **[Documentation]** Update Nifikop vs Apache NiFi compatibility matrix documentation.
+
 ### Fixed Bugs
 
 ### Deprecated

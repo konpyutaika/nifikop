@@ -9,65 +9,129 @@ sidebar_label: Compatibility versions
 
 ### NiFi cluster
 
-| Feature                    | NiFi 1.16 | NiFi 1.17 |
-|----------------------------|---------|-----------|
-| Cluster deployment         | Yes     | Yes       |
-| Standalone deployment      | No      | No        |
-| Cluster nodes configuration| Yes     | Yes       |
-| Cluster rolling upgrade    | Yes     | Yes       |
-| Cluster scaling            | Yes     | Yes       |
-| Cluster auto-scaling       | Yes     | Yes       |
-| Prometheus reporting       | Yes     | Yes       |
+Nifikop supports the following NiFi cluster features: 
+
+| NiFi Version | Cluster deployment | Standalone deployment | Cluster nodes configuration | Cluster rolling upgrade | Cluster scaling | Cluster auto-scaling | Prometheus Reporting |
+|--------------|--------------------|-----------------------|-----------------------------|-------------------------|-----------------|----------------------|----------------------|
+| NiFi 1.16    | Yes                | No                    | Yes                         | Yes                     | Yes             | Yes                  | Yes                  |
+| NiFi 1.17    | Yes                | No                    | Yes                         | Yes                     | Yes             | Yes                  | Yes                  |
+| NiFi 1.18    | Yes                | No                    | Yes                         | Yes                     | Yes             | Yes                  | Yes                  |
+| NiFi 1.19    | Yes                | No                    | Yes                         | Yes                     | Yes             | Yes                  | Yes                  |
+| NiFi 1.20    | Yes                | No                    | Yes                         | Yes                     | Yes             | Yes                  | Yes                  |
+| NiFi 1.21    | Yes                | No                    | Yes                         | Yes                     | Yes             | Yes                  | Yes                  |
+| NiFi 1.22    | Yes                | No                    | Yes                         | Yes                     | Yes             | Yes                  | Yes                  |
+| NiFi 1.23    | Yes                | No                    | Yes                         | Yes                     | Yes             | Yes                  | Yes                  |
+| NiFi 1.24    | Yes                | No                    | Yes                         | Yes                     | Yes             | Yes                  | Yes                  |
 
 ### NiFi external cluster
 
-| Feature                 | NiFi 1.16 | NiFi 1.17 |
-|-------------------------|-----------|-----------|
-| Basic authentication    | Yes       | Yes       |
-| TLS authentication      | Yes       | Yes       |
+Nifikop supports the following features for externally deployed clusters:
+
+| NiFi Version | Basic authentication | TLS authentication |
+|--------------|----------------------|--------------------|
+| NiFi 1.16    | Yes                  | Yes                |
+| NiFi 1.17    | Yes                  | Yes                |
+| NiFi 1.18    | Yes                  | Yes                |
+| NiFi 1.19    | Yes                  | Yes                |
+| NiFi 1.20    | Yes                  | Yes                |
+| NiFi 1.21    | Yes                  | Yes                |
+| NiFi 1.22    | Yes                  | Yes                |
+| NiFi 1.23    | Yes                  | Yes                |
+| NiFi 1.24    | Yes                  | Yes                |
 
 ### NiFi users
 
-| Feature         | NiFi 1.16 | NiFi 1.17 |
-|-----------------|-----------|-----------|
-| User deployment | Yes       | Yes       |
-| User policies   | Yes       | Yes       |
+Nifikop supports the following features for configuring users and user policies:
+
+| NiFi Version    | User Deployment | User Policies |
+|-----------------|-----------------|---------------|
+| NiFi 1.16       | Yes             | Yes           |
+| NiFi 1.17       | Yes             | Yes           |
+| NiFi 1.18       | Yes             | Yes           |
+| NiFi 1.19       | Yes             | Yes           |
+| NiFi 1.20       | Yes             | Yes           |
+| NiFi 1.21       | Yes             | Yes           |
+| NiFi 1.22       | Yes             | Yes           |
+| NiFi 1.23       | Yes             | Yes           |
+| NiFi 1.24       | Yes             | Yes           |
 
 ### NiFi user groups
 
-| Feature           | NiFi 1.16 | NiFi 1.17 |
-|-------------------|-----------|-----------|
-| Groups deployment | Yes       | Yes       |
-| Groups policies   | Yes       | Yes       |
+Nifikop supports the following features for configuring user groups:
+
+| NiFi Version  | Group Deployment | Group Policies |
+|---------------|------------------|----------------|
+| NiFi 1.16     | Yes              | Yes            |
+| NiFi 1.17     | Yes              | Yes            |
+| NiFi 1.18     | Yes              | Yes            |
+| NiFi 1.19     | Yes              | Yes            |
+| NiFi 1.20     | Yes              | Yes            |
+| NiFi 1.21     | Yes              | Yes            |
+| NiFi 1.22     | Yes              | Yes            |
+| NiFi 1.23     | Yes              | Yes            |
+| NiFi 1.24     | Yes              | Yes            |
 
 ### NiFi dataflow
 
-| Feature                   | NiFi 1.16 | NiFi 1.17 |
-|---------------------------|-----------|-----------|
-| Dataflow deployment        | Yes       | Yes       |
-| Dataflow rollback          | Yes       | Yes       |
-| Dataflow version upgrade   | Yes       | Yes       |
-| Dataflow cluster migration | Yes       | Yes       |
+Nifikop supports the following features for managing dataflows:
+
+| NiFi Version  | Dataflow deployment | Dataflow rollback | Dataflow version upgrade | Dataflow cluster migration |
+|---------------|---------------------|-------------------|--------------------------|----------------------------|
+| NiFi 1.16     | Yes                 | Yes               | Yes                      | Yes                        |
+| NiFi 1.17     | Yes                 | Yes               | Yes                      | Yes                        |
+| NiFi 1.18     | Yes                 | Yes               | Yes                      | Yes                        |
+| NiFi 1.19     | Yes                 | Yes               | Yes                      | Yes                        |
+| NiFi 1.20     | Yes                 | Yes               | Yes                      | Yes                        |
+| NiFi 1.21     | Yes                 | Yes               | Yes                      | Yes                        |
+| NiFi 1.22     | Yes                 | Yes               | Yes                      | Yes                        |
+| NiFi 1.23     | Yes                 | Yes               | Yes                      | Yes                        |
+| NiFi 1.24     | Yes                 | Yes               | Yes                      | Yes                        |
 
 ### NiFi parameter context
 
-| Feature                             | NiFi 1.16 | NiFi 1.17 |
-|-------------------------------------|-----------|-----------|
-| Parameter context deployment        | Yes       | Yes       |
-| Parameter context inheritance       | Yes       | Yes       |
-| Parameter context cluster migration | No        | No        |
+Nifikop supports the following features for managing parameter contexts:
+
+| NiFi Version | Parameter context deployment | Parameter context inheritance | Parameter context cluster migration |
+|--------------|------------------------------|-------------------------------|-------------------------------------|
+| NiFi 1.16    | Yes                          | Yes                           | No                                  |
+| NiFi 1.17    | Yes                          | Yes                           | No                                  |
+| NiFi 1.18    | Yes                          | Yes                           | No                                  |
+| NiFi 1.19    | Yes                          | Yes                           | No                                  |
+| NiFi 1.20    | Yes                          | Yes                           | No                                  |
+| NiFi 1.21    | Yes                          | Yes                           | No                                  |
+| NiFi 1.22    | Yes                          | Yes                           | No                                  |
+| NiFi 1.23    | Yes                          | Yes                           | No                                  |
+| NiFi 1.24    | Yes                          | Yes                           | No                                  |
+
 
 ### NiFi auto scaling
 
-| Feature                       | NiFi 1.16 | NiFi 1.17 |
-|-------------------------------|-----------|-----------|
-| Auto scaling group deployment | Yes       | Yes       |
-| Auto scaling group FIFO       | Yes       | Yes       |
+Nifikop supports the following features for cluster auto-scaling
+
+| NiFi Version  | Auto scaling group deployment | Auto scaling group FIFO |
+|---------------|-------------------------------|-------------------------|
+| NiFi 1.16     | Yes                           | Yes                     |
+| NiFi 1.17     | Yes                           | Yes                     |
+| NiFi 1.18     | Yes                           | Yes                     |
+| NiFi 1.19     | Yes                           | Yes                     |
+| NiFi 1.20     | Yes                           | Yes                     |
+| NiFi 1.21     | Yes                           | Yes                     |
+| NiFi 1.22     | Yes                           | Yes                     |
+| NiFi 1.23     | Yes                           | Yes                     |
+| NiFi 1.24     | Yes                           | Yes                     |
 
 ### NiFi connection
 
-| Feature                      | NiFi 1.16 | NiFi 1.17 |
-|------------------------------|-----------|-----------|
-| Connection deployment        | Yes       | Yes       |
-| Connection cluster migration | Yes       | Yes       |
-| Connection multi cluster     | No        | No        |
+Nifikop supports for the following features for connecting two dataflows together:
+
+| NiFi Version | Connection deployment | Connection cluster migration | Connection multi cluster |
+|--------------|-----------------------|------------------------------|--------------------------|
+| NiFi 1.16    | Yes                   | Yes                          | No                       |
+| NiFi 1.17    | Yes                   | Yes                          | No                       |
+| NiFi 1.18    | Yes                   | Yes                          | No                       |
+| NiFi 1.19    | Yes                   | Yes                          | No                       |
+| NiFi 1.20    | Yes                   | Yes                          | No                       |
+| NiFi 1.21    | Yes                   | Yes                          | No                       |
+| NiFi 1.22    | Yes                   | Yes                          | No                       |
+| NiFi 1.23    | Yes                   | Yes                          | No                       |
+| NiFi 1.24    | Yes                   | Yes                          | No                       |
