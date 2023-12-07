@@ -5,6 +5,7 @@
 ### Changed
 
 - [PR #327](https://github.com/konpyutaika/nifikop/pull/327) - **[Documentation]** Update Nifikop vs Apache NiFi compatibility matrix documentation.
+- [PR #330](https://github.com/konpyutaika/nifikop/pull/330) - **[Operator]** Upgrade golang to 1.21.5.
 
 ### Fixed Bugs
 
