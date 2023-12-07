@@ -1,5 +1,5 @@
 # Build the manager binary
-FROM golang:1.21.4 as builder
+FROM golang:1.21.5 as builder
 
 WORKDIR /workspace
 
@@ -28,7 +28,7 @@ RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH GO111MODULE=on go build -a -
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
 FROM gcr.io/distroless/static:nonroot
 LABEL org.opencontainers.image.documentation="https://github.com/konpyutaika/nifikop/blob/master/README.md"
-LABEL org.opencontainers.image.authors="Alexandre Guitton <alexandreguittont@outlook.fr>"
+LABEL org.opencontainers.image.authors="Alexandre Guitton <alexandreguitton@outlook.fr>"
 LABEL org.opencontainers.image.source="https://github.com/konpyutaika/nifikop"
 LABEL org.opencontainers.image.vendor="Konpyūtāika"
 LABEL org.opencontainers.image.version="0.1"
