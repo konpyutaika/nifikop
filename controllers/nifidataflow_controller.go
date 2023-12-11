@@ -604,7 +604,7 @@ func (r *NifiDataflowReconciler) updateAndFetchLatest(ctx context.Context,
 	flow *v1.NifiDataflow, patcher client.Patch) (*v1.NifiDataflow, error) {
 
 	typeMeta := flow.TypeMeta
-	err := r.Client.Update(ctx, flow)
+	err := r.Client.Patch(ctx, flow, patcher)
 	if err != nil {
 		return nil, err
 	}

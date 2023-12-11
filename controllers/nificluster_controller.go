@@ -94,10 +94,11 @@ func (r *NifiClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return RequeueWithError(r.Log, err.Error(), err)
 	}
 	current := instance.DeepCopy()
+	patchInstance := client.MergeFrom(instance.DeepCopy())
 
 	// Check if marked for deletion and run finalizers
 	if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {
-		return r.checkFinalizers(ctx, instance)
+		return r.checkFinalizers(ctx, instance, patchInstance)
 	}
 
 	if instance.IsExternal() {
@@ -168,7 +169,7 @@ func (r *NifiClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	}
 
 	r.Log.Debug("ensuring finalizers on nificluster", zap.String("clusterName", instance.Name))
-	if instance, err = r.ensureFinalizers(ctx, instance); err != nil {
+	if instance, err = r.ensureFinalizers(ctx, instance, patchInstance); err != nil {
 		return RequeueWithError(r.Log, "failed to ensure finalizers on nificluster instance "+current.Name, err)
 	}
 
@@ -221,7 +222,7 @@ func (r *NifiClusterReconciler) SetupWithManager(mgr ctrl.Manager) error {
 }
 
 func (r *NifiClusterReconciler) checkFinalizers(ctx context.Context,
-	cluster *v1.NifiCluster) (reconcile.Result, error) {
+	cluster *v1.NifiCluster, patcher client.Patch) (reconcile.Result, error) {
 
 	r.Log.Info("NifiCluster is marked for deletion, checking for children", zap.String("clusterName", cluster.Name))
 
@@ -268,7 +269,7 @@ func (r *NifiClusterReconciler) checkFinalizers(ctx context.Context,
 					r.Log.Info("No matching nifiusers in namespace", zap.String("namespace", ns))
 				}
 			}
-			if cluster, err = r.removeFinalizer(ctx, cluster, clusterUsersFinalizer); err != nil {
+			if cluster, err = r.removeFinalizer(ctx, cluster, clusterUsersFinalizer, patcher); err != nil {
 				return RequeueWithError(r.Log, "failed to remove users finalizer from nificluster "+cluster.Name, err)
 			}
 		}
@@ -294,7 +295,7 @@ func (r *NifiClusterReconciler) checkFinalizers(ctx context.Context,
 	}
 
 	r.Log.Info("Finalizing deletion of nificluster instance", zap.String("clusterName", cluster.Name))
-	if _, err = r.removeFinalizer(ctx, cluster, clusterFinalizer); err != nil {
+	if _, err = r.removeFinalizer(ctx, cluster, clusterFinalizer, patcher); err != nil {
 		if client.IgnoreNotFound(err) == nil {
 			// We may have been a requeue from earlier with all conditions met - but with
 			// the state of the finalizer not yet reflected in the response we got.
@@ -307,17 +308,17 @@ func (r *NifiClusterReconciler) checkFinalizers(ctx context.Context,
 }
 
 func (r *NifiClusterReconciler) removeFinalizer(ctx context.Context, cluster *v1.NifiCluster,
-	finalizer string) (updated *v1.NifiCluster, err error) {
+	finalizer string, patcher client.Patch) (updated *v1.NifiCluster, err error) {
 
 	cluster.SetFinalizers(util.StringSliceRemove(cluster.GetFinalizers(), finalizer))
-	return r.updateAndFetchLatest(ctx, cluster)
+	return r.updateAndFetchLatest(ctx, cluster, patcher)
 }
 
 func (r *NifiClusterReconciler) updateAndFetchLatest(ctx context.Context,
-	cluster *v1.NifiCluster) (*v1.NifiCluster, error) {
+	cluster *v1.NifiCluster, patcher client.Patch) (*v1.NifiCluster, error) {
 
 	typeMeta := cluster.TypeMeta
-	err := r.Client.Update(ctx, cluster)
+	err := r.Client.Patch(ctx, cluster, patcher)
 	if err != nil {
 		return nil, err
 	}
@@ -326,7 +327,7 @@ func (r *NifiClusterReconciler) updateAndFetchLatest(ctx context.Context,
 }
 
 func (r *NifiClusterReconciler) ensureFinalizers(ctx context.Context,
-	cluster *v1.NifiCluster) (updated *v1.NifiCluster, err error) {
+	cluster *v1.NifiCluster, patcher client.Patch) (updated *v1.NifiCluster, err error) {
 
 	finalizers := []string{clusterFinalizer}
 	if cluster.IsInternal() && cluster.Spec.ListenersConfig.SSLSecrets != nil {
@@ -338,5 +339,5 @@ func (r *NifiClusterReconciler) ensureFinalizers(ctx context.Context,
 		}
 		cluster.SetFinalizers(append(cluster.GetFinalizers(), finalizer))
 	}
-	return r.updateAndFetchLatest(ctx, cluster)
+	return r.updateAndFetchLatest(ctx, cluster, patcher)
 }

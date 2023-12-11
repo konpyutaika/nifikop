@@ -80,6 +80,7 @@ func (r *NifiRegistryClientReconciler) Reconcile(ctx context.Context, req ctrl.R
 		return RequeueWithError(r.Log, err.Error(), err)
 	}
 
+	patchInstance := client.MergeFrom(instance.DeepCopy())
 	// Get the last configuration viewed by the operator.
 	o, _ := patch.DefaultAnnotator.GetOriginalConfiguration(instance)
 	// Create it if not exist.
@@ -87,7 +88,7 @@ func (r *NifiRegistryClientReconciler) Reconcile(ctx context.Context, req ctrl.R
 		if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(instance); err != nil {
 			return RequeueWithError(r.Log, "could not apply last state to annotation for registry client"+instance.Name, err)
 		}
-		if err := r.Client.Update(ctx, instance); err != nil {
+		if err := r.Client.Patch(ctx, instance, patchInstance); err != nil {
 			return RequeueWithError(r.Log, "failed to update NifiRegistryClient "+instance.Name, err)
 		}
 		o, _ = patch.DefaultAnnotator.GetOriginalConfiguration(instance)
@@ -96,6 +97,7 @@ func (r *NifiRegistryClientReconciler) Reconcile(ctx context.Context, req ctrl.R
 	// Check if the cluster reference changed.
 	original := &v1.NifiRegistryClient{}
 	current := instance.DeepCopy()
+	patchCurrent := client.MergeFrom(current.DeepCopy())
 	json.Unmarshal(o, original)
 	if !v1.ClusterRefsEquals([]v1.ClusterReference{original.Spec.ClusterRef, instance.Spec.ClusterRef}) {
 		instance.Spec.ClusterRef = original.Spec.ClusterRef
@@ -117,7 +119,7 @@ func (r *NifiRegistryClientReconciler) Reconcile(ctx context.Context, req ctrl.R
 			r.Log.Error("Cluster is already gone, there is nothing we can do",
 				zap.String("registryClient", instance.Name),
 				zap.String("clusterName", clusterRef.Name))
-			if err = r.removeFinalizer(ctx, instance); err != nil {
+			if err = r.removeFinalizer(ctx, instance, patchInstance); err != nil {
 				return RequeueWithError(r.Log, "failed to remove finalizer for registry client "+instance.Name, err)
 			}
 			return Reconciled()
@@ -127,7 +129,7 @@ func (r *NifiRegistryClientReconciler) Reconcile(ctx context.Context, req ctrl.R
 			if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(current); err != nil {
 				return RequeueWithError(r.Log, "could not apply last state to annotation to registry client "+instance.Name, err)
 			}
-			if err := r.Client.Update(ctx, current); err != nil {
+			if err := r.Client.Patch(ctx, current, patchCurrent); err != nil {
 				return RequeueWithError(r.Log, "failed to update NifiRegistryClient "+instance.Name, err)
 			}
 			return RequeueAfter(interval)
@@ -148,7 +150,7 @@ func (r *NifiRegistryClientReconciler) Reconcile(ctx context.Context, req ctrl.R
 				instance.Spec.ClusterRef.Name, clusterRef.Namespace))
 		// the cluster is gone, so just remove the finalizer
 		if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {
-			if err = r.removeFinalizer(ctx, instance); err != nil {
+			if err = r.removeFinalizer(ctx, instance, patchInstance); err != nil {
 				return RequeueWithError(r.Log, "failed to remove finalizer from NifiRegistryClient "+instance.Name, err)
 			}
 			return Reconciled()
@@ -159,7 +161,7 @@ func (r *NifiRegistryClientReconciler) Reconcile(ctx context.Context, req ctrl.R
 
 	// Check if marked for deletion and if so run finalizers
 	if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {
-		return r.checkFinalizers(ctx, instance, clientConfig)
+		return r.checkFinalizers(ctx, instance, clientConfig, patchInstance)
 	}
 
 	// Ensure the cluster is ready to receive actions
@@ -187,7 +189,7 @@ func (r *NifiRegistryClientReconciler) Reconcile(ctx context.Context, req ctrl.R
 		if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(current); err != nil {
 			return RequeueWithError(r.Log, "could not apply last state to annotation for registry client "+instance.Name, err)
 		}
-		if err := r.Client.Update(ctx, current); err != nil {
+		if err := r.Client.Patch(ctx, current, patchCurrent); err != nil {
 			return RequeueWithError(r.Log, "failed to update NifiRegistryClient "+instance.Name, err)
 		}
 		return RequeueAfter(interval)
@@ -224,7 +226,7 @@ func (r *NifiRegistryClientReconciler) Reconcile(ctx context.Context, req ctrl.R
 		if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(instance); err != nil {
 			return RequeueWithError(r.Log, "could not apply last state to annotation for registry client "+instance.Name, err)
 		}
-		if err := r.Client.Update(ctx, instance); err != nil {
+		if err := r.Client.Patch(ctx, instance, patchInstance); err != nil {
 			return RequeueWithError(r.Log, "failed to update NifiRegistryClient "+instance.Name, err)
 		}
 	}
@@ -247,7 +249,7 @@ func (r *NifiRegistryClientReconciler) Reconcile(ctx context.Context, req ctrl.R
 	r.Recorder.Event(instance, corev1.EventTypeNormal, "Synchronized",
 		fmt.Sprintf("Synchronized registry client %s", instance.Name))
 	// Ensure NifiCluster label
-	if instance, err = r.ensureClusterLabel(ctx, clusterConnect, instance); err != nil {
+	if instance, err = r.ensureClusterLabel(ctx, clusterConnect, instance, patchInstance); err != nil {
 		return RequeueWithError(r.Log, "failed to ensure NifiCluster label on registry client "+current.Name, err)
 	}
 
@@ -259,7 +261,7 @@ func (r *NifiRegistryClientReconciler) Reconcile(ctx context.Context, req ctrl.R
 	}
 
 	// Push any changes
-	if instance, err = r.updateAndFetchLatest(ctx, instance); err != nil {
+	if instance, err = r.updateAndFetchLatest(ctx, instance, patchInstance); err != nil {
 		return RequeueWithError(r.Log, "failed to update NifiRegistryClient "+current.Name, err)
 	}
 
@@ -285,21 +287,21 @@ func (r *NifiRegistryClientReconciler) SetupWithManager(mgr ctrl.Manager) error 
 }
 
 func (r *NifiRegistryClientReconciler) ensureClusterLabel(ctx context.Context, cluster clientconfig.ClusterConnect,
-	registryClient *v1.NifiRegistryClient) (*v1.NifiRegistryClient, error) {
+	registryClient *v1.NifiRegistryClient, patcher client.Patch) (*v1.NifiRegistryClient, error) {
 
 	labels := ApplyClusterReferenceLabel(cluster, registryClient.GetLabels())
 	if !reflect.DeepEqual(labels, registryClient.GetLabels()) {
 		registryClient.SetLabels(labels)
-		return r.updateAndFetchLatest(ctx, registryClient)
+		return r.updateAndFetchLatest(ctx, registryClient, patcher)
 	}
 	return registryClient, nil
 }
 
 func (r *NifiRegistryClientReconciler) updateAndFetchLatest(ctx context.Context,
-	registryClient *v1.NifiRegistryClient) (*v1.NifiRegistryClient, error) {
+	registryClient *v1.NifiRegistryClient, patcher client.Patch) (*v1.NifiRegistryClient, error) {
 
 	typeMeta := registryClient.TypeMeta
-	err := r.Client.Update(ctx, registryClient)
+	err := r.Client.Patch(ctx, registryClient, patcher)
 	if err != nil {
 		return nil, err
 	}
@@ -308,7 +310,7 @@ func (r *NifiRegistryClientReconciler) updateAndFetchLatest(ctx context.Context,
 }
 
 func (r *NifiRegistryClientReconciler) checkFinalizers(ctx context.Context,
-	registryClient *v1.NifiRegistryClient, config *clientconfig.NifiConfig) (reconcile.Result, error) {
+	registryClient *v1.NifiRegistryClient, config *clientconfig.NifiConfig, patcher client.Patch) (reconcile.Result, error) {
 	r.Log.Info("NiFi registry client is marked for deletion. Removing finalizers.",
 		zap.String("registryClient", registryClient.Name))
 	var err error
@@ -316,18 +318,18 @@ func (r *NifiRegistryClientReconciler) checkFinalizers(ctx context.Context,
 		if err = r.finalizeNifiRegistryClient(registryClient, config); err != nil {
 			return RequeueWithError(r.Log, "failed to finalize nifiregistryclient", err)
 		}
-		if err = r.removeFinalizer(ctx, registryClient); err != nil {
+		if err = r.removeFinalizer(ctx, registryClient, patcher); err != nil {
 			return RequeueWithError(r.Log, "failed to remove finalizer from nifiregistryclient", err)
 		}
 	}
 	return Reconciled()
 }
 
-func (r *NifiRegistryClientReconciler) removeFinalizer(ctx context.Context, registryClient *v1.NifiRegistryClient) error {
+func (r *NifiRegistryClientReconciler) removeFinalizer(ctx context.Context, registryClient *v1.NifiRegistryClient, patcher client.Patch) error {
 	r.Log.Debug("Removing finalizer for NifiRegistryClient",
 		zap.String("registryClient", registryClient.Name))
 	registryClient.SetFinalizers(util.StringSliceRemove(registryClient.GetFinalizers(), registryClientFinalizer))
-	_, err := r.updateAndFetchLatest(ctx, registryClient)
+	_, err := r.updateAndFetchLatest(ctx, registryClient, patcher)
 	return err
 }
 

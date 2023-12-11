@@ -89,10 +89,11 @@ func (r *NifiNodeGroupAutoscalerReconciler) Reconcile(ctx context.Context, req c
 		return RequeueWithError(r.Log, err.Error(), err)
 	}
 	current := nodeGroupAutoscaler.DeepCopy()
+	patchInstance := runtimeClient.MergeFrom(nodeGroupAutoscaler.DeepCopy())
 
 	// Check if marked for deletion and run finalizers
 	if k8sutil.IsMarkedForDeletion(nodeGroupAutoscaler.ObjectMeta) {
-		return r.checkFinalizers(ctx, nodeGroupAutoscaler)
+		return r.checkFinalizers(ctx, nodeGroupAutoscaler, patchInstance)
 	}
 
 	// Ensure finalizer for cleanup on deletion
@@ -315,13 +316,13 @@ func (r *NifiNodeGroupAutoscalerReconciler) SetupWithManager(mgr ctrl.Manager) e
 		Complete(r)
 }
 
-func (r *NifiNodeGroupAutoscalerReconciler) checkFinalizers(ctx context.Context, autoscaler *v1alpha1.NifiNodeGroupAutoscaler) (reconcile.Result, error) {
+func (r *NifiNodeGroupAutoscalerReconciler) checkFinalizers(ctx context.Context, autoscaler *v1alpha1.NifiNodeGroupAutoscaler, patcher runtimeClient.Patch) (reconcile.Result, error) {
 	r.Log.Info("NifiNodeGroupAutoscaler is marked for deletion")
 
 	var err error
 	if util.StringSliceContains(autoscaler.GetFinalizers(), autoscalerFinalizer) {
 		// no further actions necessary prior to removing finalizer.
-		if err = r.removeFinalizer(ctx, autoscaler); err != nil {
+		if err = r.removeFinalizer(ctx, autoscaler, patcher); err != nil {
 			return RequeueWithError(r.Log, "failed to remove finalizer from autoscaler", err)
 		}
 	}
@@ -329,17 +330,17 @@ func (r *NifiNodeGroupAutoscalerReconciler) checkFinalizers(ctx context.Context,
 	return Reconciled()
 }
 
-func (r *NifiNodeGroupAutoscalerReconciler) removeFinalizer(ctx context.Context, autoscaler *v1alpha1.NifiNodeGroupAutoscaler) error {
+func (r *NifiNodeGroupAutoscalerReconciler) removeFinalizer(ctx context.Context, autoscaler *v1alpha1.NifiNodeGroupAutoscaler, patcher runtimeClient.Patch) error {
 	autoscaler.SetFinalizers(util.StringSliceRemove(autoscaler.GetFinalizers(), autoscalerFinalizer))
-	_, err := r.updateAndFetchLatest(ctx, autoscaler)
+	_, err := r.updateAndFetchLatest(ctx, autoscaler, patcher)
 	return err
 }
 
 func (r *NifiNodeGroupAutoscalerReconciler) updateAndFetchLatest(ctx context.Context,
-	autoscaler *v1alpha1.NifiNodeGroupAutoscaler) (*v1alpha1.NifiNodeGroupAutoscaler, error) {
+	autoscaler *v1alpha1.NifiNodeGroupAutoscaler, patcher runtimeClient.Patch) (*v1alpha1.NifiNodeGroupAutoscaler, error) {
 
 	typeMeta := autoscaler.TypeMeta
-	err := r.Client.Update(ctx, autoscaler)
+	err := r.Client.Patch(ctx, autoscaler, patcher)
 	if err != nil {
 		return nil, err
 	}
