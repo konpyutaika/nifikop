@@ -2,6 +2,8 @@
 
 ### Added
 
+- [PR #333](https://github.com/konpyutaika/nifikop/pull/333) - **[Operator]** Replace Update by Patch on K8S resource.
+
 ### Changed
 
 - [PR #327](https://github.com/konpyutaika/nifikop/pull/327) - **[Documentation]** Update Nifikop vs Apache NiFi compatibility matrix documentation.
