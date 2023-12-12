@@ -87,6 +87,13 @@ spec:
                               port:
                                 format: int32
                                 type: integer
+                              protocol:
+                                default: TCP
+                                enum:
+                                - TCP
+                                - UDP
+                                - SCTP
+                                type: string
                             required:
                             - internalListenerName
                             - port

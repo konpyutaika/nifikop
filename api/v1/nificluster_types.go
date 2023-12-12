@@ -531,6 +531,9 @@ type PortConfig struct {
 	// The port that will expose this service externally. (Only if the service is of type NodePort)
 	// +optional
 	NodePort *int32 `json:"nodePort,omitempty"`
+	// The network protocol for this port. Options defined here: https://pkg.go.dev/k8s.io/api/core/v1#Protocol
+	// +kubebuilder:validation:Enum={"TCP", "UDP", "SCTP"}
+	Protocol corev1.Protocol `json:"protocol,omitempty"`
 }
 
 // LdapConfiguration specifies the configuration if you want to use LDAP

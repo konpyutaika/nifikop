@@ -48,6 +48,7 @@ Field|Type|Description|Required|Default|
 |port|int32| The port that will be exposed by this service. | Yes | - |
 |internalListenerName|string| The name of the listener which will be used as target container. | Yes | - |
 |nodePort|int32| The port that will expose this service externally. (Only if the service is of type NodePort) | No | - |
+|protocol|[Protocol](https://pkg.go.dev/k8s.io/api/core/v1#Protocol)| the network protocol for this service port. Must be one of the protocol enum values (i.e. TCP, UDP, SCTP).  | No | `TCP` |
 
 ## Metadata
 

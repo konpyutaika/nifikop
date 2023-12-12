@@ -86,7 +86,7 @@ func generateServicePortForInternalListeners(listeners []v1.InternalListenerConf
 			Name:       strings.ReplaceAll(iListeners.Name, "_", ""),
 			Port:       iListeners.ContainerPort,
 			TargetPort: intstr.FromInt(int(iListeners.ContainerPort)),
-			Protocol:   corev1.ProtocolTCP,
+			Protocol:   iListeners.Protocol,
 		})
 	}
 
@@ -103,7 +103,7 @@ func (r *Reconciler) generateServicePortForExternalListeners(eService v1.Externa
 					Name:       strings.ReplaceAll(iListener.Name, "_", ""),
 					Port:       port.Port,
 					TargetPort: intstr.FromInt(int(iListener.ContainerPort)),
-					Protocol:   corev1.ProtocolTCP,
+					Protocol:   port.Protocol,
 				}
 
 				if eService.Spec.Type == corev1.ServiceTypeNodePort && port.NodePort != nil {

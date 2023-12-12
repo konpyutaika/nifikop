@@ -412,6 +412,7 @@ func convertPortConfigs(src []PortConfig) []v1.PortConfig {
 		dstPortConfigs = append(dstPortConfigs, v1.PortConfig{
 			Port:                 srcPortConfig.Port,
 			InternalListenerName: srcPortConfig.InternalListenerName,
+			Protocol:             corev1.ProtocolTCP,
 		})
 	}
 
