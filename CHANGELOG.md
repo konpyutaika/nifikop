@@ -2,6 +2,8 @@
 
 ### Added
 
+- [PR #320](https://github.com/konpyutaika/nifikop/pull/320) - **[Operator/NifiCluster]** Added ability to set port protocol for external services via `ExternalServiceConfig`.
+
 ### Changed
 
 - [PR #327](https://github.com/konpyutaika/nifikop/pull/327) - **[Documentation]** Update Nifikop vs Apache NiFi compatibility matrix documentation.
