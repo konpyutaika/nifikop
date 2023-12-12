@@ -87,7 +87,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		return RequeueWithError(r.Log, err.Error(), err)
 	}
 
-	patchInstance := client.MergeFrom(instance.DeepCopy())
+	patchInstance := client.MergeFromWithOptions(instance.DeepCopy(), client.MergeFromWithOptimisticLock{})
 	// Get the last configuration viewed by the operator.
 	o, _ := patch.DefaultAnnotator.GetOriginalConfiguration(instance)
 	// Create it if not exist.
@@ -104,7 +104,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	// Check if the cluster reference changed.
 	original := &v1.NifiDataflow{}
 	current := instance.DeepCopy()
-	patchCurrent := client.MergeFrom(current.DeepCopy())
+	patchCurrent := client.MergeFromWithOptions(current.DeepCopy(), client.MergeFromWithOptimisticLock{})
 	json.Unmarshal(o, original)
 	if !v1.ClusterRefsEquals([]v1.ClusterReference{original.Spec.ClusterRef, instance.Spec.ClusterRef}) {
 		instance.Spec.ClusterRef = original.Spec.ClusterRef
@@ -604,7 +604,7 @@ func (r *NifiDataflowReconciler) updateAndFetchLatest(ctx context.Context,
 	flow *v1.NifiDataflow, patcher client.Patch) (*v1.NifiDataflow, error) {
 
 	typeMeta := flow.TypeMeta
-	err := r.Client.Update(ctx, flow)
+	err := r.Client.Patch(ctx, flow, patcher)
 	if err != nil {
 		return nil, err
 	}

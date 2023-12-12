@@ -87,6 +87,7 @@ func (r *NifiUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return RequeueWithError(r.Log, err.Error(), err)
 	}
 
+	patchInstance := client.MergeFromWithOptions(instance.DeepCopy(), client.MergeFromWithOptimisticLock{})
 	// Get the last configuration viewed by the operator.
 	o, _ := patch.DefaultAnnotator.GetOriginalConfiguration(instance)
 	// Create it if not exist.
@@ -94,7 +95,7 @@ func (r *NifiUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(instance); err != nil {
 			return RequeueWithError(r.Log, "could not apply last state to annotation for nifi user "+instance.Name, err)
 		}
-		if err := r.Client.Update(ctx, instance); err != nil {
+		if err := r.Client.Patch(ctx, instance, patchInstance); err != nil {
 			return RequeueWithError(r.Log, "failed to update NifiUser "+instance.Name, err)
 		}
 		o, _ = patch.DefaultAnnotator.GetOriginalConfiguration(instance)
@@ -103,6 +104,7 @@ func (r *NifiUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	// Check if the cluster reference changed.
 	original := &v1.NifiUser{}
 	current := instance.DeepCopy()
+	patchCurrent := client.MergeFromWithOptions(current.DeepCopy(), client.MergeFromWithOptimisticLock{})
 	json.Unmarshal(o, original)
 	if !v1.ClusterRefsEquals([]v1.ClusterReference{original.Spec.ClusterRef, instance.Spec.ClusterRef}) {
 		instance.Spec.ClusterRef = original.Spec.ClusterRef
@@ -124,7 +126,7 @@ func (r *NifiUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			r.Log.Error("Cluster is gone already, there is nothing we can do",
 				zap.String("user", instance.Name),
 				zap.String("clusterName", clusterRef.Name))
-			if err = r.removeFinalizer(ctx, instance); err != nil {
+			if err = r.removeFinalizer(ctx, instance, patchInstance); err != nil {
 				return RequeueWithError(r.Log, "failed to remove finalizer from NifiUser "+instance.Name, err)
 			}
 			return Reconciled()
@@ -135,7 +137,7 @@ func (r *NifiUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(current); err != nil {
 				return RequeueWithError(r.Log, "could not apply last state to annotation for user "+instance.Name, err)
 			}
-			if err := r.Client.Update(ctx, current); err != nil {
+			if err := r.Client.Patch(ctx, current, patchCurrent); err != nil {
 				return RequeueWithError(r.Log, "failed to update NifiUser "+instance.Name, err)
 			}
 			return RequeueAfter(interval)
@@ -155,7 +157,7 @@ func (r *NifiUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			r.Log.Error("Cluster is gone already, there is nothing we can do",
 				zap.String("user", instance.Name),
 				zap.String("clusterName", clusterRef.Name))
-			if err = r.removeFinalizer(ctx, instance); err != nil {
+			if err = r.removeFinalizer(ctx, instance, patchInstance); err != nil {
 				return RequeueWithError(r.Log, "failed to remove finalizer from NifiUser "+instance.Name, err)
 			}
 			return Reconciled()
@@ -247,7 +249,7 @@ func (r *NifiUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 				instance.Spec.ClusterRef.Name, clusterRef.Namespace))
 		// the cluster is gone, so just remove the finalizer
 		if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {
-			if err = r.removeFinalizer(ctx, instance); err != nil {
+			if err = r.removeFinalizer(ctx, instance, patchInstance); err != nil {
 				return RequeueWithError(r.Log, fmt.Sprintf("failed to remove finalizer from NifiUser %s", instance.Name), err)
 			}
 			return Reconciled()
@@ -258,7 +260,7 @@ func (r *NifiUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	// check if marked for deletion
 	if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {
-		return r.checkFinalizers(ctx, instance, clientConfig)
+		return r.checkFinalizers(ctx, instance, clientConfig, patchInstance)
 	}
 
 	// Ensure the cluster is ready to receive actions
@@ -286,7 +288,7 @@ func (r *NifiUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(current); err != nil {
 			return RequeueWithError(r.Log, "could not apply last state to annotation for user "+instance.Name, err)
 		}
-		if err := r.Client.Update(ctx, current); err != nil {
+		if err := r.Client.Patch(ctx, current, patchCurrent); err != nil {
 			return RequeueWithError(r.Log, "failed to update NifiUser "+instance.Name, err)
 		}
 		return RequeueAfter(interval)
@@ -345,20 +347,20 @@ func (r *NifiUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		fmt.Sprintf("Synchronized user %s", instance.Name))
 
 	// ensure a NifiCluster label
-	if instance, err = r.ensureClusterLabel(ctx, clusterConnect, instance); err != nil {
+	if instance, err = r.ensureClusterLabel(ctx, clusterConnect, instance, patchInstance); err != nil {
 		return RequeueWithError(r.Log, "failed to ensure NifiCluster label on user "+current.Name, err)
 	}
 
 	// ensure a finalizer for cleanup on deletion
 	if !util.StringSliceContains(instance.GetFinalizers(), userFinalizer) {
 		r.addFinalizer(instance)
-		if instance, err = r.updateAndFetchLatest(ctx, instance); err != nil {
+		if instance, err = r.updateAndFetchLatest(ctx, instance, patchInstance); err != nil {
 			return RequeueWithError(r.Log, "failed to update finalizer for NifiUser "+current.Name, err)
 		}
 	}
 
 	// Push any changes
-	if instance, err = r.updateAndFetchLatest(ctx, instance); err != nil {
+	if instance, err = r.updateAndFetchLatest(ctx, instance, patchInstance); err != nil {
 		return RequeueWithError(r.Log, "failed to update NifiUser "+current.Name, err)
 	}
 
@@ -389,18 +391,18 @@ func (r *NifiUserReconciler) SetupWithManager(mgr ctrl.Manager, certManagerEnabl
 	return builder.Complete(r)
 }
 
-func (r *NifiUserReconciler) ensureClusterLabel(ctx context.Context, cluster clientconfig.ClusterConnect, user *v1.NifiUser) (*v1.NifiUser, error) {
+func (r *NifiUserReconciler) ensureClusterLabel(ctx context.Context, cluster clientconfig.ClusterConnect, user *v1.NifiUser, patcher client.Patch) (*v1.NifiUser, error) {
 	labels := ApplyClusterReferenceLabel(cluster, user.GetLabels())
 	if !reflect.DeepEqual(labels, user.GetLabels()) {
 		user.SetLabels(labels)
-		return r.updateAndFetchLatest(ctx, user)
+		return r.updateAndFetchLatest(ctx, user, patcher)
 	}
 	return user, nil
 }
 
-func (r *NifiUserReconciler) updateAndFetchLatest(ctx context.Context, user *v1.NifiUser) (*v1.NifiUser, error) {
+func (r *NifiUserReconciler) updateAndFetchLatest(ctx context.Context, user *v1.NifiUser, patcher client.Patch) (*v1.NifiUser, error) {
 	typeMeta := user.TypeMeta
-	err := r.Client.Update(ctx, user)
+	err := r.Client.Patch(ctx, user, patcher)
 	if err != nil {
 		return nil, err
 	}
@@ -408,7 +410,7 @@ func (r *NifiUserReconciler) updateAndFetchLatest(ctx context.Context, user *v1.
 	return user, nil
 }
 
-func (r *NifiUserReconciler) checkFinalizers(ctx context.Context, user *v1.NifiUser, config *clientconfig.NifiConfig) (reconcile.Result, error) {
+func (r *NifiUserReconciler) checkFinalizers(ctx context.Context, user *v1.NifiUser, config *clientconfig.NifiConfig, patcher client.Patch) (reconcile.Result, error) {
 	r.Log.Info("NiFi user is marked for deletion. Removing finalizers.",
 		zap.String("user", user.Name))
 	var err error
@@ -417,18 +419,18 @@ func (r *NifiUserReconciler) checkFinalizers(ctx context.Context, user *v1.NifiU
 			return RequeueWithError(r.Log, "failed to finalize nifiuser "+user.Name, err)
 		}
 		// remove finalizer
-		if err = r.removeFinalizer(ctx, user); err != nil {
+		if err = r.removeFinalizer(ctx, user, patcher); err != nil {
 			return RequeueWithError(r.Log, "failed to remove finalizer from NifiUser "+user.Name, err)
 		}
 	}
 	return Reconciled()
 }
 
-func (r *NifiUserReconciler) removeFinalizer(ctx context.Context, user *v1.NifiUser) error {
+func (r *NifiUserReconciler) removeFinalizer(ctx context.Context, user *v1.NifiUser, patcher client.Patch) error {
 	r.Log.Debug("Removing finalizer for NifiUser",
 		zap.String("user", user.Name))
 	user.SetFinalizers(util.StringSliceRemove(user.GetFinalizers(), userFinalizer))
-	_, err := r.updateAndFetchLatest(ctx, user)
+	_, err := r.updateAndFetchLatest(ctx, user, patcher)
 	return err
 }
 
