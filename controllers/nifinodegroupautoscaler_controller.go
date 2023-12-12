@@ -89,7 +89,7 @@ func (r *NifiNodeGroupAutoscalerReconciler) Reconcile(ctx context.Context, req c
 		return RequeueWithError(r.Log, err.Error(), err)
 	}
 	current := nodeGroupAutoscaler.DeepCopy()
-	patchInstance := runtimeClient.MergeFrom(nodeGroupAutoscaler.DeepCopy())
+	patchInstance := runtimeClient.MergeFromWithOptions(nodeGroupAutoscaler.DeepCopy(), runtimeClient.MergeFromWithOptimisticLock{})
 
 	// Check if marked for deletion and run finalizers
 	if k8sutil.IsMarkedForDeletion(nodeGroupAutoscaler.ObjectMeta) {

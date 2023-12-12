@@ -94,7 +94,7 @@ func (r *NifiClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return RequeueWithError(r.Log, err.Error(), err)
 	}
 	current := instance.DeepCopy()
-	patchInstance := client.MergeFrom(instance.DeepCopy())
+	patchInstance := client.MergeFromWithOptions(instance.DeepCopy(), client.MergeFromWithOptimisticLock{})
 
 	// Check if marked for deletion and run finalizers
 	if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {
