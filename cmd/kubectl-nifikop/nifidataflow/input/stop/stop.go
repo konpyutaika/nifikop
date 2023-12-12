@@ -112,7 +112,7 @@ func (o *options) run(cmd *cobra.Command) error {
 	}
 
 	item.SetLabels(labels)
-	err = o.Client.Patch(context.TODO(), item, client.MergeFrom(itemOriginal))
+	err = o.Client.Patch(context.TODO(), item, client.MergeFromWithOptions(itemOriginal, client.MergeFromWithOptimisticLock{}))
 
 	if err != nil {
 		cmd.Println(fmt.Sprintf("Couldn't patch %s/%s: %v", item.GetNamespace(), item.GetName(), err))
