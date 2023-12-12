@@ -538,9 +538,11 @@ func (r *Reconciler) reconcileNifiPVC(log zap.Logger, desiredPVC *corev1.Persist
 			}
 			resReq := desiredPVC.Spec.Resources.Requests
 			labels := desiredPVC.Labels
+			annotations := desiredPVC.Annotations
 			desiredPVC = currentPVC.DeepCopy()
 			desiredPVC.Spec.Resources.Requests = resReq
 			desiredPVC.Labels = labels
+			desiredPVC.Annotations = annotations
 
 			if err := r.Client.Update(context.TODO(), desiredPVC); err != nil {
 				return errorfactory.New(errorfactory.APIFailure{}, err, "updating resource failed", "kind", desiredType)
