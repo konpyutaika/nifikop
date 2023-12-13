@@ -16,10 +16,10 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Switch to the archive mirror until we can get people to
 # switch to Stretch.
 RUN if grep -q Debian /etc/os-release && grep -q jessie /etc/os-release; then \
-	rm /etc/apt/sources.list \
-    && echo "deb http://archive.debian.org/debian/ jessie main" >> /etc/apt/sources.list \
-    && echo "deb http://security.debian.org/debian-security jessie/updates main" >> /etc/apt/sources.list \
-	; fi
+  rm /etc/apt/sources.list \
+  && echo "deb http://archive.debian.org/debian/ jessie main" >> /etc/apt/sources.list \
+  && echo "deb http://security.debian.org/debian-security jessie/updates main" >> /etc/apt/sources.list \
+  ; fi
 
 # Make sure PATH includes ~/.local/bin
 # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=839155
@@ -30,9 +30,9 @@ RUN echo 'PATH="$HOME/.local/bin:$PATH"' >> /etc/profile.d/user-local-path.sh
 RUN apt-get update \
   && mkdir -p /usr/share/man/man1 \
   && apt-get install -y \
-    git apt \
-    locales sudo openssh-client ca-certificates tar gzip \
-    net-tools netcat-traditional unzip zip bzip2 gnupg curl wget
+  git apt \
+  locales sudo openssh-client ca-certificates tar gzip \
+  net-tools netcat-traditional unzip zip bzip2 gnupg curl wget
 
 # Set timezone to UTC by default
 RUN ln -sf /usr/share/zoneinfo/Etc/UTC /etc/localtime
@@ -73,17 +73,18 @@ RUN curl -sSL https://github.com/gotestyourself/gotestsum/releases/download/v0.3
   tar -xz -C /usr/local/bin gotestsum
 
 # Install official golang CI linter
-RUN wget -O- -nv https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.49.0
+ARG GOLANGCI_VERSION
+RUN wget -O- -nv https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v${GOLANGCI_VERSION}
 
 # Install kubectl cli
 RUN curl -L https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl -o /usr/local/bin/kubectl  \
-    && chmod +x /usr/local/bin/kubectl
+  && chmod +x /usr/local/bin/kubectl
 
 # Install helm client
 RUN curl -L https://get.helm.sh/helm-v3.8.0-linux-amd64.tar.gz -o helm.tar.gz \
-    && tar zxf helm.tar.gz \
-    && mv linux-amd64/helm /usr/local/bin \
-    && rm -rf helm.tar.gz linux-amd64
+  && tar zxf helm.tar.gz \
+  && mv linux-amd64/helm /usr/local/bin \
+  && rm -rf helm.tar.gz linux-amd64
 
 WORKDIR /go/nifikop
 

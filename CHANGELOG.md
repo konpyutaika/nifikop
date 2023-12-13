@@ -3,8 +3,12 @@
 ### Added
 
 - [PR #325](https://github.com/konpyutaika/nifikop/pull/325) - **[Operator/NifiCluster]** Added ability to configure `ReclaimPolicy` for `StorageConfig` persistent volumes.
+- [PR #333](https://github.com/konpyutaika/nifikop/pull/333) - **[Operator]** Replace Update by Patch on K8S resource to avoid update race conditions.
 
 ### Changed
+
+- [PR #327](https://github.com/konpyutaika/nifikop/pull/327) - **[Documentation]** Update Nifikop vs Apache NiFi compatibility matrix documentation.
+- [PR #330](https://github.com/konpyutaika/nifikop/pull/330) - **[Operator]** Upgrade golang to 1.21.5.
 
 ### Fixed Bugs
 

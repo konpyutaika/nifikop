@@ -4,7 +4,7 @@ DOCKER_REGISTRY_BASE 	?= ghcr.io/konpyutaika/docker-images
 IMAGE_TAG				?= $(shell git describe --tags --abbrev=0 --match '[0-9].*[0-9].*[0-9]' 2>/dev/null)
 IMAGE_NAME 				?= $(SERVICE_NAME)
 BUILD_IMAGE				?= ghcr.io/konpyutaika/docker-images/nifikop-build
-GOLANG_VERSION          ?= 1.21.4
+GOLANG_VERSION          ?= 1.21.5
 IMAGE_TAG_BASE ?= <registry>/<operator name>
 OS = $(shell go env GOOS)
 ARCH = $(shell go env GOARCH)
@@ -24,11 +24,16 @@ $(LOCALBIN):
 KUSTOMIZE ?= $(LOCALBIN)/kustomize
 CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen
 ENVTEST ?= $(LOCALBIN)/setup-envtest
+GOLANGCI_LINT ?= $(LOCALBIN)/golangci-lint
 
 ## Tool Versions
 KUSTOMIZE_VERSION ?= v4.5.5
 CONTROLLER_TOOLS_VERSION ?= v0.9.2
 ENVTEST_K8S_VERSION = 1.26
+GOLANGCI_VERSION = 1.55.2
+
+# controls the exit code of linter in case of linting issues
+GOLANGCI_EXIT_CODE = 0
 
 DEV_DIR := docker/build-image
 
@@ -116,7 +121,7 @@ SHELL = /usr/bin/env bash -o pipefail
 
 # Build manager binary
 .PHONY: manager
-manager: manifests generate fmt vet
+manager: manifests generate fmt
 	go build -o bin/manager main.go
 
 # Generate code
@@ -144,21 +149,15 @@ controller-gen: $(CONTROLLER_GEN) ## Download controller-gen locally if necessar
 $(CONTROLLER_GEN): $(LOCALBIN)
 	test -s $(LOCALBIN)/controller-gen || GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-tools/cmd/controller-gen@$(CONTROLLER_TOOLS_VERSION)
 
+.PHONY: lint
+lint: golangci-lint
+	 $(GOLANGCI_LINT) run --issues-exit-code $(GOLANGCI_EXIT_CODE)
+
 # Run go fmt against code
 .PHONY: fmt
 fmt:
-	go fmt ./...
-
-# Run go vet against code
-.PHONY: vet
-vet:
-	go vet ./...
-
-# Run https://staticcheck.io against code
-.PHONY: staticcheck
-staticcheck:
-	go install honnef.co/go/tools/cmd/staticcheck@latest
-	staticcheck ./...
+	@go mod tidy
+	@go fmt ./...
 
 # RUN https://go.dev/blog/vuln against code for known CVEs
 .PHONY: govuln
@@ -169,16 +168,16 @@ govuln:
 # Run tests
 ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
 .PHONY: test
-test: manifests generate fmt vet staticcheck govuln envtest
+test: manifests generate fmt lint govuln envtest
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(LOCALBIN) -p path)" go test ./... -coverprofile cover.out
 
 .PHONY: test-with-vendor
-test-with-vendor: manifests generate fmt vet staticcheck govuln envtest
+test-with-vendor: manifests generate fmt lint govuln envtest
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(LOCALBIN) -p path)" go test -mod=vendor ./... -coverprofile cover.out
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
 .PHONY: run
-run: generate fmt vet manifests
+run: generate fmt manifests
 	go run ./main.go
 
 ifndef ignore-not-found
@@ -338,6 +337,7 @@ debug-telepresence-with-alias:
 build-ci-image:
 	docker build --cache-from $(BUILD_IMAGE):latest \
 	  --build-arg GOLANG_VERSION=$(GOLANG_VERSION) \
+	  --build-arg GOLANGCI_VERSION=$(GOLANGCI_VERSION) \
 		-t $(BUILD_IMAGE):latest \
 		-t $(BUILD_IMAGE):$(GOLANG_VERSION) \
 		-f $(DEV_DIR)/Dockerfile \
@@ -401,3 +401,10 @@ catalog-push: ## Push a catalog image.
 .PHONY: kubectl-nifikop
 kubectl-nifikop:
 	go build -o bin/kubectl-nifikop ./cmd/kubectl-nifikop/main.go
+
+.PHONY: golangci-lint
+.PHONY: $(GOLANGCI_LINT)
+golangci-lint: $(GOLANGCI_LINT) ## Download golangci-lint locally if necessary.
+$(GOLANGCI_LINT): $(LOCALBIN)
+	test -s $(LOCALBIN)/golangci-lint && $(LOCALBIN)/golangci-lint version --format short | grep -q $(GOLANGCI_VERSION) || \
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(LOCALBIN) v$(GOLANGCI_VERSION)
