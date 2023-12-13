@@ -83,6 +83,7 @@ func (r *NifiParameterContextReconciler) Reconcile(ctx context.Context, req ctrl
 		return RequeueWithError(r.Log, err.Error(), err)
 	}
 
+	patchInstance := client.MergeFromWithOptions(instance.DeepCopy(), client.MergeFromWithOptimisticLock{})
 	// Get the last configuration viewed by the operator.
 	o, _ := patch.DefaultAnnotator.GetOriginalConfiguration(instance)
 	// Create it if not exist.
@@ -90,7 +91,7 @@ func (r *NifiParameterContextReconciler) Reconcile(ctx context.Context, req ctrl
 		if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(instance); err != nil {
 			return RequeueWithError(r.Log, "could not apply last state to annotation for parameter context "+instance.Name, err)
 		}
-		if err := r.Client.Update(ctx, instance); err != nil {
+		if err := r.Client.Patch(ctx, instance, patchInstance); err != nil {
 			return RequeueWithError(r.Log, "failed to update NifiParameterContext "+instance.Name, err)
 		}
 		o, _ = patch.DefaultAnnotator.GetOriginalConfiguration(instance)
@@ -99,6 +100,7 @@ func (r *NifiParameterContextReconciler) Reconcile(ctx context.Context, req ctrl
 	// Check if the cluster reference changed.
 	original := &v1.NifiParameterContext{}
 	current := instance.DeepCopy()
+	patchCurrent := client.MergeFromWithOptions(current.DeepCopy(), client.MergeFromWithOptimisticLock{})
 	json.Unmarshal(o, original)
 	if !v1.ClusterRefsEquals([]v1.ClusterReference{original.Spec.ClusterRef, instance.Spec.ClusterRef}) {
 		instance.Spec.ClusterRef = original.Spec.ClusterRef
@@ -116,7 +118,7 @@ func (r *NifiParameterContextReconciler) Reconcile(ctx context.Context, req ctrl
 					zap.String("secretName", parameterSecret.Name),
 					zap.String("secretNamespace", parameterSecret.Namespace),
 					zap.String("parameterContext", instance.Name))
-				if err = r.removeFinalizer(ctx, instance); err != nil {
+				if err = r.removeFinalizer(ctx, instance, patchInstance); err != nil {
 					return RequeueWithError(r.Log, "failed to remove finalizer for parameter context "+instance.Name, err)
 				}
 				return Reconciled()
@@ -137,7 +139,7 @@ func (r *NifiParameterContextReconciler) Reconcile(ctx context.Context, req ctrl
 			// This shouldn't trigger anymore, but leaving it here as a safetybelt
 			if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {
 				r.Log.Info("Secret is already gone, there is nothing we can do")
-				if err = r.removeFinalizer(ctx, instance); err != nil {
+				if err = r.removeFinalizer(ctx, instance, patchInstance); err != nil {
 					return RequeueWithError(r.Log, "failed to remove finalizer", err)
 				}
 				return Reconciled()
@@ -165,7 +167,7 @@ func (r *NifiParameterContextReconciler) Reconcile(ctx context.Context, req ctrl
 			r.Log.Error("Cluster is already gone, there is nothing we can do",
 				zap.String("clusterName", clusterRef.Name),
 				zap.String("parameterContext", instance.Name))
-			if err = r.removeFinalizer(ctx, instance); err != nil {
+			if err = r.removeFinalizer(ctx, instance, patchInstance); err != nil {
 				return RequeueWithError(r.Log, "failed to remove finalizer for parameter context "+instance.Name, err)
 			}
 			return Reconciled()
@@ -175,7 +177,7 @@ func (r *NifiParameterContextReconciler) Reconcile(ctx context.Context, req ctrl
 			if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(current); err != nil {
 				return RequeueWithError(r.Log, "could not apply last state to annotation for parameter context "+instance.Name, err)
 			}
-			if err := r.Client.Update(ctx, current); err != nil {
+			if err := r.Client.Patch(ctx, current, patchCurrent); err != nil {
 				return RequeueWithError(r.Log, "failed to update NifiParameterContext "+instance.Name, err)
 			}
 			return RequeueAfter(interval)
@@ -197,7 +199,7 @@ func (r *NifiParameterContextReconciler) Reconcile(ctx context.Context, req ctrl
 				instance.Name, instance.Spec.ClusterRef.Name, clusterRef.Namespace))
 		// the cluster is gone, so just remove the finalizer
 		if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {
-			if err = r.removeFinalizer(ctx, instance); err != nil {
+			if err = r.removeFinalizer(ctx, instance, patchInstance); err != nil {
 				return RequeueWithError(r.Log, fmt.Sprintf("failed to remove finalizer from NifiParameterContext %s", instance.Name), err)
 			}
 			return Reconciled()
@@ -208,7 +210,7 @@ func (r *NifiParameterContextReconciler) Reconcile(ctx context.Context, req ctrl
 
 	// Check if marked for deletion and if so run finalizers
 	if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {
-		return r.checkFinalizers(ctx, instance, parameterSecrets, parameterContextRefs, clientConfig)
+		return r.checkFinalizers(ctx, instance, parameterSecrets, parameterContextRefs, clientConfig, patchInstance)
 	}
 
 	// Ensure the cluster is ready to receive actions
@@ -237,7 +239,7 @@ func (r *NifiParameterContextReconciler) Reconcile(ctx context.Context, req ctrl
 		if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(current); err != nil {
 			return RequeueWithError(r.Log, "could not apply last state to annotation for parameter context "+instance.Name, err)
 		}
-		if err := r.Client.Update(ctx, current); err != nil {
+		if err := r.Client.Patch(ctx, current, patchCurrent); err != nil {
 			return RequeueWithError(r.Log, "failed to update NifiParameterContext "+instance.Name, err)
 		}
 		return RequeueAfter(interval)
@@ -315,7 +317,7 @@ func (r *NifiParameterContextReconciler) Reconcile(ctx context.Context, req ctrl
 		fmt.Sprintf("Synchronized parameter context %s", instance.Name))
 
 	// Ensure NifiCluster label
-	if instance, err = r.ensureClusterLabel(ctx, clusterConnect, instance); err != nil {
+	if instance, err = r.ensureClusterLabel(ctx, clusterConnect, instance, patchInstance); err != nil {
 		return RequeueWithError(r.Log, "failed to ensure NifiCluster label on parameter context "+current.Name, err)
 	}
 
@@ -327,7 +329,7 @@ func (r *NifiParameterContextReconciler) Reconcile(ctx context.Context, req ctrl
 	}
 
 	// Push any changes
-	if instance, err = r.updateAndFetchLatest(ctx, instance); err != nil {
+	if instance, err = r.updateAndFetchLatest(ctx, instance, patchInstance); err != nil {
 		return RequeueWithError(r.Log, "failed to update NifiParameterContext "+current.Name, err)
 	}
 
@@ -353,21 +355,21 @@ func (r *NifiParameterContextReconciler) SetupWithManager(mgr ctrl.Manager) erro
 }
 
 func (r *NifiParameterContextReconciler) ensureClusterLabel(ctx context.Context, cluster clientconfig.ClusterConnect,
-	parameterContext *v1.NifiParameterContext) (*v1.NifiParameterContext, error) {
+	parameterContext *v1.NifiParameterContext, patcher client.Patch) (*v1.NifiParameterContext, error) {
 
 	labels := ApplyClusterReferenceLabel(cluster, parameterContext.GetLabels())
 	if !reflect.DeepEqual(labels, parameterContext.GetLabels()) {
 		parameterContext.SetLabels(labels)
-		return r.updateAndFetchLatest(ctx, parameterContext)
+		return r.updateAndFetchLatest(ctx, parameterContext, patcher)
 	}
 	return parameterContext, nil
 }
 
 func (r *NifiParameterContextReconciler) updateAndFetchLatest(ctx context.Context,
-	parameterContext *v1.NifiParameterContext) (*v1.NifiParameterContext, error) {
+	parameterContext *v1.NifiParameterContext, patcher client.Patch) (*v1.NifiParameterContext, error) {
 
 	typeMeta := parameterContext.TypeMeta
-	err := r.Client.Update(ctx, parameterContext)
+	err := r.Client.Patch(ctx, parameterContext, patcher)
 	if err != nil {
 		return nil, err
 	}
@@ -380,7 +382,8 @@ func (r *NifiParameterContextReconciler) checkFinalizers(
 	parameterContext *v1.NifiParameterContext,
 	parameterSecrets []*corev1.Secret,
 	parameterContextRefs []*v1.NifiParameterContext,
-	config *clientconfig.NifiConfig) (reconcile.Result, error) {
+	config *clientconfig.NifiConfig,
+	patcher client.Patch) (reconcile.Result, error) {
 	r.Log.Info("NiFi parameter context is marked for deletion. Removing finalizers.",
 		zap.String("parameterContext", parameterContext.Name))
 	var err error
@@ -388,18 +391,18 @@ func (r *NifiParameterContextReconciler) checkFinalizers(
 		if err = r.finalizeNifiParameterContext(parameterContext, parameterSecrets, parameterContextRefs, config); err != nil {
 			return RequeueWithError(r.Log, "failed to finalize parameter context "+parameterContext.Name, err)
 		}
-		if err = r.removeFinalizer(ctx, parameterContext); err != nil {
+		if err = r.removeFinalizer(ctx, parameterContext, patcher); err != nil {
 			return RequeueWithError(r.Log, "failed to remove finalizer from parameter context "+parameterContext.Name, err)
 		}
 	}
 	return Reconciled()
 }
 
-func (r *NifiParameterContextReconciler) removeFinalizer(ctx context.Context, paramCtxt *v1.NifiParameterContext) error {
+func (r *NifiParameterContextReconciler) removeFinalizer(ctx context.Context, paramCtxt *v1.NifiParameterContext, patcher client.Patch) error {
 	r.Log.Debug("Removing finalizer for NifiParameterContext",
 		zap.String("paramaterContext", paramCtxt.Name))
 	paramCtxt.SetFinalizers(util.StringSliceRemove(paramCtxt.GetFinalizers(), parameterContextFinalizer))
-	_, err := r.updateAndFetchLatest(ctx, paramCtxt)
+	_, err := r.updateAndFetchLatest(ctx, paramCtxt, patcher)
 	return err
 }
 
