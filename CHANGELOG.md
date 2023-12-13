@@ -2,7 +2,7 @@
 
 ### Added
 
-- [PR #335](https://github.com/konpyutaika/nifikop/pull/335) - **[Operator/NifiCluster]** Added ability to set port protocol for external services via `ExternalServiceConfig`.
+- [PR #335](https://github.com/konpyutaika/nifikop/pull/335) - **[Operator/NifiCluster]** Added ability to set port protocol and load balancer class for external services via `ExternalServiceConfig`.
 - [PR #333](https://github.com/konpyutaika/nifikop/pull/333) - **[Operator]** Replace Update by Patch on K8S resource to avoid update race conditions.
 
 ### Changed
