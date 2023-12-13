@@ -43,6 +43,7 @@ Field|Type|Description|Required|Default|
 |loadBalancerIP|string| Only applies to Service Type: LoadBalancer. LoadBalancer will get created with the IP specified in this field. | No | - |
 |loadBalancerSourceRanges|\[  \]string| If specified and supported by the platform, this will restrict traffic through the cloud-provider load-balancer will be restricted to the specified client IPs | No | - |
 |externalName|string| externalName is the external reference that kubedns or equivalent will return as a CNAME record for this service. No proxying will be involved. | No | - |
+|loadBalancerClass|string| loadBalancerClass is the class of the load balancer implementation this Service belongs to. | No | - |
 
 ## PortConfig
 
