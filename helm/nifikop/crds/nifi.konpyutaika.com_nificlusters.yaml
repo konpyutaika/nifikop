@@ -70,6 +70,8 @@ spec:
                           type: array
                         externalName:
                           type: string
+                        loadBalancerClass:
+                          type: string
                         loadBalancerIP:
                           type: string
                         loadBalancerSourceRanges:

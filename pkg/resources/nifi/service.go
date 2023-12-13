@@ -72,6 +72,7 @@ func (r *Reconciler) externalServices(log zap.Logger) []runtimeClient.Object {
 				LoadBalancerIP:           eService.Spec.LoadBalancerIP,
 				LoadBalancerSourceRanges: eService.Spec.LoadBalancerSourceRanges,
 				ExternalName:             eService.Spec.ExternalName,
+				LoadBalancerClass:        eService.Spec.LoadBalancerClass,
 			},
 		})
 	}
