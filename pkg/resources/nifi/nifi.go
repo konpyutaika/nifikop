@@ -558,10 +558,11 @@ func (r *Reconciler) reconcileNifiPVC(nodeId int32, log zap.Logger, desiredPVC *
 			}
 			resReq := desiredPVC.Spec.Resources.Requests
 			labels := desiredPVC.Labels
+			annotations := desiredPVC.Annotations
 			desiredPVC = currentPVC.DeepCopy()
 			desiredPVC.Spec.Resources.Requests = resReq
 			desiredPVC.Labels = labels
-			// we set the owner references here because they can be removed if a PVC was ever configured to be retained.
+			desiredPVC.Annotations = annotations
 			desiredPVC.SetOwnerReferences([]metav1.OwnerReference{templates.ClusterOwnerReference(r.NifiCluster)})
 
 			if err := r.Client.Update(context.TODO(), desiredPVC); err != nil {
