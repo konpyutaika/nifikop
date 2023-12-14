@@ -8,6 +8,7 @@
 
 - [PR #327](https://github.com/konpyutaika/nifikop/pull/327) - **[Documentation]** Update Nifikop vs Apache NiFi compatibility matrix documentation.
 - [PR #330](https://github.com/konpyutaika/nifikop/pull/330) - **[Operator]** Upgrade golang to 1.21.5.
+- [PR #337](https://github.com/konpyutaika/nifikop/pull/337) - **[NiGoApi]** Upgrade NiGoApi to v0.0.10.
 
 ### Fixed Bugs
 
