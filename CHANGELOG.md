@@ -11,6 +11,8 @@
 
 ### Fixed Bugs
 
+- [PR #336](https://github.com/konpyutaika/nifikop/pull/336) - **[Operator/NifiCluster]** Fixed issue where nifikop wouldn't update `storageConfigs.metadata.annotations` if they were changed after initial creation. 
+
 ### Deprecated
 
 ### Removed
