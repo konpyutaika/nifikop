@@ -188,7 +188,7 @@ func externalServicesEqual(es1 []ExternalServiceConfig, es2 []v1.ExternalService
 		}
 		for j, pc := range es.Spec.PortConfigs {
 			if pc.InternalListenerName != es2[i].Spec.PortConfigs[j].InternalListenerName ||
-				pc.Port != es2[i].Spec.PortConfigs[j].Port {
+				pc.Port != es2[i].Spec.PortConfigs[j].Port || es2[i].Spec.PortConfigs[j].Protocol != corev1.ProtocolTCP {
 				return false
 			}
 		}

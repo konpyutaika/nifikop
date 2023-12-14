@@ -4,7 +4,7 @@ title: External Service Config
 sidebar_label: External Service Config
 ---
 
-ListenersConfig defines the Nifi listener types :
+ListenersConfig defines the Nifi listener types:
 
 ```yaml
   externalServices:
@@ -14,6 +14,30 @@ ListenersConfig defines the Nifi listener types :
         portConfigs:
           - port: 8080
             internalListenerName: "http"
+          - port: 7182
+            internalListenerName: "my-custom-listener"
+            protocol: TCP
+      metadata:
+        annotations:
+          toto: tata
+        labels:
+          titi: tutu
+```
+
+Load balancer example:
+
+```yaml
+externalServices:
+    - name: "nlb"
+      spec:
+        type: LoadBalancer
+        loadBalancerClass: "service.k8s.aws/nlb"
+        portConfigs:
+          - port: 8080
+            internalListenerName: "http"
+          - port: 7890
+            internalListenerName: "my-custom-udp-listener"
+            protocol: UDP
       metadata:
         annotations:
           toto: tata
@@ -40,6 +64,7 @@ Field|Type|Description|Required|Default|
 |loadBalancerIP|string| Only applies to Service Type: LoadBalancer. LoadBalancer will get created with the IP specified in this field. | No | - |
 |loadBalancerSourceRanges|\[  \]string| If specified and supported by the platform, this will restrict traffic through the cloud-provider load-balancer will be restricted to the specified client IPs | No | - |
 |externalName|string| externalName is the external reference that kubedns or equivalent will return as a CNAME record for this service. No proxying will be involved. | No | - |
+|loadBalancerClass|string| loadBalancerClass is the class of the load balancer implementation this Service belongs to. | No | - |
 
 ## PortConfig
 
@@ -48,6 +73,7 @@ Field|Type|Description|Required|Default|
 |port|int32| The port that will be exposed by this service. | Yes | - |
 |internalListenerName|string| The name of the listener which will be used as target container. | Yes | - |
 |nodePort|int32| The port that will expose this service externally. (Only if the service is of type NodePort) | No | - |
+|protocol|[Protocol](https://pkg.go.dev/k8s.io/api/core/v1#Protocol)| the network protocol for this service port. Must be one of the protocol enum values (i.e. TCP, UDP, SCTP).  | No | `TCP` |
 
 ## Metadata
 
