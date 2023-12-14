@@ -24,6 +24,27 @@ ListenersConfig defines the Nifi listener types :
           titi: tutu
 ```
 
+Load balancer example :
+
+```yaml
+externalServices:
+    - name: "nlb"
+      spec:
+        type: LoadBalancer
+        loadBalancerClass: "service.k8s.aws/nlb"
+        portConfigs:
+          - port: 8080
+            internalListenerName: "http"
+          - port: 7890
+            internalListenerName: "my-custom-udp-listener"
+            protocol: UDP
+      metadata:
+        annotations:
+          toto: tata
+        labels:
+          titi: tutu
+```
+
 ## ExternalServiceConfig
 
 |Field|Type|Description|Required|Default|
