@@ -123,6 +123,7 @@ Here is an example we use in production for to persist data:
 storageConfigs:
   - mountPath: /opt/nifi/nifi-current/logs
     name: logs
+    reclaimPolicy: Delete
     metadata:
       labels:
         my-label: my-value
@@ -137,6 +138,7 @@ storageConfigs:
       storageClassName: ssd-wait
   - mountPath: /opt/nifi/data
     name: data
+    reclaimPolicy: Delete
     metadata:
       labels:
         my-label: my-value
@@ -151,6 +153,7 @@ storageConfigs:
       storageClassName: ssd-wait
   - mountPath: /opt/nifi/extensions
     name: extensions-repository
+    reclaimPolicy: Delete
     metadata:
       labels:
         my-label: my-value
@@ -165,6 +168,7 @@ storageConfigs:
       storageClassName: ssd-wait
   - mountPath: /opt/nifi/flowfile_repository
     name: flowfile-repository
+    reclaimPolicy: Delete
     metadata:
       labels:
         my-label: my-value
@@ -179,6 +183,7 @@ storageConfigs:
       storageClassName: ssd-wait
   - mountPath: /opt/nifi/nifi-current/conf
     name: conf
+    reclaimPolicy: Delete
     metadata:
       labels:
         my-label: my-value
@@ -193,6 +198,7 @@ storageConfigs:
       storageClassName: ssd-wait
   - mountPath: /opt/nifi/content_repository
     name: content-repository
+    reclaimPolicy: Delete
     metadata:
       labels:
         my-label: my-value
@@ -207,6 +213,7 @@ storageConfigs:
       storageClassName: ssd-wait
   - mountPath: /opt/nifi/provenance_repository
     name: provenance-repository
+    reclaimPolicy: Delete
     metadata:
       labels:
         my-label: my-value

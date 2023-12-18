@@ -373,7 +373,17 @@ type StorageConfig struct {
 	// Path where the volume will be mount into the main nifi container inside the pod.
 	MountPath string `json:"mountPath"`
 	// labels and annotations to attach to the PVC created
+	// +optional
 	Metadata Metadata `json:"metadata,omitempty"`
+	// Whether or not to delete this PVC when the NifiCluster is deleted. If Retain, then the PVC is retained
+	// when the NifiCluster is deleted. If the NifiCluster is recreated, then the previously created PVCs
+	// will be reused. They will be re-attached to the same nodes they were attached to previously.
+	// If the node the PVC was attached to is no longer present, it will not be re-attached to any pod
+	// and is effectively orphaned.
+	// +optional
+	// +kubebuilder:default=Delete
+	// +kubebuilder:validation:Enum={"Delete","Retain"}
+	ReclaimPolicy corev1.PersistentVolumeReclaimPolicy `json:"reclaimPolicy,omitempty"`
 	// Kubernetes PVC spec
 	PVCSpec *corev1.PersistentVolumeClaimSpec `json:"pvcSpec"`
 }

@@ -1850,6 +1850,12 @@ spec:
                               volumeName:
                                 type: string
                             type: object
+                          reclaimPolicy:
+                            default: Delete
+                            enum:
+                            - Delete
+                            - Retain
+                            type: string
                         required:
                         - mountPath
                         - name
@@ -2905,6 +2911,12 @@ spec:
                                   volumeName:
                                     type: string
                                 type: object
+                              reclaimPolicy:
+                                default: Delete
+                                enum:
+                                - Delete
+                                - Retain
+                                type: string
                             required:
                             - mountPath
                             - name

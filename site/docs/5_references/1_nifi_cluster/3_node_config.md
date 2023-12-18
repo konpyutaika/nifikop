@@ -43,6 +43,8 @@ NodeConfig defines the node configuration
       storageConfigs:
         # Name of the storage config, used to name PV to reuse into sidecars for example.
         - name: provenance-repository
+          # Retain this PVC throughout NifiCluster deletions.
+          reclaimPolicy: Retain
           # Path where the volume will be mount into the main nifi container inside the pod.
           mountPath: "/opt/nifi/provenance_repository"
           # Metadata to attach to the PVC that gets created
@@ -62,6 +64,7 @@ NodeConfig defines the node configuration
                 storage: 10Gi
         - mountPath: "/opt/nifi/nifi-current/logs"
           name: logs
+          reclaimPolicy: Delete
           pvcSpec:
             accessModes:
               - ReadWriteOnce
@@ -99,6 +102,7 @@ NodeConfig defines the node configuration
 |-----|----|-----------|--------|--------|
 |name|string|Name of the storage config, used to name PV to reuse into sidecars for example.|Yes| - |
 |mountPath|string|Path where the volume will be mount into the main nifi container inside the pod.|Yes| - |
+|reclaimPolicy|[PersistentVolumeReclaimPolicy](https://pkg.go.dev/k8s.io/api/core/v1#PersistentVolumeReclaimPolicy)|The PVC reclaim policy. Must be one of {Delete, Retain}. Recycle is not supported. If Retain, the PVC is not deleted when the `NifiCluster` is deleted and it will be re-attached to only the node it was previously attached to when the `NifiCluster` is recreated. |No| Delete |
 |metadata|[Metadata](#metadata)|Define additional metadata to merge to the PVC associated.|No| - |
 |pvcSpec|[PersistentVolumeClaimSpec](https://godoc.org/k8s.io/api/core/v1#PersistentVolumeClaimSpec)|Kubernetes PVC spec. [create-a-persistentvolumeclaim](https://kubernetes.io/docs/tasks/configure-pod-container/configure-persistent-volume-storage/#create-a-persistentvolumeclaim).|Yes| - |
 

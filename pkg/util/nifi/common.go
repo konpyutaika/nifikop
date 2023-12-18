@@ -19,7 +19,8 @@ const (
 )
 
 var (
-	NifiDataVolumeMountKey = fmt.Sprintf("%s/nifi-data", v1.GroupVersion.Group)
+	NifiDataVolumeMountKey     = fmt.Sprintf("%s/nifi-data", v1.GroupVersion.Group)
+	NifiVolumeReclaimPolicyKey = fmt.Sprintf("%s/nifi-volume-reclaim-policy", v1.GroupVersion.Group)
 )
 
 var (
