@@ -2,6 +2,18 @@
 
 ### Added
 
+### Changed
+
+### Fixed Bugs
+
+### Deprecated
+
+### Removed
+
+## v1.6.0
+
+### Added
+
 - [PR #325](https://github.com/konpyutaika/nifikop/pull/325) - **[Operator/NifiCluster]** Added ability to configure `ReclaimPolicy` for `StorageConfig` persistent volumes.
 - [PR #335](https://github.com/konpyutaika/nifikop/pull/335) - **[Operator/NifiCluster]** Added ability to set port protocol and load balancer class for external services via `ExternalServiceConfig`.
 - [PR #333](https://github.com/konpyutaika/nifikop/pull/333) - **[Operator]** Replace Update by Patch on K8S resource to avoid update race conditions.
@@ -14,11 +26,7 @@
 
 ### Fixed Bugs
 
-- [PR #336](https://github.com/konpyutaika/nifikop/pull/336) - **[Operator/NifiCluster]** Fixed issue where nifikop wouldn't update `storageConfigs.metadata.annotations` if they were changed after initial creation. 
-
-### Deprecated
-
-### Removed
+- [PR #336](https://github.com/konpyutaika/nifikop/pull/336) - **[Operator/NifiCluster]** Fixed issue where nifikop wouldn't update `storageConfigs.metadata.annotations` if they were changed after initial creation.
 
 ## v1.5.0
 
