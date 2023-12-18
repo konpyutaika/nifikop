@@ -113,9 +113,9 @@ spec:
 |loadBalanceStrategy|[ConnectionLoadBalanceStrategy](#connectionloadbalancestrategy)|how to load balance the data in this Connection across the nodes in the cluster.|No| DO_NOT_LOAD_BALANCE |
 |loadBalancePartitionAttribute|string|the FlowFile Attribute to use for determining which node a FlowFile will go to.|No| - |
 |loadBalanceCompression|[ConnectionLoadBalanceCompression](#connectionloadbalancecompression)|whether or not data should be compressed when being transferred between nodes in the cluster.|No| DO_NOT_COMPRESS |
-|prioritizers|\[ \][ConnectionPrioritizer](#connectionprioritizer)|the comparators used to prioritize the queue.|No| - |
+|prioritizers|\[&nbsp;\][ConnectionPrioritizer](#connectionprioritizer)|the comparators used to prioritize the queue.|No| - |
 |labelIndex|*int32|the index of the bend point where to place the connection label.|No| - |
-|bends|\[ \][ConnectionBend](#connectionbend)|the bend points on the connection.|No| - |
+|bends|\[&nbsp;\][ConnectionBend](#connectionbend)|the bend points on the connection.|No| - |
 
 ## ConnectionLoadBalanceStrategy
 

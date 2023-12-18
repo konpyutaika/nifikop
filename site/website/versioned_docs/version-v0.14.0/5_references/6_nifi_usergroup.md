@@ -36,8 +36,8 @@ spec:
 |Field|Type|Description|Required|Default|
 |-----|----|-----------|--------|--------|
 |clusterRef|[ClusterReference](./2_nifi_user.md#clusterreference)|  contains the reference to the NifiCluster with the one the user is linked. |Yes| - |
-|usersRef|\[ \][UserReference](#userref)| contains the list of reference to NifiUsers that are part to the group. |No| [] |
-|accessPolicies|\[ \][AccessPolicy](./2_nifi_user.md#accesspolicy)| defines the list of access policies that will be granted to the group. |No| [] |
+|usersRef|\[&nbsp;\][UserReference](#userref)| contains the list of reference to NifiUsers that are part to the group. |No| [] |
+|accessPolicies|\[&nbsp;\][AccessPolicy](./2_nifi_user.md#accesspolicy)| defines the list of access policies that will be granted to the group. |No| [] |
 
 ## NifiUserGroupStatus
 

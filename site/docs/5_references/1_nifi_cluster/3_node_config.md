@@ -85,15 +85,15 @@ NodeConfig defines the node configuration
 | image                 | string                                                                                       | Docker image used by the operator to create the node associated. [Nifi docker registry](https://hub.docker.com/r/apache/nifi/)|No|""|
 | imagePullPolicy       | [PullPolicy](https://godoc.org/k8s.io/api/core/v1#PullPolicy)                                | define the pull policy for NiFi cluster docker image.)|No|""|
 | nodeAffinity          | string                                                                                       | operator populates this value if new pvc added later to node [node-affinity](https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#node-affinity)|No|nil|
-| storageConfigs        | \[  \][StorageConfig](#storageconfig)                                                        |specifies the node related configs.|No|nil|
-| externalVolumeConfigs | \[  \][ExternalVolumeConfig](#externalvolumeconfig)                                          |specifies a list of volume to mount into the main container.|No|nil|
+| storageConfigs        | \[&nbsp;\][StorageConfig](#storageconfig)                                                        |specifies the node related configs.|No|nil|
+| externalVolumeConfigs | \[&nbsp;\][ExternalVolumeConfig](#externalvolumeconfig)                                          |specifies a list of volume to mount into the main container.|No|nil|
 | serviceAccountName    | string                                                                                       |specifies the serviceAccount used for this specific node.|No|"default"|
 | resourcesRequirements | [ResourceRequirements](https://godoc.org/k8s.io/api/core/v1#ResourceRequirements)            | works exactly like Container resources, the user can specify the limit and the requests through this property [manage-compute-resources-container](https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/).|No|nil|
-| imagePullSecrets      | \[  \][LocalObjectReference](https://godoc.org/k8s.io/api/core/v1#TypedLocalObjectReference) |specifies the secret to use when using private registry.|No|nil|
+| imagePullSecrets      | \[&nbsp;\][LocalObjectReference](https://godoc.org/k8s.io/api/core/v1#TypedLocalObjectReference) |specifies the secret to use when using private registry.|No|nil|
 | nodeSelector          | map\[string\]string                                                                          |nodeSelector can be specified, which set the pod to fit on a node [nodeselector](https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#nodeselector)|No|nil|
-| tolerations           | \[  \][Toleration](https://godoc.org/k8s.io/api/core/v1#Toleration)                          |tolerations can be specified, which set the pod's tolerations [taint-and-toleration](https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/#concepts).|No|nil|
+| tolerations           | \[&nbsp;\][Toleration](https://godoc.org/k8s.io/api/core/v1#Toleration)                          |tolerations can be specified, which set the pod's tolerations [taint-and-toleration](https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/#concepts).|No|nil|
 | podMetadata           | [Metadata](#metadata)                                                                        |define additionnal metadata to merge to the Pod associated.|No|nil|
-| hostAliases      | \[\][HostAlias](https://pkg.go.dev/k8s.io/api/core/v1#HostAlias) | A list of host aliases to include in each pod's /etc/hosts configuration in the scenario where DNS is not available.           | No       | \[\]       |
+| hostAliases      | \[&nbsp;\][HostAlias](https://pkg.go.dev/k8s.io/api/core/v1#HostAlias) | A list of host aliases to include in each pod's /etc/hosts configuration in the scenario where DNS is not available.           | No       | \[&nbsp;\]       |
 | priorityClassName     | string                                                                                       | Specify the name of the priority class to apply to pods created with this node config | No | nil|
 
 ## StorageConfig
@@ -102,7 +102,7 @@ NodeConfig defines the node configuration
 |-----|----|-----------|--------|--------|
 |name|string|Name of the storage config, used to name PV to reuse into sidecars for example.|Yes| - |
 |mountPath|string|Path where the volume will be mount into the main nifi container inside the pod.|Yes| - |
-|reclaimPolicy|[PersistentVolumeReclaimPolicy](https://pkg.go.dev/k8s.io/api/core/v1#PersistentVolumeReclaimPolicy)|The PVC reclaim policy. Must be one of {Delete, Retain}. Recycle is not supported. If Retain, the PVC is not deleted when the `NifiCluster` is deleted and it will be re-attached to only the node it was previously attached to when the `NifiCluster` is recreated. |No| Delete |
+|reclaimPolicy|[PersistentVolumeReclaimPolicy](https://pkg.go.dev/k8s.io/api/core/v1#PersistentVolumeReclaimPolicy)|The PVC reclaim policy. Must be one of \{Delete, Retain\}. Recycle is not supported. If Retain, the PVC is not deleted when the `NifiCluster` is deleted and it will be re-attached to only the node it was previously attached to when the `NifiCluster` is recreated. |No| Delete |
 |metadata|[Metadata](#metadata)|Define additional metadata to merge to the PVC associated.|No| - |
 |pvcSpec|[PersistentVolumeClaimSpec](https://godoc.org/k8s.io/api/core/v1#PersistentVolumeClaimSpec)|Kubernetes PVC spec. [create-a-persistentvolumeclaim](https://kubernetes.io/docs/tasks/configure-pod-container/configure-persistent-volume-storage/#create-a-persistentvolumeclaim).|Yes| - |
 
