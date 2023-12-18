@@ -1,18 +1,17 @@
 package outputport
 
 import (
-	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
+	nigoapi "github.com/konpyutaika/nigoapi/pkg/nifi"
 
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers"
 	"github.com/konpyutaika/nifikop/pkg/common"
-	nigoapi "github.com/konpyutaika/nigoapi/pkg/nifi"
+	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
 )
 
 var log = common.CustomLogger().Named("outputport-method")
 
-// StopPort will the port on NiFi
+// StopPort will the port on NiFi.
 func StopPort(port nigoapi.PortEntity, config *clientconfig.NifiConfig) (*nigoapi.ProcessorStatusDto, error) {
-
 	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
 		return nil, err
@@ -29,9 +28,8 @@ func StopPort(port nigoapi.PortEntity, config *clientconfig.NifiConfig) (*nigoap
 	return entity.Status, nil
 }
 
-// StartPort will the port on NiFi
+// StartPort will the port on NiFi.
 func StartPort(port nigoapi.PortEntity, config *clientconfig.NifiConfig) (*nigoapi.ProcessorStatusDto, error) {
-
 	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
 		return nil, err

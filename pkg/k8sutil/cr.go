@@ -2,14 +2,16 @@ package k8sutil
 
 import (
 	"context"
+	"strconv"
+
 	"emperror.dev/errors"
-	"github.com/konpyutaika/nifikop/api/v1"
 	"k8s.io/apimachinery/pkg/types"
 	runtimeClient "sigs.k8s.io/controller-runtime/pkg/client"
-	"strconv"
+
+	"github.com/konpyutaika/nifikop/api/v1"
 )
 
-// AddNewNodeToCr modifies the CR and adds a new node
+// AddNewNodeToCr modifies the CR and adds a new node.
 func AddNewNodeToCr(node v1.Node, crName, namespace string, client runtimeClient.Client) error {
 	cr, err := Cr(crName, namespace, client)
 	if err != nil {
@@ -20,9 +22,8 @@ func AddNewNodeToCr(node v1.Node, crName, namespace string, client runtimeClient
 	return updateCr(cr, client)
 }
 
-// RemoveNodeFromCr modifies the CR and removes the given node from the cluster
+// RemoveNodeFromCr modifies the CR and removes the given node from the cluster.
 func RemoveNodeFromCr(nodeId, crName, namespace string, client runtimeClient.Client) error {
-
 	cr, err := Cr(crName, namespace, client)
 	if err != nil {
 		return err
@@ -38,7 +39,7 @@ func RemoveNodeFromCr(nodeId, crName, namespace string, client runtimeClient.Cli
 	return updateCr(cr, client)
 }
 
-// AddPvToSpecificNode adds a new PV to a specific node
+// AddPvToSpecificNode adds a new PV to a specific node.
 func AddPvToSpecificNode(nodeId, crName, namespace string, storageConfig *v1.StorageConfig, client runtimeClient.Client) error {
 	cr, err := Cr(crName, namespace, client)
 	if err != nil {
@@ -56,7 +57,7 @@ func AddPvToSpecificNode(nodeId, crName, namespace string, storageConfig *v1.Sto
 	return updateCr(cr, client)
 }
 
-// Cr returns the given cr object
+// Cr returns the given cr object.
 func Cr(name, namespace string, client runtimeClient.Client) (*v1.NifiCluster, error) {
 	cr := &v1.NifiCluster{}
 
@@ -78,9 +79,8 @@ func updateCr(cr *v1.NifiCluster, client runtimeClient.Client) error {
 	return nil
 }
 
-// UpdateCrWithRollingUpgrade modifies CR status
+// UpdateCrWithRollingUpgrade modifies CR status.
 func UpdateCrWithRollingUpgrade(errorCount int, cr *v1.NifiCluster, client runtimeClient.Client) error {
-
 	cr.Status.RollingUpgrade.ErrorCount = errorCount
 	return updateCr(cr, client)
 }

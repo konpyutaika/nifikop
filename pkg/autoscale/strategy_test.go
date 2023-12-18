@@ -5,10 +5,10 @@ import (
 	"testing"
 	"time"
 
-	v12 "github.com/konpyutaika/nifikop/api/v1"
-
-	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	v12 "github.com/konpyutaika/nifikop/api/v1"
+	"github.com/konpyutaika/nifikop/api/v1alpha1"
 )
 
 var (

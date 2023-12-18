@@ -10,49 +10,48 @@ import (
 	"strings"
 	"time"
 
-	v1 "github.com/konpyutaika/nifikop/api/v1"
-
-	"sigs.k8s.io/controller-runtime/pkg/client/config"
-
 	"emperror.dev/errors"
 	"github.com/imdario/mergo"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/discovery"
+	"sigs.k8s.io/controller-runtime/pkg/client/config"
+
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 )
 
-// IntstrPointer generate IntOrString pointer from int
+// IntstrPointer generate IntOrString pointer from int.
 func IntstrPointer(i int) *intstr.IntOrString {
 	is := intstr.FromInt(i)
 	return &is
 }
 
-// Int64Pointer generates int64 pointer from int64
+// Int64Pointer generates int64 pointer from int64.
 func Int64Pointer(i int64) *int64 {
 	return &i
 }
 
-// Int32Pointer generates int32 pointer from int32
+// Int32Pointer generates int32 pointer from int32.
 func Int32Pointer(i int32) *int32 {
 	return &i
 }
 
-// BoolPointer generates bool pointer from bool
+// BoolPointer generates bool pointer from bool.
 func BoolPointer(b bool) *bool {
 	return &b
 }
 
-// IntPointer generates int pointer from int
+// IntPointer generates int pointer from int.
 func IntPointer(i int) *int {
 	return &i
 }
 
-// StringPointer generates string pointer from string
+// StringPointer generates string pointer from string.
 func StringPointer(s string) *string {
 	return &s
 }
 
-// MapStringStringPointer generates a map[string]*string
+// MapStringStringPointer generates a map[string]*string.
 func MapStringStringPointer(in map[string]string) (out map[string]*string) {
 	out = make(map[string]*string, 0)
 	for k, v := range in {
@@ -61,7 +60,7 @@ func MapStringStringPointer(in map[string]string) (out map[string]*string) {
 	return
 }
 
-// MergeHostAliases takes two host alias lists and merges them. For IP conflicts, the latter/second list takes precedence
+// MergeHostAliases takes two host alias lists and merges them. For IP conflicts, the latter/second list takes precedence.
 func MergeHostAliases(globalAliases []corev1.HostAlias, overrideAliases []corev1.HostAlias) []corev1.HostAlias {
 	aliasesMap := map[string]corev1.HostAlias{}
 	aliases := []corev1.HostAlias{}
@@ -80,7 +79,7 @@ func MergeHostAliases(globalAliases []corev1.HostAlias, overrideAliases []corev1
 	return aliases
 }
 
-// MergeLabels merges two given labels
+// MergeLabels merges two given labels.
 func MergeLabels(l ...map[string]string) map[string]string {
 	res := make(map[string]string)
 
@@ -92,7 +91,7 @@ func MergeLabels(l ...map[string]string) map[string]string {
 	return res
 }
 
-// MonitoringAnnotations returns specific prometheus annotations
+// MonitoringAnnotations returns specific prometheus annotations.
 func MonitoringAnnotations(port int) map[string]string {
 	return map[string]string{
 		"prometheus.io/scrape": "true",
@@ -111,7 +110,7 @@ func MergeAnnotations(annotations ...map[string]string) map[string]string {
 	return rtn
 }
 
-// ConvertStringToInt32 converts the given string to int32
+// ConvertStringToInt32 converts the given string to int32.
 func ConvertStringToInt32(s string) int32 {
 	i, err := strconv.ParseInt(s, 10, 32)
 	if err != nil {
@@ -120,11 +119,10 @@ func ConvertStringToInt32(s string) int32 {
 	return int32(i)
 }
 
-// IsSSLEnabledForInternalCommunication checks if ssl is enabled for internal communication
+// IsSSLEnabledForInternalCommunication checks if ssl is enabled for internal communication.
 func IsSSLEnabledForInternalCommunication(l []v1.InternalListenerConfig) (enabled bool) {
-
 	for _, listener := range l {
-		if strings.ToLower(listener.Type) == "ssl" {
+		if strings.EqualFold(listener.Type, "ssl") {
 			enabled = true
 			break
 		}
@@ -132,9 +130,8 @@ func IsSSLEnabledForInternalCommunication(l []v1.InternalListenerConfig) (enable
 	return enabled
 }
 
-// ConvertMapStringToMapStringPointer converts a simple map[string]string to map[string]*string
+// ConvertMapStringToMapStringPointer converts a simple map[string]string to map[string]*string.
 func ConvertMapStringToMapStringPointer(inputMap map[string]string) map[string]*string {
-
 	result := map[string]*string{}
 	for key, value := range inputMap {
 		result[key] = StringPointer(value)
@@ -142,7 +139,7 @@ func ConvertMapStringToMapStringPointer(inputMap map[string]string) map[string]*
 	return result
 }
 
-// StringSliceCompare returns true if the two lists of string are the same
+// StringSliceCompare returns true if the two lists of string are the same.
 func StringSliceCompare(list1 []string, list2 []string) bool {
 	if len(list1) != len(list2) {
 		return false
@@ -155,7 +152,7 @@ func StringSliceCompare(list1 []string, list2 []string) bool {
 	return true
 }
 
-// StringSliceStrictCompare returns true if the two lists of string are the same with the order taking into account
+// StringSliceStrictCompare returns true if the two lists of string are the same with the order taking into account.
 func StringSliceStrictCompare(list1 []string, list2 []string) bool {
 	if len(list1) != len(list2) {
 		return false
@@ -168,7 +165,7 @@ func StringSliceStrictCompare(list1 []string, list2 []string) bool {
 	return true
 }
 
-// StringSliceContains returns true if list contains s
+// StringSliceContains returns true if list contains s.
 func StringSliceContains(list []string, s string) bool {
 	for _, v := range list {
 		if v == s {
@@ -178,7 +175,7 @@ func StringSliceContains(list []string, s string) bool {
 	return false
 }
 
-// StringSliceRemove will remove s from list
+// StringSliceRemove will remove s from list.
 func StringSliceRemove(list []string, s string) []string {
 	for i, v := range list {
 		if v == s {
@@ -188,7 +185,7 @@ func StringSliceRemove(list []string, s string) []string {
 	return list
 }
 
-// ParsePropertiesFormat parses the properties format configuration into map[string]string
+// ParsePropertiesFormat parses the properties format configuration into map[string]string.
 func ParsePropertiesFormat(properties string) map[string]string {
 	config := map[string]string{}
 
@@ -209,9 +206,8 @@ func ParsePropertiesFormat(properties string) map[string]string {
 	return config
 }
 
-// GetNodeConfig compose the nodeConfig for a given nifi node
+// GetNodeConfig compose the nodeConfig for a given nifi node.
 func GetNodeConfig(node v1.Node, clusterSpec v1.NifiClusterSpec) (*v1.NodeConfig, error) {
-
 	nConfig := &v1.NodeConfig{}
 	if node.NodeConfigGroup == "" {
 		return node.NodeConfig, nil
@@ -226,7 +222,7 @@ func GetNodeConfig(node v1.Node, clusterSpec v1.NifiClusterSpec) (*v1.NodeConfig
 	return nConfig, nil
 }
 
-// GetNodeImage returns the used node image
+// GetNodeImage returns the used node image.
 func GetNodeImage(nodeConfig *v1.NodeConfig, clusterImage string) string {
 	if nodeConfig.Image != "" {
 		return nodeConfig.Image
@@ -234,7 +230,7 @@ func GetNodeImage(nodeConfig *v1.NodeConfig, clusterImage string) string {
 	return clusterImage
 }
 
-// NifiUserSliceContains returns true if list contains s
+// NifiUserSliceContains returns true if list contains s.
 func NifiUserSliceContains(list []*v1.NifiUser, u *v1.NifiUser) bool {
 	for _, v := range list {
 		if reflect.DeepEqual(&v, &u) {
@@ -259,7 +255,7 @@ func NodesToIdMap(nodes []v1.Node) (nodeMap map[int32]v1.Node) {
 	return
 }
 
-// SubtractNodes removes nodesToRemove from the originalNodes list by the node's Ids and returns the result
+// SubtractNodes removes nodesToRemove from the originalNodes list by the node's Ids and returns the result.
 func SubtractNodes(originalNodes []v1.Node, nodesToRemove []v1.Node) (results []v1.Node) {
 	if len(originalNodes) == 0 || len(nodesToRemove) == 0 {
 		return originalNodes
@@ -276,7 +272,7 @@ func SubtractNodes(originalNodes []v1.Node, nodesToRemove []v1.Node) (results []
 	return results
 }
 
-// computes the max between 2 ints
+// computes the max between 2 ints.
 func Max(x, y int) int {
 	if x < y {
 		return y
@@ -284,7 +280,7 @@ func Max(x, y int) int {
 	return x
 }
 
-// computes the max in a int32 slice
+// computes the max in a int32 slice.
 func MaxSlice32(s []int32) (int32, error) {
 	if len(s) == 0 {
 		return 0, errors.New("Cannot detect a maximum value in an empty slice")
@@ -300,7 +296,7 @@ func MaxSlice32(s []int32) (int32, error) {
 	return max, nil
 }
 
-// computes the max in a int32 slice
+// computes the max in a int32 slice.
 func MinSlice32(s []int32) (int32, error) {
 	if len(s) == 0 {
 		return 0, errors.New("Cannot detect a minimum value in an empty slice")
@@ -339,7 +335,7 @@ func MustConvertToInt(str string, name string) int {
 }
 
 func GetRequeueInterval(interval int, offset int) time.Duration {
-	// @TODO : check what is the expected behaviour with offset
+	// @TODO : check what is the expected behavior with offset
 	duration := interval + rand.Intn(offset+1) - (offset / 2)
 	duration = Max(duration, rand.Intn(5)+1) // make sure duration does not go zero for very large offsets
 	return time.Duration(duration) * time.Second

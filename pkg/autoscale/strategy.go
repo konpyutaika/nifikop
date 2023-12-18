@@ -3,11 +3,12 @@ package autoscale
 import (
 	"sort"
 
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
+
 	v1 "github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/util"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/labels"
 )
 
 type HorizontalDownscaleStrategy interface {
@@ -31,7 +32,7 @@ type LIFOHorizontalDownscaleStrategy struct {
 	NifiNodeGroupAutoscaler *v1alpha1.NifiNodeGroupAutoscaler
 }
 
-// returns the set of "numNodesToRemove" nodes that should be removed from the cluster
+// returns the set of "numNodesToRemove" nodes that should be removed from the cluster.
 func (lifo *LIFOHorizontalDownscaleStrategy) ScaleDown(numNodesToRemove int32) (nodesToRemove []v1.Node, err error) {
 	// we use the creation time-ordered nodes here so that we can remove the last nodes added to the cluster
 	currentNodes, err := getManagedNodes(lifo.NifiNodeGroupAutoscaler, lifo.NifiCluster.GetCreationTimeOrderedNodes())
@@ -55,7 +56,7 @@ func (lifo *LIFOHorizontalDownscaleStrategy) Type() v1alpha1.ClusterScalingStrat
 }
 
 // Simple upscale strategy
-// A simple cluster upscale operation is simply adding a node to the existing node set
+// A simple cluster upscale operation is simply adding a node to the existing node set.
 type SimpleHorizontalUpscaleStrategy struct {
 	NifiCluster             *v1.NifiCluster
 	NifiNodeGroupAutoscaler *v1alpha1.NifiNodeGroupAutoscaler
@@ -65,7 +66,7 @@ func (simple *SimpleHorizontalUpscaleStrategy) Type() v1alpha1.ClusterScalingStr
 	return v1alpha1.SimpleClusterUpscaleStrategy
 }
 
-// returns the set of "numNodesToAdd" nodes that should be added to the cluster
+// returns the set of "numNodesToAdd" nodes that should be added to the cluster.
 func (simple *SimpleHorizontalUpscaleStrategy) ScaleUp(numNodesToAdd int32) (newNodes []v1.Node, err error) {
 	if numNodesToAdd == 0 {
 		return newNodes, nil
@@ -90,7 +91,7 @@ func (simple *SimpleHorizontalUpscaleStrategy) ScaleUp(numNodesToAdd int32) (new
 	return
 }
 
-// filter the set of provided nodes by the autoscaler's node selector
+// filter the set of provided nodes by the autoscaler's node selector.
 func getManagedNodes(autoscaler *v1alpha1.NifiNodeGroupAutoscaler, nodes []v1.Node) (managedNodes []v1.Node, err error) {
 	selector, err := metav1.LabelSelectorAsSelector(autoscaler.Spec.NodeLabelsSelector)
 	if err != nil {
@@ -113,7 +114,7 @@ func getManagedNodes(autoscaler *v1alpha1.NifiNodeGroupAutoscaler, nodes []v1.No
 //
 // - iterate through the node Id list starting with zero. For any unassigned node Id, assign it
 //
-// - return the list of assigned node Ids
+// - return the list of assigned node Ids.
 func ComputeNewNodeIds(nodes []v1.Node, numNewNodes int32) []int32 {
 	nodeIdList := util.NodesToIdList(nodes)
 	sort.Slice(nodeIdList, func(i, j int) bool {

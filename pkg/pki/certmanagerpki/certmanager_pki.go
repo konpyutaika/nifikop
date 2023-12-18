@@ -3,13 +3,9 @@ package certmanagerpki
 import (
 	"context"
 	"fmt"
-	"github.com/konpyutaika/nifikop/api/v1"
 
 	certv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	certmeta "github.com/cert-manager/cert-manager/pkg/apis/meta/v1"
-	"github.com/konpyutaika/nifikop/pkg/errorfactory"
-	"github.com/konpyutaika/nifikop/pkg/resources/templates"
-	pkicommon "github.com/konpyutaika/nifikop/pkg/util/pki"
 	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -18,6 +14,11 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+
+	"github.com/konpyutaika/nifikop/api/v1"
+	"github.com/konpyutaika/nifikop/pkg/errorfactory"
+	"github.com/konpyutaika/nifikop/pkg/resources/templates"
+	pkicommon "github.com/konpyutaika/nifikop/pkg/util/pki"
 )
 
 func (c *certManager) FinalizePKI(ctx context.Context, logger zap.Logger) error {
@@ -43,7 +44,6 @@ func (c *certManager) FinalizePKI(ctx context.Context, logger zap.Logger) error 
 			objNames = append(
 				objNames,
 				types.NamespacedName{Name: fmt.Sprintf(pkicommon.NodeCACertTemplate, c.cluster.Name), Namespace: c.cluster.Namespace})
-
 		}
 		for _, obj := range objNames {
 			// Delete the certificates first so we don't accidentally recreate the
@@ -156,11 +156,9 @@ func fullPKI(cluster *v1.NifiCluster, scheme *runtime.Scheme, externalHostnames 
 		objects = append(objects, user)
 	}
 	return objects
-
 }
 
 func userProvidedPKI(ctx context.Context, client client.Client, cluster *v1.NifiCluster, scheme *runtime.Scheme, externalHostnames []string) ([]runtime.Object, error) {
-
 	// If we aren't creating the secrets we need a cluster issuer made from the provided secret
 	caSecret, err := caSecretForProvidedCert(ctx, client, cluster, scheme)
 	if err != nil {

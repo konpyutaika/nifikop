@@ -2,13 +2,14 @@ package pki
 
 import (
 	"context"
-	"github.com/konpyutaika/nifikop/api/v1"
 	"reflect"
 	"testing"
 
 	"go.uber.org/zap"
 	"k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/konpyutaika/nifikop/api/v1"
 )
 
 var log zap.Logger
@@ -88,5 +89,4 @@ func TestGetPKIManager(t *testing.T) {
 	if pkiType != expected {
 		t.Error("Expected:", expected, "got:", pkiType)
 	}*/
-
 }

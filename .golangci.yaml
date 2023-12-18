@@ -106,7 +106,17 @@ issues:
     - text: "Actual:"
       linters:
         - goheader
-
+    # Exclude gci check for //+kubebuilder:scaffold:imports comments. Waiting to
+    # resolve https://github.com/daixiang0/gci/issues/135
+    - path: main.go
+      linters:
+        - gci
+    - path: cmd/kubectl-nifikop/main.go
+      linters:
+        - gci
+    - path: controllers/suite_test.go
+      linters:
+        - gci
   # Maximum issues count per one linter. Set to 0 to disable. Default is 50.
   max-per-linter: 0
 

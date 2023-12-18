@@ -2,13 +2,15 @@ package pki
 
 import (
 	"fmt"
+	"reflect"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+
 	"github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/pkg/resources/templates"
 	"github.com/konpyutaika/nifikop/pkg/util"
 	certutil "github.com/konpyutaika/nifikop/pkg/util/cert"
-	"github.com/stretchr/testify/assert"
-	"reflect"
-	"testing"
 )
 
 func testCluster(t *testing.T) *v1.NifiCluster {

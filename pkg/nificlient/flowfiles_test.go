@@ -32,7 +32,6 @@ func TestCreateDropRequest(t *testing.T) {
 }
 
 func testCreateDropRequest(t *testing.T, entity *nigoapi.DropRequestEntity, connectionId string, status int) (*nigoapi.DropRequestEntity, error) {
-
 	cluster := testClusterMock(t)
 
 	client, err := testClientFromCluster(cluster, false)
@@ -77,7 +76,6 @@ func TestGetDropRequest(t *testing.T) {
 }
 
 func testGetDropRequest(t *testing.T, entity *nigoapi.DropRequestEntity, connectionId string, status int) (*nigoapi.DropRequestEntity, error) {
-
 	cluster := testClusterMock(t)
 
 	client, err := testClientFromCluster(cluster, false)
@@ -103,7 +101,6 @@ func testGetDropRequest(t *testing.T, entity *nigoapi.DropRequestEntity, connect
 func MockDropRequest(
 	id, connectionId, lastUpdated, failureReason, state string,
 	percentCompleted, currentCount, originalCount, droppedCount int32, finished bool) nigoapi.DropRequestEntity {
-
 	return nigoapi.DropRequestEntity{DropRequest: &nigoapi.DropRequestDto{
 		Id:               id,
 		Uri:              fmt.Sprintf("http://testunit.com:8080/nifi-api/flowfile-queues/%s/drop-requests/%s", connectionId, id),

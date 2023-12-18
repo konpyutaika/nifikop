@@ -4,14 +4,16 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"strings"
+
+	"sigs.k8s.io/controller-runtime/pkg/client"
+
 	"github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/pkg/pki"
 	"github.com/konpyutaika/nifikop/pkg/pki/certmanagerpki"
 	"github.com/konpyutaika/nifikop/pkg/util"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
 	"github.com/konpyutaika/nifikop/pkg/util/nifi"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	"strings"
 )
 
 func TlsConfig(client client.Client, cluster *v1.NifiCluster) (config *tls.Config, err error) {

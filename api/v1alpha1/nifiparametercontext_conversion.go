@@ -2,11 +2,13 @@ package v1alpha1
 
 import (
 	"fmt"
-	v1 "github.com/konpyutaika/nifikop/api/v1"
+
 	"sigs.k8s.io/controller-runtime/pkg/conversion"
+
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 )
 
-// ConvertTo converts a v1alpha1 to v1 (Hub)
+// ConvertTo converts a v1alpha1 to v1 (Hub).
 func (src *NifiParameterContext) ConvertTo(dst conversion.Hub) error {
 	ncV1 := dst.(*v1.NifiParameterContext)
 
@@ -17,7 +19,7 @@ func (src *NifiParameterContext) ConvertTo(dst conversion.Hub) error {
 	return nil
 }
 
-// ConvertFrom converts a v1 (Hub) to v1alpha1 (local)
+// ConvertFrom converts a v1 (Hub) to v1alpha1 (local).
 func (dst *NifiParameterContext) ConvertFrom(src conversion.Hub) error { //nolint
 	ncV1 := src.(*v1.NifiParameterContext)
 	dst.ObjectMeta = ncV1.ObjectMeta
@@ -29,7 +31,7 @@ func (dst *NifiParameterContext) ConvertFrom(src conversion.Hub) error { //nolin
 
 // ---- Convert TO ----
 
-// ConvertNifiParameterContextTo use to convert v1alpha1.NifiParameterContext to v1.NifiParameterContext
+// ConvertNifiParameterContextTo use to convert v1alpha1.NifiParameterContext to v1.NifiParameterContext.
 func ConvertNifiParameterContextTo(src *NifiParameterContext, dst *v1.NifiParameterContext) error {
 	// Copying ObjectMeta as a whole
 	dst.ObjectMeta = src.ObjectMeta
@@ -46,7 +48,7 @@ func ConvertNifiParameterContextTo(src *NifiParameterContext, dst *v1.NifiParame
 	return nil
 }
 
-// Convert the top level structs
+// Convert the top level structs.
 func convertNifiParameterContextSpec(src *NifiParameterContextSpec, dst *v1.NifiParameterContext) error {
 	if src == nil {
 		return nil
@@ -126,7 +128,7 @@ func convertNifiParameterContextLatestUpdateRequest(src *ParameterContextUpdateR
 
 // ---- Convert FROM ----
 
-// ConvertNifiParameterContextFrom use to convert v1alpha1.NifiParameterContext from v1.NifiParameterContext
+// ConvertNifiParameterContextFrom use to convert v1alpha1.NifiParameterContext from v1.NifiParameterContext.
 func ConvertNifiParameterContextFrom(dst *NifiParameterContext, src *v1.NifiParameterContext) error {
 	// Copying ObjectMeta as a whole
 	dst.ObjectMeta = src.ObjectMeta
@@ -143,7 +145,7 @@ func ConvertNifiParameterContextFrom(dst *NifiParameterContext, src *v1.NifiPara
 	return nil
 }
 
-// Convert the top level structs
+// Convert the top level structs.
 func convertFromNifiParameterContextSpec(src *v1.NifiParameterContextSpec, dst *NifiParameterContext) error {
 	if src == nil {
 		return nil

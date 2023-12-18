@@ -22,18 +22,9 @@ import (
 	"fmt"
 	"reflect"
 
-	v1 "github.com/konpyutaika/nifikop/api/v1"
-
 	"emperror.dev/errors"
 	"github.com/banzaicloud/k8s-objectmatcher/patch"
 	certv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
-	usercli "github.com/konpyutaika/nifikop/pkg/clientwrappers/user"
-	"github.com/konpyutaika/nifikop/pkg/errorfactory"
-	"github.com/konpyutaika/nifikop/pkg/k8sutil"
-	"github.com/konpyutaika/nifikop/pkg/nificlient/config"
-	"github.com/konpyutaika/nifikop/pkg/pki"
-	"github.com/konpyutaika/nifikop/pkg/util"
-	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
 	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -42,11 +33,20 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+
+	v1 "github.com/konpyutaika/nifikop/api/v1"
+	usercli "github.com/konpyutaika/nifikop/pkg/clientwrappers/user"
+	"github.com/konpyutaika/nifikop/pkg/errorfactory"
+	"github.com/konpyutaika/nifikop/pkg/k8sutil"
+	"github.com/konpyutaika/nifikop/pkg/nificlient/config"
+	"github.com/konpyutaika/nifikop/pkg/pki"
+	"github.com/konpyutaika/nifikop/pkg/util"
+	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
 )
 
 var userFinalizer = fmt.Sprintf("nifiusers.%s/finalizer", v1.GroupVersion.Group)
 
-// NifiUserReconciler reconciles a NifiUser object
+// NifiUserReconciler reconciles a NifiUser object.
 type NifiUserReconciler struct {
 	client.Client
 	Log             zap.Logger
@@ -166,7 +166,6 @@ func (r *NifiUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	if v1.ClusterRefsEquals([]v1.ClusterReference{instance.Spec.ClusterRef, current.Spec.ClusterRef}) &&
 		instance.Spec.GetCreateCert() && !clusterConnect.IsExternal() {
-
 		// Avoid panic if the user wants to create a nifi user but the cluster is in plaintext mode
 		// TODO: refactor this and use webhook to validate if the cluster is eligible to create a nifi user
 		if cluster.Spec.ListenersConfig.SSLSecrets == nil {
@@ -183,7 +182,6 @@ func (r *NifiUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 				return RequeueWithError(r.Log, "failed to finalize certificate for user "+instance.Name, err)
 			}
 		} else {
-
 			r.Recorder.Event(instance, corev1.EventTypeNormal, "ReconcilingCertificate",
 				fmt.Sprintf("Reconciling certificate for nifi user %s", instance.Name))
 			// Reconcile no matter what to get a user certificate instance for ACL management

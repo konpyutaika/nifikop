@@ -1,19 +1,19 @@
 package usergroup
 
 import (
+	nigoapi "github.com/konpyutaika/nigoapi/pkg/nifi"
+
 	"github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/accesspolicies"
 	"github.com/konpyutaika/nifikop/pkg/common"
 	"github.com/konpyutaika/nifikop/pkg/nificlient"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
-	nigoapi "github.com/konpyutaika/nigoapi/pkg/nifi"
 )
 
 var log = common.CustomLogger().Named("usergroup-method")
 
 func ExistUserGroup(userGroup *v1.NifiUserGroup, config *clientconfig.NifiConfig) (bool, error) {
-
 	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
 		return false, err
@@ -59,7 +59,6 @@ func CreateUserGroup(userGroup *v1.NifiUserGroup,
 
 func SyncUserGroup(userGroup *v1.NifiUserGroup, users []*v1.NifiUser,
 	config *clientconfig.NifiConfig) (*v1.NifiUserGroupStatus, error) {
-
 	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
 		return nil, err
@@ -152,7 +151,6 @@ func userGroupIsSync(
 	userGroup *v1.NifiUserGroup,
 	users []*v1.NifiUser,
 	entity *nigoapi.UserGroupEntity) bool {
-
 	if userGroup.GetIdentity() != entity.Component.Identity {
 		return false
 	}
@@ -173,7 +171,6 @@ func userGroupIsSync(
 }
 
 func updateUserGroupEntity(userGroup *v1.NifiUserGroup, users []*v1.NifiUser, entity *nigoapi.UserGroupEntity) {
-
 	var defaultVersion int64 = 0
 
 	if entity == nil {

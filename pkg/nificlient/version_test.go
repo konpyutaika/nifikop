@@ -34,7 +34,6 @@ func TestCreateVersionUpdateRequest(t *testing.T) {
 }
 
 func testCreateVersionUpdateRequest(t *testing.T, entity *nigoapi.VersionControlInformationEntity, status int) (*nigoapi.VersionedFlowUpdateRequestEntity, error) {
-
 	cluster := testClusterMock(t)
 
 	client, err := testClientFromCluster(cluster, false)
@@ -83,7 +82,6 @@ func TestGetVersionUpdateRequest(t *testing.T) {
 }
 
 func testGetVersionUpdateRequest(t *testing.T, entity *nigoapi.VersionControlInformationEntity, id string, status int) (*nigoapi.VersionedFlowUpdateRequestEntity, error) {
-
 	cluster := testClusterMock(t)
 
 	client, err := testClientFromCluster(cluster, false)
@@ -130,7 +128,6 @@ func TestCreateVersionRevertRequest(t *testing.T) {
 }
 
 func testCreateVersionRevertRequest(t *testing.T, entity *nigoapi.VersionControlInformationEntity, status int) (*nigoapi.VersionedFlowUpdateRequestEntity, error) {
-
 	cluster := testClusterMock(t)
 
 	client, err := testClientFromCluster(cluster, false)
@@ -179,7 +176,6 @@ func TestGetVersionRevertRequest(t *testing.T) {
 }
 
 func testGetVersionRevertRequest(t *testing.T, entity *nigoapi.VersionControlInformationEntity, id string, status int) (*nigoapi.VersionedFlowUpdateRequestEntity, error) {
-
 	cluster := testClusterMock(t)
 
 	client, err := testClientFromCluster(cluster, false)
@@ -200,7 +196,6 @@ func testGetVersionRevertRequest(t *testing.T, entity *nigoapi.VersionControlInf
 		})
 
 	return client.GetVersionRevertRequest(id)
-
 }
 
 func MockVersionUpdateRequest(pgId, registryId, bucketId, flowId string, flowVersion int32) nigoapi.VersionControlInformationEntity {

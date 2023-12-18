@@ -1,6 +1,8 @@
 package user
 
 import (
+	nigoapi "github.com/konpyutaika/nigoapi/pkg/nifi"
+
 	"github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/accesspolicies"
@@ -8,13 +10,11 @@ import (
 	"github.com/konpyutaika/nifikop/pkg/common"
 	"github.com/konpyutaika/nifikop/pkg/nificlient"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
-	nigoapi "github.com/konpyutaika/nigoapi/pkg/nifi"
 )
 
 var log = common.CustomLogger().Named("user-method")
 
 func ExistUser(user *v1.NifiUser, config *clientconfig.NifiConfig) (bool, error) {
-
 	if user.Status.Id == "" {
 		return false, nil
 	}
@@ -36,7 +36,6 @@ func ExistUser(user *v1.NifiUser, config *clientconfig.NifiConfig) (bool, error)
 }
 
 func FindUserByIdentity(user *v1.NifiUser, config *clientconfig.NifiConfig) (*v1.NifiUserStatus, error) {
-
 	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
 		return nil, err
@@ -63,7 +62,6 @@ func FindUserByIdentity(user *v1.NifiUser, config *clientconfig.NifiConfig) (*v1
 }
 
 func CreateUser(user *v1.NifiUser, config *clientconfig.NifiConfig) (*v1.NifiUserStatus, error) {
-
 	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
 		return nil, err
@@ -84,7 +82,6 @@ func CreateUser(user *v1.NifiUser, config *clientconfig.NifiConfig) (*v1.NifiUse
 }
 
 func SyncUser(user *v1.NifiUser, config *clientconfig.NifiConfig) (*v1.NifiUserStatus, error) {
-
 	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
 		return nil, err
@@ -188,7 +185,6 @@ func userIsSync(user *v1.NifiUser, entity *nigoapi.UserEntity) bool {
 }
 
 func updateUserEntity(user *v1.NifiUser, entity *nigoapi.UserEntity) {
-
 	var defaultVersion int64 = 0
 
 	if entity == nil {

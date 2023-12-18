@@ -30,7 +30,6 @@ func TestGetOutputPort(t *testing.T) {
 }
 
 func testGetOutputPort(t *testing.T, id string, entity *nigoapi.PortEntity, status int) (*nigoapi.PortEntity, error) {
-
 	cluster := testClusterMock(t)
 
 	client, err := testClientFromCluster(cluster, false)
@@ -73,7 +72,6 @@ func TestUpdateOutputPortRunStatus(t *testing.T) {
 }
 
 func testUpdateOutputPortRunStatus(t *testing.T, entity nigoapi.PortRunStatusEntity, id string, status int) (*nigoapi.ProcessorEntity, error) {
-
 	cluster := testClusterMock(t)
 
 	client, err := testClientFromCluster(cluster, false)

@@ -17,14 +17,15 @@ limitations under the License.
 package v1alpha1
 
 import (
-	v1 "github.com/konpyutaika/nifikop/api/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// NifiNodeGroupAutoscalerSpec defines the desired state of NifiNodeGroupAutoscaler
+// NifiNodeGroupAutoscalerSpec defines the desired state of NifiNodeGroupAutoscaler.
 type NifiNodeGroupAutoscalerSpec struct {
 	// contains the reference to the NifiCluster with the one the dataflow is linked.
 	ClusterRef v1.ClusterReference `json:"clusterRef"`
@@ -55,7 +56,7 @@ type NifiNodeGroupAutoscalerSpec struct {
 	DownscaleStrategy ClusterScalingStrategy `json:"downscaleStrategy,omitempty"`
 }
 
-// NifiNodeGroupAutoscalerStatus defines the observed state of NifiNodeGroupAutoscaler
+// NifiNodeGroupAutoscalerStatus defines the observed state of NifiNodeGroupAutoscaler.
 type NifiNodeGroupAutoscalerStatus struct {
 	// The state of this autoscaler
 	State NodeGroupAutoscalerState `json:"state"`
@@ -69,7 +70,7 @@ type NifiNodeGroupAutoscalerStatus struct {
 //+kubebuilder:subresource:status
 //+kubebuilder:subresource:scale:specpath=.spec.replicas,statuspath=.status.replicas,selectorpath=.status.selector
 
-// NifiNodeGroupAutoscaler is the Schema for the nifinodegroupautoscalers API
+// NifiNodeGroupAutoscaler is the Schema for the nifinodegroupautoscalers API.
 type NifiNodeGroupAutoscaler struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -80,7 +81,7 @@ type NifiNodeGroupAutoscaler struct {
 
 //+kubebuilder:object:root=true
 
-// NifiNodeGroupAutoscalerList contains a list of NifiNodeGroupAutoscaler
+// NifiNodeGroupAutoscalerList contains a list of NifiNodeGroupAutoscaler.
 type NifiNodeGroupAutoscalerList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`

@@ -3,22 +3,22 @@ package pki
 import (
 	"context"
 	"crypto/tls"
-	"github.com/konpyutaika/nifikop/api/v1"
 
-	"github.com/konpyutaika/nifikop/pkg/pki/certmanagerpki"
-	"github.com/konpyutaika/nifikop/pkg/util/pki"
 	"go.uber.org/zap"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/konpyutaika/nifikop/api/v1"
+	"github.com/konpyutaika/nifikop/pkg/pki/certmanagerpki"
+	"github.com/konpyutaika/nifikop/pkg/util/pki"
 )
 
-// MockBackend is used for mocking during testing
+// MockBackend is used for mocking during testing.
 var MockBackend = v1.PKIBackend("mock")
 
-// GetPKIManager returns a PKI/User manager interface for a given cluster
+// GetPKIManager returns a PKI/User manager interface for a given cluster.
 func GetPKIManager(client client.Client, cluster *v1.NifiCluster) pki.Manager {
 	switch cluster.Spec.ListenersConfig.SSLSecrets.PKIBackend {
-
 	// Use cert-manager for pki backend
 	case v1.PKIBackendCertManager:
 		return certmanagerpki.New(client, cluster)
@@ -35,7 +35,6 @@ func GetPKIManager(client client.Client, cluster *v1.NifiCluster) pki.Manager {
 	// Default use cert-manager - state explicitly for clarity and to make compiler happy
 	default:
 		return certmanagerpki.New(client, cluster)
-
 	}
 }
 

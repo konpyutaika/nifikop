@@ -21,32 +21,29 @@ import (
 	"fmt"
 	"reflect"
 
-	v1 "github.com/konpyutaika/nifikop/api/v1"
-
-	"go.uber.org/zap"
-
 	"emperror.dev/errors"
+	"go.uber.org/zap"
+	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-
 	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
 	runtimeClient "sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/autoscale"
 	"github.com/konpyutaika/nifikop/pkg/k8sutil"
 	"github.com/konpyutaika/nifikop/pkg/util"
-	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var autoscalerFinalizer string = fmt.Sprintf("nifinodegroupautoscalers.%s/finalizer", v1alpha1.GroupVersion.Group)
 
-// NifiNodeGroupAutoscalerReconciler reconciles a NifiNodeGroupAutoscaler object
+// NifiNodeGroupAutoscalerReconciler reconciles a NifiNodeGroupAutoscaler object.
 type NifiNodeGroupAutoscalerReconciler struct {
 	runtimeClient.Client
 	APIReader       runtimeClient.Reader
@@ -147,7 +144,6 @@ func (r *NifiNodeGroupAutoscalerReconciler) Reconcile(ctx context.Context, req c
 			if err = r.scaleUp(nodeGroupAutoscaler, cluster, numNodesToAdd); err != nil {
 				return RequeueWithError(r.Log, fmt.Sprintf("Failed to scale cluster %s up for node group %s", cluster.Name, nodeGroupAutoscaler.Spec.NodeConfigGroupId), err)
 			}
-
 		} else if numDesiredReplicas < numCurrentReplicas {
 			// need to decrease node group
 			numNodesToRemove := numCurrentReplicas - numDesiredReplicas
@@ -179,7 +175,7 @@ func (r *NifiNodeGroupAutoscalerReconciler) Reconcile(ctx context.Context, req c
 	return RequeueAfter(util.GetRequeueInterval(r.RequeueInterval, r.RequeueOffset))
 }
 
-// scaleUp updates the provided cluster.Spec.Nodes list with the appropriate numNodesToAdd according to the autoscaler.Spec.UpscaleStrategy
+// scaleUp updates the provided cluster.Spec.Nodes list with the appropriate numNodesToAdd according to the autoscaler.Spec.UpscaleStrategy.
 func (r *NifiNodeGroupAutoscalerReconciler) scaleUp(autoscaler *v1alpha1.NifiNodeGroupAutoscaler, cluster *v1.NifiCluster, numNodesToAdd int32) error {
 	switch autoscaler.Spec.UpscaleStrategy {
 	// Right now Simple is the only option and the default
@@ -203,10 +199,9 @@ func (r *NifiNodeGroupAutoscalerReconciler) scaleUp(autoscaler *v1alpha1.NifiNod
 	return nil
 }
 
-// scaleUp updates the provided cluster.Spec.Nodes list with the appropriate numNodesToRemove according to the autoscaler.Spec.DownscaleStrategy
+// scaleUp updates the provided cluster.Spec.Nodes list with the appropriate numNodesToRemove according to the autoscaler.Spec.DownscaleStrategy.
 func (r *NifiNodeGroupAutoscalerReconciler) scaleDown(autoscaler *v1alpha1.NifiNodeGroupAutoscaler, cluster *v1.NifiCluster, numNodesToRemove int32) error {
 	switch autoscaler.Spec.DownscaleStrategy {
-
 	// Right now LIFO is the only option and the default
 	case v1alpha1.LIFOClusterDownscaleStrategy:
 		fallthrough
@@ -231,7 +226,7 @@ func (r *NifiNodeGroupAutoscalerReconciler) scaleDown(autoscaler *v1alpha1.NifiN
 	return nil
 }
 
-// updateAutoscalerReplicaState updates the state of the autoscaler
+// updateAutoscalerReplicaState updates the state of the autoscaler.
 func (r *NifiNodeGroupAutoscalerReconciler) updateAutoscalerReplicaState(ctx context.Context, autoscaler *v1alpha1.NifiNodeGroupAutoscaler,
 	currentStatus v1alpha1.NifiNodeGroupAutoscalerStatus, state v1alpha1.NodeGroupAutoscalerState) error {
 	autoscaler.Status.State = state
@@ -245,7 +240,7 @@ func (r *NifiNodeGroupAutoscalerReconciler) updateAutoscalerReplicaState(ctx con
 }
 
 // TODO : discuss about replacing by looking for NifiCluster.Spec.Nodes instead
-// updateAutoscalerReplicaStatus updates autoscaler replica status to inform the k8s scale subresource
+// updateAutoscalerReplicaStatus updates autoscaler replica status to inform the k8s scale subresource.
 func (r *NifiNodeGroupAutoscalerReconciler) updateAutoscalerReplicaStatus(ctx context.Context, nifiCluster *v1.NifiCluster,
 	currentStatus v1alpha1.NifiNodeGroupAutoscalerStatus, autoscaler *v1alpha1.NifiNodeGroupAutoscaler) error {
 	podList, err := r.getCurrentReplicaPods(ctx, autoscaler)
@@ -268,7 +263,7 @@ func (r *NifiNodeGroupAutoscalerReconciler) updateAutoscalerReplicaStatus(ctx co
 	return r.updateStatus(ctx, autoscaler, currentStatus)
 }
 
-// getCurrentReplicaPods searches for any pods created in this node scaler's node group
+// getCurrentReplicaPods searches for any pods created in this node scaler's node group.
 func (r *NifiNodeGroupAutoscalerReconciler) getCurrentReplicaPods(ctx context.Context, autoscaler *v1alpha1.NifiNodeGroupAutoscaler) (*corev1.PodList, error) {
 	podList := &corev1.PodList{}
 	replicaLabels, err := autoscaler.Spec.NifiNodeGroupSelectorAsMap()
@@ -289,7 +284,7 @@ func (r *NifiNodeGroupAutoscalerReconciler) getCurrentReplicaPods(ctx context.Co
 	return podList, nil
 }
 
-// getManagedNodes filters a set of nodes by an autoscaler's configured node selector
+// getManagedNodes filters a set of nodes by an autoscaler's configured node selector.
 func (r *NifiNodeGroupAutoscalerReconciler) getManagedNodes(autoscaler *v1alpha1.NifiNodeGroupAutoscaler, nodes []v1.Node) (managedNodes []v1.Node, err error) {
 	selector, err := metav1.LabelSelectorAsSelector(autoscaler.Spec.NodeLabelsSelector)
 	if err != nil {
@@ -338,7 +333,6 @@ func (r *NifiNodeGroupAutoscalerReconciler) removeFinalizer(ctx context.Context,
 
 func (r *NifiNodeGroupAutoscalerReconciler) updateAndFetchLatest(ctx context.Context,
 	autoscaler *v1alpha1.NifiNodeGroupAutoscaler, patcher runtimeClient.Patch) (*v1alpha1.NifiNodeGroupAutoscaler, error) {
-
 	typeMeta := autoscaler.TypeMeta
 	err := r.Client.Patch(ctx, autoscaler, patcher)
 	if err != nil {

@@ -1,14 +1,15 @@
 package v1alpha1
 
 import (
-	v1 "github.com/konpyutaika/nifikop/api/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// NifiConnectionSpec defines the desired state of NifiConnection
+// NifiConnectionSpec defines the desired state of NifiConnection.
 type NifiConnectionSpec struct {
 	// the Source component of the connection.
 	Source ComponentReference `json:"source"`
@@ -63,7 +64,7 @@ type ConnectionBend struct {
 	Y *int64 `json:"posY,omitempty"`
 }
 
-// NifiConnectionStatus defines the observed state of NifiConnection
+// NifiConnectionStatus defines the observed state of NifiConnection.
 type NifiConnectionStatus struct {
 	// connection ID.
 	ConnectionId string `json:"connectionID"`
@@ -74,7 +75,7 @@ type NifiConnectionStatus struct {
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 
-// NifiConnection is the Schema for the nificonnections API
+// NifiConnection is the Schema for the nificonnections API.
 type NifiConnection struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -85,7 +86,7 @@ type NifiConnection struct {
 
 //+kubebuilder:object:root=true
 
-// NifiConnectionList contains a list of NifiConnection
+// NifiConnectionList contains a list of NifiConnection.
 type NifiConnectionList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`

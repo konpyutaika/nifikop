@@ -2,11 +2,13 @@ package v1alpha1
 
 import (
 	"fmt"
-	v1 "github.com/konpyutaika/nifikop/api/v1"
+
 	"sigs.k8s.io/controller-runtime/pkg/conversion"
+
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 )
 
-// ConvertTo converts a v1alpha1 to v1 (Hub)
+// ConvertTo converts a v1alpha1 to v1 (Hub).
 func (src *NifiUserGroup) ConvertTo(dst conversion.Hub) error {
 	ncV1 := dst.(*v1.NifiUserGroup)
 
@@ -17,7 +19,7 @@ func (src *NifiUserGroup) ConvertTo(dst conversion.Hub) error {
 	return nil
 }
 
-// ConvertFrom converts a v1 (Hub) to v1alpha1 (local)
+// ConvertFrom converts a v1 (Hub) to v1alpha1 (local).
 func (dst *NifiUserGroup) ConvertFrom(src conversion.Hub) error { //nolint
 	ncV1 := src.(*v1.NifiUserGroup)
 	dst.ObjectMeta = ncV1.ObjectMeta
@@ -29,7 +31,7 @@ func (dst *NifiUserGroup) ConvertFrom(src conversion.Hub) error { //nolint
 
 // ---- Convert TO ----
 
-// ConvertNifiUserGroupTo use to convert v1alpha1.NifiUserGroup to v1.NifiUserGroup
+// ConvertNifiUserGroupTo use to convert v1alpha1.NifiUserGroup to v1.NifiUserGroup.
 func ConvertNifiUserGroupTo(src *NifiUserGroup, dst *v1.NifiUserGroup) error {
 	// Copying ObjectMeta as a whole
 	dst.ObjectMeta = src.ObjectMeta
@@ -46,7 +48,7 @@ func ConvertNifiUserGroupTo(src *NifiUserGroup, dst *v1.NifiUserGroup) error {
 	return nil
 }
 
-// Convert the top level structs
+// Convert the top level structs.
 func convertNifiUserGroupSpec(src *NifiUserGroupSpec, dst *v1.NifiUserGroup) error {
 	if src == nil {
 		return nil
@@ -89,7 +91,7 @@ func convertNifiUserGroupStatus(src *NifiUserGroupStatus, dst *v1.NifiUserGroup)
 
 // ---- Convert FROM ----
 
-// ConvertNifiUserGroupFrom use to convert v1alpha1.NifiUserGroup From v1.NifiUserGroup
+// ConvertNifiUserGroupFrom use to convert v1alpha1.NifiUserGroup From v1.NifiUserGroup.
 func ConvertNifiUserGroupFrom(dst *NifiUserGroup, src *v1.NifiUserGroup) error {
 	// Copying ObjectMeta as a whole
 	dst.ObjectMeta = src.ObjectMeta
@@ -106,7 +108,7 @@ func ConvertNifiUserGroupFrom(dst *NifiUserGroup, src *v1.NifiUserGroup) error {
 	return nil
 }
 
-// Convert the top level structs
+// Convert the top level structs.
 func convertFromNifiUserGroupSpec(src *v1.NifiUserGroupSpec, dst *NifiUserGroup) error {
 	if src == nil {
 		return nil

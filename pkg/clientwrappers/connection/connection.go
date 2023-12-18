@@ -1,15 +1,15 @@
 package connection
 
 import (
+	nigoapi "github.com/konpyutaika/nigoapi/pkg/nifi"
+
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
+	"github.com/konpyutaika/nifikop/pkg/clientwrappers"
+	"github.com/konpyutaika/nifikop/pkg/common"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	"github.com/konpyutaika/nifikop/pkg/nificlient"
 	"github.com/konpyutaika/nifikop/pkg/util"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
-
-	"github.com/konpyutaika/nifikop/pkg/clientwrappers"
-	"github.com/konpyutaika/nifikop/pkg/common"
-	nigoapi "github.com/konpyutaika/nigoapi/pkg/nifi"
 )
 
 var log = common.CustomLogger().Named("connection-method")
@@ -17,7 +17,6 @@ var log = common.CustomLogger().Named("connection-method")
 // CreateConnection will deploy the NifiDataflow on NiFi Cluster.
 func CreateConnection(connection *v1alpha1.NifiConnection, source *v1alpha1.ComponentInformation, destination *v1alpha1.ComponentInformation,
 	config *clientconfig.NifiConfig) (*v1alpha1.NifiConnectionStatus, error) {
-
 	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
 		return nil, err
@@ -113,7 +112,6 @@ func ConnectionExist(connection *v1alpha1.NifiConnection, config *clientconfig.N
 func SyncConnectionConfig(connection *v1alpha1.NifiConnection,
 	source *v1alpha1.ComponentInformation, destination *v1alpha1.ComponentInformation,
 	config *clientconfig.NifiConfig) (*v1alpha1.NifiConnectionStatus, error) {
-
 	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
 		return nil, err
@@ -171,7 +169,6 @@ func SyncConnectionConfig(connection *v1alpha1.NifiConnection,
 func IsOutOfSyncConnection(connection *v1alpha1.NifiConnection,
 	source *v1alpha1.ComponentInformation, destination *v1alpha1.ComponentInformation,
 	config *clientconfig.NifiConfig) (bool, error) {
-
 	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
 		return false, err
@@ -226,7 +223,6 @@ func isBendChanged(current []nigoapi.PositionDto, original []nigoapi.PositionDto
 func isSourceChanged(
 	connectionEntity *nigoapi.ConnectionEntity,
 	source *v1alpha1.ComponentInformation) bool {
-
 	return connectionEntity.Component.Source.Id != source.Id || connectionEntity.Component.Source.GroupId != source.GroupId ||
 		connectionEntity.Component.Source.Type_ != source.Type
 }
@@ -235,7 +231,6 @@ func isSourceChanged(
 func isDestinationChanged(
 	connectionEntity *nigoapi.ConnectionEntity,
 	destination *v1alpha1.ComponentInformation) bool {
-
 	return connectionEntity.Component.Destination.Id != destination.Id || connectionEntity.Component.Destination.GroupId != destination.GroupId ||
 		connectionEntity.Component.Destination.Type_ != destination.Type
 }
@@ -243,7 +238,6 @@ func isDestinationChanged(
 // SyncConnectionDestination implements the logic to sync a NifiConnection with the deployed connection destination.
 func SyncConnectionDestination(connection *v1alpha1.NifiConnection, destination *v1alpha1.ComponentInformation,
 	config *clientconfig.NifiConfig) (*v1alpha1.NifiConnectionStatus, error) {
-
 	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
 		return nil, err

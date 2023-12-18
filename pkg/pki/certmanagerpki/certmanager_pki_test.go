@@ -3,16 +3,17 @@ package certmanagerpki
 import (
 	"context"
 	"fmt"
-	common2 "github.com/konpyutaika/nifikop/api/v1"
 	"reflect"
 	"testing"
 
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/client-go/kubernetes/scheme"
+
+	common2 "github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/pkg/common"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	certutil "github.com/konpyutaika/nifikop/pkg/util/cert"
 	pkicommon "github.com/konpyutaika/nifikop/pkg/util/pki"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/client-go/kubernetes/scheme"
 )
 
 var log = common.CustomLogger().Named("testing")

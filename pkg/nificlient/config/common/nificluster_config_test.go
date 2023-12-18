@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"testing"
 
-	v1 "github.com/konpyutaika/nifikop/api/v1"
-
-	"github.com/konpyutaika/nifikop/pkg/pki"
 	"github.com/stretchr/testify/assert"
+
+	v1 "github.com/konpyutaika/nifikop/api/v1"
+	"github.com/konpyutaika/nifikop/pkg/pki"
 )
 
 const (
@@ -83,9 +83,9 @@ func testClusterConfig(t *testing.T, cluster *v1.NifiCluster, expectedUseSSL boo
 	conf := ClusterConfig(cluster)
 	assert.Equal(expectedUseSSL, conf.UseSSL)
 
-	//if expectedUseSSL {
+	// if expectedUseSSL {
 	//	assert.NotNil(conf.TLSConfig)
-	//} else {
+	// } else {
 	//	assert.Nil(conf.TLSConfig)
 	//}
 

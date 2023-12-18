@@ -13,7 +13,7 @@ import (
 
 var metadataAccessor = meta.NewAccessor()
 
-// SetAnnotation set an annotation
+// SetAnnotation set an annotation.
 func SetAnnotation(annotationKey string, obj runtime.Object, value []byte) error {
 	if len(value) < 1 {
 		return nil
@@ -35,7 +35,7 @@ func SetAnnotation(annotationKey string, obj runtime.Object, value []byte) error
 	return metadataAccessor.SetAnnotations(obj, annots)
 }
 
-// GetAnnotation get a annotation
+// GetAnnotation get a annotation.
 func GetAnnotation(annotationKey string, obj runtime.Object) ([]byte, error) {
 	annots, err := metadataAccessor.Annotations(obj)
 	if err != nil {

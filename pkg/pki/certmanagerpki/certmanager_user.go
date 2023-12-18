@@ -4,28 +4,29 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/konpyutaika/nifikop/api/v1"
 
 	certv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	certmeta "github.com/cert-manager/cert-manager/pkg/apis/meta/v1"
-	"github.com/konpyutaika/nifikop/pkg/errorfactory"
-	"github.com/konpyutaika/nifikop/pkg/k8sutil"
-	certutil "github.com/konpyutaika/nifikop/pkg/util/cert"
-	pkicommon "github.com/konpyutaika/nifikop/pkg/util/pki"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+
+	"github.com/konpyutaika/nifikop/api/v1"
+	"github.com/konpyutaika/nifikop/pkg/errorfactory"
+	"github.com/konpyutaika/nifikop/pkg/k8sutil"
+	certutil "github.com/konpyutaika/nifikop/pkg/util/cert"
+	pkicommon "github.com/konpyutaika/nifikop/pkg/util/pki"
 )
 
-// FinalizeUserCertificate for cert-manager backend auto returns because controller references handle cleanup
+// FinalizeUserCertificate for cert-manager backend auto returns because controller references handle cleanup.
 func (c *certManager) FinalizeUserCertificate(ctx context.Context, user *v1.NifiUser) (err error) {
 	return
 }
 
-// ReconcileUserCertificate ensures a certificate/secret combination using cert-manager
+// ReconcileUserCertificate ensures a certificate/secret combination using cert-manager.
 func (c *certManager) ReconcileUserCertificate(ctx context.Context, user *v1.NifiUser, scheme *runtime.Scheme) (*pkicommon.UserCertificate, error) {
 	var err error
 	var secret *corev1.Secret
@@ -44,7 +45,6 @@ func (c *certManager) ReconcileUserCertificate(ctx context.Context, user *v1.Nif
 		if err = c.client.Create(ctx, cert); err != nil {
 			return nil, errorfactory.New(errorfactory.APIFailure{}, err, "could not create user certificate")
 		}
-
 	} else if err != nil {
 		// API failure, requeue
 		return nil, errorfactory.New(errorfactory.APIFailure{}, err, "failed looking up user certificate")
@@ -68,7 +68,7 @@ func (c *certManager) ReconcileUserCertificate(ctx context.Context, user *v1.Nif
 	}, nil
 }
 
-// injectJKSPassword ensures that a secret contains JKS password when requested
+// injectJKSPassword ensures that a secret contains JKS password when requested.
 func (c *certManager) injectJKSPassword(ctx context.Context, user *v1.NifiUser) error {
 	var err error
 	secret := &corev1.Secret{
@@ -89,7 +89,7 @@ func (c *certManager) injectJKSPassword(ctx context.Context, user *v1.NifiUser) 
 	return nil
 }
 
-// ensureControllerReference ensures that a NifiUser owns a given Secret
+// ensureControllerReference ensures that a NifiUser owns a given Secret.
 func (c *certManager) ensureControllerReference(ctx context.Context, user *v1.NifiUser, secret *corev1.Secret, scheme *runtime.Scheme) error {
 	err := controllerutil.SetControllerReference(user, secret, scheme)
 	if err != nil && !k8sutil.IsAlreadyOwnedError(err) {
@@ -102,14 +102,14 @@ func (c *certManager) ensureControllerReference(ctx context.Context, user *v1.Ni
 	return nil
 }
 
-// getUserCertificate fetches the cert-manager Certificate for a user
+// getUserCertificate fetches the cert-manager Certificate for a user.
 func (c *certManager) getUserCertificate(ctx context.Context, user *v1.NifiUser) (*certv1.Certificate, error) {
 	cert := &certv1.Certificate{}
 	err := c.client.Get(ctx, types.NamespacedName{Name: user.Name, Namespace: user.Namespace}, cert)
 	return cert, err
 }
 
-// getUserSecret fetches the secret created from a cert-manager Certificate for a user
+// getUserSecret fetches the secret created from a cert-manager Certificate for a user.
 func (c *certManager) getUserSecret(ctx context.Context, user *v1.NifiUser) (secret *corev1.Secret, err error) {
 	secret = &corev1.Secret{}
 	err = c.client.Get(ctx, types.NamespacedName{Name: user.Spec.SecretName, Namespace: user.Namespace}, secret)
@@ -139,7 +139,7 @@ func (c *certManager) getUserSecret(ctx context.Context, user *v1.NifiUser) (sec
 	return secret, nil
 }
 
-// clusterCertificateForUser generates a Certificate object for a NifiUser
+// clusterCertificateForUser generates a Certificate object for a NifiUser.
 func (c *certManager) clusterCertificateForUser(user *v1.NifiUser, scheme *runtime.Scheme) *certv1.Certificate {
 	caName, caKind, caGroup := c.getCA()
 	cert := &certv1.Certificate{
@@ -184,7 +184,7 @@ func (c *certManager) clusterCertificateForUser(user *v1.NifiUser, scheme *runti
 	return cert
 }
 
-// getCA returns the CA name/kind/group for the NifiCluster
+// getCA returns the CA name/kind/group for the NifiCluster.
 func (c *certManager) getCA() (caName, caKind, caGroup string) {
 	caKind = certv1.IssuerKind
 	issuerRef := c.cluster.Spec.ListenersConfig.SSLSecrets.IssuerRef

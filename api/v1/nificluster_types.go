@@ -26,7 +26,7 @@ const (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// NifiClusterSpec defines the desired state of NifiCluster
+// NifiClusterSpec defines the desired state of NifiCluster.
 type NifiClusterSpec struct {
 	// clientType defines if the operator will use basic or tls authentication to query the NiFi cluster.
 	ClientType ClientConfigType `json:"clientType,omitempty"`
@@ -88,7 +88,7 @@ type NifiClusterSpec struct {
 	// NifiClusterTaskSpec specifies the configuration of the nifi cluster Tasks
 	NifiClusterTaskSpec NifiClusterTaskSpec `json:"nifiClusterTaskSpec,omitempty"`
 	// TODO : add vault
-	//VaultConfig         	VaultConfig         `json:"vaultConfig,omitempty"`
+	// VaultConfig         	VaultConfig         `json:"vaultConfig,omitempty"`
 	// listenerConfig specifies nifi's listener specifig configs
 	ListenersConfig *ListenersConfig `json:"listenersConfig,omitempty"`
 	// SidecarsConfig defines additional sidecar configurations
@@ -139,7 +139,7 @@ type UserSecretKeys struct {
 	Password string `json:"password,omitempty"`
 }
 
-// DisruptionBudget defines the configuration for PodDisruptionBudget
+// DisruptionBudget defines the configuration for PodDisruptionBudget.
 type DisruptionBudget struct {
 	// If set to true, will create a podDisruptionBudget
 	// +optional
@@ -178,9 +178,9 @@ type PodPolicy struct {
 }
 
 // rollingUpgradeConfig specifies the rolling upgrade config for the cluster
-//RollingUpgradeConfig 	RollingUpgradeConfig 	`json:"rollingUpgradeConfig"`
+// RollingUpgradeConfig 	RollingUpgradeConfig 	`json:"rollingUpgradeConfig"`
 
-// RollingUpgradeStatus defines status of rolling upgrade
+// RollingUpgradeStatus defines status of rolling upgrade.
 type RollingUpgradeStatus struct {
 	//
 	LastSuccess string `json:"lastSuccess"`
@@ -194,7 +194,7 @@ type RollingUpgradeStatus struct {
 	FailureThreshold	int	`json:"failureThreshold"`
 }*/
 
-// Node defines the nifi node basic configuration
+// Node defines the nifi node basic configuration.
 type Node struct {
 	// Unique Node id
 	Id int32 `json:"id"`
@@ -305,12 +305,12 @@ type BootstrapNotificationServicesConfig struct {
 	ReplaceSecretConfig *SecretConfigReference `json:"replaceSecretConfig,omitempty"`
 }
 
-// NodeConfig defines the node configuration
+// NodeConfig defines the node configuration.
 type NodeConfig struct {
 	// provenanceStorage allow to specify the maximum amount of data provenance information to store at a time
 	// https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#write-ahead-provenance-repository-properties
 	ProvenanceStorage string `json:"provenanceStorage,omitempty"`
-	//RunAsUser define the id of the user to run in the Nifi image
+	// RunAsUser define the id of the user to run in the Nifi image
 	// +kubebuilder:validation:Minimum=1
 	RunAsUser *int64 `json:"runAsUser,omitempty"`
 	// FSGroup define the id of the group for each volumes in Nifi image
@@ -365,7 +365,7 @@ type Metadata struct {
 	Labels map[string]string `json:"labels,omitempty"`
 }
 
-// StorageConfig defines the node storage configuration
+// StorageConfig defines the node storage configuration.
 type StorageConfig struct {
 	// Name of the storage config, used to name PV to reuse into sidecars for example.
 	// +kubebuilder:validation:Pattern=[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*
@@ -414,7 +414,7 @@ type ListenersConfig struct {
 	UseExternalDNS bool `json:"useExternalDNS,omitempty"`
 }
 
-// SSLSecrets defines the Nifi SSL secrets
+// SSLSecrets defines the Nifi SSL secrets.
 type SSLSecrets struct {
 	// tlsSecretName should contain all ssl certs required by nifi including: caCert, caKey, clientCert, clientKey
 	// serverCert, serverKey, peerCert, peerKey
@@ -428,7 +428,7 @@ type SSLSecrets struct {
 	IssuerRef *cmmeta.ObjectReference `json:"issuerRef,omitempty"`
 	// TODO : add vault
 	PKIBackend PKIBackend `json:"pkiBackend,omitempty"`
-	//,"vault"
+	// ,"vault"
 }
 
 // TODO : Add vault
@@ -444,7 +444,7 @@ type SSLSecrets struct {
 	UserStore string `json:"userStore"`
 }*/
 
-// InternalListenerConfig defines the internal listener config for Nifi
+// InternalListenerConfig defines the internal listener config for Nifi.
 type InternalListenerConfig struct {
 	// +kubebuilder:validation:Enum={"cluster", "http", "https", "s2s", "prometheus", "load-balance"}
 	// (Optional field) Type allow to specify if we are in a specific nifi listener
@@ -558,7 +558,7 @@ type PortConfig struct {
 	Protocol corev1.Protocol `json:"protocol,omitempty"`
 }
 
-// LdapConfiguration specifies the configuration if you want to use LDAP
+// LdapConfiguration specifies the configuration if you want to use LDAP.
 type LdapConfiguration struct {
 	// If set to true, we will enable ldap usage into nifi.properties configuration.
 	Enabled bool `json:"enabled,omitempty"`
@@ -583,13 +583,13 @@ type LdapConfiguration struct {
 	IdentityStrategy string `json:"identityStrategy,omitempty"`
 }
 
-// NifiClusterTaskSpec specifies the configuration of the nifi cluster Tasks
+// NifiClusterTaskSpec specifies the configuration of the nifi cluster Tasks.
 type NifiClusterTaskSpec struct {
 	// RetryDurationMinutes describes the amount of time the Operator waits for the task
 	RetryDurationMinutes int `json:"retryDurationMinutes"`
 }
 
-// NifiClusterStatus defines the observed state of NifiCluster
+// NifiClusterStatus defines the observed state of NifiCluster.
 type NifiClusterStatus struct {
 	// Store the state of each nifi node
 	NodesState map[string]NodeState `json:"nodesState,omitempty"`
@@ -614,7 +614,7 @@ type PrometheusReportingTaskStatus struct {
 // +kubebuilder:subresource:status
 // +kubebuilder:storageversion
 
-// NifiCluster is the Schema for the nificlusters API
+// NifiCluster is the Schema for the nificlusters API.
 type NifiCluster struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -625,7 +625,7 @@ type NifiCluster struct {
 
 // +kubebuilder:object:root=true
 
-// NifiClusterList contains a list of NifiCluster
+// NifiClusterList contains a list of NifiCluster.
 type NifiClusterList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
@@ -652,7 +652,7 @@ func (u *ManagedUser) GetIdentity() string {
 	return u.Identity
 }
 
-// GetZkPath returns the default "/" ZkPath if not specified otherwise
+// GetZkPath returns the default "/" ZkPath if not specified otherwise.
 func (nSpec *NifiClusterSpec) GetZkPath() string {
 	const prefix = "/"
 	if nSpec.ZKPath == "" {
@@ -665,7 +665,6 @@ func (nSpec *NifiClusterSpec) GetZkPath() string {
 }
 
 func (nSpec *NifiClusterSpec) GetInitContainerImage() string {
-
 	if nSpec.InitContainerImage == "" {
 		return "bash"
 	}
@@ -701,7 +700,7 @@ func (nTaskSpec *NifiClusterTaskSpec) GetDurationMinutes() float64 {
 	return float64(nTaskSpec.RetryDurationMinutes)
 }
 
-// GetServiceAccount returns the Kubernetes Service Account to use for Nifi Cluster
+// GetServiceAccount returns the Kubernetes Service Account to use for Nifi Cluster.
 func (nConfig *NodeConfig) GetServiceAccount() string {
 	if nConfig.ServiceAccountName != "" {
 		return nConfig.ServiceAccountName
@@ -709,22 +708,22 @@ func (nConfig *NodeConfig) GetServiceAccount() string {
 	return "default"
 }
 
-// GetTolerations returns the tolerations for the given node
+// GetTolerations returns the tolerations for the given node.
 func (nConfig *NodeConfig) GetTolerations() []corev1.Toleration {
 	return nConfig.Tolerations
 }
 
-// GetNodeSelector returns the node selector for the given node
+// GetNodeSelector returns the node selector for the given node.
 func (nConfig *NodeConfig) GetNodeSelector() map[string]string {
 	return nConfig.NodeSelector
 }
 
-// GetImagePullSecrets returns the list of Secrets needed to pull Containers images from private repositories
+// GetImagePullSecrets returns the list of Secrets needed to pull Containers images from private repositories.
 func (nConfig *NodeConfig) GetImagePullSecrets() []corev1.LocalObjectReference {
 	return nConfig.ImagePullSecrets
 }
 
-// GetImagePullPolicy returns the image pull policy to pull containers images
+// GetImagePullPolicy returns the image pull policy to pull containers images.
 func (nConfig *NodeConfig) GetImagePullPolicy() corev1.PullPolicy {
 	return nConfig.ImagePullPolicy
 }
@@ -733,12 +732,12 @@ func (nConfig *NodeConfig) GetPodAnnotations() map[string]string {
 	return nConfig.PodMetadata.Annotations
 }
 
-// GetNodeLabels returns additional labels configured to be applied to each nifi node
+// GetNodeLabels returns additional labels configured to be applied to each nifi node.
 func (nConfig *NodeConfig) GetPodLabels() map[string]string {
 	return nConfig.PodMetadata.Labels
 }
 
-// GetResources returns the nifi node specific Kubernetes resource
+// GetResources returns the nifi node specific Kubernetes resource.
 func (nConfig *NodeConfig) GetResources() *corev1.ResourceRequirements {
 	if nConfig.ResourcesRequirements != nil {
 		return nConfig.ResourcesRequirements
@@ -755,7 +754,7 @@ func (nConfig *NodeConfig) GetResources() *corev1.ResourceRequirements {
 	}
 }
 
-// GetPriorityClass returns the name of the priority class to use for the given node
+// GetPriorityClass returns the name of the priority class to use for the given node.
 func (nConfig *NodeConfig) GetPriorityClass() string {
 	if nConfig.PriorityClassName != nil {
 		return *nConfig.PriorityClassName
@@ -795,7 +794,7 @@ func (nConfig *NodeConfig) GetProvenanceStorage() string {
 	return "8 GB"
 }
 
-// GetNifiJvmMemory returns the default "2g" NifiJvmMemory if not specified otherwise
+// GetNifiJvmMemory returns the default "2g" NifiJvmMemory if not specified otherwise.
 func (bProperties *BootstrapProperties) GetNifiJvmMemory() string {
 	if bProperties.NifiJvmMemory != "" {
 		return bProperties.NifiJvmMemory
@@ -811,7 +810,6 @@ func (nProperties NifiProperties) GetAuthorizer() string {
 }
 
 func (nSpec *NifiClusterSpec) GetMetricPort() *int {
-
 	for _, iListener := range nSpec.ListenersConfig.InternalListeners {
 		if iListener.Type == PrometheusListenerType {
 			val := int(iListener.ContainerPort)

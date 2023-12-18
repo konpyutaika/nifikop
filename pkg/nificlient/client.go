@@ -8,35 +8,35 @@ import (
 	"time"
 
 	"emperror.dev/errors"
+	nigoapi "github.com/konpyutaika/nigoapi/pkg/nifi"
 	"go.uber.org/zap"
 
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
-	nigoapi "github.com/konpyutaika/nigoapi/pkg/nifi"
 )
 
 const (
 	PRIMARY_NODE        = "Primary Node"
 	CLUSTER_COORDINATOR = "Cluster Coordinator"
-	// ConnectNodeAction states that the NiFi node is connecting to the NiFi Cluster
+	// ConnectNodeAction states that the NiFi node is connecting to the NiFi Cluster.
 	CONNECTING_STATUS = "CONNECTING"
-	// ConnectStatus states that the NiFi node is connected to the NiFi Cluster
+	// ConnectStatus states that the NiFi node is connected to the NiFi Cluster.
 	CONNECTED_STATUS = "CONNECTED"
-	// DisconnectNodeAction states that the NiFi node is disconnecting from NiFi Cluster
+	// DisconnectNodeAction states that the NiFi node is disconnecting from NiFi Cluster.
 	DISCONNECTING_STATUS = "DISCONNECTING"
-	// DisconnectStatus states that the NiFi node is disconnected from NiFi Cluster
+	// DisconnectStatus states that the NiFi node is disconnected from NiFi Cluster.
 	DISCONNECTED_STATUS = "DISCONNECTED"
-	// OffloadNodeAction states that the NiFi node is offloading data to NiFi Cluster
+	// OffloadNodeAction states that the NiFi node is offloading data to NiFi Cluster.
 	OFFLOADING_STATUS = "OFFLOADING"
-	// OffloadStatus states that the NiFi node offloaded data to NiFi Cluster
+	// OffloadStatus states that the NiFi node offloaded data to NiFi Cluster.
 	OFFLOADED_STATUS = "OFFLOADED"
-	// RemoveNodeAction states that the NiFi node is removing from NiFi Cluster
+	// RemoveNodeAction states that the NiFi node is removing from NiFi Cluster.
 	REMOVING_STATUS = "REMOVING"
-	// RemoveStatus states that the NiFi node is removed from NiFi Cluster
+	// RemoveStatus states that the NiFi node is removed from NiFi Cluster.
 	REMOVED_STATUS = "REMOVED"
 )
 
-// NiFiClient is the exported interface for NiFi operations
+// NiFiClient is the exported interface for NiFi operations.
 type NifiClient interface {
 	// Access func
 	CreateAccessTokenUsingBasicAuth(username, password string, nodeId int32) (*string, error)
@@ -191,7 +191,7 @@ func (n *nifiClient) Build() error {
 	return nil
 }
 
-// NewFromConfig is a convenient wrapper around New() and ClusterConfig()
+// NewFromConfig is a convenient wrapper around New() and ClusterConfig().
 func NewFromConfig(opts *clientconfig.NifiConfig, logger *zap.Logger) (NifiClient, error) {
 	var client NifiClient
 	var err error

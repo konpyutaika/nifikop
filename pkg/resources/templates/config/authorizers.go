@@ -1,6 +1,6 @@
 package config
 
-// Template for nifi's authorizer.xml file, used by the initial cluster's nodes
+// Template for nifi's authorizer.xml file, used by the initial cluster's nodes.
 var AuthorizersTemplate = `{{- $nodeList := .NodeList }}
 {{- $clusterName := .ClusterName }}
 {{- $namespace := .Namespace }}<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -44,7 +44,7 @@ var AuthorizersTemplate = `{{- $nodeList := .NodeList }}
 {{- end}}
 `
 
-// Empty authorizer.xml template, used by new node joining the cluster
+// Empty authorizer.xml template, used by new node joining the cluster.
 var EmptyAuthorizersTemplate = `{{- if and .SingleUserConfiguration.AuthorizerEnabled .SingleUserConfiguration.Enabled}}
 <authorizers>
     <authorizer>

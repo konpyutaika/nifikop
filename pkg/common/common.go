@@ -1,15 +1,16 @@
 package common
 
 import (
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+
 	"github.com/konpyutaika/nifikop/pkg/nificlient"
 	"github.com/konpyutaika/nifikop/pkg/util"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 )
 
 //// NewFromCluster is a convenient wrapper around New() and ClusterConfig()
-//func NewFromCluster(k8sclient client.Client, cluster *v1.NifiCluster) (nificlient.NifiClient, error) {
+// func NewFromCluster(k8sclient client.Client, cluster *v1.NifiCluster) (nificlient.NifiClient, error) {
 //	var client nificlient.NifiClient
 //	var err error
 //	var opts *clientconfig.NifiConfig
@@ -29,11 +30,11 @@ import (
 //
 //// NewNifiFromCluster points to the function for retrieving nifi clients,
 //// use as var so it can be overwritten from unit tests
-//var NewNifiFromCluster = NewFromCluster
+// var NewNifiFromCluster = NewFromCluster
 //
 //// newNodeConnection is a convenience wrapper for creating a node connection
 //// and creating a safer close function
-//func NewNodeConnection(log zap.Logger, client client.Client, cluster *v1.NifiCluster) (node nificlient.NifiClient, err error) {
+// func NewNodeConnection(log zap.Logger, client client.Client, cluster *v1.NifiCluster) (node nificlient.NifiClient, err error) {
 //
 //	// Get a nifi connection
 //	log.Info(fmt.Sprintf("Retrieving Nifi client for %s/%s", cluster.Namespace, cluster.Name))
@@ -45,13 +46,12 @@ import (
 //}
 
 // NewNifiFromCluster points to the function for retrieving nifi clients,
-// use as var so it can be overwritten from unit tests
+// use as var so it can be overwritten from unit tests.
 var NewNifiFromConfig = nificlient.NewFromConfig
 
 // newNodeConnection is a convenience wrapper for creating a node connection
-// and creating a safer close function
+// and creating a safer close function.
 func NewClusterConnection(log *zap.Logger, config *clientconfig.NifiConfig) (node nificlient.NifiClient, err error) {
-
 	// Get a nifi connection
 	node, err = NewNifiFromConfig(config, CustomLogger().Named("nifi_client"))
 	if err != nil {
@@ -113,7 +113,6 @@ func NewLogLevel(lvl string) (zapcore.Level, bool) {
 }
 
 func CustomLogger() *zap.Logger {
-
 	logLvl, isDevelopment := NewLogLevel(util.GetEnvWithDefault("LOG_LEVEL", "Info"))
 	logEncoding := util.GetEnvWithDefault("LOG_ENCODING", "json")
 

@@ -1,12 +1,13 @@
 package config
 
 import (
+	"sigs.k8s.io/controller-runtime/pkg/client"
+
 	"github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/pkg/k8sutil"
 	"github.com/konpyutaika/nifikop/pkg/nificlient/config/basic"
 	"github.com/konpyutaika/nifikop/pkg/nificlient/config/tls"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 var MockClientConfig = v1.ClientConfigType("mock")
@@ -25,7 +26,7 @@ func GetClientConfigManager(client client.Client, clusterRef v1.ClusterReference
 	}
 }
 
-// Mock types and functions
+// Mock types and functions.
 type mockClientConfig struct {
 	clientconfig.Manager
 	client     client.Client

@@ -22,29 +22,28 @@ import (
 	"fmt"
 	"reflect"
 
-	v1 "github.com/konpyutaika/nifikop/api/v1"
-
 	"emperror.dev/errors"
 	"github.com/banzaicloud/k8s-objectmatcher/patch"
+	"go.uber.org/zap"
+	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/tools/record"
+	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/usergroup"
 	"github.com/konpyutaika/nifikop/pkg/k8sutil"
 	"github.com/konpyutaika/nifikop/pkg/nificlient/config"
 	"github.com/konpyutaika/nifikop/pkg/util"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
-	"go.uber.org/zap"
-	corev1 "k8s.io/api/core/v1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/client-go/tools/record"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-
-	"k8s.io/apimachinery/pkg/runtime"
-	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 var userGroupFinalizer = fmt.Sprintf("nifiusergroups.%s/finalizer", v1.GroupVersion.Group)
 
-// NifiUserGroupReconciler reconciles a NifiUserGroup object
+// NifiUserGroupReconciler reconciles a NifiUserGroup object.
 type NifiUserGroupReconciler struct {
 	client.Client
 	Log             zap.Logger
@@ -111,7 +110,6 @@ func (r *NifiUserGroupReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		var user *v1.NifiUser
 		userNamespace := GetUserRefNamespace(current.Namespace, userRef)
 		if user, err = k8sutil.LookupNifiUser(r.Client, userRef.Name, userNamespace); err != nil {
-
 			// This shouldn't trigger anymore, but leaving it here as a safetybelt
 			if k8sutil.IsMarkedForDeletion(current.ObjectMeta) {
 				r.Log.Error("User group is already gone, there is nothing we can do",
@@ -346,7 +344,6 @@ func (r *NifiUserGroupReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 func (r *NifiUserGroupReconciler) ensureClusterLabel(ctx context.Context, cluster clientconfig.ClusterConnect,
 	userGroup *v1.NifiUserGroup, patcher client.Patch) (*v1.NifiUserGroup, error) {
-
 	labels := ApplyClusterReferenceLabel(cluster, userGroup.GetLabels())
 	if !reflect.DeepEqual(labels, userGroup.GetLabels()) {
 		userGroup.SetLabels(labels)
@@ -357,7 +354,6 @@ func (r *NifiUserGroupReconciler) ensureClusterLabel(ctx context.Context, cluste
 
 func (r *NifiUserGroupReconciler) updateAndFetchLatest(ctx context.Context,
 	userGroup *v1.NifiUserGroup, patcher client.Patch) (*v1.NifiUserGroup, error) {
-
 	typeMeta := userGroup.TypeMeta
 	err := r.Client.Patch(ctx, userGroup, patcher)
 	if err != nil {
@@ -395,7 +391,6 @@ func (r *NifiUserGroupReconciler) finalizeNifiNifiUserGroup(
 	userGroup *v1.NifiUserGroup,
 	users []*v1.NifiUser,
 	config *clientconfig.NifiConfig) error {
-
 	if err := usergroup.RemoveUserGroup(userGroup, users, config); err != nil {
 		return err
 	}

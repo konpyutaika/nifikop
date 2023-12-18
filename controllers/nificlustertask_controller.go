@@ -22,9 +22,18 @@ import (
 	"reflect"
 	"time"
 
-	v1 "github.com/konpyutaika/nifikop/api/v1"
-
 	"emperror.dev/errors"
+	"go.uber.org/zap"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/meta"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/tools/record"
+	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/event"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
+
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/scale"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	"github.com/konpyutaika/nifikop/pkg/k8sutil"
@@ -32,19 +41,9 @@ import (
 	"github.com/konpyutaika/nifikop/pkg/util"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
 	nifiutil "github.com/konpyutaika/nifikop/pkg/util/nifi"
-	"go.uber.org/zap"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/api/meta"
-	"k8s.io/client-go/tools/record"
-	"sigs.k8s.io/controller-runtime/pkg/event"
-	"sigs.k8s.io/controller-runtime/pkg/predicate"
-
-	"k8s.io/apimachinery/pkg/runtime"
-	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-// NifiClusterTaskReconciler reconciles
+// NifiClusterTaskReconciler reconciles.
 type NifiClusterTaskReconciler struct {
 	client.Client
 	Log              zap.Logger
@@ -64,7 +63,6 @@ type NifiClusterTaskReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.7.0/pkg/reconcile
 func (r *NifiClusterTaskReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-
 	intervalNotReady := util.GetRequeueInterval(r.RequeueIntervals["CLUSTER_TASK_NOT_READY_REQUEUE_INTERVAL"], r.RequeueOffset)
 	intervalRunning := util.GetRequeueInterval(r.RequeueIntervals["CLUSTER_TASK_RUNNING_REQUEUE_INTERVAL"], r.RequeueOffset)
 	intervalTimeout := util.GetRequeueInterval(r.RequeueIntervals["CLUSTER_TASK_TIMEOUT_REQUEUE_INTERVAL"], r.RequeueOffset)
@@ -178,7 +176,7 @@ func (r *NifiClusterTaskReconciler) SetupWithManager(mgr ctrl.Manager) error {
 							return true
 						}
 					}
-					//if reflect.DeepEqual(old.Status.NodesState, new.Status.NodesState) {
+					// if reflect.DeepEqual(old.Status.NodesState, new.Status.NodesState) {
 					//	return true
 					//}
 					if !reflect.DeepEqual(old.Status.NodesState, new.Status.NodesState) ||
@@ -254,12 +252,11 @@ func (r *NifiClusterTaskReconciler) handlePodDeleteNCTask(nifiCluster *v1.NifiCl
 		if err != nil {
 			return errors.WrapIfWithDetails(err, "could not update status for node(s)", "clusterName", nifiCluster.Name, "id(s)", nodeId)
 		}
-
 	}
 	return nil
 }
 
-// TODO: Review logic to simplify it through generic method
+// TODO: Review logic to simplify it through generic method.
 func (r *NifiClusterTaskReconciler) handlePodRunningTask(nifiCluster *v1.NifiCluster, currentStatus v1.NifiClusterStatus, nodeIds []string, log zap.Logger) error {
 	// Prepare cluster connection configurations
 	var clientConfig *clientconfig.NifiConfig
@@ -434,7 +431,6 @@ func (r *NifiClusterTaskReconciler) checkNCActionStep(nodeId string, nifiCluster
 			if err != nil {
 				return errors.WrapIfWithDetails(err, "could not update status for node(s)", "clusterName", nifiCluster.Name, "id(s)", nodeId)
 			}
-
 		}
 	}
 	// cc task still in progress
@@ -442,7 +438,7 @@ func (r *NifiClusterTaskReconciler) checkNCActionStep(nodeId string, nifiCluster
 	return errorfactory.New(errorfactory.NifiClusterTaskRunning{}, errors.New("Nifi cluster task is still running for cluster "+nifiCluster.Name), fmt.Sprintf("nc action step: %s", actionStep))
 }
 
-// getCorrectRequiredCCState returns the correct Required CC state based on that we upscale or downscale
+// getCorrectRequiredCCState returns the correct Required CC state based on that we upscale or downscale.
 func (r *NifiClusterTaskReconciler) getCorrectRequiredNCState(ncState v1.State) (v1.State, error) {
 	if ncState.IsDownscale() {
 		return v1.GracefulDownscaleRequired, nil

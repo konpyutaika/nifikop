@@ -1,15 +1,15 @@
 package nifi
 
 import (
+	corev1 "k8s.io/api/core/v1"
+	runtimeClient "sigs.k8s.io/controller-runtime/pkg/client"
+
 	"github.com/konpyutaika/nifikop/pkg/resources/templates"
 	"github.com/konpyutaika/nifikop/pkg/util"
 	nifiutils "github.com/konpyutaika/nifikop/pkg/util/nifi"
-	corev1 "k8s.io/api/core/v1"
-	runtimeClient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func (r *Reconciler) headlessService() runtimeClient.Object {
-
 	// InternalListeners ports
 	usedPorts := generateServicePortForInternalListeners(r.NifiCluster.Spec.ListenersConfig.InternalListeners)
 

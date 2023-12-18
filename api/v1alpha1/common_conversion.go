@@ -4,7 +4,7 @@ import (
 	v1 "github.com/konpyutaika/nifikop/api/v1"
 )
 
-// SecretRef
+// SecretRef.
 func getSecretRef(src v1.SecretReference) SecretReference {
 	return SecretReference{
 		Name:      src.Name,
@@ -19,7 +19,7 @@ func getV1SecretRef(src SecretReference) v1.SecretReference {
 	}
 }
 
-// ReadOnlyConfig
+// ReadOnlyConfig.
 func getReadOnlyConfig(src v1.ReadOnlyConfig) ReadOnlyConfig {
 	dstReadOnlyConfig := ReadOnlyConfig{
 		AdditionalSharedEnvs: src.AdditionalSharedEnvs,
@@ -64,7 +64,7 @@ func getV1ReadOnlyConfig(src ReadOnlyConfig) v1.ReadOnlyConfig {
 	return dstReadOnlyConfig
 }
 
-// ClusterRef
+// ClusterRef.
 func getClusterReference(src v1.ClusterReference) ClusterReference {
 	return ClusterReference{
 		Name:      src.Name,
@@ -79,7 +79,7 @@ func getV1ClusterReference(src ClusterReference) v1.ClusterReference {
 	}
 }
 
-// ParameterContextRef
+// ParameterContextRef.
 func getV1ParameterContextRef(src ParameterContextReference) v1.ParameterContextReference {
 	return v1.ParameterContextReference{
 		Name:      src.Name,
@@ -94,7 +94,7 @@ func getParameterContextRef(src v1.ParameterContextReference) ParameterContextRe
 	}
 }
 
-// AccessPolicy
+// AccessPolicy.
 func getV1AccessPolicy(src AccessPolicy) v1.AccessPolicy {
 	return v1.AccessPolicy{
 		Type:          v1.AccessPolicyType(src.Type),

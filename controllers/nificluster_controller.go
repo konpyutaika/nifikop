@@ -21,9 +21,19 @@ import (
 	"fmt"
 	"time"
 
-	v1 "github.com/konpyutaika/nifikop/api/v1"
-
 	"emperror.dev/errors"
+	"go.uber.org/zap"
+	corev1 "k8s.io/api/core/v1"
+	policyv1 "k8s.io/api/policy/v1"
+	policyv1beta1 "k8s.io/api/policy/v1beta1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/tools/record"
+	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	"github.com/konpyutaika/nifikop/pkg/k8sutil"
 	"github.com/konpyutaika/nifikop/pkg/pki"
@@ -31,23 +41,12 @@ import (
 	"github.com/konpyutaika/nifikop/pkg/resources/nifi"
 	"github.com/konpyutaika/nifikop/pkg/util"
 	nifiutil "github.com/konpyutaika/nifikop/pkg/util/nifi"
-	"go.uber.org/zap"
-	corev1 "k8s.io/api/core/v1"
-	policyv1 "k8s.io/api/policy/v1"
-	policyv1beta1 "k8s.io/api/policy/v1beta1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/client-go/tools/record"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-
-	"k8s.io/apimachinery/pkg/runtime"
-	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 var clusterFinalizer string = fmt.Sprintf("nificlusters.%s/finalizer", v1.GroupVersion.Group)
 var clusterUsersFinalizer string = fmt.Sprintf("nificlusters.%s/users", v1.GroupVersion.Group)
 
-// NifiClusterReconciler reconciles a NifiCluster object
+// NifiClusterReconciler reconciles a NifiCluster object.
 type NifiClusterReconciler struct {
 	client.Client
 	DirectClient     client.Reader
@@ -174,7 +173,7 @@ func (r *NifiClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return RequeueWithError(r.Log, "failed to ensure finalizers on nificluster instance "+current.Name, err)
 	}
 
-	//Update rolling upgrade last successful state
+	// Update rolling upgrade last successful state
 	if instance.Status.State == v1.NifiClusterRollingUpgrading {
 		if err := k8sutil.UpdateRollingUpgradeState(r.Client, instance, current.Status, time.Now(), r.Log); err != nil {
 			return RequeueWithError(r.Log, err.Error(), err)
@@ -224,7 +223,6 @@ func (r *NifiClusterReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 func (r *NifiClusterReconciler) checkFinalizers(ctx context.Context,
 	cluster *v1.NifiCluster, patcher client.Patch) (reconcile.Result, error) {
-
 	r.Log.Info("NifiCluster is marked for deletion, checking for children", zap.String("clusterName", cluster.Name))
 
 	// If the main finalizer is gone then we've already finished up
@@ -336,14 +334,12 @@ func (r *NifiClusterReconciler) finalizePVCs(ctx context.Context, cluster *v1.Ni
 
 func (r *NifiClusterReconciler) removeFinalizer(ctx context.Context, cluster *v1.NifiCluster,
 	finalizer string, patcher client.Patch) (updated *v1.NifiCluster, err error) {
-
 	cluster.SetFinalizers(util.StringSliceRemove(cluster.GetFinalizers(), finalizer))
 	return r.updateAndFetchLatest(ctx, cluster, patcher)
 }
 
 func (r *NifiClusterReconciler) updateAndFetchLatest(ctx context.Context,
 	cluster *v1.NifiCluster, patcher client.Patch) (*v1.NifiCluster, error) {
-
 	typeMeta := cluster.TypeMeta
 	err := r.Client.Patch(ctx, cluster, patcher)
 	if err != nil {
@@ -355,7 +351,6 @@ func (r *NifiClusterReconciler) updateAndFetchLatest(ctx context.Context,
 
 func (r *NifiClusterReconciler) ensureFinalizers(ctx context.Context,
 	cluster *v1.NifiCluster, patcher client.Patch) (updated *v1.NifiCluster, err error) {
-
 	finalizers := []string{clusterFinalizer}
 	if cluster.IsInternal() && cluster.Spec.ListenersConfig.SSLSecrets != nil {
 		finalizers = append(finalizers, clusterUsersFinalizer)

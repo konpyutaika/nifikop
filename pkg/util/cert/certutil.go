@@ -13,19 +13,19 @@ import (
 	"strings"
 	"time"
 
-	v1 "github.com/konpyutaika/nifikop/api/v1"
-
 	certv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	keystore "github.com/pavel-v-chernykh/keystore-go"
 	corev1 "k8s.io/api/core/v1"
+
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 )
 
-// passChars are the characters used when generating passwords
+// passChars are the characters used when generating passwords.
 var passChars []rune = []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
 	"abcdefghijklmnopqrstuvwxyz" +
 	"0123456789")
 
-// DecodeKey will take a PEM encoded Private Key and convert to raw der bytes
+// DecodeKey will take a PEM encoded Private Key and convert to raw der bytes.
 func DecodeKey(raw []byte) (parsedKey []byte, err error) {
 	block, _ := pem.Decode(raw)
 	if block == nil {
@@ -51,7 +51,7 @@ func DecodeKey(raw []byte) (parsedKey []byte, err error) {
 	return
 }
 
-// DecodeCertificate returns an x509.Certificate for a PEM encoded certificate
+// DecodeCertificate returns an x509.Certificate for a PEM encoded certificate.
 func DecodeCertificate(raw []byte) (cert *x509.Certificate, err error) {
 	block, _ := pem.Decode(raw)
 	if block == nil {
@@ -62,7 +62,7 @@ func DecodeCertificate(raw []byte) (cert *x509.Certificate, err error) {
 	return
 }
 
-// GeneratePass generates a random password
+// GeneratePass generates a random password.
 func GeneratePass(length int) (passw []byte) {
 	r := mathrand.New(mathrand.NewSource(time.Now().UnixNano()))
 	var b strings.Builder
@@ -73,9 +73,8 @@ func GeneratePass(length int) (passw []byte) {
 	return
 }
 
-// EnsureSecretPassJKS ensures a JKS password is present in a certificate secret
+// EnsureSecretPassJKS ensures a JKS password is present in a certificate secret.
 func EnsureSecretPassJKS(secret *corev1.Secret) (injected *corev1.Secret, err error) {
-
 	// If the JKS Pass is already present - return
 	if _, ok := secret.Data[v1.PasswordKey]; ok {
 		return secret, nil
@@ -86,9 +85,8 @@ func EnsureSecretPassJKS(secret *corev1.Secret) (injected *corev1.Secret, err er
 	return
 }
 
-// GenerateJKS creates a JKS with a random password from a client cert/key combination
+// GenerateJKS creates a JKS with a random password from a client cert/key combination.
 func GenerateJKS(clientCert, clientKey, clientCA []byte) (out, passw []byte, err error) {
-
 	if len(clientCA) == 0 {
 		certs := strings.SplitAfter(string(clientCert), "-----END CERTIFICATE-----")
 		clientCert = []byte(certs[0])
@@ -144,7 +142,7 @@ func GenerateJKS(clientCert, clientKey, clientCA []byte) (out, passw []byte, err
 	return outBuf.Bytes(), passw, err
 }
 
-// GenerateTestCert is used from unit tests for generating certificates
+// GenerateTestCert is used from unit tests for generating certificates.
 func GenerateTestCert() (cert, key []byte, expectedDn string, err error) {
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
 	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)

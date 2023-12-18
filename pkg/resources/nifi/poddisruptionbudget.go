@@ -6,16 +6,16 @@ import (
 	"strconv"
 	"strings"
 
-	nifiutil "github.com/konpyutaika/nifikop/pkg/util/nifi"
 	"go.uber.org/zap"
-	runtimeClient "sigs.k8s.io/controller-runtime/pkg/client"
-
-	"github.com/konpyutaika/nifikop/pkg/resources/templates"
-	"github.com/konpyutaika/nifikop/pkg/util"
 	policyv1 "k8s.io/api/policy/v1"
 	policyv1beta1 "k8s.io/api/policy/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	runtimeClient "sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/konpyutaika/nifikop/pkg/resources/templates"
+	"github.com/konpyutaika/nifikop/pkg/util"
+	nifiutil "github.com/konpyutaika/nifikop/pkg/util/nifi"
 )
 
 func (r *Reconciler) podDisruptionBudget(log zap.Logger) (runtimeClient.Object, error) {
@@ -23,7 +23,6 @@ func (r *Reconciler) podDisruptionBudget(log zap.Logger) (runtimeClient.Object, 
 
 	if err != nil {
 		return nil, err
-
 	}
 
 	if util.IsK8sPrior1_21() {
@@ -68,9 +67,8 @@ func (r *Reconciler) podDisruptionBudget(log zap.Logger) (runtimeClient.Object, 
 }
 
 // Calculate maxUnavailable as max between nodeCount - 1 (so we only allow 1 node to be disrupted)
-// and 1 (to cover for 1 node clusters)
+// and 1 (to cover for 1 node clusters).
 func (r *Reconciler) computeMinAvailable(log zap.Logger) (intstr.IntOrString, error) {
-
 	/*
 		budget = r.KafkaCluster.Spec.DisruptionBudget.budget (string) ->
 		- can either be %percentage or static number
@@ -91,7 +89,7 @@ func (r *Reconciler) computeMinAvailable(log zap.Logger) (intstr.IntOrString, er
 	if strings.HasSuffix(disruptionBudget, "%") {
 		percentage, err := strconv.ParseFloat(disruptionBudget[:len(disruptionBudget)-1], 64)
 		if err != nil {
-			log.Error("error occured during parsing the disruption budget",
+			log.Error("error occurred during parsing the disruption budget",
 				zap.String("clusterName", r.NifiCluster.Name),
 				zap.String("disruptionBudget", disruptionBudget),
 				zap.Error(err))
@@ -103,7 +101,7 @@ func (r *Reconciler) computeMinAvailable(log zap.Logger) (intstr.IntOrString, er
 		// treat static number budget
 		staticBudget, err := strconv.ParseInt(disruptionBudget, 10, 0)
 		if err != nil {
-			log.Error("error occured during parsing the disruption budget",
+			log.Error("error occurred during parsing the disruption budget",
 				zap.String("clusterName", r.NifiCluster.Name),
 				zap.String("disruptionBudget", disruptionBudget),
 				zap.Error(err))
@@ -111,7 +109,6 @@ func (r *Reconciler) computeMinAvailable(log zap.Logger) (intstr.IntOrString, er
 		} else {
 			budget = int(staticBudget)
 		}
-
 	}
 
 	return intstr.FromInt(util.Max(1, nodes-budget)), nil

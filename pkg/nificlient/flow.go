@@ -47,7 +47,6 @@ func (n *nifiClient) GetFlowControllerServices(id string) (*nigoapi.ControllerSe
 }
 
 func (n *nifiClient) UpdateFlowControllerServices(entity nigoapi.ActivateControllerServicesEntity) (*nigoapi.ActivateControllerServicesEntity, error) {
-
 	// Get nigoapi client, favoring the one associated to the coordinator node.
 	client, context := n.privilegeCoordinatorClient()
 	if client == nil {
@@ -66,7 +65,6 @@ func (n *nifiClient) UpdateFlowControllerServices(entity nigoapi.ActivateControl
 }
 
 func (n *nifiClient) UpdateFlowProcessGroup(entity nigoapi.ScheduleComponentsEntity) (*nigoapi.ScheduleComponentsEntity, error) {
-
 	// Get nigoapi client, favoring the one associated to the coordinator node.
 	client, context := n.privilegeCoordinatorClient()
 	if client == nil {
@@ -85,7 +83,7 @@ func (n *nifiClient) UpdateFlowProcessGroup(entity nigoapi.ScheduleComponentsEnt
 }
 
 // TODO : when last supported will be NiFi 1.12.X
-//func (n *nifiClient) FlowDropRequest(connectionId, id string) (*nigoapi.DropRequestEntity, error) {
+// func (n *nifiClient) FlowDropRequest(connectionId, id string) (*nigoapi.DropRequestEntity, error) {
 //	// Get nigoapi client, favoring the one associated to the coordinator node.
 //	client, context := n.privilegeCoordinatorClient()
 //	if client == nil {

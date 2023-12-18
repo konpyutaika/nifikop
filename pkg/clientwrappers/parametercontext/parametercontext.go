@@ -3,20 +3,20 @@ package parametercontext
 import (
 	"strings"
 
+	nigoapi "github.com/konpyutaika/nigoapi/pkg/nifi"
+	corev1 "k8s.io/api/core/v1"
+
 	v1 "github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers"
 	"github.com/konpyutaika/nifikop/pkg/common"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	"github.com/konpyutaika/nifikop/pkg/nificlient"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
-	nigoapi "github.com/konpyutaika/nigoapi/pkg/nifi"
-	corev1 "k8s.io/api/core/v1"
 )
 
 var log = common.CustomLogger().Named("parametercontext-method")
 
 func ExistParameterContext(parameterContext *v1.NifiParameterContext, config *clientconfig.NifiConfig) (bool, error) {
-
 	if parameterContext.Status.Id == "" {
 		return false, nil
 	}
@@ -38,7 +38,6 @@ func ExistParameterContext(parameterContext *v1.NifiParameterContext, config *cl
 }
 
 func FindParameterContextByName(parameterContext *v1.NifiParameterContext, config *clientconfig.NifiConfig) (*v1.NifiParameterContextStatus, error) {
-
 	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
 		return nil, err
@@ -69,7 +68,6 @@ func CreateParameterContext(
 	parameterSecrets []*corev1.Secret,
 	parameterContextRefs []*v1.NifiParameterContext,
 	config *clientconfig.NifiConfig) (*v1.NifiParameterContextStatus, error) {
-
 	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
 		return nil, err
@@ -94,7 +92,6 @@ func SyncParameterContext(
 	parameterSecrets []*corev1.Secret,
 	parameterContextRefs []*v1.NifiParameterContext,
 	config *clientconfig.NifiConfig) (*v1.NifiParameterContextStatus, error) {
-
 	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
 		return nil, err
@@ -129,7 +126,6 @@ func SyncParameterContext(
 	}
 
 	if !parameterContextIsSync(parameterContext, parameterSecrets, parameterContextRefs, entity) {
-
 		entity.Component.Parameters = updateRequestPrepare(parameterContext, parameterSecrets, parameterContextRefs, entity)
 
 		updateRequest, err := nClient.CreateParameterContextUpdateRequest(entity.Id, *entity)
@@ -157,7 +153,6 @@ func RemoveParameterContext(
 	parameterSecrets []*corev1.Secret,
 	parameterContextRefs []*v1.NifiParameterContext,
 	config *clientconfig.NifiConfig) error {
-
 	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
 		return err
@@ -182,7 +177,6 @@ func parameterContextIsSync(
 	parameterSecrets []*corev1.Secret,
 	parameterContextRefs []*v1.NifiParameterContext,
 	entity *nigoapi.ParameterContextEntity) bool {
-
 	e := nigoapi.ParameterContextEntity{}
 	updateParameterContextEntity(parameterContext, parameterSecrets, parameterContextRefs, &e)
 
@@ -203,7 +197,6 @@ func parameterContextIsSync(
 					!((expected.Parameter.Description == nil && param.Parameter.Description == nil) ||
 						((expected.Parameter.Description != nil && param.Parameter.Description != nil) &&
 							(*expected.Parameter.Description == *param.Parameter.Description))) {
-
 					return false
 				}
 			}
@@ -231,7 +224,6 @@ func updateRequestPrepare(
 	parameterSecrets []*corev1.Secret,
 	parameterContextRefs []*v1.NifiParameterContext,
 	entity *nigoapi.ParameterContextEntity) []nigoapi.ParameterEntity {
-
 	tmp := entity.Component.Parameters
 	updateParameterContextEntity(parameterContext, parameterSecrets, parameterContextRefs, entity)
 
@@ -265,7 +257,6 @@ func updateRequestPrepare(
 					!((expected.Parameter.Description == nil && param.Parameter.Description == nil) ||
 						((expected.Parameter.Description != nil && param.Parameter.Description != nil) &&
 							(*expected.Parameter.Description == *param.Parameter.Description))) {
-
 					notFound = false
 					if expected.Parameter.Value == nil && param.Parameter.Value != nil {
 						toRemove = append(toRemove, expected.Parameter.Name)
@@ -297,7 +288,6 @@ func updateParameterContextEntity(
 	parameterSecrets []*corev1.Secret,
 	parameterContextRefs []*v1.NifiParameterContext,
 	entity *nigoapi.ParameterContextEntity) {
-
 	var defaultVersion int64 = 0
 	if entity == nil {
 		entity = &nigoapi.ParameterContextEntity{}

@@ -22,30 +22,29 @@ import (
 	"fmt"
 	"reflect"
 
-	v1 "github.com/konpyutaika/nifikop/api/v1"
-
 	"emperror.dev/errors"
 	"github.com/banzaicloud/k8s-objectmatcher/patch"
+	"go.uber.org/zap"
+	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/tools/record"
+	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/parametercontext"
 	errorfactory "github.com/konpyutaika/nifikop/pkg/errorfactory"
 	"github.com/konpyutaika/nifikop/pkg/k8sutil"
 	"github.com/konpyutaika/nifikop/pkg/nificlient/config"
 	"github.com/konpyutaika/nifikop/pkg/util"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
-	"go.uber.org/zap"
-	corev1 "k8s.io/api/core/v1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/client-go/tools/record"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-
-	"k8s.io/apimachinery/pkg/runtime"
-	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 var parameterContextFinalizer = fmt.Sprintf("nifiparametercontexts.%s/finalizer", v1.GroupVersion.Group)
 
-// NifiParameterContextReconciler reconciles a NifiParameterContext object
+// NifiParameterContextReconciler reconciles a NifiParameterContext object.
 type NifiParameterContextReconciler struct {
 	client.Client
 	Log             zap.Logger
@@ -356,7 +355,6 @@ func (r *NifiParameterContextReconciler) SetupWithManager(mgr ctrl.Manager) erro
 
 func (r *NifiParameterContextReconciler) ensureClusterLabel(ctx context.Context, cluster clientconfig.ClusterConnect,
 	parameterContext *v1.NifiParameterContext, patcher client.Patch) (*v1.NifiParameterContext, error) {
-
 	labels := ApplyClusterReferenceLabel(cluster, parameterContext.GetLabels())
 	if !reflect.DeepEqual(labels, parameterContext.GetLabels()) {
 		parameterContext.SetLabels(labels)
@@ -367,7 +365,6 @@ func (r *NifiParameterContextReconciler) ensureClusterLabel(ctx context.Context,
 
 func (r *NifiParameterContextReconciler) updateAndFetchLatest(ctx context.Context,
 	parameterContext *v1.NifiParameterContext, patcher client.Patch) (*v1.NifiParameterContext, error) {
-
 	typeMeta := parameterContext.TypeMeta
 	err := r.Client.Patch(ctx, parameterContext, patcher)
 	if err != nil {
@@ -411,7 +408,6 @@ func (r *NifiParameterContextReconciler) finalizeNifiParameterContext(
 	parameterSecrets []*corev1.Secret,
 	parameterContextRefs []*v1.NifiParameterContext,
 	config *clientconfig.NifiConfig) error {
-
 	if err := parametercontext.RemoveParameterContext(parameterContext, parameterSecrets, parameterContextRefs, config); err != nil {
 		return err
 	}

@@ -1,7 +1,7 @@
 package nifi
 
 //
-//import (
+// import (
 //	"fmt"
 //	"strings"
 //	"testing"
@@ -10,7 +10,7 @@ package nifi
 //	"github.com/stretchr/testify/assert"
 //)
 //
-//const (
+// const (
 //	httpContainerPort int32 = 443
 //
 //	clusterName      = "test-cluster"
@@ -21,7 +21,7 @@ package nifi
 //	externalDNSClusterDomain = "external.dns.com"
 //)
 //
-//func TestParseStringToInt32(t *testing.T) {
+// func TestParseStringToInt32(t *testing.T) {
 //	assert := assert.New(t)
 //
 //	var expectedValue int32 = 12
@@ -30,7 +30,7 @@ package nifi
 //	assert.Equal(expectedValue, parsed)
 //}
 //
-//func testClusterLocal(t *testing.T) *v1.NifiCluster {
+// func testClusterLocal(t *testing.T) *v1.NifiCluster {
 //	t.Helper()
 //	cluster := &v1.NifiCluster{}
 //
@@ -53,14 +53,14 @@ package nifi
 //	return cluster
 //}
 //
-//func testClusterDemo(t *testing.T) *v1.NifiCluster {
+// func testClusterDemo(t *testing.T) *v1.NifiCluster {
 //	t.Helper()
 //	cluster := testClusterLocal(t)
 //	cluster.Spec.ListenersConfig.ClusterDomain = demoClusterDomain
 //	return cluster
 //}
 //
-//func testClusterExternalDNS(t *testing.T) *v1.NifiCluster {
+// func testClusterExternalDNS(t *testing.T) *v1.NifiCluster {
 //	t.Helper()
 //	cluster := testClusterLocal(t)
 //	cluster.Spec.ListenersConfig.ClusterDomain = externalDNSClusterDomain
@@ -68,14 +68,14 @@ package nifi
 //	return cluster
 //}
 //
-//func TestGenerateNiFiAddressFromCluster(t *testing.T) {
+// func TestGenerateNiFiAddressFromCluster(t *testing.T) {
 //
 //	testNiFiAddressFromCluster(t, testClusterLocal(t), localClusterDomain, false)
 //	testNiFiAddressFromCluster(t, testClusterDemo(t), demoClusterDomain, false)
 //	testNiFiAddressFromCluster(t, testClusterExternalDNS(t), externalDNSClusterDomain, true)
 //}
 //
-//func testNiFiAddressFromCluster(t *testing.T,
+// func testNiFiAddressFromCluster(t *testing.T,
 //	cluster *v1.NifiCluster, expectedClusterDomain string, expectedUseExternalDNS bool) {
 //
 //	assert := assert.New(t)
@@ -97,7 +97,7 @@ package nifi
 //		GenerateNiFiAddressFromCluster(cluster))
 //}
 //
-//func TestComputeNiFiAddress(t *testing.T) {
+// func TestComputeNiFiAddress(t *testing.T) {
 //
 //	cluster := testClusterLocal(t)
 //	testNiFiAddress(t,
@@ -131,7 +131,7 @@ package nifi
 //
 //}
 //
-//func testNiFiAddress(t *testing.T,
+// func testNiFiAddress(t *testing.T,
 //	clusterName, namespace string,
 //	headlessServiceEnabled bool,
 //	clusterDomain string,
@@ -149,7 +149,7 @@ package nifi
 //
 //}
 //
-//func TestComputeAllNodeServiceHostname(t *testing.T) {
+// func TestComputeAllNodeServiceHostname(t *testing.T) {
 //	cluster := testClusterLocal(t)
 //	testComputeAllNodeServiceHostname(t,
 //		cluster.Name,
@@ -178,7 +178,7 @@ package nifi
 //		externalDNSClusterDomain, true)
 //}
 //
-//func testComputeAllNodeServiceHostname(t *testing.T,
+// func testComputeAllNodeServiceHostname(t *testing.T,
 //	clusterName, namespace string,
 //	headlessServiceEnabled bool,
 //	clusterDomain string,

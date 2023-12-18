@@ -34,7 +34,6 @@ func TestGetConnection(t *testing.T) {
 }
 
 func testGetConnection(t *testing.T, id string, entity *nigoapi.ConnectionEntity, status int) (*nigoapi.ConnectionEntity, error) {
-
 	cluster := testClusterMock(t)
 
 	client, err := testClientFromCluster(cluster, false)
@@ -79,7 +78,6 @@ func TestUpdateConnection(t *testing.T) {
 }
 
 func testUpdateConnection(t *testing.T, entity *nigoapi.ConnectionEntity, status int) (*nigoapi.ConnectionEntity, error) {
-
 	cluster := testClusterMock(t)
 
 	client, err := testClientFromCluster(cluster, false)
@@ -121,7 +119,6 @@ func TestDeleteConnection(t *testing.T) {
 }
 
 func testDeleteConnection(t *testing.T, entity *nigoapi.ConnectionEntity, status int) error {
-
 	cluster := testClusterMock(t)
 
 	client, err := testClientFromCluster(cluster, false)
@@ -149,7 +146,6 @@ func MockConnection(
 	backPressureObjectThreshold int64,
 	prioritizers []string,
 	labelIndex int32, bends []nigoapi.PositionDto) nigoapi.ConnectionEntity {
-
 	var version int64 = 10
 	return nigoapi.ConnectionEntity{
 		Id: id,

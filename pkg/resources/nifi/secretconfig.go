@@ -8,22 +8,21 @@ import (
 	"strings"
 	"text/template"
 
-	v1 "github.com/konpyutaika/nifikop/api/v1"
-
-	"github.com/konpyutaika/nifikop/pkg/errorfactory"
-	configcommon "github.com/konpyutaika/nifikop/pkg/nificlient/config/common"
-	nifiutil "github.com/konpyutaika/nifikop/pkg/util/nifi"
+	"github.com/imdario/mergo"
 	"go.uber.org/zap"
+	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 	runtimeClient "sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/imdario/mergo"
+	v1 "github.com/konpyutaika/nifikop/api/v1"
+	"github.com/konpyutaika/nifikop/pkg/errorfactory"
+	configcommon "github.com/konpyutaika/nifikop/pkg/nificlient/config/common"
 	"github.com/konpyutaika/nifikop/pkg/resources/templates"
 	"github.com/konpyutaika/nifikop/pkg/resources/templates/config"
 	"github.com/konpyutaika/nifikop/pkg/util"
+	nifiutil "github.com/konpyutaika/nifikop/pkg/util/nifi"
 	utilpki "github.com/konpyutaika/nifikop/pkg/util/pki"
-	corev1 "k8s.io/api/core/v1"
 )
 
 //	func encodeBase64(toEncode string) []byte {
@@ -90,7 +89,7 @@ func (r Reconciler) generateNifiPropertiesNodeConfig(id int32, nodeConfig *v1.No
 			zap.Error(err))
 	}
 
-	//Generate the Complete Configuration for the Node
+	// Generate the Complete Configuration for the Node
 	completeConfigMap := map[string]string{}
 
 	if err := mergo.Merge(&completeConfigMap, readOnlyNodeConfig); err != nil {
@@ -120,7 +119,6 @@ func (r Reconciler) generateNifiPropertiesNodeConfig(id int32, nodeConfig *v1.No
 }
 
 func (r *Reconciler) getNifiPropertiesConfigString(nConfig *v1.NodeConfig, id int32, serverPass, clientPass string, superUsers []string, log zap.Logger) string {
-
 	base := r.GetNifiPropertiesBase(id)
 	var dnsNames []string
 	for _, dnsName := range utilpki.ClusterDNSNames(r.NifiCluster, id) {
@@ -218,7 +216,7 @@ func (r Reconciler) generateZookeeperPropertiesNodeConfig(id int32, nodeConfig *
 			zap.Error(err))
 	}
 
-	//Generate the Complete Configuration for the Node
+	// Generate the Complete Configuration for the Node
 	completeConfigMap := map[string]string{}
 
 	if err := mergo.Merge(&completeConfigMap, readOnlyNodeConfig); err != nil {
@@ -248,7 +246,6 @@ func (r Reconciler) generateZookeeperPropertiesNodeConfig(id int32, nodeConfig *
 }
 
 func (r *Reconciler) getZookeeperPropertiesConfigString(nConfig *v1.NodeConfig, id int32, log zap.Logger) string {
-
 	base := r.NifiCluster.Spec.ReadOnlyConfig.ZookeeperProperties.DeepCopy()
 	for _, node := range r.NifiCluster.Spec.Nodes {
 		if node.Id == id && node.ReadOnlyConfig != nil && &node.ReadOnlyConfig.ZookeeperProperties != (&v1.ZookeeperProperties{}) {
@@ -272,7 +269,6 @@ func (r *Reconciler) getZookeeperPropertiesConfigString(nConfig *v1.NodeConfig, 
 /////////////////////////////////////
 
 func (r *Reconciler) getStateManagementConfigString(nConfig *v1.NodeConfig, id int32, log zap.Logger) string {
-
 	var out bytes.Buffer
 	t := template.Must(template.New("nConfig-config").Parse(config.StateManagementTemplate))
 	if err := t.Execute(&out, map[string]interface{}{
@@ -294,7 +290,6 @@ func (r *Reconciler) getStateManagementConfigString(nConfig *v1.NodeConfig, id i
 /////////////////////////////////////////////
 
 func (r *Reconciler) getLoginIdentityProvidersConfigString(nConfig *v1.NodeConfig, id int32, log zap.Logger) string {
-
 	var out bytes.Buffer
 	t := template.Must(template.New("nConfig-config").Parse(config.LoginIdentityProvidersTemplate))
 	if err := t.Execute(&out, map[string]interface{}{
@@ -316,7 +311,6 @@ func (r *Reconciler) getLoginIdentityProvidersConfigString(nConfig *v1.NodeConfi
 ////////////////////////////
 
 func (r *Reconciler) getLogbackConfigString(nConfig *v1.NodeConfig, id int32, log zap.Logger) string {
-
 	for _, node := range r.NifiCluster.Spec.Nodes {
 		if node.Id == id && node.ReadOnlyConfig != nil && &node.ReadOnlyConfig.LogbackConfig != (&v1.LogbackConfig{}) {
 			if node.ReadOnlyConfig.LogbackConfig.ReplaceSecretConfig != nil {
@@ -385,7 +379,6 @@ func (r *Reconciler) getLogbackConfigString(nConfig *v1.NodeConfig, id int32, lo
 ///////////////////////////////////////////////////
 
 func (r *Reconciler) getBootstrapNotificationServicesConfigString(nConfig *v1.NodeConfig, id int32, log zap.Logger) string {
-
 	for _, node := range r.NifiCluster.Spec.Nodes {
 		if node.Id == id && node.ReadOnlyConfig != nil && &node.ReadOnlyConfig.BootstrapNotificationServicesReplaceConfig != (&v1.BootstrapNotificationServicesConfig{}) {
 			if node.ReadOnlyConfig.BootstrapNotificationServicesReplaceConfig.ReplaceSecretConfig != nil {
@@ -453,7 +446,7 @@ func (r *Reconciler) getBootstrapNotificationServicesConfigString(nConfig *v1.No
 //  authorizers configuration //
 ////////////////////////////////
 
-// TODO: Check if cases where is it necessary before using it (seems to be used for secured use cases)
+// TODO: Check if cases where is it necessary before using it (seems to be used for secured use cases).
 func (r *Reconciler) getAuthorizersConfigString(nConfig *v1.NodeConfig, id int32, log zap.Logger) string {
 	nodeList := make(map[string]string)
 
@@ -565,7 +558,7 @@ func (r Reconciler) generateBootstrapPropertiesNodeConfig(id int32, nodeConfig *
 			zap.Error(err))
 	}
 
-	//Generate the Complete Configuration for the Node
+	// Generate the Complete Configuration for the Node
 	completeConfigMap := map[string]string{}
 
 	if err := mergo.Merge(&completeConfigMap, readOnlyNodeConfig); err != nil {
@@ -662,7 +655,6 @@ func (r Reconciler) generateReadOnlyConfig(
 	overrideConfigMap *v1.ConfigmapReference,
 	overrideConfigs string,
 	log zap.Logger) {
-
 	var parsedReadOnlySecretClusterConfig map[string]string
 	var parsedReadOnlyClusterConfig map[string]string
 	var parsedReadOnlyClusterConfigMap map[string]string

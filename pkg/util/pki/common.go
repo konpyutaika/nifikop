@@ -5,37 +5,37 @@ import (
 	"crypto/tls"
 	"fmt"
 
-	v1 "github.com/konpyutaika/nifikop/api/v1"
+	"go.uber.org/zap"
+	"k8s.io/apimachinery/pkg/runtime"
 
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/pkg/resources/templates"
 	certutil "github.com/konpyutaika/nifikop/pkg/util/cert"
 	"github.com/konpyutaika/nifikop/pkg/util/nifi"
-	"go.uber.org/zap"
-	"k8s.io/apimachinery/pkg/runtime"
 )
 
 const (
-	// NodeSelfSignerTemplate is the template used for self-signer resources
+	// NodeSelfSignerTemplate is the template used for self-signer resources.
 	NodeSelfSignerTemplate = "%s-self-signer"
-	// NodeCACertTemplate is the template used for CA certificate resources
+	// NodeCACertTemplate is the template used for CA certificate resources.
 
 	NodeCACertTemplate = "%s-ca-certificate"
-	// NodeServerCertTemplate is the template used for node certificate resources
+	// NodeServerCertTemplate is the template used for node certificate resources.
 	NodeServerCertTemplate = "%s-%d-server-certificate"
-	// NodeIssuerTemplate is the template used for node issuer resources
+	// NodeIssuerTemplate is the template used for node issuer resources.
 	NodeIssuerTemplate = "%s-issuer"
 	// NodeControllerFQDNTemplate is combined with the above and cluster namespace
-	// to create a 'fake' full-name for the controller user
+	// to create a 'fake' full-name for the controller user.
 	NodeControllerFQDNTemplate = "%s.%s.mgt.%s"
 	//
 	SpiffeIdTemplate = "spiffe://%s/ns/%s/nifiuser/%s"
-	// CAIntermediateTemplate is the template used for intermediate CA resources
+	// CAIntermediateTemplate is the template used for intermediate CA resources.
 	CAIntermediateTemplate = "%s-intermediate.%s"
-	// CAFQDNTemplate is the template used for the FQDN of a CA
+	// CAFQDNTemplate is the template used for the FQDN of a CA.
 	CAFQDNTemplate = "%s-ca.%s.%s"
 )
 
-// Manager is the main interface for objects performing PKI operations
+// Manager is the main interface for objects performing PKI operations.
 type Manager interface {
 	// ReconcilePKI ensures a PKI for a nifi cluster - should be idempotent.
 	// This method should at least setup any issuer needed for user certificates
@@ -69,25 +69,25 @@ type UserCertificate struct {
 	// TODO : Add Vault
 	// jks and password are used by vault backend for passing jks info between itself
 	// the cert-manager backend passes it through the k8s secret
-	//JKS      []byte
-	//Password []byte
+	// JKS      []byte
+	// Password []byte
 }
 
-// DN returns the Distinguished Name of a TLS certificate
+// DN returns the Distinguished Name of a TLS certificate.
 func (u *UserCertificate) DN() string {
 	// cert has already been validated so we can assume no error
 	cert, _ := certutil.DecodeCertificate(u.Certificate)
 	return cert.Subject.String()
 }
 
-// GetInternalDNSNames returns all potential DNS names for a nifi cluster - including nodes
+// GetInternalDNSNames returns all potential DNS names for a nifi cluster - including nodes.
 func GetInternalDNSNames(cluster *v1.NifiCluster, nodeId int32) (dnsNames []string) {
 	dnsNames = make([]string, 0)
 	dnsNames = append(dnsNames, ClusterDNSNames(cluster, nodeId)...)
 	return
 }
 
-//func GetCommonName(cluster *v1.NifiCluster) string {
+// func GetCommonName(cluster *v1.NifiCluster) string {
 //	return nifi.ComputeNiFiHostname(cluster.Name, cluster.Namespace, cluster.Spec.Service.HeadlessEnabled,
 //		cluster.Spec.ListenersConfig.GetClusterDomain(), cluster.Spec.ListenersConfig.UseExternalDNS)
 //}
@@ -101,7 +101,7 @@ func GetNodeUserName(cluster *v1.NifiCluster, nodeId int32) string {
 		cluster.Spec.ListenersConfig.UseExternalDNS, cluster.Spec.Service.GetServiceTemplate())
 }
 
-// ClusterDNSNames returns all the possible DNS Names for a NiFi Cluster
+// ClusterDNSNames returns all the possible DNS Names for a NiFi Cluster.
 func ClusterDNSNames(cluster *v1.NifiCluster, nodeId int32) (names []string) {
 	names = make([]string, 0)
 
@@ -155,12 +155,12 @@ func ClusterDNSNames(cluster *v1.NifiCluster, nodeId int32) (names []string) {
 	return
 }
 
-// LabelsForNifiPKI returns kubernetes labels for a PKI object
+// LabelsForNifiPKI returns kubernetes labels for a PKI object.
 func LabelsForNifiPKI(name string) map[string]string {
 	return map[string]string{"app": "nifi", "nifi_issuer": fmt.Sprintf(NodeIssuerTemplate, name)}
 }
 
-// NodeUsersForCluster returns a NifiUser CR for the node certificates in a NifiCluster
+// NodeUsersForCluster returns a NifiUser CR for the node certificates in a NifiCluster.
 func NodeUsersForCluster(cluster *v1.NifiCluster, additionalHostnames []string) []*v1.NifiUser {
 	var nodeUsers []*v1.NifiUser
 
@@ -171,7 +171,7 @@ func NodeUsersForCluster(cluster *v1.NifiCluster, additionalHostnames []string) 
 	return nodeUsers
 }
 
-// NodeUserForClusterNode returns a NifiUser CR for the node certificates in a NifiCluster
+// NodeUserForClusterNode returns a NifiUser CR for the node certificates in a NifiCluster.
 func nodeUserForClusterNode(cluster *v1.NifiCluster, nodeId int32, additionalHostnames []string) *v1.NifiUser {
 	return &v1.NifiUser{
 		ObjectMeta: templates.ObjectMeta(GetNodeUserName(cluster, nodeId), LabelsForNifiPKI(cluster.Name), cluster),
@@ -191,7 +191,7 @@ func nodeUserForClusterNode(cluster *v1.NifiCluster, nodeId int32, additionalHos
 	}
 }
 
-// ControllerUserForCluster returns a NifiUser CR for the controller/cc certificates in a NifiCluster
+// ControllerUserForCluster returns a NifiUser CR for the controller/cc certificates in a NifiCluster.
 func ControllerUserForCluster(cluster *v1.NifiCluster) *v1.NifiUser {
 	/*nodeControllerName := fmt.Sprintf(NodeControllerFQDNTemplate,
 	cluster.GetNifiControllerUserIdentity(),

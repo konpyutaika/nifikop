@@ -5,21 +5,20 @@ import (
 	"strings"
 	"time"
 
-	v1 "github.com/konpyutaika/nifikop/api/v1"
-	"github.com/konpyutaika/nifikop/api/v1alpha1"
-
+	"emperror.dev/errors"
 	"github.com/go-logr/logr"
-	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
 	"go.uber.org/zap"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/klog/v2"
-
-	"emperror.dev/errors"
-	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+
+	v1 "github.com/konpyutaika/nifikop/api/v1"
+	"github.com/konpyutaika/nifikop/api/v1alpha1"
+	"github.com/konpyutaika/nifikop/pkg/errorfactory"
+	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
 )
 
 // clusterRefLabel is the label key used for referencing NifiUsers/NifiDataflow
@@ -31,7 +30,7 @@ var getGvk = apiutil.GVKForObject
 
 // requeueWithError is a convenience wrapper around logging an error message
 // separate from the stacktrace and then passing the error through to the controller
-// manager
+// manager.
 func RequeueWithError(logger zap.Logger, msg string, err error) (reconcile.Result, error) {
 	logger.Info(msg)
 	return reconcile.Result{}, err
@@ -46,18 +45,18 @@ func RequeueAfter(time time.Duration) (reconcile.Result, error) {
 }
 
 // reconciled returns an empty result with nil error to signal a successful reconcile
-// to the controller manager
+// to the controller manager.
 func Reconciled() (reconcile.Result, error) {
 	return reconcile.Result{}, nil
 }
 
-// clusterLabelString returns the label value for a cluster reference
+// clusterLabelString returns the label value for a cluster reference.
 func ClusterLabelString(cluster *v1.NifiCluster) string {
 	return fmt.Sprintf("%s.%s", cluster.Name, cluster.Namespace)
 }
 
 // checkNodeConnectionError is a convenience wrapper for returning from common
-// node connection errors
+// node connection errors.
 func CheckNodeConnectionError(logger zap.Logger, err error) (ctrl.Result, error) {
 	switch errors.Cause(err).(type) {
 	case errorfactory.NodesUnreachable:
@@ -81,7 +80,7 @@ func CheckNodeConnectionError(logger zap.Logger, err error) (ctrl.Result, error)
 	}
 }
 
-// applyClusterRefLabel ensures a map of labels contains a reference to a parent nifi cluster
+// applyClusterRefLabel ensures a map of labels contains a reference to a parent nifi cluster.
 func ApplyClusterRefLabel(cluster *v1.NifiCluster, labels map[string]string) map[string]string {
 	labelValue := ClusterLabelString(cluster)
 	if labels == nil {
@@ -97,7 +96,7 @@ func ApplyClusterRefLabel(cluster *v1.NifiCluster, labels map[string]string) map
 	return labels
 }
 
-// applyClusterRefLabel ensures a map of labels contains a reference to a parent nifi cluster
+// applyClusterRefLabel ensures a map of labels contains a reference to a parent nifi cluster.
 func ApplyClusterReferenceLabel(cluster clientconfig.ClusterConnect, labels map[string]string) map[string]string {
 	labelValue := cluster.ClusterLabelString()
 	if labels == nil {
@@ -180,7 +179,6 @@ func GetComponentRefNamespace(ns string, ref v1alpha1.ComponentReference) string
 }
 
 func GetLogConstructor(mgr manager.Manager, obj runtime.Object) (func(*reconcile.Request) logr.Logger, error) {
-
 	// Retrieve the GVK from the object we're reconciling
 	// to prepopulate logger information, and to optionally generate a default name.
 	gvk, err := getGvk(obj, mgr.GetScheme())
