@@ -145,7 +145,7 @@ readOnlyConfig:
 |-----|----|-----------|--------|--------|
 |maximumTimerDrivenThreadCount|int32|define the maximum number of threads for timer driven processors available to the system.|No|10|
 |maximumEventDrivenThreadCount|int32|define the maximum number of threads for event driven processors available to the system.|No|1|
-|additionalSharedEnvs|\[ \][corev1.EnvVar](https://pkg.go.dev/k8s.io/api/core/v1#EnvVar)|define a set of additional env variables that will shared between all init containers and ontainers in the pod..|No|\[ \]|
+|additionalSharedEnvs|\[&nbsp;\][corev1.EnvVar](https://pkg.go.dev/k8s.io/api/core/v1#EnvVar)|define a set of additional env variables that will shared between all init containers and ontainers in the pod..|No|\[&nbsp;\]|
 |nifiProperties|[NifiProperties](#nifiproperties)|nifi.properties configuration that will be applied to the node.|No|nil|
 |zookeeperProperties|[ZookeeperProperties](#zookeeperproperties)|zookeeper.properties configuration that will be applied to the node.|No|nil|
 |bootstrapProperties|[BootstrapProperties](#bootstrapproperties)|bootstrap.conf configuration that will be applied to the node.|No|nil|
@@ -162,7 +162,7 @@ readOnlyConfig:
 |overrideConfigMap|[ConfigmapReference](#configmapreference)|Additionnals nifi.properties configuration that will override the one produced based on template and configuration.|No|nil|
 |overrideConfigs|string|Additionnals nifi.properties configuration that will override the one produced based on template, configurations and overrideConfigMap.|No|""|
 |overrideSecretConfig|[SecretConfigReference](#secretconfigreference)|Additionnals nifi.properties configuration that will override the one produced based on template, configurations, overrideConfigMap and overrideConfigs.|No|nil|
-|webProxyHosts|\[ \]string| A list of allowed HTTP Host header values to consider when NiFi is running securely and will be receiving requests to a different host[:port] than it is bound to. [web-properties](https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#web-properties)|No|""|
+|webProxyHosts|\[&nbsp;\]string| A list of allowed HTTP Host header values to consider when NiFi is running securely and will be receiving requests to a different host[:port] than it is bound to. [web-properties](https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#web-properties)|No|""|
 |needClientAuth|boolean|Nifi security client auth.|No|false|
 |authorizer|string|Indicates which of the configured authorizers in the authorizers.xml file to use [authorizer-configuration](https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#authorizer-configuration)|No|"managed-authorizer"|
 

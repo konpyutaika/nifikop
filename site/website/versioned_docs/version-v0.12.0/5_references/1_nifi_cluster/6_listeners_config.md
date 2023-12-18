@@ -30,7 +30,7 @@ ListenersConfig defines the Nifi listener types :
 
 |Field|Type|Description|Required|Default|
 |-----|----|-----------|--------|--------|
-|internalListeners|\[ \][InternalListener](#internallistener)| specifies settings required to access nifi internally.| Yes | - |
+|internalListeners|\[&nbsp;\][InternalListener](#internallistener)| specifies settings required to access nifi internally.| Yes | - |
 |sslSecrets|[SSLSecrets](#sslsecrets)| contains information about ssl related kubernetes secrets if one of the listener setting type set to ssl these fields must be populated to.| Yes | nil |
 |clusterDomain|string|  allow to override the default cluster domain which is "cluster.local".| Yes | `cluster.local` |
 |useExternalDNS|string|  allow to manage externalDNS usage by limiting the DNS names associated to each nodes and load balancer: `<cluster-name>-node-<node Id>.<cluster-name>.<service name>.<cluster domain>`| Yes | false |

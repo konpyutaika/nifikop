@@ -33,10 +33,10 @@ spec:
 |identity|string| used to define the user identity on NiFi cluster side, when the user's name doesn't suit with Kubernetes resource name. |No| - |
 |secretName|string| name of the secret where all cert resources will be stored. |No| - |
 |clusterRef|[ClusterReference](#clusterreference)|  contains the reference to the NifiCluster with the one the user is linked. |Yes| - |
-|DNSNames|\[ \]string| list of DNSNames that the user will used to request the NifiCluster (allowing to create the right certificates associated). |Yes| - |
+|DNSNames|\[&nbsp;\]string| list of DNSNames that the user will used to request the NifiCluster (allowing to create the right certificates associated). |Yes| - |
 |includeJKS|boolean| whether or not the the operator also include a Java keystore format (JKS) with you secret. |Yes| - |
 |createCert|boolean| whether or not a certificate will be created for this user. |No| - |
-|accessPolicies|\[ \][AccessPolicy](#accesspolicy)| defines the list of access policies that will be granted to the group. |No| [] |
+|accessPolicies|\[&nbsp;\][AccessPolicy](#accesspolicy)| defines the list of access policies that will be granted to the group. |No| [] |
 
 
 ## NifiUserStatus
