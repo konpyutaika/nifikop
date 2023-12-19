@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	nigoapi "github.com/konpyutaika/nigoapi/pkg/nifi"
+	"go.uber.org/zap"
 
 	v1 "github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers"
@@ -17,6 +18,11 @@ var log = common.CustomLogger().Named("dataflow-method")
 
 // DataflowExist check if the NifiDataflow exist on NiFi Cluster.
 func DataflowExist(flow *v1.NifiDataflow, config *clientconfig.NifiConfig) (bool, error) {
+	log.Debug("Checking existence of dataflow",
+		zap.String("clusterName", flow.Spec.ClusterRef.Name),
+		zap.String("flowId", flow.Spec.FlowId),
+		zap.String("dataflow", flow.Name))
+
 	if flow.Status.ProcessGroupID == "" {
 		return false, nil
 	}
@@ -78,6 +84,11 @@ func GetDataflowInformation(flow *v1.NifiDataflow, config *clientconfig.NifiConf
 // CreateDataflow will deploy the NifiDataflow on NiFi Cluster.
 func CreateDataflow(flow *v1.NifiDataflow, config *clientconfig.NifiConfig,
 	registry *v1.NifiRegistryClient) (*v1.NifiDataflowStatus, error) {
+	log.Debug("Creating dataflow",
+		zap.String("clusterName", flow.Spec.ClusterRef.Name),
+		zap.String("flowId", flow.Spec.FlowId),
+		zap.String("dataflow", flow.Name))
+
 	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
 		return nil, err
@@ -134,6 +145,11 @@ func IsDataflowUnscheduled(flow *v1.NifiDataflow, config *clientconfig.NifiConfi
 
 // ScheduleDataflow will schedule the controller services and components of the NifiDataflow.
 func ScheduleDataflow(flow *v1.NifiDataflow, config *clientconfig.NifiConfig) error {
+	log.Debug("Scheduling dataflow",
+		zap.String("clusterName", flow.Spec.ClusterRef.Name),
+		zap.String("flowId", flow.Spec.FlowId),
+		zap.String("dataflow", flow.Name))
+
 	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
 		return err
@@ -592,6 +608,11 @@ func prepareUpdatePG(flow *v1.NifiDataflow, config *clientconfig.NifiConfig) (*v
 }
 
 func RemoveDataflow(flow *v1.NifiDataflow, config *clientconfig.NifiConfig) (*v1.NifiDataflowStatus, error) {
+	log.Debug("Removing dataflow",
+		zap.String("clusterName", flow.Spec.ClusterRef.Name),
+		zap.String("flowId", flow.Spec.FlowId),
+		zap.String("dataflow", flow.Name))
+
 	// Prepare Dataflow
 	status, err := prepareUpdatePG(flow, config)
 	if err != nil {
@@ -625,6 +646,11 @@ func RemoveDataflow(flow *v1.NifiDataflow, config *clientconfig.NifiConfig) (*v1
 }
 
 func UnscheduleDataflow(flow *v1.NifiDataflow, config *clientconfig.NifiConfig) error {
+	log.Debug("Unscheduling dataflow",
+		zap.String("clusterName", flow.Spec.ClusterRef.Name),
+		zap.String("flowId", flow.Spec.FlowId),
+		zap.String("dataflow", flow.Name))
+
 	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
 		return err
