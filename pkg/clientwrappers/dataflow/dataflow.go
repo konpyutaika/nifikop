@@ -293,12 +293,8 @@ func SyncDataflow(
 
 	processGroups = append(processGroups, *pGEntity)
 	if isParameterContextChanged(parameterContext, processGroups) {
-		// unschedule processors
-		_, err := nClient.UpdateFlowProcessGroup(nigoapi.ScheduleComponentsEntity{
-			Id:    flow.Status.ProcessGroupID,
-			State: "STOPPED",
-		})
-		if err := clientwrappers.ErrorUpdateOperation(log, err, "Stop flow"); err != nil {
+		// unschedule dataflow
+		if err := UnscheduleDataflow(flow, config); err != nil {
 			return nil, err
 		}
 
