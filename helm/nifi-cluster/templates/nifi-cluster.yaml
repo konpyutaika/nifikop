@@ -105,12 +105,11 @@ spec:
         data: nifi.properties
         name: {{ include "nifi-cluster.fullname" . }}
         namespace: {{ .Release.Namespace }}
-
-      webProxyHosts: {{ .Values.cluster.nifiProperties.webProxyHosts }}
-      {{ if .Values.cluster.nifiProperties.needClientAuth }}
+      webProxyHosts:
+      {{- toYaml .Values.cluster.nifiProperties.webProxyHosts | nindent 8}}
+      {{- if .Values.cluster.nifiProperties.needClientAuth }}
       needClientAuth: {{ .Values.cluster.nifiProperties.needClientAuth }}
-      {{ end }}
-
+      {{- end }}
     zookeeperProperties:
       overrideSecretConfig:
         data: zookeeper.properties
