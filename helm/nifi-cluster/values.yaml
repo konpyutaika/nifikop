@@ -3,6 +3,9 @@
 # https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster/1_nifi_cluster
 
 cluster:
+  # -- type of the cluster: internal or external. Operator will put internal by default
+  # @default -- internal
+  type:
   # -- the full name of the cluster. This is used to set a portion of the name of various nifikop resources
   nameOverride: "nifi-cluster"
   fullnameOverride: ""
@@ -14,8 +17,13 @@ cluster:
   oneNifiNodePerNode: false
 
   # -- the template to use to create nodes.
-  # see https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster/1_nifi_cluster#nificlusterspec
-  # nodeUserIdentityTemplate: n-%d
+  # see https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster#nificlusterspec
+  # @default -- "node-%d-<cluster-name>"
+  nodeUserIdentityTemplate:
+
+  # -- ControllerUserIdentity specifies what to call the static admin user's identity. **Warning: once defined don't change
+  # this value either the operator will no longer be able to manage the cluster**
+  controllerUserIdentity:
 
   service:
     # -- Annotations to apply to each nifi service
@@ -25,7 +33,7 @@ cluster:
     # -- Whether or not to create a headless service
     headlessEnabled: true
 
-  # -- see https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster/1_nifi_cluster#singleuserconfiguration
+  # -- see https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster#singleuserconfiguration
   singleUserConfiguration:
     enabled: false
     authorizerEnabled: false
@@ -41,8 +49,8 @@ cluster:
     annotations: {}
     # -- Labels to apply to every pod
     labels: {}
-    # -- host aliases to assign to each pod
-    hostAlises: []
+    # -- host aliases to assign to each pod. See: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#hostalias-v1-core
+    hostAliases: []
 
   image: 
     repository: "apache/nifi"
@@ -68,15 +76,15 @@ cluster:
   # - name: MY_ENV_VAR
   #   value: some value
 
-  # -- see https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster/1_nifi_cluster#managedusers
+  # -- see https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster#managedusers
   managedAdminUsers: []
-  # -- see https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster/1_nifi_cluster#managedusers
+  # -- see https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster#managedusers
   managedReaderUsers: []
 
-  # -- see https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster/1_nifi_cluster#disruptionbudget
+  # -- see https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster#disruptionbudget
   disruptionBudget: {}
 
-  # -- see https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster/1_nifi_cluster#ldapconfiguration
+  # -- see https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster#ldapconfiguration
   ldapConfiguration: {}
   
   logbackConfig:
@@ -103,10 +111,10 @@ cluster:
     overrideConfigs: |
       nifi.web.proxy.context.path=/nifi-cluster
 
-    # -- A comma separated list of allowed HTTP Host header values to consider when NiFi
-    # is running securely and will be receiving requests to a different host[:port] than it is bound to.
+    # -- List of allowed HTTP Host header values to consider when NiFi is running securely and will be receiving
+    # requests to a different host[:port] than it is bound to. Operator will generate comma separated string from list
     # https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#web-properties
-    webProxyHosts: ""
+    webProxyHosts: []
 
     # -- Nifi security client auth
     needClientAuth: false
@@ -119,7 +127,7 @@ cluster:
       java.arg.log4shell=-Dlog4j2.formatMsgNoLookups=true
     nifiJvmMemory: "512m"
   
-  # -- This is only for embedded zookeeper configuration. This is ignored if an zookeeper.enabled is true.
+  # -- This is only for embedded zookeeper configuration. This is ignored if `zookeeper.enabled` is true.
   zookeeperProperties:
     overrideConfigs: |
       initLimit=15
@@ -129,7 +137,8 @@ cluster:
       dataDir=./state/zookeeper
       autopurge.snapRetainCount=30
   
-  # -- see https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster/3_node_config
+  # -- Defines configurations for nodes which can be used in list of nodes in cluster.
+  #    See: https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster/3_node_config
   nodeConfigGroups: {}
     # default-group:
     #   isNode: true
@@ -156,7 +165,8 @@ cluster:
     #       cpu: 1
     #       memory: 2Gi
 
-  # -- see https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster/1_nifi_cluster#nificlusterspec
+  # -- Defines the list of nodes in the cluster with their id's and config to apply.
+  #    See https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster#nificlusterspec
   nodes: 
     - id: 1
       nodeConfigGroup: "default-group"
@@ -167,6 +177,8 @@ cluster:
 
   # -- https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster/6_listeners_config
   listenersConfig:
+    # -- List of internal ports exposed for the nifi container. The `type` of port has specific meaning, see:
+    #    https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster/6_listeners_config#internallistener
     internalListeners:
       - type: "http"
         name: "http"
@@ -181,10 +193,13 @@ cluster:
       - type: "prometheus"
         name: "prometheus"
         containerPort: 9090
+    # -- Provides the SSL configuration for the cluster, can be fully user provided, user provided CA or auto generated
+    #    with cert-manager. See: https://konpyutaika.github.io/nifikop/docs/3_manage_nifi/1_manage_clusters/1_deploy_cluster/4_ssl_configuration
     sslSecrets: null
       # tlsSecretName: nifi-cluster-certs
       # create: false
-  
+  # -- Additional k8s services to create and target internal listener ports. Ingress will use these to route traffic to
+  # the cluster
   externalServices:
     - name: "nifi-cluster-ip"
       spec:
@@ -240,10 +255,10 @@ ingress:
   #    hosts:
   #      - my-host.example.com
 
-# -- Monitoring is enabled by the Prometheus operator. This can be deployed stand-alone or as a part of the Rancher Monitoring application.
-# Do not enable this unless you've installed rancher-logging or the Promtheus operator directly.
+# -- Monitoring is enabled by the Prometheus operator. This can be deployed stand-alone or as a part of the Rancher
+# Monitoring application. Do not enable this unless you've installed rancher-logging or the Prometheus operator directly.
 # https://rancher.com/docs/rancher/v2.6/en/monitoring-alerting/
-# Enabling logging creates a `ServiceResource` custom resource and routes logs to the output of your choice
+# Enabling monitoring creates a `ServiceMonitor` custom resource and routes logs to the output of your choice
 monitoring:
   enabled: false
 
@@ -318,17 +333,25 @@ registryClients:
 # This is required if you wish to deploy versioned flows via the dataflow config. However, 
 # it is not required to provide secret refs. You must provide at least one parameter or nifikop
 # will choke on updating dataflows.
-# The .name field must be safe in Kubernetes and match the pattern [A-Za-z0-9-]
+# The `.name` field must be safe in Kubernetes and match the pattern [A-Za-z0-9-]
 # See https://konpyutaika.github.io/nifikop/docs/5_references/4_nifi_parameter_context
 parameterContexts:
   - name: default
     enabled: false
+    # -- Use the given secret and put its values as sensitive values in this parameter context. The key will be the name
+    # of parameter in NiFi.
     secretRefs: []
       # - name: secret-params
       #   namespace: nifi
+    # List of parameters to add to the ParameterContext
     parameters:
     - name: foo-prop
       value: bar-value
+      sensitive: false
+      description: my foo bar property
+    - name: foo-prop-2
+      value: bar-value-2
+      sensitive: true
       description: my foo bar property
 
 # -- Versioned dataflow configurations.
@@ -337,30 +360,37 @@ parameterContexts:
 # See https://konpyutaika.github.io/nifikop/docs/5_references/5_nifi_dataflow
 dataflows:
   - enabled: false
+    # -- Name of the flow
     name: My Special Dataflow
+    # -- reference to the nifi registry client to connect and get versioned flow
     registryClientRef:
       name: default
       namespace: nifi
+    # -- Reference to the ParameterContext object which will be added to this flow
     parameterContextRef:
       name: default
       namespace: nifi
-    # the bucket and flow Ids can be found in the bucket.yml created when version controlling process groups
+    # -- Bucket id can be found in the bucket.yml created when version controlling process groups
     bucketId: ""
+    # -- Flow id can be found in the bucket.yml created when version controlling process groups
     flowId: ""
+    # -- Version of the flow to take from registry
     flowVersion: 1
     flowPosition:
+      # -- x coordinate of flow on canvas
       posX: 0
+      # -- y coordinate of flow on canvas
       posY: 0
-    # This is one of {never, always, once}
+    # -- This is one of {never, always, once}
     syncMode: always
     skipInvalidControllerService: true
     skipInvalidComponent: true
     updateStrategy: drain
 
 # -- Configure users. Each will result in the creation of a `NiFiUser` CRD in k8s, which the operator
-# takes and applies to each nifi configuration
-# See https://konpyutaika.github.io/nifikop/docs/5_references/2_nifi_user
-# the user's name is used for k8s resource metadata.name and so should be alphanumeric and hypenated
+# takes and applies to each nifi configuration.
+# See https://konpyutaika.github.io/nifikop/docs/5_references/2_nifi_user.
+# The object's `name` is used for k8s resource `metadata.name` and so should be alphanumeric and hyphenated & <= 64 bytes
 users: []
   # - identity: CN=first last, OU=Apache NiFi, O=Apache, L=Santa Monica, ST=CA, C=US
   #   name: alphanumeric-hypen-identity-name
@@ -380,8 +410,8 @@ users: []
   #       componentId: ""
 
 # -- Configure user groups. Each will result in the creation of a `NiFiUserGroup` CRD in k8s, which the operator
-# takes and applies to each nifi configuration
-# See https://konpyutaika.github.io/nifikop/docs/5_references/6_nifi_usergroup
+# takes and applies to each nifi configuration.
+# See all properties here: https://konpyutaika.github.io/nifikop/docs/5_references/6_nifi_usergroup
 userGroups: []
   # - name: "basic-user-group"
   #   # Users listed here should match the identity of users provided via the `users` configuration
@@ -397,7 +427,7 @@ userGroups: []
   #       componentType: ""
   #       componentId: ""
 
-# -- A list of extra templated Kubernetes yamls to apply
+# -- A list of extra Kubernetes manifest with Helm template support, to apply
 extraManifests: []
 #  - apiVersion: v1
 #    kind: ConfigMap
@@ -407,9 +437,10 @@ extraManifests: []
 #      my-prop-1: foo
 #      my-prop-2: bar
 
-# -- zookeeper chart overrides
+# -- zookeeper chart overrides. Please see all the options for the zookeeper chart here:
+# https://github.com/bitnami/charts/tree/main/bitnami/zookeeper
 zookeeper:
-  # Whether or not to deploy an independent zookeeper.
+  # -- Whether or not to deploy an independent zookeeper.
   enabled: false
   replicaCount: 1
   resources:
