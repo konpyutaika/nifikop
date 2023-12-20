@@ -53,6 +53,13 @@ If `listenersConfig.sslSecrets.create` is set to `false`, the operator will look
 As described in the [Reference section](../../../5_references/1_nifi_cluster/6_listeners_config.md#sslsecrets), instead of using a self-signed certificate as CA, you can use an existing one.
 In order to do so, you only have to refer it into your `Spec.ListenerConfig.SslSecrets.IssuerRef` field.
 
+:::warning
+When using [cert-manager Issuer](https://cert-manager.io/docs/concepts/issuer/), please make sure that the hostname 
+(default `clusterName-id-node.namespace.svc.cluster.local`) for the nodes in cluster is 64 bytes or less, otherwise the webhook
+of cert-manager will fail. You can try to use shorter name for NiFiCluster or modify `nodeUserIdentityTemplate` to keep 
+the name length under 64 bytes.
+:::
+
 ### Example : Let's encrypt
 
 Let's say you have an existing DNS server, with [external dns](https://github.com/kubernetes-sigs/external-dns) deployed into your cluster's namespace.
