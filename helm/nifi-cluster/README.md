@@ -1,6 +1,6 @@
 # nifi-cluster
 
-![Version: 1.1.2](https://img.shields.io/badge/Version-1.1.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.19.0](https://img.shields.io/badge/AppVersion-1.19.0-informational?style=flat-square)
+![Version: 1.6.0](https://img.shields.io/badge/Version-1.6.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.24.0](https://img.shields.io/badge/AppVersion-1.24.0-informational?style=flat-square)
 
 A Helm chart for deploying NiFi clusters in Kubernetes
 
@@ -14,7 +14,7 @@ A Helm chart for deploying NiFi clusters in Kubernetes
 
 | Repository | Name | Version |
 |------------|------|---------|
-| https://charts.bitnami.com/bitnami | zookeeper | 10.2.5 |
+| https://charts.bitnami.com/bitnami | zookeeper | 12.4.0 |
 
 ## Values
 
@@ -73,7 +73,7 @@ A Helm chart for deploying NiFi clusters in Kubernetes
 | dataflows[0].parameterContextRef | object | `{"name":"default","namespace":"nifi"}` | Reference to the ParameterContext object which will be added to this flow |
 | dataflows[0].registryClientRef | object | `{"name":"default","namespace":"nifi"}` | reference to the nifi registry client to connect and get versioned flow |
 | dataflows[0].syncMode | string | `"always"` | This is one of {never, always, once} |
-| extraManifests | list | `[]` | A list of extra Helm templated Kubernetes manifest to apply |
+| extraManifests | list | `[]` | A list of extra Kubernetes manifest with Helm template support, to apply |
 | ingress.annotations | object | `{}` |  |
 | ingress.className | string | `"nginx"` |  |
 | ingress.enabled | bool | `false` |  |
