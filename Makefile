@@ -80,8 +80,9 @@ else
 	VERSION := $(BASEVERSION)-${BRANCH}
 endif
 
-HELM_VERSION    := $(shell cat helm/nifikop/Chart.yaml| grep version | awk -F"version: " '{print $$2}')
-HELM_TARGET_DIR ?= docs/helm
+HELM_VERSION     := $(shell cat helm/nifikop/Chart.yaml| grep version | awk -F"version: " '{print $$2}')
+HELM_TARGET_DIR  ?= docs/helm
+HELM_CHARTS_DIRS := $(wildcard helm/*/.)
 
 # if branch master tag latest
 ifeq ($(CIRCLE_BRANCH),master)
@@ -168,11 +169,11 @@ govuln:
 # Run tests
 ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
 .PHONY: test
-test: manifests generate fmt lint govuln envtest
+test: manifests generate fmt lint helm-chart-version-match govuln envtest
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(LOCALBIN) -p path)" go test ./... -coverprofile cover.out
 
 .PHONY: test-with-vendor
-test-with-vendor: manifests generate fmt lint govuln envtest
+test-with-vendor: manifests generate fmt lint helm-chart-version-match govuln envtest
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(LOCALBIN) -p path)" go test -mod=vendor ./... -coverprofile cover.out
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
@@ -229,6 +230,33 @@ bundle: manifests kustomize
 .PHONY: bundle-build
 bundle-build:
 	docker build -f bundle.Dockerfile -t $(BUNDLE_IMG) .
+
+.PHONY: helm-dep-update $(HELM_CHARTS_DIRS)
+helm-dep-update: $(HELM_CHARTS_DIRS)
+$(HELM_CHARTS_DIRS):
+	@echo Updating helm chart $@ dependencies
+	@cd $@ && helm dependency update
+
+.PHONY: helm-gen-docs
+helm-gen-docs:
+# only generate docs for nifi-cluster to avoid stomping on the existing nifikop chart docs
+	docker run --rm --volume "$(shell pwd)/nifi-cluster:/helm-docs" -u $(shell id -u) jnorwood/helm-docs:latest
+
+
+.PHONY: helm-chart-version-match
+helm-chart-version-match:
+	@echo Checking Chart.yaml\'s version values match
+	@OPERATOR_VERSION=$$(grep '^version:' helm/nifikop/Chart.yaml | cut -d ' ' -f 2); \
+	for dir in helm/*; do \
+		if [ -f "$$dir/Chart.yaml" ]; then \
+			CURRENT_VERSION=$$(grep '^version:' $$dir/Chart.yaml | cut -d ' ' -f 2); \
+			if [ "$$OPERATOR_VERSION" != "$$CURRENT_VERSION" ]; then \
+				echo "Version mismatch in $$dir/Chart.yaml: $$CURRENT_VERSION"; \
+				exit 1; \
+			fi; \
+		fi; \
+	done; \
+	echo "All versions match: $$OPERATOR_VERSION"
 
 .PHONY: helm-package
 helm-package:
