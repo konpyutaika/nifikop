@@ -6,6 +6,7 @@
 
 - [PR #340](https://github.com/konpyutaika/nifikop/pull/340) - **[Operator/NifiDataflow]** Updated the logic to stop the entire dataflow instead of just the processors when the parameter context reference is updated.
 - [PR #342](https://github.com/konpyutaika/nifikop/pull/342) - **[Operator/NifiCluster]** Updated the logic to retrieve theIP address from hostname with `curl` instead of `wget`.
+- [PR #344](https://github.com/konpyutaika/nifikop/pull/344) - **[Operator/NifiCluster]** Updated `nifi.properties` template for NiFi `2.0.0-M1`.
 
 ### Fixed Bugs
 
