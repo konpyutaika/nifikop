@@ -149,6 +149,7 @@ func convertNifiProperties(src NifiProperties, dst *v1.ReadOnlyConfig) {
 		OverrideConfigs:      src.OverrideConfigs,
 		OverrideSecretConfig: convertSecretConfigReference(src.OverrideSecretConfig),
 		WebProxyHosts:        src.WebProxyHosts,
+		NeedClientAuth:       src.NeedClientAuth,
 		Authorizer:           src.Authorizer,
 	}
 }
@@ -594,6 +595,7 @@ func convertFromNifiProperties(src v1.NifiProperties, dst *ReadOnlyConfig) {
 		OverrideConfigs:      src.OverrideConfigs,
 		OverrideSecretConfig: convertFromSecretConfigReference(src.OverrideSecretConfig),
 		WebProxyHosts:        src.WebProxyHosts,
+		NeedClientAuth:       src.NeedClientAuth,
 		Authorizer:           src.Authorizer,
 	}
 }

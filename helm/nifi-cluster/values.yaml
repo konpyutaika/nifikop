@@ -108,6 +108,9 @@ cluster:
     # https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#web-properties
     webProxyHosts: ""
 
+    # -- Nifi security client auth
+    needClientAuth: false
+
   # -- You can override individual properties in config/bootstrap.properties
   # https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#bootstrap_properties
   bootstrapProperties:

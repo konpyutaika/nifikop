@@ -107,6 +107,9 @@ spec:
         namespace: {{ .Release.Namespace }}
 
       webProxyHosts: {{ .Values.cluster.nifiProperties.webProxyHosts }}
+      {{ if .Values.cluster.nifiProperties.needClientAuth }}
+      needClientAuth: {{ .Values.cluster.nifiProperties.needClientAuth }}
+      {{ end }}
 
     zookeeperProperties:
       overrideSecretConfig:

@@ -60,7 +60,8 @@ func TestGetReadOnlyConfig(t *testing.T) {
 			WebProxyHosts: []string{
 				"foo.host",
 			},
-			Authorizer: "blah-authorizer",
+			NeedClientAuth: true,
+			Authorizer:     "blah-authorizer",
 		},
 		ZookeeperProperties: v1.ZookeeperProperties{
 			OverrideConfigMap: &v1.ConfigmapReference{
@@ -160,7 +161,8 @@ func createReadOnlyConfig() ReadOnlyConfig {
 			WebProxyHosts: []string{
 				"foo.host",
 			},
-			Authorizer: "blah-authorizer",
+			NeedClientAuth: true,
+			Authorizer:     "blah-authorizer",
 		},
 		ZookeeperProperties: ZookeeperProperties{
 			OverrideConfigMap: &ConfigmapReference{
@@ -252,7 +254,8 @@ func assertReadOnlyConfigsEqual(roc v1.ReadOnlyConfig, alphaRoc ReadOnlyConfig, 
 
 	rocNP := roc.NifiProperties
 	alphaRocNP := alphaRoc.NifiProperties
-	if rocNP.OverrideConfigs != alphaRocNP.OverrideConfigs ||
+	if rocNP.NeedClientAuth != alphaRocNP.NeedClientAuth ||
+		rocNP.OverrideConfigs != alphaRocNP.OverrideConfigs ||
 		!reflect.DeepEqual(rocNP.WebProxyHosts, alphaRocNP.WebProxyHosts) ||
 		rocNP.OverrideConfigMap.Name != alphaRocNP.OverrideConfigMap.Name ||
 		rocNP.OverrideConfigMap.Namespace != alphaRocNP.OverrideConfigMap.Namespace ||
