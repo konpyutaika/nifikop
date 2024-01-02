@@ -4,7 +4,7 @@ description: A Helm chart for deploying NiFi clusters in Kubernetes
 home: https://github.com/konpyutaika/nifikop
 sources:
   - https://github.com/konpyutaika/nifikop
-
+icon: https://konpyutaika.github.io/nifikop/img/nifikop.png
 keywords:
   - nifi
   - nifikop
