@@ -7,13 +7,17 @@ metadata:
     {{- include "nifi-cluster.labels" . | nindent 4 }}
 spec:
   endpoints:
+  {{- range .Values.cluster.listenersConfig.internalListeners }}
+  {{- if eq .type "prometheus" }}
   - path: /metrics/
-    # this is the name of the metrics port specified in the nifi-cluster service configuration
-    port: prometheus
+    {{- /*this is the name of the metrics port specified in the nifi-cluster service configuration*/}}
+    port: {{.name }}
+  {{- end }}
+  {{- end }}
   namespaceSelector:
     matchNames:
     - {{ .Release.Namespace }}
   selector:
     matchLabels:
-        nifi_cr: {{ include "nifi-cluster.fullname" . }}
+      nifi_cr: {{ include "nifi-cluster.fullname" . }}
 {{ end }}
