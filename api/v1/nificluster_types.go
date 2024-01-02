@@ -255,8 +255,6 @@ type NifiProperties struct {
 	// is running securely and will be receiving requests to a different host[:port] than it is bound to.
 	// https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#web-properties
 	WebProxyHosts []string `json:"webProxyHosts,omitempty"`
-	// Nifi security client auth
-	NeedClientAuth bool `json:"needClientAuth,omitempty"`
 	// Indicates which of the configured authorizers in the authorizers.xml file to use
 	// https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#authorizer-configuration
 	Authorizer string `json:"authorizer,omitempty"`
