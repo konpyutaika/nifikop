@@ -42,6 +42,7 @@ nifi.queue.backpressure.size=1 GB
 
 nifi.authorizer.configuration.file=./conf/authorizers.xml
 nifi.login.identity.provider.configuration.file=./conf/login-identity-providers.xml
+nifi.templates.directory=../data/templates
 nifi.ui.banner.text=
 nifi.ui.autorefresh.interval=30 sec
 nifi.nar.library.directory=./lib
@@ -78,7 +79,8 @@ nifi.state.management.embedded.zookeeper.start=false
 nifi.state.management.embedded.zookeeper.properties=./conf/zookeeper.properties
 
 # Database Settings
-nifi.database.directory=../database_repository
+nifi.database.directory=../data/database_repository
+nifi.h2.url.append=;LOCK_TIMEOUT=25000;WRITE_DELAY=0;AUTO_SERVER=FALSE
 
 # Repository Encryption properties override individual repository implementation properties
 nifi.repository.encryption.protocol.version=
@@ -91,16 +93,22 @@ nifi.repository.encryption.key.provider.keystore.password=
 nifi.flowfile.repository.implementation=org.apache.nifi.controller.repository.WriteAheadFlowFileRepository
 nifi.flowfile.repository.wal.implementation=org.apache.nifi.wali.SequentialAccessWriteAheadLog
 nifi.flowfile.repository.directory=../flowfile_repository
+nifi.flowfile.repository.partitions=256
 nifi.flowfile.repository.checkpoint.interval=2 mins
 nifi.flowfile.repository.always.sync=false
 nifi.flowfile.repository.retain.orphaned.flowfiles=true
 
 nifi.swap.manager.implementation=org.apache.nifi.controller.FileSystemSwapManager
 nifi.queue.swap.threshold=20000
+nifi.swap.in.period=5 sec
+nifi.swap.in.threads=1
+nifi.swap.out.period=5 sec
+nifi.swap.out.threads=4
 
 # Content Repository
 nifi.content.repository.implementation=org.apache.nifi.controller.repository.FileSystemRepository
 nifi.content.claim.max.appendable.size=1 MB
+nifi.content.claim.max.flow.files=100
 nifi.content.repository.directory.default=../content_repository
 nifi.content.repository.archive.max.retention.period=3 days
 nifi.content.repository.archive.max.usage.percentage=85%
@@ -110,6 +118,11 @@ nifi.content.viewer.url=/nifi-content-viewer/
 
 # Provenance Repository Properties
 nifi.provenance.repository.implementation=org.apache.nifi.provenance.WriteAheadProvenanceRepository
+nifi.provenance.repository.debug.frequency=1_000_000
+nifi.provenance.repository.encryption.key.provider.implementation=
+nifi.provenance.repository.encryption.key.provider.location=
+nifi.provenance.repository.encryption.key.id=
+nifi.provenance.repository.encryption.key=
 
 # Persistent Provenance Repository Properties
 nifi.provenance.repository.directory.default=../provenance_repository
@@ -158,6 +171,7 @@ nifi.remote.input.http.transaction.ttl=30 sec
 nifi.remote.contents.cache.expiration=30 secs
 
 # web properties #
+nifi.web.war.directory=./lib
 nifi.web.proxy.host={{ .WebProxyHosts }}
 {{ .ListenerConfig }}
 
@@ -186,6 +200,7 @@ nifi.web.https.ciphersuites.exclude=
 nifi.sensitive.props.key=
 nifi.sensitive.props.key.protected=
 nifi.sensitive.props.algorithm=NIFI_PBKDF2_AES_GCM_256
+nifi.sensitive.props.provider=BC
 nifi.sensitive.props.additional.keys=
 
 nifi.security.autoreload.enabled=true
@@ -198,6 +213,7 @@ nifi.security.keyPasswd={{ .ServerKeystorePassword }}
 nifi.security.truststore={{ .ServerKeystorePath }}/{{ .TrustStoreFile }}
 nifi.security.truststoreType=JKS
 nifi.security.truststorePasswd={{ .ServerKeystorePassword }}
+nifi.security.needClientAuth={{ .NeedClientAuth }}
 {{ end }}
 {{if and .SingleUserConfiguration.AuthorizerEnabled .SingleUserConfiguration.Enabled}}
 nifi.security.user.authorizer=single-user-authorizer
@@ -282,6 +298,7 @@ nifi.cluster.protocol.is.secure={{ .ClusterSecure }}
 
 # cluster node properties (only configure for cluster nodes) #
 nifi.cluster.is.node={{.IsNode}}
+nifi.cluster.node.protocol.threads=10
 nifi.cluster.leader.election.implementation=CuratorLeaderElectionManager
 nifi.cluster.node.protocol.max.threads=50
 nifi.cluster.node.event.history.size=25
