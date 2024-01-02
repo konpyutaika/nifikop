@@ -7,7 +7,7 @@
     <link rel="alternate" href="https://konpyutaika.github.io/nifikop/blog"/>
     <subtitle>NiFiKop Blog</subtitle>
     <icon>https://konpyutaika.github.io/nifikop/img/nifikop.ico</icon>
-    <rights>Copyright © 2023 Konpyūtāika, Inc. Built with Docusaurus.</rights>
+    <rights>Copyright © 2024 Konpyūtāika, Inc. Built with Docusaurus.</rights>
     <entry>
         <title type="html"><![CDATA[Secured NiFi cluster with NiFiKop with external dns on the Google Cloud Platform]]></title>
         <id>https://konpyutaika.github.io/nifikop/blog/2020-06-30-secured_nifi_cluster_on_gcp_with_external_dns</id>
