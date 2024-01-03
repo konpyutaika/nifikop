@@ -6,6 +6,7 @@
 
 - [PR #340](https://github.com/konpyutaika/nifikop/pull/340) - **[Operator/NifiDataflow]** Updated the logic to stop the entire dataflow instead of just the processors when the parameter context reference is updated.
 - [PR #342](https://github.com/konpyutaika/nifikop/pull/342) - **[Operator/NifiCluster]** Updated the logic to retrieve theIP address from hostname with `curl` instead of `wget`.
+- [PR #341](https://github.com/konpyutaika/nifikop/pull/341) - **[Helm Chart]** Fixed `webProxyHosts` conversion to Yaml. Updated zookeeper dependency. Updated `ServiceMonitor` endpoints  generation. 
 
 ### Fixed Bugs
 
