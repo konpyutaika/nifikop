@@ -130,3 +130,7 @@ testbin/*
 *~
 
 vendor/
+
+
+# helm chart
+helm/**/charts/*.tgz

@@ -6,7 +6,7 @@ sources:
   - https://github.com/konpyutaika/nifikop
 version: 1.6.0
 appVersion: 1.6.0-release
-icon:
+icon: https://konpyutaika.github.io/nifikop/img/nifikop.png
 maintainers:
   - name: erdrix
     email: guittonalexandre@outlook.fr
