@@ -110,15 +110,15 @@ spec:
       {{- toYaml .Values.cluster.nifiProperties.webProxyHosts | nindent 8}}
       {{- if and .Values.cluster.nifiProperties.webProxyNodePorts.enabled .Values.cluster.externalServices }}
       {{- range $externalSvc := .Values.cluster.externalServices }}
-      {{- if eq $externalSvc.spec.type "NodePort"}}
+      {{- if eq $externalSvc.spec.type "NodePort" }}
       {{- range $portConfig := $externalSvc.spec.portConfigs }}
       {{- range $nodePortHost := $.Values.cluster.nifiProperties.webProxyNodePorts.hosts }}
-      {{- printf "- %s:%s" $nodePortHost (toString $portConfig.nodePort) | nindent 8}}
-      {{- end}}
-      {{- end}}
-      {{- end}}
-      {{- end}}
-      {{- end}}
+      {{- printf "- %s:%s" $nodePortHost (toString $portConfig.nodePort) | nindent 8 }}
+      {{- end }}
+      {{- end }}
+      {{- end }}
+      {{- end }}
+      {{- end }}
       {{- if .Values.cluster.nifiProperties.needClientAuth }}
       needClientAuth: {{ .Values.cluster.nifiProperties.needClientAuth }}
       {{- end }}
