@@ -240,7 +240,7 @@ $(HELM_CHARTS_DIRS):
 .PHONY: helm-gen-docs
 helm-gen-docs:
 # only generate docs for nifi-cluster to avoid stomping on the existing nifikop chart docs
-	docker run --rm --volume "$(shell pwd)/nifi-cluster:/helm-docs" -u $(shell id -u) jnorwood/helm-docs:latest
+	docker run --rm --volume "$(shell pwd)/helm/nifi-cluster/:/helm-docs" -u $(shell id -u) jnorwood/helm-docs:latest
 
 
 .PHONY: helm-chart-version-match
