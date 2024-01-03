@@ -116,6 +116,15 @@ cluster:
     # https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#web-properties
     webProxyHosts: []
 
+    # -- In case `cluster.externalServices` contains a service of type `NodePort` and NiFi UI/API needs to be accessed over it,
+    # this option will add host:nodePort to the `webProxyHosts` list inside `NiFiCluster`.
+    # Note: When adding webProxyHosts as host:port, NiFi will also create entry for host as valid host header.
+    webProxyNodePorts:
+      enabled: false
+      hosts: []
+      # - 172.40.120.118
+      # - domain-pointing-to-k8s-node
+
     # -- Nifi security client auth
     needClientAuth: false
 
