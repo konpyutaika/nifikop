@@ -24,7 +24,7 @@ type DataflowState string
 // DataflowUpdateRequestType defines the type of versioned flow update request.
 type DataflowUpdateRequestType string
 
-// ComponentUpdateStrategy defines the type of strategy to update a component
+// ComponentUpdateStrategy defines the type of strategy to update a component.
 // +kubebuilder:validation:Enum={"drop","drain"}
 type ComponentUpdateStrategy string
 
@@ -58,7 +58,7 @@ type ClientConfigType string
 // +kubebuilder:validation:Enum={"external","internal"}
 type ClusterType string
 
-// ClusterManagerType represents an interface implementing the ClientConfigManager.
+// ClusterManagerType defines the type of manager will handle the cluster.
 // +kubebuilder:validation:Enum={"zookeeper","kubernetes"}
 type ClusterManagerType string
 

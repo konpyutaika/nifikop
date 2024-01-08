@@ -35,7 +35,7 @@ spec:
               clusterImage:
                 type: string
               clusterManager:
-                default: kubernetes
+                default: zookeeper
                 enum:
                 - zookeeper
                 - kubernetes

@@ -44,10 +44,10 @@ type NifiClusterSpec struct {
 	ProxyUrl string `json:"proxyUrl,omitempty"`
 	// Service defines the policy for services owned by NiFiKop operator.
 	Service ServicePolicy `json:"service,omitempty"`
-	// Pod defines the policy for  pods owned by NiFiKop operator.
+	// Pod defines the policy for pods owned by NiFiKop operator.
 	Pod PodPolicy `json:"pod,omitempty"`
-	// clusterManager specifies
-	// +kubebuilder:default:=kubernetes
+	// clusterManager specifies which manager will handle the cluster election and states.
+	// +kubebuilder:default:=zookeeper
 	// +optional
 	ClusterManager ClusterManagerType `json:"clusterManager,omitempty"`
 	// zKAddress specifies the ZooKeeper connection string
