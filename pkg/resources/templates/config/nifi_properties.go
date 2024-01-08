@@ -444,7 +444,6 @@ func GenerateListenerSpecificConfig(
 	httpsPortConfig := "nifi.web.https.port=\n"
 	httpsHostConfig := "nifi.web.https.host=\n"
 	s2sPortConfig := "nifi.remote.input.socket.port=\n"
-	nodeLoadBalancePortConfig := "nifi.cluster.node.load.balance.port=\n"
 	loadBalancePortConfig := "nifi.cluster.load.balance.port=\n"
 
 	for _, iListener := range l.InternalListeners {
@@ -460,7 +459,6 @@ func GenerateListenerSpecificConfig(
 		case v1.S2sListenerType:
 			s2sPortConfig = fmt.Sprintf("nifi.remote.input.socket.port=%d", iListener.ContainerPort) + "\n"
 		case v1.LoadBalanceListenerType:
-			nodeLoadBalancePortConfig = fmt.Sprintf("nifi.cluster.node.load.balance.port=%d", iListener.ContainerPort) + "\n"
 			loadBalancePortConfig = fmt.Sprintf("nifi.cluster.load.balance.port=%d", iListener.ContainerPort) + "\n"
 		}
 	}
@@ -471,7 +469,6 @@ func GenerateListenerSpecificConfig(
 		httpsPortConfig +
 		httpsHostConfig +
 		s2sPortConfig +
-		nodeLoadBalancePortConfig +
 		loadBalancePortConfig
 
 	nifiConfig = nifiConfig + fmt.Sprintf("nifi.remote.input.host=%s", hostListener) + "\n"
