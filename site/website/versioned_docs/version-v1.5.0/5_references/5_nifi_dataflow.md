@@ -73,7 +73,7 @@ spec:
 
 |Name|Value|Description|
 |-----|----|------------|
-|DrainStrategy|drain|leads to shutting down only input components (Input processors, remote input process group) and dropping all flowfiles from the flow.|
+|DrainStrategy|drain|leads to shutting down only input components (Input processors, remote input process group) and waiting the dataflow to be drained.|
 |DropStrategy|drop|leads to shutting down all components and dropping all flowfiles from the flow.|
 
 ## DataflowState
