@@ -61,6 +61,7 @@ func convertNifiClusterSpec(src *NifiClusterSpec, dst *v1.NifiCluster) error {
 	dst.Spec.NifiURI = src.NifiURI
 	dst.Spec.RootProcessGroupId = src.RootProcessGroupId
 	dst.Spec.ProxyUrl = src.ProxyUrl
+	dst.Spec.ClusterManager = v1.ZookeeperClusterManager
 	dst.Spec.ZKAddress = src.ZKAddress
 	dst.Spec.ZKPath = src.ZKPath
 	dst.Spec.InitContainerImage = src.InitContainerImage

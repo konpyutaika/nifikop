@@ -46,17 +46,21 @@ type ConfigurationState string
 // InitClusterNode holds info about if the node was part of the init cluster setup.
 type InitClusterNode bool
 
-// PKIBackend represents an interface implementing the PKIManager
+// PKIBackend represents an interface implementing the PKIManager.
 // +kubebuilder:validation:Enum={"cert-manager","vault"}
 type PKIBackend string
 
-// ClientConfigType represents an interface implementing the ClientConfigManager
+// ClientConfigType represents an interface implementing the ClientConfigManager.
 // +kubebuilder:validation:Enum={"tls","basic"}
 type ClientConfigType string
 
-// ClusterType represents an interface implementing the  ClientConfigManager
+// ClusterType represents an interface implementing the ClientConfigManager.
 // +kubebuilder:validation:Enum={"external","internal"}
 type ClusterType string
+
+// ClusterManagerType represents an interface implementing the ClientConfigManager.
+// +kubebuilder:validation:Enum={"zookeeper","kubernetes"}
+type ClusterManagerType string
 
 // AccessPolicyType represents the type of access policy.
 type AccessPolicyType string
@@ -268,6 +272,11 @@ const (
 const (
 	ExternalCluster ClusterType = "external"
 	InternalCluster ClusterType = "internal"
+)
+
+const (
+	ZookeeperClusterManager  ClusterManagerType = "zookeeper"
+	KubernetesClusterManager ClusterManagerType = "kubernetes"
 )
 
 const (

@@ -70,7 +70,11 @@ nifi.state.management.configuration.file=./conf/state-management.xml
 # The ID of the local state provider
 nifi.state.management.provider.local=local-provider
 # The ID of the cluster-wide state provider. This will be ignored if NiFi is not clustered but must be populated if running in a cluster.
+{{if eq .ClusterManager "zookeeper"}}
 nifi.state.management.provider.cluster=zk-provider
+{{else}}
+nifi.state.management.provider.cluster=kubernetes-provider
+{{end}}
 # The Previous Cluster State Provider from which the framework will load Cluster State when the current Cluster Provider has no entries
 nifi.state.management.provider.cluster.previous=
 # Specifies whether or not this instance of NiFi should run an embedded ZooKeeper server
@@ -299,7 +303,11 @@ nifi.cluster.protocol.is.secure={{ .ClusterSecure }}
 # cluster node properties (only configure for cluster nodes) #
 nifi.cluster.is.node={{.IsNode}}
 nifi.cluster.node.protocol.threads=10
+{{if eq .ClusterManager "zookeeper"}}
 nifi.cluster.leader.election.implementation=CuratorLeaderElectionManager
+{{else}}
+nifi.cluster.leader.election.implementation=KubernetesLeaderElectionManager
+{{end}}
 nifi.cluster.node.protocol.max.threads=50
 nifi.cluster.node.event.history.size=25
 nifi.cluster.node.connection.timeout=5 sec
