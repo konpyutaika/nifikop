@@ -2286,8 +2286,8 @@ spec:
               description: 'Site to Site properties Secure mode : https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#site_to_site_properties
                 TODO : rework to define into internalListener !'
               type: boolean
-            zkAddresse:
-              description: 'zKAddresse specifies the ZooKeeper connection string in
+            zkAddress:
+              description: 'zKAddress specifies the ZooKeeper connection string in
                 the form hostname:port where host and port are those of a Zookeeper
                 server. TODO: rework for nice zookeeper connect string ='
               type: string
@@ -2301,7 +2301,7 @@ spec:
             - listenersConfig
             - nodes
             - oneNifiNodePerNode
-            - zkAddresse
+            - zkAddress
           type: object
         status:
           description: NifiClusterStatus defines the observed state of NifiCluster
