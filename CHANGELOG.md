@@ -9,6 +9,7 @@
 - [PR #341](https://github.com/konpyutaika/nifikop/pull/341) - **[Helm Chart]** Fixed `webProxyHosts` conversion to Yaml. Updated zookeeper dependency. Updated `ServiceMonitor` endpoints generation.
 - [PR #345](https://github.com/konpyutaika/nifikop/pull/345) - **[Helm Chart]** Added option to include `NodePort` with custom hosts in `webProxyHosts`.
 - [PR #349](https://github.com/konpyutaika/nifikop/pull/349) - **[Operator/NifiRegistryClient]** Set FlowRegistry type in RegistryClient creation.
+- [PR #350](https://github.com/konpyutaika/nifikop/pull/350) - **[Operator]** Remove optimistic lock on `Patch`.
 
 ### Fixed Bugs
 
