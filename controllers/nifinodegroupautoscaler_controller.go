@@ -132,8 +132,9 @@ func (r *NifiNodeGroupAutoscalerReconciler) Reconcile(ctx context.Context, req c
 		}
 
 		// json merge patch is a full-replace strategy. This means we must compute the entire NifiCluster.Spec.Nodes list as it should look after scaling.
+		// The optimistic lock here ensures that we only patch the latest version of the NifiCluster to avoid stomping on changes any other process makes.
 		// Ideally, we could use a strategic merge, but it's not supported for CRDs: https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/#advanced-features-and-flexibility
-		clusterPatch := runtimeClient.MergeFrom(cluster.DeepCopy())
+		clusterPatch := runtimeClient.MergeFromWithOptions(cluster.DeepCopy(), runtimeClient.MergeFromWithOptimisticLock{})
 
 		if numDesiredReplicas > numCurrentReplicas {
 			// need to increase node group

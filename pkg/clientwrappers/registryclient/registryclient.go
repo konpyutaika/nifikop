@@ -122,7 +122,9 @@ func updateRegistryClientEntity(registryClient *v1.NifiRegistryClient, entity *n
 	}
 
 	if entity.Component == nil {
-		entity.Component = &nigoapi.FlowRegistryClientDto{}
+		entity.Component = &nigoapi.FlowRegistryClientDto{
+			Type_: "org.apache.nifi.registry.flow.NifiRegistryFlowRegistryClient",
+		}
 	}
 
 	entity.Component.Properties = make(map[string]string)
