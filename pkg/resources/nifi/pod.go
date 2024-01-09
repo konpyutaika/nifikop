@@ -142,44 +142,7 @@ func (r *Reconciler) pod(node v1.Node, nodeConfig *v1.NodeConfig, pvcs []corev1.
 				RunAsNonRoot: func(b bool) *bool { return &b }(true),
 				FSGroup:      nodeConfig.GetFSGroup(),
 			},
-			InitContainers: r.injectAdditionalEnvVars(append(initContainers, []corev1.Container{
-				{
-					Name:            "zookeeper",
-					Image:           r.NifiCluster.Spec.GetInitContainerImage(),
-					ImagePullPolicy: nodeConfig.GetImagePullPolicy(),
-					Env: []corev1.EnvVar{
-						{
-							Name:  "ZK_ADDRESS",
-							Value: zkAddress,
-						},
-					},
-					// The zookeeper init check here just ensures that at least one configured zookeeper host is alive
-					Command: []string{"bash", "-c", `
-set -e
-echo "Trying to contact Zookeeper using connection string: ${ZK_ADDRESS}"
-
-connected=0
-IFS=',' read -r -a zk_hosts <<< "${ZK_ADDRESS}"
-until [ $connected -eq 1 ]
-do
-	for zk_host in "${zk_hosts[@]}"
-	do
-		IFS=':' read -r -a zk_host_port <<< "${zk_host}"
-		
-		echo "Checking Zookeeper Host: [${zk_host_port[0]}] Port: [${zk_host_port[1]}]"
-		nc -vzw 1 ${zk_host_port[0]} ${zk_host_port[1]}
-		if [ $? -eq 0 ]; then
-			echo "Connected to ${zk_host_port}"
-			connected=1
-		fi
-	done
-
-	sleep 1
-done
-`},
-					Resources: generateInitContainerResources(),
-				},
-			}...)),
+			InitContainers: r.injectAdditionalEnvVars(initContainers),
 			Affinity: &corev1.Affinity{
 				PodAntiAffinity: generatePodAntiAffinity(r.NifiCluster.Name, r.NifiCluster.Spec.OneNifiNodePerNode),
 			},
@@ -206,6 +169,47 @@ done
 
 	if nodeConfig.NodeAffinity != nil {
 		pod.Spec.Affinity.NodeAffinity = nodeConfig.NodeAffinity
+	}
+
+	if len(zkAddress) > 0 {
+		pod.Spec.InitContainers = r.injectAdditionalEnvVars(append(initContainers, []corev1.Container{
+			{
+				Name:            "zookeeper",
+				Image:           r.NifiCluster.Spec.GetInitContainerImage(),
+				ImagePullPolicy: nodeConfig.GetImagePullPolicy(),
+				Env: []corev1.EnvVar{
+					{
+						Name:  "ZK_ADDRESS",
+						Value: zkAddress,
+					},
+				},
+				// The zookeeper init check here just ensures that at least one configured zookeeper host is alive
+				Command: []string{"bash", "-c", `
+set -e
+echo "Trying to contact Zookeeper using connection string: ${ZK_ADDRESS}"
+
+connected=0
+IFS=',' read -r -a zk_hosts <<< "${ZK_ADDRESS}"
+until [ $connected -eq 1 ]
+do
+for zk_host in "${zk_hosts[@]}"
+do
+	IFS=':' read -r -a zk_host_port <<< "${zk_host}"
+	
+	echo "Checking Zookeeper Host: [${zk_host_port[0]}] Port: [${zk_host_port[1]}]"
+	nc -vzw 1 ${zk_host_port[0]} ${zk_host_port[1]}
+	if [ $? -eq 0 ]; then
+		echo "Connected to ${zk_host_port}"
+		connected=1
+	fi
+done
+
+sleep 1
+done
+`},
+				Resources: generateInitContainerResources(),
+			},
+		}...))
 	}
 	return pod
 }

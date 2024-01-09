@@ -2,6 +2,8 @@
 
 ### Added
 
+- [PR #344](https://github.com/konpyutaika/nifikop/pull/344) - **[Operator/NifiCluster]** Added `clusterManager` field to choose between `ZooKeeper` or `Kubernetes`.
+
 ### Changed
 
 - [PR #340](https://github.com/konpyutaika/nifikop/pull/340) - **[Operator/NifiDataflow]** Updated the logic to stop the entire dataflow instead of just the processors when the parameter context reference is updated.
@@ -9,6 +11,7 @@
 - [PR #341](https://github.com/konpyutaika/nifikop/pull/341) - **[Helm Chart]** Fixed `webProxyHosts` conversion to Yaml. Updated zookeeper dependency. Updated `ServiceMonitor` endpoints generation.
 - [PR #345](https://github.com/konpyutaika/nifikop/pull/345) - **[Helm Chart]** Added option to include `NodePort` with custom hosts in `webProxyHosts`.
 - [PR #349](https://github.com/konpyutaika/nifikop/pull/349) - **[Operator/NifiRegistryClient]** Set FlowRegistry type in RegistryClient creation.
+- [PR #344](https://github.com/konpyutaika/nifikop/pull/344) - **[Operator/NifiCluster]** Updated `nifi.properties` template for NiFi `2.0.0-M1`.
 
 ### Fixed Bugs
 
