@@ -82,7 +82,7 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		return RequeueWithError(r.Log, err.Error(), err)
 	}
 
-	patchInstance := client.MergeFromWithOptions(instance.DeepCopy(), client.MergeFromWithOptimisticLock{})
+	patchInstance := client.MergeFrom(instance.DeepCopy())
 	// Get the last configuration viewed by the operator.
 	o, _ := patch.DefaultAnnotator.GetOriginalConfiguration(instance)
 	// Create it if not exist.
@@ -120,7 +120,7 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	original := &v1alpha1.NifiConnection{}
 	originalClusterRef := &v1.ClusterReference{}
 	current := instance.DeepCopy()
-	patchCurrent := client.MergeFromWithOptions(current.DeepCopy(), client.MergeFromWithOptimisticLock{})
+	patchCurrent := client.MergeFrom(current.DeepCopy())
 	json.Unmarshal(o, original)
 	json.Unmarshal(cr, originalClusterRef)
 
@@ -923,7 +923,7 @@ func (r *NifiConnectionReconciler) StopDataflowComponent(ctx context.Context, c 
 			} else {
 				labels[nifiutil.StopInputPortLabel] = c.SubName
 				instance.SetLabels(labels)
-				return r.Client.Patch(ctx, instance, client.MergeFromWithOptions(instanceOriginal, client.MergeFromWithOptimisticLock{}))
+				return r.Client.Patch(ctx, instance, client.MergeFrom(instanceOriginal))
 			}
 		} else {
 			// Set the label
@@ -934,7 +934,7 @@ func (r *NifiConnectionReconciler) StopDataflowComponent(ctx context.Context, c 
 			} else {
 				labels[nifiutil.StopOutputPortLabel] = c.SubName
 				instance.SetLabels(labels)
-				return r.Client.Patch(ctx, instance, client.MergeFromWithOptions(instanceOriginal, client.MergeFromWithOptimisticLock{}))
+				return r.Client.Patch(ctx, instance, client.MergeFrom(instanceOriginal))
 			}
 		}
 	}
@@ -973,7 +973,7 @@ func (r *NifiConnectionReconciler) UnStopDataflowComponent(ctx context.Context, 
 		}
 
 		instance.SetLabels(labels)
-		return r.Client.Patch(ctx, instance, client.MergeFromWithOptions(instanceOriginal, client.MergeFromWithOptimisticLock{}))
+		return r.Client.Patch(ctx, instance, client.MergeFrom(instanceOriginal))
 	}
 }
 
@@ -999,7 +999,7 @@ func (r *NifiConnectionReconciler) ForceStartDataflowComponent(ctx context.Conte
 			// Set the label
 			labels[nifiutil.ForceStartLabel] = "true"
 			instance.SetLabels(labels)
-			return r.Client.Patch(ctx, instance, client.MergeFromWithOptions(instanceOriginal, client.MergeFromWithOptimisticLock{}))
+			return r.Client.Patch(ctx, instance, client.MergeFrom(instanceOriginal))
 		}
 	}
 	return nil
@@ -1023,7 +1023,7 @@ func (r *NifiConnectionReconciler) UnForceStartDataflowComponent(ctx context.Con
 		delete(labels, nifiutil.ForceStartLabel)
 
 		instance.SetLabels(labels)
-		return r.Client.Patch(ctx, instance, client.MergeFromWithOptions(instanceOriginal, client.MergeFromWithOptimisticLock{}))
+		return r.Client.Patch(ctx, instance, client.MergeFrom(instanceOriginal))
 	}
 }
 
