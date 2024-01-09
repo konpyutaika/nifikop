@@ -8,6 +8,7 @@
 - [PR #342](https://github.com/konpyutaika/nifikop/pull/342) - **[Operator/NifiCluster]** Updated the logic to retrieve theIP address from hostname with `curl` instead of `wget`.
 - [PR #341](https://github.com/konpyutaika/nifikop/pull/341) - **[Helm Chart]** Fixed `webProxyHosts` conversion to Yaml. Updated zookeeper dependency. Updated `ServiceMonitor` endpoints  generation. 
 - [PR #345](https://github.com/konpyutaika/nifikop/pull/345) - **[Helm Chart]** Added option to include `NodePort` with custom hosts in `webProxyHosts` 
+- [PR #350](https://github.com/konpyutaika/nifikop/pull/350) - **[Operator]** Remove optimistic lock on `Patch`.
 
 ### Fixed Bugs
 
