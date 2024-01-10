@@ -10,6 +10,7 @@
 - [PR #345](https://github.com/konpyutaika/nifikop/pull/345) - **[Helm Chart]** Added option to include `NodePort` with custom hosts in `webProxyHosts`.
 - [PR #349](https://github.com/konpyutaika/nifikop/pull/349) - **[Operator/NifiRegistryClient]** Set FlowRegistry type in RegistryClient creation.
 - [PR #350](https://github.com/konpyutaika/nifikop/pull/350) - **[Operator]** Remove optimistic lock on `Patch`.
+- [PR #352](https://github.com/konpyutaika/nifikop/pull/352) - **[Operator]** Changed default LogLevel of NiFi from `DEBUG` to `INFO`.
 
 ### Fixed Bugs
 
