@@ -11,6 +11,7 @@
 - [PR #349](https://github.com/konpyutaika/nifikop/pull/349) - **[Operator/NifiRegistryClient]** Set FlowRegistry type in RegistryClient creation.
 - [PR #350](https://github.com/konpyutaika/nifikop/pull/350) - **[Operator]** Remove optimistic lock on `Patch`.
 - [PR #352](https://github.com/konpyutaika/nifikop/pull/352) - **[Operator]** Changed default LogLevel of NiFi from `DEBUG` to `INFO`.
+- [PR #353](https://github.com/konpyutaika/nifikop/pull/353) - **[Operator/NifiCluster]** Updated `logback.xml` template for 2.0.0-M1 and made it optional (by default disabled).
 
 ### Fixed Bugs
 
