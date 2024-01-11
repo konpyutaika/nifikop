@@ -122,7 +122,7 @@ nifi.content.viewer.url=/nifi-content-viewer/
 
 # Provenance Repository Properties
 nifi.provenance.repository.implementation=org.apache.nifi.provenance.WriteAheadProvenanceRepository
-nifi.provenance.repository.debug.frequency=1_000_000
+nifi.provenance.repository.debug.frequency=1000000
 nifi.provenance.repository.encryption.key.provider.implementation=
 nifi.provenance.repository.encryption.key.provider.location=
 nifi.provenance.repository.encryption.key.id=
