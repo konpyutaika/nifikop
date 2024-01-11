@@ -51,8 +51,8 @@ func (r *Reconciler) secretConfig(id int32, nodeConfig *v1.NodeConfig, serverPas
 	if configcommon.UseSSL(r.NifiCluster) {
 		secret.Data["authorizers.xml"] = []byte(r.getAuthorizersConfigString(nodeConfig, id, log))
 	}
-	if boostrapZookeeperPropertiesNodeConfig := r.generateZookeeperPropertiesNodeConfig(id, nodeConfig, log); boostrapZookeeperPropertiesNodeConfig != nil {
-		secret.Data["zookeeper.properties"] = []byte(*boostrapZookeeperPropertiesNodeConfig)
+	if zookeeperPropertiesNodeConfig := r.generateZookeeperPropertiesNodeConfig(id, nodeConfig, log); zookeeperPropertiesNodeConfig != nil {
+		secret.Data["zookeeper.properties"] = []byte(*zookeeperPropertiesNodeConfig)
 	}
 
 	return secret
