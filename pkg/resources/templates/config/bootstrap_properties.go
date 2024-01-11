@@ -78,3 +78,137 @@ notification.max.attempts=5
 # Comma-separated list of identifiers that are present in the notification.services.file; which services should be used to notify when NiFi dies?
 #nifi.dead.notification.services=email-notification
 `
+
+var BootstrapGCPPropertiesTemplate = `#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+# These GCP KMS settings must all be configured in order to use the GCP KMS Sensitive Property Provider
+gcp.kms.project=
+gcp.kms.location=
+gcp.kms.keyring=
+gcp.kms.key=
+`
+
+var BootstrapAWSPropertiesTemplate = `#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+# AWS KMS Key ID is required to be configured for AWS KMS Sensitive Property Provider
+aws.kms.key.id=
+
+# NiFi uses the following properties when authentication to AWS when all values are provided.
+# NiFi uses the default AWS credentials provider chain when one or more or the following properties are blank
+# AWS SDK documentation describes the default credential retrieval order:
+# https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/credentials.html#credentials-chain
+aws.access.key.id=
+aws.secret.access.key=
+aws.region=
+`
+
+var BootstrapAzurePropertiesTemplate = `#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+# Key Identifier for Azure Key Vault Key Sensitive Property Provider
+azure.keyvault.key.id=
+# Encryption Algorithm for Azure Key Vault Key Sensitive Property Provider
+azure.keyvault.encryption.algorithm=
+
+# Vault URI for Azure Key Vault Secret Sensitive Property Provider
+azure.keyvault.uri=
+`
+
+var BootstrapHashicorpVaultPropertiesTemplate = `#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+# HTTP or HTTPS URI for HashiCorp Vault is required to enable the Sensitive Properties Provider
+vault.uri=
+
+# Transit Path is required to enable the Sensitive Properties Provider Protection Scheme 'hashicorp/vault/transit/{path}'
+vault.transit.path=
+
+# Key/Value Path is required to enable the Sensitive Properties Provider Protection Scheme 'hashicorp/vault/kv/{path}'
+vault.kv.path=
+# Key/Value Secrets Engine version may be 1 or 2, and defaults to 1
+# vault.kv.version=1
+
+# Token Authentication example properties
+# vault.authentication=TOKEN
+# vault.token=<token value>
+
+# Optional file supports authentication properties described in the Spring Vault Environment Configuration
+# https://docs.spring.io/spring-vault/docs/2.3.x/reference/html/#vault.core.environment-vault-configuration
+#
+# All authentication properties must be included in bootstrap-hashicorp-vault.conf when this property is not specified.
+# Properties in bootstrap-hashicorp-vault.conf take precedence when the same values are defined in both files.
+# Token Authentication is the default when the 'vault.authentication' property is not specified.
+vault.authentication.properties.file=
+
+# Optional Timeout properties
+vault.connection.timeout=5 secs
+vault.read.timeout=15 secs
+
+# Optional TLS properties
+vault.ssl.enabledCipherSuites=
+vault.ssl.enabledProtocols=
+vault.ssl.key-store=
+vault.ssl.key-store-type=
+vault.ssl.key-store-password=
+vault.ssl.trust-store=
+vault.ssl.trust-store-type=
+vault.ssl.trust-store-password=
+`

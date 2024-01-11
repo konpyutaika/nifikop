@@ -52,6 +52,20 @@ func (r *Reconciler) secretConfig(id int32, nodeConfig *v1.NodeConfig, serverPas
 	if configcommon.UseSSL(r.NifiCluster) {
 		secret.Data["authorizers.xml"] = []byte(r.getAuthorizersConfigString(nodeConfig, id, log))
 	}
+
+	if boostrapGCPPropertiesNodeConfig := r.generateBootstrapGCPPropertiesNodeConfig(id, nodeConfig, log); boostrapGCPPropertiesNodeConfig != nil {
+		secret.Data["bootstrap-gcp.conf"] = []byte(*boostrapGCPPropertiesNodeConfig)
+	}
+	if boostrapGCPPropertiesNodeConfig := r.generateBootstrapAWSPropertiesNodeConfig(id, nodeConfig, log); boostrapGCPPropertiesNodeConfig != nil {
+		secret.Data["bootstrap-aws.conf"] = []byte(*boostrapGCPPropertiesNodeConfig)
+	}
+	if boostrapGCPPropertiesNodeConfig := r.generateBootstrapAzurePropertiesNodeConfig(id, nodeConfig, log); boostrapGCPPropertiesNodeConfig != nil {
+		secret.Data["bootstrap-azure.conf"] = []byte(*boostrapGCPPropertiesNodeConfig)
+	}
+	if boostrapGCPPropertiesNodeConfig := r.generateBootstrapHashicorpVaultPropertiesNodeConfig(id, nodeConfig, log); boostrapGCPPropertiesNodeConfig != nil {
+		secret.Data["bootstrap-hashicorp-vault.conf"] = []byte(*boostrapGCPPropertiesNodeConfig)
+	}
+
 	return secret
 }
 
@@ -698,4 +712,356 @@ func (r Reconciler) generateReadOnlyConfig(
 			zap.String("clusterName", r.NifiCluster.Name),
 			zap.Error(err))
 	}
+}
+
+//////////////////////////////////////////////
+//  Bootstrap GCP properties configuration  //
+//////////////////////////////////////////////
+
+func (r Reconciler) generateBootstrapGCPPropertiesNodeConfig(id int32, nodeConfig *v1.NodeConfig, log zap.Logger) *string {
+	var readOnlyClusterConfig map[string]string
+
+	if &r.NifiCluster.Spec.ReadOnlyConfig != (&v1.ReadOnlyConfig{}) && &r.NifiCluster.Spec.ReadOnlyConfig.BootstrapGCPProperties != (&v1.BootstrapGCPProperties{}) {
+		r.generateReadOnlyConfig(
+			&readOnlyClusterConfig,
+			r.NifiCluster.Spec.ReadOnlyConfig.BootstrapGCPProperties.OverrideSecretConfig,
+			r.NifiCluster.Spec.ReadOnlyConfig.BootstrapGCPProperties.OverrideConfigMap,
+			r.NifiCluster.Spec.ReadOnlyConfig.BootstrapGCPProperties.OverrideConfigs, log)
+	}
+
+	var readOnlyNodeConfig = map[string]string{}
+
+	for _, node := range r.NifiCluster.Spec.Nodes {
+		if node.Id == id && node.ReadOnlyConfig != nil && &node.ReadOnlyConfig.BootstrapGCPProperties != (&v1.BootstrapGCPProperties{}) {
+			r.generateReadOnlyConfig(
+				&readOnlyNodeConfig,
+				node.ReadOnlyConfig.BootstrapGCPProperties.OverrideSecretConfig,
+				node.ReadOnlyConfig.BootstrapGCPProperties.OverrideConfigMap,
+				node.ReadOnlyConfig.BootstrapGCPProperties.OverrideConfigs, log)
+			break
+		}
+	}
+
+	if err := mergo.Merge(&readOnlyNodeConfig, readOnlyClusterConfig); err != nil {
+		log.Error("error occurred during merging readonly configs",
+			zap.String("clusterName", r.NifiCluster.Name),
+			zap.Int32("nodeId", id),
+			zap.Error(err))
+	}
+
+	// Generate the Complete Configuration for the Node
+	completeConfigMap := map[string]string{}
+
+	if err := mergo.Merge(&completeConfigMap, readOnlyNodeConfig); err != nil {
+		log.Error("error occurred during merging readOnly config to complete configs",
+			zap.String("clusterName", r.NifiCluster.Name),
+			zap.Int32("nodeId", id),
+			zap.Error(err))
+	}
+
+	if len(completeConfigMap) == 0 {
+		return nil
+	}
+
+	if err := mergo.Merge(&completeConfigMap, util.ParsePropertiesFormat(r.getBootstrapGCPPropertiesConfigString(nodeConfig, id, log))); err != nil {
+		log.Error("error occurred during merging operator generated configs",
+			zap.String("clusterName", r.NifiCluster.Name),
+			zap.Int32("nodeId", id),
+			zap.Error(err))
+	}
+
+	completeConfig := []string{}
+
+	for key, value := range completeConfigMap {
+		completeConfig = append(completeConfig, fmt.Sprintf("%s=%s", key, value))
+	}
+
+	// We need to sort the config every time to avoid diffs occurred because of ranging through map
+	sort.Strings(completeConfig)
+
+	output := strings.Join(completeConfig, "\n")
+	return &output
+}
+
+func (r *Reconciler) getBootstrapGCPPropertiesConfigString(nConfig *v1.NodeConfig, id int32, log zap.Logger) string {
+	base := r.NifiCluster.Spec.ReadOnlyConfig.BootstrapGCPProperties.DeepCopy()
+	for _, node := range r.NifiCluster.Spec.Nodes {
+		if node.Id == id && node.ReadOnlyConfig != nil && &node.ReadOnlyConfig.BootstrapGCPProperties != (&v1.BootstrapGCPProperties{}) {
+			mergo.Merge(base, node.ReadOnlyConfig.BootstrapGCPProperties, mergo.WithOverride)
+		}
+	}
+
+	var out bytes.Buffer
+	t := template.Must(template.New("nConfig-config").Parse(config.BootstrapGCPPropertiesTemplate))
+	if err := t.Execute(&out, map[string]interface{}{}); err != nil {
+		log.Error("error occurred during parsing the config template",
+			zap.String("clusterName", r.NifiCluster.Name),
+			zap.Int32("nodeId", id),
+			zap.Error(err))
+	}
+	return out.String()
+}
+
+//////////////////////////////////////////////
+//  Bootstrap AWS properties configuration  //
+//////////////////////////////////////////////
+
+func (r Reconciler) generateBootstrapAWSPropertiesNodeConfig(id int32, nodeConfig *v1.NodeConfig, log zap.Logger) *string {
+	var readOnlyClusterConfig map[string]string
+
+	if &r.NifiCluster.Spec.ReadOnlyConfig != (&v1.ReadOnlyConfig{}) && &r.NifiCluster.Spec.ReadOnlyConfig.BootstrapAWSProperties != (&v1.BootstrapAWSProperties{}) {
+		r.generateReadOnlyConfig(
+			&readOnlyClusterConfig,
+			r.NifiCluster.Spec.ReadOnlyConfig.BootstrapAWSProperties.OverrideSecretConfig,
+			r.NifiCluster.Spec.ReadOnlyConfig.BootstrapAWSProperties.OverrideConfigMap,
+			r.NifiCluster.Spec.ReadOnlyConfig.BootstrapAWSProperties.OverrideConfigs, log)
+	}
+
+	var readOnlyNodeConfig = map[string]string{}
+
+	for _, node := range r.NifiCluster.Spec.Nodes {
+		if node.Id == id && node.ReadOnlyConfig != nil && &node.ReadOnlyConfig.BootstrapAWSProperties != (&v1.BootstrapAWSProperties{}) {
+			r.generateReadOnlyConfig(
+				&readOnlyNodeConfig,
+				node.ReadOnlyConfig.BootstrapAWSProperties.OverrideSecretConfig,
+				node.ReadOnlyConfig.BootstrapAWSProperties.OverrideConfigMap,
+				node.ReadOnlyConfig.BootstrapAWSProperties.OverrideConfigs, log)
+			break
+		}
+	}
+
+	if err := mergo.Merge(&readOnlyNodeConfig, readOnlyClusterConfig); err != nil {
+		log.Error("error occurred during merging readonly configs",
+			zap.String("clusterName", r.NifiCluster.Name),
+			zap.Int32("nodeId", id),
+			zap.Error(err))
+	}
+
+	// Generate the Complete Configuration for the Node
+	completeConfigMap := map[string]string{}
+
+	if err := mergo.Merge(&completeConfigMap, readOnlyNodeConfig); err != nil {
+		log.Error("error occurred during merging readOnly config to complete configs",
+			zap.String("clusterName", r.NifiCluster.Name),
+			zap.Int32("nodeId", id),
+			zap.Error(err))
+	}
+
+	if len(completeConfigMap) == 0 {
+		return nil
+	}
+
+	if err := mergo.Merge(&completeConfigMap, util.ParsePropertiesFormat(r.getBootstrapAWSPropertiesConfigString(nodeConfig, id, log))); err != nil {
+		log.Error("error occurred during merging operator generated configs",
+			zap.String("clusterName", r.NifiCluster.Name),
+			zap.Int32("nodeId", id),
+			zap.Error(err))
+	}
+
+	completeConfig := []string{}
+
+	for key, value := range completeConfigMap {
+		completeConfig = append(completeConfig, fmt.Sprintf("%s=%s", key, value))
+	}
+
+	// We need to sort the config every time to avoid diffs occurred because of ranging through map
+	sort.Strings(completeConfig)
+
+	output := strings.Join(completeConfig, "\n")
+	return &output
+}
+
+func (r *Reconciler) getBootstrapAWSPropertiesConfigString(nConfig *v1.NodeConfig, id int32, log zap.Logger) string {
+	base := r.NifiCluster.Spec.ReadOnlyConfig.BootstrapAWSProperties.DeepCopy()
+	for _, node := range r.NifiCluster.Spec.Nodes {
+		if node.Id == id && node.ReadOnlyConfig != nil && &node.ReadOnlyConfig.BootstrapAWSProperties != (&v1.BootstrapAWSProperties{}) {
+			mergo.Merge(base, node.ReadOnlyConfig.BootstrapAWSProperties, mergo.WithOverride)
+		}
+	}
+
+	var out bytes.Buffer
+	t := template.Must(template.New("nConfig-config").Parse(config.BootstrapAWSPropertiesTemplate))
+	if err := t.Execute(&out, map[string]interface{}{}); err != nil {
+		log.Error("error occurred during parsing the config template",
+			zap.String("clusterName", r.NifiCluster.Name),
+			zap.Int32("nodeId", id),
+			zap.Error(err))
+	}
+	return out.String()
+}
+
+////////////////////////////////////////////////
+//  Bootstrap Azure properties configuration  //
+////////////////////////////////////////////////
+
+func (r Reconciler) generateBootstrapAzurePropertiesNodeConfig(id int32, nodeConfig *v1.NodeConfig, log zap.Logger) *string {
+	var readOnlyClusterConfig map[string]string
+
+	if &r.NifiCluster.Spec.ReadOnlyConfig != (&v1.ReadOnlyConfig{}) && &r.NifiCluster.Spec.ReadOnlyConfig.BootstrapAzureProperties != (&v1.BootstrapAzureProperties{}) {
+		r.generateReadOnlyConfig(
+			&readOnlyClusterConfig,
+			r.NifiCluster.Spec.ReadOnlyConfig.BootstrapAzureProperties.OverrideSecretConfig,
+			r.NifiCluster.Spec.ReadOnlyConfig.BootstrapAzureProperties.OverrideConfigMap,
+			r.NifiCluster.Spec.ReadOnlyConfig.BootstrapAzureProperties.OverrideConfigs, log)
+	}
+
+	var readOnlyNodeConfig = map[string]string{}
+
+	for _, node := range r.NifiCluster.Spec.Nodes {
+		if node.Id == id && node.ReadOnlyConfig != nil && &node.ReadOnlyConfig.BootstrapAzureProperties != (&v1.BootstrapAzureProperties{}) {
+			r.generateReadOnlyConfig(
+				&readOnlyNodeConfig,
+				node.ReadOnlyConfig.BootstrapAzureProperties.OverrideSecretConfig,
+				node.ReadOnlyConfig.BootstrapAzureProperties.OverrideConfigMap,
+				node.ReadOnlyConfig.BootstrapAzureProperties.OverrideConfigs, log)
+			break
+		}
+	}
+
+	if err := mergo.Merge(&readOnlyNodeConfig, readOnlyClusterConfig); err != nil {
+		log.Error("error occurred during merging readonly configs",
+			zap.String("clusterName", r.NifiCluster.Name),
+			zap.Int32("nodeId", id),
+			zap.Error(err))
+	}
+
+	// Generate the Complete Configuration for the Node
+	completeConfigMap := map[string]string{}
+
+	if err := mergo.Merge(&completeConfigMap, readOnlyNodeConfig); err != nil {
+		log.Error("error occurred during merging readOnly config to complete configs",
+			zap.String("clusterName", r.NifiCluster.Name),
+			zap.Int32("nodeId", id),
+			zap.Error(err))
+	}
+
+	if len(completeConfigMap) == 0 {
+		return nil
+	}
+
+	if err := mergo.Merge(&completeConfigMap, util.ParsePropertiesFormat(r.getBootstrapAzurePropertiesConfigString(nodeConfig, id, log))); err != nil {
+		log.Error("error occurred during merging operator generated configs",
+			zap.String("clusterName", r.NifiCluster.Name),
+			zap.Int32("nodeId", id),
+			zap.Error(err))
+	}
+
+	completeConfig := []string{}
+
+	for key, value := range completeConfigMap {
+		completeConfig = append(completeConfig, fmt.Sprintf("%s=%s", key, value))
+	}
+
+	// We need to sort the config every time to avoid diffs occurred because of ranging through map
+	sort.Strings(completeConfig)
+
+	output := strings.Join(completeConfig, "\n")
+	return &output
+}
+
+func (r *Reconciler) getBootstrapAzurePropertiesConfigString(nConfig *v1.NodeConfig, id int32, log zap.Logger) string {
+	base := r.NifiCluster.Spec.ReadOnlyConfig.BootstrapAzureProperties.DeepCopy()
+	for _, node := range r.NifiCluster.Spec.Nodes {
+		if node.Id == id && node.ReadOnlyConfig != nil && &node.ReadOnlyConfig.BootstrapAzureProperties != (&v1.BootstrapAzureProperties{}) {
+			mergo.Merge(base, node.ReadOnlyConfig.BootstrapAzureProperties, mergo.WithOverride)
+		}
+	}
+
+	var out bytes.Buffer
+	t := template.Must(template.New("nConfig-config").Parse(config.BootstrapAzurePropertiesTemplate))
+	if err := t.Execute(&out, map[string]interface{}{}); err != nil {
+		log.Error("error occurred during parsing the config template",
+			zap.String("clusterName", r.NifiCluster.Name),
+			zap.Int32("nodeId", id),
+			zap.Error(err))
+	}
+	return out.String()
+}
+
+/////////////////////////////////////////////////////////
+//  Bootstrap HashicorpVault properties configuration  //
+/////////////////////////////////////////////////////////
+
+func (r Reconciler) generateBootstrapHashicorpVaultPropertiesNodeConfig(id int32, nodeConfig *v1.NodeConfig, log zap.Logger) *string {
+	var readOnlyClusterConfig map[string]string
+
+	if &r.NifiCluster.Spec.ReadOnlyConfig != (&v1.ReadOnlyConfig{}) && &r.NifiCluster.Spec.ReadOnlyConfig.BootstrapHashicorpVaultProperties != (&v1.BootstrapHashicorpVaultProperties{}) {
+		r.generateReadOnlyConfig(
+			&readOnlyClusterConfig,
+			r.NifiCluster.Spec.ReadOnlyConfig.BootstrapHashicorpVaultProperties.OverrideSecretConfig,
+			r.NifiCluster.Spec.ReadOnlyConfig.BootstrapHashicorpVaultProperties.OverrideConfigMap,
+			r.NifiCluster.Spec.ReadOnlyConfig.BootstrapHashicorpVaultProperties.OverrideConfigs, log)
+	}
+
+	var readOnlyNodeConfig = map[string]string{}
+
+	for _, node := range r.NifiCluster.Spec.Nodes {
+		if node.Id == id && node.ReadOnlyConfig != nil && &node.ReadOnlyConfig.BootstrapHashicorpVaultProperties != (&v1.BootstrapHashicorpVaultProperties{}) {
+			r.generateReadOnlyConfig(
+				&readOnlyNodeConfig,
+				node.ReadOnlyConfig.BootstrapHashicorpVaultProperties.OverrideSecretConfig,
+				node.ReadOnlyConfig.BootstrapHashicorpVaultProperties.OverrideConfigMap,
+				node.ReadOnlyConfig.BootstrapHashicorpVaultProperties.OverrideConfigs, log)
+			break
+		}
+	}
+
+	if err := mergo.Merge(&readOnlyNodeConfig, readOnlyClusterConfig); err != nil {
+		log.Error("error occurred during merging readonly configs",
+			zap.String("clusterName", r.NifiCluster.Name),
+			zap.Int32("nodeId", id),
+			zap.Error(err))
+	}
+
+	// Generate the Complete Configuration for the Node
+	completeConfigMap := map[string]string{}
+
+	if err := mergo.Merge(&completeConfigMap, readOnlyNodeConfig); err != nil {
+		log.Error("error occurred during merging readOnly config to complete configs",
+			zap.String("clusterName", r.NifiCluster.Name),
+			zap.Int32("nodeId", id),
+			zap.Error(err))
+	}
+
+	if len(completeConfigMap) == 0 {
+		return nil
+	}
+
+	if err := mergo.Merge(&completeConfigMap, util.ParsePropertiesFormat(r.getBootstrapHashicorpVaultPropertiesConfigString(nodeConfig, id, log))); err != nil {
+		log.Error("error occurred during merging operator generated configs",
+			zap.String("clusterName", r.NifiCluster.Name),
+			zap.Int32("nodeId", id),
+			zap.Error(err))
+	}
+
+	completeConfig := []string{}
+
+	for key, value := range completeConfigMap {
+		completeConfig = append(completeConfig, fmt.Sprintf("%s=%s", key, value))
+	}
+
+	// We need to sort the config every time to avoid diffs occurred because of ranging through map
+	sort.Strings(completeConfig)
+
+	output := strings.Join(completeConfig, "\n")
+	return &output
+}
+
+func (r *Reconciler) getBootstrapHashicorpVaultPropertiesConfigString(nConfig *v1.NodeConfig, id int32, log zap.Logger) string {
+	base := r.NifiCluster.Spec.ReadOnlyConfig.BootstrapHashicorpVaultProperties.DeepCopy()
+	for _, node := range r.NifiCluster.Spec.Nodes {
+		if node.Id == id && node.ReadOnlyConfig != nil && &node.ReadOnlyConfig.BootstrapHashicorpVaultProperties != (&v1.BootstrapHashicorpVaultProperties{}) {
+			mergo.Merge(base, node.ReadOnlyConfig.BootstrapHashicorpVaultProperties, mergo.WithOverride)
+		}
+	}
+
+	var out bytes.Buffer
+	t := template.Must(template.New("nConfig-config").Parse(config.BootstrapHashicorpVaultPropertiesTemplate))
+	if err := t.Execute(&out, map[string]interface{}{}); err != nil {
+		log.Error("error occurred during parsing the config template",
+			zap.String("clusterName", r.NifiCluster.Name),
+			zap.Int32("nodeId", id),
+			zap.Error(err))
+	}
+	return out.String()
 }

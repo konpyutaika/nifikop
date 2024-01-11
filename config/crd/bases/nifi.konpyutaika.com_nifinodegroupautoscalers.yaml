@@ -1209,6 +1209,122 @@ spec:
                         - name
                         type: object
                     type: object
+                  bootstrapAWSProperties:
+                    properties:
+                      overrideConfigMap:
+                        properties:
+                          data:
+                            type: string
+                          name:
+                            type: string
+                          namespace:
+                            type: string
+                        required:
+                        - data
+                        - name
+                        type: object
+                      overrideConfigs:
+                        type: string
+                      overrideSecretConfig:
+                        properties:
+                          data:
+                            type: string
+                          name:
+                            type: string
+                          namespace:
+                            type: string
+                        required:
+                        - data
+                        - name
+                        type: object
+                    type: object
+                  bootstrapAzureProperties:
+                    properties:
+                      overrideConfigMap:
+                        properties:
+                          data:
+                            type: string
+                          name:
+                            type: string
+                          namespace:
+                            type: string
+                        required:
+                        - data
+                        - name
+                        type: object
+                      overrideConfigs:
+                        type: string
+                      overrideSecretConfig:
+                        properties:
+                          data:
+                            type: string
+                          name:
+                            type: string
+                          namespace:
+                            type: string
+                        required:
+                        - data
+                        - name
+                        type: object
+                    type: object
+                  bootstrapGCPProperties:
+                    properties:
+                      overrideConfigMap:
+                        properties:
+                          data:
+                            type: string
+                          name:
+                            type: string
+                          namespace:
+                            type: string
+                        required:
+                        - data
+                        - name
+                        type: object
+                      overrideConfigs:
+                        type: string
+                      overrideSecretConfig:
+                        properties:
+                          data:
+                            type: string
+                          name:
+                            type: string
+                          namespace:
+                            type: string
+                        required:
+                        - data
+                        - name
+                        type: object
+                    type: object
+                  bootstrapHashicorpVaultProperties:
+                    properties:
+                      overrideConfigMap:
+                        properties:
+                          data:
+                            type: string
+                          name:
+                            type: string
+                          namespace:
+                            type: string
+                        required:
+                        - data
+                        - name
+                        type: object
+                      overrideConfigs:
+                        type: string
+                      overrideSecretConfig:
+                        properties:
+                          data:
+                            type: string
+                          name:
+                            type: string
+                          namespace:
+                            type: string
+                        required:
+                        - data
+                        - name
+                        type: object
+                    type: object
                   bootstrapNotificationServicesConfig:
                     properties:
                       replaceConfigMap:
