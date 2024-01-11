@@ -101,7 +101,3 @@ func generateNodesAddressFromTemplate(nodes []v1.Node, template string) map[int3
 func UseSSL(cluster *v1.NifiCluster) bool {
 	return cluster.Spec.ListenersConfig.SSLSecrets != nil
 }
-
-func MustOverrideLogback(cluster *v1.NifiCluster) bool {
-	return false
-}

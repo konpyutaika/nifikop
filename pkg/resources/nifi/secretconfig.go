@@ -52,8 +52,7 @@ func (r *Reconciler) secretConfig(id int32, nodeConfig *v1.NodeConfig, serverPas
 		secret.Data["authorizers.xml"] = []byte(r.getAuthorizersConfigString(nodeConfig, id, log))
 	}
 
-	logbackConfigString := r.getLogbackConfigString(nodeConfig, id, log)
-	if logbackConfigString != nil {
+	if logbackConfigString := r.getLogbackConfigString(nodeConfig, id, log); logbackConfigString != nil {
 		secret.Data["logback.xml"] = []byte(*logbackConfigString)
 	}
 
@@ -365,23 +364,7 @@ func (r *Reconciler) getLogbackConfigString(nConfig *v1.NodeConfig, id int32, lo
 			zap.Error(err))
 	}
 
-	if !configcommon.MustOverrideLogback(r.NifiCluster) {
-		return nil
-	}
-
-	var out bytes.Buffer
-	t := template.Must(template.New("nConfig-config").Parse(config.LogbackTemplate))
-	if err := t.Execute(&out, map[string]interface{}{
-		"NifiCluster": r.NifiCluster,
-		"Id":          id,
-	}); err != nil {
-		log.Error("error occurred during parsing the config template",
-			zap.String("clusterName", r.NifiCluster.Name),
-			zap.Int32("nodeId", id),
-			zap.Error(err))
-	}
-	output := out.String()
-	return &output
+	return nil
 }
 
 ///////////////////////////////////////////////////
