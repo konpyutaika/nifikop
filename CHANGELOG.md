@@ -11,10 +11,13 @@
 - [PR #349](https://github.com/konpyutaika/nifikop/pull/349) - **[Operator/NifiRegistryClient]** Set FlowRegistry type in RegistryClient creation.
 - [PR #350](https://github.com/konpyutaika/nifikop/pull/350) - **[Operator]** Remove optimistic lock on `Patch`.
 - [PR #352](https://github.com/konpyutaika/nifikop/pull/352) - **[Operator]** Changed default LogLevel of NiFi from `DEBUG` to `INFO`.
+- [PR #355](https://github.com/konpyutaika/nifikop/pull/355) - **[Operator/NifiCluster]** Updated `bootstrap.conf` template for 2.0.0-M1.
 
 ### Fixed Bugs
 
 ### Deprecated
+
+- [PR #355](https://github.com/konpyutaika/nifikop/pull/355) - **[Operator/NifiCluster]** Removed ability to deploy NiFi cluster in version `<=1.18`.
 
 ### Removed
 
