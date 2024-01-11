@@ -292,9 +292,9 @@ type BootstrapProperties struct {
 
 // Logback configuration that will be applied to the node.
 type LogbackConfig struct {
-	// logback.xml configuration that will replace the one produced based on template
+	// logback.xml configuration that will replace the one provided by NiFi
 	ReplaceConfigMap *ConfigmapReference `json:"replaceConfigMap,omitempty"`
-	// logback.xml configuration that will replace the one produced based on template and overrideConfigMap
+	// logback.xml configuration that will replace the one provided by NiFi and overrideConfigMap
 	ReplaceSecretConfig *SecretConfigReference `json:"replaceSecretConfig,omitempty"`
 }
 
