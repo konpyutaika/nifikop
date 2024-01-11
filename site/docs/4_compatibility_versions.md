@@ -13,9 +13,9 @@ Nifikop supports the following NiFi cluster features:
 
 | NiFi Version | Cluster deployment | Standalone deployment | Cluster nodes configuration | Cluster rolling upgrade | Cluster scaling | Cluster auto-scaling | Prometheus Reporting |
 |--------------|--------------------|-----------------------|-----------------------------|-------------------------|-----------------|----------------------|----------------------|
-| NiFi 1.16    | Yes                | No                    | Yes                         | Yes                     | Yes             | Yes                  | Yes                  |
-| NiFi 1.17    | Yes                | No                    | Yes                         | Yes                     | Yes             | Yes                  | Yes                  |
-| NiFi 1.18    | Yes                | No                    | Yes                         | Yes                     | Yes             | Yes                  | Yes                  |
+| NiFi 1.16    | No                 | No                    | No                          | Yes                     | Yes             | Yes                  | Yes                  |
+| NiFi 1.17    | No                 | No                    | No                          | Yes                     | Yes             | Yes                  | Yes                  |
+| NiFi 1.18    | No                 | No                    | No                          | Yes                     | Yes             | Yes                  | Yes                  |
 | NiFi 1.19    | Yes                | No                    | Yes                         | Yes                     | Yes             | Yes                  | Yes                  |
 | NiFi 1.20    | Yes                | No                    | Yes                         | Yes                     | Yes             | Yes                  | Yes                  |
 | NiFi 1.21    | Yes                | No                    | Yes                         | Yes                     | Yes             | Yes                  | Yes                  |
