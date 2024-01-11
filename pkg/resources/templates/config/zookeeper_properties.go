@@ -29,10 +29,37 @@ tickTime=2000
 dataDir=./state/zookeeper
 autopurge.snapRetainCount=30
 
+# Embedded/distributed ZK TLS connection support can be activated by setting these properties at minimum:
+#
+# secureClientPort=2281
+# serverCnxnFactory=org.apache.zookeeper.server.NettyServerCnxnFactory
+
+# Most TLS configurations will set these values as well:
+#
+# ssl.keyStore.location=/example/path/to/key-store.jks
+# ssl.keyStore.password=change this value to the actual value in your installation
+# ssl.trustStore.location=/example/path/to/trust-store.jks
+# ssl.trustStore.password=change this value to the actual value in your installation
+# ssl.hostnameVerification=false
+#
+# Note that many ZK parameters can set as Java system properties, refer to the ZK admin guide for details:
+#
+# https://zookeeper.apache.org/doc/current/zookeeperAdmin.html#sc_configuration
+
+# Other common settings:
+#
+# client.portUnification=true
+# admin.enableServer=false
+
+# The server string has changed as of 3.5.5 and the client port is now specified at the end of the server string:
+# https://zookeeper.apache.org/doc/r3.5.5/zookeeperReconfig.html#sc_reconfig_clientport
 #
 # Specifies the servers that are part of this zookeeper ensemble. For
 # every NiFi instance running an embedded zookeeper, there needs to be
-# a server entry below. For instance:
+# a server entry below. Client port is now specified at the end of the string
+# after a semi-colon.
+#
+# For instance:
 #
 # server.1=nifi-node1-hostname:2888:3888;2181
 # server.2=nifi-node2-hostname:2888:3888;2181
@@ -43,5 +70,5 @@ autopurge.snapRetainCount=30
 # administration guide for more details.
 #
 
-server.1=
+server.1=nifi
 `
