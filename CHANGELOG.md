@@ -2,6 +2,8 @@
 
 ### Added
 
+- [PR #361](https://github.com/konpyutaika/nifikop/pull/361) - **[Operator/NifiCluster]** Added `bootstrap-gcp.conf`, `bootstrap-aws.conf`, `bootstrap-azure.conf` and `bootstrap-hashicorp-vault.conf` files management.
+
 ### Changed
 
 - [PR #340](https://github.com/konpyutaika/nifikop/pull/340) - **[Operator/NifiDataflow]** Updated the logic to stop the entire dataflow instead of just the processors when the parameter context reference is updated.

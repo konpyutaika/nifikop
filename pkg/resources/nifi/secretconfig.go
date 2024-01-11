@@ -52,7 +52,6 @@ func (r *Reconciler) secretConfig(id int32, nodeConfig *v1.NodeConfig, serverPas
 	if configcommon.UseSSL(r.NifiCluster) {
 		secret.Data["authorizers.xml"] = []byte(r.getAuthorizersConfigString(nodeConfig, id, log))
 	}
-
 	if boostrapGCPPropertiesNodeConfig := r.generateBootstrapGCPPropertiesNodeConfig(id, nodeConfig, log); boostrapGCPPropertiesNodeConfig != nil {
 		secret.Data["bootstrap-gcp.conf"] = []byte(*boostrapGCPPropertiesNodeConfig)
 	}
