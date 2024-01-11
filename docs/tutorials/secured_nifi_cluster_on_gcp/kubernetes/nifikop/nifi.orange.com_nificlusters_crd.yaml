@@ -2173,7 +2173,7 @@ spec:
                             description: JVM memory settings
                             type: string
                           overrideConfigs:
-                            description: Additionnals bootstrap.properties configuration
+                            description: Additionnals bootstrap.conf configuration
                               that will override the one produced based on template
                               and configurations.
                             type: string
@@ -2242,7 +2242,7 @@ spec:
                       description: JVM memory settings
                       type: string
                     overrideConfigs:
-                      description: Additionnals bootstrap.properties configuration
+                      description: Additionnals bootstrap.conf configuration
                         that will override the one produced based on template and
                         configurations.
                       type: string

@@ -289,10 +289,10 @@ In this example if we have the `nifi.sensitive.props.key` key defined in the sec
 
 ### Overridable configurations
 
-Here is the list of configuration that you can override for NiFi :
+Here is the list of configuration that you can override for NiFi:
 - [nifi.properties](https://github.com/konpyutaika/nifikop/blob/master/pkg/resources/templates/config/nifi_properties.go)
 - [zookeeper.properties](https://github.com/konpyutaika/nifikop/blob/master/pkg/resources/templates/config/zookeeper_properties.go)
-- [bootstrap.properties](https://github.com/konpyutaika/nifikop/blob/master/pkg/resources/templates/config/bootstrap_properties.go)
+- [bootstrap.conf](https://github.com/konpyutaika/nifikop/blob/master/pkg/resources/templates/config/bootstrap_properties.go)
 - [logback.xml](https://github.com/konpyutaika/nifikop/blob/master/pkg/resources/templates/config/logback.xml.go)
 - [authorizers.xml](https://github.com/konpyutaika/nifikop/blob/master/pkg/resources/templates/config/authorizers.go)
 - [bootstrap_notification_services.xml](https://github.com/konpyutaika/nifikop/blob/master/pkg/resources/templates/config/bootstrap_notifications_services.go)

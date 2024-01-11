@@ -140,27 +140,27 @@ spec:
         autopurge.snapRetainCount=30
     # BootstrapProperties configuration that will be applied to the node.
     bootstrapProperties:
-#      # Additionnals bootstrap.properties configuration that will override the one produced based on template and
+#      # Additionnals bootstrap.conf configuration that will override the one produced based on template and
 #      # configuration
 #      overrideConfigMap:
 #        # The key of the value,in data content, that we want use.
-#        data: bootstrap.properties
+#        data: bootstrap.conf
 #        # Name of the configmap that we want to refer.
 #        name: raw
 #        # Namespace where is located the secret that we want to refer.
 #        namespace: nifikop.
-#      # Additionnals bootstrap.properties configuration that will override the one produced based
+#      # Additionnals bootstrap.conf configuration that will override the one produced based
 #      #	on template, configurations, overrideConfigMap and overrideConfigs.
 #      overrideSecretConfig:
 #        # The key of the value,in data content, that we want use.
-#        data: bootstrap.properties
+#        data: bootstrap.conf
 #        # Name of the configmap that we want to refer.
 #        name: raw
 #        # Namespace where is located the secret that we want to refer.
 #        namespace: nifikop
       # JVM memory settings
       nifiJvmMemory: "512m"
-      # Additionnals bootstrap.properties configuration that will override the one produced based
+      # Additionnals bootstrap.conf configuration that will override the one produced based
       # on template and configurations.
       # https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#bootstrap_properties
       overrideConfigs: |

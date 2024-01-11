@@ -279,13 +279,13 @@ type ZookeeperProperties struct {
 type BootstrapProperties struct {
 	// JVM memory settings
 	NifiJvmMemory string `json:"nifiJvmMemory,omitempty"`
-	// Additionnals bootstrap.properties configuration that will override the one produced based on template and
+	// Additionnals bootstrap.conf configuration that will override the one produced based on template and
 	// configuration
 	OverrideConfigMap *ConfigmapReference `json:"overrideConfigMap,omitempty"`
-	// Additionnals bootstrap.properties configuration that will override the one produced based
+	// Additionnals bootstrap.conf configuration that will override the one produced based
 	// on template and configurations.
 	OverrideConfigs string `json:"overrideConfigs,omitempty"`
-	// Additionnals bootstrap.properties configuration that will override the one produced based
+	// Additionnals bootstrap.conf configuration that will override the one produced based
 	// on template, configurations, overrideConfigMap and overrideConfigs.
 	OverrideSecretConfig *SecretConfigReference `json:"overrideSecretConfig,omitempty"`
 }
