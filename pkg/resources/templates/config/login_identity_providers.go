@@ -23,39 +23,40 @@ var LoginIdentityProvidersTemplate = `<?xml version="1.0" encoding="UTF-8" stand
 <loginIdentityProviders>
     <!--
         Identity Provider for users logging in with username/password against an LDAP server.
-        
+
         'Authentication Strategy' - How the connection to the LDAP server is authenticated. Possible
             values are ANONYMOUS, SIMPLE, LDAPS, or START_TLS.
-        
+
         'Manager DN' - The DN of the manager that is used to bind to the LDAP server to search for users.
         'Manager Password' - The password of the manager that is used to bind to the LDAP server to
             search for users.
-            
+
         'TLS - Keystore' - Path to the Keystore that is used when connecting to LDAP using LDAPS or START_TLS.
         'TLS - Keystore Password' - Password for the Keystore that is used when connecting to LDAP
             using LDAPS or START_TLS.
         'TLS - Keystore Type' - Type of the Keystore that is used when connecting to LDAP using
-            LDAPS or START_TLS (i.e. JKS or PKCS12).
+            LDAPS or START_TLS such as PKCS12.
         'TLS - Truststore' - Path to the Truststore that is used when connecting to LDAP using LDAPS or START_TLS.
         'TLS - Truststore Password' - Password for the Truststore that is used when connecting to
             LDAP using LDAPS or START_TLS.
         'TLS - Truststore Type' - Type of the Truststore that is used when connecting to LDAP using
-            LDAPS or START_TLS (i.e. JKS or PKCS12).
+            LDAPS or START_TLS such as PKCS12.
         'TLS - Client Auth' - Client authentication policy when connecting to LDAP using LDAPS or START_TLS.
             Possible values are REQUIRED, WANT, NONE.
         'TLS - Protocol' - Protocol to use when connecting to LDAP using LDAPS or START_TLS. (i.e. TLS,
             TLSv1.1, TLSv1.2, etc).
-        'TLS - Shutdown Gracefully' - Specifies whether the TLS should be shut down gracefully 
+        'TLS - Shutdown Gracefully' - Specifies whether the TLS should be shut down gracefully
             before the target context is closed. Defaults to false.
-            
+
         'Referral Strategy' - Strategy for handling referrals. Possible values are FOLLOW, IGNORE, THROW.
         'Connect Timeout' - Duration of connect timeout. (i.e. 10 secs).
         'Read Timeout' - Duration of read timeout. (i.e. 10 secs).
-       
+
         'Url' - Space-separated list of URLs of the LDAP servers (i.e. ldap://<hostname>:<port>).
         'User Search Base' - Base DN for searching for users (i.e. CN=Users,DC=example,DC=com).
         'User Search Filter' - Filter for searching for users against the 'User Search Base'.
             (i.e. sAMAccountName={0}). The user specified name is inserted into '{0}'.
+
         'Identity Strategy' - Strategy to identify users. Possible values are USE_DN and USE_USERNAME.
             The default functionality if this property is missing is USE_DN in order to retain
             backward compatibility. USE_DN will use the full DN of the user entry if possible.
@@ -88,7 +89,6 @@ var LoginIdentityProvidersTemplate = `<?xml version="1.0" encoding="UTF-8" stand
         <property name="Url">{{.LdapConfiguration.Url}}</property>
         <property name="User Search Base">{{.LdapConfiguration.SearchBase}}</property>
         <property name="User Search Filter">{{.LdapConfiguration.SearchFilter}}</property>
-        <property name="Identity Strategy">{{.LdapConfiguration.IdentityStrategy}}</property>
         <property name="Identity Strategy">{{or .LdapConfiguration.IdentityStrategy "USE_DN"}}</property>
         <property name="Authentication Expiration">12 hours</property>
     </provider>
