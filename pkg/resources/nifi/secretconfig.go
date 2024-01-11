@@ -43,7 +43,6 @@ func (r *Reconciler) secretConfig(id int32, nodeConfig *v1.NodeConfig, serverPas
 			"zookeeper.properties":                []byte(r.generateZookeeperPropertiesNodeConfig(id, nodeConfig, log)),
 			"state-management.xml":                []byte(r.getStateManagementConfigString(nodeConfig, id, log)),
 			"login-identity-providers.xml":        []byte(r.getLoginIdentityProvidersConfigString(nodeConfig, id, log)),
-			"logback.xml":                         []byte(r.getLogbackConfigString(nodeConfig, id, log)),
 			"bootstrap.conf":                      []byte(r.generateBootstrapPropertiesNodeConfig(id, nodeConfig, log)),
 			"bootstrap-notification-services.xml": []byte(r.getBootstrapNotificationServicesConfigString(nodeConfig, id, log)),
 		},
@@ -52,6 +51,12 @@ func (r *Reconciler) secretConfig(id int32, nodeConfig *v1.NodeConfig, serverPas
 	if configcommon.UseSSL(r.NifiCluster) {
 		secret.Data["authorizers.xml"] = []byte(r.getAuthorizersConfigString(nodeConfig, id, log))
 	}
+
+	logbackConfigString := r.getLogbackConfigString(nodeConfig, id, log)
+	if logbackConfigString != nil {
+		secret.Data["logback.xml"] = []byte(*logbackConfigString)
+	}
+
 	return secret
 }
 
@@ -310,13 +315,13 @@ func (r *Reconciler) getLoginIdentityProvidersConfigString(nConfig *v1.NodeConfi
 //  Logback configuration //
 ////////////////////////////
 
-func (r *Reconciler) getLogbackConfigString(nConfig *v1.NodeConfig, id int32, log zap.Logger) string {
+func (r *Reconciler) getLogbackConfigString(nConfig *v1.NodeConfig, id int32, log zap.Logger) *string {
 	for _, node := range r.NifiCluster.Spec.Nodes {
 		if node.Id == id && node.ReadOnlyConfig != nil && &node.ReadOnlyConfig.LogbackConfig != (&v1.LogbackConfig{}) {
 			if node.ReadOnlyConfig.LogbackConfig.ReplaceSecretConfig != nil {
 				conf, err := r.getSecrectConfig(context.TODO(), *node.ReadOnlyConfig.LogbackConfig.ReplaceSecretConfig)
 				if err == nil {
-					return conf
+					return &conf
 				}
 				log.Error("error occurred during getting readonly secret config",
 					zap.String("clusterName", r.NifiCluster.Name),
@@ -327,7 +332,7 @@ func (r *Reconciler) getLogbackConfigString(nConfig *v1.NodeConfig, id int32, lo
 			if node.ReadOnlyConfig.LogbackConfig.ReplaceConfigMap != nil {
 				conf, err := r.getConfigMap(context.TODO(), *node.ReadOnlyConfig.LogbackConfig.ReplaceConfigMap)
 				if err == nil {
-					return conf
+					return &conf
 				}
 				log.Error("error occurred during getting readonly configmap",
 					zap.String("clusterName", r.NifiCluster.Name),
@@ -341,7 +346,7 @@ func (r *Reconciler) getLogbackConfigString(nConfig *v1.NodeConfig, id int32, lo
 	if r.NifiCluster.Spec.ReadOnlyConfig.LogbackConfig.ReplaceSecretConfig != nil {
 		conf, err := r.getSecrectConfig(context.TODO(), *r.NifiCluster.Spec.ReadOnlyConfig.LogbackConfig.ReplaceSecretConfig)
 		if err == nil {
-			return conf
+			return &conf
 		}
 		log.Error("error occurred during getting readonly secret config",
 			zap.String("clusterName", r.NifiCluster.Name),
@@ -352,12 +357,16 @@ func (r *Reconciler) getLogbackConfigString(nConfig *v1.NodeConfig, id int32, lo
 	if r.NifiCluster.Spec.ReadOnlyConfig.LogbackConfig.ReplaceConfigMap != nil {
 		conf, err := r.getConfigMap(context.TODO(), *r.NifiCluster.Spec.ReadOnlyConfig.LogbackConfig.ReplaceConfigMap)
 		if err == nil {
-			return conf
+			return &conf
 		}
 		log.Error("error occurred during getting readonly configmap",
 			zap.String("clusterName", r.NifiCluster.Name),
 			zap.Int32("nodeId", id),
 			zap.Error(err))
+	}
+
+	if !configcommon.MustOverrideLogback(r.NifiCluster) {
+		return nil
 	}
 
 	var out bytes.Buffer
@@ -371,7 +380,8 @@ func (r *Reconciler) getLogbackConfigString(nConfig *v1.NodeConfig, id int32, lo
 			zap.Int32("nodeId", id),
 			zap.Error(err))
 	}
-	return out.String()
+	output := out.String()
+	return &output
 }
 
 ///////////////////////////////////////////////////
