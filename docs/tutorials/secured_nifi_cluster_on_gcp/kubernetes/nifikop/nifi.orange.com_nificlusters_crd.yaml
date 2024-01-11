@@ -2173,7 +2173,7 @@ spec:
                             description: JVM memory settings
                             type: string
                           overrideConfigs:
-                            description: Additionnals bootstrap.conf configuration
+                            description: Additionnal bootstrap.conf configuration
                               that will override the one produced based on template
                               and configurations.
                             type: string
@@ -2190,7 +2190,7 @@ spec:
                             description: Nifi security client auth
                             type: boolean
                           overrideConfigs:
-                            description: Additionnals nifi.properties configuration
+                            description: Additionnal nifi.properties configuration
                               that will override the one produced based on template
                               and configurations.
                             type: string
@@ -2208,7 +2208,7 @@ spec:
                           applied to the node.
                         properties:
                           overrideConfigs:
-                            description: Additionnals zookeeper.properties configuration
+                            description: Additionnal zookeeper.properties configuration
                               that will override the one produced based on template
                               and configurations.
                             type: string
@@ -2242,7 +2242,7 @@ spec:
                       description: JVM memory settings
                       type: string
                     overrideConfigs:
-                      description: Additionnals bootstrap.conf configuration
+                      description: Additionnal bootstrap.conf configuration
                         that will override the one produced based on template and
                         configurations.
                       type: string
@@ -2259,7 +2259,7 @@ spec:
                       description: Nifi security client auth
                       type: boolean
                     overrideConfigs:
-                      description: Additionnals nifi.properties configuration that
+                      description: Additionnal nifi.properties configuration that
                         will override the one produced based on template and configurations.
                       type: string
                     webProxyHosts:
@@ -2276,7 +2276,7 @@ spec:
                     to the node.
                   properties:
                     overrideConfigs:
-                      description: Additionnals zookeeper.properties configuration
+                      description: Additionnal zookeeper.properties configuration
                         that will override the one produced based on template and
                         configurations.
                       type: string
