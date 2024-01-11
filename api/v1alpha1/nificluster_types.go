@@ -705,7 +705,7 @@ func (nConfig *NodeConfig) GetProvenanceStorage() string {
 	return "8 GB"
 }
 
-// GetNifiJvmMemory returns the default "2g" NifiJvmMemory if not specified otherwise.
+// GetNifiJvmMemory returns the default "512m" NifiJvmMemory if not specified otherwise.
 func (bProperties *BootstrapProperties) GetNifiJvmMemory() string {
 	if bProperties.NifiJvmMemory != "" {
 		return bProperties.NifiJvmMemory
