@@ -13,6 +13,7 @@
 - [PR #352](https://github.com/konpyutaika/nifikop/pull/352) - **[Operator]** Changed default LogLevel of NiFi from `DEBUG` to `INFO`.
 - [PR #354](https://github.com/konpyutaika/nifikop/pull/354) - **[Operator/NifiCluster]** Updated `login_identity_providers.xml` template for 2.0.0-M1.
 - [PR #355](https://github.com/konpyutaika/nifikop/pull/355) - **[Operator/NifiCluster]** Updated `bootstrap.conf` template for 2.0.0-M1.
+- [PR #355](https://github.com/konpyutaika/nifikop/pull/355) - **[Operator/NifiCluster]** Updated `bootstrap.conf` template logic to only use it if needed.
 
 ### Fixed Bugs
 
