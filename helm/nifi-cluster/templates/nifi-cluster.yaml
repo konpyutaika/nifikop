@@ -133,6 +133,26 @@ spec:
         name: {{ include "nifi-cluster.fullname" . }}
         namespace: {{ .Release.Namespace }}
       nifiJvmMemory: {{ .Values.cluster.bootstrapProperties.nifiJvmMemory }}
+    bootstrapGCPProperties:
+      overrideSecretConfig:
+        data: bootstrap-gcp.conf
+        name: {{ include "nifi-cluster.fullname" . }}
+        namespace: {{ .Release.Namespace }}
+    bootstrapAWSProperties:
+      overrideSecretConfig:
+        data: bootstrap-aws.conf
+        name: {{ include "nifi-cluster.fullname" . }}
+        namespace: {{ .Release.Namespace }}
+    bootstrapAzureProperties:
+      overrideSecretConfig:
+        data: bootstrap-azure.conf
+        name: {{ include "nifi-cluster.fullname" . }}
+        namespace: {{ .Release.Namespace }}
+    bootstrapHashicorpVaultProperties:
+      overrideSecretConfig:
+        data: bootstrap-hashicorp-vault.conf
+        name: {{ include "nifi-cluster.fullname" . }}
+        namespace: {{ .Release.Namespace }}
   nodeConfigGroups:
   {{- toYaml .Values.cluster.nodeConfigGroups | nindent 4 }}
   nodes:
