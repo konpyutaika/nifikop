@@ -32,7 +32,7 @@ spec:
     {{- toYaml .Values.cluster.pod.livenessProbe | nindent 6}}
   {{- end -}}
   {{- if .Values.cluster.pod.readinessProbe -}}
-    livenessProbe:
+    readinessProbe:
     {{- toYaml .Values.cluster.pod.readinessProbe | nindent 6}}
   {{- end -}}
   singleUserConfiguration:
