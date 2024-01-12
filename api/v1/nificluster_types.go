@@ -797,7 +797,7 @@ func (nConfig *NodeConfig) GetProvenanceStorage() string {
 	if nConfig.ProvenanceStorage != "" {
 		return nConfig.ProvenanceStorage
 	}
-	return "10 GB"
+	return "8 GB"
 }
 
 // GetNifiJvmMemory returns the default "2g" NifiJvmMemory if not specified otherwise.
