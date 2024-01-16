@@ -4,7 +4,7 @@ title: Design Principles
 sidebar_label: Design Principles
 ---
 
-This operator is built following the logic implied by the [operator sdk framework] (https://sdk.operatorframework.io/).
+This operator is built following the logic implied by the [operator sdk framework](https://sdk.operatorframework.io/).
 What we want to offer with NiFiKop is that we provide as much automation as possible to manage NiFi at scale and in the most automated way possible.
 
 ## Separation of concerns

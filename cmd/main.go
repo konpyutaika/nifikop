@@ -1,3 +1,19 @@
+/*
+Copyright 2024.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package main
 
 import (
@@ -6,24 +22,26 @@ import (
 	"os"
 	"strings"
 
-	certv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
-	"github.com/go-logr/zapr"
+	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
+	// to ensure that exec-entrypoint and run can make use of them.
 	"go.uber.org/zap"
+	_ "k8s.io/client-go/plugin/pkg/client/auth"
+
+	certv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
-	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
-	// to ensure that exec-entrypoint and run can make use of them.
-	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
+	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
+	"github.com/go-logr/zapr"
 	v1 "github.com/konpyutaika/nifikop/api/v1"
-	"github.com/konpyutaika/nifikop/api/v1alpha1"
-	"github.com/konpyutaika/nifikop/controllers"
+	v1alpha1 "github.com/konpyutaika/nifikop/api/v1alpha1"
+	"github.com/konpyutaika/nifikop/internal/controller"
 	"github.com/konpyutaika/nifikop/pkg/common"
-	// +kubebuilder:scaffold:imports
+	//+kubebuilder:scaffold:imports
 )
 
 var (
@@ -32,9 +50,10 @@ var (
 
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
+
 	utilruntime.Must(v1alpha1.AddToScheme(scheme))
 	utilruntime.Must(v1.AddToScheme(scheme))
-	// +kubebuilder:scaffold:scheme
+	//+kubebuilder:scaffold:scheme
 }
 
 func main() {
@@ -65,11 +84,22 @@ func main() {
 
 	options := ctrl.Options{
 		Scheme:                 scheme,
-		MetricsBindAddress:     metricsAddr,
-		Port:                   9443,
+		Metrics:                metricsserver.Options{BindAddress: metricsAddr},
 		HealthProbeBindAddress: probeAddr,
 		LeaderElection:         enableLeaderElection,
-		LeaderElectionID:       "f1c5ece8.example.com",
+
+		LeaderElectionID: "bf438697.konpyutaika.com",
+		// LeaderElectionReleaseOnCancel defines if the leader should step down voluntarily
+		// when the Manager ends. This requires the binary to immediately end when the
+		// Manager is stopped, otherwise, this setting is unsafe. Setting this significantly
+		// speeds up voluntary leader transitions as the new leader don't have to wait
+		// LeaseDuration time first.
+		//
+		// In the default scaffold provided, the program ends immediately after
+		// the manager stops, so would be fine to enable this option. However,
+		// if you are doing or is intended to do any operation such as perform cleanups
+		// after the manager stops then its usage might be unsafe.
+		// LeaderElectionReleaseOnCancel: true,
 	}
 
 	// Add support for MultiNamespace set in WATCH_NAMESPACE (e.g ns1,ns2)
@@ -79,11 +109,15 @@ func main() {
 			zap.String("namespaces", watchNamespace))
 		namespaceList = strings.Split(watchNamespace, ",")
 
+		configMap := map[string]cache.Config{}
 		for i := range namespaceList {
 			namespaceList[i] = strings.TrimSpace(namespaceList[i])
+			// we use the default cache config for each namespace cache.
+			configMap[namespaceList[i]] = cache.Config{}
 		}
-		// configure cluster-scoped with MultiNamespacedCacheBuilder
-		options.NewCache = cache.MultiNamespacedCacheBuilder(namespaceList)
+		options.Cache = cache.Options{
+			DefaultNamespaces: configMap,
+		}
 	}
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), options)
@@ -98,10 +132,10 @@ func main() {
 	}
 
 	multipliers := *common.NewRequeueConfig()
-	if err = (&controllers.NifiClusterReconciler{
+	if err = (&controller.NifiClusterReconciler{
 		Client:           mgr.GetClient(),
 		DirectClient:     mgr.GetAPIReader(),
-		Log:              *logger.Named("controllers").Named("NifiCluster"),
+		Log:              *logger.Named("controller").Named("NifiCluster"),
 		Scheme:           mgr.GetScheme(),
 		Namespaces:       namespaceList,
 		Recorder:         mgr.GetEventRecorderFor("nifi-cluster"),
@@ -112,9 +146,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&controllers.NifiClusterTaskReconciler{
+	if err = (&controller.NifiClusterTaskReconciler{
 		Client:           mgr.GetClient(),
-		Log:              *logger.Named("controllers").Named("NifiClusterTask"),
+		Log:              *logger.Named("controller").Named("NifiClusterTask"),
 		Scheme:           mgr.GetScheme(),
 		Recorder:         mgr.GetEventRecorderFor("nifi-cluster-task"),
 		RequeueIntervals: multipliers.ClusterTaskRequeueIntervals,
@@ -124,9 +158,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&controllers.NifiUserReconciler{
+	if err = (&controller.NifiUserReconciler{
 		Client:          mgr.GetClient(),
-		Log:             *logger.Named("controllers").Named("NifiUser"),
+		Log:             *logger.Named("controller").Named("NifiUser"),
 		Scheme:          mgr.GetScheme(),
 		Recorder:        mgr.GetEventRecorderFor("nifi-user"),
 		RequeueInterval: multipliers.UserRequeueInterval,
@@ -136,9 +170,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&controllers.NifiUserGroupReconciler{
+	if err = (&controller.NifiUserGroupReconciler{
 		Client:          mgr.GetClient(),
-		Log:             *logger.Named("controllers").Named("NifiUserGroup"),
+		Log:             *logger.Named("controller").Named("NifiUserGroup"),
 		Scheme:          mgr.GetScheme(),
 		Recorder:        mgr.GetEventRecorderFor("nifi-user-group"),
 		RequeueInterval: multipliers.UserGroupRequeueInterval,
@@ -148,9 +182,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&controllers.NifiDataflowReconciler{
+	if err = (&controller.NifiDataflowReconciler{
 		Client:          mgr.GetClient(),
-		Log:             *logger.Named("controllers").Named("NifiDataflow"),
+		Log:             *logger.Named("controller").Named("NifiDataflow"),
 		Scheme:          mgr.GetScheme(),
 		Recorder:        mgr.GetEventRecorderFor("nifi-dataflow"),
 		RequeueInterval: multipliers.DataFlowRequeueInterval,
@@ -160,9 +194,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&controllers.NifiParameterContextReconciler{
+	if err = (&controller.NifiParameterContextReconciler{
 		Client:          mgr.GetClient(),
-		Log:             *logger.Named("controllers").Named("NifiParameterContext"),
+		Log:             *logger.Named("controller").Named("NifiParameterContext"),
 		Scheme:          mgr.GetScheme(),
 		Recorder:        mgr.GetEventRecorderFor("nifi-parameter-context"),
 		RequeueInterval: multipliers.ParameterContextRequeueInterval,
@@ -172,9 +206,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&controllers.NifiRegistryClientReconciler{
+	if err = (&controller.NifiRegistryClientReconciler{
 		Client:          mgr.GetClient(),
-		Log:             *logger.Named("controllers").Named("NifiRegistryClient"),
+		Log:             *logger.Named("controller").Named("NifiRegistryClient"),
 		Scheme:          mgr.GetScheme(),
 		Recorder:        mgr.GetEventRecorderFor("nifi-registry-client"),
 		RequeueInterval: multipliers.RegistryClientRequeueInterval,
@@ -184,11 +218,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&controllers.NifiNodeGroupAutoscalerReconciler{
+	if err = (&controller.NifiNodeGroupAutoscalerReconciler{
 		Client:          mgr.GetClient(),
 		APIReader:       mgr.GetAPIReader(),
 		Scheme:          mgr.GetScheme(),
-		Log:             *logger.Named("controllers").Named("NifiNodeGroupAutoscaler"),
+		Log:             *logger.Named("controller").Named("NifiNodeGroupAutoscaler"),
 		Recorder:        mgr.GetEventRecorderFor("nifi-node-group-autoscaler"),
 		RequeueInterval: multipliers.NodeGroupAutoscalerRequeueInterval,
 		RequeueOffset:   multipliers.RequeueOffset,
@@ -197,9 +231,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&controllers.NifiConnectionReconciler{
+	if err = (&controller.NifiConnectionReconciler{
 		Client:          mgr.GetClient(),
-		Log:             *logger.Named("controllers").Named("NifiConnection"),
+		Log:             *logger.Named("controller").Named("NifiConnection"),
 		Scheme:          mgr.GetScheme(),
 		Recorder:        mgr.GetEventRecorderFor("nifi-connection"),
 		RequeueInterval: multipliers.ConnectionRequeueInterval,
@@ -235,18 +269,17 @@ func main() {
 			os.Exit(1)
 		}
 	}
+	//+kubebuilder:scaffold:builder
 
-	// +kubebuilder:scaffold:builder
-	if err := mgr.AddHealthzCheck("health", healthz.Ping); err != nil {
+	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
 		logger.Error("unable to set up health check", zap.Error(err))
 		os.Exit(1)
 	}
-
-	if err := mgr.AddReadyzCheck("check", healthz.Ping); err != nil {
+	if err := mgr.AddReadyzCheck("readyz", healthz.Ping); err != nil {
 		logger.Error("unable to set up ready check", zap.Error(err))
 		os.Exit(1)
 	}
-
+	logger.Info("Starting manager")
 	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
 		logger.Error("unable to start manager", zap.Error(err))
 		os.Exit(1)
