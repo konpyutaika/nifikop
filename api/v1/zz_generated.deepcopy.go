@@ -818,8 +818,8 @@ func (in *NifiParameterContextStatus) DeepCopyInto(out *NifiParameterContextStat
 		*out = new(ParameterContextUpdateRequest)
 		**out = **in
 	}
-	if in.LastestSecretUpdate != nil {
-		in, out := &in.LastestSecretUpdate, &out.LastestSecretUpdate
+	if in.LatestSecretUpdate != nil {
+		in, out := &in.LatestSecretUpdate, &out.LatestSecretUpdate
 		*out = (*in).DeepCopy()
 	}
 }
