@@ -5,6 +5,7 @@ import (
 
 	nigoapi "github.com/konpyutaika/nigoapi/pkg/nifi"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	v1 "github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers"
@@ -83,6 +84,7 @@ func CreateParameterContext(
 
 	parameterContext.Status.Id = entity.Id
 	parameterContext.Status.Version = *entity.Revision.Version
+	parameterContext.Status.LastestSecretUpdate = extractMaximumSecretTime(parameterSecrets)
 
 	return &parameterContext.Status, nil
 }
@@ -135,6 +137,7 @@ func SyncParameterContext(
 
 		parameterContext.Status.LatestUpdateRequest =
 			updateRequest2Status(updateRequest)
+		parameterContext.Status.LastestSecretUpdate = extractMaximumSecretTime(parameterSecrets)
 		return &parameterContext.Status, errorfactory.NifiParameterContextUpdateRequestRunning{}
 	}
 
@@ -181,6 +184,10 @@ func parameterContextIsSync(
 	updateParameterContextEntity(parameterContext, parameterSecrets, parameterContextRefs, &e)
 
 	if len(e.Component.Parameters) != len(entity.Component.Parameters) {
+		return false
+	}
+
+	if parameterContext.Status.LastestSecretUpdate.Before(extractMaximumSecretTime(parameterSecrets)) {
 		return false
 	}
 
@@ -243,6 +250,8 @@ func updateRequestPrepare(
 		}
 	}
 
+	secretsNeedToBeUpdated := parameterContext.Status.LastestSecretUpdate.Before(extractMaximumSecretTime(parameterSecrets))
+
 	// List all parameter to upsert
 	parameters := make([]nigoapi.ParameterEntity, 0)
 	for _, expected := range entity.Component.Parameters {
@@ -250,10 +259,11 @@ func updateRequestPrepare(
 		for _, param := range tmp {
 			if expected.Parameter.Name == param.Parameter.Name {
 				notFound = false
-				if (!param.Parameter.Sensitive &&
-					!((expected.Parameter.Value == nil && param.Parameter.Value == nil) ||
-						((expected.Parameter.Value != nil && param.Parameter.Value != nil) &&
-							(*expected.Parameter.Value == *param.Parameter.Value)))) ||
+				if (secretsNeedToBeUpdated && param.Parameter.Sensitive) ||
+					(!param.Parameter.Sensitive &&
+						!((expected.Parameter.Value == nil && param.Parameter.Value == nil) ||
+							((expected.Parameter.Value != nil && param.Parameter.Value != nil) &&
+								(*expected.Parameter.Value == *param.Parameter.Value)))) ||
 					!((expected.Parameter.Description == nil && param.Parameter.Description == nil) ||
 						((expected.Parameter.Description != nil && param.Parameter.Description != nil) &&
 							(*expected.Parameter.Description == *param.Parameter.Description))) {
@@ -364,4 +374,17 @@ func updateRequest2Status(updateRequest *nigoapi.ParameterContextUpdateRequestEn
 		NotFound:           false,
 		NotFoundRetryCount: 0,
 	}
+}
+
+func extractMaximumSecretTime(parameterSecrets []*corev1.Secret) *metav1.Time {
+	var maximumSecretTime *metav1.Time = nil
+	for _, secret := range parameterSecrets {
+		for _, managedField := range secret.ObjectMeta.ManagedFields {
+			if maximumSecretTime == nil || maximumSecretTime.Before(managedField.Time) {
+				maximumSecretTime = managedField.Time
+			}
+		}
+	}
+
+	return maximumSecretTime
 }

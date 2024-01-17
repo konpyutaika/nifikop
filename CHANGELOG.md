@@ -2,6 +2,8 @@
 
 ### Added
 
+- [PR #367](https://github.com/konpyutaika/nifikop/pull/367) - **[Operator/NifiParameterContext]** Parameter context's secret update detection.
+
 ### Changed
 
 - [PR #340](https://github.com/konpyutaika/nifikop/pull/340) - **[Operator/NifiDataflow]** Updated the logic to stop the entire dataflow instead of just the processors when the parameter context reference is updated.
