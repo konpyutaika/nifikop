@@ -269,8 +269,7 @@ func updateRequestPrepare(
 							(*expected.Parameter.Description == *param.Parameter.Description))) {
 					notFound = false
 					if expected.Parameter.Value == nil && param.Parameter.Value != nil {
-						toRemove = append(toRemove, expected.Parameter.Name)
-						break
+						expected.Parameter.ValueRemoved = true
 					}
 					parameters = append(parameters, expected)
 					break
