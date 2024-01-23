@@ -37,11 +37,7 @@ As a pre-requisite NiFi requires Zookeeper so you need to first have a Zookeeper
 To install Zookeeper we recommend using the [Bitnami's Zookeeper chart](https://github.com/bitnami/charts/tree/master/bitnami/zookeeper).
 
 ```bash
-helm repo add bitnami https://charts.bitnami.com/bitnami
-```
-
-```bash
-helm install zookeeper bitnami/zookeeper \
+helm install zookeeper oci://registry-1.docker.io/bitnamicharts/zookeeper \
     --namespace=zookeeper \
     --set resources.requests.memory=256Mi \
     --set resources.requests.cpu=250m \
@@ -79,7 +75,7 @@ zookeper_uid=$(kubectl get namespace zookeeper -o=jsonpath='{.metadata.annotatio
 Specify the runAsUser and fsGroup Parameter on install of zookeeper.
 
 ```bash
-helm install zookeeper bitnami/zookeeper \
+helm install zookeeper oci://registry-1.docker.io/bitnamicharts/zookeeper \
     --set resources.requests.memory=256Mi \
     --set resources.requests.cpu=250m \
     --set resources.limits.memory=256Mi \
