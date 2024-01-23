@@ -2,6 +2,8 @@
 
 ### Added
 
+- [PR #367](https://github.com/konpyutaika/nifikop/pull/367) - **[Operator/NifiParameterContext]** Parameter context's secret update detection.
+
 ### Changed
 
 - [PR #340](https://github.com/konpyutaika/nifikop/pull/340) - **[Operator/NifiDataflow]** Updated the logic to stop the entire dataflow instead of just the processors when the parameter context reference is updated.
@@ -12,7 +14,9 @@
 - [PR #350](https://github.com/konpyutaika/nifikop/pull/350) - **[Operator]** Remove optimistic lock on `Patch`.
 - [PR #352](https://github.com/konpyutaika/nifikop/pull/352) - **[Operator]** Changed default LogLevel of NiFi from `DEBUG` to `INFO`.
 - [PR #354](https://github.com/konpyutaika/nifikop/pull/354) - **[Operator/NifiCluster]** Updated `login_identity_providers.xml` template for 2.0.0-M1.
-- [PR #363](https://github.com/konpyutaika/nifikop/pull/363) - **[Operator]** Replace `boostrap.properties` referenceces with `boostrap.conf`.
+- [PR #368](https://github.com/konpyutaika/nifikop/pull/368) - **[Operator]** Upgrade golang to 1.21.6.
+- [PR #369](https://github.com/konpyutaika/nifikop/pull/369) - **[Operator/NifiParameterContext]** Update parameter value to null instead of delete.
+- [PR #363](https://github.com/konpyutaika/nifikop/pull/363) - **[Operator]** Replace `boostrap.properties` references with `boostrap.conf`.
 
 ### Fixed Bugs
 
