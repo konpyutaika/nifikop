@@ -77,7 +77,7 @@ spec:
         namespace: nifikop
     # NifiProperties configuration that will be applied to the node.
     nifiProperties:
-      # Additionnals nifi.properties configuration that will override the one produced based on template and
+      # Additionnal nifi.properties configuration that will override the one produced based on template and
       # configuration
       overrideConfigMap:
         # The key of the value,in data content, that we want use.
@@ -86,7 +86,7 @@ spec:
         name: raw
         # Namespace where is located the secret that we want to refer.
         namespace: nifikop.
-      # Additionnals nifi.properties configuration that will override the one produced based
+      # Additionnal nifi.properties configuration that will override the one produced based
       #	on template, configurations, overrideConfigMap and overrideConfigs.
       overrideSecretConfig:
         # The key of the value,in data content, that we want use.
@@ -95,7 +95,7 @@ spec:
         name: raw
         # Namespace where is located the secret that we want to refer.
         namespace: nifikop
-      # Additionnals nifi.properties configuration that will override the one produced based
+      # Additionnal nifi.properties configuration that will override the one produced based
       #	on template, configurations and overrideConfigMap
       overrideConfigs: |
         nifi.ui.banner.text=NiFiKop
@@ -111,7 +111,7 @@ spec:
     #      authorizer:
     # ZookeeperProperties configuration that will be applied to the node.
     zookeeperProperties:
-#      # Additionnals zookeeeper.properties configuration that will override the one produced based on template and
+#      # Additionnal zookeeeper.properties configuration that will override the one produced based on template and
 #      # configuration
 #      overrideConfigMap:
 #        # The key of the value,in data content, that we want use.
@@ -120,7 +120,7 @@ spec:
 #        name: raw
 #        # Namespace where is located the secret that we want to refer.
 #        namespace: nifikop.
-#      # Additionnals zookeeeper.properties configuration that will override the one produced based
+#      # Additionnal zookeeeper.properties configuration that will override the one produced based
 #      #	on template, configurations, overrideConfigMap and overrideConfigs.
 #      overrideSecretConfig:
 #        # The key of the value,in data content, that we want use.
@@ -129,7 +129,7 @@ spec:
 #        name: raw
 #        # Namespace where is located the secret that we want to refer.
 #        namespace: nifikop
-      # Additionnals zookeeper.properties configuration that will override the one produced based
+      # Additionnal zookeeper.properties configuration that will override the one produced based
       # on template and configurations.
       overrideConfigs: |
         initLimit=15
@@ -140,27 +140,27 @@ spec:
         autopurge.snapRetainCount=30
     # BootstrapProperties configuration that will be applied to the node.
     bootstrapProperties:
-#      # Additionnals bootstrap.properties configuration that will override the one produced based on template and
+#      # Additionnal bootstrap.conf configuration that will override the one produced based on template and
 #      # configuration
 #      overrideConfigMap:
 #        # The key of the value,in data content, that we want use.
-#        data: bootstrap.properties
+#        data: bootstrap.conf
 #        # Name of the configmap that we want to refer.
 #        name: raw
 #        # Namespace where is located the secret that we want to refer.
 #        namespace: nifikop.
-#      # Additionnals bootstrap.properties configuration that will override the one produced based
+#      # Additionnal bootstrap.conf configuration that will override the one produced based
 #      #	on template, configurations, overrideConfigMap and overrideConfigs.
 #      overrideSecretConfig:
 #        # The key of the value,in data content, that we want use.
-#        data: bootstrap.properties
+#        data: bootstrap.conf
 #        # Name of the configmap that we want to refer.
 #        name: raw
 #        # Namespace where is located the secret that we want to refer.
 #        namespace: nifikop
       # JVM memory settings
       nifiJvmMemory: "512m"
-      # Additionnals bootstrap.properties configuration that will override the one produced based
+      # Additionnal bootstrap.conf configuration that will override the one produced based
       # on template and configurations.
       # https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#bootstrap_properties
       overrideConfigs: |

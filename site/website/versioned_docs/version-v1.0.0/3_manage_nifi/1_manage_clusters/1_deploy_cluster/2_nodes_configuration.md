@@ -217,7 +217,7 @@ Let's take an example :
 
 ```yaml
  nifiProperties:
-      # Additionnals nifi.properties configuration that will override the one produced based on template and
+      # Additionnal nifi.properties configuration that will override the one produced based on template and
       # configuration
       overrideConfigMap:
         # The key of the value,in data content, that we want use.
@@ -226,7 +226,7 @@ Let's take an example :
         name: raw
         # Namespace where is located the secret that we want to refer.
         namespace: nifikop
-      # Additionnals nifi.properties configuration that will override the one produced based
+      # Additionnal nifi.properties configuration that will override the one produced based
       #	on template, configurations, overrideConfigMap and overrideConfigs.
       overrideSecretConfig:
         # The key of the value,in data content, that we want use.
@@ -235,7 +235,7 @@ Let's take an example :
         name: raw
         # Namespace where is located the secret that we want to refer.
         namespace: nifikop
-      # Additionnals nifi.properties configuration that will override the one produced based
+      # Additionnal nifi.properties configuration that will override the one produced based
       #	on template, configurations and overrideConfigMap
       overrideConfigs: |
         nifi.ui.banner.text=NiFiKop

@@ -74,6 +74,7 @@ spec:
 |version|int64| the last nifi parameter context revision version catched. |Yes| - |
 |latestUpdateRequest|[ParameterContextUpdateRequest](#parametercontextupdaterequest)|the latest update request. |Yes| - |
 |version|int64| the last nifi parameter context revision version catched. |Yes| - |
+|latestSecretUpdate|[v1.Time](https://pkg.go.dev/k8s.io/apimachinery/pkg/apis/meta/v1#Time)|the latest update time of the secrets. |No| - |
 
 ## Parameter
 

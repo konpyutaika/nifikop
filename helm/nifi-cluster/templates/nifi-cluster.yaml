@@ -137,7 +137,7 @@ spec:
         namespace: {{ .Release.Namespace }}
     bootstrapProperties:
       overrideSecretConfig:
-        data: bootstrap.properties
+        data: bootstrap.conf
         name: {{ include "nifi-cluster.fullname" . }}
         namespace: {{ .Release.Namespace }}
       nifiJvmMemory: {{ .Values.cluster.bootstrapProperties.nifiJvmMemory }}

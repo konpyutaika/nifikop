@@ -198,13 +198,13 @@ type AuthorizerConfig struct {
 
 // NifiProperties configuration that will be applied to the node.
 type NifiProperties struct {
-	// Additionnals nifi.properties configuration that will override the one produced based on template and
+	// Additionnal nifi.properties configuration that will override the one produced based on template and
 	// configuration
 	OverrideConfigMap *ConfigmapReference `json:"overrideConfigMap,omitempty"`
-	// Additionnals nifi.properties configuration that will override the one produced based
+	// Additionnal nifi.properties configuration that will override the one produced based
 	// on template, configurations and overrideConfigMap.
 	OverrideConfigs string `json:"overrideConfigs,omitempty"`
-	// Additionnals nifi.properties configuration that will override the one produced based
+	// Additionnal nifi.properties configuration that will override the one produced based
 	// on template, configurations, overrideConfigMap and overrideConfigs.
 	OverrideSecretConfig *SecretConfigReference `json:"overrideSecretConfig,omitempty"`
 	// A comma separated list of allowed HTTP Host header values to consider when NiFi
@@ -220,13 +220,13 @@ type NifiProperties struct {
 
 // ZookeeperProperties configuration that will be applied to the node.
 type ZookeeperProperties struct {
-	// Additionnals zookeeper.properties configuration that will override the one produced based on template and
+	// Additionnal zookeeper.properties configuration that will override the one produced based on template and
 	// configuration
 	OverrideConfigMap *ConfigmapReference `json:"overrideConfigMap,omitempty"`
-	// Additionnals zookeeper.properties configuration that will override the one produced based
+	// Additionnal zookeeper.properties configuration that will override the one produced based
 	// on template and configurations.
 	OverrideConfigs string `json:"overrideConfigs,omitempty"`
-	// Additionnals zookeeper.properties configuration that will override the one produced based
+	// Additionnal zookeeper.properties configuration that will override the one produced based
 	// on template, configurations, overrideConfigMap and overrideConfigs.
 	OverrideSecretConfig *SecretConfigReference `json:"overrideSecretConfig,omitempty"`
 }
@@ -235,13 +235,13 @@ type ZookeeperProperties struct {
 type BootstrapProperties struct {
 	// JVM memory settings
 	NifiJvmMemory string `json:"nifiJvmMemory,omitempty"`
-	// Additionnals bootstrap.properties configuration that will override the one produced based on template and
+	// Additionnal bootstrap.properties configuration that will override the one produced based on template and
 	// configuration
 	OverrideConfigMap *ConfigmapReference `json:"overrideConfigMap,omitempty"`
-	// Additionnals bootstrap.properties configuration that will override the one produced based
+	// Additionnal bootstrap.properties configuration that will override the one produced based
 	// on template and configurations.
 	OverrideConfigs string `json:"overrideConfigs,omitempty"`
-	// Additionnals bootstrap.properties configuration that will override the one produced based
+	// Additionnal bootstrap.properties configuration that will override the one produced based
 	// on template, configurations, overrideConfigMap and overrideConfigs.
 	OverrideSecretConfig *SecretConfigReference `json:"overrideSecretConfig,omitempty"`
 }
@@ -705,7 +705,7 @@ func (nConfig *NodeConfig) GetProvenanceStorage() string {
 	return "8 GB"
 }
 
-// GetNifiJvmMemory returns the default "2g" NifiJvmMemory if not specified otherwise.
+// GetNifiJvmMemory returns the default "512m" NifiJvmMemory if not specified otherwise.
 func (bProperties *BootstrapProperties) GetNifiJvmMemory() string {
 	if bProperties.NifiJvmMemory != "" {
 		return bProperties.NifiJvmMemory

@@ -523,9 +523,9 @@ func (r *Reconciler) getAuthorizersConfigString(nConfig *v1.NodeConfig, id int32
 	return out.String()
 }
 
-/////////////////////////////////////////
-//  Bootstrap properties configuration //
-/////////////////////////////////////////
+//////////////////////////////////////////
+//  Bootstrap properties configuration  //
+//////////////////////////////////////////
 
 func (r Reconciler) generateBootstrapPropertiesNodeConfig(id int32, nodeConfig *v1.NodeConfig, log zap.Logger) string {
 	var readOnlyClusterConfig map[string]string
@@ -596,7 +596,7 @@ func (r *Reconciler) getBootstrapPropertiesConfigString(nConfig *v1.NodeConfig, 
 	}
 
 	var out bytes.Buffer
-	t := template.Must(template.New("nConfig-config").Parse(config.BootstrapPropertiesTemplate))
+	t := template.Must(template.New("nConfig-config").Parse(config.BootstrapConfTemplate))
 	if err := t.Execute(&out, map[string]interface{}{
 		"NifiCluster": r.NifiCluster,
 		"Id":          id,

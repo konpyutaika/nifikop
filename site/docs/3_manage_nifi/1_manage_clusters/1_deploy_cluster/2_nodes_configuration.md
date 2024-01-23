@@ -260,7 +260,7 @@ Let's take an example :
 
 ```yaml
  nifiProperties:
-      # Additionnals nifi.properties configuration that will override the one produced based on template and
+      # Additionnal nifi.properties configuration that will override the one produced based on template and
       # configuration
       overrideConfigMap:
         # The key of the value,in data content, that we want use.
@@ -269,7 +269,7 @@ Let's take an example :
         name: raw
         # Namespace where is located the secret that we want to refer.
         namespace: nifikop
-      # Additionnals nifi.properties configuration that will override the one produced based
+      # Additionnal nifi.properties configuration that will override the one produced based
       #	on template, configurations, overrideConfigMap and overrideConfigs.
       overrideSecretConfig:
         # The key of the value,in data content, that we want use.
@@ -278,7 +278,7 @@ Let's take an example :
         name: raw
         # Namespace where is located the secret that we want to refer.
         namespace: nifikop
-      # Additionnals nifi.properties configuration that will override the one produced based
+      # Additionnal nifi.properties configuration that will override the one produced based
       #	on template, configurations and overrideConfigMap
       overrideConfigs: |
         nifi.ui.banner.text=NiFiKop
@@ -289,10 +289,10 @@ In this example if we have the `nifi.sensitive.props.key` key defined in the sec
 
 ### Overridable configurations
 
-Here is the list of configuration that you can override for NiFi :
+Here is the list of configuration that you can override for NiFi:
 - [nifi.properties](https://github.com/konpyutaika/nifikop/blob/master/pkg/resources/templates/config/nifi_properties.go)
 - [zookeeper.properties](https://github.com/konpyutaika/nifikop/blob/master/pkg/resources/templates/config/zookeeper_properties.go)
-- [bootstrap.properties](https://github.com/konpyutaika/nifikop/blob/master/pkg/resources/templates/config/bootstrap_properties.go)
+- [bootstrap.conf](https://github.com/konpyutaika/nifikop/blob/master/pkg/resources/templates/config/bootstrap_conf.go)
 - [logback.xml](https://github.com/konpyutaika/nifikop/blob/master/pkg/resources/templates/config/logback.xml.go)
 - [authorizers.xml](https://github.com/konpyutaika/nifikop/blob/master/pkg/resources/templates/config/authorizers.go)
 - [bootstrap_notification_services.xml](https://github.com/konpyutaika/nifikop/blob/master/pkg/resources/templates/config/bootstrap_notifications_services.go)
