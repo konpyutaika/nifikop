@@ -51,6 +51,10 @@ cluster:
     labels: {}
     # -- host aliases to assign to each pod. See: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#hostalias-v1-core
     hostAliases: []
+    # -- (object) The pod readiness probe override: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#define-readiness-probes
+    readinessProbe: 
+    # -- (object) The pod liveness probe override: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#define-a-liveness-command
+    livenessProbe: 
 
   image: 
     repository: "apache/nifi"

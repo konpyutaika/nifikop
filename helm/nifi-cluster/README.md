@@ -54,6 +54,8 @@ A Helm chart for deploying NiFi clusters in Kubernetes
 | cluster.pod.annotations | object | `{}` | Annotations to apply to every pod |
 | cluster.pod.hostAliases | list | `[]` | host aliases to assign to each pod. See: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#hostalias-v1-core |
 | cluster.pod.labels | object | `{}` | Labels to apply to every pod |
+| cluster.pod.livenessProbe | object | `nil` | The pod liveness probe override: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#define-a-liveness-command |
+| cluster.pod.readinessProbe | object | `nil` | The pod readiness probe override: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#define-readiness-probes |
 | cluster.propagateLabels | bool | `true` |  |
 | cluster.retryDurationMinutes | int | `10` | The number of minutes the operator should wait for the cluster to be successfully deployed before retrying |
 | cluster.service.annotations | object | `{}` | Annotations to apply to each nifi service |

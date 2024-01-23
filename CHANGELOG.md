@@ -2,6 +2,8 @@
 
 ### Added
 
+- [PR #345](https://github.com/konpyutaika/nifikop/pull/345) - **[Helm Chart]** Added option to include `NodePort` with custom hosts in `webProxyHosts`.
+- [PR #364](https://github.com/konpyutaika/nifikop/pull/364) - **[Helm Chart]** Added ability to configure NiFi Pod `ReadinessProbe` and `LivenessProbe` in the nifi-cluster chart.
 - [PR #367](https://github.com/konpyutaika/nifikop/pull/367) - **[Operator/NifiParameterContext]** Parameter context's secret update detection.
 
 ### Changed
@@ -9,7 +11,6 @@
 - [PR #340](https://github.com/konpyutaika/nifikop/pull/340) - **[Operator/NifiDataflow]** Updated the logic to stop the entire dataflow instead of just the processors when the parameter context reference is updated.
 - [PR #342](https://github.com/konpyutaika/nifikop/pull/342) - **[Operator/NifiCluster]** Updated the logic to retrieve theIP address from hostname with `curl` instead of `wget`.
 - [PR #341](https://github.com/konpyutaika/nifikop/pull/341) - **[Helm Chart]** Fixed `webProxyHosts` conversion to Yaml. Updated zookeeper dependency. Updated `ServiceMonitor` endpoints generation.
-- [PR #345](https://github.com/konpyutaika/nifikop/pull/345) - **[Helm Chart]** Added option to include `NodePort` with custom hosts in `webProxyHosts`.
 - [PR #349](https://github.com/konpyutaika/nifikop/pull/349) - **[Operator/NifiRegistryClient]** Set FlowRegistry type in RegistryClient creation.
 - [PR #350](https://github.com/konpyutaika/nifikop/pull/350) - **[Operator]** Remove optimistic lock on `Patch`.
 - [PR #352](https://github.com/konpyutaika/nifikop/pull/352) - **[Operator]** Changed default LogLevel of NiFi from `DEBUG` to `INFO`.
