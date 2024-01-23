@@ -14,6 +14,7 @@
 - [PR #349](https://github.com/konpyutaika/nifikop/pull/349) - **[Operator/NifiRegistryClient]** Set FlowRegistry type in RegistryClient creation.
 - [PR #350](https://github.com/konpyutaika/nifikop/pull/350) - **[Operator]** Remove optimistic lock on `Patch`.
 - [PR #352](https://github.com/konpyutaika/nifikop/pull/352) - **[Operator]** Changed default LogLevel of NiFi from `DEBUG` to `INFO`.
+- [PR #353](https://github.com/konpyutaika/nifikop/pull/353) - **[Operator/NifiCluster]** Removed `logback.xml` template.
 - [PR #354](https://github.com/konpyutaika/nifikop/pull/354) - **[Operator/NifiCluster]** Updated `login_identity_providers.xml` template for 2.0.0-M1.
 - [PR #368](https://github.com/konpyutaika/nifikop/pull/368) - **[Operator]** Upgrade golang to 1.21.6.
 - [PR #369](https://github.com/konpyutaika/nifikop/pull/369) - **[Operator/NifiParameterContext]** Update parameter value to null instead of delete.

@@ -14,7 +14,7 @@ readOnlyConfig:
   maximumEventDrivenThreadCount: 10
   # Logback configuration that will be applied to the node
   logbackConfig:
-    # logback.xml configuration that will replace the one produced based on template
+    # logback.xml configuration that will replace the one provided by NiFi
     replaceConfigMap:
       # The key of the value,in data content, that we want use.
       data: logback.xml
@@ -22,7 +22,7 @@ readOnlyConfig:
       name: raw
       # Namespace where is located the secret that we want to refer.
       namespace: nifikop
-    # logback.xml configuration that will replace the one produced based on template and overrideConfigMap
+    # logback.xml configuration that will replace the one provided by NiFi and overrideConfigMap
     replaceSecretConfig:
       # The key of the value,in data content, that we want use.
       data: logback.xml
@@ -188,8 +188,8 @@ readOnlyConfig:
 
 |Field|Type|Description|Required|Default|
 |-----|----|-----------|--------|--------|
-|replaceConfigMap|[ConfigmapReference](#configmapreference)|logback.xml configuration that will replace the one produced based on template.|No|nil|
-|replaceSecretConfig|[SecretConfigReference](#secretconfigreference)|logback.xml configuration that will replace the one produced based on template and overrideConfigMap.|No|nil|
+|replaceConfigMap|[ConfigmapReference](#configmapreference)|logback.xml configuration that will replace the one provided by NiFi.|No|nil|
+|replaceSecretConfig|[SecretConfigReference](#secretconfigreference)|logback.xml configuration that will replace the one provided by NiFi and overrideConfigMap.|No|nil|
 
 ## AuthorizerConfig
 
