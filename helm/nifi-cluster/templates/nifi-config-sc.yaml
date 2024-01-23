@@ -13,6 +13,6 @@ data:
 {{ end }}
   nifi.properties: |-
 {{ .Values.cluster.nifiProperties.overrideConfigs | b64enc | indent 4 }}
-  bootstrap.properties: |-
+  bootstrap.conf: |-
 {{ .Values.cluster.bootstrapProperties.overrideConfigs | b64enc | indent 4 }}
 {{ (.Files.Glob $filePattern).AsSecrets | indent 2 }}

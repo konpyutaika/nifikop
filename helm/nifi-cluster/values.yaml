@@ -128,7 +128,7 @@ cluster:
     # -- Nifi security client auth
     needClientAuth: false
 
-  # -- You can override individual properties in config/bootstrap.properties
+  # -- You can override individual properties in conf/bootstrap.conf
   # https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#bootstrap_properties
   bootstrapProperties:
     overrideConfigs: |

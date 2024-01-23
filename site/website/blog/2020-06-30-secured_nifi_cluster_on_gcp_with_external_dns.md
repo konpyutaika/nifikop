@@ -282,7 +282,7 @@ spec:
     nifiProperties:
       webProxyHosts:
         - <nifi's hostname>:8443
-      # Additionnals nifi.properties configuration that will override the one produced based
+      # Additionnal nifi.properties configuration that will override the one produced based
       # on template and configurations.
       overrideConfigs: |
         ...
