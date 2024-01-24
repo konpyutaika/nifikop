@@ -99,7 +99,7 @@ NodeConfig defines the node configuration
 
 | Field                                                             |Type| Description |Required|Default|
 |-------------------------------------------------------------------|----|-------------|--------|--------|
-|| [VolueMount](https://pkg.go.dev/k8s.io/api/core/v1#VolumeMount)   |describes a mounting of a Volume within a container.| Yes         | - |
+|| [VolumeMount](https://pkg.go.dev/k8s.io/api/core/v1#VolumeMount)   |describes a mounting of a Volume within a container.| Yes         | - |
 || [VolumeSource](https://pkg.go.dev/k8s.io/api/core/v1#VolumeSource) | VolumeSource represents the location and type of the mounted volume. | Yes         | - |
 
 ## Metadata
