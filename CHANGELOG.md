@@ -2,6 +2,18 @@
 
 ### Added
 
+### Changed
+
+### Fixed Bugs
+
+### Deprecated
+
+### Removed
+
+## v1.7.0
+
+### Added
+
 - [PR #345](https://github.com/konpyutaika/nifikop/pull/345) - **[Helm Chart]** Added option to include `NodePort` with custom hosts in `webProxyHosts`.
 - [PR #364](https://github.com/konpyutaika/nifikop/pull/364) - **[Helm Chart]** Added ability to configure NiFi Pod `ReadinessProbe` and `LivenessProbe` in the nifi-cluster chart.
 - [PR #367](https://github.com/konpyutaika/nifikop/pull/367) - **[Operator/NifiParameterContext]** Parameter context's secret update detection.
@@ -18,12 +30,6 @@
 - [PR #368](https://github.com/konpyutaika/nifikop/pull/368) - **[Operator]** Upgrade golang to 1.21.6.
 - [PR #369](https://github.com/konpyutaika/nifikop/pull/369) - **[Operator/NifiParameterContext]** Update parameter value to null instead of delete.
 - [PR #363](https://github.com/konpyutaika/nifikop/pull/363) - **[Operator]** Replace `boostrap.properties` references with `boostrap.conf`.
-
-### Fixed Bugs
-
-### Deprecated
-
-### Removed
 
 ## v1.6.0
 
