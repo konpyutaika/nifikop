@@ -4,6 +4,9 @@ kind: NifiUserGroup
 metadata:
   name: {{ include "nifi-cluster.fullname" $ }}-{{ .name }}
 spec:
+  {{ if .identity }}
+  identity: {{ .identity }}
+  {{ end }}
   clusterRef:
     name: {{ include "nifi-cluster.fullname" $ }}
     namespace: {{ $.Release.Namespace }}

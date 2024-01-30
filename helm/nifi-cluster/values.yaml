@@ -427,6 +427,8 @@ users: []
 # See all properties here: https://konpyutaika.github.io/nifikop/docs/5_references/6_nifi_usergroup
 userGroups: []
   # - name: "basic-user-group"
+  #   # identity is an optional field. It defaults to the CRD '<namespace>-<name>'.
+  #   identity: "My Special group"
   #   # Users listed here should match the identity of users provided via the `users` configuration
   #   users:
   #     - name: CN=first last, OU=Apache NiFi, O=Apache, L=Santa Monica, ST=CA, C=US
