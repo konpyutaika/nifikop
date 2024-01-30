@@ -2,6 +2,8 @@
 
 ### Added
 
+- [PR #381](https://github.com/konpyutaika/nifikop/pull/381) - **[Operator/NifiUserGroup]** Added ability to set `NifiUserGroup.Spec.Identity` when users need to override the default naming convention.
+
 ### Changed
 
 ### Fixed Bugs
