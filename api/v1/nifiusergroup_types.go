@@ -11,6 +11,10 @@ import (
 
 // NifiUserGroupSpec defines the desired state of NifiUserGroup.
 type NifiUserGroupSpec struct {
+	// identity field is used to define the group identity on NiFi cluster side, when the group's name doesn't
+	// suit with Kubernetes resource name.
+	// +optional
+	Identity string `json:"identity,omitempty"`
 	// clusterRef contains the reference to the NifiCluster with the one the registry client is linked.
 	ClusterRef ClusterReference `json:"clusterRef"`
 	// userRef contains the list of reference to NifiUsers that are part to the group.
@@ -53,6 +57,10 @@ func init() {
 	SchemeBuilder.Register(&NifiUserGroup{}, &NifiUserGroupList{})
 }
 
+// GetIdentity returns this group's identity in the NiFi cluster configuration. If no Spec.Identity is set, it defaults to <namespace>-<name>.
 func (n NifiUserGroup) GetIdentity() string {
-	return fmt.Sprintf("%s-%s", n.Namespace, n.Name)
+	if n.Spec.Identity == "" {
+		return fmt.Sprintf("%s-%s", n.Namespace, n.Name)
+	}
+	return n.Spec.Identity
 }
