@@ -17,84 +17,85 @@ spec:
     annotations:
       tyty: ytyt
     labels:
-      tete: titi  
+      cluster-name: simplenifi
+      tete: titi
+  zkAddress: "zookeeper.zookeeper:2181"
+  zkPath: /simplenifi
+  externalServices:
+    - metadata:
+        annotations:
+          toto: tata
+        labels:
+          cluster-name: driver-simplenifi
+          titi: tutu
+      name: driver-ip
+      spec:
+        portConfigs:
+          - internalListenerName: http
+            port: 8080
+        type: ClusterIP
+  clusterImage: "apache/nifi:1.24.0"
+  initContainerImage: "bash:5.2.2"
+  oneNifiNodePerNode: true
+  readOnlyConfig:
+    nifiProperties:
+      overrideConfigs: |
+        nifi.sensitive.props.key=thisIsABadSensitiveKeyPassword
   pod:
     annotations:
       toto: tata
     labels:
+      cluster-name: simplenifi
       titi: tutu
-  zkAddress: 'zookeepercluster-client.zookeeper:2181'
-  zkPath: '/simplenifi'
-  clusterImage: 'apache/nifi:1.11.3'
-  oneNifiNodePerNode: false
   nodeConfigGroups:
     default_group:
+      imagePullPolicy: IfNotPresent
       isNode: true
-      podMetadata:
-        annotations:
-          node-annotation: "node-annotation-value"
-        labels:
-          node-label: "node-label-value"
-      externalVolumeConfigs:
-        - name: example-volume
-          mountPath: "/opt/nifi/example"
-          secret:
-            secretName: "raw-controller"
+      serviceAccountName: default
       storageConfigs:
-        - mountPath: '/opt/nifi/nifi-current/logs'
+        - mountPath: "/opt/nifi/nifi-current/logs"
           name: logs
-          # Metadata to attach to the PVC that gets created
-          metadata:
-            labels:
-              my-label: my-value
-            annotations:
-              my-annotation: my-value
+          reclaimPolicy: Delete
           pvcSpec:
             accessModes:
               - ReadWriteOnce
-            storageClassName: 'standard'
+            storageClassName: "standard"
             resources:
               requests:
                 storage: 10Gi
-      serviceAccountName: 'default'
       resourcesRequirements:
         limits:
-          cpu: '2'
-          memory: 3Gi
+          cpu: "1"
+          memory: 2Gi
         requests:
-          cpu: '1'
-          memory: 1Gi
+          cpu: "1"
+          memory: 2Gi
   nodes:
     - id: 1
-      nodeConfigGroup: 'default_group'
+      nodeConfigGroup: "default_group"
     - id: 2
-      nodeConfigGroup: 'default_group'
+      nodeConfigGroup: "default_group"
   propagateLabels: true
   nifiClusterTaskSpec:
     retryDurationMinutes: 10
   listenersConfig:
     internalListeners:
-      - type: 'http'
-        name: 'http'
-        containerPort: 8080
-      - type: 'cluster'
-        name: 'cluster'
-        containerPort: 6007
-      - type: 's2s'
-        name: 's2s'
-        containerPort: 10000
-  externalServices:
-    - name: 'clusterip'
-      spec:
-        type: ClusterIP
-        portConfigs:
-          - port: 8080
-            internalListenerName: 'http'
-      metadata:
-        annotations:
-          toto: tata
-        labels:
-          titi: tutu
+      - containerPort: 8080
+        type: http
+        name: http
+      - containerPort: 6007
+        type: cluster
+        name: cluster
+      - containerPort: 10000
+        type: s2s
+        name: s2s
+      - containerPort: 9090
+        type: prometheus
+        name: prometheus
+      - containerPort: 6342
+        type: load-balance
+        name: load-balance
+
 ```
 
 ## NifiCluster
