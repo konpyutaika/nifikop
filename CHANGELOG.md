@@ -6,6 +6,8 @@
 
 ### Changed
 
+- [PR #378](https://github.com/konpyutaika/nifikop/pull/378) - **[Operator]** Tweak NiFi pod startup script to more gracefully handle pod IP resolution.
+
 ### Fixed Bugs
 
 ### Deprecated

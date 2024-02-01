@@ -508,7 +508,7 @@ do
 	echo "Found: $ipResolved, expecting: $POD_IP"
     sleep 5
 
-	ipResolved=$(curl -v -4 -m 1 --connect-timeout 1 %s 2>&1 | grep -o 'Trying [0-9.]*' | awk '{print $2}' | head -n 1)
+	ipResolved=$(curl -v -4 -m 1 --connect-timeout 1 %s 2>&1 | grep -o 'Trying [0-9.]*' | awk '{gsub(/\.\.\./, ""); print $2}' | head -n 1)
 	echo "Found : $ipResolved"
     if [[ "$ipResolved" == "$POD_IP" ]]; then
 		echo Ip match for $POD_IP
