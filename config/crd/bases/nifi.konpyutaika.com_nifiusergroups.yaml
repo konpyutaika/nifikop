@@ -4,7 +4,6 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.9.2
-  creationTimestamp: null
   name: nifiusergroups.nifi.konpyutaika.com
 spec:
   group: nifi.konpyutaika.com
@@ -79,6 +78,8 @@ spec:
                 required:
                 - name
                 type: object
+              identity:
+                type: string
               usersRef:
                 items:
                   properties:
