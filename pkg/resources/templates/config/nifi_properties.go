@@ -88,7 +88,7 @@ nifi.content.repository.archive.max.retention.period=3 days
 nifi.content.repository.archive.max.usage.percentage=85%
 nifi.content.repository.archive.enabled=true
 nifi.content.repository.always.sync=false
-nifi.content.viewer.url=/nifi-content-viewer/
+nifi.content.viewer.url=../nifi-content-viewer/
 
 # Provenance Repository Properties
 nifi.provenance.repository.implementation=org.apache.nifi.provenance.WriteAheadProvenanceRepository
