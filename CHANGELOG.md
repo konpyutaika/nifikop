@@ -4,6 +4,7 @@
 
 ### Changed
 
+- [PR #378](https://github.com/konpyutaika/nifikop/pull/378) - **[Operator]** Tweak NiFi pod startup script to more gracefully handle pod IP resolution.
 - [PR #382](https://github.com/konpyutaika/nifikop/pull/382) - **[Operator/NifiCluster]** Changed `nifi.content.viewer.url` property default value.
 
 ### Fixed Bugs
