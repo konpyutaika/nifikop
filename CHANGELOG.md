@@ -4,6 +4,8 @@
 
 ### Changed
 
+- [PR #382](https://github.com/konpyutaika/nifikop/pull/382) - **[Operator/NifiCluster]** Changed `nifi.content.viewer.url` property default value.
+
 ### Fixed Bugs
 
 ### Deprecated
