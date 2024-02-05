@@ -314,12 +314,12 @@ func (r *NifiClusterTaskReconciler) handlePodRunningTask(nifiCluster *v1.NifiClu
 			}
 		}
 
-		// TODO : Investigate workaround used because of error :
+		// TODO: Investigate workaround used because of error :
 		// 2020-02-18 08:30:07,850 INFO [Process Cluster Protocol Request-4] o.a.n.c.c.node.NodeClusterCoordinator Status of nifi-12-node.nifi-headless.nifi-demo.svc.cluster.local:8080
 		// changed from null to NodeConnectionStatus[nodeId=nifi-12-node.nifi-headless.nifi-demo.svc.cluster.local:8080, state=DISCONNECTED, Disconnect Code=Node was Shutdown,
 		// Disconnect Reason=Node was Shutdown, updateId=33]
 		// If pod finished deletion
-		// TODO : work here to manage node Status and state (If disconnected && Removing)
+		// TODO: work here to manage node Status and state (If disconnected && Removing)
 		if nifiCluster.Status.NodesState[nodeId].GracefulActionState.ActionStep == v1.RemovePodStatus {
 			actionStep, taskStartTime, err := scale.RemoveClusterNode(clientConfig, nodeId)
 			if err != nil {

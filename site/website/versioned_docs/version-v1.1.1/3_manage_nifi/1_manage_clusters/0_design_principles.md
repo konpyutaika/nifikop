@@ -14,12 +14,12 @@ All NiFi on Kubernetes setup use [StatefulSet](https://kubernetes.io/docs/concep
 
 How does this looks from the perspective of Apache NiFi ?
 
-With StatefulSet we get :
+With StatefulSet we get:
 - unique Node IDs generated during Pod startup
 - networking between Nodes with headless services
 - unique Persistent Volumes for Nodes
 
-Using StatefulSet we **lose** the ability to :
+Using StatefulSet we **lose** the ability to:
 
 - modify the configuration of unique Nodes
 - remove a specific Node from a cluster (StatefulSet always removes the most recently created Node)

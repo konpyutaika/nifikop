@@ -10,11 +10,11 @@ tags: [gke, nifikop, secured, oidc, google cloud platform, google cloud, gcp, ku
 
 ## Credits
 
-Before starting, I wanted to mention the fact that this post is an adaptation of the [Pierre Villard](https://twitter.com/pvillard31)'s one : [Secured NiFi cluster with Terraform on the Google Cloud Platform](https://pierrevillard.com/2019/11/22/secured-nifi-cluster-with-terraform-on-the-google-cloud-platform/)
+Before starting, I wanted to mention the fact that this post is an adaptation of the [Pierre Villard](https://twitter.com/pvillard31)'s one: [Secured NiFi cluster with Terraform on the Google Cloud Platform](https://pierrevillard.com/2019/11/22/secured-nifi-cluster-with-terraform-on-the-google-cloud-platform/)
 
 ## Objectives
 
-In this article, we'll use **NiFiKop** and **Terraform** to quickly : 
+In this article, we'll use **NiFiKop** and **Terraform** to quickly: 
 
 - deploy **a GKE cluster** to host our NiFi cluster,
 - deploy **a `cert-manager` issuer** as a convenient way to generate TLS certificates,
@@ -26,7 +26,7 @@ In this article, we'll use **NiFiKop** and **Terraform** to quickly :
 
 ## Pre-requisites
 
-- You have your own domain ([you can create on with Google](https://domains.google/)) : it will be used to map a domain to the NiFi's web interface. In this post, we will use : `trycatchlearn.fr`. 
+- You have your own domain ([you can create on with Google](https://domains.google/)): it will be used to map a domain to the NiFi's web interface. In this post, we will use: `trycatchlearn.fr`. 
 
 ### Disclaimer
 
@@ -34,14 +34,14 @@ This article can get you started for a production deployment, but should not use
 
 ### Create OAuth Credentials
 
-First step is to create the OAuth Credential : 
+First step is to create the OAuth Credential: 
 
-- Go to your GCP project, and in the left bar : **APIs & Services > Credentials**
-- Click on `CREATE CREDENTIALS : OAuth client ID`
+- Go to your GCP project, and in the left bar: **APIs & Services > Credentials**
+- Click on `CREATE CREDENTIALS: OAuth client ID`
 - Select `Web Application`
 - Give a name like `SecuredNifi`. 
-- For `Authorised JavaScript origins`, use your own domain. I'm using : `https://nifisecured.trycatchlearn.fr:8443`
-- For `Authorised redirect URIs` it's your previous URI + `/nifi-api/access/oidc/callback`, for me : `https://nifisecured.trycatchlearn.fr:8443/nifi-api/access/oidc/callback`
+- For `Authorised JavaScript origins`, use your own domain. I'm using: `https://nifisecured.trycatchlearn.fr:8443`
+- For `Authorised redirect URIs` it's your previous URI + `/nifi-api/access/oidc/callback`, for me: `https://nifisecured.trycatchlearn.fr:8443/nifi-api/access/oidc/callback`
 
 
 ![OAuth credentials](/img/blog/2020-05-20-secured_nifi_cluster_on_gcp/oauth_credentials.png)
@@ -58,7 +58,7 @@ For the GKE cluster deployment you need a service account with `Editor` role, an
 
 Once you have completed the above prerequisites, deploying you NiFi cluster will only take three steps and few minutes.
 
-Open your Google Cloud Console in your GCP project and run : 
+Open your Google Cloud Console in your GCP project and run: 
 
 ```sh
 git clone https://github.com/konpyutaika/nifikop/nifikop.git
@@ -69,19 +69,19 @@ cd nifikop/docs/tutorials/secured_nifi_cluster_on_gcp
 
 #### Deployment 
 
-You can configure variable before running the deployment in the file `terraform/env/demo.tfvars` : 
+You can configure variable before running the deployment in the file `terraform/env/demo.tfvars`: 
 
-- **project** : GCP project ID
-- **region** : GCP region
-- **zone** : GCP zone
-- **cluster_machines_types** : defines the machine type for GKE cluster nodes
-- **min_node** : minimum number of nodes in the NodePool. Must be \>=0 and \<= max_node_count.
-- **max_node** : maximum number of nodes in the NodePool. Must be \>= min_node_count.
-- **initial_node_count** : the number of nodes to create in this cluster's default node pool.
-- **preemptible** : true/false using preemptibles nodes.
-- **nifikop_image_repo** : NiFiKop's image repository
-- **nifikop_image_tag** : NiFiKop's image tag
-- **nifikop_chart_version** : NiFiKop's helm chart version
+- **project**: GCP project ID
+- **region**: GCP region
+- **zone**: GCP zone
+- **cluster_machines_types**: defines the machine type for GKE cluster nodes
+- **min_node**: minimum number of nodes in the NodePool. Must be \>=0 and \<= max_node_count.
+- **max_node**: maximum number of nodes in the NodePool. Must be \>= min_node_count.
+- **initial_node_count**: the number of nodes to create in this cluster's default node pool.
+- **preemptible**: true/false using preemptibles nodes.
+- **nifikop_image_repo**: NiFiKop's image repository
+- **nifikop_image_tag**: NiFiKop's image tag
+- **nifikop_chart_version**: NiFiKop's helm chart version
 
 ```sh
 ./start.sh <service account key's path>
@@ -89,7 +89,7 @@ You can configure variable before running the deployment in the file `terraform/
 
 This operation could take 15 minutes (time to the GKE cluster and its nodes to setup)
 
-Once the deployment is ready load the GKE configuration : 
+Once the deployment is ready load the GKE configuration: 
 
 ```console
 gcloud container clusters get-credentials nifi-cluster --zone <configured gcp zone> --project <GCP project's id>
@@ -97,7 +97,7 @@ gcloud container clusters get-credentials nifi-cluster --zone <configured gcp zo
 
 #### Explanations
 
-The first step is to deploy a GKE cluster, with the required configuration, you can for example check the nodes configuration : 
+The first step is to deploy a GKE cluster, with the required configuration, you can for example check the nodes configuration: 
 
 ```console
 kubectl get nodes
@@ -108,7 +108,7 @@ gke-nifi-cluster-tracking-ptf20200520-a1aec8fe-5t3l   Ready    <none>   110m   v
 gke-nifi-cluster-tracking-ptf20200520-a1aec8fe-w86j   Ready    <none>   110m   v1.15.9-gke.24
 ```
 
-Once the cluster is deployed, we created all the required namespaces : 
+Once the cluster is deployed, we created all the required namespaces: 
 
 ```console
 kubectl get namespaces
@@ -137,7 +137,7 @@ cert-manager-cainjector-54c4796c5d-mfbbx   1/1     Running   0          72m
 cert-manager-webhook-77ccf5c8b4-m6ws4      1/1     Running   2          72m
 ```
 
-It will also deploy the Zookeeper cluster based on the [bitnami helm chart](https://github.com/bitnami/charts/tree/master/bitnami/zookeeper) : 
+It will also deploy the Zookeeper cluster based on the [bitnami helm chart](https://github.com/bitnami/charts/tree/master/bitnami/zookeeper): 
 
 ```console
 kubectl -n zookeeper get pods
@@ -147,7 +147,7 @@ zookeeper-1   1/1     Running   0          74m
 zookeeper-2   1/1     Running   0          74m
 ```
 
-And finally it deploy the `NiFiKop` operator which is ready to create NiFi clusters : 
+And finally it deploy the `NiFiKop` operator which is ready to create NiFi clusters: 
 
 
 ```console
@@ -158,7 +158,7 @@ nifikop-849fc8548f-ss6w4   1/1     Running   0          74m
 
 ### Deploy Secured NiFi cluster
 
-You will now deploy your secured cluster to do so edit the `kubernetes/nifi/secured_nifi_cluster.yaml` and set with your own values : 
+You will now deploy your secured cluster to do so edit the `kubernetes/nifi/secured_nifi_cluster.yaml` and set with your own values: 
 
 ```yaml
 apiVersion: nifi.orange.com/v1alpha1
@@ -183,19 +183,19 @@ spec:
         ...
 ```
 
-- **Spec.InitialAdminUser** : Your GCP account email (this will give you the admin role into the NiFi cluster), in my case `aguitton.ext@orange.com`
-- **Spec.ReadOnlyConfig.NifiProperties.WebProxyHosts\[0\]** : The web hostname configured in the Oauth section, in my case `nifisecured.trycatchlearn.fr`
-- **Spec.ReadOnlyConfig.NifiProperties.OverrideConfigs** : you have to set the following properties : 
-    - *nifi.security.user.oidc.client.id* : OAuth Client ID
-    - *nifi.security.user.oidc.client.secret* : OAuth Client secret
+- **Spec.InitialAdminUser**: Your GCP account email (this will give you the admin role into the NiFi cluster), in my case `aguitton.ext@orange.com`
+- **Spec.ReadOnlyConfig.NifiProperties.WebProxyHosts\[0\]**: The web hostname configured in the Oauth section, in my case `nifisecured.trycatchlearn.fr`
+- **Spec.ReadOnlyConfig.NifiProperties.OverrideConfigs**: you have to set the following properties: 
+    - *nifi.security.user.oidc.client.id*: OAuth Client ID
+    - *nifi.security.user.oidc.client.secret*: OAuth Client secret
     
-Once the configuration is ok, you can deploy the `NifiCluster` : 
+Once the configuration is ok, you can deploy the `NifiCluster`: 
 
 ```console
 kubectl create -f kubernetes/nifi/secured_nifi_cluster.yaml
 ```
 
-After 5 minutes your cluster should be running : 
+After 5 minutes your cluster should be running: 
 
 ```console
 kubectl get pods -n nifi
@@ -210,7 +210,7 @@ securednificluster-4-nodewzjt7   1/1     Running   0          6m24s
 
 ### Access to your secured NiFi Cluster
 
-To finish you have to get the public IP of the load balancer : 
+To finish you have to get the public IP of the load balancer: 
 
 ```console
 kubectl -n nifi get svc
@@ -225,11 +225,11 @@ We can now update the DNS records of your domains to add a DNS record of type A 
 
 I can now access the NiFi cluster using [https://nifisecured.trycatchlearn.fr:8443/nifi](https://nifisecured.trycatchlearn.fr:8443/nifi) and authenticate on the cluster using the admin account email address I configured in the `NifiCluster` resource.
 
-Here is my 5-nodes secured NiFi cluster up and running : 
+Here is my 5-nodes secured NiFi cluster up and running: 
 
 ![6 nodes cluster](/img/blog/2020-05-20-secured_nifi_cluster_on_gcp/6_nodes_cluster.png)
 
-5-nodes secured NiFi cluster : 
+5-nodes secured NiFi cluster: 
 
 ![5 nodes](/img/blog/2020-05-20-secured_nifi_cluster_on_gcp/5_nodes.png)
 
@@ -241,7 +241,7 @@ Just have a look on [documentation's page](https://konpyutaika.github.io/nifikop
 
 ## Cleaning
 
-To destroy all resources you created, you just need to run : 
+To destroy all resources you created, you just need to run: 
 
 ```consol
 kubectl delete nificlusters.nifi.orange.com securednificluster -n nifi

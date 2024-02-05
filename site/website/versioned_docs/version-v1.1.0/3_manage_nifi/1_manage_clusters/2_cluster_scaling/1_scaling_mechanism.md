@@ -15,7 +15,7 @@ This tasks shows you how to perform a gracefull cluster scale up and scale down.
 ## About this task
 
 The [Simple NiFi](../1_deploy_cluster/1_quick_start) example consists of a three nodes NiFi cluster.
-A node decommission must follow a strict procedure, described in the [NiFi documentation](https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#decommission-nodes) :
+A node decommission must follow a strict procedure, described in the [NiFi documentation](https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#decommission-nodes):
 
 1. Disconnect the node
 2. Once disconnect completes, offload the node.
@@ -23,7 +23,7 @@ A node decommission must follow a strict procedure, described in the [NiFi docum
 4. Once the delete request has finished, stop/remove the NiFi service on the host.
 
 
-For the moment, we have implemented it as follows in the operator :
+For the moment, we have implemented it as follows in the operator:
 
 1. Disconnect the node
 2. Once disconnect completes, offload the node.
@@ -35,11 +35,11 @@ In addition, we have a regular check that ensure that all nodes have been remove
 
 In this task, you will first perform a scale up, in adding an new node. Then, you will remove another node that the one created, and observe the decommission's steps.
 
-## Scale up : Add a new node
+## Scale up: Add a new node
 
 For this task, we will simply add a node with the same configuration than the other ones, if you want to know more about how to add a node with an other configuration let's have a look to the [Node configuration](../1_deploy_cluster/2_nodes_configuration) documentation page.
 
-1. Add and run a dataflow as the example :
+1. Add and run a dataflow as the example:
 
 ![Scaling dataflow](/img/3_tasks/1_nifi_cluster/2_cluster_scaling/scaling_dataflow.png)
 
@@ -106,16 +106,16 @@ spec:
 ```
 
 :::important
-**Note :** The `Node.Id` field must be unique in the `NifiCluster.Spec.Nodes` list.
+**Note:** The `Node.Id` field must be unique in the `NifiCluster.Spec.Nodes` list.
 :::
 
-3. Apply the new `NifiCluster` configuration :
+3. Apply the new `NifiCluster` configuration:
 
 ```sh 
 kubectl -n nifi apply -f config/samples/simplenificluster.yaml
 ```
 
-4. You should now have the following resources into kubernetes :
+4. You should now have the following resources into kubernetes:
 
 ```console 
 kubectl get pods,configmap,pvc -l nodeId=25
@@ -129,19 +129,19 @@ NAME                                               STATUS   VOLUME              
 persistentvolumeclaim/simplenifi-25-storagehwn24   Bound    pvc-7da86076-728e-11ea-846d-42010a8400f2   10Gi       RWO            standard       11m
 ```
 
-And if you go on the NiFi UI, in the cluster administration page :
+And if you go on the NiFi UI, in the cluster administration page:
 
 ![Scale up, cluster list](/img/3_tasks/1_nifi_cluster/2_cluster_scaling/scaleup_cluster_list.png)
 
-5. You now have data on the new node :
+5. You now have data on the new node:
 
 ![Scale up, cluster distribution](/img/3_tasks/1_nifi_cluster/2_cluster_scaling/scaleup_distribution.png)
 
-## Scaledown : Gracefully remove node
+## Scaledown: Gracefully remove node
 
 For this task, we will simply remove a node and look at that the decommissions steps.
 
-1. Remove the node from the list of `NifiCluster.Spec.Nodes` field :
+1. Remove the node from the list of `NifiCluster.Spec.Nodes` field:
 
 ```yaml
 apiVersion: nifi.konpyutaika.com/v1
@@ -202,13 +202,13 @@ spec:
         containerPort: 10000
 ```
 
-2. Apply the new `NifiCluster` configuration :
+2. Apply the new `NifiCluster` configuration:
 
 ```sh 
 kubectl -n nifi apply -f config/samples/simplenificluster.yaml
 ```
 
-3. You can follow the node's action step status in the `NifiCluster.Status` description :
+3. You can follow the node's action step status in the `NifiCluster.Status` description:
 
 ```console 
 kubectl describe nificluster simplenifi
@@ -230,7 +230,7 @@ Status:
 The list of decommisions step and their corresponding value for the `Nifi Cluster.Status.Node State.Graceful ActionState.ActionStep` field is described into the [Node State page](../../../5_references/1_nifi_cluster/5_node_state#actionstep)
 :::
 
-4. Once the scaledown successfully performed, you should have the data offloaded on the other nodes, and the node state removed from the `NifiCluster.Status.NodesState` list :
+4. Once the scaledown successfully performed, you should have the data offloaded on the other nodes, and the node state removed from the `NifiCluster.Status.NodesState` list:
 
 :::warning
 Keep in mind that the [`NifiCluster.Spec.nifiClusterTaskSpec.retryDurationMinutes`](../../../5_references/1_nifi_cluster/1_nifi_cluster.md#nificlustertaskspec) should be long enough to perform the whole procedure, or you will have some rollback and retry loop.

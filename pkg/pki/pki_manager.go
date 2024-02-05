@@ -8,7 +8,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/konpyutaika/nifikop/api/v1"
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/pkg/pki/certmanagerpki"
 	"github.com/konpyutaika/nifikop/pkg/util/pki"
 )
@@ -23,7 +23,7 @@ func GetPKIManager(client client.Client, cluster *v1.NifiCluster) pki.Manager {
 	case v1.PKIBackendCertManager:
 		return certmanagerpki.New(client, cluster)
 
-	// TODO : Add vault
+	// TODO: Add vault
 	// Use vault for pki backend
 	/*case v1alpha1.PKIBackendVault:
 	return vaultpki.New(client, cluster)*/

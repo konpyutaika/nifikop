@@ -14,7 +14,7 @@ import (
 
 var log = common.CustomLogger().Named("scale-method")
 
-// TODO : rework upscale to check that the node is connected before ending operation.
+// TODO: rework upscale to check that the node is connected before ending operation.
 // UpScaleCluster upscales Nifi cluster.
 func UpScaleCluster(nodeId, namespace, clusterName string) (v1.ActionStep, string, error) {
 	actionStep := v1.ConnectNodeAction
@@ -131,7 +131,7 @@ func RemoveClusterNode(config *clientconfig.NifiConfig, nodeId string) (v1.Actio
 	return actionStep, startTimeStamp, nil
 }
 
-// TODO : rework to check if state is consistent (If waiting removing but disconnected ...
+// TODO: rework to check if state is consistent (If waiting removing but disconnected ...
 // CheckIfCCTaskFinished checks whether the given CC Task ID finished or not
 // headlessServiceEnabled bool, availableNodes []v1.Node, serverPort int32, nodeId, namespace, clusterName string.
 func CheckIfNCActionStepFinished(actionStep v1.ActionStep, config *clientconfig.NifiConfig, nodeId string) (bool, error) {

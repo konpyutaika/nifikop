@@ -121,7 +121,7 @@ func (r *NifiUserGroupReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 			}
 
 			r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceUserError",
-				fmt.Sprintf("Failed to lookup reference user : %s in %s",
+				fmt.Sprintf("Failed to lookup reference user: %s in %s",
 					userRef.Name, userNamespace))
 
 			// the cluster does not exist - should have been caught pre-flight
@@ -131,7 +131,7 @@ func (r *NifiUserGroupReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		// Check if cluster references are the same
 		clusterNamespace := GetClusterRefNamespace(current.Namespace, current.Spec.ClusterRef)
 		if user != nil && (userNamespace != clusterNamespace || user.Spec.ClusterRef.Name != current.Spec.ClusterRef.Name) {
-			msg := fmt.Sprintf("Failed to ensure consistency in cluster referece : %s in %s, with user : %s in %s",
+			msg := fmt.Sprintf("Failed to ensure consistency in cluster referece: %s in %s, with user: %s in %s",
 				instance.Spec.ClusterRef.Name, clusterNamespace, userRef.Name, userRef.Namespace)
 			r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceClusterError", msg)
 			return RequeueWithError(r.Log, msg, errors.New("inconsistent cluster references"))
@@ -174,7 +174,7 @@ func (r *NifiUserGroupReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		}
 
 		r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceClusterError",
-			fmt.Sprintf("Failed to lookup reference cluster : %s in %s",
+			fmt.Sprintf("Failed to lookup reference cluster: %s in %s",
 				instance.Spec.ClusterRef.Name, clusterRef.Namespace))
 
 		// the cluster does not exist - should have been caught pre-flight
@@ -200,7 +200,7 @@ func (r *NifiUserGroupReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	clientConfig, err = configManager.BuildConfig()
 	if err != nil {
 		r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceClusterError",
-			fmt.Sprintf("Failed to create HTTP client for the referenced cluster : %s in %s",
+			fmt.Sprintf("Failed to create HTTP client for the referenced cluster: %s in %s",
 				instance.Spec.ClusterRef.Name, clusterRef.Namespace))
 		// the cluster is gone, so just remove the finalizer
 		if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {

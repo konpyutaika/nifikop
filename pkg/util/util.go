@@ -335,7 +335,7 @@ func MustConvertToInt(str string, name string) int {
 }
 
 func GetRequeueInterval(interval int, offset int) time.Duration {
-	// @TODO : check what is the expected behavior with offset
+	// @TODO: check what is the expected behavior with offset
 	duration := interval + rand.Intn(offset+1) - (offset / 2)
 	duration = Max(duration, rand.Intn(5)+1) // make sure duration does not go zero for very large offsets
 	return time.Duration(duration) * time.Second

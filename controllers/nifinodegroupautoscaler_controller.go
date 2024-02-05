@@ -239,7 +239,7 @@ func (r *NifiNodeGroupAutoscalerReconciler) updateAutoscalerReplicaState(ctx con
 	return r.updateStatus(ctx, autoscaler, currentStatus)
 }
 
-// TODO : discuss about replacing by looking for NifiCluster.Spec.Nodes instead
+// TODO: discuss about replacing by looking for NifiCluster.Spec.Nodes instead
 // updateAutoscalerReplicaStatus updates autoscaler replica status to inform the k8s scale subresource.
 func (r *NifiNodeGroupAutoscalerReconciler) updateAutoscalerReplicaStatus(ctx context.Context, nifiCluster *v1.NifiCluster,
 	currentStatus v1alpha1.NifiNodeGroupAutoscalerStatus, autoscaler *v1alpha1.NifiNodeGroupAutoscaler) error {

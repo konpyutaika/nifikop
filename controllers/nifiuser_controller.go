@@ -144,7 +144,7 @@ func (r *NifiUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		}
 
 		r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceClusterError",
-			fmt.Sprintf("Failed to lookup reference cluster : %s in %s",
+			fmt.Sprintf("Failed to lookup reference cluster: %s in %s",
 				instance.Spec.ClusterRef.Name, clusterRef.Namespace))
 		return RequeueWithError(r.Log, "failed to lookup referenced cluster "+clusterRef.Name+" for user "+instance.Name, err)
 	}
@@ -243,7 +243,7 @@ func (r *NifiUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	clientConfig, err = configManager.BuildConfig()
 	if err != nil {
 		r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceClusterError",
-			fmt.Sprintf("Failed to create HTTP client for the referenced cluster : %s in %s",
+			fmt.Sprintf("Failed to create HTTP client for the referenced cluster: %s in %s",
 				instance.Spec.ClusterRef.Name, clusterRef.Namespace))
 		// the cluster is gone, so just remove the finalizer
 		if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {

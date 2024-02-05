@@ -47,10 +47,10 @@ spec:
   #
   propagateLabels: true
   #  managedAdminUsers:
-  #    -  identity : "alexandre.guitton@orange.com"
+  #    -  identity: "alexandre.guitton@orange.com"
   #       name: "aguitton"
   #  managedReaderUsers:
-  #    -  identity : "toto@orange.com"
+  #    -  identity: "toto@orange.com"
   #       name: "toto"
   # readOnlyConfig specifies the read-only type Nifi config cluster wide, all theses
   # will be merged with node specified readOnly configurations, so it can be overwritten per node.
@@ -346,7 +346,7 @@ spec:
       #      create: true
       # clusterScoped defines if the Issuer created is cluster or namespace scoped
       #      clusterScoped: false
-      # issuerRef allow to use an existing issuer to act as CA :
+      # issuerRef allow to use an existing issuer to act as CA:
       #	https://cert-manager.io/docs/concepts/issuer/
 #      issuerRef:
 #        name: letsencrypt-staging

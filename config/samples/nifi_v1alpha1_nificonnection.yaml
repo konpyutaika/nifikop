@@ -51,5 +51,5 @@ spec:
         posY: 440
       - posX: 550
         posY: 88
-  # describes the way the operator will deal with data when a connection will be updated : drop or drain.
+  # describes the way the operator will deal with data when a connection will be updated: drop or drain.
   updateStrategy: drain

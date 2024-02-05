@@ -7,7 +7,7 @@ sidebar_label: Users management
 The `NifiUser` resource was already introduced for the [SSL credentials](../1_manage_clusters/1_deploy_cluster/4_ssl_configuration#create-ssl-credentials) concerns.
 What we are covering here is the NiFi user management part introduced in this resource.
 
-When you create a `NifiUser` resource the operator will :
+When you create a `NifiUser` resource the operator will:
 
 1. Try to check if a user already exists with the same name on the NiFi cluster, if it does, the operator will set [NifiUser.Status.Id](../1_manage_clusters/1_deploy_cluster/4_ssl_configuration#create-ssl-credentials) to bind it with the kubernetes resource.
 2. If no user is found, the operator will create and manage it (i.e it will ensure the synchronisation with the NiFi Cluster).
@@ -35,7 +35,7 @@ spec:
     - type: component
       # defines the kind of action that will be granted, could be "read" or "write"
       action: read
-      # resource defines the kind of resource targeted by this access policies, please refer to the following page :
+      # resource defines the kind of resource targeted by this access policies, please refer to the following page:
       #	https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#access-policies
       resource: /data
       # componentType is used if the type is "component", it's allow to define the kind of component on which is the

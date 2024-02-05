@@ -172,7 +172,7 @@ type AccessPolicy struct {
 	// action defines the kind of action that will be granted, could be "read" or "write"
 	Action AccessPolicyAction `json:"action"`
 	// +kubebuilder:validation:Enum={"/system","/flow","/controller","/parameter-context","/provenance","/restricted-components","/policies","/tenants","/site-to-site","/proxy","/counters","/","/operation","/provenance-data","/data","/policies","/data-transfer"}
-	// resource defines the kind of resource targeted by this access policies, please refer to the following page :
+	// resource defines the kind of resource targeted by this access policies, please refer to the following page:
 	// https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#access-policies
 	Resource AccessPolicyResource `json:"resource"`
 	// componentType is used if the type is "component", it's allow to define the kind of component on which is the
@@ -260,7 +260,7 @@ const (
 const (
 	// PKIBackendCertManager invokes cert-manager for user certificate management.
 	PKIBackendCertManager PKIBackend = "cert-manager"
-	// TODO : Add vault
+	// TODO: Add vault
 	// PKIBackendVault invokes vault PKI for user certificate management
 	// PKIBackendVault PKIBackend = "vault".
 )

@@ -82,7 +82,7 @@ func (n *nifiClient) UpdateFlowProcessGroup(entity nigoapi.ScheduleComponentsEnt
 	return &csEntity, nil
 }
 
-// TODO : when last supported will be NiFi 1.12.X
+// TODO: when last supported will be NiFi 1.12.X
 // func (n *nifiClient) FlowDropRequest(connectionId, id string) (*nigoapi.DropRequestEntity, error) {
 //	// Get nigoapi client, favoring the one associated to the coordinator node.
 //	client, context := n.privilegeCoordinatorClient()
