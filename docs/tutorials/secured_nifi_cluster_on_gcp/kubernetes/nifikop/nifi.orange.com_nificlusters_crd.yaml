@@ -36,8 +36,8 @@ spec:
                 one place
               type: string
             clusterSecure:
-              description: 'Cluster nodes secure mode : https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#cluster_common_properties
-                TODO : rework to define into internalListener ! (Note: if ssl enabled
+              description: 'Cluster nodes secure mode: https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#cluster_common_properties
+                TODO: rework to define into internalListener ! (Note: if ssl enabled
                 need Cluster & SiteToSite & Https port)'
               type: boolean
             headlessServiceEnabled:
@@ -1085,7 +1085,7 @@ spec:
                 type: object
               type: array
             initialAdminUser:
-              description: 'TODO : remove once the user management is implemented
+              description: 'TODO: remove once the user management is implemented
                 into the operator'
               type: string
             ldapConfiguration:
@@ -1179,7 +1179,7 @@ spec:
                         - name
                       type: object
                     pkiBackend:
-                      description: 'TODO : add vault'
+                      description: 'TODO: add vault'
                       enum:
                         - cert-manager
                         - vault
@@ -2283,8 +2283,8 @@ spec:
                   type: object
               type: object
             siteToSiteSecure:
-              description: 'Site to Site properties Secure mode : https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#site_to_site_properties
-                TODO : rework to define into internalListener !'
+              description: 'Site to Site properties Secure mode: https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#site_to_site_properties
+                TODO: rework to define into internalListener !'
               type: boolean
             zkAddress:
               description: 'zKAddress specifies the ZooKeeper connection string in

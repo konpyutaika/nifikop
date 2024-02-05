@@ -8,7 +8,7 @@ import (
 
 func (n *nifiClient) CreateAccessTokenUsingBasicAuth(username, password string, nodeId int32) (*string, error) {
 	// Get nigoapi client, favoring the one associated to the coordinator node.
-	// @TODO : force the targeted host, or recreate token for all nodes
+	// @TODO: force the targeted host, or recreate token for all nodes
 	client := n.nodeClient[nodeId]
 	context := n.opts.NodesContext[nodeId]
 	if client == nil {

@@ -67,7 +67,7 @@ kubectl apply -f https://raw.githubusercontent.com/konpyutaika/nifikop/master/de
 kubectl apply -f https://raw.githubusercontent.com/konpyutaika/nifikop/master/deploy/crds/v1beta1/nifi.konpyutaika.com_nifiregistryclients_crd.yaml
 ```
 
-You can make a dry run of the chart before deploying :
+You can make a dry run of the chart before deploying:
 
 ```console
 helm install nifikop konpyutaika-incubator/nifikop \
@@ -77,13 +77,13 @@ helm install nifikop konpyutaika-incubator/nifikop \
     --set namespaces={"nifikop"}
 ```
 
-To install the chart with the release name `nifikop` :
+To install the chart with the release name `nifikop`:
 
 ```console
 $ helm install nifikop konpyutaika-incubator/nifikop --set namespaces={"nifikop"}
 ```
 
-We can surcharge default parameters using `--set` flag :
+We can surcharge default parameters using `--set` flag:
 
 ```console
 $ helm install nifikop konpyutaika-incubator/nifikop --replace --set image.tag=asyncronous
@@ -97,7 +97,7 @@ $ helm install nifikop konpyutaika-incubator/nifikop --replace --set image.tag=a
 helm list
 ```
 
-### Get Status for the helm deployment :
+### Get Status for the helm deployment
 
 ```
 helm status nifikop
@@ -158,7 +158,7 @@ helm del nifikop
 By default, the chart will install the CRDs, but this installation is global for the whole
 cluster, and you may want to not modify the already deployed CRDs.
 
-In this case there is a parameter to say to not install the CRDs :
+In this case there is a parameter to say to not install the CRDs:
 
 ```
 $ helm install --name nifikop ./helm/nifikop --set namespaces={"nifikop"} --skip-crds

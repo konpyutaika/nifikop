@@ -93,7 +93,7 @@ You can deploy the operator using a Helm chart [Helm chart](https://github.com/k
 
 > To install an other version of the operator use `helm install --name=nifikop --namespace=nifi --set operator.image.tag=x.y.z konpyutaika-incubator/nifikop`
 
-In the case where you don't want to deploy the crds using helm (`--skip-crds`), you have to deploy manually the crds :
+In the case where you don't want to deploy the crds using helm (`--skip-crds`), you have to deploy manually the crds:
 
 ```bash
 kubectl apply -f https://raw.githubusercontent.com/konpyutaika/nifikop/master/config/crd/bases/nifi.konpyutaika.com_nificlusters.yaml
@@ -131,13 +131,13 @@ spec:
   ...
 ```
 
-Where :
+Where:
 - `namespace`: is the namespace in which you will deploy your helm chart.
 - `certificate_name`: is `${helm release name}-webhook-cert`
 - `webhook_service_name`: is `${helm release name}-webhook-cert`
 :::
 
-Now deploy the helm chart :
+Now deploy the helm chart:
 
 ```bash
 # You have to create the namespace before executing following command
@@ -155,7 +155,7 @@ helm install nifikop \
 
 
 :::note
-Add the following parameter if you are using this instance to only deploy unsecured clusters : `--set certManager.enabled=false`
+Add the following parameter if you are using this instance to only deploy unsecured clusters: `--set certManager.enabled=false`
 :::
 
 ### On OpenShift

@@ -344,7 +344,7 @@ debug-pod-logs:
 
 define debug_telepresence
 	export TELEPRESENCE_REGISTRY=$(TELEPRESENCE_REGISTRY) ; \
-	echo "execute : cat nifi-operator.env" ; \
+	echo "execute: cat nifi-operator.env" ; \
 	sudo mkdir -p /var/run/secrets/kubernetes.io ; \
 	tdep=$(shell kubectl get deployment -l app=nifikop -o jsonpath='{.items[0].metadata.name}') ; \
   	echo kubectl get deployment -l app=nifikop -o jsonpath='{.items[0].metadata.name}' ; \

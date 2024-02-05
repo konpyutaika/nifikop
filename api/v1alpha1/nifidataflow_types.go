@@ -28,7 +28,7 @@ type NifiDataflowSpec struct {
 	ClusterRef ClusterReference `json:"clusterRef,omitempty"`
 	// contains the reference to the NifiRegistry with the one the dataflow is linked.
 	RegistryClientRef *RegistryClientReference `json:"registryClientRef,omitempty"`
-	// describes the way the operator will deal with data when a dataflow will be updated : drop or drain
+	// describes the way the operator will deal with data when a dataflow will be updated: drop or drain
 	UpdateStrategy ComponentUpdateStrategy `json:"updateStrategy"`
 }
 

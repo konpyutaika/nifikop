@@ -44,7 +44,7 @@ helm install keda kedacore/keda --namespace keda
 
 ### Deploy NiFI cluster
 
-Use your own NiFi cluster deployment, for this example we will add a specific `NodeConfigGroup` which will be used for auto-scaling nodes, and add the configuration for Prometheus :
+Use your own NiFi cluster deployment, for this example we will add a specific `NodeConfigGroup` which will be used for auto-scaling nodes, and add the configuration for Prometheus:
 
 ```yaml
 ...
@@ -173,7 +173,7 @@ spec:
 
 ### Deploy NiFi cluster autoscaling group
 
-Now we will deploy a `NifiNodeGroupAutoscaler` to define how and what we want to autoscale : 
+Now we will deploy a `NifiNodeGroupAutoscaler` to define how and what we want to autoscale: 
 
 ```yaml
 apiVersion: nifi.konpyutaika.com/v1alpha1
@@ -211,7 +211,7 @@ spec:
   downscaleStrategy: lifo
 ```
 
-Here we will autoscale using the `NodeConfigGroup` : auto_scaling.
+Here we will autoscale using the `NodeConfigGroup`: auto_scaling.
 
 ### Deploy Prometheus
 
@@ -259,7 +259,7 @@ helm install prometheus prometheus/kube-prometheus-stack --namespace monitoring-
     --set prometheus.enabled=false
 ```
 
-- Deploy the prometheus resource : 
+- Deploy the prometheus resource: 
 
 ```yaml
 apiVersion: monitoring.coreos.com/v1
@@ -345,7 +345,7 @@ You should be able to connect to your prometheus instance on `http://localhost:9
 
 ### Deploy Scale object
 
-The last step is to deploy your [ScaledObject](https://keda.sh/docs/2.8/concepts/scaling-deployments/#scaledobject-spec) to define how to scale your NiFi node : 
+The last step is to deploy your [ScaledObject](https://keda.sh/docs/2.8/concepts/scaling-deployments/#scaledobject-spec) to define how to scale your NiFi node: 
 
 ```yaml
 apiVersion: keda.sh/v1alpha1

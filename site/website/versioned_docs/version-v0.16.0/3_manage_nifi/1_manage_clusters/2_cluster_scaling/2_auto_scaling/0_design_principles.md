@@ -25,19 +25,19 @@ And finally, we wanted to separate the `NifiCluster` itself from the `autoscalin
 
 Referring to the official guideline, the recommended approach is to implement [the sub resource scale in the CRD](https://kubernetes.io/docs/tasks/extend-kubernetes/custom-resources/custom-resource-definitions/#scale-subresource).
 
-This approach requires to define :
+This approach requires to define:
 - `specReplicasPath` defines the JSONPath inside of a custom resource that corresponds to `scale.spec.replicas`
 - `statusReplicasPath` defines the JSONPath inside of a custom resource that corresponds to `scale.status.replicas`
 - `labelSelectorPath` defines the JSONPath inside of a custom resource that corresponds to `scale.Status.Selector`
 
-we add a new resource : [NifiNodeGroupAutoScaler](../../../../5_references/7_nifi_nodegroup_autoscaler), with the following fields :  
-- `spec.nifiClusterRef` : reference to the NiFi cluster resource that will be autoscaled
-- `spec.nodeConfigGroupId` : reference to the nodeConfigGroup that will be used for nodes managed by the auto scaling.
-- `spec.readOnlyConfig` : defines a readOnlyConfig to apply to each node in this node group. Any settings here will override those set in the configured `NifiCluster`.
-- `spec.nodeConfig` : defines a nodeConfig to apply to each node in this node group. Any settings here will override those set in the configured `nodeConfigGroupId`.
-- `spec.replicas` : current number of replicas expected for the node config group
-- `spec.upscaleStrategy` : strategy used to upscale (simple)
-- `spec.downscaleStrategy` : strategy used to downscale (lifo)
+we add a new resource: [NifiNodeGroupAutoScaler](../../../../5_references/7_nifi_nodegroup_autoscaler), with the following fields:  
+- `spec.nifiClusterRef`: reference to the NiFi cluster resource that will be autoscaled
+- `spec.nodeConfigGroupId`: reference to the nodeConfigGroup that will be used for nodes managed by the auto scaling.
+- `spec.readOnlyConfig`: defines a readOnlyConfig to apply to each node in this node group. Any settings here will override those set in the configured `NifiCluster`.
+- `spec.nodeConfig`: defines a nodeConfig to apply to each node in this node group. Any settings here will override those set in the configured `nodeConfigGroupId`.
+- `spec.replicas`: current number of replicas expected for the node config group
+- `spec.upscaleStrategy`: strategy used to upscale (simple)
+- `spec.downscaleStrategy`: strategy used to downscale (lifo)
 
 Here is a representation  of dependencies:
 

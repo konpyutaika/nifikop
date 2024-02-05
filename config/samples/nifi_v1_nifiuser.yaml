@@ -20,7 +20,7 @@ spec:
 #    - type: component
 #      # defines the kind of action that will be granted, could be "read" or "write"
 #      action: read
-#      # resource defines the kind of resource targeted by this access policies, please refer to the following page :
+#      # resource defines the kind of resource targeted by this access policies, please refer to the following page:
 #      #	https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#access-policies
 #      resource: /counters
 #      # componentType is used if the type is "component", it's allow to define the kind of component on which is the

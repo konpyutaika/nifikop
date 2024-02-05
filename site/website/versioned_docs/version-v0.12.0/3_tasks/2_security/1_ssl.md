@@ -6,7 +6,7 @@ sidebar_label: SSL
 
 The `NiFi operator` makes securing your NiFi cluster with SSL. You may provide your own certificates, or instruct the operator to create them for from your cluster configuration.
 
-Below this is an example configuration required to secure your cluster with SSL : 
+Below this is an example configuration required to secure your cluster with SSL: 
 
 ```yaml
 apiVersion: nifi.konpyutaika.com/v1alpha1
@@ -15,7 +15,7 @@ kind: NifiCluster
 spec:
   ...
   managedAdminUsers:
-    - identity : "alexandre.guitton@konpyutaika.com"
+    - identity: "alexandre.guitton@konpyutaika.com"
       name: "aguitton"
   ...
   readOnlyConfig:
@@ -41,10 +41,10 @@ spec:
       create: true
 ```
 
-- `managedAdminUsers` : list of users account which will be configured as admin into NiFi cluster, please check [](../4_nifi_user_group#managed-groups-for-simple-setup) for more information.
-- `readOnlyConfig.nifiProperties.webProxyHosts` : A list of allowed HTTP Host header values to consider when NiFi is running securely and will be receiving requests to a different host[:port] than it is bound to. [web-properties](https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#web-properties)
+- `managedAdminUsers`: list of users account which will be configured as admin into NiFi cluster, please check [](../4_nifi_user_group#managed-groups-for-simple-setup) for more information.
+- `readOnlyConfig.nifiProperties.webProxyHosts`: A list of allowed HTTP Host header values to consider when NiFi is running securely and will be receiving requests to a different host[:port] than it is bound to. [web-properties](https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#web-properties)
 
-If `listenersConfig.sslSecrets.create` is set to `false`, the operator will look for the secret at `listenersConfig.sslSecrets.tlsSecretName` and expect these values :
+If `listenersConfig.sslSecrets.create` is set to `false`, the operator will look for the secret at `listenersConfig.sslSecrets.tlsSecretName` and expect these values:
 
 | key | value |
 |-----|-------|
@@ -58,14 +58,14 @@ If `listenersConfig.sslSecrets.create` is set to `false`, the operator will look
 As described in the [Reference section](../../5_references/1_nifi_cluster/6_listeners_config.md#sslsecrets), instead of using a self-signed certificate as CA, you can use an existing one.
 In order to do so, you only have to refer it into your `Spec.ListenerConfig.SslSecrets.IssuerRef` field. 
 
-### Example : Let's encrypt 
+### Example: Let's encrypt 
 
 Let's say you have an existing DNS server, with [external dns](https://github.com/kubernetes-sigs/external-dns) deployed into your cluster's namespace.
 You can easily use Let's encrypt as authority for your certificate. 
 
-To do this, you have to : 
+To do this, you have to: 
 
-1. Create an issuer : 
+1. Create an issuer: 
 
 ```yaml
 apiVersion: cert-manager.io/v1alpha2
@@ -92,7 +92,7 @@ spec:
                   "external-dns.alpha.kubernetes.io/ttl": "5"
 ```
 
-2. Setup External dns and correctly create your issuer into your cluster configuration : 
+2. Setup External dns and correctly create your issuer into your cluster configuration: 
 
 ```yaml 
 apiVersion: nifi.konpyutaika.com/v1alpha1
@@ -119,7 +119,7 @@ spec:
 
 You may use `NifiUser` resource to create new certificates for your applications, allowing them to query your Nifi cluster.
 
-To create a new client you will need to generate new certificates sign by the CA. The operator can automate this for you using the `NifiUser` CRD : 
+To create a new client you will need to generate new certificates sign by the CA. The operator can automate this for you using the `NifiUser` CRD: 
 
 ```console
 cat << EOF | kubectl apply -n nifi -f -
@@ -135,7 +135,7 @@ spec:
 EOF
 ```
 
-This will create a user and store its credentials in the secret `example-client-secret`. The secret contains these fields : 
+This will create a user and store its credentials in the secret `example-client-secret`. The secret contains these fields: 
 
 | key | value |
 |-----|-------|
@@ -151,7 +151,7 @@ kubectl get secret example-client-secret -o jsonpath="{['data']['tls\.crt']}" | 
 kubectl get secret example-client-secret -o jsonpath="{['data']['tls\.key']}" | base64 -d > tls.key
 ```
 
-The operator can also include a Java keystore format (JKS) with your user secret if you'd like. Add `includeJKS`: `true` to the `spec` like shown above, and then the user-secret will gain these additional fields :
+The operator can also include a Java keystore format (JKS) with your user secret if you'd like. Add `includeJKS`: `true` to the `spec` like shown above, and then the user-secret will gain these additional fields:
 
 | key | value |
 |-----|-------|

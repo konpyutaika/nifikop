@@ -1,8 +1,8 @@
-###################################################
-##               GKE configuration               ##
-## - Default pool : no nodes                     ##
-## - VPA          : disabled                     ##
-###################################################
+##################################################
+##               GKE configuration              ##
+## - Default pool: no nodes                     ##
+## - VPA         : disabled                     ##
+##################################################
 // Define GKE cluster
 resource "google_container_cluster" "nifi-cluster" {
   provider = google-beta

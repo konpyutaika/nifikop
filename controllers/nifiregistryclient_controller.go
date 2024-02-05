@@ -136,7 +136,7 @@ func (r *NifiRegistryClientReconciler) Reconcile(ctx context.Context, req ctrl.R
 		}
 
 		r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceClusterError",
-			fmt.Sprintf("Failed to lookup reference cluster : %s in %s",
+			fmt.Sprintf("Failed to lookup reference cluster: %s in %s",
 				instance.Spec.ClusterRef.Name, clusterRef.Namespace))
 		// the cluster does not exist - should have been caught pre-flight
 		return RequeueWithError(r.Log, "failed to lookup referenced cluster for registry client "+instance.Name, err)
@@ -146,7 +146,7 @@ func (r *NifiRegistryClientReconciler) Reconcile(ctx context.Context, req ctrl.R
 	clientConfig, err = configManager.BuildConfig()
 	if err != nil {
 		r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceClusterError",
-			fmt.Sprintf("Failed to create HTTP client for the referenced cluster : %s in %s",
+			fmt.Sprintf("Failed to create HTTP client for the referenced cluster: %s in %s",
 				instance.Spec.ClusterRef.Name, clusterRef.Namespace))
 		// the cluster is gone, so just remove the finalizer
 		if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {
@@ -170,7 +170,7 @@ func (r *NifiRegistryClientReconciler) Reconcile(ctx context.Context, req ctrl.R
 			zap.String("registryClient", instance.Name),
 			zap.String("clusterName", clusterRef.Name))
 		r.Recorder.Event(instance, corev1.EventTypeNormal, "ReferenceClusterNotReady",
-			fmt.Sprintf("The referenced cluster is not ready yet : %s in %s",
+			fmt.Sprintf("The referenced cluster is not ready yet: %s in %s",
 				instance.Spec.ClusterRef.Name, clusterConnect.Id()))
 		// the cluster does not exist - should have been caught pre-flight
 		return RequeueAfter(interval)

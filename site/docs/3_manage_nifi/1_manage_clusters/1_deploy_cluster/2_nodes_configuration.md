@@ -18,7 +18,7 @@ Once a `NodeConfigGroup` has been defined, you can define it with your node decl
 
 The main purpose of a [NodeConfigGroup] is to define the purely technical requirements for the pod that will be deployed (storage configurations, resource requirements, docker image, pod location, etc).
 
-For example, you can have this node group configuration : 
+For example, you can have this node group configuration: 
 
 ```yaml
   # nodeConfigGroups specifies multiple node configs with unique name
@@ -99,12 +99,12 @@ The first way to define data persistence is to use the [Spec.NodeConfigGroup.Sto
 This field allows you to define a storage set giving:
 - `name`: a unique name to identify the storage config
 - `metadata`: labels and annotations to attach to the PVC getting created.
-- `pvcSpec` : a Kubernetes PVC spec definition
-- `mountPath` : the path where the volume will be mounted into the main nifi container inside the pod (i.e the path were you want the data to be persisted).
+- `pvcSpec`: a Kubernetes PVC spec definition
+- `mountPath`: the path where the volume will be mounted into the main nifi container inside the pod (i.e the path were you want the data to be persisted).
 
 :::note
 If you don't replace them in the `nifi.properties` file using [NiFi-configurations](#nifi-configurations), here is a list of paths that should be associated with a storage configuration:
-- `/opt/nifi/data` : contains 
+- `/opt/nifi/data`: contains 
   - `/opt/nifi/data/flow.xml.gz`: flow configuration files
   - `/opt/nifi/data/archive`: NiFi archive
   - `/opt/nifi/data/templates`: templates directory
@@ -240,7 +240,7 @@ For a complete overview of node configuration possibilities, please refer to the
 Once you have correctly defined the pods that will be deployed for your NiFi cluster, you may still have some configuration to do but at the NiFi level this time!
 For this, the field to configure is [ReadOnlyConfig] which can be used at the global level `Spec.ReadOnlyConfig` or at the node level like for `NodeConfigGroup`.
 
-There is some configuration that can be passed directly into this field like : 
+There is some configuration that can be passed directly into this field like: 
 - **maximumTimerDrivenThreadCount**: define the maximum number of threads for timer driven processors available to the system.
 - **maximumEventDrivenThreadCount**: define the maximum number of threads for event driven processors available to the system.
 
@@ -256,7 +256,7 @@ For most of the configuration files that can be overwritten (see section below),
 
 When more than one configuration type is defined, the following priority is applied when the same configuration field is defined more than once: `Secret` > `ConfigMap` > `Override` > `Default`, which follow the security priority.
 
-Let's take an example : 
+Let's take an example: 
 
 ```yaml
  nifiProperties:
@@ -299,7 +299,7 @@ Here is the list of configuration that you can override for NiFi:
 
 :::warning
 Keep in mind that some changes to the default configuration may cause the operator's behavior to break, so keep that in mind!
-Just because it's allowed doesn't mean it works :)
+Just because it's allowed doesn't mean it works 😄.
 :::
 
 ## Advanced configuration

@@ -62,11 +62,11 @@ type UserCertificate struct {
 	Certificate []byte
 	Key         []byte
 
-	// TODO : Add Vault
+	// TODO: Add Vault
 	// Serial is used by vault backend for certificate revocations
 	// Serial string
 
-	// TODO : Add Vault
+	// TODO: Add Vault
 	// jks and password are used by vault backend for passing jks info between itself
 	// the cert-manager backend passes it through the k8s secret
 	// JKS      []byte

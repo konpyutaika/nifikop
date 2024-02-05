@@ -305,7 +305,7 @@ func (n *nifiClient) privilegeCoordinatorExceptNodeIdClient(nId int32) (*nigoapi
 	return n.privilegeCoordinatorClient()
 }
 
-// TODO : change logic by binding in status the nodeId with the Nifi Cluster Node id ?
+// TODO: change logic by binding in status the nodeId with the Nifi Cluster Node id ?
 func (n *nifiClient) firstConnectedNodeId(excludeId int32) *int32 {
 	// Convert nodeId to a Cluster Node for the one to exclude
 	excludedNodeDto := n.nodeDtoByNodeId(excludeId)

@@ -87,7 +87,7 @@ type NifiClusterSpec struct {
 	LdapConfiguration LdapConfiguration `json:"ldapConfiguration,omitempty"`
 	// NifiClusterTaskSpec specifies the configuration of the nifi cluster Tasks
 	NifiClusterTaskSpec NifiClusterTaskSpec `json:"nifiClusterTaskSpec,omitempty"`
-	// TODO : add vault
+	// TODO: add vault
 	// VaultConfig         	VaultConfig         `json:"vaultConfig,omitempty"`
 	// listenerConfig specifies nifi's listener specifig configs
 	ListenersConfig *ListenersConfig `json:"listenersConfig,omitempty"`
@@ -410,7 +410,7 @@ type ListenersConfig struct {
 	// clusterDomain allow to override the default cluster domain which is "cluster.local"
 	ClusterDomain string `json:"clusterDomain,omitempty"`
 	// useExternalDNS allow to manage externalDNS usage by limiting the DNS names associated
-	// to each nodes and load balancer : <cluster-name>-node-<node Id>.<cluster-name>.<service name>.<cluster domain>
+	// to each nodes and load balancer: <cluster-name>-node-<node Id>.<cluster-name>.<service name>.<cluster domain>
 	UseExternalDNS bool `json:"useExternalDNS,omitempty"`
 }
 
@@ -423,15 +423,15 @@ type SSLSecrets struct {
 	Create bool `json:"create,omitempty"`
 	// clusterScoped defines if the Issuer created is cluster or namespace scoped
 	ClusterScoped bool `json:"clusterScoped,omitempty"`
-	// issuerRef allow to use an existing issuer to act as CA :
+	// issuerRef allow to use an existing issuer to act as CA:
 	// https://cert-manager.io/docs/concepts/issuer/
 	IssuerRef *cmmeta.ObjectReference `json:"issuerRef,omitempty"`
-	// TODO : add vault
+	// TODO: add vault
 	PKIBackend PKIBackend `json:"pkiBackend,omitempty"`
 	// ,"vault"
 }
 
-// TODO : Add vault
+// TODO: Add vault
 // VaultConfig defines the configuration for a vault PKI backend
 /*type VaultConfig struct {
 	//

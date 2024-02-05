@@ -93,7 +93,7 @@ func (r *Reconciler) Reconcile(log zap.Logger) error {
 			zap.String("clusterNamespace", r.NifiCluster.Namespace))
 		return nil
 	}
-	// TODO : manage external LB
+	// TODO: manage external LB
 	uniqueHostnamesMap := make(map[string]struct{})
 
 	// TODO: review design

@@ -6,7 +6,7 @@ sidebar_label: OpenId Connect
 
 To enable authentication via OpenId Connect refering to [NiFi Administration guide](https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html) required some configuration into `nifi.properties`.
 
-In addition and to ensure multiple identity provider support, we recommended to add the following configuration to your `nifi.properties` : 
+In addition and to ensure multiple identity provider support, we recommended to add the following configuration to your `nifi.properties`: 
 
 ```sh
 nifi.security.identity.mapping.pattern.dn=CN=([^,]*)(?:, (?:O|OU)=.*)?
@@ -14,7 +14,7 @@ nifi.security.identity.mapping.value.dn=$1
 nifi.security.identity.mapping.transform.dn=NONE
 ```
 
-To perform this with `NiFiKop` you just have to configure the `Spec.NifiProperties.OverrideConfigs` field with your OIDC configuration, for example :
+To perform this with `NiFiKop` you just have to configure the `Spec.NifiProperties.OverrideConfigs` field with your OIDC configuration, for example:
 
 ```yaml
 apiVersion: nifi.konpyutaika.com/v1alpha1

@@ -9,14 +9,14 @@ The purpose of this section is to explain how expose your NiFi cluster and acces
 ## Listener configuration
 
 The first part to manage when you are configuring your cluster is the ports that will be used for the internal need of NiFi, we will call them `internal listeners`
-There is 6 types of `internal listeners` : 
+There is 6 types of `internal listeners`: 
 - **cluster**: Define the node’s protocol port (used by cluster nodes to discuss together).
 - **http/https**: The HTTP or HTTPS port used to expose NiFi cluster UI (**Note**: use only one of them !)
 - **s2s**: The remote input socket port for Site-to-Site communication
 - **load-balance**: Cluster node load balancing port
 - **prometheus**: Port that will be used to expose the promotheus reporting task
 
-To configure these listeners you must use the [Spec.ListernersConfig.InternalListeners](../../../../5_references/1_nifi_cluster/6_listeners_config#internallistener) field : 
+To configure these listeners you must use the [Spec.ListernersConfig.InternalListeners](../../../../5_references/1_nifi_cluster/6_listeners_config#internallistener) field: 
 
 ```yaml
 listenersConfig:
@@ -38,12 +38,12 @@ listenersConfig:
       containerPort: 6342
 ```
 
-Here we defined a listener by specifying : 
+Here we defined a listener by specifying: 
 - `type`: one of the six described above (e.g `https`)
 - `name`: name of the port that will be attached to pod (e.g `https`)
 - `containerPort`: port that will be used by the container inside the pod and configured in NiFi configuration for the listener (e.g `8443`)
 
-If you look at the yaml description of the deployed pod, you should have something like this : 
+If you look at the yaml description of the deployed pod, you should have something like this: 
 
 ```yaml
     ports:
@@ -66,7 +66,7 @@ If you look at the yaml description of the deployed pod, you should have somethi
 
 :::important
 Really important thing, you can add additional `internal listeners` without type, it means that these listeners are not related to internal NiFi behaviour. 
-It might be really useful, if you are exposing a NiFi processor through a port (e.g http endpoint to receive HTTP request inside of NiFi) :
+It might be really useful, if you are exposing a NiFi processor through a port (e.g http endpoint to receive HTTP request inside of NiFi):
 
 ```yaml
 listenersConfig:
@@ -103,9 +103,9 @@ It takes as configuration:
 - `name`: which will be used to name the kubernetes service.
 - `spec`:
     - `type`: how the service is exposed (following the definition of [ServiceType](https://godoc.org/k8s.io/api/core/v1#ServiceType))
-    - `portConfigs` : a list of port configurations:
-        - `port` : the port that will be used by the service to expose the associated `internal listener`.
-        - `internalListernerName` : name of the `internal listener` to expose
+    - `portConfigs`: a list of port configurations:
+        - `port`: the port that will be used by the service to expose the associated `internal listener`.
+        - `internalListernerName`: name of the `internal listener` to expose
 
 If we take a concrete example:
 

@@ -307,7 +307,7 @@ func (r *Reconciler) generateDefaultContainerPort() []corev1.ContainerPort {
 	return usedPorts
 }
 
-// TODO : manage default port.
+// TODO: manage default port.
 func GetServerPort(l *v1.ListenersConfig) int32 {
 	var httpsServerPort int32
 	var httpServerPort int32
@@ -404,7 +404,7 @@ func (r *Reconciler) createNifiNodeContainer(nodeConfig *v1.NodeConfig, id int32
 			v1.TLSKey,
 			GetServerPort(r.NifiCluster.Spec.ListenersConfig))
 	}
-	// TODO : Manage https setup use cases https://github.com/cetic/helm-nifi/blob/master/templates/statefulset.yaml#L165
+	// TODO: Manage https setup use cases https://github.com/cetic/helm-nifi/blob/master/templates/statefulset.yaml#L165
 	readinessProbe := &corev1.Probe{
 		InitialDelaySeconds: readinessInitialDelaySeconds,
 		TimeoutSeconds:      readinessHealthCheckTimeout,
@@ -509,7 +509,7 @@ do
     sleep 5
 
 	ipResolved=$(curl -v -4 -m 1 --connect-timeout 1 %s 2>&1 | grep -o 'Trying [0-9.]*' | awk '{gsub(/\.\.\./, ""); print $2}' | head -n 1)
-	echo "Found : $ipResolved"
+	echo "Found: $ipResolved"
     if [[ "$ipResolved" == "$POD_IP" ]]; then
 		echo Ip match for $POD_IP
 		notMatchedIp=false

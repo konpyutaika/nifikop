@@ -59,7 +59,7 @@ spec:
 |-----|----|-----------|--------|--------|
 |type|[AccessPolicyType](#accesspolicytype)| defines the kind of access policy, could be "global" or "component". |Yes| - |
 |action|[AccessPolicyAction](#accesspolicyaction)| defines the kind of action that will be granted, could be "read" or "write". |Yes| - |
-|resource|[AccessPolicyResource](#accesspolicyresource)| defines the kind of resource targeted by this access policies, please refer to the following page : https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#access-policies |Yes| - |
+|resource|[AccessPolicyResource](#accesspolicyresource)| defines the kind of resource targeted by this access policies, please refer to the following page: https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#access-policies |Yes| - |
 |componentType|string| used if the type is "component", it allows to define the kind of component on which is the access policy. |No| - |
 |componentId|string| used if the type is "component", it allows to define the id of the component on which is the access policy. |No| - |
 

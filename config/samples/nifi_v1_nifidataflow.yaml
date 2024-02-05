@@ -29,5 +29,5 @@ spec:
   parameterContextRef:
     name: dataflow-lifecycle
     namespace: nifikop
-  # describes the way the operator will deal with data when a dataflow will be updated : drop or drain
+  # describes the way the operator will deal with data when a dataflow will be updated: drop or drain
   updateStrategy: drain

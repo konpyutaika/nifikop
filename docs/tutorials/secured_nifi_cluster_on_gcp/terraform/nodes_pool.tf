@@ -41,8 +41,8 @@ resource "google_container_node_pool" "nodes" {
     disk_type = "pd-standard"
 
     #  List of the type and count of accelerator cards attached to the instance.
-    ## type : The accelerator type resource to expose to this instance. E.g. nvidia-tesla-k80.
-    ## count : The number of the guest accelerator cards exposed to this instance
+    ## type: The accelerator type resource to expose to this instance. E.g. nvidia-tesla-k80.
+    ## count: The number of the guest accelerator cards exposed to this instance
     guest_accelerator = []
 
     # The image type to use for this node. Note that changing the image type will delete and recreate all nodes in the node pool

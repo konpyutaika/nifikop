@@ -22,7 +22,7 @@ sidebar_label: Roadmap
 | Priority              | High      |
 | Targeted Start date   | Jan 2020  |
 
-Apache NiFi is a good candidate to create an operator, because everything is made to orchestrate it through REST Api calls. With this comes automation of actions such as scaling, following all required steps : https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#decommission-nodes.
+Apache NiFi is a good candidate to create an operator, because everything is made to orchestrate it through REST Api calls. With this comes automation of actions such as scaling, following all required steps: https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#decommission-nodes.
 
 ### Communication via SSL
 
@@ -74,7 +74,7 @@ The NiFi operator exposes NiFi JMX metrics to Prometheus.
 | Priority              | High      |
 | Targeted Start date   | Sept 2022 |
 
-Enable the NiFi cluster to be scaled by HPA kubernetes feature :
+Enable the NiFi cluster to be scaled by HPA kubernetes feature:
 
 - upscale cluster (add a new Node)
 - downscale cluster (remove a Node)

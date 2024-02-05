@@ -17,7 +17,7 @@ type NifiConnectionSpec struct {
 	Destination ComponentReference `json:"destination"`
 	// the Configuration of the connection.
 	Configuration ConnectionConfiguration `json:"configuration,omitempty"`
-	// describes the way the operator will deal with data when a connection will be updated : drop or drain.
+	// describes the way the operator will deal with data when a connection will be updated: drop or drain.
 	UpdateStrategy v1.ComponentUpdateStrategy `json:"updateStrategy"`
 }
 

@@ -10,10 +10,10 @@ spec:
   clusterImage: "apache/nifi:1.17.0"
   oneNifiNodePerNode: false
   managedAdminUsers:
-    -  identity : "alexandre.guitton@orange.com"
+    -  identity: "alexandre.guitton@orange.com"
        name: "aguitton"
   managedReaderUsers:
-    -  identity : "toton@orange.com"
+    -  identity: "toton@orange.com"
        name: "toto"
   propagateLabels: true
   nifiClusterTaskSpec:

@@ -39,7 +39,7 @@ func (n *nifiClient) CreateDropRequest(connectionId string) (*nigoapi.DropReques
 	return &entity, nil
 }
 
-// TODO : when last supported will be NiFi 1.12.X
+// TODO: when last supported will be NiFi 1.12.X
 // func (n *nifiClient) CreateDropRequest(pgId string)(*nigoapi.ProcessGroupEntity, error) {
 //	// Get nigoapi client, favoring the one associated to the coordinator node.
 //	client, context := n.privilegeCoordinatorClient()
