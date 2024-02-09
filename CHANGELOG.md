@@ -8,6 +8,7 @@
 
 - [PR #378](https://github.com/konpyutaika/nifikop/pull/378) - **[Operator]** Tweak NiFi pod startup script to more gracefully handle pod IP resolution.
 - [PR #382](https://github.com/konpyutaika/nifikop/pull/382) - **[Operator/NifiCluster]** Changed `nifi.content.viewer.url` property default value.
+- [PR #386](https://github.com/konpyutaika/nifikop/pull/386) - **[Operator]** Upgrade golang to 1.22.0.
 
 ### Fixed Bugs
 
