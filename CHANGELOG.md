@@ -8,6 +8,7 @@
 
 - [PR #378](https://github.com/konpyutaika/nifikop/pull/378) - **[Operator]** Tweak NiFi pod startup script to more gracefully handle pod IP resolution.
 - [PR #382](https://github.com/konpyutaika/nifikop/pull/382) - **[Operator/NifiCluster]** Changed `nifi.content.viewer.url` property default value.
+- [PR #387](https://github.com/konpyutaika/nifikop/pull/387) - **[Operator]** Upgrade golang to 1.21.7.
 - [PR #386](https://github.com/konpyutaika/nifikop/pull/386) - **[Operator]** Upgrade golang to 1.22.0.
 
 ### Fixed Bugs
@@ -23,7 +24,6 @@
 - [PR #345](https://github.com/konpyutaika/nifikop/pull/345) - **[Helm Chart]** Added option to include `NodePort` with custom hosts in `webProxyHosts`.
 - [PR #364](https://github.com/konpyutaika/nifikop/pull/364) - **[Helm Chart]** Added ability to configure NiFi Pod `ReadinessProbe` and `LivenessProbe` in the nifi-cluster chart.
 - [PR #367](https://github.com/konpyutaika/nifikop/pull/367) - **[Operator/NifiParameterContext]** Parameter context's secret update detection.
-- [PR #387](https://github.com/konpyutaika/nifikop/pull/387) - **[Operator]** Upgrade golang to 1.21.7.
 
 ### Changed
 
