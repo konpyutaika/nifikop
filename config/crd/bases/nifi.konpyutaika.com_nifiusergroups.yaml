@@ -78,6 +78,8 @@ spec:
                 required:
                 - name
                 type: object
+              identity:
+                type: string
               usersRef:
                 items:
                   properties:
