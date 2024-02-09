@@ -10,11 +10,11 @@ sidebar_label: Developer guide
 
 NiFiKop has been validated with:
 
-- [go](https://golang.org/doc/install) version v1.17+.
+- [go](https://golang.org/doc/install) version v1.21+.
 - [docker](https://docs.docker.com/get-docker/) version 18.09+
 - [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) version v1.16+
 - [Helm](https://helm.sh/) version v3.4.2
-- [Operator sdk](https://github.com/operator-framework/operator-sdk) version v1.18.1
+- [Operator sdk](https://github.com/operator-framework/operator-sdk) version v1.33.0
 
 ### Initial setup
 
@@ -27,7 +27,7 @@ cd nifikop
 
 ### Operator sdk
 
-The full list of command is available here: https://sdk.operatorframework.io/docs/upgrading-sdk-version/v1.0.0/#cli-changes
+The full list of commands is available here: https://sdk.operatorframework.io/docs/cli/
 
 ### Build NiFiKop
 
