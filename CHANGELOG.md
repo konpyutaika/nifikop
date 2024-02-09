@@ -23,6 +23,7 @@
 - [PR #345](https://github.com/konpyutaika/nifikop/pull/345) - **[Helm Chart]** Added option to include `NodePort` with custom hosts in `webProxyHosts`.
 - [PR #364](https://github.com/konpyutaika/nifikop/pull/364) - **[Helm Chart]** Added ability to configure NiFi Pod `ReadinessProbe` and `LivenessProbe` in the nifi-cluster chart.
 - [PR #367](https://github.com/konpyutaika/nifikop/pull/367) - **[Operator/NifiParameterContext]** Parameter context's secret update detection.
+- [PR #387](https://github.com/konpyutaika/nifikop/pull/387) - **[Operator]** Upgrade golang to 1.21.7.
 
 ### Changed
 
