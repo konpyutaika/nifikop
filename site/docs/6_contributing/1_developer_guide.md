@@ -10,7 +10,7 @@ sidebar_label: Developer guide
 
 NiFiKop has been validated with:
 
-- [go](https://golang.org/doc/install) version v1.21+.
+- [go](https://golang.org/doc/install) version v1.22+.
 - [docker](https://docs.docker.com/get-docker/) version 18.09+
 - [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) version v1.16+
 - [Helm](https://helm.sh/) version v3.4.2

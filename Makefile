@@ -4,7 +4,7 @@ DOCKER_REGISTRY_BASE 	?= ghcr.io/konpyutaika/docker-images
 IMAGE_TAG				?= $(shell git describe --tags --abbrev=0 --match '[0-9].*[0-9].*[0-9]' 2>/dev/null)
 IMAGE_NAME 				?= $(SERVICE_NAME)
 BUILD_IMAGE				?= ghcr.io/konpyutaika/docker-images/nifikop-build
-GOLANG_VERSION          ?= 1.21.7
+GOLANG_VERSION          ?= 1.22.0
 IMAGE_TAG_BASE ?= <registry>/<operator name>
 OS = $(shell go env GOOS)
 ARCH = $(shell go env GOARCH)
@@ -34,7 +34,7 @@ GOLANGCI_LINT ?= $(LOCALBIN)/golangci-lint
 
 ## Tool Versions
 KUSTOMIZE_VERSION ?= v5.2.1
-CONTROLLER_TOOLS_VERSION ?= v0.13.0
+CONTROLLER_TOOLS_VERSION ?= v0.14.0
 ENVTEST_K8S_VERSION = 1.28.0
 GOLANGCI_VERSION = 1.55.2
 
