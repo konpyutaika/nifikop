@@ -588,10 +588,8 @@ type LdapConfiguration struct {
 	TLSTruststoreType string `json:"tlsTruststoreType,omitempty"`
 	ClientAuth string `json:"clientAuth,omitempty"`
 	Protocol string `json:"protocol,omitempty"`
-	ClientAuth string `json:"clientAuth,omitempty"`
 	ShutdownGracefully string `json:"shutdownGracefully,omitempty"`
 	ReferralStrategy string `json:"referralStrategy,omitempty"`
-	
 
 	IdentityStrategy string `json:"identityStrategy,omitempty"`
 
