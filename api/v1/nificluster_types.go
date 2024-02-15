@@ -580,7 +580,21 @@ type LdapConfiguration struct {
 	// The default functionality if this property is missing is USE_DN in order to retain backward compatibility.
 	// USE_DN will use the full DN of the user entry if possible.
 	// USE_USERNAME will use the username the user logged in with.
+	TLSKeystore string `json:"tlsKeystore,omitempty"`
+	TLSKeystorePassword string `json:"tlsKeystorePassword,omitempty"`
+	TLSKeystoretype string `json:"tlsKeystoreType,omitempty"`
+	TLSTruststore string `json:"tlsTruststore,omitempty"`
+	TLSTruststorePassword string `json:"tlsTruststorePassword,omitempty"`
+	TLSTruststoreType string `json:"tlsTruststoreType,omitempty"`
+	ClientAuth string `json:"clientAuth,omitempty"`
+	Protocol string `json:"protocol,omitempty"`
+	ClientAuth string `json:"clientAuth,omitempty"`
+	ShutdownGracefully string `json:"shutdownGracefully,omitempty"`
+	ReferralStrategy string `json:"referralStrategy,omitempty"`
+	
+
 	IdentityStrategy string `json:"identityStrategy,omitempty"`
+
 }
 
 // NifiClusterTaskSpec specifies the configuration of the nifi cluster Tasks.
