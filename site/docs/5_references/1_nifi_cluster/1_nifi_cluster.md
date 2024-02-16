@@ -188,12 +188,26 @@ spec:
 
 ## LdapConfiguration
 
-| Field        | Type    | Description                                                                                                                               | Required | Default |
-| ------------ | ------- | ----------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------- |
-| enabled      | boolean | if set to true, we will enable ldap usage into nifi.properties configuration.                                                             | No       | false   |
-| url          | string  | space-separated list of URLs of the LDAP servers (i.e. ldap://$\{hostname}:$\{port}).                                                       | No       | ""      |
-| searchBase   | string  | base DN for searching for users (i.e. CN=Users,DC=example,DC=com).                                                                        | No       | ""      |
-| searchFilter | string  | Filter for searching for users against the 'User Search Base'. (i.e. sAMAccountName={0}). The user specified name is inserted into '{0}'. | No       | ""      |
+| Field                   | Type    | Description                                                                                                                               | Required | Default     |
+| ----------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------- | -------- | ----------- |
+| enabled                 | boolean | if set to true, we will enable ldap usage into nifi.properties configuration.                                                             | No       | false       |
+| url                     | string  | space-separated list of URLs of the LDAP servers (i.e. ldap://$\{hostname}:$\{port}).                                                     | No       | ""          |
+| searchBase              | string  | base DN for searching for users (i.e. CN=Users,DC=example,DC=com).                                                                        | No       | ""          |
+| searchFilter            | string  | Filter for searching for users against the 'User Search Base'. (i.e. sAMAccountName={0}). The user specified name is inserted into '{0}'. | No       | ""          |
+| authenticationStrategy  | string | How the connection to the LDAP server is authenticated. Possible values are ANONYMOUS, SIMPLE, LDAPS, or START_TLS.                        | No       | START_TLS   |
+| managerDn               | string | The DN of the manager that is used to bind to the LDAP server to search for users.                                                         | No       | ""          |
+| managerPassword         | string | The password of the manager that is used to bind to the LDAP server to search for users.                                                   | No       | ""          |
+| tlsKeystore             | string | Path to the Keystore that is used when connecting to LDAP using LDAPS or START_TLS. Not required for LDAPS. Only used for mutual TLS       | No       | ""          |
+| tlsKeystorePassword     | string | Password for the Keystore that is used when connecting to LDAP using LDAPS or START_TLS.                                                   | No       | ""          |
+| tlsKeystoreType         | string | Type of the Keystore that is used when connecting to LDAP using LDAPS or START_TLS (i.e. JKS or PKCS12).                                   | No       | ""          |
+| tlsTruststore           | string | Path to the Truststore that is used when connecting to LDAP using LDAPS or START_TLS. Required for LDAPS                                   | No       | ""          |
+| tlsTruststorePassword   | string | Password for the Truststore that is used when connecting to LDAP using LDAPS or START_TLS.                                                 | No       | ""          |
+| tlsTruststoreType       | string | Type of the Truststore that is used when connecting to LDAP using LDAPS or START_TLS (i.e. JKS or PKCS12).                                 | No       | ""          |
+| clientAuth              | string | Client authentication policy when connecting to LDAP using LDAPS or START_TLS. Possible values are REQUIRED, WANT, NONE.                   | No       | ""          |
+| protocol                | string | Protocol to use when connecting to LDAP using LDAPS or START_TLS. (i.e. TLS, TLSv1.1, TLSv1.2, etc).                                       | No       | ""          |
+| shutdownGracefully      | string | Specifies whether the TLS should be shut down gracefully before the target context is closed. Defaults to false.                           | No       | ""          |
+| referralStrategy        | string | Strategy for handling referrals. Possible values are FOLLOW, IGNORE, THROW.                                                                | No       | ""          |
+| identityStrategy        | string | Strategy to identify users. Possible values are USE_DN and USE_USERNAME.                                                                   | No       | USE_DN      |
 
 ## SingleUserConfiguration
 

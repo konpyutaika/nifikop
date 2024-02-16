@@ -576,21 +576,32 @@ type LdapConfiguration struct {
 	ManagerDn string `json:"managerDn,omitempty"`
 	// The password of the manager that is used to bind to the LDAP server to search for users.
 	ManagerPassword string `json:"managerPassword,omitempty"`
+    // Path to the Keystore that is used when connecting to LDAP using LDAPS or START_TLS.
+	// The TLS Keystore settings are optional and only used if your LDAP/AD server needs mutual TLS.
+	TLSKeystore string `json:"tlsKeystore,omitempty"`
+	// Password for the Keystore that is used when connecting to LDAP using LDAPS or START_TLS.
+	TLSKeystorePassword string `json:"tlsKeystorePassword,omitempty"`
+	// Type of the Keystore that is used when connecting to LDAP using LDAPS or START_TLS (i.e. JKS or PKCS12).
+	TLSKeystoretype string `json:"tlsKeystoreType,omitempty"`
+	// Path to the Truststore that is used when connecting to LDAP using LDAPS or START_TLS.
+	// The Truststore should contain the valid CA that your LDAPS/AD server is in to allow NiFi to trust it
+	TLSTruststore string `json:"tlsTruststore,omitempty"`
+	// Password for the Truststore that is used when connecting to LDAP using LDAPS or START_TLS.
+	TLSTruststorePassword string `json:"tlsTruststorePassword,omitempty"`
+	// Type of the Truststore that is used when connecting to LDAP using LDAPS or START_TLS (i.e. JKS or PKCS12).
+	TLSTruststoreType string `json:"tlsTruststoreType,omitempty"`
+	// Client authentication policy when connecting to LDAP using LDAPS or START_TLS. Possible values are REQUIRED, WANT, NONE.
+	ClientAuth string `json:"clientAuth,omitempty"`
+	// Protocol to use when connecting to LDAP using LDAPS or START_TLS. (i.e. TLS, TLSv1.1, TLSv1.2, etc).
+	Protocol string `json:"protocol,omitempty"`
+	// Specifies whether the TLS should be shut down gracefully before the target context is closed. Defaults to false.
+	ShutdownGracefully string `json:"shutdownGracefully,omitempty"`
+	// Strategy for handling referrals. Possible values are FOLLOW, IGNORE, THROW.
+	ReferralStrategy string `json:"referralStrategy,omitempty"`
 	// Strategy to identify users. Possible values are USE_DN and USE_USERNAME.
 	// The default functionality if this property is missing is USE_DN in order to retain backward compatibility.
 	// USE_DN will use the full DN of the user entry if possible.
 	// USE_USERNAME will use the username the user logged in with.
-	TLSKeystore string `json:"tlsKeystore,omitempty"`
-	TLSKeystorePassword string `json:"tlsKeystorePassword,omitempty"`
-	TLSKeystoretype string `json:"tlsKeystoreType,omitempty"`
-	TLSTruststore string `json:"tlsTruststore,omitempty"`
-	TLSTruststorePassword string `json:"tlsTruststorePassword,omitempty"`
-	TLSTruststoreType string `json:"tlsTruststoreType,omitempty"`
-	ClientAuth string `json:"clientAuth,omitempty"`
-	Protocol string `json:"protocol,omitempty"`
-	ShutdownGracefully string `json:"shutdownGracefully,omitempty"`
-	ReferralStrategy string `json:"referralStrategy,omitempty"`
-
 	IdentityStrategy string `json:"identityStrategy,omitempty"`
 
 }
