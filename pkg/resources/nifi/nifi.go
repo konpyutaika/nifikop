@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"sort"
 	"strings"
 	"time"
 
@@ -107,6 +108,8 @@ func (r *Reconciler) Reconcile(log zap.Logger) error {
 	for k := range uniqueHostnamesMap {
 		uniqueHostnames = append(uniqueHostnames, k)
 	}
+	// Preserving order
+	sort.Strings(uniqueHostnames)
 
 	// Setup the PKI if using SSL
 	if r.NifiCluster.Spec.ListenersConfig.SSLSecrets != nil {

@@ -7,6 +7,7 @@ import (
 
 	certv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	certmeta "github.com/cert-manager/cert-manager/pkg/apis/meta/v1"
+	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -14,7 +15,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
-	"github.com/konpyutaika/nifikop/api/v1"
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	"github.com/konpyutaika/nifikop/pkg/k8sutil"
 	certutil "github.com/konpyutaika/nifikop/pkg/util/cert"
@@ -27,11 +28,12 @@ func (c *certManager) FinalizeUserCertificate(ctx context.Context, user *v1.Nifi
 }
 
 // ReconcileUserCertificate ensures a certificate/secret combination using cert-manager.
-func (c *certManager) ReconcileUserCertificate(ctx context.Context, user *v1.NifiUser, scheme *runtime.Scheme) (*pkicommon.UserCertificate, error) {
+func (c *certManager) ReconcileUserCertificate(ctx context.Context, logger zap.Logger, user *v1.NifiUser, scheme *runtime.Scheme) (*pkicommon.UserCertificate, error) {
 	var err error
 	var secret *corev1.Secret
 	// See if we have an existing certificate for this user already
 	_, err = c.getUserCertificate(ctx, user)
+	cert := c.clusterCertificateForUser(user, scheme)
 
 	if err != nil && apierrors.IsNotFound(err) {
 		// the certificate does not exist, let's make one
@@ -41,13 +43,16 @@ func (c *certManager) ReconcileUserCertificate(ctx context.Context, user *v1.Nif
 				return nil, err
 			}
 		}
-		cert := c.clusterCertificateForUser(user, scheme)
 		if err = c.client.Create(ctx, cert); err != nil {
 			return nil, errorfactory.New(errorfactory.APIFailure{}, err, "could not create user certificate")
 		}
 	} else if err != nil {
 		// API failure, requeue
 		return nil, errorfactory.New(errorfactory.APIFailure{}, err, "failed looking up user certificate")
+	}
+
+	if err = k8sutil.Reconcile(logger, c.client, cert, nil, nil); err != nil {
+		return nil, errorfactory.New(errorfactory.APIFailure{}, err, "could not reconcile user certificate")
 	}
 
 	// Get the secret created from the certificate

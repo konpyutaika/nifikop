@@ -13,6 +13,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	runtimeClient "sigs.k8s.io/controller-runtime/pkg/client"
 
+	certv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	nifikopv1 "github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 )
@@ -67,6 +68,18 @@ func Reconcile(log zap.Logger, client runtimeClient.Client, desired runtimeClien
 			group := desired.(*nifikopv1.NifiUserGroup)
 			group.Status = current.(*nifikopv1.NifiUserGroup).Status
 			desired = group
+		case *certv1.ClusterIssuer:
+			issuer := desired.(*certv1.ClusterIssuer)
+			issuer.Status = current.(*certv1.ClusterIssuer).Status
+			desired = issuer
+		case *certv1.Issuer:
+			issuer := desired.(*certv1.Issuer)
+			issuer.Status = current.(*certv1.Issuer).Status
+			desired = issuer
+		case *certv1.Certificate:
+			certificate := desired.(*certv1.Certificate)
+			certificate.Status = current.(*certv1.Certificate).Status
+			desired = certificate
 		}
 
 		if CheckIfObjectUpdated(log, desiredType, current, desired) {

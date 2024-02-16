@@ -189,7 +189,7 @@ func (r *NifiUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			// using the vault backend, then tried to delete and fix it. Should probably
 			// have the PKIManager export a GetUserCertificate specifically for deletions
 			// that will allow the error to fall through if the certificate doesn't exist.
-			_, err := pkiManager.ReconcileUserCertificate(ctx, instance, r.Scheme)
+			_, err := pkiManager.ReconcileUserCertificate(ctx, r.Log, instance, r.Scheme)
 			if err != nil {
 				switch errors.Cause(err).(type) {
 				case errorfactory.ResourceNotReady:

@@ -8,7 +8,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 
-	"github.com/konpyutaika/nifikop/api/v1"
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	certutil "github.com/konpyutaika/nifikop/pkg/util/cert"
 )
@@ -49,7 +49,7 @@ func TestReconcileUserCertificate(t *testing.T) {
 	ctx := context.Background()
 
 	manager.client.Create(context.TODO(), newMockUser())
-	if _, err := manager.ReconcileUserCertificate(ctx, newMockUser(), scheme.Scheme); err == nil {
+	if _, err := manager.ReconcileUserCertificate(ctx, *log, newMockUser(), scheme.Scheme); err == nil {
 		t.Error("Expected resource not ready error, got nil")
 	} else if reflect.TypeOf(err) != reflect.TypeOf(errorfactory.ResourceNotReady{}) {
 		t.Error("Expected resource not ready error, got:", reflect.TypeOf(err))
@@ -60,7 +60,7 @@ func TestReconcileUserCertificate(t *testing.T) {
 	if err := manager.client.Create(context.TODO(), newMockUserSecret()); err != nil {
 		t.Error("could not update test secret")
 	}
-	if _, err := manager.ReconcileUserCertificate(ctx, newMockUser(), scheme.Scheme); err != nil {
+	if _, err := manager.ReconcileUserCertificate(ctx, *log, newMockUser(), scheme.Scheme); err != nil {
 		t.Error("Expected no error, got:", err)
 	}
 
@@ -68,7 +68,7 @@ func TestReconcileUserCertificate(t *testing.T) {
 	manager = newMock(newMockCluster())
 	manager.client.Create(context.TODO(), newMockUser())
 	manager.client.Create(context.TODO(), manager.clusterCertificateForUser(newMockUser(), scheme.Scheme))
-	if _, err := manager.ReconcileUserCertificate(ctx, newMockUser(), scheme.Scheme); err == nil {
+	if _, err := manager.ReconcileUserCertificate(ctx, *log, newMockUser(), scheme.Scheme); err == nil {
 		t.Error("Expected  error, got nil")
 	}
 }

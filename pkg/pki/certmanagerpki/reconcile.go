@@ -14,6 +14,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	v1 "github.com/konpyutaika/nifikop/api/v1"
+	"github.com/konpyutaika/nifikop/pkg/k8sutil"
 )
 
 // reconcile ensures the given kubernetes object.
@@ -44,6 +45,9 @@ func reconcileClusterIssuer(ctx context.Context, log zap.Logger, client client.C
 		}
 		return client.Create(ctx, issuer)
 	}
+	if err = k8sutil.Reconcile(log, client, issuer, cluster, &cluster.Status); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -56,6 +60,9 @@ func reconcileIssuer(ctx context.Context, log zap.Logger, client client.Client, 
 			return err
 		}
 		return client.Create(ctx, issuer)
+	}
+	if err = k8sutil.Reconcile(log, client, issuer, cluster, &cluster.Status); err != nil {
+		return err
 	}
 	return nil
 }
@@ -70,6 +77,9 @@ func reconcileCertificate(ctx context.Context, log zap.Logger, client client.Cli
 		}
 		return client.Create(ctx, cert)
 	}
+	if err = k8sutil.Reconcile(log, client, cert, cluster, &cluster.Status); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -83,6 +93,9 @@ func reconcileSecret(ctx context.Context, log zap.Logger, client client.Client, 
 		}
 		return client.Create(ctx, secret)
 	}
+	if err = k8sutil.Reconcile(log, client, secret, cluster, &cluster.Status); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -95,6 +108,9 @@ func reconcileUser(ctx context.Context, log zap.Logger, client client.Client, us
 			return err
 		}
 		return client.Create(ctx, user)
+	}
+	if err = k8sutil.Reconcile(log, client, user, cluster, &cluster.Status); err != nil {
+		return err
 	}
 	return nil
 }

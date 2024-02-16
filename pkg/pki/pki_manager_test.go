@@ -51,7 +51,7 @@ func TestGetPKIManager(t *testing.T) {
 		t.Error("Expected nil error got:", err)
 	}
 
-	if _, err = mock.ReconcileUserCertificate(ctx, &v1.NifiUser{}, scheme.Scheme); err != nil {
+	if _, err = mock.ReconcileUserCertificate(ctx, log, &v1.NifiUser{}, scheme.Scheme); err != nil {
 		t.Error("Expected nil error got:", err)
 	}
 
