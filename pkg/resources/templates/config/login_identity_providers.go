@@ -83,7 +83,6 @@ var LoginIdentityProvidersTemplate = `<?xml version="1.0" encoding="UTF-8" stand
         <property name="TLS - Protocol">{{.LdapConfiguration.Protocol}}</property>
         <property name="TLS - Shutdown Gracefully">{{.LdapConfiguration.ShutdownGracefully}}</property>
         
-        <property name="Referral Strategy">{{.LdapConfiguration.ReferralStrategy}}</property>
         <property name="Referral Strategy">{{or .LdapConfiguration.ReferralStrategy "FOLLOW"}}</property>
         <property name="Connect Timeout">10 secs</property>
         <property name="Read Timeout">10 secs</property>
