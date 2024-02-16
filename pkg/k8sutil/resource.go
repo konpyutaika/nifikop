@@ -95,6 +95,18 @@ func Reconcile(log zap.Logger, client runtimeClient.Client, desired runtimeClien
 				svc.ResourceVersion = current.(*corev1.Service).ResourceVersion
 				svc.Spec.ClusterIP = current.(*corev1.Service).Spec.ClusterIP
 				desired = svc
+			case *certv1.ClusterIssuer:
+				issuer := desired.(*certv1.ClusterIssuer)
+				issuer.ResourceVersion = current.(*certv1.ClusterIssuer).ResourceVersion
+				desired = issuer
+			case *certv1.Issuer:
+				issuer := desired.(*certv1.Issuer)
+				issuer.ResourceVersion = current.(*certv1.Issuer).ResourceVersion
+				desired = issuer
+			case *certv1.Certificate:
+				certificate := desired.(*certv1.Certificate)
+				certificate.ResourceVersion = current.(*certv1.Certificate).ResourceVersion
+				desired = certificate
 			}
 
 			if cr != nil {
