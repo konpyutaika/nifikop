@@ -576,7 +576,7 @@ type LdapConfiguration struct {
 	ManagerDn string `json:"managerDn,omitempty"`
 	// The password of the manager that is used to bind to the LDAP server to search for users.
 	ManagerPassword string `json:"managerPassword,omitempty"`
-    // Path to the Keystore that is used when connecting to LDAP using LDAPS or START_TLS.
+	// Path to the Keystore that is used when connecting to LDAP using LDAPS or START_TLS.
 	// The TLS Keystore settings are optional and only used if your LDAP/AD server needs mutual TLS.
 	TLSKeystore string `json:"tlsKeystore,omitempty"`
 	// Password for the Keystore that is used when connecting to LDAP using LDAPS or START_TLS.
