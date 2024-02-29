@@ -141,8 +141,11 @@ func (r *Reconciler) pod(node v1.Node, nodeConfig *v1.NodeConfig, pvcs []corev1.
 				RunAsUser:    nodeConfig.GetRunAsUser(),
 				RunAsNonRoot: func(b bool) *bool { return &b }(true),
 				FSGroup:      nodeConfig.GetFSGroup(),
+				SeccompProfile: &corev1.SeccompProfile{
+					Type: corev1.SeccompProfileTypeRuntimeDefault,
+				},
 			},
-			InitContainers: r.injectAdditionalEnvVars(append(initContainers, []corev1.Container{
+			InitContainers: r.injectAdditionalFields(append(initContainers, []corev1.Container{
 				{
 					Name:            "zookeeper",
 					Image:           r.NifiCluster.Spec.GetInitContainerImage(),
@@ -184,7 +187,7 @@ done
 				PodAntiAffinity: generatePodAntiAffinity(r.NifiCluster.Name, r.NifiCluster.Spec.OneNifiNodePerNode),
 			},
 			TopologySpreadConstraints:     r.NifiCluster.Spec.TopologySpreadConstraints,
-			Containers:                    r.injectAdditionalEnvVars(r.generateContainers(nodeConfig, node.Id, podVolumeMounts, zkAddress, singleUserConfiguration)),
+			Containers:                    r.injectAdditionalFields(r.generateContainers(nodeConfig, node.Id, podVolumeMounts, zkAddress, singleUserConfiguration)),
 			HostAliases:                   allHostAliases,
 			Volumes:                       podVolumes,
 			RestartPolicy:                 corev1.RestartPolicyNever,
@@ -543,9 +546,31 @@ exec bin/nifi.sh run`, resolveIp, singleUser)}
 	}
 }
 
+func (r *Reconciler) injectAdditionalFields(containers []corev1.Container) []corev1.Container {
+	withEnvVars := r.injectAdditionalEnvVars(containers)
+	withSecurityContext := r.injectAdditionalSecurityContext(withEnvVars)
+	return withSecurityContext
+}
+
 func (r *Reconciler) injectAdditionalEnvVars(containers []corev1.Container) (injectedContainers []corev1.Container) {
 	for _, container := range containers {
 		container.Env = append(container.Env, r.NifiCluster.Spec.ReadOnlyConfig.AdditionalSharedEnvs...)
+		injectedContainers = append(injectedContainers, container)
+	}
+	return
+}
+
+func (r *Reconciler) injectAdditionalSecurityContext(containers []corev1.Container) (injectedContainers []corev1.Container) {
+	for _, container := range containers {
+		container.SecurityContext = &corev1.SecurityContext{
+			AllowPrivilegeEscalation: util.BoolPointer(false),
+			Capabilities: &corev1.Capabilities{
+				Drop: []corev1.Capability{
+					"ALL",
+				},
+			},
+		}
+
 		injectedContainers = append(injectedContainers, container)
 	}
 	return
