@@ -206,7 +206,7 @@ spec:
 | clientAuth              | string | Client authentication policy when connecting to LDAP using LDAPS or START_TLS. Possible values are REQUIRED, WANT, NONE.                   | No       | ""          |
 | protocol                | string | Protocol to use when connecting to LDAP using LDAPS or START_TLS. (i.e. TLS, TLSv1.1, TLSv1.2, etc).                                       | No       | ""          |
 | shutdownGracefully      | string | Specifies whether the TLS should be shut down gracefully before the target context is closed. Defaults to false.                           | No       | ""          |
-| referralStrategy        | string | Strategy for handling referrals. Possible values are FOLLOW, IGNORE, THROW.                                                                | No       | ""          |
+| referralStrategy        | string | Strategy for handling referrals. Possible values are FOLLOW, IGNORE, THROW.                                                                | No       | FOLLOW          |
 | identityStrategy        | string | Strategy to identify users. Possible values are USE_DN and USE_USERNAME.                                                                   | No       | USE_DN      |
 
 ## SingleUserConfiguration
