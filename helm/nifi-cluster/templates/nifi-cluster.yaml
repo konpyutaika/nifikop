@@ -34,7 +34,7 @@ spec:
   {{- if .Values.cluster.pod.readinessProbe -}}
     readinessProbe:
     {{- toYaml .Values.cluster.pod.readinessProbe | nindent 6}}
-  {{- end -}}
+  {{- end }}
   singleUserConfiguration:
     {{- if .Values.cluster.singleUserConfiguration.enabled }}
     enabled: {{ .Values.cluster.singleUserConfiguration.enabled }}
