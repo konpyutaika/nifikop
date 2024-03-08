@@ -73,17 +73,17 @@ var LoginIdentityProvidersTemplate = `<?xml version="1.0" encoding="UTF-8" stand
         <property name="Authentication Strategy">{{or .LdapConfiguration.AuthenticationStrategy "START_TLS"}}</property>
         <property name="Manager DN">{{.LdapConfiguration.ManagerDn}}</property>
         <property name="Manager Password">{{.LdapConfiguration.ManagerPassword}}</property>
-        <property name="TLS - Keystore"></property>
-        <property name="TLS - Keystore Password"></property>
-        <property name="TLS - Keystore Type"></property>
-        <property name="TLS - Truststore"></property>
-        <property name="TLS - Truststore Password"></property>
-        <property name="TLS - Truststore Type"></property>
-        <property name="TLS - Client Auth"></property>
-        <property name="TLS - Protocol"></property>
-        <property name="TLS - Shutdown Gracefully"></property>
+        <property name="TLS - Keystore">{{.LdapConfiguration.TLSKeystore}}</property>
+        <property name="TLS - Keystore Password">{{.LdapConfiguration.TLSKeystorePassword}}</property>
+        <property name="TLS - Keystore Type">{{.LdapConfiguration.TLSKeystoreType}}</property>
+        <property name="TLS - Truststore">{{.LdapConfiguration.TLSTruststore}}</property>
+        <property name="TLS - Truststore Password">{{.LdapConfiguration.TLSTruststorePassword}}</property>
+        <property name="TLS - Truststore Type">{{.LdapConfiguration.TLSTruststoreType}}</property>
+        <property name="TLS - Client Auth">{{.LdapConfiguration.ClientAuth}}</property>
+        <property name="TLS - Protocol">{{.LdapConfiguration.Protocol}}</property>
+        <property name="TLS - Shutdown Gracefully">{{.LdapConfiguration.ShutdownGracefully}}</property>
         
-        <property name="Referral Strategy">FOLLOW</property>
+        <property name="Referral Strategy">{{or .LdapConfiguration.ReferralStrategy "FOLLOW"}}</property>
         <property name="Connect Timeout">10 secs</property>
         <property name="Read Timeout">10 secs</property>
         <property name="Url">{{.LdapConfiguration.Url}}</property>
