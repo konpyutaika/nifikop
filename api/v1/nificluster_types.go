@@ -582,7 +582,7 @@ type LdapConfiguration struct {
 	// Password for the Keystore that is used when connecting to LDAP using LDAPS or START_TLS.
 	TLSKeystorePassword string `json:"tlsKeystorePassword,omitempty"`
 	// Type of the Keystore that is used when connecting to LDAP using LDAPS or START_TLS (i.e. JKS or PKCS12).
-	TLSKeystoretype string `json:"tlsKeystoreType,omitempty"`
+	TLSKeystoreType string `json:"tlsKeystoreType,omitempty"`
 	// Path to the Truststore that is used when connecting to LDAP using LDAPS or START_TLS.
 	// The Truststore should contain the valid CA that your LDAPS/AD server is in to allow NiFi to trust it
 	TLSTruststore string `json:"tlsTruststore,omitempty"`
@@ -603,7 +603,6 @@ type LdapConfiguration struct {
 	// USE_DN will use the full DN of the user entry if possible.
 	// USE_USERNAME will use the username the user logged in with.
 	IdentityStrategy string `json:"identityStrategy,omitempty"`
-
 }
 
 // NifiClusterTaskSpec specifies the configuration of the nifi cluster Tasks.
