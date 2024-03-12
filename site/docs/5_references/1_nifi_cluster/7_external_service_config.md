@@ -49,8 +49,8 @@ externalServices:
 
 |Field|Type|Description|Required|Default|
 |-----|----|-----------|--------|--------|
-|name|string| must be unique within a namespace. Name is primarily intended for creation idempotence and configuration.| Yes | - |
-|metadata|[Metadata](#metadata)|define additionnal metadata to merge to the service associated.| No | - |
+|name|string| Must be unique within a namespace. Name is primarily intended for creation idempotence and configuration.| Yes | - |
+|metadata|[Metadata](#metadata)| Defines additional metadata to merge with the associated service.| No | - |
 |spec|[ExternalServiceSpec](#externalservicespec)| defines the behavior of a service.| Yes |  |
 
 ## ExternalServiceSpec
@@ -65,6 +65,8 @@ Field|Type|Description|Required|Default|
 |loadBalancerSourceRanges|\[&nbsp;\]string| If specified and supported by the platform, this will restrict traffic through the cloud-provider load-balancer will be restricted to the specified client IPs | No | - |
 |externalName|string| externalName is the external reference that kubedns or equivalent will return as a CNAME record for this service. No proxying will be involved. | No | - |
 |loadBalancerClass|string| loadBalancerClass is the class of the load balancer implementation this Service belongs to. | No | - |
+|externalTrafficPolicy|string| See the Kubernetes [traffic policies](https://kubernetes.io/docs/reference/networking/virtual-ips/#traffic-policies) documentation. | No | Depends on the `Service` type. |
+|internalTrafficPolicy|string| See the Kubernetes [traffic policies](https://kubernetes.io/docs/reference/networking/virtual-ips/#traffic-policies) documentation. | No | Depends on the `Service` type. |
 
 ## PortConfig
 
@@ -73,11 +75,11 @@ Field|Type|Description|Required|Default|
 |port|int32| The port that will be exposed by this service. | Yes | - |
 |internalListenerName|string| The name of the listener which will be used as target container. | Yes | - |
 |nodePort|int32| The port that will expose this service externally. (Only if the service is of type NodePort) | No | - |
-|protocol|[Protocol](https://pkg.go.dev/k8s.io/api/core/v1#Protocol)| the network protocol for this service port. Must be one of the protocol enum values (i.e. TCP, UDP, SCTP).  | No | `TCP` |
+|protocol|[Protocol](https://pkg.go.dev/k8s.io/api/core/v1#Protocol)| The network protocol for this service port. Must be one of the protocol enum values (i.e. TCP, UDP, SCTP).  | No | `TCP` |
 
 ## Metadata
 
 Field|Type|Description|Required|Default|
 |-----|----|-----------|--------|--------|
-| annotations | map\[string\]string | Additionnal annotation to merge to the service associated [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#syntax-and-character-set). |No|nil|
-| labels  | map\[string\]string | Additionnal labels to merge to the service associated [labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#syntax-and-character-set).               |No|nil|
+| annotations | map\[string\]string | Additional annotations to merge with the associated service [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#syntax-and-character-set). | No | `nil` |
+| labels  | map\[string\]string | Additional labels to merge with the associated service [labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#syntax-and-character-set). | No | `nil` |
