@@ -95,7 +95,7 @@ This section provides an instructions for running the operator Helm charts with 
 Build the image from the current branch.
 
 ```bash
-export DOCKER_REPO_BASE={your-docker-repo}
+export DOCKER_REGISTRY_BASE={your-docker-repo}
 make docker-build
 ```
 
