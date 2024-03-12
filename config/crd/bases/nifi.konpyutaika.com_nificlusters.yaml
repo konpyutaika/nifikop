@@ -69,6 +69,10 @@ spec:
                           type: array
                         externalName:
                           type: string
+                        externalTrafficPolicy:
+                          type: string
+                        internalTrafficPolicy:
+                          type: string
                         loadBalancerClass:
                           type: string
                         loadBalancerIP:
