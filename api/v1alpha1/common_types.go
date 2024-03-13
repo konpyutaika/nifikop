@@ -29,7 +29,7 @@ type ConnectionState string
 // DataflowUpdateRequestType defines the type of versioned flow update request.
 type DataflowUpdateRequestType string
 
-// ComponentUpdateStrategy defines the type of strategy to update a component
+// ComponentUpdateStrategy defines the type of strategy to update a component.
 // +kubebuilder:validation:Enum={"drop","drain"}
 type ComponentUpdateStrategy string
 
@@ -51,15 +51,15 @@ type ConfigurationState string
 // InitClusterNode holds info about if the node was part of the init cluster setup.
 type InitClusterNode bool
 
-// PKIBackend represents an interface implementing the PKIManager
+// PKIBackend represents an interface implementing the PKIManager.
 // +kubebuilder:validation:Enum={"cert-manager","vault"}
 type PKIBackend string
 
-// ClientConfigType represents an interface implementing the ClientConfigManager
+// ClientConfigType represents an interface implementing the ClientConfigManager.
 // +kubebuilder:validation:Enum={"tls","basic"}
 type ClientConfigType string
 
-// ClusterType represents an interface implementing the  ClientConfigManager
+// ClusterType represents an interface implementing the ClientConfigManager.
 // +kubebuilder:validation:Enum={"external","internal"}
 type ClusterType string
 
