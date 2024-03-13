@@ -7,6 +7,8 @@
 - [PR #391](https://github.com/konpyutaika/nifikop/pull/391) - **[Operator/NifiUserGroup]** Added settings missing for secure LDAP connections in login_identity_providers.xml
 
 - [PR #381](https://github.com/konpyutaika/nifikop/pull/381) - **[Operator/NifiUserGroup]** Added ability to set `NifiUserGroup.Spec.Identity` when users need to override the default naming convention.
+- [PR #392](https://github.com/konpyutaika/nifikop/pull/392) - **[Operator/NifiCluster]** Added update of the `DNSNames` of the node's `NifiUsers` if the `webProxyHosts` is updated.
+- [PR #392](https://github.com/konpyutaika/nifikop/pull/392) - **[Operator/NifiUser]** Added update of the `Certificate` if the `NifiUser` is updated.
 
 ### Changed
 

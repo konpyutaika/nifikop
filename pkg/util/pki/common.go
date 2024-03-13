@@ -46,7 +46,7 @@ type Manager interface {
 	FinalizePKI(ctx context.Context, logger zap.Logger) error
 
 	// ReconcileUserCertificate ensures and returns a user certificate - should be idempotent
-	ReconcileUserCertificate(ctx context.Context, user *v1.NifiUser, scheme *runtime.Scheme) (*UserCertificate, error)
+	ReconcileUserCertificate(ctx context.Context, logger zap.Logger, user *v1.NifiUser, scheme *runtime.Scheme) (*UserCertificate, error)
 
 	// FinalizeUserCertificate removes/revokes a user certificate
 	FinalizeUserCertificate(ctx context.Context, user *v1.NifiUser) error

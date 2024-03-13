@@ -58,7 +58,7 @@ func (m *mockPKIManager) FinalizePKI(ctx context.Context, logger zap.Logger) err
 	return nil
 }
 
-func (m *mockPKIManager) ReconcileUserCertificate(ctx context.Context, user *v1.NifiUser, scheme *runtime.Scheme) (*pki.UserCertificate, error) {
+func (m *mockPKIManager) ReconcileUserCertificate(ctx context.Context, logger zap.Logger, user *v1.NifiUser, scheme *runtime.Scheme) (*pki.UserCertificate, error) {
 	return &pki.UserCertificate{}, nil
 }
 
