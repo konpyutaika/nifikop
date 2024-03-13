@@ -14,6 +14,7 @@
 - [PR #366](https://github.com/konpyutaika/nifikop/pull/366) - **[Operator]** Migrated nifikop to KubeBuilder go/v4 and operator-sdk to v1.33.0.
 - [PR #386](https://github.com/konpyutaika/nifikop/pull/386) - **[Operator]** Upgrade golang to 1.22.0.
 - [PR #398](https://github.com/konpyutaika/nifikop/pull/398) - **[Operator]** Upgrade golang to 1.22.1.
+- [PR #397](https://github.com/konpyutaika/nifikop/pull/397) - **[Operator/NifiUser]** Updates `NifiUser` synchronization logic to reduce api calls on `UserGroup` endpoint.
 
 ### Fixed Bugs
 
