@@ -19,6 +19,7 @@
 - [PR #386](https://github.com/konpyutaika/nifikop/pull/386) - **[Operator]** Upgrade golang to 1.22.0.
 - [PR #398](https://github.com/konpyutaika/nifikop/pull/398) - **[Operator]** Upgrade golang to 1.22.1.
 - [PR #397](https://github.com/konpyutaika/nifikop/pull/397) - **[Operator/NifiUser]** Updates `NifiUser` synchronization logic to reduce api calls on `UserGroup` endpoint.
+- [PR #404](https://github.com/konpyutaika/nifikop/pull/404) - **[Operator/NifiCluster]** Updates `nifi.provenance.repository.debug.frequency` from `1_000_000` to `1000000`.
 
 ### Fixed Bugs
 
