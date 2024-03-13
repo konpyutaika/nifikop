@@ -47,7 +47,7 @@
 <li>For <code>Authorised JavaScript origins</code>, use your own domain. I'm using: <code>https://nifi.orange.trycatchlearn.fr:8443</code></li>
 <li>For <code>Authorised redirect URIs</code> it's your previous URI + <code>/nifi-api/access/oidc/callback</code>, for me: <code>https://nifi.orange.trycatchlearn.fr:8443/nifi-api/access/oidc/callback</code></li>
 </ul>
-<p><img loading="lazy" alt="OAuth credentials" src="https://konpyutaika.github.io/nifikop/assets/images/oauth_credentials-531aa57e08dcc1e4a0a0bace39d779c3.png" width="695" height="820" class="img_SS3x"></p>
+<p><img decoding="async" loading="lazy" alt="OAuth credentials" src="https://konpyutaika.github.io/nifikop/assets/images/oauth_credentials-531aa57e08dcc1e4a0a0bace39d779c3.png" width="695" height="820" class="img_SS3x"></p>
 <ul>
 <li>Create the OAuth credentials</li>
 </ul>
@@ -135,9 +135,9 @@ You can also change the acme server to prod one <code>https://acme-v02.api.letse
 <h3 class="anchor anchorWithStickyNavbar_JmGV" id="access-to-your-secured-nifi-cluster">Access to your secured NiFi Cluster<a href="https://konpyutaika.github.io/nifikop/blog/2020-06-30-secured_nifi_cluster_on_gcp_with_external_dns#access-to-your-secured-nifi-cluster" class="hash-link" aria-label="Direct link to Access to your secured NiFi Cluster" title="Direct link to Access to your secured NiFi Cluster">​</a></h3>
 <p>You can now access the NiFi cluster using the loadbalancer service hostname <code>&lt;nifi's cluster name&gt;.&lt;DNS name&gt;</code>, in my case it's <a href="https://nifi.orange.trycatchlearn.fr:8443/nifi" target="_blank" rel="noopener noreferrer">https://nifi.orange.trycatchlearn.fr:8443/nifi</a> and authenticate on the cluster using the admin account email address configured in the <code>NifiCluster</code> resource.</p>
 <p>Here is my 3-nodes secured NiFi cluster up and running:</p>
-<p><img loading="lazy" alt="3 nodes cluster" src="https://konpyutaika.github.io/nifikop/assets/images/3_nodes_cluster-97f4c386a2bec5bd0ab11c3b90ca1f7d.png" width="1913" height="587" class="img_SS3x"></p>
+<p><img decoding="async" loading="lazy" alt="3 nodes cluster" src="https://konpyutaika.github.io/nifikop/assets/images/3_nodes_cluster-97f4c386a2bec5bd0ab11c3b90ca1f7d.png" width="1913" height="587" class="img_SS3x"></p>
 <p>3-nodes secured NiFi cluster:</p>
-<p><img loading="lazy" alt="3 nodes" src="https://konpyutaika.github.io/nifikop/assets/images/3_nodes-09ddf2fa04ee827ae2632a3019ca2aab.png" width="1861" height="234" class="img_SS3x"></p>
+<p><img decoding="async" loading="lazy" alt="3 nodes" src="https://konpyutaika.github.io/nifikop/assets/images/3_nodes-09ddf2fa04ee827ae2632a3019ca2aab.png" width="1861" height="234" class="img_SS3x"></p>
 <p>You can now update the authorizations and add additional users/groups.</p>
 <div class="theme-admonition theme-admonition-note admonition_WCGJ alert alert--secondary"><div class="admonitionHeading_GCBg"><span class="admonitionIcon_L39b"><svg viewBox="0 0 14 16"><path fill-rule="evenodd" d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"></path></svg></span>note</div><div class="admonitionContent_pbrs"><p>Just have a look on <a href="https://orange-opensource.github.io/nifikop/docs/3_tasks/2_security/1_ssl#operator-access-policies" target="_blank" rel="noopener noreferrer">documentation's page</a> to finish cleaning setup.
 And you can now start to play with scaling, following the <a href="https://orange-opensource.github.io/nifikop/docs/3_tasks/2_security/1_ssl#scale-up---node-declaration" target="_blank" rel="noopener noreferrer">documentation's page</a></p></div></div>
@@ -194,7 +194,7 @@ And you can now start to play with scaling, following the <a href="https://orang
 <li>For <code>Authorised JavaScript origins</code>, use your own domain. I'm using: <code>https://nifisecured.trycatchlearn.fr:8443</code></li>
 <li>For <code>Authorised redirect URIs</code> it's your previous URI + <code>/nifi-api/access/oidc/callback</code>, for me: <code>https://nifisecured.trycatchlearn.fr:8443/nifi-api/access/oidc/callback</code></li>
 </ul>
-<p><img loading="lazy" alt="OAuth credentials" src="https://konpyutaika.github.io/nifikop/assets/images/oauth_credentials-5fc8292d57455fd7b0703ed869fc31a6.png" width="616" height="937" class="img_SS3x"></p>
+<p><img decoding="async" loading="lazy" alt="OAuth credentials" src="https://konpyutaika.github.io/nifikop/assets/images/oauth_credentials-5fc8292d57455fd7b0703ed869fc31a6.png" width="616" height="937" class="img_SS3x"></p>
 <ul>
 <li>Create the OAuth credentials</li>
 </ul>
@@ -262,9 +262,9 @@ For more information check <a href="https://konpyutaika.github.io/nifikop/docs/3
 <p>We can now update the DNS records of your domains to add a DNS record of type A redirecting your hostname (in my case <code>nifisecured.trycatchlearn.fr</code>) to the load balancer IP.</p>
 <p>I can now access the NiFi cluster using <a href="https://nifisecured.trycatchlearn.fr:8443/nifi" target="_blank" rel="noopener noreferrer">https://nifisecured.trycatchlearn.fr:8443/nifi</a> and authenticate on the cluster using the admin account email address I configured in the <code>NifiCluster</code> resource.</p>
 <p>Here is my 5-nodes secured NiFi cluster up and running:</p>
-<p><img loading="lazy" alt="6 nodes cluster" src="https://konpyutaika.github.io/nifikop/assets/images/6_nodes_cluster-a7a447412b980b89f1b0c8311eb3c08a.png" width="1919" height="714" class="img_SS3x"></p>
+<p><img decoding="async" loading="lazy" alt="6 nodes cluster" src="https://konpyutaika.github.io/nifikop/assets/images/6_nodes_cluster-a7a447412b980b89f1b0c8311eb3c08a.png" width="1919" height="714" class="img_SS3x"></p>
 <p>5-nodes secured NiFi cluster:</p>
-<p><img loading="lazy" alt="5 nodes" src="https://konpyutaika.github.io/nifikop/assets/images/5_nodes-13c70eaa843b818938eb16931dfc5a34.png" width="1860" height="335" class="img_SS3x"></p>
+<p><img decoding="async" loading="lazy" alt="5 nodes" src="https://konpyutaika.github.io/nifikop/assets/images/5_nodes-13c70eaa843b818938eb16931dfc5a34.png" width="1860" height="335" class="img_SS3x"></p>
 <p>You can now update the authorizations and add additionnal users/groups.</p>
 <div class="theme-admonition theme-admonition-note admonition_WCGJ alert alert--secondary"><div class="admonitionHeading_GCBg"><span class="admonitionIcon_L39b"><svg viewBox="0 0 14 16"><path fill-rule="evenodd" d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"></path></svg></span>note</div><div class="admonitionContent_pbrs"><p>Just have a look on <a href="https://konpyutaika.github.io/nifikop/docs/3_tasks/2_security/1_ssl#operator-access-policies" target="_blank" rel="noopener noreferrer">documentation's page</a> to finish cleaning setup.</p></div></div>
 <h2 class="anchor anchorWithStickyNavbar_JmGV" id="cleaning">Cleaning<a href="https://konpyutaika.github.io/nifikop/blog/secured_nifi_cluster_on_gcp#cleaning" class="hash-link" aria-label="Direct link to Cleaning" title="Direct link to Cleaning">​</a></h2>
