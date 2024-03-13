@@ -11,6 +11,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtimeClient "sigs.k8s.io/controller-runtime/pkg/client"
 
+	"github.com/imdario/mergo"
 	v1 "github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/pkg/resources/templates"
 	"github.com/konpyutaika/nifikop/pkg/util"
@@ -38,7 +39,7 @@ const (
 	ContainerName string = "nifi"
 )
 
-func (r *Reconciler) pod(node v1.Node, nodeConfig *v1.NodeConfig, pvcs []corev1.PersistentVolumeClaim, log zap.Logger) runtimeClient.Object {
+func (r *Reconciler) pod(node v1.Node, nodeConfig *v1.NodeConfig, pvcs []corev1.PersistentVolumeClaim, log zap.Logger) (runtimeClient.Object, error) {
 	zkAddress := r.NifiCluster.Spec.ZKAddress
 	singleUserConfiguration := r.NifiCluster.Spec.SingleUserConfiguration
 	dataVolume, dataVolumeMount := generateDataVolumeAndVolumeMount(pvcs)
@@ -126,6 +127,17 @@ func (r *Reconciler) pod(node v1.Node, nodeConfig *v1.NodeConfig, pvcs []corev1.
 		anntotationsToMerge = append(anntotationsToMerge, util.MonitoringAnnotations(*r.NifiCluster.Spec.GetMetricPort()))
 	}
 
+	containers := r.generateContainers(nodeConfig, node.Id, podVolumeMounts, zkAddress, singleUserConfiguration)
+
+	// merge provided NifiContainerSpec into the Nifi Container
+	for x, container := range containers {
+		if container.Name == ContainerName {
+			if err := mergo.Merge(&containers[x], nodeConfig.NifiContainerSpec, mergo.WithOverride, mergo.WithAppendSlice); err != nil {
+				return nil, err
+			}
+		}
+	}
+
 	// curl -kv --cert /var/run/secrets/java.io/keystores/client/tls.crt --key /var/run/secrets/java.io/keystores/client/tls.key https://nifi.trycatchlearn.fr:8433/nifi
 	// curl -kv --cert /var/run/secrets/java.io/keystores/client/tls.crt --key /var/run/secrets/java.io/keystores/client/tls.key https://securenc-headless.external-dns-test.gcp.trycatchlearn.fr:8443/nifi-api/controller/cluster
 	// keytool -import -noprompt -keystore /home/nifi/truststore.jks -file /var/run/secrets/java.io/keystores/server/ca.crt -storepass $(cat /var/run/secrets/java.io/keystores/server/password) -alias test1
@@ -184,7 +196,7 @@ done
 				PodAntiAffinity: generatePodAntiAffinity(r.NifiCluster.Name, r.NifiCluster.Spec.OneNifiNodePerNode),
 			},
 			TopologySpreadConstraints:     r.NifiCluster.Spec.TopologySpreadConstraints,
-			Containers:                    r.injectAdditionalEnvVars(r.generateContainers(nodeConfig, node.Id, podVolumeMounts, zkAddress, singleUserConfiguration)),
+			Containers:                    r.injectAdditionalEnvVars(containers),
 			HostAliases:                   allHostAliases,
 			Volumes:                       podVolumes,
 			RestartPolicy:                 corev1.RestartPolicyNever,
@@ -207,7 +219,7 @@ done
 	if nodeConfig.NodeAffinity != nil {
 		pod.Spec.Affinity.NodeAffinity = nodeConfig.NodeAffinity
 	}
-	return pod
+	return pod, nil
 }
 
 func generateDataVolumeAndVolumeMount(pvcs []corev1.PersistentVolumeClaim) (volume []corev1.Volume, volumeMount []corev1.VolumeMount) {

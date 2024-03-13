@@ -193,7 +193,10 @@ func (r *Reconciler) Reconcile(log zap.Logger) error {
 				return errors.WrapIfWithDetails(err, "failed to reconcile resource", "resource", o.GetObjectKind().GroupVersionKind())
 			}
 		}
-		o = r.pod(node, nodeConfig, pvcs, log)
+		o, err = r.pod(node, nodeConfig, pvcs, log)
+		if err != nil {
+			return err
+		}
 		err, isReady := r.reconcileNifiPod(log, o.(*corev1.Pod))
 		if err != nil {
 			return err

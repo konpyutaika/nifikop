@@ -354,6 +354,9 @@ type NodeConfig struct {
 	// priorityClassName can be used to set the priority class applied to the node
 	// +optional
 	PriorityClassName *string `json:"priorityClassName,omitempty"`
+	// nifiContainerSpec is a Kubernetes Container specification snippet that will be merged into the operator generated nifi container specification
+	// +optional
+	NifiContainerSpec corev1.Container `json:"nifiContainerSpec,omitempty"`
 }
 
 type Metadata struct {

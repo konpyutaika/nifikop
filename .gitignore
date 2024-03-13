@@ -134,3 +134,4 @@ vendor/
 
 # helm chart
 helm/**/charts/*.tgz
+*.tgz

@@ -231,6 +231,7 @@ func convertNodeConfig(src NodeConfig) v1.NodeConfig {
 		NodeSelector:       src.NodeSelector,
 		Tolerations:        src.Tolerations,
 		HostAliases:        src.HostAliases,
+		NifiContainerSpec:  src.NifiContainerSpec,
 	}
 	if src.RunAsUser != nil {
 		nConfig.RunAsUser = src.RunAsUser
@@ -677,6 +678,7 @@ func convertFromNodeConfig(src v1.NodeConfig) NodeConfig {
 		NodeSelector:       src.NodeSelector,
 		Tolerations:        src.Tolerations,
 		HostAliases:        src.HostAliases,
+		NifiContainerSpec:  src.NifiContainerSpec,
 	}
 	if src.RunAsUser != nil {
 		nConfig.RunAsUser = src.RunAsUser
