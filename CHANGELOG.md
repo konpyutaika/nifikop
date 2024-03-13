@@ -2,10 +2,20 @@
 
 ### Added
 
+### Changed
+
+### Fixed Bugs
+
+### Deprecated
+
+### Removed
+
+## v1.8.0
+
+### Added
+
 - [PR #403](https://github.com/konpyutaika/nifikop/pull/403) - **[Operator/NifiCluster]** Added support to let users configure `internalTrafficPolicy` and `externalTrafficPolicy` on external services.
-
 - [PR #391](https://github.com/konpyutaika/nifikop/pull/391) - **[Operator/NifiUserGroup]** Added settings missing for secure LDAP connections in login_identity_providers.xml
-
 - [PR #381](https://github.com/konpyutaika/nifikop/pull/381) - **[Operator/NifiUserGroup]** Added ability to set `NifiUserGroup.Spec.Identity` when users need to override the default naming convention.
 - [PR #392](https://github.com/konpyutaika/nifikop/pull/392) - **[Operator/NifiCluster]** Added update of the `DNSNames` of the node's `NifiUsers` if the `webProxyHosts` is updated.
 - [PR #392](https://github.com/konpyutaika/nifikop/pull/392) - **[Operator/NifiUser]** Added update of the `Certificate` if the `NifiUser` is updated.
@@ -20,12 +30,6 @@
 - [PR #398](https://github.com/konpyutaika/nifikop/pull/398) - **[Operator]** Upgrade golang to 1.22.1.
 - [PR #397](https://github.com/konpyutaika/nifikop/pull/397) - **[Operator/NifiUser]** Updates `NifiUser` synchronization logic to reduce api calls on `UserGroup` endpoint.
 - [PR #404](https://github.com/konpyutaika/nifikop/pull/404) - **[Operator/NifiCluster]** Updates `nifi.provenance.repository.debug.frequency` from `1_000_000` to `1000000`.
-
-### Fixed Bugs
-
-### Deprecated
-
-### Removed
 
 ## v1.7.0
 
