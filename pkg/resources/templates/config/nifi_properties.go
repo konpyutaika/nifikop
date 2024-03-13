@@ -92,7 +92,7 @@ nifi.content.viewer.url=../nifi-content-viewer/
 
 # Provenance Repository Properties
 nifi.provenance.repository.implementation=org.apache.nifi.provenance.WriteAheadProvenanceRepository
-nifi.provenance.repository.debug.frequency=1_000_000
+nifi.provenance.repository.debug.frequency=1000000
 nifi.provenance.repository.encryption.key.provider.implementation=
 nifi.provenance.repository.encryption.key.provider.location=
 nifi.provenance.repository.encryption.key.id=
@@ -109,7 +109,7 @@ nifi.provenance.repository.index.threads=2
 nifi.provenance.repository.compress.on.rollover=true
 nifi.provenance.repository.always.sync=false
 nifi.provenance.repository.journal.count=16
-# Comma-separated list of fields. Fields that are not indexed will not be searchable. Valid fields are: 
+# Comma-separated list of fields. Fields that are not indexed will not be searchable. Valid fields are:
 # EventType, FlowFileUUID, Filename, TransitURI, ProcessorID, AlternateIdentifierURI, Relationship, Details
 nifi.provenance.repository.indexed.fields=EventType, FlowFileUUID, Filename, ProcessorID, Relationship
 # FlowFile Attributes that should be indexed and made searchable.  Some examples to consider are filename, uuid, mime.type
