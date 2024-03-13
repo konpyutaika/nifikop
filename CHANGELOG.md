@@ -2,6 +2,8 @@
 
 ### Added
 
+- [PR #403](https://github.com/konpyutaika/nifikop/pull/403) - **[Operator/NifiCluster]** Added support to let users configure `internalTrafficPolicy` and `externalTrafficPolicy` on external services.
+
 - [PR #391](https://github.com/konpyutaika/nifikop/pull/391) - **[Operator/NifiUserGroup]** Added settings missing for secure LDAP connections in login_identity_providers.xml
 
 - [PR #381](https://github.com/konpyutaika/nifikop/pull/381) - **[Operator/NifiUserGroup]** Added ability to set `NifiUserGroup.Spec.Identity` when users need to override the default naming convention.

@@ -543,6 +543,29 @@ type ExternalServiceSpec struct {
 	// Once set, it can not be changed. This field will be wiped when a service is updated to a non 'LoadBalancer' type.
 	// +optional
 	LoadBalancerClass *string `json:"loadBalancerClass,omitempty" protobuf:"bytes,21,opt,name=loadBalancerClass"`
+	// externalTrafficPolicy describes how nodes distribute service traffic they
+	// receive on one of the Service's "externally-facing" addresses (NodePorts,
+	// ExternalIPs, and LoadBalancer IPs). If set to "Local", the proxy will configure
+	// the service in a way that assumes that external load balancers will take care
+	// of balancing the service traffic between nodes, and so each node will deliver
+	// traffic only to the node-local endpoints of the service, without masquerading
+	// the client source IP. (Traffic mistakenly sent to a node with no endpoints will
+	// be dropped.) The default value, "Cluster", uses the standard behavior of
+	// routing to all endpoints evenly (possibly modified by topology and other
+	// features). Note that traffic sent to an External IP or LoadBalancer IP from
+	// within the cluster will always get "Cluster" semantics, but clients sending to
+	// a NodePort from within the cluster may need to take traffic policy into account
+	// when picking a node.
+	// +optional
+	ExternalTrafficPolicy corev1.ServiceExternalTrafficPolicy `json:"externalTrafficPolicy,omitempty" protobuf:"bytes,22,opt,name=externalTrafficPolicy,casttype=ServiceExternalTrafficPolicy"`
+	// InternalTrafficPolicy describes how nodes distribute service traffic they
+	// receive on the ClusterIP. If set to "Local", the proxy will assume that pods
+	// only want to talk to endpoints of the service on the same node as the pod,
+	// dropping the traffic if there are no local endpoints. The default value,
+	// "Cluster", uses the standard behavior of routing to all endpoints evenly
+	// (possibly modified by topology and other features).
+	// +optional
+	InternalTrafficPolicy *corev1.ServiceInternalTrafficPolicy `json:"internalTrafficPolicy,omitempty" protobuf:"bytes,23,opt,name=internalTrafficPolicy,casttype=ServiceInternalTrafficPolicy"`
 }
 
 type PortConfig struct {
