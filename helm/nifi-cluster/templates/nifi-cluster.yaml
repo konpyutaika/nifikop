@@ -27,11 +27,11 @@ spec:
     hostAliases:
     {{- toYaml .Values.cluster.pod.hostAliases | nindent 6}}
   {{- end }}
-  {{- if .Values.cluster.pod.livenessProbe -}}
+  {{- if .Values.cluster.pod.livenessProbe }}
     livenessProbe:
     {{- toYaml .Values.cluster.pod.livenessProbe | nindent 6}}
   {{- end -}}
-  {{- if .Values.cluster.pod.readinessProbe -}}
+  {{- if .Values.cluster.pod.readinessProbe }}
     readinessProbe:
     {{- toYaml .Values.cluster.pod.readinessProbe | nindent 6}}
   {{- end }}
