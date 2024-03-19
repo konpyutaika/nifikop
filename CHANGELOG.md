@@ -6,6 +6,8 @@
 
 ### Fixed Bugs
 
+- [PR #412](https://github.com/konpyutaika/nifikop/pull/412) - **[Operator/NifiCluster]** Fixed PVC reclaim condition.
+
 ### Deprecated
 
 ### Removed

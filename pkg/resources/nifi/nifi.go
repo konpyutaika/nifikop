@@ -160,7 +160,7 @@ func (r *Reconciler) Reconcile(log zap.Logger) error {
 				storage.ReclaimPolicy == corev1.PersistentVolumeReclaimDelete {
 				o := r.pvc(node.Id, storage, log)
 				pvc = o.(*corev1.PersistentVolumeClaim)
-			} else {
+			} else if storage.ReclaimPolicy == corev1.PersistentVolumeReclaimRetain && pvcExists && existingPvc != nil {
 				// volume reclaim policy is Retain and the PVC exists
 				log.Info("Volume reclaim policy is Retain. Re-using existing PVC",
 					zap.String("clusterName", r.NifiCluster.Name),
