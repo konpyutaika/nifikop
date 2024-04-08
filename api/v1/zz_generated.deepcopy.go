@@ -1218,6 +1218,16 @@ func (in *NodeConfig) DeepCopyInto(out *NodeConfig) {
 		*out = new(corev1.NodeAffinity)
 		(*in).DeepCopyInto(*out)
 	}
+	if in.SeccompProfile != nil {
+		in, out := &in.SeccompProfile, &out.SeccompProfile
+		*out = new(corev1.SeccompProfile)
+		(*in).DeepCopyInto(*out)
+	}
+	if in.SecurityContext != nil {
+		in, out := &in.SecurityContext, &out.SecurityContext
+		*out = new(corev1.SecurityContext)
+		(*in).DeepCopyInto(*out)
+	}
 	if in.StorageConfigs != nil {
 		in, out := &in.StorageConfigs, &out.StorageConfigs
 		*out = make([]StorageConfig, len(*in))
