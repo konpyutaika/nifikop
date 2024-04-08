@@ -326,6 +326,10 @@ type NodeConfig struct {
 	ImagePullPolicy corev1.PullPolicy `json:"imagePullPolicy,omitempty"`
 	// nodeAffinity can be specified, operator populates this value if new pvc added later to node
 	NodeAffinity *corev1.NodeAffinity `json:"nodeAffinity,omitempty"`
+	// seccompProfile overrides the default seccompProfile of the nodes pod
+	SeccompProfile *corev1.SeccompProfile `json:"seccompProfile,omitempty"`
+	// securityContext overrides the default container security context for all containers in the pod
+	SecurityContext *corev1.SecurityContext `json:"securityContext,omitempty"`
 	// storageConfigs specifies the node related configs
 	StorageConfigs []StorageConfig `json:"storageConfigs,omitempty"`
 	// externalVolumeConfigs specifies a list of volume to mount into the main container.

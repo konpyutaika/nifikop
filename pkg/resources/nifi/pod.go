@@ -126,6 +126,15 @@ func (r *Reconciler) pod(node v1.Node, nodeConfig *v1.NodeConfig, pvcs []corev1.
 		anntotationsToMerge = append(anntotationsToMerge, util.MonitoringAnnotations(*r.NifiCluster.Spec.GetMetricPort()))
 	}
 
+	defaultSeccompProfile := &corev1.SeccompProfile{
+		Type: corev1.SeccompProfileTypeRuntimeDefault,
+	}
+
+	seccompProfile := defaultSeccompProfile
+	if nodeConfig.SeccompProfile != nil {
+		seccompProfile = nodeConfig.SeccompProfile
+	}
+
 	// curl -kv --cert /var/run/secrets/java.io/keystores/client/tls.crt --key /var/run/secrets/java.io/keystores/client/tls.key https://nifi.trycatchlearn.fr:8433/nifi
 	// curl -kv --cert /var/run/secrets/java.io/keystores/client/tls.crt --key /var/run/secrets/java.io/keystores/client/tls.key https://securenc-headless.external-dns-test.gcp.trycatchlearn.fr:8443/nifi-api/controller/cluster
 	// keytool -import -noprompt -keystore /home/nifi/truststore.jks -file /var/run/secrets/java.io/keystores/server/ca.crt -storepass $(cat /var/run/secrets/java.io/keystores/server/password) -alias test1
@@ -138,14 +147,12 @@ func (r *Reconciler) pod(node v1.Node, nodeConfig *v1.NodeConfig, pvcs []corev1.
 		),
 		Spec: corev1.PodSpec{
 			SecurityContext: &corev1.PodSecurityContext{
-				RunAsUser:    nodeConfig.GetRunAsUser(),
-				RunAsNonRoot: func(b bool) *bool { return &b }(true),
-				FSGroup:      nodeConfig.GetFSGroup(),
-				SeccompProfile: &corev1.SeccompProfile{
-					Type: corev1.SeccompProfileTypeRuntimeDefault,
-				},
+				RunAsUser:      nodeConfig.GetRunAsUser(),
+				RunAsNonRoot:   func(b bool) *bool { return &b }(true),
+				FSGroup:        nodeConfig.GetFSGroup(),
+				SeccompProfile: seccompProfile,
 			},
-			InitContainers: r.injectAdditionalFields(append(initContainers, []corev1.Container{
+			InitContainers: r.injectAdditionalFields(nodeConfig, append(initContainers, []corev1.Container{
 				{
 					Name:            "zookeeper",
 					Image:           r.NifiCluster.Spec.GetInitContainerImage(),
@@ -187,7 +194,7 @@ done
 				PodAntiAffinity: generatePodAntiAffinity(r.NifiCluster.Name, r.NifiCluster.Spec.OneNifiNodePerNode),
 			},
 			TopologySpreadConstraints:     r.NifiCluster.Spec.TopologySpreadConstraints,
-			Containers:                    r.injectAdditionalFields(r.generateContainers(nodeConfig, node.Id, podVolumeMounts, zkAddress, singleUserConfiguration)),
+			Containers:                    r.injectAdditionalFields(nodeConfig, r.generateContainers(nodeConfig, node.Id, podVolumeMounts, zkAddress, singleUserConfiguration)),
 			HostAliases:                   allHostAliases,
 			Volumes:                       podVolumes,
 			RestartPolicy:                 corev1.RestartPolicyNever,
@@ -546,9 +553,9 @@ exec bin/nifi.sh run`, resolveIp, singleUser)}
 	}
 }
 
-func (r *Reconciler) injectAdditionalFields(containers []corev1.Container) []corev1.Container {
+func (r *Reconciler) injectAdditionalFields(nodeConfig *v1.NodeConfig, containers []corev1.Container) []corev1.Container {
 	withEnvVars := r.injectAdditionalEnvVars(containers)
-	withSecurityContext := r.injectAdditionalSecurityContext(withEnvVars)
+	withSecurityContext := r.injectAdditionalSecurityContext(nodeConfig, withEnvVars)
 	return withSecurityContext
 }
 
@@ -560,16 +567,22 @@ func (r *Reconciler) injectAdditionalEnvVars(containers []corev1.Container) (inj
 	return
 }
 
-func (r *Reconciler) injectAdditionalSecurityContext(containers []corev1.Container) (injectedContainers []corev1.Container) {
-	for _, container := range containers {
-		container.SecurityContext = &corev1.SecurityContext{
-			AllowPrivilegeEscalation: util.BoolPointer(false),
-			Capabilities: &corev1.Capabilities{
-				Drop: []corev1.Capability{
-					"ALL",
-				},
+func (r *Reconciler) injectAdditionalSecurityContext(nodeConfig *v1.NodeConfig, containers []corev1.Container) (injectedContainers []corev1.Container) {
+	defaultSecurityContext := &corev1.SecurityContext{
+		AllowPrivilegeEscalation: util.BoolPointer(false),
+		Capabilities: &corev1.Capabilities{
+			Drop: []corev1.Capability{
+				"ALL",
 			},
-		}
+		},
+	}
+	securityContext := defaultSecurityContext
+	if nodeConfig.SecurityContext != nil {
+		securityContext = nodeConfig.SecurityContext
+	}
+
+	for _, container := range containers {
+		container.SecurityContext = securityContext
 
 		injectedContainers = append(injectedContainers, container)
 	}
