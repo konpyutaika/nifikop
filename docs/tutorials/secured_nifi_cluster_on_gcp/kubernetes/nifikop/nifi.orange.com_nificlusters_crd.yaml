@@ -1116,6 +1116,26 @@ spec:
                   type: string
                 identityStrategy:
                   type: string
+                tlsKeystore:
+                  type: string
+                tlsKeytorePassword:
+                  type: string
+                tlsKeytoreType:
+                  type: string
+                tlsTruststore:
+                  type: string
+                tlsTruststorePassword:
+                  type: string
+                tlsTruststoreType:
+                  type: string
+                clientAuth:
+                  type: string
+                protocol:
+                  type: string
+                shutdownGracefully:
+                  type: string
+                referralStrategy:
+                  type: string  
               type: object
             listenersConfig:
               description: listenerConfig specifies nifi's listener specifig configs

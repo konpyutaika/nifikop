@@ -42,7 +42,7 @@ type NifiClusterSpec struct {
 	ProxyUrl string `json:"proxyUrl,omitempty"`
 	// Service defines the policy for services owned by NiFiKop operator.
 	Service ServicePolicy `json:"service,omitempty"`
-	// Pod defines the policy for  pods owned by NiFiKop operator.
+	// Pod defines the policy for pods owned by NiFiKop operator.
 	Pod PodPolicy `json:"pod,omitempty"`
 	// zKAddress specifies the ZooKeeper connection string
 	// in the form hostname:port where host and port are those of a Zookeeper server.

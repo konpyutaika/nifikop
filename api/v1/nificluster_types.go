@@ -44,7 +44,7 @@ type NifiClusterSpec struct {
 	ProxyUrl string `json:"proxyUrl,omitempty"`
 	// Service defines the policy for services owned by NiFiKop operator.
 	Service ServicePolicy `json:"service,omitempty"`
-	// Pod defines the policy for  pods owned by NiFiKop operator.
+	// Pod defines the policy for pods owned by NiFiKop operator.
 	Pod PodPolicy `json:"pod,omitempty"`
 	// zKAddress specifies the ZooKeeper connection string
 	// in the form hostname:port where host and port are those of a Zookeeper server.
@@ -543,6 +543,29 @@ type ExternalServiceSpec struct {
 	// Once set, it can not be changed. This field will be wiped when a service is updated to a non 'LoadBalancer' type.
 	// +optional
 	LoadBalancerClass *string `json:"loadBalancerClass,omitempty" protobuf:"bytes,21,opt,name=loadBalancerClass"`
+	// externalTrafficPolicy describes how nodes distribute service traffic they
+	// receive on one of the Service's "externally-facing" addresses (NodePorts,
+	// ExternalIPs, and LoadBalancer IPs). If set to "Local", the proxy will configure
+	// the service in a way that assumes that external load balancers will take care
+	// of balancing the service traffic between nodes, and so each node will deliver
+	// traffic only to the node-local endpoints of the service, without masquerading
+	// the client source IP. (Traffic mistakenly sent to a node with no endpoints will
+	// be dropped.) The default value, "Cluster", uses the standard behavior of
+	// routing to all endpoints evenly (possibly modified by topology and other
+	// features). Note that traffic sent to an External IP or LoadBalancer IP from
+	// within the cluster will always get "Cluster" semantics, but clients sending to
+	// a NodePort from within the cluster may need to take traffic policy into account
+	// when picking a node.
+	// +optional
+	ExternalTrafficPolicy corev1.ServiceExternalTrafficPolicy `json:"externalTrafficPolicy,omitempty" protobuf:"bytes,22,opt,name=externalTrafficPolicy,casttype=ServiceExternalTrafficPolicy"`
+	// InternalTrafficPolicy describes how nodes distribute service traffic they
+	// receive on the ClusterIP. If set to "Local", the proxy will assume that pods
+	// only want to talk to endpoints of the service on the same node as the pod,
+	// dropping the traffic if there are no local endpoints. The default value,
+	// "Cluster", uses the standard behavior of routing to all endpoints evenly
+	// (possibly modified by topology and other features).
+	// +optional
+	InternalTrafficPolicy *corev1.ServiceInternalTrafficPolicy `json:"internalTrafficPolicy,omitempty" protobuf:"bytes,23,opt,name=internalTrafficPolicy,casttype=ServiceInternalTrafficPolicy"`
 }
 
 type PortConfig struct {
@@ -576,6 +599,28 @@ type LdapConfiguration struct {
 	ManagerDn string `json:"managerDn,omitempty"`
 	// The password of the manager that is used to bind to the LDAP server to search for users.
 	ManagerPassword string `json:"managerPassword,omitempty"`
+	// Path to the Keystore that is used when connecting to LDAP using LDAPS or START_TLS.
+	// The TLS Keystore settings are optional and only used if your LDAP/AD server needs mutual TLS.
+	TLSKeystore string `json:"tlsKeystore,omitempty"`
+	// Password for the Keystore that is used when connecting to LDAP using LDAPS or START_TLS.
+	TLSKeystorePassword string `json:"tlsKeystorePassword,omitempty"`
+	// Type of the Keystore that is used when connecting to LDAP using LDAPS or START_TLS (i.e. JKS or PKCS12).
+	TLSKeystoreType string `json:"tlsKeystoreType,omitempty"`
+	// Path to the Truststore that is used when connecting to LDAP using LDAPS or START_TLS.
+	// The Truststore should contain the valid CA that your LDAPS/AD server is in to allow NiFi to trust it
+	TLSTruststore string `json:"tlsTruststore,omitempty"`
+	// Password for the Truststore that is used when connecting to LDAP using LDAPS or START_TLS.
+	TLSTruststorePassword string `json:"tlsTruststorePassword,omitempty"`
+	// Type of the Truststore that is used when connecting to LDAP using LDAPS or START_TLS (i.e. JKS or PKCS12).
+	TLSTruststoreType string `json:"tlsTruststoreType,omitempty"`
+	// Client authentication policy when connecting to LDAP using LDAPS or START_TLS. Possible values are REQUIRED, WANT, NONE.
+	ClientAuth string `json:"clientAuth,omitempty"`
+	// Protocol to use when connecting to LDAP using LDAPS or START_TLS. (i.e. TLS, TLSv1.1, TLSv1.2, etc).
+	Protocol string `json:"protocol,omitempty"`
+	// Specifies whether the TLS should be shut down gracefully before the target context is closed. Defaults to false.
+	ShutdownGracefully string `json:"shutdownGracefully,omitempty"`
+	// Strategy for handling referrals. Possible values are FOLLOW, IGNORE, THROW.
+	ReferralStrategy string `json:"referralStrategy,omitempty"`
 	// Strategy to identify users. Possible values are USE_DN and USE_USERNAME.
 	// The default functionality if this property is missing is USE_DN in order to retain backward compatibility.
 	// USE_DN will use the full DN of the user entry if possible.
