@@ -13,14 +13,15 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	v1 "github.com/konpyutaika/nifikop/api/v1"
 )
 
 // IsAlreadyOwnedError checks if a controller already own the instance.
 func IsAlreadyOwnedError(err error) bool {
-	return errors.Is(err, &controllerutil.AlreadyOwnedError{})
+	errString := err.Error()
+	// check if "Object */* is already owned by another * controller" is in the error message
+	return strings.Contains(errString, "Object") && strings.Contains(errString, "is already owned by another") && strings.Contains(errString, "controller")
 }
 
 // IsMarkedForDeletion determines if the object is marked for deletion.
