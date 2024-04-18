@@ -5,9 +5,11 @@
 ### Changed
 
 - [PR #415](https://github.com/konpyutaika/nifikop/pull/415) - **[Operator]** Upgrade golang to 1.22.2.
-- [PR #416](https://github.com/konpyutaika/nifikop/pull/416) - **[Operator]** Certmanager-user: k8sutil: corrects IsAlreadyOwnedError.
 
 ### Fixed Bugs
+
+- [PR #416](https://github.com/konpyutaika/nifikop/pull/416) - **[Operator]** Certmanager-user: k8sutil: corrects IsAlreadyOwnedError.
+- [PR #418](https://github.com/konpyutaika/nifikop/pull/418) - **[Operator]** Fixed issue where new nodes could not be added to NiFi cluster with a custom authorizer configuration provided.
 
 ### Deprecated
 
