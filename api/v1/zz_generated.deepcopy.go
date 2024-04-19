@@ -1490,6 +1490,13 @@ func (in *ReadOnlyConfig) DeepCopyInto(out *ReadOnlyConfig) {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
+	if in.AdditionalNifiEnvs != nil {
+		in, out := &in.AdditionalNifiEnvs, &out.AdditionalNifiEnvs
+		*out = make([]corev1.EnvVar, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
+	}
 	in.NifiProperties.DeepCopyInto(&out.NifiProperties)
 	in.ZookeeperProperties.DeepCopyInto(&out.ZookeeperProperties)
 	in.BootstrapProperties.DeepCopyInto(&out.BootstrapProperties)

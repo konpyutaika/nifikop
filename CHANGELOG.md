@@ -6,6 +6,7 @@
 
 - [PR #415](https://github.com/konpyutaika/nifikop/pull/415) - **[Operator]** Upgrade golang to 1.22.2.
 - [PR #416](https://github.com/konpyutaika/nifikop/pull/416) - **[Operator]** Certmanager-user: k8sutil: corrects IsAlreadyOwnedError.
+- [PR #416](https://github.com/konpyutaika/nifikop/pull/394) - **[Operator/NifiCluster]** Added support to let users configure AdditionalNifiEnvs.
 
 ### Fixed Bugs
 
