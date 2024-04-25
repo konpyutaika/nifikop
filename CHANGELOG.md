@@ -11,6 +11,7 @@
 
 - [PR #416](https://github.com/konpyutaika/nifikop/pull/416) - **[Operator]** Certmanager-user: k8sutil: corrects IsAlreadyOwnedError.
 - [PR #418](https://github.com/konpyutaika/nifikop/pull/418) - **[Operator/NifiCluster]** Fixed issue where new nodes could not be added to NiFi cluster with a custom authorizer configuration provided.
+- [PR #420](https://github.com/konpyutaika/nifikop/pull/420) - **[Operator/NifiCluster]** Patch duplicate Prometheus Reporting Task. 
 
 ### Deprecated
 

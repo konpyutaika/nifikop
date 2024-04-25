@@ -927,6 +927,8 @@ func (r *Reconciler) reconcileNifiUsersAndGroups(log zap.Logger) error {
 func (r *Reconciler) reconcilePrometheusReportingTask(log zap.Logger) error {
 	var err error
 
+	patchNifiCluster := client.MergeFrom(r.NifiCluster.DeepCopy())
+
 	configManager := config.GetClientConfigManager(r.Client, v1.ClusterReference{
 		Namespace: r.NifiCluster.Namespace,
 		Name:      r.NifiCluster.Name,
@@ -951,7 +953,7 @@ func (r *Reconciler) reconcilePrometheusReportingTask(log zap.Logger) error {
 
 		r.NifiCluster.Status.PrometheusReportingTask = *status
 		if !reflect.DeepEqual(r.NifiCluster.Status, r.NifiClusterCurrentStatus) {
-			if err := r.Client.Status().Update(context.TODO(), r.NifiCluster); err != nil {
+			if err := r.Client.Status().Patch(context.TODO(), r.NifiCluster, patchNifiCluster); err != nil {
 				return errors.WrapIfWithDetails(err, "failed to update PrometheusReportingTask status")
 			}
 		}
@@ -965,7 +967,7 @@ func (r *Reconciler) reconcilePrometheusReportingTask(log zap.Logger) error {
 
 	r.NifiCluster.Status.PrometheusReportingTask = *status
 	if !reflect.DeepEqual(r.NifiCluster.Status, r.NifiClusterCurrentStatus) {
-		if err := r.Client.Status().Update(context.TODO(), r.NifiCluster); err != nil {
+		if err := r.Client.Status().Patch(context.TODO(), r.NifiCluster, patchNifiCluster); err != nil {
 			return errors.WrapIfWithDetails(err, "failed to update PrometheusReportingTask status")
 		}
 	}
