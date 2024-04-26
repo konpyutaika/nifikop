@@ -37,7 +37,7 @@ async function generateSimpleHtmlFiles(outDir) {
 
 module.exports = () => {
   return {
-    plugin: 'site-plugin',
+    name: 'site-plugin',
     async postBuild(props) {
       await generateSimpleHtmlFiles(props.outDir);
     },
