@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkreact_native_website=self.webpackChunkreact_native_website||[]).push([[37187],{43868:e=>{e.exports=JSON.parse('{"label":"gke","permalink":"/nifikop/blog/tags/gke","allTagsPath":"/nifikop/blog/tags","count":2,"unlisted":false}')}}]);
