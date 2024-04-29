@@ -5,6 +5,7 @@
 ### Changed
 
 - [PR #415](https://github.com/konpyutaika/nifikop/pull/415) - **[Operator]** Upgrade golang to 1.22.2.
+- [PR #421](https://github.com/konpyutaika/nifikop/pull/421) - **[Documentation]** Upgrade node 22.0.0.
 
 ### Fixed Bugs
 
