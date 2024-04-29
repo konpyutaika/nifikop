@@ -3209,6 +3209,9 @@ spec:
                               - name
                               type: object
                           type: object
+                        maximumEventDrivenThreadCount:
+                          format: int32
+                          type: integer
                         maximumTimerDrivenThreadCount:
                           format: int32
                           type: integer
@@ -3645,6 +3648,9 @@ spec:
                         - name
                         type: object
                     type: object
+                  maximumEventDrivenThreadCount:
+                    format: int32
+                    type: integer
                   maximumTimerDrivenThreadCount:
                     format: int32
                     type: integer
