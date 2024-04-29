@@ -242,7 +242,7 @@ For this, the field to configure is [ReadOnlyConfig] which can be used at the gl
 
 There is some configuration that can be passed directly into this field like: 
 - **maximumTimerDrivenThreadCount**: define the maximum number of threads for timer driven processors available to the system.
-- **maximumEventDrivenThreadCount**: define the maximum number of threads for event driven processors available to the system.
+- **maximumEventDrivenThreadCount**: define the maximum number of threads for event driven processors available to the system (@DEPRECATED).
 
 And other configurations (e.g. configuration files) that can be defined using `kubernetes Secret`, `ConfigMap` or directly using the `override` field.
 

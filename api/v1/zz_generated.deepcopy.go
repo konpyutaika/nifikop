@@ -1478,11 +1478,6 @@ func (in *ReadOnlyConfig) DeepCopyInto(out *ReadOnlyConfig) {
 		*out = new(int32)
 		**out = **in
 	}
-	if in.MaximumEventDrivenThreadCount != nil {
-		in, out := &in.MaximumEventDrivenThreadCount, &out.MaximumEventDrivenThreadCount
-		*out = new(int32)
-		**out = **in
-	}
 	if in.AdditionalSharedEnvs != nil {
 		in, out := &in.AdditionalSharedEnvs, &out.AdditionalSharedEnvs
 		*out = make([]corev1.EnvVar, len(*in))

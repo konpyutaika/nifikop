@@ -69,7 +69,7 @@ func (n *nifiClient) UpdateUserGroup(entity nigoapi.UserGroupEntity) (*nigoapi.U
 	}
 
 	// Request on Nifi Rest API to update the user group
-	userGroupEntity, rsp, body, err := client.TenantsApi.UpdateUserGroup(context, entity.Id, entity)
+	userGroupEntity, rsp, body, err := client.TenantsApi.UpdateUserGroup(context, entity, entity.Id)
 	if err := errorUpdateOperation(rsp, body, err, n.log); err != nil {
 		return nil, err
 	}
@@ -88,7 +88,7 @@ func (n *nifiClient) RemoveUserGroup(entity nigoapi.UserGroupEntity) error {
 	// Request on Nifi Rest API to remove the user group
 	_, rsp, body, err := client.TenantsApi.RemoveUserGroup(context, entity.Id,
 		&nigoapi.TenantsApiRemoveUserGroupOpts{
-			Version: optional.NewString(strconv.FormatInt(*entity.Revision.Version, 10)),
+			Version: optional.NewInterface(strconv.FormatInt(*entity.Revision.Version, 10)),
 		})
 
 	return errorDeleteOperation(rsp, body, err, n.log)

@@ -52,7 +52,7 @@ func (n *nifiClient) UpdateRegistryClient(entity nigoapi.FlowRegistryClientEntit
 	}
 
 	// Request on Nifi Rest API to update the registry client
-	regCliEntity, rsp, body, err := client.ControllerApi.UpdateFlowRegistryClient(context, entity.Id, entity)
+	regCliEntity, rsp, body, err := client.ControllerApi.UpdateFlowRegistryClient(context, entity, entity.Id)
 	if err := errorUpdateOperation(rsp, body, err, n.log); err != nil {
 		return nil, err
 	}
@@ -71,7 +71,7 @@ func (n *nifiClient) RemoveRegistryClient(entity nigoapi.FlowRegistryClientEntit
 	// Request on Nifi Rest API to remove the registry client
 	_, rsp, body, err := client.ControllerApi.DeleteFlowRegistryClient(context, entity.Id,
 		&nigoapi.ControllerApiDeleteFlowRegistryClientOpts{
-			Version: optional.NewString(strconv.FormatInt(*entity.Revision.Version, 10)),
+			Version: optional.NewInterface(strconv.FormatInt(*entity.Revision.Version, 10)),
 		})
 
 	return errorDeleteOperation(rsp, body, err, n.log)

@@ -61,7 +61,7 @@ func (n *nifiClient) UpdateAccessPolicy(entity nigoapi.AccessPolicyEntity) (*nig
 	}
 
 	// Request on Nifi Rest API to update the access policy
-	accessPolicyEntity, rsp, body, err := client.PoliciesApi.UpdateAccessPolicy(context, entity.Id, entity)
+	accessPolicyEntity, rsp, body, err := client.PoliciesApi.UpdateAccessPolicy(context, entity, entity.Id)
 	if err := errorUpdateOperation(rsp, body, err, n.log); err != nil {
 		return nil, err
 	}
@@ -80,7 +80,7 @@ func (n *nifiClient) RemoveAccessPolicy(entity nigoapi.AccessPolicyEntity) error
 	// Request on Nifi Rest API to remove the registry client
 	_, rsp, body, err := client.PoliciesApi.RemoveAccessPolicy(context, entity.Id,
 		&nigoapi.PoliciesApiRemoveAccessPolicyOpts{
-			Version: optional.NewString(strconv.FormatInt(*entity.Revision.Version, 10)),
+			Version: optional.NewInterface(strconv.FormatInt(*entity.Revision.Version, 10)),
 		})
 
 	return errorDeleteOperation(rsp, body, err, n.log)
