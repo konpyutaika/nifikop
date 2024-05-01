@@ -52,7 +52,7 @@ func (n *nifiClient) UpdateReportingTask(entity nigoapi.ReportingTaskEntity) (*n
 	}
 
 	// Request on Nifi Rest API to update the reporting task
-	out, rsp, body, err := client.ReportingTasksApi.UpdateReportingTask(context, entity.Id, entity)
+	out, rsp, body, err := client.ReportingTasksApi.UpdateReportingTask(context, entity, entity.Id)
 	if err := errorUpdateOperation(rsp, body, err, n.log); err != nil {
 		return nil, err
 	}
@@ -69,7 +69,7 @@ func (n *nifiClient) UpdateRunStatusReportingTask(id string, entity nigoapi.Repo
 	}
 
 	// Request on Nifi Rest API to update the reporting task
-	out, rsp, body, err := client.ReportingTasksApi.UpdateRunStatus(context, id, entity)
+	out, rsp, body, err := client.ReportingTasksApi.UpdateRunStatus5(context, entity, id)
 	if err := errorUpdateOperation(rsp, body, err, n.log); err != nil {
 		return nil, err
 	}
@@ -88,7 +88,7 @@ func (n *nifiClient) RemoveReportingTask(entity nigoapi.ReportingTaskEntity) err
 	// Request on Nifi Rest API to remove the reporting task
 	_, rsp, body, err := client.ReportingTasksApi.RemoveReportingTask(context, entity.Id,
 		&nigoapi.ReportingTasksApiRemoveReportingTaskOpts{
-			Version: optional.NewString(strconv.FormatInt(*entity.Revision.Version, 10)),
+			Version: optional.NewInterface(strconv.FormatInt(*entity.Revision.Version, 10)),
 		})
 
 	return errorDeleteOperation(rsp, body, err, n.log)

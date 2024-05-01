@@ -146,7 +146,7 @@ func (n *nifiClient) setClusterNodeStatus(nId int32, status, expectedActionStatu
 	targetedNode.Status = string(status)
 
 	// Request on Nifi Rest API to update the node status
-	nodeEntity, rsp, body, err := client.ControllerApi.UpdateNode(context, targetedNode.NodeId, nigoapi.NodeEntity{Node: targetedNode})
+	nodeEntity, rsp, body, err := client.ControllerApi.UpdateNode(context, nigoapi.NodeEntity{Node: targetedNode}, targetedNode.NodeId)
 	if err := errorUpdateOperation(rsp, body, err, n.log); err != nil {
 		return nil, err
 	}

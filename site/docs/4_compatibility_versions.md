@@ -77,8 +77,8 @@ Nifikop supports the following features for managing dataflows:
 
 | NiFi Version  | Dataflow deployment | Dataflow rollback | Dataflow version upgrade | Dataflow cluster migration |
 |---------------|---------------------|-------------------|--------------------------|----------------------------|
-| NiFi 1.16     | Yes                 | Yes               | Yes                      | Yes                        |
-| NiFi 1.17     | Yes                 | Yes               | Yes                      | Yes                        |
+| NiFi 1.16     | No                  | Yes               | Yes                      | Yes                        |
+| NiFi 1.17     | No                  | Yes               | Yes                      | Yes                        |
 | NiFi 1.18     | Yes                 | Yes               | Yes                      | Yes                        |
 | NiFi 1.19     | Yes                 | Yes               | Yes                      | Yes                        |
 | NiFi 1.20     | Yes                 | Yes               | Yes                      | Yes                        |

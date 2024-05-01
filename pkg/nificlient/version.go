@@ -14,7 +14,7 @@ func (n *nifiClient) CreateVersionUpdateRequest(pgId string, entity nigoapi.Vers
 	}
 
 	// Request on Nifi Rest API to create the version update request
-	request, rsp, body, err := client.VersionsApi.InitiateVersionControlUpdate(context, pgId, entity)
+	request, rsp, body, err := client.VersionsApi.InitiateVersionControlUpdate(context, entity, pgId)
 	if err := errorUpdateOperation(rsp, body, err, n.log); err != nil {
 		return nil, err
 	}
@@ -48,7 +48,7 @@ func (n *nifiClient) CreateVersionRevertRequest(pgId string, entity nigoapi.Vers
 	}
 
 	// Request on Nifi Rest API to create the version revert request
-	request, rsp, body, err := client.VersionsApi.InitiateRevertFlowVersion(context, pgId, entity)
+	request, rsp, body, err := client.VersionsApi.InitiateRevertFlowVersion(context, entity, pgId)
 	if err := errorUpdateOperation(rsp, body, err, n.log); err != nil {
 		return nil, err
 	}

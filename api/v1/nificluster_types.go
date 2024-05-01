@@ -213,7 +213,7 @@ type Node struct {
 type ReadOnlyConfig struct {
 	// MaximumTimerDrivenThreadCount define the maximum number of threads for timer driven processors available to the system.
 	MaximumTimerDrivenThreadCount *int32 `json:"maximumTimerDrivenThreadCount,omitempty"`
-	// MaximumEventDrivenThreadCount define the maximum number of threads for event driven processors available to the system.
+	// MaximumEventDrivenThreadCount define the maximum number of threads for event driven processors available to the system (@DEPRECATED. This has no effect from NiFiKOp v1.9.0 or later).
 	MaximumEventDrivenThreadCount *int32 `json:"maximumEventDrivenThreadCount,omitempty"`
 	// AdditionalSharedEnvs define a set of additional env variables that will shared between all init containers and
 	// containers in the pod.

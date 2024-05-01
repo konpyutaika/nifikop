@@ -10,7 +10,7 @@ ReadOnlyConfig object specifies the read-only type Nifi config cluster wide, all
 readOnlyConfig:
   # MaximumTimerDrivenThreadCount define the maximum number of threads for timer driven processors available to the system.
   maximumTimerDrivenThreadCount: 30
-  # MaximumEventDrivenThreadCount define the maximum number of threads for event driven processors available to the system.
+  # MaximumEventDrivenThreadCount define the maximum number of threads for event driven processors available to the system (@DEPRECATED. This has no effect from NiFiKOp v1.9.0 or later).
   maximumEventDrivenThreadCount: 10
   # Logback configuration that will be applied to the node
   logbackConfig:
@@ -144,7 +144,7 @@ readOnlyConfig:
 |Field|Type|Description|Required|Default|
 |-----|----|-----------|--------|--------|
 |maximumTimerDrivenThreadCount|int32|define the maximum number of threads for timer driven processors available to the system.|No|10|
-|maximumEventDrivenThreadCount|int32|define the maximum number of threads for event driven processors available to the system.|No|1|
+|maximumEventDrivenThreadCount|int32|define the maximum number of threads for event driven processors available to the system (@DEPRECATED. This has no effect from NiFiKOp v1.9.0 or later).|No|1|
 |additionalSharedEnvs|\[&nbsp;\][corev1.EnvVar](https://pkg.go.dev/k8s.io/api/core/v1#EnvVar)|define a set of additional env variables that will shared between all init containers and containers in the pod.|No|\[&nbsp;\]|
 |nifiProperties|[NifiProperties](#nifiproperties)|nifi.properties configuration that will be applied to the node.|No|nil|
 |zookeeperProperties|[ZookeeperProperties](#zookeeperproperties)|zookeeper.properties configuration that will be applied to the node.|No|nil|
