@@ -73,7 +73,7 @@ func (n *nifiClient) RemoveParameterContext(entity nigoapi.ParameterContextEntit
 	// Request on Nifi Rest API to remove the parameter context
 	_, rsp, body, err := client.ParameterContextsApi.DeleteParameterContext(context, entity.Id,
 		&nigoapi.ParameterContextsApiDeleteParameterContextOpts{
-			Version: optional.NewString(strconv.FormatInt(*entity.Revision.Version, 10)),
+			Version: optional.NewInterface(strconv.FormatInt(*entity.Revision.Version, 10)),
 		})
 
 	return errorDeleteOperation(rsp, body, err, n.log)
@@ -88,7 +88,7 @@ func (n *nifiClient) CreateParameterContextUpdateRequest(contextId string, entit
 	}
 
 	// Request on Nifi Rest API to create the parameter context update request
-	request, rsp, body, err := client.ParameterContextsApi.SubmitParameterContextUpdate(context, contextId, entity)
+	request, rsp, body, err := client.ParameterContextsApi.SubmitParameterContextUpdate(context, entity, contextId)
 	if err := errorUpdateOperation(rsp, body, err, n.log); err != nil {
 		return nil, err
 	}

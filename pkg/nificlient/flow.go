@@ -56,7 +56,7 @@ func (n *nifiClient) UpdateFlowControllerServices(entity nigoapi.ActivateControl
 	}
 
 	// Request on Nifi Rest API to enable or disable the controller services
-	csEntity, rsp, body, err := client.FlowApi.ActivateControllerServices(context, entity.Id, entity)
+	csEntity, rsp, body, err := client.FlowApi.ActivateControllerServices(context, entity, entity.Id)
 	if err := errorUpdateOperation(rsp, body, err, n.log); err != nil {
 		return nil, err
 	}
@@ -74,7 +74,7 @@ func (n *nifiClient) UpdateFlowProcessGroup(entity nigoapi.ScheduleComponentsEnt
 	}
 
 	// Request on Nifi Rest API to enable or disable the controller services
-	csEntity, rsp, body, err := client.FlowApi.ScheduleComponents(context, entity.Id, entity)
+	csEntity, rsp, body, err := client.FlowApi.ScheduleComponents(context, entity, entity.Id)
 	if err := errorUpdateOperation(rsp, body, err, n.log); err != nil {
 		return nil, err
 	}

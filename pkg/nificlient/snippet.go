@@ -31,7 +31,7 @@ func (n *nifiClient) UpdateSnippet(entity nigoapi.SnippetEntity) (*nigoapi.Snipp
 	}
 
 	// Request on Nifi Rest API to update the snippet
-	snippetEntity, rsp, body, err := client.SnippetsApi.UpdateSnippet(context, entity.Snippet.Id, entity)
+	snippetEntity, rsp, body, err := client.SnippetsApi.UpdateSnippet(context, entity, entity.Snippet.Id)
 	if err := errorUpdateOperation(rsp, body, err, n.log); err != nil {
 		return nil, err
 	}

@@ -83,9 +83,6 @@ spec:
 {{- if .Values.cluster.maximumTimerDrivenThreadCount }}
     maximumTimerDrivenThreadCount: {{ .Values.cluster.maximumTimerDrivenThreadCount }}
 {{- end }}
-{{- if .Values.cluster.maximumEventDrivenThreadCount }}
-    maximumEventDrivenThreadCount: {{ .Values.cluster.maximumEventDrivenThreadCount }}
-{{- end }}
 {{- if .Values.cluster.additionalSharedEnvs }}
     additionalSharedEnvs:
     {{- toYaml .Values.cluster.additionalSharedEnvs | nindent 6 }}

@@ -70,9 +70,6 @@ cluster:
   # --  MaximumTimerDrivenThreadCount defines the maximum number of threads for timer driven processors available to the system.
   maximumTimerDrivenThreadCount: 10
 
-  # --  MaximumEventDrivenThreadCount defines the maximum number of threads for timer driven processors available to the system.
-  # This is a feature enabled by the following PR and should not be used unless you're running nifkop with this PR applied: https://github.com/Orange-OpenSource/nifikop/pull/184
-  maximumEventDrivenThreadCount: 10
 
   # -- list of additional environment variables to attach to all init containers and the nifi container
   # https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster/2_read_only_config#readonlyconfig

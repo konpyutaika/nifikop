@@ -5,11 +5,22 @@
 ### Changed
 
 - [PR #415](https://github.com/konpyutaika/nifikop/pull/415) - **[Operator]** Upgrade golang to 1.22.2.
+<<<<<<< HEAD
 - [PR #393](https://github.com/konpyutaika/nifikop/pull/393) - **[Operator/NifiCluster]** Added support to let users configure `seccompProfile` and `securityContext`.
+=======
+- [PR #421](https://github.com/konpyutaika/nifikop/pull/421) - **[Documentation]** Upgrade node 22.0.0.
+- [PR #422](https://github.com/konpyutaika/nifikop/pull/422) - **[NiGoApi]** Upgrade NiGoApi to v0.1.0.
+>>>>>>> master
 
 ### Fixed Bugs
 
+- [PR #416](https://github.com/konpyutaika/nifikop/pull/416) - **[Operator]** Certmanager-user: k8sutil: corrects IsAlreadyOwnedError.
+- [PR #418](https://github.com/konpyutaika/nifikop/pull/418) - **[Operator/NifiCluster]** Fixed issue where new nodes could not be added to NiFi cluster with a custom authorizer configuration provided.
+- [PR #420](https://github.com/konpyutaika/nifikop/pull/420) - **[Operator/NifiCluster]** Patch duplicate Prometheus Reporting Task. 
+
 ### Deprecated
+
+- [PR #422](https://github.com/konpyutaika/nifikop/pull/422) - **[Operator/NifiCluster]** `MaximumEventDrivenThreadCount` is no longer configurable in NiFi.
 
 ### Removed
 
