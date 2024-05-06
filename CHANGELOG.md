@@ -2,6 +2,8 @@
 
 ### Added
 
+- [PR #416](https://github.com/konpyutaika/nifikop/pull/394) - **[Operator/NifiCluster]** Added support to let users configure AdditionalNifiEnvs.
+
 ### Changed
 
 - [PR #415](https://github.com/konpyutaika/nifikop/pull/415) - **[Operator]** Upgrade golang to 1.22.2.

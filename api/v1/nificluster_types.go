@@ -218,6 +218,8 @@ type ReadOnlyConfig struct {
 	// AdditionalSharedEnvs define a set of additional env variables that will shared between all init containers and
 	// containers in the pod.
 	AdditionalSharedEnvs []corev1.EnvVar `json:"additionalSharedEnvs,omitempty"`
+	// AdditionalNifiEnvs define a set of additional env variables that will only be embed in the nifi container.
+	AdditionalNifiEnvs []corev1.EnvVar `json:"additionalNifiEnvs,omitempty"`
 	// NifiProperties configuration that will be applied to the node.
 	NifiProperties NifiProperties `json:"nifiProperties,omitempty"`
 	// ZookeeperProperties configuration that will be applied to the node.

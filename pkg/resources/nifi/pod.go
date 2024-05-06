@@ -507,6 +507,10 @@ func (r *Reconciler) createNifiNodeContainer(nodeConfig *v1.NodeConfig, id int32
 		envVar = append(envVar, single_user_username, single_user_password)
 	}
 
+	if r.NifiCluster.Spec.ReadOnlyConfig.AdditionalNifiEnvs != nil {
+		envVar = append(envVar, r.NifiCluster.Spec.ReadOnlyConfig.AdditionalNifiEnvs...)
+	}
+
 	resolveIp := ""
 
 	if r.NifiCluster.Spec.Service.HeadlessEnabled {
