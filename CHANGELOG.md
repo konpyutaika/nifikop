@@ -5,6 +5,7 @@
 ### Changed
 
 - [PR #415](https://github.com/konpyutaika/nifikop/pull/415) - **[Operator]** Upgrade golang to 1.22.2.
+- [PR #393](https://github.com/konpyutaika/nifikop/pull/393) - **[Operator/NifiCluster]** Added support to let users configure `seccompProfile` and `securityContext`.
 - [PR #421](https://github.com/konpyutaika/nifikop/pull/421) - **[Documentation]** Upgrade node 22.0.0.
 - [PR #422](https://github.com/konpyutaika/nifikop/pull/422) - **[NiGoApi]** Upgrade NiGoApi to v0.1.0.
 
