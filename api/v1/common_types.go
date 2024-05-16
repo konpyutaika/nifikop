@@ -159,6 +159,13 @@ type UserReference struct {
 	Namespace string `json:"namespace,omitempty"`
 }
 
+// SecretResourceVersion states the resourceVersion of secret.
+type SecretResourceVersion struct {
+	Name            string `json:"name"`
+	Namespace       string `json:"namespace"`
+	ResourceVersion string `json:"resourceVersion" protobuf:"bytes,6,opt,name=resourceVersion"`
+}
+
 type AccessPolicy struct {
 	// +kubebuilder:validation:Enum={"global","component"}
 	// type defines the kind of access policy, could be "global" or "component".

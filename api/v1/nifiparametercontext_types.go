@@ -42,8 +42,8 @@ type NifiParameterContextStatus struct {
 	Version int64 `json:"version"`
 	// the latest update request.
 	LatestUpdateRequest *ParameterContextUpdateRequest `json:"latestUpdateRequest,omitempty"`
-	// the latest update time of the secrets.
-	LatestSecretUpdate *metav1.Time `json:"latestSecretUpdate,omitempty"`
+	// the latest resourceVersion of the secrets.
+	LatestSecretsResourceVersion []SecretResourceVersion `json:"latestSecretsResourceVersion,omitempty"`
 }
 
 type ParameterContextUpdateRequest struct {

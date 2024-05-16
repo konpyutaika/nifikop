@@ -371,3 +371,37 @@ func GetK8sVersion() (major *int, minor *int, err error) {
 	minor = &min
 	return major, minor, nil
 }
+
+func ExtractSecretsResourceVersion(secrets []*corev1.Secret) []v1.SecretResourceVersion {
+	var secretsResourceVersion = []v1.SecretResourceVersion{}
+	for _, secret := range secrets {
+		secretsResourceVersion = append(secretsResourceVersion, v1.SecretResourceVersion{
+			Name:            secret.Name,
+			Namespace:       secret.Namespace,
+			ResourceVersion: secret.ResourceVersion,
+		})
+	}
+
+	return secretsResourceVersion
+}
+
+func IsSecretResourceVersionUpdated(secrets []*corev1.Secret, secretsResourceVersion []v1.SecretResourceVersion) bool {
+	if len(secrets) != len(secretsResourceVersion) {
+		return true
+	}
+
+	secretMap := make(map[string]string)
+	for _, secret := range secrets {
+		key := secret.Namespace + "/" + secret.Name
+		secretMap[key] = secret.ResourceVersion
+	}
+
+	for _, srv := range secretsResourceVersion {
+		key := srv.Namespace + "/" + srv.Name
+		if rv, ok := secretMap[key]; !ok || rv != srv.ResourceVersion {
+			return true
+		}
+	}
+
+	return false
+}
