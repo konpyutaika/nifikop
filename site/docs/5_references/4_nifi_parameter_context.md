@@ -120,5 +120,5 @@ spec:
 |Field|Type|Description|Required|Default|
 |-----|----|-----------|--------|--------|
 |name|string| name of the secret. |Yes| - |
-|namespace|string| the secret namespace location. |Yes| - |
-|resourceVersion|string| the secret resource version. |Yes| - |
+|namespace|string| namespace where is located the secret. |Yes| - |
+|resourceVersion|string| resource version of the secret. |Yes| - |

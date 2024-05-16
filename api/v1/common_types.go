@@ -161,8 +161,11 @@ type UserReference struct {
 
 // SecretResourceVersion states the resourceVersion of secret.
 type SecretResourceVersion struct {
-	Name            string `json:"name"`
-	Namespace       string `json:"namespace"`
+	// Name of the secret
+	Name string `json:"name"`
+	// Namespace where is located the secret
+	Namespace string `json:"namespace"`
+	// Resource version of the secret
 	ResourceVersion string `json:"resourceVersion" protobuf:"bytes,6,opt,name=resourceVersion"`
 }
 
