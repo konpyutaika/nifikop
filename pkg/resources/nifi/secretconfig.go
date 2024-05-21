@@ -165,6 +165,7 @@ func (r *Reconciler) getNifiPropertiesConfigString(nConfig *v1.NodeConfig, id in
 		"IsNode":                  nConfig.GetIsNode(),
 		"ZookeeperConnectString":  r.NifiCluster.Spec.ZKAddress,
 		"ZookeeperPath":           r.NifiCluster.Spec.GetZkPath(),
+		"ClusterManager":          r.NifiCluster.Spec.ClusterManager,
 	}); err != nil {
 		log.Error("error occurred during parsing the config template",
 			zap.String("clusterName", r.NifiCluster.Name),
