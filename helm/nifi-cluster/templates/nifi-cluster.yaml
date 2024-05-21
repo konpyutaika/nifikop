@@ -27,6 +27,14 @@ spec:
     hostAliases:
     {{- toYaml .Values.cluster.pod.hostAliases | nindent 6}}
   {{- end }}
+  {{- if .Values.cluster.pod.livenessProbe }}
+    livenessProbe:
+    {{- toYaml .Values.cluster.pod.livenessProbe | nindent 6}}
+  {{- end -}}
+  {{- if .Values.cluster.pod.readinessProbe }}
+    readinessProbe:
+    {{- toYaml .Values.cluster.pod.readinessProbe | nindent 6}}
+  {{- end }}
   singleUserConfiguration:
     {{- if .Values.cluster.singleUserConfiguration.enabled }}
     enabled: {{ .Values.cluster.singleUserConfiguration.enabled }}
@@ -74,9 +82,6 @@ spec:
   readOnlyConfig:
 {{- if .Values.cluster.maximumTimerDrivenThreadCount }}
     maximumTimerDrivenThreadCount: {{ .Values.cluster.maximumTimerDrivenThreadCount }}
-{{- end }}
-{{- if .Values.cluster.maximumEventDrivenThreadCount }}
-    maximumEventDrivenThreadCount: {{ .Values.cluster.maximumEventDrivenThreadCount }}
 {{- end }}
 {{- if .Values.cluster.additionalSharedEnvs }}
     additionalSharedEnvs:
@@ -129,7 +134,7 @@ spec:
         namespace: {{ .Release.Namespace }}
     bootstrapProperties:
       overrideSecretConfig:
-        data: bootstrap.properties
+        data: bootstrap.conf
         name: {{ include "nifi-cluster.fullname" . }}
         namespace: {{ .Release.Namespace }}
       nifiJvmMemory: {{ .Values.cluster.bootstrapProperties.nifiJvmMemory }}

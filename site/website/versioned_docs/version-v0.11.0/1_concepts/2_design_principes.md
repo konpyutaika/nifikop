@@ -14,12 +14,12 @@ All NiFi on Kubernetes setup use [StatefulSet](https://kubernetes.io/docs/concep
 
 How does this looks from the perspective of Apache NiFi ?
 
-With StatefulSet we get :
+With StatefulSet we get:
 - unique Node IDs generated during Pod startup
 - networking between Nodes with headless services
 - unique Persistent Volumes for Nodes
 
-Using StatefulSet we **lose**  the ability to :
+Using StatefulSet we **lose**  the ability to:
 
 - modify the configuration of unique Nodes
 - remove a specific Node from a cluster (StatefulSet always removes the most recently created Node)
@@ -36,27 +36,27 @@ With the NiFi operator we can:
 
 ## Dataflow Lifecycle management
 
-The [Dataflow Lifecycle management feature](./3_features.md#dataflow-lifecycle-management-via-crd) introduces 3 new CRDs :
+The [Dataflow Lifecycle management feature](./3_features.md#dataflow-lifecycle-management-via-crd) introduces 3 new CRDs:
 
-- **NiFiRegistryClient :** Allowing you to declare a [NiFi registry client](https://nifi.apache.org/docs/nifi-registry-docs/html/getting-started.html#connect-nifi-to-the-registry).
-- **NiFiParameterContext :** Allowing you to create parameter context, with two kinds of parameters, a simple `map[string]string` for non-sensitive parameters and a `list of secrets` which contains sensitive parameters.
-- **NiFiDataflow :** Allowing you to declare a Dataflow based on a `NiFiRegistryClient` and optionally a `ParameterContext`, which will be deployed and managed by the operator on the `targeted NiFi cluster`.
+- **NiFiRegistryClient:** Allowing you to declare a [NiFi registry client](https://nifi.apache.org/docs/nifi-registry-docs/html/getting-started.html#connect-nifi-to-the-registry).
+- **NiFiParameterContext:** Allowing you to create parameter context, with two kinds of parameters, a simple `map[string]string` for non-sensitive parameters and a `list of secrets` which contains sensitive parameters.
+- **NiFiDataflow:** Allowing you to declare a Dataflow based on a `NiFiRegistryClient` and optionally a `ParameterContext`, which will be deployed and managed by the operator on the `targeted NiFi cluster`.
 
-The following diagram shows the interactions between all the components : 
+The following diagram shows the interactions between all the components: 
 
 ![dataflow lifecycle management schema](/img/1_concepts/2_design_principes/dataflow_lifecycle_management_schema.jpg)
 
-With each CRD comes a new controller, with a reconcile loop : 
+With each CRD comes a new controller, with a reconcile loop: 
 
-- **NiFiRegistryClient's controller :** 
+- **NiFiRegistryClient's controller:** 
 
 ![NiFi registry client's reconcile loop](/img/1_concepts/2_design_principes/registry_client_reconcile_loop.jpeg)
 
-- **NiFiParameterContext's controller :** 
+- **NiFiParameterContext's controller:** 
 
 ![NiFi parameter context's reconcile loop](/img/1_concepts/2_design_principes/parameter_context_reconcile_loop.jpeg)
 
-- **NiFiDataflow's controller :** 
+- **NiFiDataflow's controller:** 
 
 ![NiFi dataflow's reconcile loop](/img/1_concepts/2_design_principes/dataflow_reconcile_loop.jpeg)
 

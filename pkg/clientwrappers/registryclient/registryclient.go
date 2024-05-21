@@ -105,7 +105,7 @@ func RemoveRegistryClient(registryClient *v1.NifiRegistryClient,
 func registryClientIsSync(registryClient *v1.NifiRegistryClient, entity *nigoapi.FlowRegistryClientEntity) bool {
 	return registryClient.Name == entity.Component.Name &&
 		registryClient.Spec.Description == entity.Component.Description &&
-		registryClient.Spec.Uri == entity.Component.Uri
+		registryClient.Spec.Uri == entity.Uri
 }
 
 func updateRegistryClientEntity(registryClient *v1.NifiRegistryClient, entity *nigoapi.FlowRegistryClientEntity) {
@@ -131,6 +131,6 @@ func updateRegistryClientEntity(registryClient *v1.NifiRegistryClient, entity *n
 
 	entity.Component.Name = registryClient.Name
 	entity.Component.Description = registryClient.Spec.Description
-	entity.Component.Uri = registryClient.Spec.Uri
+	entity.Uri = registryClient.Spec.Uri
 	entity.Component.Properties["url"] = registryClient.Spec.Uri
 }

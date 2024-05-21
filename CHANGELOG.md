@@ -2,22 +2,73 @@
 
 ### Added
 
+- [PR #394](https://github.com/konpyutaika/nifikop/pull/394) - **[Operator/NifiCluster]** Added support to let users configure AdditionalNifiEnvs.
+- [PR #430](https://github.com/konpyutaika/nifikop/pull/430) - **[Operator/NifiCluster]** Added Python extensions properties in the `nifi.properties` file template.
 - [PR #344](https://github.com/konpyutaika/nifikop/pull/344) - **[Operator/NifiCluster]** Added `clusterManager` field to choose between `ZooKeeper` or `Kubernetes`.
+
+### Changed
+
+- [PR #415](https://github.com/konpyutaika/nifikop/pull/415) - **[Operator]** Upgrade golang to 1.22.2.
+- [PR #393](https://github.com/konpyutaika/nifikop/pull/393) - **[Operator/NifiCluster]** Added support to let users configure `seccompProfile` and `securityContext`.
+- [PR #421](https://github.com/konpyutaika/nifikop/pull/421) - **[Documentation]** Upgrade node 22.0.0.
+- [PR #422](https://github.com/konpyutaika/nifikop/pull/422) - **[NiGoApi]** Upgrade NiGoApi to v0.1.0.
+- [PR #425](https://github.com/konpyutaika/nifikop/pull/425) - **[Operator]** Upgrade golang to 1.22.3.
+- [PR #428](https://github.com/konpyutaika/nifikop/pull/428) - **[Documentation]** Upgrade node 22.2.0.
+- [PR #344](https://github.com/konpyutaika/nifikop/pull/344) - **[Operator/NifiCluster]** Updated `nifi.properties` template for NiFi `2.0.0-M1`.
+
+### Fixed Bugs
+
+- [PR #416](https://github.com/konpyutaika/nifikop/pull/416) - **[Operator]** Certmanager-user: k8sutil: corrects IsAlreadyOwnedError.
+- [PR #418](https://github.com/konpyutaika/nifikop/pull/418) - **[Operator/NifiCluster]** Fixed issue where new nodes could not be added to NiFi cluster with a custom authorizer configuration provided.
+- [PR #420](https://github.com/konpyutaika/nifikop/pull/420) - **[Operator/NifiCluster]** Patch duplicate Prometheus Reporting Task. 
+
+### Deprecated
+
+- [PR #422](https://github.com/konpyutaika/nifikop/pull/422) - **[Operator/NifiCluster]** `MaximumEventDrivenThreadCount` is no longer configurable in NiFi.
+
+### Removed
+
+## v1.8.0
+
+### Added
+
+- [PR #403](https://github.com/konpyutaika/nifikop/pull/403) - **[Operator/NifiCluster]** Added support to let users configure `internalTrafficPolicy` and `externalTrafficPolicy` on external services.
+- [PR #391](https://github.com/konpyutaika/nifikop/pull/391) - **[Operator/NifiUserGroup]** Added settings missing for secure LDAP connections in login_identity_providers.xml
+- [PR #381](https://github.com/konpyutaika/nifikop/pull/381) - **[Operator/NifiUserGroup]** Added ability to set `NifiUserGroup.Spec.Identity` when users need to override the default naming convention.
+- [PR #392](https://github.com/konpyutaika/nifikop/pull/392) - **[Operator/NifiCluster]** Added update of the `DNSNames` of the node's `NifiUsers` if the `webProxyHosts` is updated.
+- [PR #392](https://github.com/konpyutaika/nifikop/pull/392) - **[Operator/NifiUser]** Added update of the `Certificate` if the `NifiUser` is updated.
+
+### Changed
+
+- [PR #378](https://github.com/konpyutaika/nifikop/pull/378) - **[Operator]** Tweak NiFi pod startup script to more gracefully handle pod IP resolution.
+- [PR #382](https://github.com/konpyutaika/nifikop/pull/382) - **[Operator/NifiCluster]** Changed `nifi.content.viewer.url` property default value.
+- [PR #387](https://github.com/konpyutaika/nifikop/pull/387) - **[Operator]** Upgrade golang to 1.21.7.
+- [PR #366](https://github.com/konpyutaika/nifikop/pull/366) - **[Operator]** Migrated nifikop to KubeBuilder go/v4 and operator-sdk to v1.33.0.
+- [PR #386](https://github.com/konpyutaika/nifikop/pull/386) - **[Operator]** Upgrade golang to 1.22.0.
+- [PR #398](https://github.com/konpyutaika/nifikop/pull/398) - **[Operator]** Upgrade golang to 1.22.1.
+- [PR #397](https://github.com/konpyutaika/nifikop/pull/397) - **[Operator/NifiUser]** Updates `NifiUser` synchronization logic to reduce api calls on `UserGroup` endpoint.
+- [PR #404](https://github.com/konpyutaika/nifikop/pull/404) - **[Operator/NifiCluster]** Updates `nifi.provenance.repository.debug.frequency` from `1_000_000` to `1000000`.
+
+## v1.7.0
+
+### Added
+
+- [PR #345](https://github.com/konpyutaika/nifikop/pull/345) - **[Helm Chart]** Added option to include `NodePort` with custom hosts in `webProxyHosts`.
+- [PR #364](https://github.com/konpyutaika/nifikop/pull/364) - **[Helm Chart]** Added ability to configure NiFi Pod `ReadinessProbe` and `LivenessProbe` in the nifi-cluster chart.
+- [PR #367](https://github.com/konpyutaika/nifikop/pull/367) - **[Operator/NifiParameterContext]** Parameter context's secret update detection.
 
 ### Changed
 
 - [PR #340](https://github.com/konpyutaika/nifikop/pull/340) - **[Operator/NifiDataflow]** Updated the logic to stop the entire dataflow instead of just the processors when the parameter context reference is updated.
 - [PR #342](https://github.com/konpyutaika/nifikop/pull/342) - **[Operator/NifiCluster]** Updated the logic to retrieve theIP address from hostname with `curl` instead of `wget`.
 - [PR #341](https://github.com/konpyutaika/nifikop/pull/341) - **[Helm Chart]** Fixed `webProxyHosts` conversion to Yaml. Updated zookeeper dependency. Updated `ServiceMonitor` endpoints generation.
-- [PR #345](https://github.com/konpyutaika/nifikop/pull/345) - **[Helm Chart]** Added option to include `NodePort` with custom hosts in `webProxyHosts`.
 - [PR #349](https://github.com/konpyutaika/nifikop/pull/349) - **[Operator/NifiRegistryClient]** Set FlowRegistry type in RegistryClient creation.
-- [PR #344](https://github.com/konpyutaika/nifikop/pull/344) - **[Operator/NifiCluster]** Updated `nifi.properties` template for NiFi `2.0.0-M1`.
-
-### Fixed Bugs
-
-### Deprecated
-
-### Removed
+- [PR #350](https://github.com/konpyutaika/nifikop/pull/350) - **[Operator]** Remove optimistic lock on `Patch`.
+- [PR #352](https://github.com/konpyutaika/nifikop/pull/352) - **[Operator]** Changed default LogLevel of NiFi from `DEBUG` to `INFO`.
+- [PR #354](https://github.com/konpyutaika/nifikop/pull/354) - **[Operator/NifiCluster]** Updated `login_identity_providers.xml` template for 2.0.0-M1.
+- [PR #368](https://github.com/konpyutaika/nifikop/pull/368) - **[Operator]** Upgrade golang to 1.21.6.
+- [PR #369](https://github.com/konpyutaika/nifikop/pull/369) - **[Operator/NifiParameterContext]** Update parameter value to null instead of delete.
+- [PR #363](https://github.com/konpyutaika/nifikop/pull/363) - **[Operator]** Replace `boostrap.properties` references with `boostrap.conf`.
 
 ## v1.6.0
 
@@ -507,9 +558,9 @@
 
 ### Fixed Bugs
 
-- [PR #53](https://github.com/Orange-OpenSource/nifikop/pull/53) - **[Operator]** Upgrade k8s dependencies to match with new version requirement : [#52](https://github.com/Orange-OpenSource/nifikop/issues/52) [#51](https://github.com/Orange-OpenSource/nifikop/issues/51) [#33](https://github.com/Orange-OpenSource/nifikop/issues/33)
+- [PR #53](https://github.com/Orange-OpenSource/nifikop/pull/53) - **[Operator]** Upgrade k8s dependencies to match with new version requirement: [#52](https://github.com/Orange-OpenSource/nifikop/issues/52) [#51](https://github.com/Orange-OpenSource/nifikop/issues/51) [#33](https://github.com/Orange-OpenSource/nifikop/issues/33)
 - [PR #53](https://github.com/Orange-OpenSource/nifikop/pull/53) - **[Operator]** Fix the users used into Reader user group
-- [PR #53](https://github.com/Orange-OpenSource/nifikop/pull/53) - **[Documentation]** Fix the chart version informations : [#51](https://github.com/Orange-OpenSource/nifikop/issues/51)
+- [PR #53](https://github.com/Orange-OpenSource/nifikop/pull/53) - **[Documentation]** Fix the chart version informations: [#51](https://github.com/Orange-OpenSource/nifikop/issues/51)
 
 ## v0.4.2-alpha-release
 
@@ -520,7 +571,7 @@
 - [PR #41](https://github.com/Orange-OpenSource/nifikop/pull/41) - **[Operator/NifiUser]** Manage NiFi's users into NiFi Cluster
 - [PR #41](https://github.com/Orange-OpenSource/nifikop/pull/41) - **[Operator/NifiUserGroup]** Manage NiFi's user groups into NiFi Cluster
 - [PR #41](https://github.com/Orange-OpenSource/nifikop/pull/41) - **[Operator]** Manage NiFi's access policies
-- [PR #41](https://github.com/Orange-OpenSource/nifikop/pull/41) - **[Operator/NifiCluster]** Create three defaults groups : admins, readers, nodes
+- [PR #41](https://github.com/Orange-OpenSource/nifikop/pull/41) - **[Operator/NifiCluster]** Create three defaults groups: admins, readers, nodes
 - [PR #41](https://github.com/Orange-OpenSource/nifikop/pull/41) - **[Operator/NifiCluster]** Add pod disruption budget support
 
 ### Changed
@@ -620,7 +671,7 @@
 
 ### Changed
 
-- [MR #9](https://github.com/Orange-OpenSource/nifikop/-/merge_requests/9) - Improve rolling upgrade : on ready pods, not just running
+- [MR #9](https://github.com/Orange-OpenSource/nifikop/-/merge_requests/9) - Improve rolling upgrade: on ready pods, not just running
 - [MR #9](https://github.com/Orange-OpenSource/nifikop/-/merge_requests/9) - Improve cluster task events filter
 - [MR #9](https://github.com/Orange-OpenSource/nifikop/-/merge_requests/9) - Improve Helm publication removing the cache
 - [MR #10](https://github.com/Orange-OpenSource/nifikop/-/merge_requests/10) - Move secure cluster configuration level (at Spec level)
@@ -642,7 +693,7 @@
 - Implement pod management lifecycle
 - Implement Graceful downscale pod lifecycle management
 - Implement Graceful upscale pod lifecycle management
-- Implement configuration lifecycle management for : nifi.properties, zookeeper.properties, state-management.xml, login-identity-providers.xml, logback.xml, bootstrap.conf, bootstrap-notification-services.xml
+- Implement configuration lifecycle management for: nifi.properties, zookeeper.properties, state-management.xml, login-identity-providers.xml, logback.xml, bootstrap.conf, bootstrap-notification-services.xml
 - Initiate documentations
 - Implementation basic makefile for some actions (debug, build, deploy, run, push, unit-test)
 - Create helm chart for operator

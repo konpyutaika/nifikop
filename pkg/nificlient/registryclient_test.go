@@ -175,8 +175,8 @@ func MockRegistryClient(id, name, description, uri string) nigoapi.FlowRegistryC
 			Id:          id,
 			Name:        name,
 			Description: description,
-			Uri:         uri,
 		},
+		Uri:      uri,
 		Revision: &nigoapi.RevisionDto{Version: &version},
 	}
 }

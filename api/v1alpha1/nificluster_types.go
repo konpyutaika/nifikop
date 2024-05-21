@@ -42,7 +42,7 @@ type NifiClusterSpec struct {
 	ProxyUrl string `json:"proxyUrl,omitempty"`
 	// Service defines the policy for services owned by NiFiKop operator.
 	Service ServicePolicy `json:"service,omitempty"`
-	// Pod defines the policy for  pods owned by NiFiKop operator.
+	// Pod defines the policy for pods owned by NiFiKop operator.
 	Pod PodPolicy `json:"pod,omitempty"`
 	// zKAddress specifies the ZooKeeper connection string
 	// in the form hostname:port where host and port are those of a Zookeeper server.
@@ -82,7 +82,7 @@ type NifiClusterSpec struct {
 	LdapConfiguration LdapConfiguration `json:"ldapConfiguration,omitempty"`
 	// NifiClusterTaskSpec specifies the configuration of the nifi cluster Tasks
 	NifiClusterTaskSpec NifiClusterTaskSpec `json:"nifiClusterTaskSpec,omitempty"`
-	// TODO : add vault
+	// TODO: add vault
 	// VaultConfig         	VaultConfig         `json:"vaultConfig,omitempty"`
 	// listenerConfig specifies nifi's listener specifig configs
 	ListenersConfig *ListenersConfig `json:"listenersConfig,omitempty"`
@@ -198,13 +198,13 @@ type AuthorizerConfig struct {
 
 // NifiProperties configuration that will be applied to the node.
 type NifiProperties struct {
-	// Additionnals nifi.properties configuration that will override the one produced based on template and
+	// Additionnal nifi.properties configuration that will override the one produced based on template and
 	// configuration
 	OverrideConfigMap *ConfigmapReference `json:"overrideConfigMap,omitempty"`
-	// Additionnals nifi.properties configuration that will override the one produced based
+	// Additionnal nifi.properties configuration that will override the one produced based
 	// on template, configurations and overrideConfigMap.
 	OverrideConfigs string `json:"overrideConfigs,omitempty"`
-	// Additionnals nifi.properties configuration that will override the one produced based
+	// Additionnal nifi.properties configuration that will override the one produced based
 	// on template, configurations, overrideConfigMap and overrideConfigs.
 	OverrideSecretConfig *SecretConfigReference `json:"overrideSecretConfig,omitempty"`
 	// A comma separated list of allowed HTTP Host header values to consider when NiFi
@@ -220,13 +220,13 @@ type NifiProperties struct {
 
 // ZookeeperProperties configuration that will be applied to the node.
 type ZookeeperProperties struct {
-	// Additionnals zookeeper.properties configuration that will override the one produced based on template and
+	// Additionnal zookeeper.properties configuration that will override the one produced based on template and
 	// configuration
 	OverrideConfigMap *ConfigmapReference `json:"overrideConfigMap,omitempty"`
-	// Additionnals zookeeper.properties configuration that will override the one produced based
+	// Additionnal zookeeper.properties configuration that will override the one produced based
 	// on template and configurations.
 	OverrideConfigs string `json:"overrideConfigs,omitempty"`
-	// Additionnals zookeeper.properties configuration that will override the one produced based
+	// Additionnal zookeeper.properties configuration that will override the one produced based
 	// on template, configurations, overrideConfigMap and overrideConfigs.
 	OverrideSecretConfig *SecretConfigReference `json:"overrideSecretConfig,omitempty"`
 }
@@ -235,13 +235,13 @@ type ZookeeperProperties struct {
 type BootstrapProperties struct {
 	// JVM memory settings
 	NifiJvmMemory string `json:"nifiJvmMemory,omitempty"`
-	// Additionnals bootstrap.properties configuration that will override the one produced based on template and
+	// Additionnal bootstrap.properties configuration that will override the one produced based on template and
 	// configuration
 	OverrideConfigMap *ConfigmapReference `json:"overrideConfigMap,omitempty"`
-	// Additionnals bootstrap.properties configuration that will override the one produced based
+	// Additionnal bootstrap.properties configuration that will override the one produced based
 	// on template and configurations.
 	OverrideConfigs string `json:"overrideConfigs,omitempty"`
-	// Additionnals bootstrap.properties configuration that will override the one produced based
+	// Additionnal bootstrap.properties configuration that will override the one produced based
 	// on template, configurations, overrideConfigMap and overrideConfigs.
 	OverrideSecretConfig *SecretConfigReference `json:"overrideSecretConfig,omitempty"`
 }
@@ -354,7 +354,7 @@ type ListenersConfig struct {
 	// clusterDomain allow to override the default cluster domain which is "cluster.local"
 	ClusterDomain string `json:"clusterDomain,omitempty"`
 	// useExternalDNS allow to manage externalDNS usage by limiting the DNS names associated
-	// to each nodes and load balancer : <cluster-name>-node-<node Id>.<cluster-name>.<service name>.<cluster domain>
+	// to each nodes and load balancer: <cluster-name>-node-<node Id>.<cluster-name>.<service name>.<cluster domain>
 	UseExternalDNS bool `json:"useExternalDNS,omitempty"`
 }
 
@@ -367,15 +367,15 @@ type SSLSecrets struct {
 	Create bool `json:"create,omitempty"`
 	// clusterScoped defines if the Issuer created is cluster or namespace scoped
 	ClusterScoped bool `json:"clusterScoped,omitempty"`
-	// issuerRef allow to use an existing issuer to act as CA :
+	// issuerRef allow to use an existing issuer to act as CA:
 	// https://cert-manager.io/docs/concepts/issuer/
 	IssuerRef *cmmeta.ObjectReference `json:"issuerRef,omitempty"`
-	// TODO : add vault
+	// TODO: add vault
 	PKIBackend PKIBackend `json:"pkiBackend,omitempty"`
 	// ,"vault"
 }
 
-// TODO : Add vault
+// TODO: Add vault
 // VaultConfig defines the configuration for a vault PKI backend
 /*type VaultConfig struct {
 	//
@@ -705,7 +705,7 @@ func (nConfig *NodeConfig) GetProvenanceStorage() string {
 	return "8 GB"
 }
 
-// GetNifiJvmMemory returns the default "2g" NifiJvmMemory if not specified otherwise.
+// GetNifiJvmMemory returns the default "512m" NifiJvmMemory if not specified otherwise.
 func (bProperties *BootstrapProperties) GetNifiJvmMemory() string {
 	if bProperties.NifiJvmMemory != "" {
 		return bProperties.NifiJvmMemory

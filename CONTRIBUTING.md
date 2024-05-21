@@ -5,7 +5,7 @@ NiFiKop is Apache 2.0 licensed and accepts contributions via GitHub pull request
 # Email and Chat
 
 - Email: [nifikop][nifikop]
-- Slack : [https://slack.konpytika.io](https://join.slack.com/t/konpytika/shared_invite/zt-14md072lv-Jr8mqYoeUrqzfZF~YGUpXA)
+- Slack: [https://slack.konpytika.io](https://join.slack.com/t/konpytika/shared_invite/zt-14md072lv-Jr8mqYoeUrqzfZF~YGUpXA)
 
 ## Getting started
 

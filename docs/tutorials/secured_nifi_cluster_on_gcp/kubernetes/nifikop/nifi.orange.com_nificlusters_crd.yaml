@@ -36,8 +36,8 @@ spec:
                 one place
               type: string
             clusterSecure:
-              description: 'Cluster nodes secure mode : https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#cluster_common_properties
-                TODO : rework to define into internalListener ! (Note: if ssl enabled
+              description: 'Cluster nodes secure mode: https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#cluster_common_properties
+                TODO: rework to define into internalListener ! (Note: if ssl enabled
                 need Cluster & SiteToSite & Https port)'
               type: boolean
             headlessServiceEnabled:
@@ -1085,7 +1085,7 @@ spec:
                 type: object
               type: array
             initialAdminUser:
-              description: 'TODO : remove once the user management is implemented
+              description: 'TODO: remove once the user management is implemented
                 into the operator'
               type: string
             ldapConfiguration:
@@ -1116,6 +1116,26 @@ spec:
                   type: string
                 identityStrategy:
                   type: string
+                tlsKeystore:
+                  type: string
+                tlsKeytorePassword:
+                  type: string
+                tlsKeytoreType:
+                  type: string
+                tlsTruststore:
+                  type: string
+                tlsTruststorePassword:
+                  type: string
+                tlsTruststoreType:
+                  type: string
+                clientAuth:
+                  type: string
+                protocol:
+                  type: string
+                shutdownGracefully:
+                  type: string
+                referralStrategy:
+                  type: string  
               type: object
             listenersConfig:
               description: listenerConfig specifies nifi's listener specifig configs
@@ -1179,7 +1199,7 @@ spec:
                         - name
                       type: object
                     pkiBackend:
-                      description: 'TODO : add vault'
+                      description: 'TODO: add vault'
                       enum:
                         - cert-manager
                         - vault
@@ -2173,7 +2193,7 @@ spec:
                             description: JVM memory settings
                             type: string
                           overrideConfigs:
-                            description: Additionnals bootstrap.properties configuration
+                            description: Additionnal bootstrap.conf configuration
                               that will override the one produced based on template
                               and configurations.
                             type: string
@@ -2190,7 +2210,7 @@ spec:
                             description: Nifi security client auth
                             type: boolean
                           overrideConfigs:
-                            description: Additionnals nifi.properties configuration
+                            description: Additionnal nifi.properties configuration
                               that will override the one produced based on template
                               and configurations.
                             type: string
@@ -2208,7 +2228,7 @@ spec:
                           applied to the node.
                         properties:
                           overrideConfigs:
-                            description: Additionnals zookeeper.properties configuration
+                            description: Additionnal zookeeper.properties configuration
                               that will override the one produced based on template
                               and configurations.
                             type: string
@@ -2242,7 +2262,7 @@ spec:
                       description: JVM memory settings
                       type: string
                     overrideConfigs:
-                      description: Additionnals bootstrap.properties configuration
+                      description: Additionnal bootstrap.conf configuration
                         that will override the one produced based on template and
                         configurations.
                       type: string
@@ -2259,7 +2279,7 @@ spec:
                       description: Nifi security client auth
                       type: boolean
                     overrideConfigs:
-                      description: Additionnals nifi.properties configuration that
+                      description: Additionnal nifi.properties configuration that
                         will override the one produced based on template and configurations.
                       type: string
                     webProxyHosts:
@@ -2276,15 +2296,15 @@ spec:
                     to the node.
                   properties:
                     overrideConfigs:
-                      description: Additionnals zookeeper.properties configuration
+                      description: Additionnal zookeeper.properties configuration
                         that will override the one produced based on template and
                         configurations.
                       type: string
                   type: object
               type: object
             siteToSiteSecure:
-              description: 'Site to Site properties Secure mode : https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#site_to_site_properties
-                TODO : rework to define into internalListener !'
+              description: 'Site to Site properties Secure mode: https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#site_to_site_properties
+                TODO: rework to define into internalListener !'
               type: boolean
             zkAddress:
               description: 'zKAddress specifies the ZooKeeper connection string in

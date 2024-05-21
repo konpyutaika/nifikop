@@ -126,6 +126,15 @@ func (r *Reconciler) pod(node v1.Node, nodeConfig *v1.NodeConfig, pvcs []corev1.
 		anntotationsToMerge = append(anntotationsToMerge, util.MonitoringAnnotations(*r.NifiCluster.Spec.GetMetricPort()))
 	}
 
+	defaultSeccompProfile := &corev1.SeccompProfile{
+		Type: corev1.SeccompProfileTypeRuntimeDefault,
+	}
+
+	seccompProfile := defaultSeccompProfile
+	if nodeConfig.SeccompProfile != nil {
+		seccompProfile = nodeConfig.SeccompProfile
+	}
+
 	// curl -kv --cert /var/run/secrets/java.io/keystores/client/tls.crt --key /var/run/secrets/java.io/keystores/client/tls.key https://nifi.trycatchlearn.fr:8433/nifi
 	// curl -kv --cert /var/run/secrets/java.io/keystores/client/tls.crt --key /var/run/secrets/java.io/keystores/client/tls.key https://securenc-headless.external-dns-test.gcp.trycatchlearn.fr:8443/nifi-api/controller/cluster
 	// keytool -import -noprompt -keystore /home/nifi/truststore.jks -file /var/run/secrets/java.io/keystores/server/ca.crt -storepass $(cat /var/run/secrets/java.io/keystores/server/password) -alias test1
@@ -138,16 +147,17 @@ func (r *Reconciler) pod(node v1.Node, nodeConfig *v1.NodeConfig, pvcs []corev1.
 		),
 		Spec: corev1.PodSpec{
 			SecurityContext: &corev1.PodSecurityContext{
-				RunAsUser:    nodeConfig.GetRunAsUser(),
-				RunAsNonRoot: func(b bool) *bool { return &b }(true),
-				FSGroup:      nodeConfig.GetFSGroup(),
+				RunAsUser:      nodeConfig.GetRunAsUser(),
+				RunAsNonRoot:   func(b bool) *bool { return &b }(true),
+				FSGroup:        nodeConfig.GetFSGroup(),
+				SeccompProfile: seccompProfile,
 			},
 			InitContainers: r.injectAdditionalEnvVars(initContainers),
 			Affinity: &corev1.Affinity{
 				PodAntiAffinity: generatePodAntiAffinity(r.NifiCluster.Name, r.NifiCluster.Spec.OneNifiNodePerNode),
 			},
 			TopologySpreadConstraints:     r.NifiCluster.Spec.TopologySpreadConstraints,
-			Containers:                    r.injectAdditionalEnvVars(r.generateContainers(nodeConfig, node.Id, podVolumeMounts, zkAddress, singleUserConfiguration)),
+			Containers:                    r.injectAdditionalFields(nodeConfig, r.generateContainers(nodeConfig, node.Id, podVolumeMounts, zkAddress, singleUserConfiguration)),
 			HostAliases:                   allHostAliases,
 			Volumes:                       podVolumes,
 			RestartPolicy:                 corev1.RestartPolicyNever,
@@ -311,7 +321,7 @@ func (r *Reconciler) generateDefaultContainerPort() []corev1.ContainerPort {
 	return usedPorts
 }
 
-// TODO : manage default port.
+// TODO: manage default port.
 func GetServerPort(l *v1.ListenersConfig) int32 {
 	var httpsServerPort int32
 	var httpServerPort int32
@@ -408,7 +418,7 @@ func (r *Reconciler) createNifiNodeContainer(nodeConfig *v1.NodeConfig, id int32
 			v1.TLSKey,
 			GetServerPort(r.NifiCluster.Spec.ListenersConfig))
 	}
-	// TODO : Manage https setup use cases https://github.com/cetic/helm-nifi/blob/master/templates/statefulset.yaml#L165
+	// TODO: Manage https setup use cases https://github.com/cetic/helm-nifi/blob/master/templates/statefulset.yaml#L165
 	readinessProbe := &corev1.Probe{
 		InitialDelaySeconds: readinessInitialDelaySeconds,
 		TimeoutSeconds:      readinessHealthCheckTimeout,
@@ -501,6 +511,10 @@ func (r *Reconciler) createNifiNodeContainer(nodeConfig *v1.NodeConfig, id int32
 		envVar = append(envVar, single_user_username, single_user_password)
 	}
 
+	if r.NifiCluster.Spec.ReadOnlyConfig.AdditionalNifiEnvs != nil {
+		envVar = append(envVar, r.NifiCluster.Spec.ReadOnlyConfig.AdditionalNifiEnvs...)
+	}
+
 	resolveIp := ""
 
 	if r.NifiCluster.Spec.Service.HeadlessEnabled {
@@ -512,8 +526,8 @@ do
 	echo "Found: $ipResolved, expecting: $POD_IP"
     sleep 5
 
-	ipResolved=$(curl -v -4 -m 1 --connect-timeout 1 %s 2>&1 | grep -o 'Trying [0-9.]*' | awk '{print $2}' | head -n 1)
-	echo "Found : $ipResolved"
+	ipResolved=$(curl -v -4 -m 1 --connect-timeout 1 %s 2>&1 | grep -o 'Trying [0-9.]*' | awk '{gsub(/\.\.\./, ""); print $2}' | head -n 1)
+	echo "Found: $ipResolved"
     if [[ "$ipResolved" == "$POD_IP" ]]; then
 		echo Ip match for $POD_IP
 		notMatchedIp=false
@@ -547,9 +561,37 @@ exec bin/nifi.sh run`, resolveIp, singleUser)}
 	}
 }
 
+func (r *Reconciler) injectAdditionalFields(nodeConfig *v1.NodeConfig, containers []corev1.Container) []corev1.Container {
+	withEnvVars := r.injectAdditionalEnvVars(containers)
+	withSecurityContext := r.injectAdditionalSecurityContext(nodeConfig, withEnvVars)
+	return withSecurityContext
+}
+
 func (r *Reconciler) injectAdditionalEnvVars(containers []corev1.Container) (injectedContainers []corev1.Container) {
 	for _, container := range containers {
 		container.Env = append(container.Env, r.NifiCluster.Spec.ReadOnlyConfig.AdditionalSharedEnvs...)
+		injectedContainers = append(injectedContainers, container)
+	}
+	return
+}
+
+func (r *Reconciler) injectAdditionalSecurityContext(nodeConfig *v1.NodeConfig, containers []corev1.Container) (injectedContainers []corev1.Container) {
+	defaultSecurityContext := &corev1.SecurityContext{
+		AllowPrivilegeEscalation: util.BoolPointer(false),
+		Capabilities: &corev1.Capabilities{
+			Drop: []corev1.Capability{
+				"ALL",
+			},
+		},
+	}
+	securityContext := defaultSecurityContext
+	if nodeConfig.SecurityContext != nil {
+		securityContext = nodeConfig.SecurityContext
+	}
+
+	for _, container := range containers {
+		container.SecurityContext = securityContext
+
 		injectedContainers = append(injectedContainers, container)
 	}
 	return

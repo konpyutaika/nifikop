@@ -1,6 +1,6 @@
 # nifi-cluster
 
-![Version: 1.6.0](https://img.shields.io/badge/Version-1.6.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.24.0](https://img.shields.io/badge/AppVersion-1.24.0-informational?style=flat-square)
+![Version: 1.8.0](https://img.shields.io/badge/Version-1.8.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.24.0](https://img.shields.io/badge/AppVersion-1.24.0-informational?style=flat-square)
 
 A Helm chart for deploying NiFi clusters in Kubernetes
 
@@ -21,7 +21,7 @@ A Helm chart for deploying NiFi clusters in Kubernetes
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | cluster.additionalSharedEnvs | list | `[]` | list of additional environment variables to attach to all init containers and the nifi container https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster/2_read_only_config#readonlyconfig |
-| cluster.bootstrapProperties | object | `{"nifiJvmMemory":"512m","overrideConfigs":"java.arg.4=-Djava.net.preferIPv4Stack=true\njava.arg.log4shell=-Dlog4j2.formatMsgNoLookups=true\n"}` | You can override individual properties in config/bootstrap.properties https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#bootstrap_properties |
+| cluster.bootstrapProperties | object | `{"nifiJvmMemory":"512m","overrideConfigs":"java.arg.4=-Djava.net.preferIPv4Stack=true\njava.arg.log4shell=-Dlog4j2.formatMsgNoLookups=true\n"}` | You can override individual properties in conf/bootstrap.conf https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#bootstrap_properties |
 | cluster.controllerUserIdentity | string | `nil` | ControllerUserIdentity specifies what to call the static admin user's identity. **Warning: once defined don't change this value either the operator will no longer be able to manage the cluster** |
 | cluster.disruptionBudget | object | `{}` | see https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster#disruptionbudget |
 | cluster.externalServices | list | `[{"metadata":{"annotations":{},"labels":{}},"name":"nifi-cluster-ip","spec":{"portConfigs":[{"internalListenerName":"http","port":8080}],"type":"ClusterIP"}}]` | Additional k8s services to create and target internal listener ports. Ingress will use these to route traffic to the cluster |
@@ -40,7 +40,6 @@ A Helm chart for deploying NiFi clusters in Kubernetes
 | cluster.logbackConfig.replaceSecretConfig | object | `{}` | A Secret ref to override the default logback configuration see https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster/2_read_only_config#logbackconfig |
 | cluster.managedAdminUsers | list | `[]` | see https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster#managedusers |
 | cluster.managedReaderUsers | list | `[]` | see https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster#managedusers |
-| cluster.maximumEventDrivenThreadCount | int | `10` | MaximumEventDrivenThreadCount defines the maximum number of threads for timer driven processors available to the system. This is a feature enabled by the following PR and should not be used unless you're running nifkop with this PR applied: https://github.com/Orange-OpenSource/nifikop/pull/184 |
 | cluster.maximumTimerDrivenThreadCount | int | `10` | MaximumTimerDrivenThreadCount defines the maximum number of threads for timer driven processors available to the system. |
 | cluster.nameOverride | string | `"nifi-cluster"` | the full name of the cluster. This is used to set a portion of the name of various nifikop resources |
 | cluster.nifiProperties | object | `{"needClientAuth":false,"overrideConfigs":"nifi.web.proxy.context.path=/nifi-cluster\n","webProxyHosts":[],"webProxyNodePorts":{"enabled":false,"hosts":[]}}` | You can override the individual properties via the overrideConfigs attribute. These will be provided to all pods via secrets. https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#system_properties |
@@ -54,6 +53,8 @@ A Helm chart for deploying NiFi clusters in Kubernetes
 | cluster.pod.annotations | object | `{}` | Annotations to apply to every pod |
 | cluster.pod.hostAliases | list | `[]` | host aliases to assign to each pod. See: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#hostalias-v1-core |
 | cluster.pod.labels | object | `{}` | Labels to apply to every pod |
+| cluster.pod.livenessProbe | object | `nil` | The pod liveness probe override: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#define-a-liveness-command |
+| cluster.pod.readinessProbe | object | `nil` | The pod readiness probe override: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#define-readiness-probes |
 | cluster.propagateLabels | bool | `true` |  |
 | cluster.retryDurationMinutes | int | `10` | The number of minutes the operator should wait for the cluster to be successfully deployed before retrying |
 | cluster.service.annotations | object | `{}` | Annotations to apply to each nifi service |

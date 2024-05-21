@@ -190,7 +190,7 @@ helm delete --purge nifikop
 By default, the chart will install the CRDs, but this installation is global for the whole
 cluster, and you may want to not modify the already deployed CRDs.
 
-In this case there is a parameter to say to not install the CRDs :
+In this case there is a parameter to say to not install the CRDs:
 
 ```
 $ helm install --name nifikop ./helm/nifikop --set namespaces={"nifikop"} --skip-crds

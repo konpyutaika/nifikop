@@ -1,0 +1,301 @@
+/*
+Copyright 2024.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+package main
+
+import (
+	"flag"
+	"fmt"
+	"os"
+	"strings"
+
+	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
+	// to ensure that exec-entrypoint and run can make use of them.
+	"go.uber.org/zap"
+	_ "k8s.io/client-go/plugin/pkg/client/auth"
+
+	certv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
+	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/cache"
+	"sigs.k8s.io/controller-runtime/pkg/healthz"
+	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
+
+	"github.com/go-logr/zapr"
+	v1 "github.com/konpyutaika/nifikop/api/v1"
+	v1alpha1 "github.com/konpyutaika/nifikop/api/v1alpha1"
+	"github.com/konpyutaika/nifikop/internal/controller"
+	"github.com/konpyutaika/nifikop/pkg/common"
+	//+kubebuilder:scaffold:imports
+)
+
+var (
+	scheme = runtime.NewScheme()
+)
+
+func init() {
+	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
+
+	utilruntime.Must(v1alpha1.AddToScheme(scheme))
+	utilruntime.Must(v1.AddToScheme(scheme))
+	//+kubebuilder:scaffold:scheme
+}
+
+func main() {
+	var metricsAddr string
+	var enableLeaderElection bool
+	var probeAddr string
+	var certManagerEnabled bool
+	var webhookEnabled bool
+
+	flag.StringVar(&metricsAddr, "metrics-bind-address", ":9090", "The address the metric endpoint binds to.")
+	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
+	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
+		"Enable leader election for controller manager. "+
+			"Enabling this will ensure there is only one active controller manager.")
+	flag.BoolVar(&certManagerEnabled, "cert-manager-enabled", false, "Enable cert-manager integration")
+	flag.BoolVar(&webhookEnabled, "webhook-enabled", true, "Enable CRDs conversion webhook.")
+
+	flag.Parse()
+
+	logger := common.CustomLogger()
+
+	ctrl.SetLogger(zapr.NewLogger(logger))
+
+	watchNamespace, err := getWatchNamespace()
+	if err != nil {
+		logger.Error("unable to get WATCH_NAMESPACE ENV, will watch and manage resources in all namespaces", zap.Error(err))
+	}
+
+	options := ctrl.Options{
+		Scheme:                 scheme,
+		Metrics:                metricsserver.Options{BindAddress: metricsAddr},
+		HealthProbeBindAddress: probeAddr,
+		LeaderElection:         enableLeaderElection,
+
+		LeaderElectionID: "bf438697.konpyutaika.com",
+		// LeaderElectionReleaseOnCancel defines if the leader should step down voluntarily
+		// when the Manager ends. This requires the binary to immediately end when the
+		// Manager is stopped, otherwise, this setting is unsafe. Setting this significantly
+		// speeds up voluntary leader transitions as the new leader don't have to wait
+		// LeaseDuration time first.
+		//
+		// In the default scaffold provided, the program ends immediately after
+		// the manager stops, so would be fine to enable this option. However,
+		// if you are doing or is intended to do any operation such as perform cleanups
+		// after the manager stops then its usage might be unsafe.
+		// LeaderElectionReleaseOnCancel: true,
+	}
+
+	// Add support for MultiNamespace set in WATCH_NAMESPACE (e.g ns1,ns2)
+	var namespaceList []string
+	if watchNamespace != "" {
+		logger.Info("WATCH_NAMESPACE ENV provided, will watch and manage resources in defined namespaces",
+			zap.String("namespaces", watchNamespace))
+		namespaceList = strings.Split(watchNamespace, ",")
+
+		configMap := map[string]cache.Config{}
+		for i := range namespaceList {
+			namespaceList[i] = strings.TrimSpace(namespaceList[i])
+			// we use the default cache config for each namespace cache.
+			configMap[namespaceList[i]] = cache.Config{}
+		}
+		options.Cache = cache.Options{
+			DefaultNamespaces: configMap,
+		}
+	}
+
+	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), options)
+	if err != nil {
+		logger.Error("unable to start manager", zap.Error(err))
+		os.Exit(1)
+	}
+
+	if err := certv1.AddToScheme(mgr.GetScheme()); err != nil {
+		logger.Error("", zap.Error(err))
+		os.Exit(1)
+	}
+
+	multipliers := *common.NewRequeueConfig()
+	if err = (&controller.NifiClusterReconciler{
+		Client:           mgr.GetClient(),
+		DirectClient:     mgr.GetAPIReader(),
+		Log:              *logger.Named("controller").Named("NifiCluster"),
+		Scheme:           mgr.GetScheme(),
+		Namespaces:       namespaceList,
+		Recorder:         mgr.GetEventRecorderFor("nifi-cluster"),
+		RequeueIntervals: multipliers.ClusterTaskRequeueIntervals,
+		RequeueOffset:    multipliers.RequeueOffset,
+	}).SetupWithManager(mgr); err != nil {
+		logger.Error("unable to create controller", zap.String("controller", "NifiCluster"), zap.Error(err))
+		os.Exit(1)
+	}
+
+	if err = (&controller.NifiClusterTaskReconciler{
+		Client:           mgr.GetClient(),
+		Log:              *logger.Named("controller").Named("NifiClusterTask"),
+		Scheme:           mgr.GetScheme(),
+		Recorder:         mgr.GetEventRecorderFor("nifi-cluster-task"),
+		RequeueIntervals: multipliers.ClusterTaskRequeueIntervals,
+		RequeueOffset:    multipliers.RequeueOffset,
+	}).SetupWithManager(mgr); err != nil {
+		logger.Error("unable to create controller", zap.String("controller", "NifiClusterTask"), zap.Error(err))
+		os.Exit(1)
+	}
+
+	if err = (&controller.NifiUserReconciler{
+		Client:          mgr.GetClient(),
+		Log:             *logger.Named("controller").Named("NifiUser"),
+		Scheme:          mgr.GetScheme(),
+		Recorder:        mgr.GetEventRecorderFor("nifi-user"),
+		RequeueInterval: multipliers.UserRequeueInterval,
+		RequeueOffset:   multipliers.RequeueOffset,
+	}).SetupWithManager(mgr, certManagerEnabled); err != nil {
+		logger.Error("unable to create controller", zap.String("controller", "NifiUser"), zap.Error(err))
+		os.Exit(1)
+	}
+
+	if err = (&controller.NifiUserGroupReconciler{
+		Client:          mgr.GetClient(),
+		Log:             *logger.Named("controller").Named("NifiUserGroup"),
+		Scheme:          mgr.GetScheme(),
+		Recorder:        mgr.GetEventRecorderFor("nifi-user-group"),
+		RequeueInterval: multipliers.UserGroupRequeueInterval,
+		RequeueOffset:   multipliers.RequeueOffset,
+	}).SetupWithManager(mgr); err != nil {
+		logger.Error("unable to create controller", zap.String("controller", "NifiUserGroup"), zap.Error(err))
+		os.Exit(1)
+	}
+
+	if err = (&controller.NifiDataflowReconciler{
+		Client:          mgr.GetClient(),
+		Log:             *logger.Named("controller").Named("NifiDataflow"),
+		Scheme:          mgr.GetScheme(),
+		Recorder:        mgr.GetEventRecorderFor("nifi-dataflow"),
+		RequeueInterval: multipliers.DataFlowRequeueInterval,
+		RequeueOffset:   multipliers.RequeueOffset,
+	}).SetupWithManager(mgr); err != nil {
+		logger.Error("unable to create controller", zap.String("controller", "NifiDataflow"), zap.Error(err))
+		os.Exit(1)
+	}
+
+	if err = (&controller.NifiParameterContextReconciler{
+		Client:          mgr.GetClient(),
+		Log:             *logger.Named("controller").Named("NifiParameterContext"),
+		Scheme:          mgr.GetScheme(),
+		Recorder:        mgr.GetEventRecorderFor("nifi-parameter-context"),
+		RequeueInterval: multipliers.ParameterContextRequeueInterval,
+		RequeueOffset:   multipliers.RequeueOffset,
+	}).SetupWithManager(mgr); err != nil {
+		logger.Error("unable to create controller", zap.String("controller", "NifiParameterContext"), zap.Error(err))
+		os.Exit(1)
+	}
+
+	if err = (&controller.NifiRegistryClientReconciler{
+		Client:          mgr.GetClient(),
+		Log:             *logger.Named("controller").Named("NifiRegistryClient"),
+		Scheme:          mgr.GetScheme(),
+		Recorder:        mgr.GetEventRecorderFor("nifi-registry-client"),
+		RequeueInterval: multipliers.RegistryClientRequeueInterval,
+		RequeueOffset:   multipliers.RequeueOffset,
+	}).SetupWithManager(mgr); err != nil {
+		logger.Error("unable to create controller", zap.String("controller", "NifiRegistryClient"), zap.Error(err))
+		os.Exit(1)
+	}
+
+	if err = (&controller.NifiNodeGroupAutoscalerReconciler{
+		Client:          mgr.GetClient(),
+		APIReader:       mgr.GetAPIReader(),
+		Scheme:          mgr.GetScheme(),
+		Log:             *logger.Named("controller").Named("NifiNodeGroupAutoscaler"),
+		Recorder:        mgr.GetEventRecorderFor("nifi-node-group-autoscaler"),
+		RequeueInterval: multipliers.NodeGroupAutoscalerRequeueInterval,
+		RequeueOffset:   multipliers.RequeueOffset,
+	}).SetupWithManager(mgr); err != nil {
+		logger.Error("unable to create controller", zap.String("controller", "NifiNodeGroupAutoscaler"), zap.Error(err))
+		os.Exit(1)
+	}
+
+	if err = (&controller.NifiConnectionReconciler{
+		Client:          mgr.GetClient(),
+		Log:             *logger.Named("controller").Named("NifiConnection"),
+		Scheme:          mgr.GetScheme(),
+		Recorder:        mgr.GetEventRecorderFor("nifi-connection"),
+		RequeueInterval: multipliers.ConnectionRequeueInterval,
+		RequeueOffset:   multipliers.RequeueOffset,
+	}).SetupWithManager(mgr); err != nil {
+		logger.Error("unable to create controller", zap.String("controller", "NifiConnection"), zap.Error(err))
+		os.Exit(1)
+	}
+
+	if webhookEnabled {
+		if err = (&v1alpha1.NifiUser{}).SetupWebhookWithManager(mgr); err != nil {
+			logger.Error("unable to create webhook", zap.String("webhook", "NifiUser"), zap.Error(err))
+			os.Exit(1)
+		}
+		if err = (&v1alpha1.NifiCluster{}).SetupWebhookWithManager(mgr); err != nil {
+			logger.Error("unable to create webhook", zap.String("webhook", "NifiCluster"), zap.Error(err))
+			os.Exit(1)
+		}
+		if err = (&v1alpha1.NifiDataflow{}).SetupWebhookWithManager(mgr); err != nil {
+			logger.Error("unable to create webhook", zap.String("webhook", "NifiDataflow"), zap.Error(err))
+			os.Exit(1)
+		}
+		if err = (&v1alpha1.NifiParameterContext{}).SetupWebhookWithManager(mgr); err != nil {
+			logger.Error("unable to create webhook", zap.String("webhook", "NifiParameterContext"), zap.Error(err))
+			os.Exit(1)
+		}
+		if err = (&v1alpha1.NifiRegistryClient{}).SetupWebhookWithManager(mgr); err != nil {
+			logger.Error("unable to create webhook", zap.String("webhook", "NifiRegistryClient"), zap.Error(err))
+			os.Exit(1)
+		}
+		if err = (&v1alpha1.NifiUserGroup{}).SetupWebhookWithManager(mgr); err != nil {
+			logger.Error("unable to create webhook", zap.String("webhook", "NifiUserGroup"), zap.Error(err))
+			os.Exit(1)
+		}
+	}
+	//+kubebuilder:scaffold:builder
+
+	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
+		logger.Error("unable to set up health check", zap.Error(err))
+		os.Exit(1)
+	}
+	if err := mgr.AddReadyzCheck("readyz", healthz.Ping); err != nil {
+		logger.Error("unable to set up ready check", zap.Error(err))
+		os.Exit(1)
+	}
+	logger.Info("Starting manager")
+	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
+		logger.Error("unable to start manager", zap.Error(err))
+		os.Exit(1)
+	}
+}
+
+// getWatchNamespace returns the Namespace the operator should be watching for changes.
+func getWatchNamespace() (string, error) {
+	// WatchNamespaceEnvVar is the constant for env variable WATCH_NAMESPACE
+	// which specifies the Namespace to watch.
+	// An empty value means the operator is running with cluster scope.
+	var watchNamespaceEnvVar = "WATCH_NAMESPACE"
+
+	ns, found := os.LookupEnv(watchNamespaceEnvVar)
+	if !found {
+		return "", fmt.Errorf("%s must be set", watchNamespaceEnvVar)
+	}
+	return ns, nil
+}

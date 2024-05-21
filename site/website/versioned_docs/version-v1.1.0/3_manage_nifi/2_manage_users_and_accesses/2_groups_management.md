@@ -5,7 +5,7 @@ sidebar_label: Groups management
 ---
 
 To simplify the access management Apache NiFi allows to define groups containing a list of users, on which we apply a list of access policies.
-This part is supported by the operator using the `NifiUserGroup` resource :
+This part is supported by the operator using the `NifiUserGroup` resource:
 
 
 ```yaml
@@ -21,7 +21,7 @@ spec:
   # contains the list of reference to NifiUsers that are part to the group.
   usersRef:
     - name: nc-0-node.nc-headless.nifikop.svc.cluster.local
-#      namespace: nifikop
+#     namespace: nifikop
     - name: nc-controller.nifikop.mgt.cluster.local
   # defines the list of access policies that will be granted to the group.
   accessPolicies:
@@ -29,7 +29,7 @@ spec:
     - type: global
       # defines the kind of action that will be granted, could be "read" or "write"
       action: read
-      # resource defines the kind of resource targeted by this access policies, please refer to the following page :
+      # resource defines the kind of resource targeted by this access policies, please refer to the following page:
       #	https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#access-policies
       resource: /counters
 #      # componentType is used if the type is "component", it's allow to define the kind of component on which is the

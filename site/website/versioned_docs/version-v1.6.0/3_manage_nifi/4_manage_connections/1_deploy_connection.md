@@ -4,7 +4,7 @@ title: Deploy connection
 sidebar_label: Deploy connection
 ---
 
-You can create NiFi connections either :
+You can create NiFi connections either:
 
 * directly against the cluster through its REST API (using UI or some home made scripts), or
 * via the `NifiConnection` CRD.

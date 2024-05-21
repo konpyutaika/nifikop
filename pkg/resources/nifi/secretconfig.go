@@ -452,43 +452,44 @@ func (r *Reconciler) getAuthorizersConfigString(nConfig *v1.NodeConfig, id int32
 	nodeList := make(map[string]string)
 
 	authorizersTemplate := config.EmptyAuthorizersTemplate
+	// use a different template for init nodes than nodes joining the cluster.
 	if r.NifiCluster.Status.NodesState[fmt.Sprint(id)].InitClusterNode {
 		authorizersTemplate = config.AuthorizersTemplate
+	}
 
-		// Check for secret/configmap overrides. If there aren't any, then use the default template.
-		if r.NifiCluster.Spec.ReadOnlyConfig.AuthorizerConfig.ReplaceTemplateConfigMap != nil {
-			conf, err := r.getConfigMap(context.TODO(), *r.NifiCluster.Spec.ReadOnlyConfig.AuthorizerConfig.ReplaceTemplateConfigMap)
-			if err != nil {
-				log.Error("error occurred during getting authorizer readonly configmap",
-					zap.String("clusterName", r.NifiCluster.Name),
-					zap.String("configMapName", r.NifiCluster.Spec.ReadOnlyConfig.AuthorizerConfig.ReplaceTemplateConfigMap.Name),
-					zap.String("configMapNamespace", r.NifiCluster.Spec.ReadOnlyConfig.AuthorizerConfig.ReplaceTemplateConfigMap.Namespace),
-					zap.Int32("nodeId", id),
-					zap.Error(err))
-			} else {
-				authorizersTemplate = conf
-			}
+	// Check for secret/configmap overrides. If there aren't any, then use the default template.
+	if r.NifiCluster.Spec.ReadOnlyConfig.AuthorizerConfig.ReplaceTemplateConfigMap != nil {
+		conf, err := r.getConfigMap(context.TODO(), *r.NifiCluster.Spec.ReadOnlyConfig.AuthorizerConfig.ReplaceTemplateConfigMap)
+		if err != nil {
+			log.Error("error occurred during getting authorizer readonly configmap",
+				zap.String("clusterName", r.NifiCluster.Name),
+				zap.String("configMapName", r.NifiCluster.Spec.ReadOnlyConfig.AuthorizerConfig.ReplaceTemplateConfigMap.Name),
+				zap.String("configMapNamespace", r.NifiCluster.Spec.ReadOnlyConfig.AuthorizerConfig.ReplaceTemplateConfigMap.Namespace),
+				zap.Int32("nodeId", id),
+				zap.Error(err))
+		} else {
+			authorizersTemplate = conf
 		}
+	}
 
-		// The secret takes precedence over the ConfigMap, if it exists.
-		if r.NifiCluster.Spec.ReadOnlyConfig.AuthorizerConfig.ReplaceTemplateSecretConfig != nil {
-			conf, err := r.getSecrectConfig(context.TODO(), *r.NifiCluster.Spec.ReadOnlyConfig.AuthorizerConfig.ReplaceTemplateSecretConfig)
-			if err != nil {
-				log.Error("error occurred during getting authorizer readonly secret config",
-					zap.String("clusterName", r.NifiCluster.Name),
-					zap.String("secretName", r.NifiCluster.Spec.ReadOnlyConfig.AuthorizerConfig.ReplaceTemplateSecretConfig.Name),
-					zap.String("secretNamespace", r.NifiCluster.Spec.ReadOnlyConfig.AuthorizerConfig.ReplaceTemplateSecretConfig.Namespace),
-					zap.Int32("nodeId", id),
-					zap.Error(err))
-			} else {
-				authorizersTemplate = conf
-			}
+	// The secret takes precedence over the ConfigMap, if it exists.
+	if r.NifiCluster.Spec.ReadOnlyConfig.AuthorizerConfig.ReplaceTemplateSecretConfig != nil {
+		conf, err := r.getSecrectConfig(context.TODO(), *r.NifiCluster.Spec.ReadOnlyConfig.AuthorizerConfig.ReplaceTemplateSecretConfig)
+		if err != nil {
+			log.Error("error occurred during getting authorizer readonly secret config",
+				zap.String("clusterName", r.NifiCluster.Name),
+				zap.String("secretName", r.NifiCluster.Spec.ReadOnlyConfig.AuthorizerConfig.ReplaceTemplateSecretConfig.Name),
+				zap.String("secretNamespace", r.NifiCluster.Spec.ReadOnlyConfig.AuthorizerConfig.ReplaceTemplateSecretConfig.Namespace),
+				zap.Int32("nodeId", id),
+				zap.Error(err))
+		} else {
+			authorizersTemplate = conf
 		}
+	}
 
-		for nId, nodeState := range r.NifiCluster.Status.NodesState {
-			if nodeState.InitClusterNode {
-				nodeList[nId] = utilpki.GetNodeUserName(r.NifiCluster, util.ConvertStringToInt32(nId))
-			}
+	for nId, nodeState := range r.NifiCluster.Status.NodesState {
+		if nodeState.InitClusterNode {
+			nodeList[nId] = utilpki.GetNodeUserName(r.NifiCluster, util.ConvertStringToInt32(nId))
 		}
 	}
 
@@ -524,9 +525,9 @@ func (r *Reconciler) getAuthorizersConfigString(nConfig *v1.NodeConfig, id int32
 	return out.String()
 }
 
-/////////////////////////////////////////
-//  Bootstrap properties configuration //
-/////////////////////////////////////////
+//////////////////////////////////////////
+//  Bootstrap properties configuration  //
+//////////////////////////////////////////
 
 func (r Reconciler) generateBootstrapPropertiesNodeConfig(id int32, nodeConfig *v1.NodeConfig, log zap.Logger) string {
 	var readOnlyClusterConfig map[string]string
@@ -597,7 +598,7 @@ func (r *Reconciler) getBootstrapPropertiesConfigString(nConfig *v1.NodeConfig, 
 	}
 
 	var out bytes.Buffer
-	t := template.Must(template.New("nConfig-config").Parse(config.BootstrapPropertiesTemplate))
+	t := template.Must(template.New("nConfig-config").Parse(config.BootstrapConfTemplate))
 	if err := t.Execute(&out, map[string]interface{}{
 		"NifiCluster": r.NifiCluster,
 		"Id":          id,

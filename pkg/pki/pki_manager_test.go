@@ -9,7 +9,7 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/konpyutaika/nifikop/api/v1"
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 )
 
 var log zap.Logger
@@ -51,7 +51,7 @@ func TestGetPKIManager(t *testing.T) {
 		t.Error("Expected nil error got:", err)
 	}
 
-	if _, err = mock.ReconcileUserCertificate(ctx, &v1.NifiUser{}, scheme.Scheme); err != nil {
+	if _, err = mock.ReconcileUserCertificate(ctx, log, &v1.NifiUser{}, scheme.Scheme); err != nil {
 		t.Error("Expected nil error got:", err)
 	}
 
@@ -81,7 +81,7 @@ func TestGetPKIManager(t *testing.T) {
 		t.Error("Expected:", expected, "got:", pkiType)
 	}
 
-	/* TODO : Add Vault
+	/* TODO: Add Vault
 	cluster.Spec.ListenersConfig.SSLSecrets.PKIBackend = v1alpha1.PKIBackendVault
 	certmanager = GetPKIManager(&mockClient{}, cluster)
 	pkiType = reflect.TypeOf(certmanager).String()

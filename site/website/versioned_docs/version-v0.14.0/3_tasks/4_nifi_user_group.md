@@ -9,7 +9,7 @@ sidebar_label: NiFi Users and Groups
 The `NifiUser` resource was already introduced for the [SSL credentials](./2_security/1_ssl.md#create-ssl-credentials) concerns.
 What we are covering here is the NiFi user management part introduced in this resource.
 
-When you create a `NifiUser` resource the operator will :
+When you create a `NifiUser` resource the operator will:
 
 1. Try to check if a user already exists with the same name on the NiFi cluster, if it does, the operator will set [NifiUser.Status.Id](./2_security/1_ssl.md#create-ssl-credentials) to bind it with the kubernetes resource.
 2. If no user is found, the operator will create and manage it (i.e it will ensure the synchronisation with the NiFi Cluster).
@@ -37,7 +37,7 @@ spec:
     - type: component
       # defines the kind of action that will be granted, could be "read" or "write"
       action: read
-      # resource defines the kind of resource targeted by this access policies, please refer to the following page :
+      # resource defines the kind of resource targeted by this access policies, please refer to the following page:
       #	https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#access-policies
       resource: /data
       # componentType is used if the type is "component", it's allow to define the kind of component on which is the
@@ -61,7 +61,7 @@ In the example above we are giving to user `alexandre.guitton@konpyutaika.com` t
 ## UserGroup management
 
 To simplify the access management Apache NiFi allows to define groups containing a list of users, on which we apply a list of access policies.
-This part is supported by the operator using the `NifiUserGroup` resource : 
+This part is supported by the operator using the `NifiUserGroup` resource: 
 
 
 ```yaml
@@ -77,7 +77,7 @@ spec:
   # contains the list of reference to NifiUsers that are part to the group.
   usersRef:
     - name: nc-0-node.nc-headless.nifikop.svc.cluster.local
-#      namespace: nifikop
+#     namespace: nifikop
     - name: nc-controller.nifikop.mgt.cluster.local
   # defines the list of access policies that will be granted to the group.
   accessPolicies:
@@ -85,7 +85,7 @@ spec:
     - type: global
       # defines the kind of action that will be granted, could be "read" or "write"
       action: read
-      # resource defines the kind of resource targeted by this access policies, please refer to the following page :
+      # resource defines the kind of resource targeted by this access policies, please refer to the following page:
       #	https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#access-policies
       resource: /counters
 #      # componentType is used if the type is "component", it's allow to define the kind of component on which is the
@@ -111,13 +111,13 @@ In the example above we are giving to users `nc-0-node.nc-headless.nifikop.svc.c
 
 ## Managed groups for simple setup
 
-In some case these two features could be heavy to define, for example when you have 10 dataflows with one cluster for each of them, it will lead in a lot of `.yaml` files ...
-To simplify this, we implement in the operator 2 `managed groups` : 
+In some case these two features could be heavy to define, for example when you have 10 dataflows with one cluster for each of them, it will lead in a lot of `.yaml` files.
+To simplify this, we implement in the operator 2 `managed groups`: 
 
-- **Admins :** a group giving access to everything on the NiFi Cluster,
-- **Readers :** a group giving access as viewer on the NiFi Cluster.
+- **Admins:** a group giving access to everything on the NiFi Cluster,
+- **Readers:** a group giving access as viewer on the NiFi Cluster.
 
-You can directly define the list of users who belong to each of them in the `NifiCluster.Spec` field : 
+You can directly define the list of users who belong to each of them in the `NifiCluster.Spec` field: 
 
 ```yaml
 apiVersion: nifi.konpyutaika.com/v1alpha1
@@ -127,36 +127,35 @@ metadata:
 spec:
   ...
   oneNifiNodePerNode: false
-  #
   propagateLabels: true
   managedAdminUsers:
-    -  identity : "alexandre.guitton@konpyutaika.com"
+    -  identity: "alexandre.guitton@konpyutaika.com"
        name: "aguitton"
-    -  identity : "nifiuser@konpyutaika.com"
+    -  identity: "nifiuser@konpyutaika.com"
        name: "nifiuser"
   managedReaderUsers:
-    -  identity : "toto@konpyutaika.com"
+    -  identity: "toto@konpyutaika.com"
        name: "toto"
     ...
 ```
 
-In this example the operator will create and manage 3 `NifiUsers` :
+In this example the operator will create and manage 3 `NifiUsers`:
 
-- **aguitton**, with the identity : `alexandre.guitton@konpyutaika.com`
-- **nifiuser**, with the identity : `nifiuser@konpyutaika.com`
-- **toto**, with the identity : `toto@konpyutaika.com`
+- **aguitton**, with the identity: `alexandre.guitton@konpyutaika.com`
+- **nifiuser**, with the identity: `nifiuser@konpyutaika.com`
+- **toto**, with the identity: `toto@konpyutaika.com`
 
-And create and manage two groups : 
+And create and manage two groups: 
 
-- **managed-admins :** that will contain 3 users (**aguitton**, **nifiuser**, **nc-controller.nifikop.mgt.cluster.local** which is the controller user).
-- **managed-readers :** that will contain 1 user (**toto**)
+- **managed-admins:** that will contain 3 users (**aguitton**, **nifiuser**, **nc-controller.nifikop.mgt.cluster.local** which is the controller user).
+- **managed-readers:** that will contain 1 user (**toto**)
 
 And the rest of the stuff will be reconciled and managed as described for `NifiUsers` and `NifiUserGroups`.
 
 :::note
 There is one more group that is created and managed by the operator, this is the **managed-nodes** group, for each node a `NifiUser` is created, and we automatically add them to this group to give them the right list of accesses.
 
-To get the list of managed groups just check the list of `NifiUserGroup` : 
+To get the list of managed groups just check the list of `NifiUserGroup`: 
 
 ```console
 kubectl get -n nifikop nifiusergroups.nifi.konpyutaika.com 

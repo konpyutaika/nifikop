@@ -10,7 +10,7 @@ ReadOnlyConfig object specifies the read-only type Nifi config cluster wide, all
 readOnlyConfig:
   # MaximumTimerDrivenThreadCount define the maximum number of threads for timer driven processors available to the system.
   maximumTimerDrivenThreadCount: 30
-  # MaximumEventDrivenThreadCount define the maximum number of threads for event driven processors available to the system.
+  # MaximumEventDrivenThreadCount define the maximum number of threads for event driven processors available to the system (@DEPRECATED. This has no effect from NiFiKOp v1.9.0 or later).
   maximumEventDrivenThreadCount: 10
   # Logback configuration that will be applied to the node
   logbackConfig:
@@ -50,7 +50,7 @@ readOnlyConfig:
       namespace: nifikop
   # NifiProperties configuration that will be applied to the node.
   nifiProperties:
-    # Additionnals nifi.properties configuration that will override the one produced based on template and
+    # Additionnal nifi.properties configuration that will override the one produced based on template and
     # configuration
     overrideConfigMap:
       # The key of the value,in data content, that we want use.
@@ -59,7 +59,7 @@ readOnlyConfig:
       name: raw
       # Namespace where is located the secret that we want to refer.
       namespace: nifikop.
-    # Additionnals nifi.properties configuration that will override the one produced based
+    # Additionnal nifi.properties configuration that will override the one produced based
     #	on template, configurations, overrideConfigMap and overrideConfigs.
     overrideSecretConfig:
       # The key of the value,in data content, that we want use.
@@ -68,7 +68,7 @@ readOnlyConfig:
       name: raw
       # Namespace where is located the secret that we want to refer.
       namespace: nifikop
-    # Additionnals nifi.properties configuration that will override the one produced based
+    # Additionnal nifi.properties configuration that will override the one produced based
     #	on template, configurations and overrideConfigMap
     overrideConfigs: |
       nifi.ui.banner.text=NiFiKop
@@ -83,7 +83,7 @@ readOnlyConfig:
   #      authorizer:
   # ZookeeperProperties configuration that will be applied to the node.
   zookeeperProperties:
-    #      # Additionnals zookeeeper.properties configuration that will override the one produced based on template and
+    #      # Additionnal zookeeeper.properties configuration that will override the one produced based on template and
     #      # configuration
     #      overrideConfigMap:
     #        # The key of the value,in data content, that we want use.
@@ -92,7 +92,7 @@ readOnlyConfig:
     #        name: raw
     #        # Namespace where is located the secret that we want to refer.
     #        namespace: nifikop.
-    #      # Additionnals zookeeeper.properties configuration that will override the one produced based
+    #      # Additionnal zookeeeper.properties configuration that will override the one produced based
     #      #	on template, configurations, overrideConfigMap and overrideConfigs.
     #      overrideSecretConfig:
     #        # The key of the value,in data content, that we want use.
@@ -101,7 +101,7 @@ readOnlyConfig:
     #        name: raw
     #        # Namespace where is located the secret that we want to refer.
     #        namespace: nifikop
-    # Additionnals zookeeper.properties configuration that will override the one produced based
+    # Additionnal zookeeper.properties configuration that will override the one produced based
     # on template and configurations.
     overrideConfigs: |
       initLimit=15
@@ -112,27 +112,27 @@ readOnlyConfig:
       autopurge.snapRetainCount=30
   # BootstrapProperties configuration that will be applied to the node.
   bootstrapProperties:
-    #      # Additionnals bootstrap.properties configuration that will override the one produced based on template and
+    #      # Additionnal bootstrap.conf configuration that will override the one produced based on template and
     #      # configuration
     #      overrideConfigMap:
     #        # The key of the value,in data content, that we want use.
-    #        data: bootstrap.properties
+    #        data: bootstrap.conf
     #        # Name of the configmap that we want to refer.
     #        name: raw
     #        # Namespace where is located the secret that we want to refer.
     #        namespace: nifikop.
-    #      # Additionnals bootstrap.properties configuration that will override the one produced based
+    #      # Additionnal bootstrap.conf configuration that will override the one produced based
     #      #	on template, configurations, overrideConfigMap and overrideConfigs.
     #      overrideSecretConfig:
     #        # The key of the value,in data content, that we want use.
-    #        data: bootstrap.properties
+    #        data: bootstrap.conf
     #        # Name of the configmap that we want to refer.
     #        name: raw
     #        # Namespace where is located the secret that we want to refer.
     #        namespace: nifikop
     # JVM memory settings
     nifiJvmMemory: "512m"
-    # Additionnals bootstrap.properties configuration that will override the one produced based
+    # Additionnal bootstrap.conf configuration that will override the one produced based
     # on template and configurations.
     # https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#bootstrap_properties
     overrideConfigs: |
@@ -144,8 +144,9 @@ readOnlyConfig:
 |Field|Type|Description|Required|Default|
 |-----|----|-----------|--------|--------|
 |maximumTimerDrivenThreadCount|int32|define the maximum number of threads for timer driven processors available to the system.|No|10|
-|maximumEventDrivenThreadCount|int32|define the maximum number of threads for event driven processors available to the system.|No|1|
-|additionalSharedEnvs|\[&nbsp;\][corev1.EnvVar](https://pkg.go.dev/k8s.io/api/core/v1#EnvVar)|define a set of additional env variables that will shared between all init containers and ontainers in the pod..|No|\[&nbsp;\]|
+|maximumEventDrivenThreadCount|int32|define the maximum number of threads for event driven processors available to the system (@DEPRECATED. This has no effect from NiFiKOp v1.9.0 or later).|No|1|
+|additionalSharedEnvs|\[&nbsp;\][corev1.EnvVar](https://pkg.go.dev/k8s.io/api/core/v1#EnvVar)|define a set of additional env variables that will shared between all init containers and containers in the pod.|No|\[&nbsp;\]|
+|additionalNifiEnvs|\[&nbsp;\][corev1.EnvVar](https://pkg.go.dev/k8s.io/api/core/v1#EnvVar)|define a set of additional env variables that will only be embed in the nifi container.|No|\[&nbsp;\]|
 |nifiProperties|[NifiProperties](#nifiproperties)|nifi.properties configuration that will be applied to the node.|No|nil|
 |zookeeperProperties|[ZookeeperProperties](#zookeeperproperties)|zookeeper.properties configuration that will be applied to the node.|No|nil|
 |bootstrapProperties|[BootstrapProperties](#bootstrapproperties)|bootstrap.conf configuration that will be applied to the node.|No|nil|
@@ -159,9 +160,9 @@ readOnlyConfig:
 
 |Field|Type|Description|Required|Default|
 |-----|----|-----------|--------|--------|
-|overrideConfigMap|[ConfigmapReference](#configmapreference)|Additionnals nifi.properties configuration that will override the one produced based on template and configuration.|No|nil|
-|overrideConfigs|string|Additionnals nifi.properties configuration that will override the one produced based on template, configurations and overrideConfigMap.|No|""|
-|overrideSecretConfig|[SecretConfigReference](#secretconfigreference)|Additionnals nifi.properties configuration that will override the one produced based on template, configurations, overrideConfigMap and overrideConfigs.|No|nil|
+|overrideConfigMap|[ConfigmapReference](#configmapreference)|Additionnal nifi.properties configuration that will override the one produced based on template and configuration.|No|nil|
+|overrideConfigs|string|Additionnal nifi.properties configuration that will override the one produced based on template, configurations and overrideConfigMap.|No|""|
+|overrideSecretConfig|[SecretConfigReference](#secretconfigreference)|Additionnal nifi.properties configuration that will override the one produced based on template, configurations, overrideConfigMap and overrideConfigs.|No|nil|
 |webProxyHosts|\[&nbsp;\]string| A list of allowed HTTP Host header values to consider when NiFi is running securely and will be receiving requests to a different host[:port] than it is bound to. [web-properties](https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#web-properties)|No|""|
 |needClientAuth|boolean|Nifi security client auth.|No|false|
 |authorizer|string|Indicates which of the configured authorizers in the authorizers.xml file to use [authorizer-configuration](https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#authorizer-configuration)|No|"managed-authorizer"|
@@ -171,17 +172,17 @@ readOnlyConfig:
 
 |Field|Type|Description|Required|Default|
 |-----|----|-----------|--------|--------|
-|overrideConfigMap|[ConfigmapReference](#configmapreference)|Additionnals zookeeper.properties configuration that will override the one produced based on template and configuration.|No|nil|
-|overrideConfigs|string|Additionnals zookeeper.properties configuration that will override the one produced based on template, configurations and overrideConfigMap.|No|""|
-|overrideSecretConfig|[SecretConfigReference](#secretconfigreference)|Additionnals zookeeper.properties configuration that will override the one produced based on template, configurations, overrideConfigMap and overrideConfigs.|No|nil|
+|overrideConfigMap|[ConfigmapReference](#configmapreference)|Additionnal zookeeper.properties configuration that will override the one produced based on template and configuration.|No|nil|
+|overrideConfigs|string|Additionnal zookeeper.properties configuration that will override the one produced based on template, configurations and overrideConfigMap.|No|""|
+|overrideSecretConfig|[SecretConfigReference](#secretconfigreference)|Additionnal zookeeper.properties configuration that will override the one produced based on template, configurations, overrideConfigMap and overrideConfigs.|No|nil|
 
 ## BootstrapProperties
 
 |Field|Type|Description|Required|Default|
 |-----|----|-----------|--------|--------|
-|overrideConfigMap|[ConfigmapReference](#configmapreference)|Additionnals bootstrap.properties configuration that will override the one produced based on template and configuration.|No|nil|
-|overrideConfigs|string|Additionnals bootstrap.properties configuration that will override the one produced based on template, configurations and overrideConfigMap.|No|""|
-|overrideSecretConfig|[SecretConfigReference](#secretconfigreference)|Additionnals bootstrap.properties configuration that will override the one produced based on template, configurations, overrideConfigMap and overrideConfigs.|No|nil|
+|overrideConfigMap|[ConfigmapReference](#configmapreference)|Additionnal bootstrap.conf configuration that will override the one produced based on template and configuration.|No|nil|
+|overrideConfigs|string|Additionnal bootstrap.conf configuration that will override the one produced based on template, configurations and overrideConfigMap.|No|""|
+|overrideSecretConfig|[SecretConfigReference](#secretconfigreference)|Additionnal bootstrap.conf configuration that will override the one produced based on template, configurations, overrideConfigMap and overrideConfigs.|No|nil|
 |NifiJvmMemory|string|JVM memory settings.|No|"512m"|
 
 ## LogbackConfig

@@ -38,8 +38,8 @@ func (n *nifiClient) CreateProcessGroup(
 	// Request on Nifi Rest API to create the versioned process group
 	pgEntity, rsp, body, err := client.ProcessGroupsApi.CreateProcessGroup(
 		context,
-		pgParentId,
 		entity,
+		pgParentId,
 		&nigoapi.ProcessGroupsApiCreateProcessGroupOpts{ParameterContextHandlingStrategy: optional.NewString("KEEP_EXISTING")})
 	if err := errorCreateOperation(rsp, body, err, n.log); err != nil {
 		return nil, err
@@ -57,7 +57,7 @@ func (n *nifiClient) UpdateProcessGroup(entity nigoapi.ProcessGroupEntity) (*nig
 	}
 
 	// Request on Nifi Rest API to update the versioned process group
-	pgEntity, rsp, body, err := client.ProcessGroupsApi.UpdateProcessGroup(context, entity.Id, entity)
+	pgEntity, rsp, body, err := client.ProcessGroupsApi.UpdateProcessGroup(context, entity, entity.Id)
 	if err := errorUpdateOperation(rsp, body, err, n.log); err != nil {
 		return nil, err
 	}
@@ -78,7 +78,7 @@ func (n *nifiClient) RemoveProcessGroup(entity nigoapi.ProcessGroupEntity) error
 		context,
 		entity.Id,
 		&nigoapi.ProcessGroupsApiRemoveProcessGroupOpts{
-			Version: optional.NewString(strconv.FormatInt(*entity.Revision.Version, 10)),
+			Version: optional.NewInterface(strconv.FormatInt(*entity.Revision.Version, 10)),
 		})
 
 	return errorDeleteOperation(rsp, body, err, n.log)
@@ -93,7 +93,7 @@ func (n *nifiClient) CreateConnection(entity nigoapi.ConnectionEntity) (*nigoapi
 	}
 
 	// Request on Nifi Rest API to create a connection
-	conEntity, rsp, body, err := client.ProcessGroupsApi.CreateConnection(context, entity.Component.ParentGroupId, entity)
+	conEntity, rsp, body, err := client.ProcessGroupsApi.CreateConnection(context, entity, entity.Component.ParentGroupId)
 	if err := errorCreateOperation(rsp, body, err, n.log); err != nil {
 		return nil, err
 	}

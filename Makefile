@@ -4,7 +4,7 @@ DOCKER_REGISTRY_BASE 	?= ghcr.io/konpyutaika/docker-images
 IMAGE_TAG				?= $(shell git describe --tags --abbrev=0 --match '[0-9].*[0-9].*[0-9]' 2>/dev/null)
 IMAGE_NAME 				?= $(SERVICE_NAME)
 BUILD_IMAGE				?= ghcr.io/konpyutaika/docker-images/nifikop-build
-GOLANG_VERSION          ?= 1.21.5
+GOLANG_VERSION          ?= 1.22.3
 IMAGE_TAG_BASE ?= <registry>/<operator name>
 OS = $(shell go env GOOS)
 ARCH = $(shell go env GOARCH)
@@ -14,6 +14,12 @@ WORKDIR := /go/nifikop
 
 # Debug variables
 TELEPRESENCE_REGISTRY ?= datawire
+
+# CONTAINER_TOOL defines the container tool to be used for building images.
+# Be aware that the target commands are only tested with Docker which is
+# scaffolded by default. However, you might want to replace it to use other
+# tools. (i.e. podman)
+CONTAINER_TOOL ?= docker
 
 ## Location to install dependencies to
 LOCALBIN ?= $(shell pwd)/bin
@@ -27,9 +33,9 @@ ENVTEST ?= $(LOCALBIN)/setup-envtest
 GOLANGCI_LINT ?= $(LOCALBIN)/golangci-lint
 
 ## Tool Versions
-KUSTOMIZE_VERSION ?= v4.5.5
-CONTROLLER_TOOLS_VERSION ?= v0.9.2
-ENVTEST_K8S_VERSION = 1.26
+KUSTOMIZE_VERSION ?= v5.2.1
+CONTROLLER_TOOLS_VERSION ?= v0.14.0
+ENVTEST_K8S_VERSION = 1.28.0
 GOLANGCI_VERSION = 1.55.2
 
 # controls the exit code of linter in case of linting issues
@@ -123,7 +129,7 @@ SHELL = /usr/bin/env bash -o pipefail
 # Build manager binary
 .PHONY: manager
 manager: manifests generate fmt
-	go build -o bin/manager main.go
+	go build -o bin/manager cmd/main.go
 
 # Generate code
 .PHONY: generate
@@ -140,15 +146,16 @@ manifests: controller-gen
 # Build the docker image
 .PHONY: docker-build
 docker-build:
-	docker build -t $(REPOSITORY):$(VERSION) .
+	${CONTAINER_TOOL} build -t $(REPOSITORY):$(VERSION) .
 
 .PHONY: build
 build: manager manifests
 
 .PHONY: controller-gen
-controller-gen: $(CONTROLLER_GEN) ## Download controller-gen locally if necessary.
+controller-gen: $(CONTROLLER_GEN) ## Download controller-gen locally if necessary. If wrong version is installed, it will be overwritten.
 $(CONTROLLER_GEN): $(LOCALBIN)
-	test -s $(LOCALBIN)/controller-gen || GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-tools/cmd/controller-gen@$(CONTROLLER_TOOLS_VERSION)
+	test -s $(LOCALBIN)/controller-gen && $(LOCALBIN)/controller-gen --version | grep -q $(CONTROLLER_TOOLS_VERSION) || \
+	GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-tools/cmd/controller-gen@$(CONTROLLER_TOOLS_VERSION)
 
 .PHONY: lint
 lint: golangci-lint
@@ -179,7 +186,7 @@ test-with-vendor: manifests generate fmt lint helm-chart-version-match govuln en
 # Run against the configured Kubernetes cluster in ~/.kube/config
 .PHONY: run
 run: generate fmt manifests
-	go run ./main.go
+	go run ./cmd/main.go
 
 ifndef ignore-not-found
   ignore-not-found = false
@@ -210,7 +217,11 @@ KUSTOMIZE_INSTALL_SCRIPT ?= "https://raw.githubusercontent.com/kubernetes-sigs/k
 .PHONY: kustomize
 kustomize: $(KUSTOMIZE) ## Download kustomize locally if necessary.
 $(KUSTOMIZE): $(LOCALBIN)
-	test -s $(LOCALBIN)/kustomize || { curl -s $(KUSTOMIZE_INSTALL_SCRIPT) | bash -s -- $(subst v,,$(KUSTOMIZE_VERSION)) $(LOCALBIN); }
+	@if test -x $(LOCALBIN)/kustomize && ! $(LOCALBIN)/kustomize version | grep -q $(KUSTOMIZE_VERSION); then \
+		echo "$(LOCALBIN)/kustomize version is not expected $(KUSTOMIZE_VERSION). Removing it before installing."; \
+		rm -rf $(LOCALBIN)/kustomize; \
+	fi
+	test -s $(LOCALBIN)/kustomize || GOBIN=$(LOCALBIN) GO111MODULE=on go install sigs.k8s.io/kustomize/kustomize/v5@$(KUSTOMIZE_VERSION)
 
 .PHONY: envtest
 envtest: $(ENVTEST) ## Download envtest-setup locally if necessary.
@@ -229,7 +240,7 @@ bundle: manifests kustomize
 # Build the bundle image.
 .PHONY: bundle-build
 bundle-build:
-	docker build -f bundle.Dockerfile -t $(BUNDLE_IMG) .
+	${CONTAINER_TOOL} build -f bundle.Dockerfile -t $(BUNDLE_IMG) .
 
 .PHONY: helm-dep-update $(HELM_CHARTS_DIRS)
 helm-dep-update: $(HELM_CHARTS_DIRS)
@@ -240,8 +251,7 @@ $(HELM_CHARTS_DIRS):
 .PHONY: helm-gen-docs
 helm-gen-docs:
 # only generate docs for nifi-cluster to avoid stomping on the existing nifikop chart docs
-	docker run --rm --volume "$(shell pwd)/helm/nifi-cluster/:/helm-docs" -u $(shell id -u) jnorwood/helm-docs:latest
-
+	${CONTAINER_TOOL} run --rm --volume "$(shell pwd)/helm/nifi-cluster/:/helm-docs" -u $(shell id -u) jnorwood/helm-docs:latest
 
 .PHONY: helm-chart-version-match
 helm-chart-version-match:
@@ -280,10 +290,10 @@ endif
 # Push the docker image
 .PHONY: docker-push
 docker-push:
-	docker push $(REPOSITORY):$(VERSION)
+	${CONTAINER_TOOL} push $(REPOSITORY):$(VERSION)
 ifdef PUSHLATEST
-	docker tag $(REPOSITORY):$(VERSION) $(REPOSITORY):latest
-	docker push $(REPOSITORY):latest
+	${CONTAINER_TOOL} tag $(REPOSITORY):$(VERSION) $(REPOSITORY):latest
+	${CONTAINER_TOOL} push $(REPOSITORY):latest
 endif
 # ----
 
@@ -298,20 +308,32 @@ PLATFORMS ?= linux/arm64,linux/amd64,linux/s390x,linux/ppc64le
 docker-buildx: test ## Build and push docker image for the manager for cross-platform support
   # copy existing Dockerfile and insert --platform=${BUILDPLATFORM} into Dockerfile.cross, and preserve the original Dockerfile
 	sed -e '1 s/\(^FROM\)/FROM --platform=\$$\{BUILDPLATFORM\}/; t' -e ' 1,// s//FROM --platform=\$$\{BUILDPLATFORM\}/' Dockerfile > Dockerfile.cross
-	- docker buildx create --name project-v3-builder
-	docker buildx use project-v3-builder
+	- ${CONTAINER_TOOL} buildx create --name project-v3-builder
+	${CONTAINER_TOOL} buildx use project-v3-builder
 ifdef PUSHLATEST
-	- docker buildx build --push --platform=$(PLATFORMS) --tag $(REPOSITORY):$(VERSION) --tag $(REPOSITORY):latest -f Dockerfile.cross .
+	- ${CONTAINER_TOOL} buildx build --push --platform=$(PLATFORMS) --tag $(REPOSITORY):$(VERSION) --tag $(REPOSITORY):latest -f Dockerfile.cross .
 else
-	- docker buildx build --push --platform=$(PLATFORMS) --tag $(REPOSITORY):$(VERSION) -f Dockerfile.cross .
+	- ${CONTAINER_TOOL} buildx build --push --platform=$(PLATFORMS) --tag $(REPOSITORY):$(VERSION) -f Dockerfile.cross .
 endif
-	- docker buildx rm project-v3-builder
+	- ${CONTAINER_TOOL} buildx rm project-v3-builder
 	rm Dockerfile.cross
 
 .DEFAULT_GOAL := help
+
+# The help target prints out all targets with their descriptions organized
+# beneath their categories. The categories are represented by '##@' and the
+# target descriptions by '##'. The awk command is responsible for reading the
+# entire set of makefiles included in this invocation, looking for lines of the
+# file as xyz: ## something, and then pretty-format the target and help. Then,
+# if there's a line with ##@ something, that gets pretty-printed as a category.
+# More info on the usage of ANSI control characters for terminal formatting:
+# https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_parameters
+# More info on the awk command:
+# http://linuxcommand.org/lc3_adv_awk.php
+
 .PHONY: help
-help:
-	@grep -E '(^[a-zA-Z_-]+:.*?##.*$$)|(^##)' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}{printf "\033[32m%-30s\033[0m %s\n", $$1, $$2}' | sed -e 's/\[32m##/[33m/'
+help: ## Display this help.
+	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
 .PHONY: get-version
 get-version:
@@ -344,7 +366,7 @@ debug-pod-logs:
 
 define debug_telepresence
 	export TELEPRESENCE_REGISTRY=$(TELEPRESENCE_REGISTRY) ; \
-	echo "execute : cat nifi-operator.env" ; \
+	echo "execute: cat nifi-operator.env" ; \
 	sudo mkdir -p /var/run/secrets/kubernetes.io ; \
 	tdep=$(shell kubectl get deployment -l app=nifikop -o jsonpath='{.items[0].metadata.name}') ; \
   	echo kubectl get deployment -l app=nifikop -o jsonpath='{.items[0].metadata.name}' ; \
@@ -363,7 +385,7 @@ debug-telepresence-with-alias:
 # Build the docker development environment
 .PHONY: build-ci-image
 build-ci-image:
-	docker build --cache-from $(BUILD_IMAGE):latest \
+	${CONTAINER_TOOL} build --cache-from $(BUILD_IMAGE):latest \
 	  --build-arg GOLANG_VERSION=$(GOLANG_VERSION) \
 	  --build-arg GOLANGCI_VERSION=$(GOLANGCI_VERSION) \
 		-t $(BUILD_IMAGE):latest \
@@ -373,9 +395,9 @@ build-ci-image:
 
 .PHONY: push-ci-image
 push-ci-image:
-	docker push $(BUILD_IMAGE):$(GOLANG_VERSION)
+	${CONTAINER_TOOL} push $(BUILD_IMAGE):$(GOLANG_VERSION)
 ifdef PUSHLATEST
-	docker push $(BUILD_IMAGE):latest
+	${CONTAINER_TOOL} push $(BUILD_IMAGE):latest
 endif
 
 ## Test if the dependencies we need to run this Makefile are installed

@@ -4,7 +4,7 @@ title: External Service Config
 sidebar_label: External Service Config
 ---
 
-ListenersConfig defines the Nifi listener types :
+ListenersConfig defines the Nifi listener types:
 
 ```yaml
   externalServices:

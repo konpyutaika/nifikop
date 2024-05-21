@@ -70,7 +70,7 @@ func (n *nifiClient) UpdateUser(entity nigoapi.UserEntity) (*nigoapi.UserEntity,
 	}
 
 	// Request on Nifi Rest API to update the user
-	userEntity, rsp, body, err := client.TenantsApi.UpdateUser(context, entity.Id, entity)
+	userEntity, rsp, body, err := client.TenantsApi.UpdateUser(context, entity, entity.Id)
 	if err := errorUpdateOperation(rsp, body, err, n.log); err != nil {
 		return nil, err
 	}
@@ -89,7 +89,7 @@ func (n *nifiClient) RemoveUser(entity nigoapi.UserEntity) error {
 	// Request on Nifi Rest API to remove the user
 	_, rsp, body, err := client.TenantsApi.RemoveUser(context, entity.Id,
 		&nigoapi.TenantsApiRemoveUserOpts{
-			Version: optional.NewString(strconv.FormatInt(*entity.Revision.Version, 10)),
+			Version: optional.NewInterface(strconv.FormatInt(*entity.Revision.Version, 10)),
 		})
 
 	return errorDeleteOperation(rsp, body, err, n.log)

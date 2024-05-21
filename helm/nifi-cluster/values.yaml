@@ -51,6 +51,10 @@ cluster:
     labels: {}
     # -- host aliases to assign to each pod. See: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#hostalias-v1-core
     hostAliases: []
+    # -- (object) The pod readiness probe override: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#define-readiness-probes
+    readinessProbe: 
+    # -- (object) The pod liveness probe override: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#define-a-liveness-command
+    livenessProbe: 
 
   image: 
     repository: "apache/nifi"
@@ -66,9 +70,6 @@ cluster:
   # --  MaximumTimerDrivenThreadCount defines the maximum number of threads for timer driven processors available to the system.
   maximumTimerDrivenThreadCount: 10
 
-  # --  MaximumEventDrivenThreadCount defines the maximum number of threads for timer driven processors available to the system.
-  # This is a feature enabled by the following PR and should not be used unless you're running nifkop with this PR applied: https://github.com/Orange-OpenSource/nifikop/pull/184
-  maximumEventDrivenThreadCount: 10
 
   # -- list of additional environment variables to attach to all init containers and the nifi container
   # https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster/2_read_only_config#readonlyconfig
@@ -128,7 +129,7 @@ cluster:
     # -- Nifi security client auth
     needClientAuth: false
 
-  # -- You can override individual properties in config/bootstrap.properties
+  # -- You can override individual properties in conf/bootstrap.conf
   # https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#bootstrap_properties
   bootstrapProperties:
     overrideConfigs: |
@@ -423,6 +424,8 @@ users: []
 # See all properties here: https://konpyutaika.github.io/nifikop/docs/5_references/6_nifi_usergroup
 userGroups: []
   # - name: "basic-user-group"
+  #   identity is an optional field. It defaults to the CRD '<namespace>-<name>'.
+  #   identity: "My Special Group"
   #   # Users listed here should match the identity of users provided via the `users` configuration
   #   users:
   #     - name: CN=first last, OU=Apache NiFi, O=Apache, L=Santa Monica, ST=CA, C=US

@@ -7,12 +7,12 @@ sidebar_label: Contribution organization
 ## New ownership for more community oriented
 
 The NiFiKop operator was originally started by Orange in March 2020 as [Orange-OpenSource/nifikop](https://github.com/Orange-OpenSource/nifikop), 
-and then forked as `konpyutaika/nifikop` in March 20222 : but this is the same codebase and the same developers.
+and then forked as `konpyutaika/nifikop` in March 2022: but this is the same codebase and the same developers.
 
 We made this decision in concert with Orange team, because some legal restrictions would not have allowed to involve and serve external community around this operator efficiently.
 Therefore,we have chosen to fork the source code into another organization and repository, which will allow a more open ownership and community-oriented development.
 
-It is important to notice that Orange will still continue to work and contribute to the operator, but as part of the community :)
+It is important to notice that Orange will still continue to work and contribute to the operator, but as part of the community 😄.
 
 ## Organizations
 
@@ -40,27 +40,27 @@ You can find all the tech scoping in this [Google Drive repository](https://driv
 
 #### NiFiKop Leads
 
-This group is currently composed of : 
+This group is currently composed of: 
 
 - [Alexandre Guitton](https://github.com/erdrix) as original owner and developer of the operator
 - [Julien Guitton](https://github.com/juldrixx) as representative of Orange contribution
 
-The mains objectives of this group are to : 
+The mains objectives of this group are to: 
 
 - Define the global roadmap of the operator,
 - Ensure the reviews and validations of the PRs,
 - Review and validate the Tech Scoping.
 
-This group aims to be more representative of the community, so if the operator community grows or if there is a needs, we would be happy to have more people in this group :)
+This group aims to be more representative of the community, so if the operator community grows or if there is a needs, we would be happy to have more people in this group 😄.
 
 #### NiFiKop Contributors
 
-This group is currently composed of : 
+This group is currently composed of: 
 
-The mains objectives of this group are to : 
+The mains objectives of this group are to: 
 
 - Manage issues to help people,
 - Review PRs (not validation),
 - Create and edit Tech Scoping for new features.
 
-This is an open group, so feel free to contact a NiFiKop Leader on Slack to join :) 
+This is an open group, so feel free to contact a NiFiKop Leader on Slack to join 😄.

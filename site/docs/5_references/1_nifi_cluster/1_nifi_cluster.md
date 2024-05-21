@@ -17,11 +17,35 @@ spec:
     annotations:
       tyty: ytyt
     labels:
-      tete: titi  
+      cluster-name: simplenifi
+      tete: titi
+  zkAddress: "zookeeper.zookeeper:2181"
+  zkPath: /simplenifi
+  externalServices:
+    - metadata:
+        annotations:
+          toto: tata
+        labels:
+          cluster-name: driver-simplenifi
+          titi: tutu
+      name: driver-ip
+      spec:
+        portConfigs:
+          - internalListenerName: http
+            port: 8080
+        type: ClusterIP
+  clusterImage: "apache/nifi:1.24.0"
+  initContainerImage: "bash:5.2.2"
+  oneNifiNodePerNode: true
+  readOnlyConfig:
+    nifiProperties:
+      overrideConfigs: |
+        nifi.sensitive.props.key=thisIsABadSensitiveKeyPassword
   pod:
     annotations:
       toto: tata
     labels:
+      cluster-name: simplenifi
       titi: tutu  
   clusterManager: zookeeper
   zkAddress: 'zookeepercluster-client.zookeeper:2181'
@@ -30,72 +54,53 @@ spec:
   oneNifiNodePerNode: false
   nodeConfigGroups:
     default_group:
+      imagePullPolicy: IfNotPresent
       isNode: true
-      podMetadata:
-        annotations:
-          node-annotation: "node-annotation-value"
-        labels:
-          node-label: "node-label-value"
-      externalVolumeConfigs:
-        - name: example-volume
-          mountPath: "/opt/nifi/example"
-          secret:
-            secretName: "raw-controller"
+      serviceAccountName: default
       storageConfigs:
-        - mountPath: '/opt/nifi/nifi-current/logs'
+        - mountPath: "/opt/nifi/nifi-current/logs"
           name: logs
-          # Metadata to attach to the PVC that gets created
-          metadata:
-            labels:
-              my-label: my-value
-            annotations:
-              my-annotation: my-value
+          reclaimPolicy: Delete
           pvcSpec:
             accessModes:
               - ReadWriteOnce
-            storageClassName: 'standard'
+            storageClassName: "standard"
             resources:
               requests:
                 storage: 10Gi
-      serviceAccountName: 'default'
       resourcesRequirements:
         limits:
-          cpu: '2'
-          memory: 3Gi
+          cpu: "1"
+          memory: 2Gi
         requests:
-          cpu: '1'
-          memory: 1Gi
+          cpu: "1"
+          memory: 2Gi
   nodes:
     - id: 1
-      nodeConfigGroup: 'default_group'
+      nodeConfigGroup: "default_group"
     - id: 2
-      nodeConfigGroup: 'default_group'
+      nodeConfigGroup: "default_group"
   propagateLabels: true
   nifiClusterTaskSpec:
     retryDurationMinutes: 10
   listenersConfig:
     internalListeners:
-      - type: 'http'
-        name: 'http'
-        containerPort: 8080
-      - type: 'cluster'
-        name: 'cluster'
-        containerPort: 6007
-      - type: 's2s'
-        name: 's2s'
-        containerPort: 10000
-  externalServices:
-    - name: 'clusterip'
-      spec:
-        type: ClusterIP
-        portConfigs:
-          - port: 8080
-            internalListenerName: 'http'
-      metadata:
-        annotations:
-          toto: tata
-        labels:
-          titi: tutu
+      - containerPort: 8080
+        type: http
+        name: http
+      - containerPort: 6007
+        type: cluster
+        name: cluster
+      - containerPort: 10000
+        type: s2s
+        name: s2s
+      - containerPort: 9090
+        type: prometheus
+        name: prometheus
+      - containerPort: 6342
+        type: load-balance
+        name: load-balance
+
 ```
 
 ## NifiCluster
@@ -122,7 +127,7 @@ spec:
 | clusterManager                 | [ClusterManagerType](#clustermanagertype)                                                            | specifies which manager will handle the cluster leader election and state management.                                                                                                                                                                                                          | No               | zookeeper                        |
 | zkAddress                 | string                                                                                         | specifies the ZooKeeper connection string in the form hostname:port where host and port are those of a Zookeeper server.                                                                                                                                                                                                                 | No               | ""                         |
 | zkPath                    | string                                                                                         | specifies the Zookeeper chroot path as part of its Zookeeper connection string which puts its data under same path in the global ZooKeeper namespace.                                                                                                                                                                                    | Yes              | "/"                        |
-| initContainerImage        | string                                                                                         | can override the default image used into the init container to check if ZoooKeeper server is reachable..                                                                                                                                                                                                                                 | Yes              | "bash"                     |
+| initContainerImage        | string                                                                                         | can override the default image used into the init container to check if ZoooKeeper server is reachable.                                                                                                                                                                                                                                 | Yes              | "bash"                     |
 | initContainers            | \[&nbsp;\]string                                                                                    | defines additional initContainers configurations.                                                                                                                                                                                                                                                                                        | No               | \[&nbsp;\]                      |
 | clusterImage              | string                                                                                         | can specify the whole nificluster image in one place.                                                                                                                                                                                                                                                                                    | No               | ""                         |
 | oneNifiNodePerNode        | boolean                                                                                        | if set to true every nifi node is started on a new node, if there is not enough node to do that it will stay in pending state. If set to false the operator also tries to schedule the nifi node to a unique node but if the node number is insufficient the nifi node will be scheduled to a node where a nifi node is already running. | No               | nil                        |
@@ -189,12 +194,26 @@ spec:
 
 ## LdapConfiguration
 
-| Field        | Type    | Description                                                                                                                               | Required | Default |
-| ------------ | ------- | ----------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------- |
-| enabled      | boolean | if set to true, we will enable ldap usage into nifi.properties configuration.                                                             | No       | false   |
-| url          | string  | space-separated list of URLs of the LDAP servers (i.e. ldap://$\{hostname}:$\{port}).                                                       | No       | ""      |
-| searchBase   | string  | base DN for searching for users (i.e. CN=Users,DC=example,DC=com).                                                                        | No       | ""      |
-| searchFilter | string  | Filter for searching for users against the 'User Search Base'. (i.e. sAMAccountName={0}). The user specified name is inserted into '{0}'. | No       | ""      |
+| Field                   | Type    | Description                                                                                                                               | Required | Default     |
+| ----------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------- | -------- | ----------- |
+| enabled                 | boolean | if set to true, we will enable ldap usage into nifi.properties configuration.                                                             | No       | false       |
+| url                     | string  | space-separated list of URLs of the LDAP servers (i.e. ldap://$\{hostname}:$\{port}).                                                     | No       | ""          |
+| searchBase              | string  | base DN for searching for users (i.e. CN=Users,DC=example,DC=com).                                                                        | No       | ""          |
+| searchFilter            | string  | Filter for searching for users against the 'User Search Base'. (i.e. sAMAccountName={0}). The user specified name is inserted into '{0}'. | No       | ""          |
+| authenticationStrategy  | string | How the connection to the LDAP server is authenticated. Possible values are ANONYMOUS, SIMPLE, LDAPS, or START_TLS.                        | No       | START_TLS   |
+| managerDn               | string | The DN of the manager that is used to bind to the LDAP server to search for users.                                                         | No       | ""          |
+| managerPassword         | string | The password of the manager that is used to bind to the LDAP server to search for users.                                                   | No       | ""          |
+| tlsKeystore             | string | Path to the Keystore that is used when connecting to LDAP using LDAPS or START_TLS. Not required for LDAPS. Only used for mutual TLS       | No       | ""          |
+| tlsKeystorePassword     | string | Password for the Keystore that is used when connecting to LDAP using LDAPS or START_TLS.                                                   | No       | ""          |
+| tlsKeystoreType         | string | Type of the Keystore that is used when connecting to LDAP using LDAPS or START_TLS (i.e. JKS or PKCS12).                                   | No       | ""          |
+| tlsTruststore           | string | Path to the Truststore that is used when connecting to LDAP using LDAPS or START_TLS. Required for LDAPS                                   | No       | ""          |
+| tlsTruststorePassword   | string | Password for the Truststore that is used when connecting to LDAP using LDAPS or START_TLS.                                                 | No       | ""          |
+| tlsTruststoreType       | string | Type of the Truststore that is used when connecting to LDAP using LDAPS or START_TLS (i.e. JKS or PKCS12).                                 | No       | ""          |
+| clientAuth              | string | Client authentication policy when connecting to LDAP using LDAPS or START_TLS. Possible values are REQUIRED, WANT, NONE.                   | No       | ""          |
+| protocol                | string | Protocol to use when connecting to LDAP using LDAPS or START_TLS. (i.e. TLS, TLSv1.1, TLSv1.2, etc).                                       | No       | ""          |
+| shutdownGracefully      | string | Specifies whether the TLS should be shut down gracefully before the target context is closed. Defaults to false.                           | No       | ""          |
+| referralStrategy        | string | Strategy for handling referrals. Possible values are FOLLOW, IGNORE, THROW.                                                                | No       | FOLLOW          |
+| identityStrategy        | string | Strategy to identify users. Possible values are USE_DN and USE_USERNAME.                                                                   | No       | USE_DN      |
 
 ## SingleUserConfiguration
 
@@ -209,7 +228,7 @@ spec:
 
 | Field                | Type | Description                                                                                                                                | Required | Default |
 | -------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------ | -------- | ------- |
-| retryDurationMinutes | int  | describes the time the operator waits before going back and retrying a cluster task, which can be: scale up, scale down, rolling upgrade.. | Yes      | 5       |
+| retryDurationMinutes | int  | describes the time the operator waits before going back and retrying a cluster task, which can be: scale up, scale down, rolling upgrade..| Yes      | 5       |
 
 ## ClusterState
 

@@ -14,7 +14,7 @@ func (n *nifiClient) GetDropRequest(connectionId, id string) (*nigoapi.DropReque
 	}
 
 	// Request on Nifi Rest API to get the drop request information
-	dropRequest, rsp, body, err := client.FlowfileQueuesApi.GetDropRequest(context, connectionId, id)
+	dropRequest, rsp, body, err := client.FlowFileQueuesApi.GetDropRequest(context, connectionId, id)
 	if err := errorGetOperation(rsp, body, err, n.log); err != nil {
 		return nil, err
 	}
@@ -31,7 +31,7 @@ func (n *nifiClient) CreateDropRequest(connectionId string) (*nigoapi.DropReques
 	}
 
 	// Request on Nifi Rest API to create the drop Request
-	entity, rsp, body, err := client.FlowfileQueuesApi.CreateDropRequest(context, connectionId)
+	entity, rsp, body, err := client.FlowFileQueuesApi.CreateDropRequest(context, connectionId)
 	if err := errorUpdateOperation(rsp, body, err, n.log); err != nil {
 		return nil, err
 	}
@@ -39,7 +39,7 @@ func (n *nifiClient) CreateDropRequest(connectionId string) (*nigoapi.DropReques
 	return &entity, nil
 }
 
-// TODO : when last supported will be NiFi 1.12.X
+// TODO: when last supported will be NiFi 1.12.X
 // func (n *nifiClient) CreateDropRequest(pgId string)(*nigoapi.ProcessGroupEntity, error) {
 //	// Get nigoapi client, favoring the one associated to the coordinator node.
 //	client, context := n.privilegeCoordinatorClient()

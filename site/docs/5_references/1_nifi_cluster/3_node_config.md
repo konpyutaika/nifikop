@@ -83,8 +83,10 @@ NodeConfig defines the node configuration
 | fsGroup               | int64                                                                                        |define the id of the group for each volumes in Nifi image|No|1000|
 | isNode                | boolean                                                                                      |Set this to true if the instance is a node in a cluster: [basic-cluster-setup](https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#basic-cluster-setup)|No|true|
 | image                 | string                                                                                       | Docker image used by the operator to create the node associated. [Nifi docker registry](https://hub.docker.com/r/apache/nifi/)|No|""|
-| imagePullPolicy       | [PullPolicy](https://godoc.org/k8s.io/api/core/v1#PullPolicy)                                | define the pull policy for NiFi cluster docker image.)|No|""|
+| imagePullPolicy       | [PullPolicy](https://godoc.org/k8s.io/api/core/v1#PullPolicy)                                | define the pull policy for NiFi cluster docker image.|No|""|
 | nodeAffinity          | string                                                                                       | operator populates this value if new pvc added later to node [node-affinity](https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#node-affinity)|No|nil|
+| seccompProfile        | [SeccompProfile](https://godoc.org/k8s.io/api/core/v1#SeccompProfile)                        | overrides the default seccompProfile of the nodes pod | No | \{type: "RuntimeDefault"\} |
+| securityContext       | [SecurityContext](https://godoc.org/k8s.io/api/core/v1#SecurityContext)                      | overrides the default container security context for all containers in the pod | No | \{allowPrivilegeEscalation: false, capabilities: \{drop: \["all"\]\}\} |
 | storageConfigs        | \[&nbsp;\][StorageConfig](#storageconfig)                                                        |specifies the node related configs.|No|nil|
 | externalVolumeConfigs | \[&nbsp;\][ExternalVolumeConfig](#externalvolumeconfig)                                          |specifies a list of volume to mount into the main container.|No|nil|
 | serviceAccountName    | string                                                                                       |specifies the serviceAccount used for this specific node.|No|"default"|
@@ -110,7 +112,7 @@ NodeConfig defines the node configuration
 
 | Field                                                             |Type| Description |Required|Default|
 |-------------------------------------------------------------------|----|-------------|--------|--------|
-|| [VolueMount](https://pkg.go.dev/k8s.io/api/core/v1#VolumeMount)   |describes a mounting of a Volume within a container.| Yes         | - |
+|| [VolumeMount](https://pkg.go.dev/k8s.io/api/core/v1#VolumeMount)   |describes a mounting of a Volume within a container.| Yes         | - |
 || [VolumeSource](https://pkg.go.dev/k8s.io/api/core/v1#VolumeSource) | VolumeSource represents the location and type of the mounted volume. | Yes         | - |
 
 ## Metadata

@@ -1,4 +1,4 @@
-// Documentations support : https://github.com/kubernetes-sigs/external-dns/blob/master/docs/tutorials/gke.md
+// Documentations support: https://github.com/kubernetes-sigs/external-dns/blob/master/docs/tutorials/gke.md
 // Manage DNS Zone for external dns.
 resource "google_dns_managed_zone" "external-dns-zone" {
     count = var.create_dns ? 1 : 0

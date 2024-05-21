@@ -4,7 +4,7 @@ title: Listeners Config
 sidebar_label: Listeners Config
 ---
 
-ListenersConfig defines the Nifi listener types :
+ListenersConfig defines the Nifi listener types:
 
 ```yaml
   listenersConfig:

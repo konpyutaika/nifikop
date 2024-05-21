@@ -6,6 +6,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
@@ -20,8 +21,13 @@ func NewClient(clientConfig clientcmd.ClientConfig) (client.Client, error) {
 		return nil, fmt.Errorf("unable to get rest client config: %w", err)
 	}
 
+	httpClient, err := rest.HTTPClientFor(restConfig)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get http client: %w", err)
+	}
+
 	// Create the mapper provider
-	mapper, err := apiutil.NewDiscoveryRESTMapper(restConfig)
+	mapper, err := apiutil.NewDynamicRESTMapper(restConfig, httpClient)
 	if err != nil {
 		return nil, fmt.Errorf("unable to to instantiate mapper: %w", err)
 	}

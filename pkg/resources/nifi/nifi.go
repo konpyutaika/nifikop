@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"sort"
 	"strings"
 	"time"
 
@@ -93,7 +94,7 @@ func (r *Reconciler) Reconcile(log zap.Logger) error {
 			zap.String("clusterNamespace", r.NifiCluster.Namespace))
 		return nil
 	}
-	// TODO : manage external LB
+	// TODO: manage external LB
 	uniqueHostnamesMap := make(map[string]struct{})
 
 	// TODO: review design
@@ -107,6 +108,8 @@ func (r *Reconciler) Reconcile(log zap.Logger) error {
 	for k := range uniqueHostnamesMap {
 		uniqueHostnames = append(uniqueHostnames, k)
 	}
+	// Preserving order
+	sort.Strings(uniqueHostnames)
 
 	// Setup the PKI if using SSL
 	if r.NifiCluster.Spec.ListenersConfig.SSLSecrets != nil {
@@ -924,6 +927,8 @@ func (r *Reconciler) reconcileNifiUsersAndGroups(log zap.Logger) error {
 func (r *Reconciler) reconcilePrometheusReportingTask(log zap.Logger) error {
 	var err error
 
+	patchNifiCluster := client.MergeFrom(r.NifiCluster.DeepCopy())
+
 	configManager := config.GetClientConfigManager(r.Client, v1.ClusterReference{
 		Namespace: r.NifiCluster.Namespace,
 		Name:      r.NifiCluster.Name,
@@ -948,7 +953,7 @@ func (r *Reconciler) reconcilePrometheusReportingTask(log zap.Logger) error {
 
 		r.NifiCluster.Status.PrometheusReportingTask = *status
 		if !reflect.DeepEqual(r.NifiCluster.Status, r.NifiClusterCurrentStatus) {
-			if err := r.Client.Status().Update(context.TODO(), r.NifiCluster); err != nil {
+			if err := r.Client.Status().Patch(context.TODO(), r.NifiCluster, patchNifiCluster); err != nil {
 				return errors.WrapIfWithDetails(err, "failed to update PrometheusReportingTask status")
 			}
 		}
@@ -962,7 +967,7 @@ func (r *Reconciler) reconcilePrometheusReportingTask(log zap.Logger) error {
 
 	r.NifiCluster.Status.PrometheusReportingTask = *status
 	if !reflect.DeepEqual(r.NifiCluster.Status, r.NifiClusterCurrentStatus) {
-		if err := r.Client.Status().Update(context.TODO(), r.NifiCluster); err != nil {
+		if err := r.Client.Status().Patch(context.TODO(), r.NifiCluster, patchNifiCluster); err != nil {
 			return errors.WrapIfWithDetails(err, "failed to update PrometheusReportingTask status")
 		}
 	}

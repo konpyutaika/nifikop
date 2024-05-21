@@ -8,7 +8,7 @@ sidebar_label: Developer guide
 
 ### Prerequisites
 
-NiFiKop has been validated with :
+NiFiKop has been validated with:
 
 - [go](https://golang.org/doc/install) version v1.17+.
 - [docker](https://docs.docker.com/get-docker/) version 18.09+
@@ -27,13 +27,13 @@ cd nifikop
 
 ### Operator sdk
 
-The full list of command is available here : https://sdk.operatorframework.io/docs/upgrading-sdk-version/v1.0.0/#cli-changes
+The full list of command is available here: https://sdk.operatorframework.io/docs/upgrading-sdk-version/v1.0.0/#cli-changes
 
 ### Build NiFiKop
 
 #### Local environment
 
-If you prefer working directly with your local go environment you can simply uses :
+If you prefer working directly with your local go environment you can simply uses:
 
 ```bash
 make build
@@ -43,7 +43,7 @@ make build
 
 We can quickly run NiFiKop in development mode (on your local host), then it will use your kubectl configuration file to connect to your kubernetes cluster.
 
-There are several ways to execute your operator :
+There are several ways to execute your operator:
 
 - Using your IDE directly
 - Executing directly the Go binary

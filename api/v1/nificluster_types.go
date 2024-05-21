@@ -93,7 +93,7 @@ type NifiClusterSpec struct {
 	LdapConfiguration LdapConfiguration `json:"ldapConfiguration,omitempty"`
 	// NifiClusterTaskSpec specifies the configuration of the nifi cluster Tasks
 	NifiClusterTaskSpec NifiClusterTaskSpec `json:"nifiClusterTaskSpec,omitempty"`
-	// TODO : add vault
+	// TODO: add vault
 	// VaultConfig         	VaultConfig         `json:"vaultConfig,omitempty"`
 	// listenerConfig specifies nifi's listener specifig configs
 	ListenersConfig *ListenersConfig `json:"listenersConfig,omitempty"`
@@ -219,11 +219,13 @@ type Node struct {
 type ReadOnlyConfig struct {
 	// MaximumTimerDrivenThreadCount define the maximum number of threads for timer driven processors available to the system.
 	MaximumTimerDrivenThreadCount *int32 `json:"maximumTimerDrivenThreadCount,omitempty"`
-	// MaximumEventDrivenThreadCount define the maximum number of threads for event driven processors available to the system.
+	// MaximumEventDrivenThreadCount define the maximum number of threads for event driven processors available to the system (@DEPRECATED. This has no effect from NiFiKOp v1.9.0 or later).
 	MaximumEventDrivenThreadCount *int32 `json:"maximumEventDrivenThreadCount,omitempty"`
 	// AdditionalSharedEnvs define a set of additional env variables that will shared between all init containers and
 	// containers in the pod.
 	AdditionalSharedEnvs []corev1.EnvVar `json:"additionalSharedEnvs,omitempty"`
+	// AdditionalNifiEnvs define a set of additional env variables that will only be embed in the nifi container.
+	AdditionalNifiEnvs []corev1.EnvVar `json:"additionalNifiEnvs,omitempty"`
 	// NifiProperties configuration that will be applied to the node.
 	NifiProperties NifiProperties `json:"nifiProperties,omitempty"`
 	// ZookeeperProperties configuration that will be applied to the node.
@@ -248,13 +250,13 @@ type AuthorizerConfig struct {
 
 // NifiProperties configuration that will be applied to the node.
 type NifiProperties struct {
-	// Additionnals nifi.properties configuration that will override the one produced based on template and
+	// Additionnal nifi.properties configuration that will override the one produced based on template and
 	// configuration
 	OverrideConfigMap *ConfigmapReference `json:"overrideConfigMap,omitempty"`
-	// Additionnals nifi.properties configuration that will override the one produced based
+	// Additionnal nifi.properties configuration that will override the one produced based
 	// on template, configurations and overrideConfigMap.
 	OverrideConfigs string `json:"overrideConfigs,omitempty"`
-	// Additionnals nifi.properties configuration that will override the one produced based
+	// Additionnal nifi.properties configuration that will override the one produced based
 	// on template, configurations, overrideConfigMap and overrideConfigs.
 	OverrideSecretConfig *SecretConfigReference `json:"overrideSecretConfig,omitempty"`
 	// A comma separated list of allowed HTTP Host header values to consider when NiFi
@@ -270,13 +272,13 @@ type NifiProperties struct {
 
 // ZookeeperProperties configuration that will be applied to the node.
 type ZookeeperProperties struct {
-	// Additionnals zookeeper.properties configuration that will override the one produced based on template and
+	// Additionnal zookeeper.properties configuration that will override the one produced based on template and
 	// configuration
 	OverrideConfigMap *ConfigmapReference `json:"overrideConfigMap,omitempty"`
-	// Additionnals zookeeper.properties configuration that will override the one produced based
+	// Additionnal zookeeper.properties configuration that will override the one produced based
 	// on template and configurations.
 	OverrideConfigs string `json:"overrideConfigs,omitempty"`
-	// Additionnals zookeeper.properties configuration that will override the one produced based
+	// Additionnal zookeeper.properties configuration that will override the one produced based
 	// on template, configurations, overrideConfigMap and overrideConfigs.
 	OverrideSecretConfig *SecretConfigReference `json:"overrideSecretConfig,omitempty"`
 }
@@ -285,13 +287,13 @@ type ZookeeperProperties struct {
 type BootstrapProperties struct {
 	// JVM memory settings
 	NifiJvmMemory string `json:"nifiJvmMemory,omitempty"`
-	// Additionnals bootstrap.properties configuration that will override the one produced based on template and
+	// Additionnal bootstrap.conf configuration that will override the one produced based on template and
 	// configuration
 	OverrideConfigMap *ConfigmapReference `json:"overrideConfigMap,omitempty"`
-	// Additionnals bootstrap.properties configuration that will override the one produced based
+	// Additionnal bootstrap.conf configuration that will override the one produced based
 	// on template and configurations.
 	OverrideConfigs string `json:"overrideConfigs,omitempty"`
-	// Additionnals bootstrap.properties configuration that will override the one produced based
+	// Additionnal bootstrap.conf configuration that will override the one produced based
 	// on template, configurations, overrideConfigMap and overrideConfigs.
 	OverrideSecretConfig *SecretConfigReference `json:"overrideSecretConfig,omitempty"`
 }
@@ -332,6 +334,10 @@ type NodeConfig struct {
 	ImagePullPolicy corev1.PullPolicy `json:"imagePullPolicy,omitempty"`
 	// nodeAffinity can be specified, operator populates this value if new pvc added later to node
 	NodeAffinity *corev1.NodeAffinity `json:"nodeAffinity,omitempty"`
+	// seccompProfile overrides the default seccompProfile of the nodes pod
+	SeccompProfile *corev1.SeccompProfile `json:"seccompProfile,omitempty"`
+	// securityContext overrides the default container security context for all containers in the pod
+	SecurityContext *corev1.SecurityContext `json:"securityContext,omitempty"`
 	// storageConfigs specifies the node related configs
 	StorageConfigs []StorageConfig `json:"storageConfigs,omitempty"`
 	// externalVolumeConfigs specifies a list of volume to mount into the main container.
@@ -416,7 +422,7 @@ type ListenersConfig struct {
 	// clusterDomain allow to override the default cluster domain which is "cluster.local"
 	ClusterDomain string `json:"clusterDomain,omitempty"`
 	// useExternalDNS allow to manage externalDNS usage by limiting the DNS names associated
-	// to each nodes and load balancer : <cluster-name>-node-<node Id>.<cluster-name>.<service name>.<cluster domain>
+	// to each nodes and load balancer: <cluster-name>-node-<node Id>.<cluster-name>.<service name>.<cluster domain>
 	UseExternalDNS bool `json:"useExternalDNS,omitempty"`
 }
 
@@ -429,15 +435,15 @@ type SSLSecrets struct {
 	Create bool `json:"create,omitempty"`
 	// clusterScoped defines if the Issuer created is cluster or namespace scoped
 	ClusterScoped bool `json:"clusterScoped,omitempty"`
-	// issuerRef allow to use an existing issuer to act as CA :
+	// issuerRef allow to use an existing issuer to act as CA:
 	// https://cert-manager.io/docs/concepts/issuer/
 	IssuerRef *cmmeta.ObjectReference `json:"issuerRef,omitempty"`
-	// TODO : add vault
+	// TODO: add vault
 	PKIBackend PKIBackend `json:"pkiBackend,omitempty"`
 	// ,"vault"
 }
 
-// TODO : Add vault
+// TODO: Add vault
 // VaultConfig defines the configuration for a vault PKI backend
 /*type VaultConfig struct {
 	//
@@ -549,6 +555,29 @@ type ExternalServiceSpec struct {
 	// Once set, it can not be changed. This field will be wiped when a service is updated to a non 'LoadBalancer' type.
 	// +optional
 	LoadBalancerClass *string `json:"loadBalancerClass,omitempty" protobuf:"bytes,21,opt,name=loadBalancerClass"`
+	// externalTrafficPolicy describes how nodes distribute service traffic they
+	// receive on one of the Service's "externally-facing" addresses (NodePorts,
+	// ExternalIPs, and LoadBalancer IPs). If set to "Local", the proxy will configure
+	// the service in a way that assumes that external load balancers will take care
+	// of balancing the service traffic between nodes, and so each node will deliver
+	// traffic only to the node-local endpoints of the service, without masquerading
+	// the client source IP. (Traffic mistakenly sent to a node with no endpoints will
+	// be dropped.) The default value, "Cluster", uses the standard behavior of
+	// routing to all endpoints evenly (possibly modified by topology and other
+	// features). Note that traffic sent to an External IP or LoadBalancer IP from
+	// within the cluster will always get "Cluster" semantics, but clients sending to
+	// a NodePort from within the cluster may need to take traffic policy into account
+	// when picking a node.
+	// +optional
+	ExternalTrafficPolicy corev1.ServiceExternalTrafficPolicy `json:"externalTrafficPolicy,omitempty" protobuf:"bytes,22,opt,name=externalTrafficPolicy,casttype=ServiceExternalTrafficPolicy"`
+	// InternalTrafficPolicy describes how nodes distribute service traffic they
+	// receive on the ClusterIP. If set to "Local", the proxy will assume that pods
+	// only want to talk to endpoints of the service on the same node as the pod,
+	// dropping the traffic if there are no local endpoints. The default value,
+	// "Cluster", uses the standard behavior of routing to all endpoints evenly
+	// (possibly modified by topology and other features).
+	// +optional
+	InternalTrafficPolicy *corev1.ServiceInternalTrafficPolicy `json:"internalTrafficPolicy,omitempty" protobuf:"bytes,23,opt,name=internalTrafficPolicy,casttype=ServiceInternalTrafficPolicy"`
 }
 
 type PortConfig struct {
@@ -582,6 +611,28 @@ type LdapConfiguration struct {
 	ManagerDn string `json:"managerDn,omitempty"`
 	// The password of the manager that is used to bind to the LDAP server to search for users.
 	ManagerPassword string `json:"managerPassword,omitempty"`
+	// Path to the Keystore that is used when connecting to LDAP using LDAPS or START_TLS.
+	// The TLS Keystore settings are optional and only used if your LDAP/AD server needs mutual TLS.
+	TLSKeystore string `json:"tlsKeystore,omitempty"`
+	// Password for the Keystore that is used when connecting to LDAP using LDAPS or START_TLS.
+	TLSKeystorePassword string `json:"tlsKeystorePassword,omitempty"`
+	// Type of the Keystore that is used when connecting to LDAP using LDAPS or START_TLS (i.e. JKS or PKCS12).
+	TLSKeystoreType string `json:"tlsKeystoreType,omitempty"`
+	// Path to the Truststore that is used when connecting to LDAP using LDAPS or START_TLS.
+	// The Truststore should contain the valid CA that your LDAPS/AD server is in to allow NiFi to trust it
+	TLSTruststore string `json:"tlsTruststore,omitempty"`
+	// Password for the Truststore that is used when connecting to LDAP using LDAPS or START_TLS.
+	TLSTruststorePassword string `json:"tlsTruststorePassword,omitempty"`
+	// Type of the Truststore that is used when connecting to LDAP using LDAPS or START_TLS (i.e. JKS or PKCS12).
+	TLSTruststoreType string `json:"tlsTruststoreType,omitempty"`
+	// Client authentication policy when connecting to LDAP using LDAPS or START_TLS. Possible values are REQUIRED, WANT, NONE.
+	ClientAuth string `json:"clientAuth,omitempty"`
+	// Protocol to use when connecting to LDAP using LDAPS or START_TLS. (i.e. TLS, TLSv1.1, TLSv1.2, etc).
+	Protocol string `json:"protocol,omitempty"`
+	// Specifies whether the TLS should be shut down gracefully before the target context is closed. Defaults to false.
+	ShutdownGracefully string `json:"shutdownGracefully,omitempty"`
+	// Strategy for handling referrals. Possible values are FOLLOW, IGNORE, THROW.
+	ReferralStrategy string `json:"referralStrategy,omitempty"`
 	// Strategy to identify users. Possible values are USE_DN and USE_USERNAME.
 	// The default functionality if this property is missing is USE_DN in order to retain backward compatibility.
 	// USE_DN will use the full DN of the user entry if possible.
@@ -800,7 +851,7 @@ func (nConfig *NodeConfig) GetProvenanceStorage() string {
 	return "8 GB"
 }
 
-// GetNifiJvmMemory returns the default "2g" NifiJvmMemory if not specified otherwise.
+// GetNifiJvmMemory returns the default "512m" NifiJvmMemory if not specified otherwise.
 func (bProperties *BootstrapProperties) GetNifiJvmMemory() string {
 	if bProperties.NifiJvmMemory != "" {
 		return bProperties.NifiJvmMemory

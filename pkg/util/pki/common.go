@@ -46,7 +46,7 @@ type Manager interface {
 	FinalizePKI(ctx context.Context, logger zap.Logger) error
 
 	// ReconcileUserCertificate ensures and returns a user certificate - should be idempotent
-	ReconcileUserCertificate(ctx context.Context, user *v1.NifiUser, scheme *runtime.Scheme) (*UserCertificate, error)
+	ReconcileUserCertificate(ctx context.Context, logger zap.Logger, user *v1.NifiUser, scheme *runtime.Scheme) (*UserCertificate, error)
 
 	// FinalizeUserCertificate removes/revokes a user certificate
 	FinalizeUserCertificate(ctx context.Context, user *v1.NifiUser) error
@@ -62,11 +62,11 @@ type UserCertificate struct {
 	Certificate []byte
 	Key         []byte
 
-	// TODO : Add Vault
+	// TODO: Add Vault
 	// Serial is used by vault backend for certificate revocations
 	// Serial string
 
-	// TODO : Add Vault
+	// TODO: Add Vault
 	// jks and password are used by vault backend for passing jks info between itself
 	// the cert-manager backend passes it through the k8s secret
 	// JKS      []byte

@@ -10,10 +10,10 @@ spec:
   clusterImage: "apache/nifi:1.17.0"
   oneNifiNodePerNode: false
   managedAdminUsers:
-    -  identity : "alexandre.guitton@orange.com"
+    -  identity: "alexandre.guitton@orange.com"
        name: "aguitton"
   managedReaderUsers:
-    -  identity : "toton@orange.com"
+    -  identity: "toton@orange.com"
        name: "toto"
   propagateLabels: true
   nifiClusterTaskSpec:
@@ -23,7 +23,7 @@ spec:
     nifiProperties:
       webProxyHosts:
         - nifistandard2.trycatchlearn.fr:8443
-      # Additionnals nifi.properties configuration that will override the one produced based
+      # Additionnal nifi.properties configuration that will override the one produced based
       # on template and configurations.
       overrideConfigs: |
         nifi.sensitive.props.key=thisIsABadSensitiveKeyPassword
