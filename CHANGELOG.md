@@ -2,7 +2,8 @@
 
 ### Added
 
-- [PR #416](https://github.com/konpyutaika/nifikop/pull/394) - **[Operator/NifiCluster]** Added support to let users configure AdditionalNifiEnvs.
+- [PR #394](https://github.com/konpyutaika/nifikop/pull/394) - **[Operator/NifiCluster]** Added support to let users configure AdditionalNifiEnvs.
+- [PR #430](https://github.com/konpyutaika/nifikop/pull/430) - **[Operator/NifiCluster]** Added Python extensions properties in the `nifi.properties` file template.
 
 ### Changed
 
