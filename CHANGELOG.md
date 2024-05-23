@@ -13,6 +13,8 @@
 - [PR #422](https://github.com/konpyutaika/nifikop/pull/422) - **[NiGoApi]** Upgrade NiGoApi to v0.1.0.
 - [PR #425](https://github.com/konpyutaika/nifikop/pull/425) - **[Operator]** Upgrade golang to 1.22.3.
 - [PR #428](https://github.com/konpyutaika/nifikop/pull/428) - **[Documentation]** Upgrade node 22.2.0.
+- [PR #431](https://github.com/konpyutaika/nifikop/pull/431) - **[Operator/NifiCluster]** Changed type of the version field from `VersionControlInformationEntity` to be generic.
+- [PR #431](https://github.com/konpyutaika/nifikop/pull/431) - **[NiGoApi]** Upgrade NiGoApi to v0.1.1.
 
 ### Fixed Bugs
 
