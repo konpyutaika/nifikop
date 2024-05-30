@@ -83,9 +83,21 @@ spec:
             properties:
               id:
                 type: string
-              latestSecretUpdate:
-                format: date-time
-                type: string
+              latestSecretsResourceVersion:
+                items:
+                  properties:
+                    name:
+                      type: string
+                    namespace:
+                      type: string
+                    resourceVersion:
+                      type: string
+                  required:
+                  - name
+                  - namespace
+                  - resourceVersion
+                  type: object
+                type: array
               latestUpdateRequest:
                 properties:
                   complete:

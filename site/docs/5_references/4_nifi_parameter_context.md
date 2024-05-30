@@ -74,7 +74,7 @@ spec:
 |version|int64| the last nifi parameter context revision version catched. |Yes| - |
 |latestUpdateRequest|[ParameterContextUpdateRequest](#parametercontextupdaterequest)|the latest update request. |Yes| - |
 |version|int64| the last nifi parameter context revision version catched. |Yes| - |
-|latestSecretUpdate|[v1.Time](https://pkg.go.dev/k8s.io/apimachinery/pkg/apis/meta/v1#Time)|the latest update time of the secrets. |No| - |
+|LatestSecretsResourceVersion|\[&nbsp;\][SecretResourceVersion](#secretResourceVersion)|the latest `resourceVersion` of the secrets. |No| - |
 
 ## Parameter
 
@@ -114,3 +114,11 @@ spec:
 |-----|----|-----------|--------|--------|
 |name|string| name of the NifiParameterContext. |Yes| - |
 |namespace|string| the NifiParameterContext namespace location. |No| - |
+
+## SecretResourceVersion
+
+|Field|Type|Description|Required|Default|
+|-----|----|-----------|--------|--------|
+|name|string| name of the secret. |Yes| - |
+|namespace|string| namespace where is located the secret. |Yes| - |
+|resourceVersion|string| resource version of the secret. |Yes| - |

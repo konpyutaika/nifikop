@@ -5,13 +5,13 @@ import (
 
 	nigoapi "github.com/konpyutaika/nigoapi/pkg/nifi"
 	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	v1 "github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers"
 	"github.com/konpyutaika/nifikop/pkg/common"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	"github.com/konpyutaika/nifikop/pkg/nificlient"
+	"github.com/konpyutaika/nifikop/pkg/util"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
 )
 
@@ -84,7 +84,7 @@ func CreateParameterContext(
 
 	parameterContext.Status.Id = entity.Id
 	parameterContext.Status.Version = *entity.Revision.Version
-	parameterContext.Status.LatestSecretUpdate = extractMostRecentSecretUpdateTime(parameterSecrets)
+	parameterContext.Status.LatestSecretsResourceVersion = util.ExtractSecretsResourceVersion(parameterSecrets)
 
 	return &parameterContext.Status, nil
 }
@@ -137,7 +137,7 @@ func SyncParameterContext(
 
 		parameterContext.Status.LatestUpdateRequest =
 			updateRequest2Status(updateRequest)
-		parameterContext.Status.LatestSecretUpdate = extractMostRecentSecretUpdateTime(parameterSecrets)
+		parameterContext.Status.LatestSecretsResourceVersion = util.ExtractSecretsResourceVersion(parameterSecrets)
 		return &parameterContext.Status, errorfactory.NifiParameterContextUpdateRequestRunning{}
 	}
 
@@ -187,7 +187,7 @@ func parameterContextIsSync(
 		return false
 	}
 
-	if parameterContext.Status.LatestSecretUpdate.Before(extractMostRecentSecretUpdateTime(parameterSecrets)) {
+	if util.IsSecretResourceVersionUpdated(parameterSecrets, parameterContext.Status.LatestSecretsResourceVersion) {
 		return false
 	}
 
@@ -250,7 +250,7 @@ func updateRequestPrepare(
 		}
 	}
 
-	secretsNeedToBeUpdated := parameterContext.Status.LatestSecretUpdate.Before(extractMostRecentSecretUpdateTime(parameterSecrets))
+	secretsNeedToBeUpdated := util.IsSecretResourceVersionUpdated(parameterSecrets, parameterContext.Status.LatestSecretsResourceVersion)
 
 	// List all parameter to upsert
 	parameters := make([]nigoapi.ParameterEntity, 0)
@@ -373,17 +373,4 @@ func updateRequest2Status(updateRequest *nigoapi.ParameterContextUpdateRequestEn
 		NotFound:           false,
 		NotFoundRetryCount: 0,
 	}
-}
-
-func extractMostRecentSecretUpdateTime(parameterSecrets []*corev1.Secret) *metav1.Time {
-	var maximumSecretTime *metav1.Time = nil
-	for _, secret := range parameterSecrets {
-		for _, managedField := range secret.ObjectMeta.ManagedFields {
-			if maximumSecretTime == nil || maximumSecretTime.Before(managedField.Time) {
-				maximumSecretTime = managedField.Time
-			}
-		}
-	}
-
-	return maximumSecretTime
 }

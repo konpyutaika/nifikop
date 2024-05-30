@@ -1,9 +1,11 @@
 package util
 
 import (
+	"reflect"
 	"testing"
 
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	v1 "github.com/konpyutaika/nifikop/api/v1"
 )
@@ -213,5 +215,189 @@ func TestStringSliceRemove(t *testing.T) {
 	if results := StringSliceRemove(listCopy, "1"); len(results) != len(list) ||
 		results[0] != list[0] || results[1] != list[1] || results[2] != list[2] {
 		t.Error("The list should be the same")
+	}
+}
+
+func TestExtractSecretsResourceVersion(t *testing.T) {
+	secret1 := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:            "secret",
+			Namespace:       "ns",
+			ResourceVersion: "1",
+		},
+	}
+	secret2 := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:            "secret2",
+			Namespace:       "ns",
+			ResourceVersion: "1",
+		},
+	}
+	secret3 := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:            "secret",
+			Namespace:       "ns2",
+			ResourceVersion: "1",
+		},
+	}
+
+	secretResult := []v1.SecretResourceVersion{
+		{
+			Name:            "secret",
+			Namespace:       "ns",
+			ResourceVersion: "1",
+		},
+		{
+			Name:            "secret2",
+			Namespace:       "ns",
+			ResourceVersion: "1",
+		},
+		{
+			Name:            "secret",
+			Namespace:       "ns2",
+			ResourceVersion: "1",
+		},
+	}
+	if result := ExtractSecretsResourceVersion([]*corev1.Secret{secret1, secret2, secret3}); len(result) != len(secretResult) || !reflect.DeepEqual(result, secretResult) {
+		t.Errorf("Expected %v, but got %v", secretResult, result)
+	}
+}
+
+func TestIsSecretResourceVersionUpdated(t *testing.T) {
+	secret1 := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:            "secret",
+			Namespace:       "ns",
+			ResourceVersion: "1",
+		},
+	}
+	secret2 := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:            "secret2",
+			Namespace:       "ns",
+			ResourceVersion: "1",
+		},
+	}
+	secret3 := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:            "secret",
+			Namespace:       "ns2",
+			ResourceVersion: "1",
+		},
+	}
+
+	if IsSecretResourceVersionUpdated([]*corev1.Secret{secret1, secret2, secret3}, []v1.SecretResourceVersion{
+		{
+			Name:            "secret",
+			Namespace:       "ns",
+			ResourceVersion: "1",
+		},
+		{
+			Name:            "secret2",
+			Namespace:       "ns",
+			ResourceVersion: "1",
+		},
+		{
+			Name:            "secret",
+			Namespace:       "ns2",
+			ResourceVersion: "1",
+		},
+	}) {
+		t.Errorf("Expected false, but got true")
+	}
+
+	if !IsSecretResourceVersionUpdated([]*corev1.Secret{secret1, secret2}, []v1.SecretResourceVersion{
+		{
+			Name:            "secret",
+			Namespace:       "ns",
+			ResourceVersion: "1",
+		},
+		{
+			Name:            "secret2",
+			Namespace:       "ns",
+			ResourceVersion: "1",
+		},
+		{
+			Name:            "secret",
+			Namespace:       "ns2",
+			ResourceVersion: "1",
+		},
+	}) {
+		t.Errorf("Expected true, but got false")
+	}
+
+	if !IsSecretResourceVersionUpdated([]*corev1.Secret{secret1, secret2}, []v1.SecretResourceVersion{
+		{
+			Name:            "secret",
+			Namespace:       "ns",
+			ResourceVersion: "1",
+		},
+		{
+			Name:            "secret",
+			Namespace:       "ns2",
+			ResourceVersion: "1",
+		},
+	}) {
+		t.Errorf("Expected true, but got false")
+	}
+
+	if !IsSecretResourceVersionUpdated([]*corev1.Secret{secret1, secret2}, []v1.SecretResourceVersion{
+		{
+			Name:            "secret",
+			Namespace:       "ns",
+			ResourceVersion: "1",
+		},
+		{
+			Name:            "secret2",
+			Namespace:       "ns",
+			ResourceVersion: "1",
+		},
+		{
+			Name:            "secret",
+			Namespace:       "ns2",
+			ResourceVersion: "1",
+		},
+	}) {
+		t.Errorf("Expected true, but got false")
+	}
+
+	if !IsSecretResourceVersionUpdated([]*corev1.Secret{secret1, secret2, secret3}, []v1.SecretResourceVersion{
+		{
+			Name:            "secret",
+			Namespace:       "ns",
+			ResourceVersion: "2",
+		},
+		{
+			Name:            "secret2",
+			Namespace:       "ns",
+			ResourceVersion: "1",
+		},
+		{
+			Name:            "secret",
+			Namespace:       "ns2",
+			ResourceVersion: "1",
+		},
+	}) {
+		t.Errorf("Expected true, but got false")
+	}
+
+	if !IsSecretResourceVersionUpdated([]*corev1.Secret{secret1, secret2, secret3}, []v1.SecretResourceVersion{
+		{
+			Name:            "secret",
+			Namespace:       "ns",
+			ResourceVersion: "1",
+		},
+		{
+			Name:            "secret2",
+			Namespace:       "ns",
+			ResourceVersion: "1",
+		},
+		{
+			Name:            "secret2",
+			Namespace:       "ns2",
+			ResourceVersion: "1",
+		},
+	}) {
+		t.Errorf("Expected true, but got false")
 	}
 }

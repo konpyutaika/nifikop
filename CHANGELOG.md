@@ -15,6 +15,7 @@
 - [PR #428](https://github.com/konpyutaika/nifikop/pull/428) - **[Documentation]** Upgrade node 22.2.0.
 - [PR #431](https://github.com/konpyutaika/nifikop/pull/431) - **[Operator/NifiCluster]** Changed type of the version field from `VersionControlInformationEntity` to be generic.
 - [PR #431](https://github.com/konpyutaika/nifikop/pull/431) - **[NiGoApi]** Upgrade NiGoApi to v0.1.1.
+- [PR #426](https://github.com/konpyutaika/nifikop/pull/426) - **[Operator/NifiParameterContext]** Changed secret update detection to be based on `resourceVersion`.
 
 ### Fixed Bugs
 
