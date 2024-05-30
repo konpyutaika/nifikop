@@ -47,6 +47,18 @@ nifi.nar.library.directory=./lib
 nifi.nar.working.directory=./work/nar/
 nifi.documentation.working.directory=./work/docs/components
 
+#####################
+# Python Extensions #
+#####################
+# Uncomment in order to enable Python Extensions.
+nifi.python.command=python3
+nifi.python.framework.source.directory=./python/framework
+nifi.python.extensions.source.directory.default=/opt/nifi/nifi-current/python/extensions
+nifi.python.working.directory=./work/python
+nifi.python.max.processes=100
+nifi.python.max.processes.per.extension.type=10
+nifi.python.logs.directory=./logs
+
 ####################
 # State Management #
 ####################
