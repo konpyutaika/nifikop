@@ -2,6 +2,18 @@
 
 ### Added
 
+### Changed
+
+### Fixed Bugs
+
+### Deprecated
+
+### Removed
+
+## v1.9.0
+
+### Added
+
 - [PR #394](https://github.com/konpyutaika/nifikop/pull/394) - **[Operator/NifiCluster]** Added support to let users configure AdditionalNifiEnvs.
 - [PR #430](https://github.com/konpyutaika/nifikop/pull/430) - **[Operator/NifiCluster]** Added Python extensions properties in the `nifi.properties` file template.
 
@@ -27,8 +39,6 @@
 ### Deprecated
 
 - [PR #422](https://github.com/konpyutaika/nifikop/pull/422) - **[Operator/NifiCluster]** `MaximumEventDrivenThreadCount` is no longer configurable in NiFi.
-
-### Removed
 
 ## v1.8.0
 
