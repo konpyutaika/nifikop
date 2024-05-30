@@ -40,9 +40,6 @@ func Reconcile(log zap.Logger, client runtimeClient.Client, desired runtimeClien
 			)
 		}
 		if apierrors.IsNotFound(err) {
-			if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(desired); err != nil {
-				return errors.WrapIf(err, "could not apply last state to annotation")
-			}
 			if err := client.Create(context.TODO(), desired); err != nil {
 				return errorfactory.New(
 					errorfactory.APIFailure{},
