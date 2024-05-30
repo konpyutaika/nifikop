@@ -13,4 +13,4 @@ kind: Kustomization
 images:
   - name: controller
     newName: ghcr.io/konpyutaika/docker-images/nifikop
-    newTag: 1.8.0-master
+    newTag: 1.9.0-master
