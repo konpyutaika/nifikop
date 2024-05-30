@@ -1,6 +1,7 @@
 package dataflow
 
 import (
+	"fmt"
 	"strings"
 
 	nigoapi "github.com/konpyutaika/nigoapi/pkg/nifi"
@@ -261,7 +262,7 @@ func isNameChanged(flow *v1.NifiDataflow, pgFlowEntity *nigoapi.ProcessGroupEnti
 
 // isVersionSync check if the flow version is out of sync.
 func isVersionSync(flow *v1.NifiDataflow, pgFlowEntity *nigoapi.ProcessGroupEntity) bool {
-	return *flow.Spec.FlowVersion == pgFlowEntity.Component.VersionControlInformation.Version
+	return fmt.Sprint(*flow.Spec.FlowVersion) == fmt.Sprint(pgFlowEntity.Component.VersionControlInformation.Version)
 }
 
 func localChanged(pgFlowEntity *nigoapi.ProcessGroupEntity) bool {
@@ -903,7 +904,7 @@ func updateProcessGroupEntity(
 		RegistryId:       registry.Status.Id,
 		BucketId:         flow.Spec.BucketId,
 		FlowId:           flow.Spec.FlowId,
-		Version:          *flow.Spec.FlowVersion,
+		Version:          fmt.Sprint(*flow.Spec.FlowVersion),
 	}
 }
 

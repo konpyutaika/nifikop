@@ -2,7 +2,8 @@
 
 ### Added
 
-- [PR #416](https://github.com/konpyutaika/nifikop/pull/394) - **[Operator/NifiCluster]** Added support to let users configure AdditionalNifiEnvs.
+- [PR #394](https://github.com/konpyutaika/nifikop/pull/394) - **[Operator/NifiCluster]** Added support to let users configure AdditionalNifiEnvs.
+- [PR #430](https://github.com/konpyutaika/nifikop/pull/430) - **[Operator/NifiCluster]** Added Python extensions properties in the `nifi.properties` file template.
 
 ### Changed
 
@@ -11,6 +12,9 @@
 - [PR #421](https://github.com/konpyutaika/nifikop/pull/421) - **[Documentation]** Upgrade node 22.0.0.
 - [PR #422](https://github.com/konpyutaika/nifikop/pull/422) - **[NiGoApi]** Upgrade NiGoApi to v0.1.0.
 - [PR #425](https://github.com/konpyutaika/nifikop/pull/425) - **[Operator]** Upgrade golang to 1.22.3.
+- [PR #428](https://github.com/konpyutaika/nifikop/pull/428) - **[Documentation]** Upgrade node 22.2.0.
+- [PR #431](https://github.com/konpyutaika/nifikop/pull/431) - **[Operator/NifiCluster]** Changed type of the version field from `VersionControlInformationEntity` to be generic.
+- [PR #431](https://github.com/konpyutaika/nifikop/pull/431) - **[NiGoApi]** Upgrade NiGoApi to v0.1.1.
 - [PR #426](https://github.com/konpyutaika/nifikop/pull/426) - **[Operator/NifiParameterContext]** Changed secret update detection to be based on `resourceVersion`.
 
 ### Fixed Bugs
@@ -18,6 +22,7 @@
 - [PR #416](https://github.com/konpyutaika/nifikop/pull/416) - **[Operator]** Certmanager-user: k8sutil: corrects IsAlreadyOwnedError.
 - [PR #418](https://github.com/konpyutaika/nifikop/pull/418) - **[Operator/NifiCluster]** Fixed issue where new nodes could not be added to NiFi cluster with a custom authorizer configuration provided.
 - [PR #420](https://github.com/konpyutaika/nifikop/pull/420) - **[Operator/NifiCluster]** Patch duplicate Prometheus Reporting Task. 
+- [PR #424](https://github.com/konpyutaika/nifikop/pull/424) - **[Operator]** Fix Nifiuser certificate creation.
 
 ### Deprecated
 
