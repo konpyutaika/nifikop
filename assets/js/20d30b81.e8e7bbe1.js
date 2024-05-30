@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunkreact_native_website=self.webpackChunkreact_native_website||[]).push([[11521],{49412:e=>{e.exports=JSON.parse('{"label":"google cloud platform","permalink":"/nifikop/blog/tags/google-cloud-platform","allTagsPath":"/nifikop/blog/tags","count":2,"unlisted":false}')}}]);
