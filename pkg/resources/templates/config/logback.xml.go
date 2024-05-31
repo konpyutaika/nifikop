@@ -90,6 +90,8 @@ var LogbackTemplate = `<?xml version="1.0" encoding="UTF-8"?>
     <logger name="org.apache.nifi.processors.standard.LogMessage" level="INFO"/>
     <logger name="org.apache.nifi.controller.repository.StandardProcessSession" level="WARN" />
     
+    <!-- Py4J set to WARN to avoid verbose socket communication messages -->
+    <logger name="py4j" level="WARN" />
     
     <logger name="org.apache.zookeeper.ClientCnxn" level="ERROR" />
     <logger name="org.apache.zookeeper.server.NIOServerCnxn" level="ERROR" />

@@ -4,6 +4,8 @@
 
 ### Changed
 
+- [PR #434](https://github.com/konpyutaika/nifikop/pull/434) - **[Operator/NifiCluster]** Added Python logback configuration
+
 ### Fixed Bugs
 
 ### Deprecated
