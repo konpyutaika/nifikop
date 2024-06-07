@@ -4,9 +4,11 @@
 
 ### Changed
 
-- [PR #434](https://github.com/konpyutaika/nifikop/pull/434) - **[Operator/NifiCluster]** Added Python logback configuration
+- [PR #434](https://github.com/konpyutaika/nifikop/pull/434) - **[Operator/NifiCluster]** Added Python logback configuration.
 
 ### Fixed Bugs
+
+- [PR #435](https://github.com/konpyutaika/nifikop/pull/435) - **[Operator/NifiCluster]** Fixed `NifiCluster` type fallback to `external` instead of the field value.
 
 ### Deprecated
 

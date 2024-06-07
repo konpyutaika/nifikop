@@ -911,7 +911,7 @@ func (c *NifiCluster) GetType() ClusterType {
 	if c.Spec.Type == "" {
 		return InternalCluster
 	}
-	return ExternalCluster
+	return c.Spec.Type
 }
 
 func (c *NifiCluster) IsSet() bool {
