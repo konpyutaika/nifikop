@@ -1,6 +1,6 @@
 ARG GOLANG_VERSION
 
-FROM docker as docker-base
+FROM docker AS docker-base
 COPY --from=docker/buildx-bin:latest /buildx /usr/libexec/docker/cli-plugins/docker-buildx
 
 #https://github.com/CircleCI-Public/circleci-dockerfiles/blob/master/golang/images/1.12.4/Dockerfile
@@ -88,6 +88,6 @@ RUN curl -L https://get.helm.sh/helm-v3.8.0-linux-amd64.tar.gz -o helm.tar.gz \
 
 WORKDIR /go/nifikop
 
-ENV PATH $GOPATH/bin:/usr/local/go/bin:$PATH
+ENV PATH=$GOPATH/bin:/usr/local/go/bin:$PATH
 
 CMD ["/bin/sh"]
