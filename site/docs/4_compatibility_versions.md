@@ -27,6 +27,7 @@ Nifikop supports the following NiFi cluster features:
 | NiFi 2.0.0-M1 | Yes                | No                    | Yes                         | Yes                     | Yes             | Yes                  | Yes                  |
 | NiFi 2.0.0-M2 | Yes                | No                    | Yes                         | Yes                     | Yes             | Yes                  | Yes                  |
 | NiFi 2.0.0-M3 | Yes                | No                    | Yes                         | Yes                     | Yes             | Yes                  | Yes                  |
+| NiFi 2.0.0-M4 | Yes                | No                    | Yes                         | Yes                     | Yes             | Yes                  | Yes                  |
 
 ### NiFi external cluster
 
@@ -48,6 +49,7 @@ Nifikop supports the following features for externally deployed clusters:
 | NiFi 2.0.0-M1 | Yes                  | Yes                |
 | NiFi 2.0.0-M2 | Yes                  | Yes                |
 | NiFi 2.0.0-M3 | Yes                  | Yes                |
+| NiFi 2.0.0-M4 | Yes                  | Yes                |
 
 ### NiFi users
 
@@ -69,6 +71,7 @@ Nifikop supports the following features for configuring users and user policies:
 | NiFi 2.0.0-M1 | Yes             | Yes           |
 | NiFi 2.0.0-M2 | Yes             | Yes           |
 | NiFi 2.0.0-M3 | Yes             | Yes           |
+| NiFi 2.0.0-M4 | Yes             | Yes           |
 
 ### NiFi user groups
 
@@ -90,6 +93,7 @@ Nifikop supports the following features for configuring user groups:
 | NiFi 2.0.0-M1 | Yes              | Yes            |
 | NiFi 2.0.0-M2 | Yes              | Yes            |
 | NiFi 2.0.0-M3 | Yes              | Yes            |
+| NiFi 2.0.0-M4 | Yes              | Yes            |
 
 ### NiFi dataflow
 
@@ -111,6 +115,7 @@ Nifikop supports the following features for managing dataflows:
 | NiFi 2.0.0-M1 | Yes                 | Yes               | Yes                      | Yes                        |
 | NiFi 2.0.0-M2 | Yes                 | Yes               | Yes                      | Yes                        |
 | NiFi 2.0.0-M3 | Yes                 | Yes               | Yes                      | Yes                        |
+| NiFi 2.0.0-M4 | Yes                 | Yes               | Yes                      | Yes                        |
 
 ### NiFi parameter context
 
@@ -132,6 +137,7 @@ Nifikop supports the following features for managing parameter contexts:
 | NiFi 2.0.0-M1 | Yes                          | Yes                           | No                                  |
 | NiFi 2.0.0-M2 | Yes                          | Yes                           | No                                  |
 | NiFi 2.0.0-M3 | Yes                          | Yes                           | No                                  |
+| NiFi 2.0.0-M4 | Yes                          | Yes                           | No                                  |
 
 
 ### NiFi auto scaling
@@ -154,6 +160,7 @@ Nifikop supports the following features for cluster auto-scaling
 | NiFi 2.0.0-M1 | Yes                           | Yes                     |
 | NiFi 2.0.0-M2 | Yes                           | Yes                     |
 | NiFi 2.0.0-M3 | Yes                           | Yes                     |
+| NiFi 2.0.0-M4 | Yes                           | Yes                     |
 
 ### NiFi connection
 
@@ -175,3 +182,4 @@ Nifikop supports for the following features for connecting two dataflows togethe
 | NiFi 2.0.0-M1 | Yes                   | Yes                          | No                       |
 | NiFi 2.0.0-M2 | Yes                   | Yes                          | No                       |
 | NiFi 2.0.0-M3 | Yes                   | Yes                          | No                       |
+| NiFi 2.0.0-M4 | Yes                   | Yes                          | No                       |
