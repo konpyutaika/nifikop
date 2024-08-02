@@ -12,6 +12,7 @@
 ### Fixed Bugs
 
 - [PR #435](https://github.com/konpyutaika/nifikop/pull/435) - **[Operator/NifiCluster]** Fixed `NifiCluster` type fallback to `external` instead of the field value.
+- [PR #443](https://github.com/konpyutaika/nifikop/pull/443) - **[Operator/NifiUser]** Replaced Parameter Context policy resource from `/parameter-context` to `/parameter-contexts`.
 
 ### Deprecated
 
