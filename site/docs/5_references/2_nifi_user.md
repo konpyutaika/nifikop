@@ -83,7 +83,7 @@ spec:
 |-----|----|------------|
 |FlowAccessPolicyResource|/flow|About the UI|
 |ControllerAccessPolicyResource|/controller| about the controller including Reporting Tasks, Controller Services, Parameter Contexts and Nodes in the Cluster|
-|ParameterContextAccessPolicyResource|/parameter-context|About the Parameter Contexts. Access to Parameter Contexts are inherited from the "access the controller" policies unless overridden.|
+|ParameterContextAccessPolicyResource|/parameter-contexts|About the Parameter Contexts. Access to Parameter Contexts are inherited from the "access the controller" policies unless overridden.|
 |ProvenanceAccessPolicyResource|/provenance|Allows users to submit a Provenance Search and request Event Lineage|
 |RestrictedComponentsAccessPolicyResource|/restricted-components|About the restricted components assuming other permissions are sufficient. The restricted components may indicate which specific permissions are required. Permissions can be granted for specific restrictions or be granted regardless of restrictions. If permission is granted regardless of restrictions, the user can create/modify all restricted components.|
 |PoliciesAccessPolicyResource|/policies|About the policies for all components|
