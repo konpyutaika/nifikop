@@ -7,6 +7,7 @@
 - [PR #434](https://github.com/konpyutaika/nifikop/pull/434) - **[Operator/NifiCluster]** Added Python logback configuration.
 - [PR #436](https://github.com/konpyutaika/nifikop/pull/436) - **[Operator]** Upgrade golang to 1.22.4.
 - [PR #440](https://github.com/konpyutaika/nifikop/pull/440) - **[Operator]** Upgrade golang to 1.22.5.
+- [PR #442](https://github.com/konpyutaika/nifikop/pull/442) - **[Documentation]** Upgrade node 22.5.1.
 
 ### Fixed Bugs
 
