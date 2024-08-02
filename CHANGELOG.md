@@ -4,6 +4,16 @@
 
 ### Changed
 
+### Fixed Bugs
+
+### Deprecated
+
+### Removed
+
+## v1.10.0
+
+### Changed
+
 - [PR #434](https://github.com/konpyutaika/nifikop/pull/434) - **[Operator/NifiCluster]** Added Python logback configuration.
 - [PR #436](https://github.com/konpyutaika/nifikop/pull/436) - **[Operator]** Upgrade golang to 1.22.4.
 - [PR #440](https://github.com/konpyutaika/nifikop/pull/440) - **[Operator]** Upgrade golang to 1.22.5.
@@ -14,10 +24,6 @@
 
 - [PR #435](https://github.com/konpyutaika/nifikop/pull/435) - **[Operator/NifiCluster]** Fixed `NifiCluster` type fallback to `external` instead of the field value.
 - [PR #443](https://github.com/konpyutaika/nifikop/pull/443) - **[Operator/NifiUser]** Replaced Parameter Context policy resource from `/parameter-context` to `/parameter-contexts`.
-
-### Deprecated
-
-### Removed
 
 ## v1.9.0
 
