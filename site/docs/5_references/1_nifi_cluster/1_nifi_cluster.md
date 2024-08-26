@@ -19,6 +19,7 @@ spec:
     labels:
       cluster-name: simplenifi
       tete: titi
+  clusterManager: zookeeper
   zkAddress: "zookeeper.zookeeper:2181"
   zkPath: /simplenifi
   externalServices:
@@ -119,6 +120,7 @@ spec:
 | proxyUrl                  | string                                                                                         | defines the proxy required to query the NiFi cluster.                                                                                                                                                                                                                                                                                    | if external type | -                          |
 | service                   | [ServicePolicy](#servicepolicy)                                                                | defines the policy for services owned by NiFiKop operator.                                                                                                                                                                                                                                                                               | No               | -                          |
 | pod                       | [PodPolicy](#podpolicy)                                                                        | defines the policy for pod owned by NiFiKop operator.                                                                                                                                                                                                                                                                                    | No               | -                          |
+| clusterManager            | [ClusterManagerType](#clustermanagertype)                                                           | specifies which manager will handle the cluster leader election and state management.                                                                                                                                                                                                                                                    | No               | zookeeper                  |
 | zkAddress                 | string                                                                                         | specifies the ZooKeeper connection string in the form hostname:port where host and port are those of a Zookeeper server.                                                                                                                                                                                                                 | No               | ""                         |
 | zkPath                    | string                                                                                         | specifies the Zookeeper chroot path as part of its Zookeeper connection string which puts its data under same path in the global ZooKeeper namespace.                                                                                                                                                                                    | Yes              | "/"                        |
 | initContainerImage        | string                                                                                         | can override the default image used into the init container to check if ZoooKeeper server is reachable.                                                                                                                                                                                                                                 | Yes              | "bash"                     |
@@ -241,3 +243,10 @@ spec:
 | -------- | ------ | ------------------------------------------------------------------ | -------- | -------- |
 | username | string | specifies he name of the secret key to retrieve the user name.     | No       | username |
 | password | string | specifies he name of the secret key to retrieve the user password. | No       | password |
+
+## ClusterManagerType
+
+| Name                     | Value      | Description                                                                                                                                             |
+| ------------------------ | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ZookeeperClusterManager  | zookeeper  | indicates that the cluster leader election and state management will be managed with ZooKeeper.                                                         |
+| KubernetesClusterManager | kubernetes | indicates that the cluster leader election and state management will be managed with Kubernetes resources, with `Leases` and `ConfigMaps` respectively. |
