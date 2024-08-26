@@ -7,7 +7,6 @@
 ### Changed
 
 - [PR #449](https://github.com/konpyutaika/nifikop/pull/449) - **[Operator]** Upgrade golang to 1.23.0.
-
 - [PR #450](https://github.com/konpyutaika/nifikop/pull/450) - **[Operator/NifiCluster]** Changed default NiFi Configuration File from `flow.xml.gz` to `flow.json.gz`.
 
 ### Fixed Bugs
