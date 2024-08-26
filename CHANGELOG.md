@@ -2,6 +2,8 @@
 
 ### Added
 
+- [PR #450](https://github.com/konpyutaika/nifikop/pull/450) - **[Operator/NifiCluster]** Added Kubernetes Clustering and State management.
+
 ### Changed
 
 - [PR #449](https://github.com/konpyutaika/nifikop/pull/449) - **[Operator]** Upgrade golang to 1.23.0.
