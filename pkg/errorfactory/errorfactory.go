@@ -97,7 +97,12 @@ type NifiConnectionDeleting struct{ error }
 
 // New creates a new error factory error.
 func New(t interface{}, err error, msg string, wrapArgs ...interface{}) error {
-	wrapped := errors.WrapIfWithDetails(err, msg, wrapArgs...)
+	var wrapped error
+	if err == nil {
+		wrapped = errors.NewWithDetails(msg, wrapArgs...)
+	} else {
+		wrapped = errors.WrapIfWithDetails(err, msg, wrapArgs...)
+	}
 	switch t.(type) {
 	case ResourceNotReady:
 		return ResourceNotReady{wrapped}
