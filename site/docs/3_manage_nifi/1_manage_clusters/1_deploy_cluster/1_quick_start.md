@@ -28,7 +28,10 @@ volumeBindingMode: WaitForFirstConsumer
 Remember to set your NiFiCluster CR properly to use the newly created StorageClass.
 :::
 
-As a pre-requisite NiFi requires Zookeeper so you need to first have a Zookeeper cluster if you don't already have one.
+To manage its cluster and states, NiFi needs Zookeeper or rights on the Kubernetes cluster to manage `Leases` and `ConfigMaps` resources in the namespace where it is deployed.
+
+In the case of Zookeeper, you must first have a Zookeeper cluster if you don't already have one.
+Otherwise, you need to provide the corresponding role to the NiFi cluster's `ServiceAccount`.
 
 > We believe in the `separation of concerns` principle, thus the NiFi operator does not install nor manage Zookeeper.
 
@@ -52,6 +55,42 @@ helm install zookeeper oci://registry-1.docker.io/bitnamicharts/zookeeper \
 :::warning
 Replace the `storageClass` parameter value with your own.
 :::
+
+## ServiceAccount role
+
+```yaml
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: simplenifi
+  namespace: nifi
+rules:
+- apiGroups: ["coordination.k8s.io"]
+  resources: ["leases"]
+  verbs: ["*"]
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["*"]
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: simplenifi
+  namespace: nifi
+subjects:
+  - kind: ServiceAccount
+    name: default
+    namespace: nifi
+roleRef:
+  kind: Role
+  name: simplenifi
+  apiGroup: rbac.authorization.k8s.io
+```
+
+:::info
+In this case, you need to set `clusterManager` in `NiFiCluster`'s specification to `kubernetes`.
+:::
+
 
 ## Deploy NiFi cluster
 
