@@ -9,6 +9,9 @@ cluster:
   # -- the full name of the cluster. This is used to set a portion of the name of various nifikop resources
   nameOverride: "nifi-cluster"
   fullnameOverride: ""
+  # -- the type of cluster manager: zookeeper or kubernetes. Operator will put zookeeper by default
+  # @default -- zookeeper
+  manager:
   # -- the hostname and port of the zookeeper service
   zkAddress: "nifi-cluster-zookeeper:2181"
   # -- the path in zookeeper to store this cluster's state
