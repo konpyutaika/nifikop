@@ -93,18 +93,17 @@ spec:
         data: {{ .Values.cluster.logbackConfig.replaceSecretConfig.data }}
         name: {{ .Values.cluster.logbackConfig.replaceSecretConfig.name }}
         namespace: {{ .Values.cluster.logbackConfig.replaceSecretConfig.namespace }}
+    {{- else if .Values.cluster.logbackConfig.replaceConfigMap }}
+      replaceConfigMap:
+        data: {{ .Values.cluster.logbackConfig.replaceConfigMap.data }}
+        name: {{ .Values.cluster.logbackConfig.replaceConfigMap.name }}
+        namespace: {{ .Values.cluster.logbackConfig.replaceConfigMap.namespace }}
     {{- else }}
       # the default
       replaceSecretConfig:
         data: logback.xml
         name: {{ include "nifi-cluster.fullname" . }}
         namespace: {{ .Release.Namespace }}
-    {{- end }}
-    {{- if .Values.cluster.logbackConfig.replaceConfigMap }}
-      replaceConfigMap:
-        data: {{ .Values.cluster.logbackConfig.replaceConfigMap.data }}
-        name: {{ .Values.cluster.logbackConfig.replaceConfigMap.name }}
-        namespace: {{ .Values.cluster.logbackConfig.replaceConfigMap.namespace }}
     {{- end }}
     nifiProperties:
       overrideSecretConfig:
