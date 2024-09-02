@@ -8,6 +8,8 @@
 
 ### Fixed Bugs
 
+- [PR #452](https://github.com/konpyutaika/nifikop/pull/452) - **[Helm Chart]** Fixed a bug in the nifi-cluster helm chart where the cluster.logbackConfig.replaceConfigMap couldn't be set
+
 ### Deprecated
 
 ### Removed
