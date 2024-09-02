@@ -4,17 +4,28 @@
 
 ### Changed
 
-- [PR #434](https://github.com/konpyutaika/nifikop/pull/434) - **[Operator/NifiCluster]** Added Python logback configuration.
-- [PR #436](https://github.com/konpyutaika/nifikop/pull/436) - **[Operator]** Upgrade golang to 1.22.4.
-- [PR #440](https://github.com/konpyutaika/nifikop/pull/440) - **[Operator]** Upgrade golang to 1.22.5.
+- [PR #449](https://github.com/konpyutaika/nifikop/pull/449) - **[Operator]** Upgrade golang to 1.23.0.
 
 ### Fixed Bugs
-
-- [PR #435](https://github.com/konpyutaika/nifikop/pull/435) - **[Operator/NifiCluster]** Fixed `NifiCluster` type fallback to `external` instead of the field value.
 
 ### Deprecated
 
 ### Removed
+
+## v1.10.0
+
+### Changed
+
+- [PR #434](https://github.com/konpyutaika/nifikop/pull/434) - **[Operator/NifiCluster]** Added Python logback configuration.
+- [PR #436](https://github.com/konpyutaika/nifikop/pull/436) - **[Operator]** Upgrade golang to 1.22.4.
+- [PR #440](https://github.com/konpyutaika/nifikop/pull/440) - **[Operator]** Upgrade golang to 1.22.5.
+- [PR #442](https://github.com/konpyutaika/nifikop/pull/442) - **[Documentation]** Upgrade node 22.5.1.
+- [PR #422](https://github.com/konpyutaika/nifikop/pull/444) - **[NiGoApi]** Upgrade NiGoApi to v0.1.2.
+
+### Fixed Bugs
+
+- [PR #435](https://github.com/konpyutaika/nifikop/pull/435) - **[Operator/NifiCluster]** Fixed `NifiCluster` type fallback to `external` instead of the field value.
+- [PR #443](https://github.com/konpyutaika/nifikop/pull/443) - **[Operator/NifiUser]** Replaced Parameter Context policy resource from `/parameter-context` to `/parameter-contexts`.
 
 ## v1.9.0
 

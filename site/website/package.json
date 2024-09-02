@@ -31,26 +31,26 @@
     "lintv": "cd ../ && alex"
   },
   "dependencies": {
-    "@algolia/client-search": "^4.23.3",
-    "@docusaurus/core": "^3.3.2",
-    "@docusaurus/preset-classic": "^3.3.2",
-    "@docusaurus/theme-live-codeblock": "^3.3.2",
+    "@algolia/client-search": "^4.24.0",
+    "@docusaurus/core": "^3.4.0",
+    "@docusaurus/preset-classic": "^3.4.0",
+    "@docusaurus/theme-live-codeblock": "^3.4.0",
     "classnames": "^2.5.1",
     "docusaurus-plugin-sass": "^0.2.5",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "react-github-btn": "^1.4.0",
     "react-loadable": "^5.5.0",
-    "sass": "^1.75.0",
-    "sass-loader": "^14.2.1",
-    "typescript": "^5.4.5",
-    "webpack": "^5.91.0"
+    "sass": "^1.77.8",
+    "sass-loader": "^16.0.0",
+    "typescript": "^5.5.4",
+    "webpack": "^5.94.0"
   },
   "devDependencies": {
     "alex": "^11.0.1",
     "fs-extra": "^11.2.0",
     "glob": "^8.0.3",
-    "glob-promise": "^6.0.5",
+    "glob-promise": "^6.0.7",
     "path": "^0.12.7"
   }
 }
