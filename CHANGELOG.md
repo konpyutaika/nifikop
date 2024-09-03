@@ -2,6 +2,8 @@
 
 ### Added
 
+- [PR #454](https://github.com/konpyutaika/nifikop/pull/454) - **[Helm Chart]** Added options in nifi-cluster helm chart to support setting `clientType`, `propagateLabels`, `sidecarConfigs`, `topologySpreadConstraints` and `nifiControllerTemplate` on NiFiCluster CRD.
+
 ### Changed
 
 - [PR #449](https://github.com/konpyutaika/nifikop/pull/449) - **[Operator]** Upgrade golang to 1.23.0.
