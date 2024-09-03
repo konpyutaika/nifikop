@@ -107,10 +107,24 @@ spec:
         namespace: {{ .Values.cluster.logbackConfig.replaceConfigMap.namespace }}
     {{- end }}
     nifiProperties:
+    {{- if .Values.cluster.nifiProperties.overrideSecretConfig }}
+      overrideSecretConfig:
+        data: {{ .Values.cluster.nifiProperties.overrideSecretConfig.data }}
+        name: {{ .Values.cluster.nifiProperties.overrideSecretConfig.name }}
+        namespace: {{ .Values.cluster.nifiProperties.overrideSecretConfig.namespace }}
+    {{- else }}
+      # the default
       overrideSecretConfig:
         data: nifi.properties
         name: {{ include "nifi-cluster.fullname" . }}
         namespace: {{ .Release.Namespace }}
+    {{- end }}
+    {{- if .Values.cluster.nifiProperties.overrideConfigMap }}
+      overrideConfigMap:
+        data: {{ .Values.cluster.nifiProperties.overrideConfigMap.data }}
+        name: {{ .Values.cluster.nifiProperties.overrideConfigMap.name }}
+        namespace: {{ .Values.cluster.nifiProperties.overrideConfigMap.namespace }}
+    {{- end }}
       webProxyHosts:
       {{- toYaml .Values.cluster.nifiProperties.webProxyHosts | nindent 8}}
       {{- if and .Values.cluster.nifiProperties.webProxyNodePorts.enabled .Values.cluster.externalServices }}
