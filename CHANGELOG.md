@@ -2,6 +2,8 @@
 
 ### Added
 
+- [PR #455](https://github.com/konpyutaika/nifikop/pull/455) - **[Helm Chart]** Added ability to configure `overrideSecretConfig` and `overrideConfigMap` for `nifi.properties` in the nifi-cluster chart.
+
 ### Changed
 
 - [PR #449](https://github.com/konpyutaika/nifikop/pull/449) - **[Operator]** Upgrade golang to 1.23.0.
