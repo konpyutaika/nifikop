@@ -5,6 +5,9 @@ metadata:
   labels:
     {{- include "nifi-cluster.labels" . | nindent 4 }}
 spec:
+  {{- if .Values.cluster.clientType }}
+  clientType: {{ .Values.cluster.clientType }}
+  {{- end }}
   {{- if .Values.cluster.type }}
   type: {{ .Values.cluster.type }}
   {{- end }}
@@ -61,8 +64,15 @@ spec:
   initContainers:
   {{- toYaml .Values.cluster.initContainers | nindent 4 }}
 {{- end }}
+{{- if .Values.cluster.sidecarConfigs }}
+  sidecarConfigs:
+  {{- toYaml .Values.cluster.sidecarConfigs | nindent 4 }}
+{{- end }}
 {{- if .Values.cluster.nodeUserIdentityTemplate }}
   nodeUserIdentityTemplate: {{ .Values.cluster.nodeUserIdentityTemplate }}
+{{- end }}
+{{- if .Values.cluster.nifiControllerTemplate }}
+  nifiControllerTemplate: {{ .Values.cluster.nifiControllerTemplate }}
 {{- end }}
 {{- if .Values.cluster.controllerUserIdentity }}
   controllerUserIdentity: {{ .Values.cluster.controllerUserIdentity }}
@@ -77,6 +87,10 @@ spec:
 {{- end }}
   disruptionBudget:
   {{- toYaml .Values.cluster.disruptionBudget | nindent 4 }}
+{{- if .Values.cluster.topologySpreadConstraints }}
+  topologySpreadConstraints:
+  {{- toYaml .Values.cluster.topologySpreadConstraints | nindent 4 }}
+{{- end }}
   ldapConfiguration:
   {{- toYaml .Values.cluster.ldapConfiguration | nindent 4 }}
   readOnlyConfig:
@@ -156,7 +170,7 @@ spec:
   {{- toYaml .Values.cluster.nodeConfigGroups | nindent 4 }}
   nodes:
   {{- toYaml .Values.cluster.nodes | nindent 4 }}
-  propagateLabels: true
+  propagateLabels: {{ .Values.cluster.propagateLabels }}
   nifiClusterTaskSpec:
     retryDurationMinutes: {{ .Values.cluster.retryDurationMinutes }}
   listenersConfig:

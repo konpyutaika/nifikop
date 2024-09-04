@@ -37,3 +37,17 @@ func TestNew(t *testing.T) {
 		}
 	}
 }
+
+func TestNil(t *testing.T) {
+	for _, errType := range errorTypes {
+		err := New(errType, nil, "no-wrapped-error")
+		expected := "no-wrapped-error"
+		got := err.Error()
+		if got != expected {
+			t.Error("Expected:", expected, "got:", got)
+		}
+		if !emperrors.As(err, &errType) {
+			t.Error("Expected:", reflect.TypeOf(errType), "got:", reflect.TypeOf(err))
+		}
+	}
+}
