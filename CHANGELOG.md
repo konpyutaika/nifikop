@@ -3,6 +3,7 @@
 ### Added
 
 - [PR #454](https://github.com/konpyutaika/nifikop/pull/454) - **[Helm Chart]** Added options in nifi-cluster helm chart to support setting `clientType`, `propagateLabels`, `sidecarConfigs`, `topologySpreadConstraints` and `nifiControllerTemplate` on NiFiCluster CRD.
+- [PR #455](https://github.com/konpyutaika/nifikop/pull/455) - **[Helm Chart]** Added ability to configure `overrideSecretConfig` and `overrideConfigMap` for `nifi.properties` in the nifi-cluster chart.
 
 ### Changed
 

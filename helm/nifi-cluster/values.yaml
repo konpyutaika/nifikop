@@ -129,6 +129,21 @@ cluster:
   nifiProperties:
     overrideConfigs: |
       nifi.web.proxy.context.path=/nifi-cluster
+    
+    # -- A ConfigMap ref to override the default nifi properties
+    # see https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster/2_read_only_config#nifiproperties
+    overrideConfigMap: {}
+    #   data: nifi.properties
+    #   name: nifi-properties
+    #   namespace: nifi
+
+    # -- A Secret ref to override the default nifi properties
+    # see https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster/2_read_only_config#nifiproperties
+    overrideSecretConfig: {}
+    #   data: nifi.properties
+    #   name: nifi-properties
+    #   namespace: nifi
+
 
     # -- List of allowed HTTP Host header values to consider when NiFi is running securely and will be receiving
     # requests to a different host[:port] than it is bound to. Operator will generate comma separated string from list
