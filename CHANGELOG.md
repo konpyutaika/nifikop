@@ -8,9 +8,10 @@
 ### Changed
 
 - [PR #449](https://github.com/konpyutaika/nifikop/pull/449) - **[Operator]** Upgrade golang to 1.23.0.
-- [PR #451](https://github.com/konpyutaika/nifikop/pull/451) - **[Operator]** Fixed `nil pointer dereference` that occurred when logging failures without an underlying error.
 
 ### Fixed Bugs
+
+- [PR #451](https://github.com/konpyutaika/nifikop/pull/451) - **[Operator]** Fixed `nil pointer dereference` that occurred when logging failures without an underlying error.
 
 ### Deprecated
 
