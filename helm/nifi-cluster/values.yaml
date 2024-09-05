@@ -3,6 +3,9 @@
 # https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster/1_nifi_cluster
 
 cluster:
+  # -- defines if the operator will use basic or tls authentication to query the NiFi cluster. Operator will default to tls if left unset
+  # @default -- tls
+  clientType:
   # -- type of the cluster: internal or external. Operator will put internal by default
   # @default -- internal
   type:
@@ -20,6 +23,10 @@ cluster:
   # see https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster#nificlusterspec
   # @default -- "node-%d-<cluster-name>"
   nodeUserIdentityTemplate:
+
+  # -- NifiControllerTemplate specifies the template to be used when naming the node controller (e.g. %s-mysuffix). **Warning: once defined dont' change
+  # this value either the operator will no longer be able to manage the cluster**
+  nifiControllerTemplate:
 
   # -- ControllerUserIdentity specifies what to call the static admin user's identity. **Warning: once defined don't change
   # this value either the operator will no longer be able to manage the cluster**
@@ -67,6 +74,14 @@ cluster:
   # -- list of init containers to run prior to the deployment
   initContainers: []
   
+  # -- list of additional sidecar containers to run alongside the nifi pods. See: https://pkg.go.dev/k8s.io/api/core/v1#Container
+  sidecarConfigs: []
+    # - name: my-sidecar
+    #   image: busybox:1.36
+    #   args:
+    #     - echo
+    #     - helloworld
+
   # --  MaximumTimerDrivenThreadCount defines the maximum number of threads for timer driven processors available to the system.
   maximumTimerDrivenThreadCount: 10
 
@@ -84,6 +99,9 @@ cluster:
 
   # -- see https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster#disruptionbudget
   disruptionBudget: {}
+
+  # -- specifies any TopologySpreadConstraint objects to be applied to all nodes. See https://pkg.go.dev/k8s.io/api/core/v1#TopologySpreadConstraint
+  topologySpreadConstraints: []
 
   # -- see https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster#ldapconfiguration
   ldapConfiguration: {}
@@ -111,6 +129,21 @@ cluster:
   nifiProperties:
     overrideConfigs: |
       nifi.web.proxy.context.path=/nifi-cluster
+    
+    # -- A ConfigMap ref to override the default nifi properties
+    # see https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster/2_read_only_config#nifiproperties
+    overrideConfigMap: {}
+    #   data: nifi.properties
+    #   name: nifi-properties
+    #   namespace: nifi
+
+    # -- A Secret ref to override the default nifi properties
+    # see https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster/2_read_only_config#nifiproperties
+    overrideSecretConfig: {}
+    #   data: nifi.properties
+    #   name: nifi-properties
+    #   namespace: nifi
+
 
     # -- List of allowed HTTP Host header values to consider when NiFi is running securely and will be receiving
     # requests to a different host[:port] than it is bound to. Operator will generate comma separated string from list
