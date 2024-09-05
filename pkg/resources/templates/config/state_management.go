@@ -18,7 +18,7 @@ var StateManagementTemplate = `<?xml version="1.0" encoding="UTF-8" standalone="
         <property name="Session Timeout">10 seconds</property>
         <property name="Access Control">Open</property>
     </cluster-provider>
-		<cluster-provider>
+    <cluster-provider>
         <id>kubernetes-provider</id>
         <class>org.apache.nifi.kubernetes.state.provider.KubernetesConfigMapStateProvider</class>
         <property name="ConfigMap Name Prefix">{{ .ConfigMapNamePrefix }}</property>
