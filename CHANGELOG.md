@@ -2,6 +2,9 @@
 
 ### Added
 
+
+- [PR #454](https://github.com/konpyutaika/nifikop/pull/454) - **[Helm Chart]** Added options in nifi-cluster helm chart to support setting `clientType`, `propagateLabels`, `sidecarConfigs`, `topologySpreadConstraints` and `nifiControllerTemplate` on NiFiCluster CRD.
+- [PR #455](https://github.com/konpyutaika/nifikop/pull/455) - **[Helm Chart]** Added ability to configure `overrideSecretConfig` and `overrideConfigMap` for `nifi.properties` in the nifi-cluster chart.
 - [PR #450](https://github.com/konpyutaika/nifikop/pull/450) - **[Operator/NifiCluster]** Added Kubernetes Clustering and State management.
 
 ### Changed
@@ -10,6 +13,8 @@
 - [PR #450](https://github.com/konpyutaika/nifikop/pull/450) - **[Operator/NifiCluster]** Changed default NiFi Configuration File from `flow.xml.gz` to `flow.json.gz`.
 
 ### Fixed Bugs
+
+- [PR #451](https://github.com/konpyutaika/nifikop/pull/451) - **[Operator]** Fixed `nil pointer dereference` that occurred when logging failures without an underlying error.
 
 ### Deprecated
 

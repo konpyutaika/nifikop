@@ -22,6 +22,7 @@ A Helm chart for deploying NiFi clusters in Kubernetes
 |-----|------|---------|-------------|
 | cluster.additionalSharedEnvs | list | `[]` | list of additional environment variables to attach to all init containers and the nifi container https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster/2_read_only_config#readonlyconfig |
 | cluster.bootstrapProperties | object | `{"nifiJvmMemory":"512m","overrideConfigs":"java.arg.4=-Djava.net.preferIPv4Stack=true\njava.arg.log4shell=-Dlog4j2.formatMsgNoLookups=true\n"}` | You can override individual properties in conf/bootstrap.conf https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#bootstrap_properties |
+| cluster.clientType | string | tls | defines if the operator will use basic or tls authentication to query the NiFi cluster. Operator will default to tls if left unset |
 | cluster.controllerUserIdentity | string | `nil` | ControllerUserIdentity specifies what to call the static admin user's identity. **Warning: once defined don't change this value either the operator will no longer be able to manage the cluster** |
 | cluster.disruptionBudget | object | `{}` | see https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster#disruptionbudget |
 | cluster.externalServices | list | `[{"metadata":{"annotations":{},"labels":{}},"name":"nifi-cluster-ip","spec":{"portConfigs":[{"internalListenerName":"http","port":8080}],"type":"ClusterIP"}}]` | Additional k8s services to create and target internal listener ports. Ingress will use these to route traffic to the cluster |
@@ -43,8 +44,11 @@ A Helm chart for deploying NiFi clusters in Kubernetes
 | cluster.manager | string | zookeeper | the type of cluster manager: zookeeper or kubernetes. Operator will put zookeeper by default |
 | cluster.maximumTimerDrivenThreadCount | int | `10` | MaximumTimerDrivenThreadCount defines the maximum number of threads for timer driven processors available to the system. |
 | cluster.nameOverride | string | `"nifi-cluster"` | the full name of the cluster. This is used to set a portion of the name of various nifikop resources |
-| cluster.nifiProperties | object | `{"needClientAuth":false,"overrideConfigs":"nifi.web.proxy.context.path=/nifi-cluster\n","webProxyHosts":[],"webProxyNodePorts":{"enabled":false,"hosts":[]}}` | You can override the individual properties via the overrideConfigs attribute. These will be provided to all pods via secrets. https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#system_properties |
+| cluster.nifiControllerTemplate | string | `nil` |  |
+| cluster.nifiProperties | object | `{"needClientAuth":false,"overrideConfigMap":{},"overrideConfigs":"nifi.web.proxy.context.path=/nifi-cluster\n","overrideSecretConfig":{},"webProxyHosts":[],"webProxyNodePorts":{"enabled":false,"hosts":[]}}` | You can override the individual properties via the overrideConfigs attribute. These will be provided to all pods via secrets. https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#system_properties |
 | cluster.nifiProperties.needClientAuth | bool | `false` | Nifi security client auth |
+| cluster.nifiProperties.overrideConfigMap | object | `{}` | A ConfigMap ref to override the default nifi properties see https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster/2_read_only_config#nifiproperties |
+| cluster.nifiProperties.overrideSecretConfig | object | `{}` | A Secret ref to override the default nifi properties see https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster/2_read_only_config#nifiproperties |
 | cluster.nifiProperties.webProxyHosts | list | `[]` | List of allowed HTTP Host header values to consider when NiFi is running securely and will be receiving requests to a different host[:port] than it is bound to. Operator will generate comma separated string from list https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#web-properties |
 | cluster.nifiProperties.webProxyNodePorts | object | `{"enabled":false,"hosts":[]}` | In case `cluster.externalServices` contains a service of type `NodePort` and NiFi UI/API needs to be accessed over it, this option will add host:nodePort to the `webProxyHosts` list inside `NiFiCluster`. Note: When adding webProxyHosts as host:port, NiFi will also create entry for host as valid host header. |
 | cluster.nodeConfigGroups | object | `{}` | Defines configurations for nodes which can be used in list of nodes in cluster.    See: https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster/3_node_config |
@@ -61,7 +65,9 @@ A Helm chart for deploying NiFi clusters in Kubernetes
 | cluster.service.annotations | object | `{}` | Annotations to apply to each nifi service |
 | cluster.service.headlessEnabled | bool | `true` | Whether or not to create a headless service |
 | cluster.service.labels | object | `{}` | Labels to apply to each nifi service |
+| cluster.sidecarConfigs | list | `[]` | list of additional sidecar containers to run alongside the nifi pods. See: https://pkg.go.dev/k8s.io/api/core/v1#Container |
 | cluster.singleUserConfiguration | object | `{"authorizerEnabled":false,"enabled":false,"secretKeys":{"password":"password","username":"username"},"secretRef":{"name":"single-user-credentials","namespace":"nifi"}}` | see https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster#singleuserconfiguration |
+| cluster.topologySpreadConstraints | list | `[]` | specifies any TopologySpreadConstraint objects to be applied to all nodes. See https://pkg.go.dev/k8s.io/api/core/v1#TopologySpreadConstraint |
 | cluster.type | string | internal | type of the cluster: internal or external. Operator will put internal by default |
 | cluster.zkAddress | string | `"nifi-cluster-zookeeper:2181"` | the hostname and port of the zookeeper service |
 | cluster.zkPath | string | `"/cluster"` | the path in zookeeper to store this cluster's state |

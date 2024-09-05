@@ -5,6 +5,9 @@ metadata:
   labels:
     {{- include "nifi-cluster.labels" . | nindent 4 }}
 spec:
+  {{- if .Values.cluster.clientType }}
+  clientType: {{ .Values.cluster.clientType }}
+  {{- end }}
   {{- if .Values.cluster.type }}
   type: {{ .Values.cluster.type }}
   {{- end }}
@@ -68,8 +71,15 @@ spec:
   initContainers:
   {{- toYaml .Values.cluster.initContainers | nindent 4 }}
 {{- end }}
+{{- if .Values.cluster.sidecarConfigs }}
+  sidecarConfigs:
+  {{- toYaml .Values.cluster.sidecarConfigs | nindent 4 }}
+{{- end }}
 {{- if .Values.cluster.nodeUserIdentityTemplate }}
   nodeUserIdentityTemplate: {{ .Values.cluster.nodeUserIdentityTemplate }}
+{{- end }}
+{{- if .Values.cluster.nifiControllerTemplate }}
+  nifiControllerTemplate: {{ .Values.cluster.nifiControllerTemplate }}
 {{- end }}
 {{- if .Values.cluster.controllerUserIdentity }}
   controllerUserIdentity: {{ .Values.cluster.controllerUserIdentity }}
@@ -84,6 +94,10 @@ spec:
 {{- end }}
   disruptionBudget:
   {{- toYaml .Values.cluster.disruptionBudget | nindent 4 }}
+{{- if .Values.cluster.topologySpreadConstraints }}
+  topologySpreadConstraints:
+  {{- toYaml .Values.cluster.topologySpreadConstraints | nindent 4 }}
+{{- end }}
   ldapConfiguration:
   {{- toYaml .Values.cluster.ldapConfiguration | nindent 4 }}
   readOnlyConfig:
@@ -114,10 +128,24 @@ spec:
         namespace: {{ .Values.cluster.logbackConfig.replaceConfigMap.namespace }}
     {{- end }}
     nifiProperties:
+    {{- if .Values.cluster.nifiProperties.overrideSecretConfig }}
+      overrideSecretConfig:
+        data: {{ .Values.cluster.nifiProperties.overrideSecretConfig.data }}
+        name: {{ .Values.cluster.nifiProperties.overrideSecretConfig.name }}
+        namespace: {{ .Values.cluster.nifiProperties.overrideSecretConfig.namespace }}
+    {{- else }}
+      # the default
       overrideSecretConfig:
         data: nifi.properties
         name: {{ include "nifi-cluster.fullname" . }}
         namespace: {{ .Release.Namespace }}
+    {{- end }}
+    {{- if .Values.cluster.nifiProperties.overrideConfigMap }}
+      overrideConfigMap:
+        data: {{ .Values.cluster.nifiProperties.overrideConfigMap.data }}
+        name: {{ .Values.cluster.nifiProperties.overrideConfigMap.name }}
+        namespace: {{ .Values.cluster.nifiProperties.overrideConfigMap.namespace }}
+    {{- end }}
       webProxyHosts:
       {{- toYaml .Values.cluster.nifiProperties.webProxyHosts | nindent 8}}
       {{- if and .Values.cluster.nifiProperties.webProxyNodePorts.enabled .Values.cluster.externalServices }}
@@ -149,7 +177,7 @@ spec:
   {{- toYaml .Values.cluster.nodeConfigGroups | nindent 4 }}
   nodes:
   {{- toYaml .Values.cluster.nodes | nindent 4 }}
-  propagateLabels: true
+  propagateLabels: {{ .Values.cluster.propagateLabels }}
   nifiClusterTaskSpec:
     retryDurationMinutes: {{ .Values.cluster.retryDurationMinutes }}
   listenersConfig:
