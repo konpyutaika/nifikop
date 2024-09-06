@@ -4,7 +4,7 @@ title: SSL configuration
 sidebar_label: SSL configuration
 ---
 
-The `NiFi operator` makes securing your NiFi cluster with SSL. You may provide your own certificates, or instruct the operator to create them for from your cluster configuration.
+The `NiFi operator` makes securing your NiFi cluster with SSL easy. You may provide your own certificates, or instruct the operator to create them for you from your cluster configuration.
 
 Below this is an example configuration required to secure your cluster with SSL:
 
@@ -60,10 +60,10 @@ of cert-manager will fail. You can try to use shorter name for NiFiCluster or mo
 the name length under 64 bytes.
 :::
 
-### Example: Let's encrypt
+### Example: Let's Encrypt
 
 Let's say you have an existing DNS server, with [external dns](https://github.com/kubernetes-sigs/external-dns) deployed into your cluster's namespace.
-You can easily use Let's encrypt as authority for your certificate.
+You can easily use [Let's Encrypt](https://letsencrypt.org/) as an authority for your certificate.
 
 To do this, you have to:
 
@@ -119,7 +119,7 @@ spec:
 
 ## Create SSL credentials
 
-You may use `NifiUser` resource to create new certificates for your applications, allowing them to query your Nifi cluster.
+You may use `NifiUser` resource to create new user certificates for your applications, allowing them to authenticate and query your Nifi cluster.
 
 To create a new client you will need to generate new certificates sign by the CA. The operator can automate this for you using the `NifiUser` CRD:
 
@@ -158,4 +158,4 @@ The operator can also include a Java keystore format (JKS) with your user secret
 | key | value |
 |-----|-------|
 | tls.jks | The java keystore containing both the user keys and the CA (use this for your keystore AND truststore) |
-| pass.txt | The password to decrypt the JKS (this will be randomly generated) |
+| pass.txt | The password to decrypt the JKS file (this will be randomly generated) |
