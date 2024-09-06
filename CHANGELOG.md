@@ -7,7 +7,7 @@
 - [PR #449](https://github.com/konpyutaika/nifikop/pull/449) - **[Operator]** Upgrade golang to 1.23.0.
 
 ### Fixed Bugs
-
+- [PR #439](https://github.com/konpyutaika/nifikop/pull/439) - **[Operator]** Handling the replicas attribute in the nifinodegroupautoscaler template in nifi-cluster helm chart.
 ### Deprecated
 
 ### Removed
