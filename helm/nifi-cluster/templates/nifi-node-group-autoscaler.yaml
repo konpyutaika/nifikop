@@ -18,7 +18,9 @@ spec:
   {{ end }}
   upscaleStrategy: {{ .upscaleStrategy }}
   downscaleStrategy: {{ .downscaleStrategy }}
-  replicas: {{ .replicas }}
+  {{ if .replicas }}
+    replicas: {{ .replicas }}
+  {{ end }}
 {{ end }}
 {{ end }}
 {{ end }}
