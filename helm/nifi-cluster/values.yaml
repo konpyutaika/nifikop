@@ -351,6 +351,7 @@ nodeGroupAutoscalers:
         default-scale-group: "true"
     upscaleStrategy: simple
     downscaleStrategy: lifo
+    replicas: ~
     # this is the horizontal pod autoscaler spec: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/
     # you may include both metrics and behavior here.
     horizontalAutoscaler:

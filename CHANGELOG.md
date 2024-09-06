@@ -11,6 +11,8 @@
 
 ### Fixed Bugs
 
+
+- [PR #439](https://github.com/konpyutaika/nifikop/pull/439) - **[Helm Chart]** Handling the replicas attribute in the nifinodegroupautoscaler template in nifi-cluster helm chart.
 - [PR #451](https://github.com/konpyutaika/nifikop/pull/451) - **[Operator]** Fixed `nil pointer dereference` that occurred when logging failures without an underlying error.
 
 ### Deprecated
