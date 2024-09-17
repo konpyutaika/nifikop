@@ -5,6 +5,7 @@ import (
 
 	"go.uber.org/zap"
 
+    corev1 "k8s.io/api/core/v1"
 	v1 "github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/pkg/util/nifi"
 )
@@ -178,7 +179,24 @@ nifi.security.user.authorizer=single-user-authorizer
 {{else}}
 nifi.security.user.authorizer={{ .Authorizer }}
 {{end}}
-{{if .LdapConfiguration.Enabled}}
+{{ if .OidcConfiguration.Enabled}}
+#read secret value
+clientSecret := &corev1.EnvVarSource{
+				SecretKeyRef: &corev1.SecretKeySelector{
+					LocalObjectReference: corev1.LocalObjectReference{
+						Name: OidcConfiguration.SecretRef.Name,
+                        NameSpace: OidcConfiguration.SecretRef.NameSpace
+					},
+					Key: clientSecret,
+				},
+		}
+nifi.security.user.oidc.discovery.url={{ .OidcConfiguration.discoveryUrl }}
+nifi.security.user.oidc.client.id={{ .OidcConfiguration.clientId }}
+nifi.security.user.oidc.client.secret=clientSecret
+nifi.security.identity.mapping.pattern.dn={{ .OidcConfiguration.patternDn }}
+nifi.security.identity.mapping.value.dn={{ .OidcConfiguration.valueDn }}
+nifi.security.identity.mapping.transform.dn={{ .OidcConfiguration.transformDn }}
+{{else if .LdapConfiguration.Enabled}}
 nifi.security.user.login.identity.provider=ldap-provider
 {{else if .SingleUserConfiguration.Enabled}}
 nifi.security.user.login.identity.provider=single-user-provider
