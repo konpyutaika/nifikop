@@ -131,12 +131,12 @@ func (r *Reconciler) getNifiPropertiesConfigString(nConfig *v1.NodeConfig, id in
 	}
 
     if strings.Contains(config.NifiPropertiesTemplate, "user.oidc.client.secret") {
-        #read secret value
+        // read secret value
         clientSecret := &corev1.EnvVarSource{
 				SecretKeyRef: &corev1.SecretKeySelector{
 					LocalObjectReference: corev1.LocalObjectReference{
 						Name: OidcConfiguration.SecretRef.Name,
-                        NameSpace: OidcConfiguration.SecretRef.NameSpace
+                        NameSpace: OidcConfiguration.SecretRef.NameSpace,
 					},
 					Key: clientSecret,
 				},
