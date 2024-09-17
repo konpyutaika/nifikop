@@ -130,6 +130,20 @@ func (r *Reconciler) getNifiPropertiesConfigString(nConfig *v1.NodeConfig, id in
 		webProxyHosts = strings.Join(append(dnsNames, base.WebProxyHosts...), ",")
 	}
 
+    if strings.Contains(config.NifiPropertiesTemplate, 'user.oidc.client.secret') {
+        #read secret value
+        clientSecret := &corev1.EnvVarSource{
+				SecretKeyRef: &corev1.SecretKeySelector{
+					LocalObjectReference: corev1.LocalObjectReference{
+						Name: OidcConfiguration.SecretRef.Name,
+                        NameSpace: OidcConfiguration.SecretRef.NameSpace
+					},
+					Key: clientSecret,
+				},
+		}
+        
+        strings.Replace(config.NifiPropertiesTemplate, 'nifi.security.user.oidc.client.secret=clientSecret', 'nifi.security.user.oidc.client.secret=' + clientSecret, 1)
+    }
 	useSSL := configcommon.UseSSL(r.NifiCluster)
 	var out bytes.Buffer
 	t := template.Must(template.New("nConfig-config").Parse(config.NifiPropertiesTemplate))

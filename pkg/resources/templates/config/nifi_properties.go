@@ -5,8 +5,7 @@ import (
 
 	"go.uber.org/zap"
 
-    corev1 "k8s.io/api/core/v1"
-	v1 "github.com/konpyutaika/nifikop/api/v1"
+    v1 "github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/pkg/util/nifi"
 )
 
@@ -180,16 +179,6 @@ nifi.security.user.authorizer=single-user-authorizer
 nifi.security.user.authorizer={{ .Authorizer }}
 {{end}}
 {{ if .OidcConfiguration.Enabled}}
-#read secret value
-clientSecret := &corev1.EnvVarSource{
-				SecretKeyRef: &corev1.SecretKeySelector{
-					LocalObjectReference: corev1.LocalObjectReference{
-						Name: OidcConfiguration.SecretRef.Name,
-                        NameSpace: OidcConfiguration.SecretRef.NameSpace
-					},
-					Key: clientSecret,
-				},
-		}
 nifi.security.user.oidc.discovery.url={{ .OidcConfiguration.discoveryUrl }}
 nifi.security.user.oidc.client.id={{ .OidcConfiguration.clientId }}
 nifi.security.user.oidc.client.secret=clientSecret
