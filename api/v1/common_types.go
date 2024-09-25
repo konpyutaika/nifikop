@@ -58,6 +58,10 @@ type ClientConfigType string
 // +kubebuilder:validation:Enum={"external","internal"}
 type ClusterType string
 
+// ClusterManagerType defines the type of manager will handle the cluster.
+// +kubebuilder:validation:Enum={"zookeeper","kubernetes"}
+type ClusterManagerType string
+
 // AccessPolicyType represents the type of access policy.
 type AccessPolicyType string
 
@@ -278,6 +282,14 @@ const (
 const (
 	ExternalCluster ClusterType = "external"
 	InternalCluster ClusterType = "internal"
+)
+
+const (
+	// ZookeeperClusterManager indicates that the cluster leader election and state management will be managed with ZooKeeper.
+	ZookeeperClusterManager ClusterManagerType = "zookeeper"
+	// ZookeeperClusterManager indicates that the cluster leader election and state management will be managed with Kubernetes resources,
+	// respectively with Leases and ConfigMaps.
+	KubernetesClusterManager ClusterManagerType = "kubernetes"
 )
 
 const (

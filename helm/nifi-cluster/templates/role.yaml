@@ -1,0 +1,15 @@
+{{ if eq .Values.cluster.manager "kubernetes" }}
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ include "nifi-cluster.fullname" . }}
+rules:
+- apiGroups: ["coordination.k8s.io"]
+  resources: ["leases"]
+  verbs: ["*"]
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["*"]
+---
+{{ end }}

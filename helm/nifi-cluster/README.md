@@ -41,6 +41,7 @@ A Helm chart for deploying NiFi clusters in Kubernetes
 | cluster.logbackConfig.replaceSecretConfig | object | `{}` | A Secret ref to override the default logback configuration see https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster/2_read_only_config#logbackconfig |
 | cluster.managedAdminUsers | list | `[]` | see https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster#managedusers |
 | cluster.managedReaderUsers | list | `[]` | see https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster#managedusers |
+| cluster.manager | string | zookeeper | the type of cluster manager: zookeeper or kubernetes. Operator will put zookeeper by default |
 | cluster.maximumTimerDrivenThreadCount | int | `10` | MaximumTimerDrivenThreadCount defines the maximum number of threads for timer driven processors available to the system. |
 | cluster.nameOverride | string | `"nifi-cluster"` | the full name of the cluster. This is used to set a portion of the name of various nifikop resources |
 | cluster.nifiControllerTemplate | string | `nil` |  |
