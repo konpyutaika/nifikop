@@ -248,5 +248,5 @@ spec:
 
 | Name                     | Value      | Description                                                                                                                                             |
 | ------------------------ | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ZookeeperClusterManager  | zookeeper  | indicates that the cluster leader election and state management will be managed with ZooKeeper.                                                         |
-| KubernetesClusterManager | kubernetes | indicates that the cluster leader election and state management will be managed with Kubernetes resources, with `Leases` and `ConfigMaps` respectively. |
+| ZookeeperClusterManager  | zookeeper  | indicates that the cluster leader election and state management will be managed with ZooKeeper. When Zookeeper is configured, you must also configure `NifiCluster.spec.zkPath` and `NifiCluster.spec.zkAddress`. |
+| KubernetesClusterManager | kubernetes | indicates that the cluster leader election and state management will be managed with Kubernetes resources, with `Leases` and `ConfigMaps` respectively.                                                           |
