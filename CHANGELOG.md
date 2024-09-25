@@ -9,6 +9,7 @@
 ### Changed
 
 - [PR #449](https://github.com/konpyutaika/nifikop/pull/449) - **[Operator]** Upgrade golang to 1.23.0.
+- [PR #465](https://github.com/konpyutaika/nifikop/pull/465) - **[Operator]** Upgrade golang to 1.23.1.
 
 ### Fixed Bugs
 
