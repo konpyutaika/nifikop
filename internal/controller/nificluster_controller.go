@@ -19,10 +19,12 @@ package controller
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"emperror.dev/errors"
 	"go.uber.org/zap"
+	coordinationv1 "k8s.io/api/coordination/v1"
 	corev1 "k8s.io/api/core/v1"
 	policyv1 "k8s.io/api/policy/v1"
 	policyv1beta1 "k8s.io/api/policy/v1beta1"
@@ -294,6 +296,16 @@ func (r *NifiClusterReconciler) checkFinalizers(ctx context.Context,
 				return RequeueWithError(r.Log, "failed to finalize PKI", err)
 			}
 		}
+
+		if cluster.Spec.ClusterManager == v1.KubernetesClusterManager {
+			if err := r.deleteLeases(ctx, cluster); err != nil {
+				return RequeueWithError(r.Log, "failed to delete cluster Leases", err)
+			}
+
+			if err := r.deleteConfigMaps(ctx, cluster); err != nil {
+				return RequeueWithError(r.Log, "failed to delete cluster ConfigMaps", err)
+			}
+		}
 	}
 
 	r.Log.Info("Finalizing deletion of nificluster instance", zap.String("clusterName", cluster.Name))
@@ -330,6 +342,41 @@ func (r *NifiClusterReconciler) finalizePVCs(ctx context.Context, cluster *v1.Ni
 		}
 	}
 	return Reconciled()
+}
+
+func (r *NifiClusterReconciler) deleteLeases(ctx context.Context, cluster *v1.NifiCluster) error {
+	clusterCoordinatorName := fmt.Sprintf("%s-cluster-coordinator", cluster.Name)
+	primaryNode := fmt.Sprintf("%s-primary-node", cluster.Name)
+	foundLeaseList := &coordinationv1.LeaseList{}
+	if err := r.Client.List(ctx, foundLeaseList, client.ListOption(client.InNamespace(cluster.Namespace))); err != nil {
+		return err
+	}
+	for _, lease := range foundLeaseList.Items {
+		if lease.Name == clusterCoordinatorName || lease.Name == primaryNode {
+			r.Log.Debug("Deleting Lease as it matches the name.", zap.String("clusterName", cluster.Name), zap.String("leaseName", lease.Name))
+			if err := r.Client.Delete(ctx, &lease); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (r *NifiClusterReconciler) deleteConfigMaps(ctx context.Context, cluster *v1.NifiCluster) error {
+	nifiComponentPrefix := fmt.Sprintf("%s-nifi-component", cluster.Name)
+	foundConfigMapList := &corev1.ConfigMapList{}
+	if err := r.Client.List(ctx, foundConfigMapList, client.ListOption(client.InNamespace(cluster.Namespace))); err != nil {
+		return err
+	}
+	for _, configMap := range foundConfigMapList.Items {
+		if strings.HasPrefix(configMap.Name, nifiComponentPrefix) {
+			r.Log.Debug("Deleting ConfigMap as it matches the prefix.", zap.String("clusterName", cluster.Name), zap.String("configMapName", configMap.Name))
+			if err := r.Client.Delete(ctx, &configMap); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 func (r *NifiClusterReconciler) removeFinalizer(ctx context.Context, cluster *v1.NifiCluster,

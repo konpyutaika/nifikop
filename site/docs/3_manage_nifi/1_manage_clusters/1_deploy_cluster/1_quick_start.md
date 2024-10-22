@@ -28,11 +28,16 @@ volumeBindingMode: WaitForFirstConsumer
 Remember to set your NiFiCluster CR properly to use the newly created StorageClass.
 :::
 
-As a pre-requisite NiFi requires Zookeeper so you need to first have a Zookeeper cluster if you don't already have one.
+## State management
+
+To manage its cluster and states, NiFi needs Zookeeper or rights on the Kubernetes cluster to manage `Leases` and `ConfigMaps` resources in the namespace where it is deployed.
+
+In the case of Zookeeper, you must first have a Zookeeper cluster if you don't already have one.
+Otherwise, you need to provide the corresponding role to the NiFi cluster's `ServiceAccount`.
 
 > We believe in the `separation of concerns` principle, thus the NiFi operator does not install nor manage Zookeeper.
 
-## Install Zookeeper
+### Installing Zookeeper
 
 To install Zookeeper we recommend using the [Bitnami's Zookeeper chart](https://github.com/bitnami/charts/tree/master/bitnami/zookeeper).
 
@@ -53,17 +58,7 @@ helm install zookeeper oci://registry-1.docker.io/bitnamicharts/zookeeper \
 Replace the `storageClass` parameter value with your own.
 :::
 
-## Deploy NiFi cluster
-
-And after you can deploy a simple NiFi cluster.
-
-```bash
-# Add your zookeeper svc name to the configuration
-kubectl create -n nifi -f config/samples/simplenificluster.yaml
-```
-
-### On OpenShift
-#### Install Zookeeper
+#### On OpenShift
 
 We need to get the uid/gid for the RunAsUser and the fsGroup for the namespace we deploy zookeeper in.
 
@@ -87,9 +82,54 @@ helm install zookeeper oci://registry-1.docker.io/bitnamicharts/zookeeper \
     --set podSecurityContext.fsGroup=$zookeper_uid
 ```
 
-#### Deploy NiFi cluster
+### Enabling Kubernetes State Management
+
+When using native Kubernetes State Management from NiFi, you need to make sure that the `ServiceAccount` used by NiFi has the correct rights to manage the needed Kubernetes resources.
+
+```yaml
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: simplenifi
+  namespace: nifi
+rules:
+- apiGroups: ["coordination.k8s.io"]
+  resources: ["leases"]
+  verbs: ["*"]
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["*"]
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: simplenifi
+  namespace: nifi
+subjects:
+  - kind: ServiceAccount
+    name: default
+    namespace: nifi
+roleRef:
+  kind: Role
+  name: simplenifi
+  apiGroup: rbac.authorization.k8s.io
+```
+
+:::info
+In this case, you need to set `clusterManager` in `NiFiCluster`'s specification to `kubernetes`.
+You can also use the Helm chart to create your cluster and it will take care of it for you.
+:::
+
+## Deploy NiFi cluster
 
 And after you can deploy a simple NiFi cluster.
+
+```bash
+# Add your zookeeper svc name to the configuration
+kubectl create -n nifi -f config/samples/simplenificluster.yaml
+```
+
+### On OpenShift
 
 ```bash
 # Add your zookeeper svc name to the configuration

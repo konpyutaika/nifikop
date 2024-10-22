@@ -1,0 +1,15 @@
+{{ if eq .Values.cluster.manager "kubernetes" }}
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ include "nifi-cluster.fullname" . }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "nifi-cluster.fullname" . }}
+roleRef:
+  kind: Role
+  apiGroup: rbac.authorization.k8s.io
+  name: {{ include "nifi-cluster.fullname" . }}
+---
+{{ end }}
