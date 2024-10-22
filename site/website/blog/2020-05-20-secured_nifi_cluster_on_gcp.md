@@ -1,10 +1,7 @@
 ---
 slug: secured_nifi_cluster_on_gcp
 title: Secured NiFi cluster with NiFiKop on the Google Cloud Platform
-author: Alexandre Guitton
-author_title: Alexandre Guitton
-author_url: https://github.com/erdrix
-author_image_url: https://avatars0.githubusercontent.com/u/10503351?s=460&u=ea08d802388c79c17655c314296be58814391572&v=4
+authors: [aguitton]
 tags: [gke, nifikop, secured, oidc, google cloud platform, google cloud, gcp, kubernetes]
 ---
 
@@ -23,6 +20,8 @@ In this article, we'll use **NiFiKop** and **Terraform** to quickly:
 - configure **NiFi to use OpenId connect** for authentication
 - configure **HTTPS loadbalancer with Client Ip affinity** to access to the NiFi cluster
 - re-size the cluster dynamically
+
+<!-- truncate -->
 
 ## Pre-requisites
 
