@@ -2,6 +2,18 @@
 
 ### Added
 
+### Changed
+
+### Fixed Bugs
+
+### Deprecated
+
+### Removed
+
+## v1.11.0
+
+### Added
+
 - [PR #454](https://github.com/konpyutaika/nifikop/pull/454) - **[Helm Chart]** Added options in nifi-cluster helm chart to support setting `clientType`, `propagateLabels`, `sidecarConfigs`, `topologySpreadConstraints` and `nifiControllerTemplate` on NiFiCluster CRD.
 - [PR #455](https://github.com/konpyutaika/nifikop/pull/455) - **[Helm Chart]** Added ability to configure `overrideSecretConfig` and `overrideConfigMap` for `nifi.properties` in the nifi-cluster chart.
 - [PR #439](https://github.com/konpyutaika/nifikop/pull/439) - **[Helm Chart]** Handling the replicas attribute in the nifinodegroupautoscaler template in nifi-cluster helm chart.
@@ -18,10 +30,6 @@
 ### Fixed Bugs
 
 - [PR #451](https://github.com/konpyutaika/nifikop/pull/451) - **[Operator]** Fixed `nil pointer dereference` that occurred when logging failures without an underlying error.
-
-### Deprecated
-
-### Removed
 
 ## v1.10.0
 
