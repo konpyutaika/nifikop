@@ -165,6 +165,8 @@ func (r *Reconciler) getNifiPropertiesConfigString(nConfig *v1.NodeConfig, id in
 		"IsNode":                  nConfig.GetIsNode(),
 		"ZookeeperConnectString":  r.NifiCluster.Spec.ZKAddress,
 		"ZookeeperPath":           r.NifiCluster.Spec.GetZkPath(),
+		"ClusterManager":          r.NifiCluster.Spec.ClusterManager,
+		"KubernetesLeasePrefix":   r.NifiCluster.Name,
 	}); err != nil {
 		log.Error("error occurred during parsing the config template",
 			zap.String("clusterName", r.NifiCluster.Name),
@@ -276,6 +278,7 @@ func (r *Reconciler) getStateManagementConfigString(nConfig *v1.NodeConfig, id i
 		"Id":                     id,
 		"ZookeeperConnectString": r.NifiCluster.Spec.ZKAddress,
 		"ZookeeperPath":          r.NifiCluster.Spec.GetZkPath(),
+		"ConfigMapNamePrefix":    r.NifiCluster.Name,
 	}); err != nil {
 		log.Error("error occurred during parsing the config template",
 			zap.String("clusterName", r.NifiCluster.Name),

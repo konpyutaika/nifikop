@@ -25,7 +25,7 @@ var NifiPropertiesTemplate = `# Licensed to the Apache Software Foundation (ASF)
 # limitations under the License.
 
 # Core Properties #
-nifi.flow.configuration.file=../data/flow.xml.gz
+nifi.flow.configuration.file=../data/flow.json.gz
 nifi.flow.configuration.archive.enabled=true
 nifi.flow.configuration.archive.dir=../data/archive/
 nifi.flow.configuration.archive.max.time=30 days
@@ -66,7 +66,11 @@ nifi.state.management.configuration.file=./conf/state-management.xml
 # The ID of the local state provider
 nifi.state.management.provider.local=local-provider
 # The ID of the cluster-wide state provider. This will be ignored if NiFi is not clustered but must be populated if running in a cluster.
+{{if eq .ClusterManager "zookeeper"}}
 nifi.state.management.provider.cluster=zk-provider
+{{else}}
+nifi.state.management.provider.cluster=kubernetes-provider
+{{end}}
 # Specifies whether or not this instance of NiFi should run an embedded ZooKeeper server
 nifi.state.management.embedded.zookeeper.start=false
 # Properties file that provides the ZooKeeper properties to use if <nifi.state.management.embedded.zookeeper.start> is set to true
@@ -221,6 +225,11 @@ nifi.cluster.protocol.is.secure={{ .ClusterSecure }}
 nifi.cluster.is.node={{.IsNode}}
 nifi.cluster.node.protocol.threads=10
 nifi.cluster.node.protocol.max.threads=50
+{{if eq .ClusterManager "zookeeper"}}
+nifi.cluster.leader.election.implementation=CuratorLeaderElectionManager
+{{else}}
+nifi.cluster.leader.election.implementation=KubernetesLeaderElectionManager
+{{end}}
 nifi.cluster.node.event.history.size=25
 nifi.cluster.node.connection.timeout=5 sec
 nifi.cluster.node.read.timeout=5 sec
@@ -260,6 +269,10 @@ nifi.kerberos.spnego.authentication.expiration=12 hours
 # external properties files for variable registry
 # supports a comma delimited list of file locations
 nifi.variable.registry.properties=
+
+
+# kubernetes #
+nifi.cluster.leader.election.kubernetes.lease.prefix={{ .KubernetesLeasePrefix }}
 `
 
 func GenerateListenerSpecificConfig(
