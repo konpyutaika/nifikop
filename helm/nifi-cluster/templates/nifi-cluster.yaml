@@ -56,9 +56,7 @@ spec:
   {{- if .Values.cluster.manager }}
   clusterManager: {{ .Values.cluster.manager }}
   {{- end }}
-  {{- if eq .Values.cluster.manager "kubernetes" }}
-  serviceAccountName: {{ include "nifi-cluster.fullname" . }}
-  {{- else }}
+  {{- if ne .Values.cluster.manager "kubernetes" }}
   zkAddress: {{ .Values.cluster.zkAddress }}
   zkPath: {{ .Values.cluster.zkPath }}
   {{- end }}
@@ -174,7 +172,14 @@ spec:
         namespace: {{ .Release.Namespace }}
       nifiJvmMemory: {{ .Values.cluster.bootstrapProperties.nifiJvmMemory }}
   nodeConfigGroups:
+  {{- if empty .Values.cluster.nodeConfigGroups }}
+    {{- if eq .Values.cluster.manager "kubernetes" }}
+    default-group:
+      serviceAccountName: {{ include "nifi-cluster.fullname" . }}
+    {{- end }}
+  {{- else }}
   {{- toYaml .Values.cluster.nodeConfigGroups | nindent 4 }}
+  {{- end }}
   nodes:
   {{- toYaml .Values.cluster.nodes | nindent 4 }}
   propagateLabels: {{ .Values.cluster.propagateLabels }}

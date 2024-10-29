@@ -35,7 +35,7 @@ spec:
           - internalListenerName: http
             port: 8080
         type: ClusterIP
-  clusterImage: "apache/nifi:1.26.0"
+  clusterImage: "apache/nifi:1.28.0"
   initContainerImage: "bash:5.2.2"
   oneNifiNodePerNode: true
   readOnlyConfig:
