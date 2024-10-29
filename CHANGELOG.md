@@ -4,16 +4,22 @@
 
 ### Changed
 
+### Fixed Bugs
+
+### Deprecated
+
+### Removed
+
+## v1.11.1
+
+### Changed
+
 - [PR #471](https://github.com/konpyutaika/nifikop/pull/471) - **[Documentation]** Update compatibility matrix.
 - [PR #471](https://github.com/konpyutaika/nifikop/pull/471) - **[Helm Chart]** Update `appVersion` to `1.28.0`.
 
 ### Fixed Bugs
 
 - [PR #471](https://github.com/konpyutaika/nifikop/pull/471) - **[Helm Chart]** Fixed incorrect `serviceAccountName` setting in NiFiCluster chart.
-
-### Deprecated
-
-### Removed
 
 ## v1.11.0
 
