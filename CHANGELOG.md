@@ -4,6 +4,8 @@
 
 ### Changed
 
+- [PR #474](https://github.com/konpyutaika/nifikop/pull/474) - **[NiGoApi]** Upgrade NiGoApi to v0.1.3.
+
 ### Fixed Bugs
 
 ### Deprecated
