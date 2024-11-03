@@ -2,6 +2,8 @@
 
 ### Added
 
+- [PR #476](https://github.com/konpyutaika/nifikop/pull/475) - **[Helm Chart]** Added option in nifi-parameter-context helm chart to support setting `inheritedParameterContexts`.
+
 ### Changed
 
 - [PR #474](https://github.com/konpyutaika/nifikop/pull/474) - **[NiGoApi]** Upgrade NiGoApi to v0.1.3.
@@ -760,7 +762,6 @@
 - Create helm chart for operator
 - Add Documentation for internal deployment
 - Add Gitlab CI Pipeline
-- [PR #476](https://github.com/konpyutaika/nifikop/pull/475) - **[Helm Chart]** Added option in nifi-parameter-context helm chart to support setting `inheritedParameterContexts`.
 
 ### Changed
 
