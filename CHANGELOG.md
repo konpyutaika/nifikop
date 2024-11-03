@@ -768,3 +768,4 @@
 ### Removed
 
 ### Fixed Bugs
+ - PR #476 - [Helm Chart] Add inheritedParameterContexts support in NifiParameterContext Helm template to align with CRD schema.
