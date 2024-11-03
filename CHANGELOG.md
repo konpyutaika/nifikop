@@ -768,4 +768,5 @@
 ### Removed
 
 ### Fixed Bugs
- - [PR #476](https://github.com/konpyutaika/nifikop/pull/475) - **[Helm chart]** Added option in nifi-parameter-context helm chart to support setting `inheritedParameterContexts`.
+
+ - [PR #476](https://github.com/konpyutaika/nifikop/pull/475) - **[Helm Chart]** Added option in nifi-parameter-context helm chart to support setting `inheritedParameterContexts`.
