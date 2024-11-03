@@ -12,6 +12,10 @@ spec:
   secretRefs:
 {{ toYaml .secretRefs | indent 4}}
 {{ end }}
+{{ if .inheritedParameterContexts }}
+  inheritedParameterContexts:
+{{ toYaml .inheritedParameterContexts | indent 4 }}
+{{ end }}
   parameters:
 {{ toYaml .parameters | indent 4}}
 ---
