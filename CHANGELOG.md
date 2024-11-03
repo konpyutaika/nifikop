@@ -760,6 +760,7 @@
 - Create helm chart for operator
 - Add Documentation for internal deployment
 - Add Gitlab CI Pipeline
+- [PR #476](https://github.com/konpyutaika/nifikop/pull/475) - **[Helm Chart]** Added option in nifi-parameter-context helm chart to support setting `inheritedParameterContexts`.
 
 ### Changed
 
@@ -768,5 +769,3 @@
 ### Removed
 
 ### Fixed Bugs
-
- - [PR #476](https://github.com/konpyutaika/nifikop/pull/475) - **[Helm Chart]** Added option in nifi-parameter-context helm chart to support setting `inheritedParameterContexts`.
