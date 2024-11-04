@@ -390,6 +390,10 @@ parameterContexts:
     secretRefs: []
       # - name: secret-params
       #   namespace: nifi
+    # -- List of references of Parameter Contexts from which this one inherits parameters
+    inheritedParameterContexts: []
+      # - name: base-param-context
+      #   namespace: nifi
     # List of parameters to add to the ParameterContext
     parameters:
     - name: foo-prop
