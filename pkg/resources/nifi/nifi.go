@@ -682,7 +682,7 @@ func (r *Reconciler) reconcileNifiPod(log zap.Logger, desiredPod *corev1.Pod) (e
 		}
 		// If there are extra initContainers from webhook injections we need to add them
 		if len(currentPod.Spec.InitContainers) > len(desiredPod.Spec.InitContainers) {
-			desiredPod.Spec.InitContainers = append(currentPod.Spec.InitContainers, desiredPod.Spec.InitContainers...)
+			desiredPod.Spec.InitContainers = append(desiredPod.Spec.InitContainers, currentPod.Spec.InitContainers...)
 			uniqueContainers := []corev1.Container{}
 			keys := make(map[string]bool)
 			for _, c := range desiredPod.Spec.InitContainers {
@@ -695,7 +695,7 @@ func (r *Reconciler) reconcileNifiPod(log zap.Logger, desiredPod *corev1.Pod) (e
 		}
 		// If there are extra containers from webhook injections we need to add them
 		if len(currentPod.Spec.Containers) > len(desiredPod.Spec.Containers) {
-			desiredPod.Spec.Containers = append(currentPod.Spec.Containers, desiredPod.Spec.Containers...)
+			desiredPod.Spec.Containers = append(desiredPod.Spec.Containers, currentPod.Spec.Containers...)
 			uniqueContainers := []corev1.Container{}
 			keys := make(map[string]bool)
 			for _, c := range desiredPod.Spec.Containers {
