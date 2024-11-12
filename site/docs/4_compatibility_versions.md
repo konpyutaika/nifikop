@@ -61,7 +61,7 @@ Nifikop supports the following features for externally deployed clusters:
 
 Nifikop supports the following features for configuring users and user policies:
 
-| NiFi Version  | User Deployment | User Policies |
+| NiFi Version  | User deployment | User policies |
 |---------------|-----------------|---------------|
 | NiFi 1.16     | Yes             | Yes           |
 | NiFi 1.17     | Yes             | Yes           |
@@ -86,7 +86,7 @@ Nifikop supports the following features for configuring users and user policies:
 
 Nifikop supports the following features for configuring user groups:
 
-| NiFi Version  | Group Deployment | Group Policies |
+| NiFi Version  | Group deployment | Group policies |
 |---------------|------------------|----------------|
 | NiFi 1.16     | Yes              | Yes            |
 | NiFi 1.17     | Yes              | Yes            |
@@ -131,6 +131,32 @@ Nifikop supports the following features for managing dataflows:
 | NiFi 2.0.0-M3 | Yes                 | Yes               | Yes                      | Yes                        |
 | NiFi 2.0.0-M4 | Yes                 | Yes               | Yes                      | Yes                        |
 | NiFi 2.0.0    | Yes                 | Yes               | Yes                      | Yes                        |
+
+### NiFi registry
+
+Nifikop supports the following features for managing registries:
+
+| NiFi Version  | Registry deployment |
+|---------------|---------------------|
+| NiFi 1.16     | No                  |
+| NiFi 1.17     | No                  |
+| NiFi 1.18     | Yes                 |
+| NiFi 1.19     | Yes                 |
+| NiFi 1.20     | Yes                 |
+| NiFi 1.21     | Yes                 |
+| NiFi 1.22     | Yes                 |
+| NiFi 1.23     | Yes                 |
+| NiFi 1.24     | Yes                 |
+| NiFi 1.25     | Yes                 |
+| NiFi 1.26     | Yes                 |
+| NiFi 1.27     | Yes                 |
+| NiFi 1.28     | Yes                 |
+| NiFi 2.0.0-M1 | Yes                 |
+| NiFi 2.0.0-M2 | Yes                 |
+| NiFi 2.0.0-M3 | Yes                 |
+| NiFi 2.0.0-M4 | Yes                 |
+| NiFi 2.0.0    | Yes                 |
+
 
 ### NiFi parameter context
 
