@@ -2,6 +2,18 @@
 
 ### Added
 
+### Changed
+
+### Fixed Bugs
+
+### Deprecated
+
+### Removed
+
+## v1.11.2
+
+### Added
+
 - [PR #476](https://github.com/konpyutaika/nifikop/pull/475) - **[Helm Chart]** Added option in nifi-parameter-context helm chart to support setting `inheritedParameterContexts`.
 - [PR #477](https://github.com/konpyutaika/nifikop/pull/477) - **[Documentation]** Added compatibility matrix for NiFi Registry.
 
@@ -13,10 +25,6 @@
 ### Fixed Bugs
 
 - [PR #477](https://github.com/konpyutaika/nifikop/pull/477) - **[Operator/NifiRegistryClient]** Fixed registry update check to use url property.
-
-### Deprecated
-
-### Removed
 
 ## v1.11.1
 
