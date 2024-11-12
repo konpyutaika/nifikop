@@ -3,6 +3,7 @@
 ### Added
 
 - [PR #476](https://github.com/konpyutaika/nifikop/pull/475) - **[Helm Chart]** Added option in nifi-parameter-context helm chart to support setting `inheritedParameterContexts`.
+- [PR #477](https://github.com/konpyutaika/nifikop/pull/477) - **[Documentation]** Added compatibility matrix for NiFi Registry.
 
 ### Changed
 
@@ -10,6 +11,8 @@
 - [PR #478](https://github.com/konpyutaika/nifikop/pull/478) - **[Operator]** Upgrade golang to 1.23.3.
 
 ### Fixed Bugs
+
+- [PR #477](https://github.com/konpyutaika/nifikop/pull/477) - **[Operator/NifiRegistryClient]** Fixed registry update check to use url property.
 
 ### Deprecated
 
