@@ -1,6 +1,6 @@
 module github.com/konpyutaika/nifikop
 
-go 1.23.2
+go 1.23.3
 
 require (
 	emperror.dev/errors v0.8.1
