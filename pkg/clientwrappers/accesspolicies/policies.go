@@ -26,7 +26,7 @@ func ExistAccessPolicies(accessPolicy *v1.AccessPolicy, config *clientconfig.Nif
 		return false, err
 	}
 
-	return entity != nil, nil
+	return entity != nil && entity.Component.Resource == string(accessPolicy.Resource), nil
 }
 
 func CreateAccessPolicy(accessPolicy *v1.AccessPolicy, config *clientconfig.NifiConfig) (string, error) {
@@ -63,7 +63,7 @@ func UpdateAccessPolicy(
 		return err
 	}
 
-	// Check if the access policy  exist
+	// Check if the access policy exist
 	exist, err := ExistAccessPolicies(accessPolicy, config)
 	if err != nil {
 		return err
