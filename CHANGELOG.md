@@ -4,6 +4,8 @@
 
 ### Changed
 
+- [PR #482](https://github.com/konpyutaika/nifikop/pull/482) - **[Documentation]** Upgrade dependencies.
+
 ### Fixed Bugs
 
 - [PR #481](https://github.com/konpyutaika/nifikop/pull/481) - **[Operator/NifiUserGroup]** Fixed `/parameter_contexts` access policy creation.
