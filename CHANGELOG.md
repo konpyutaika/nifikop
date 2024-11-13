@@ -6,6 +6,8 @@
 
 ### Fixed Bugs
 
+- [PR #481](https://github.com/konpyutaika/nifikop/pull/481) - **[Operator/NifiUserGroup]** Fixed `/parameter_contexts` access policy creation.
+
 ### Deprecated
 
 ### Removed
