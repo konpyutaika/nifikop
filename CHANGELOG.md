@@ -2,9 +2,15 @@
 
 ### Added
 
+- [PR #476](https://github.com/konpyutaika/nifikop/pull/476) - **[Operator/NifiCluster]** Added logic to include injected containers and init containers in desired pod spec.
+
 ### Changed
 
+- [PR #476](https://github.com/konpyutaika/nifikop/pull/476) - **[Operator/NifiCluster]** Move Zookeeper connectivity check from init container to main container.
+
 ### Fixed Bugs
+
+- [PR #476](https://github.com/konpyutaika/nifikop/pull/476) - **[Operator/NifiCluster]** Fixed istio init race condition and pod reconciliation.
 
 ### Deprecated
 
