@@ -6,6 +6,8 @@
 
 ### Fixed Bugs
 
+- [PR #486](https://github.com/konpyutaika/nifikop/pull/486) - **[Operator/NifiUserGroup]** Fixed policy creation/update on Root PG.
+
 ### Deprecated
 
 ### Removed

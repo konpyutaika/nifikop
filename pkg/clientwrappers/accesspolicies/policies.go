@@ -26,7 +26,7 @@ func ExistAccessPolicies(accessPolicy *v1.AccessPolicy, config *clientconfig.Nif
 		return false, err
 	}
 
-	return entity != nil && entity.Component.Resource == string(accessPolicy.Resource), nil
+	return entity != nil && entity.Component.Resource == string(accessPolicy.GetResource(config.RootProcessGroupId)), nil
 }
 
 func CreateAccessPolicy(accessPolicy *v1.AccessPolicy, config *clientconfig.NifiConfig) (string, error) {
