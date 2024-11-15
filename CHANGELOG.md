@@ -6,6 +6,8 @@
 
 ### Fixed Bugs
 
+- [PR #476](https://github.com/konpyutaika/nifikop/pull/476) - **[Operator]** Fixed istio init race condition and pod reconciliation.
+
 ### Deprecated
 
 ### Removed
