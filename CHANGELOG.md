@@ -2,22 +2,83 @@
 
 ### Added
 
+- [PR #476](https://github.com/konpyutaika/nifikop/pull/476) - **[Operator/NifiCluster]** Added logic to include injected containers and init containers in desired pod spec.
+
+### Changed
+
+- [PR #476](https://github.com/konpyutaika/nifikop/pull/476) - **[Operator/NifiCluster]** Move Zookeeper connectivity check from init container to main container.
+
+### Fixed Bugs
+
+- [PR #476](https://github.com/konpyutaika/nifikop/pull/476) - **[Operator/NifiCluster]** Fixed istio init race condition and pod reconciliation.
+
+### Deprecated
+
+### Removed
+
+## v1.11.4
+
+### Fixed Bugs
+
+- [PR #486](https://github.com/konpyutaika/nifikop/pull/486) - **[Operator/NifiUserGroup]** Fixed policy creation/update on Root PG.
+
+## v1.11.3
+
+### Changed
+
+- [PR #482](https://github.com/konpyutaika/nifikop/pull/482) - **[Documentation]** Upgrade dependencies.
+
+### Fixed Bugs
+
+- [PR #481](https://github.com/konpyutaika/nifikop/pull/481) - **[Operator/NifiUserGroup]** Fixed `/parameter_contexts` access policy creation.
+
+## v1.11.2
+
+### Added
+
+- [PR #476](https://github.com/konpyutaika/nifikop/pull/475) - **[Helm Chart]** Added option in nifi-parameter-context helm chart to support setting `inheritedParameterContexts`.
+- [PR #477](https://github.com/konpyutaika/nifikop/pull/477) - **[Documentation]** Added compatibility matrix for NiFi Registry.
+
+### Changed
+
+- [PR #474](https://github.com/konpyutaika/nifikop/pull/474) - **[NiGoApi]** Upgrade NiGoApi to v0.1.3.
+- [PR #478](https://github.com/konpyutaika/nifikop/pull/478) - **[Operator]** Upgrade golang to 1.23.3.
+
+### Fixed Bugs
+
+- [PR #477](https://github.com/konpyutaika/nifikop/pull/477) - **[Operator/NifiRegistryClient]** Fixed registry update check to use url property.
+
+## v1.11.1
+
+### Changed
+
+- [PR #471](https://github.com/konpyutaika/nifikop/pull/471) - **[Documentation]** Update compatibility matrix.
+- [PR #471](https://github.com/konpyutaika/nifikop/pull/471) - **[Helm Chart]** Update `appVersion` to `1.28.0`.
+
+### Fixed Bugs
+
+- [PR #471](https://github.com/konpyutaika/nifikop/pull/471) - **[Helm Chart]** Fixed incorrect `serviceAccountName` setting in NiFiCluster chart.
+
+## v1.11.0
+
+### Added
+
 - [PR #454](https://github.com/konpyutaika/nifikop/pull/454) - **[Helm Chart]** Added options in nifi-cluster helm chart to support setting `clientType`, `propagateLabels`, `sidecarConfigs`, `topologySpreadConstraints` and `nifiControllerTemplate` on NiFiCluster CRD.
 - [PR #455](https://github.com/konpyutaika/nifikop/pull/455) - **[Helm Chart]** Added ability to configure `overrideSecretConfig` and `overrideConfigMap` for `nifi.properties` in the nifi-cluster chart.
 - [PR #439](https://github.com/konpyutaika/nifikop/pull/439) - **[Helm Chart]** Handling the replicas attribute in the nifinodegroupautoscaler template in nifi-cluster helm chart.
+- [PR #450](https://github.com/konpyutaika/nifikop/pull/450) - **[Operator/NifiCluster]** Added Kubernetes Clustering and State management.
 
 ### Changed
 
 - [PR #449](https://github.com/konpyutaika/nifikop/pull/449) - **[Operator]** Upgrade golang to 1.23.0.
 - [PR #465](https://github.com/konpyutaika/nifikop/pull/465) - **[Operator]** Upgrade golang to 1.23.1.
+- [PR #465](https://github.com/konpyutaika/nifikop/pull/466) - **[Operator]** Upgrade golang to 1.23.2.
+- [PR #466](https://github.com/konpyutaika/nifikop/pull/466) - **[Documentation]** Upgrade dependencies.
+- [PR #450](https://github.com/konpyutaika/nifikop/pull/450) - **[Operator/NifiCluster]** Changed default NiFi Configuration File from `flow.xml.gz` to `flow.json.gz`.
 
 ### Fixed Bugs
 
 - [PR #451](https://github.com/konpyutaika/nifikop/pull/451) - **[Operator]** Fixed `nil pointer dereference` that occurred when logging failures without an underlying error.
-
-### Deprecated
-
-### Removed
 
 ## v1.10.0
 

@@ -53,8 +53,13 @@ spec:
     {{- if .Values.cluster.singleUserConfiguration.authorizerEnabled }}
     authorizerEnabled: {{ .Values.cluster.singleUserConfiguration.authorizerEnabled }}
     {{- end }}
+  {{- if .Values.cluster.manager }}
+  clusterManager: {{ .Values.cluster.manager }}
+  {{- end }}
+  {{- if ne .Values.cluster.manager "kubernetes" }}
   zkAddress: {{ .Values.cluster.zkAddress }}
   zkPath: {{ .Values.cluster.zkPath }}
+  {{- end }}
   clusterImage: "{{ .Values.cluster.image.repository }}:{{ default .Chart.AppVersion .Values.cluster.image.tag }}"
   initContainerImage: "{{ .Values.cluster.initContainerImage.repository }}:{{ .Values.cluster.initContainerImage.tag }}"
 {{- if .Values.cluster.oneNifiNodePerNode }}
@@ -167,7 +172,14 @@ spec:
         namespace: {{ .Release.Namespace }}
       nifiJvmMemory: {{ .Values.cluster.bootstrapProperties.nifiJvmMemory }}
   nodeConfigGroups:
+  {{- if empty .Values.cluster.nodeConfigGroups }}
+    {{- if eq .Values.cluster.manager "kubernetes" }}
+    default-group:
+      serviceAccountName: {{ include "nifi-cluster.fullname" . }}
+    {{- end }}
+  {{- else }}
   {{- toYaml .Values.cluster.nodeConfigGroups | nindent 4 }}
+  {{- end }}
   nodes:
   {{- toYaml .Values.cluster.nodes | nindent 4 }}
   propagateLabels: {{ .Values.cluster.propagateLabels }}

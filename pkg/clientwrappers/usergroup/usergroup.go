@@ -3,7 +3,7 @@ package usergroup
 import (
 	nigoapi "github.com/konpyutaika/nigoapi/pkg/nifi"
 
-	"github.com/konpyutaika/nifikop/api/v1"
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/accesspolicies"
 	"github.com/konpyutaika/nifikop/pkg/common"

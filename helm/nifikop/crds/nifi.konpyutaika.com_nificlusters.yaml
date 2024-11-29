@@ -33,6 +33,12 @@ spec:
                 type: string
               clusterImage:
                 type: string
+              clusterManager:
+                default: zookeeper
+                enum:
+                - zookeeper
+                - kubernetes
+                type: string
               controllerUserIdentity:
                 type: string
               disruptionBudget:
