@@ -180,7 +180,7 @@ func (r *Reconciler) Reconcile(log zap.Logger) error {
 				return errors.WrapIfWithDetails(err, "failed to reconcile resource", "resource", pvc.GetObjectKind().GroupVersionKind())
 			}
 
-			// remove pvc from the list of those to delete
+			// remove pvc from the list of those to deleted
 			for i, pvc := range pvcsToDelete {
 				if pvcExists && pvc.Name == existingPvc.Name {
 					pvcsToDelete = append(pvcsToDelete[:i], pvcsToDelete[i+1:]...)
