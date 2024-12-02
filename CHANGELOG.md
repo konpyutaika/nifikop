@@ -3,6 +3,7 @@
 ### Added
 
 - [PR #476](https://github.com/konpyutaika/nifikop/pull/476) - **[Operator/NifiCluster]** Added logic to include injected containers and init containers in desired pod spec.
+- [PR #493](https://github.com/konpyutaika/nifikop/pull/493) - **[Operator/NifiCluster]** Added logic to rename/delete PVC.
 
 ### Changed
 
