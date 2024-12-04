@@ -7,6 +7,7 @@
 ### Changed
 
 - [PR #476](https://github.com/konpyutaika/nifikop/pull/476) - **[Operator/NifiCluster]** Move Zookeeper connectivity check from init container to main container.
+- [PR #491](https://github.com/konpyutaika/nifikop/pull/491) - **[Helm Chart]** Added default namespace to configuration replacements.
 
 ### Fixed Bugs
 
