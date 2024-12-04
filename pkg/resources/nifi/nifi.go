@@ -152,6 +152,10 @@ func (r *Reconciler) Reconcile(log zap.Logger) error {
 			return errors.WrapIfWithDetails(err, "failed to list PVCs")
 		}
 
+		// copy list of pvcs to detect those to delete
+		pvcsToDelete := make([]corev1.PersistentVolumeClaim, len(pvcs))
+		copy(pvcsToDelete, pvcs)
+
 		for _, storage := range nodeConfig.StorageConfigs {
 			var pvc *corev1.PersistentVolumeClaim
 			pvcExists, existingPvc := r.storageConfigPVCExists(pvcs, storage.Name)
@@ -175,10 +179,44 @@ func (r *Reconciler) Reconcile(log zap.Logger) error {
 			if err != nil {
 				return errors.WrapIfWithDetails(err, "failed to reconcile resource", "resource", pvc.GetObjectKind().GroupVersionKind())
 			}
+
+			// remove pvc from the list of those to deleted
+			for i, pvc := range pvcsToDelete {
+				if pvcExists && pvc.Name == existingPvc.Name {
+					pvcsToDelete = append(pvcsToDelete[:i], pvcsToDelete[i+1:]...)
+					break
+				}
+			}
+		}
+
+		for _, pvc := range pvcsToDelete {
+			// If this is a nifi data volume AND it has a Delete reclaim policy, then delete it. Otherwise, it is configured to be retained.
+			if pvc.Labels[nifiutil.NifiDataVolumeMountKey] == "true" && pvc.Labels[nifiutil.NifiVolumeReclaimPolicyKey] == string(corev1.PersistentVolumeReclaimDelete) {
+				err = r.Client.Delete(context.TODO(), &pvc)
+				if err != nil {
+					if apierrors.IsNotFound(err) {
+						// can happen when node was not fully initialized and now is deleted
+						log.Info(fmt.Sprintf("PVC for Node %s not found. Continue", node.Labels["nodeId"]))
+					}
+
+					return errors.WrapIfWithDetails(err, "could not delete pvc for node", "id", node.Labels["nodeId"])
+				}
+			} else {
+				log.Debug("Not deleting PVC because it should be retained.", zap.String("nodeId", node.Labels["nodeId"]), zap.String("pvcName", pvc.Name))
+			}
 		}
 
 		// re-lookup the PVCs after we've created any we need to create.
 		pvcs, err = getCreatedPVCForNode(r.Client, node.Id, r.NifiCluster.Namespace, r.NifiCluster.Name)
+		// remove pvcs that were delete
+		for _, pvcToDelete := range pvcsToDelete {
+			for i, pvc := range pvcs {
+				if pvcToDelete.Name == pvc.Name {
+					pvcs = append(pvcs[:i], pvcs[i+1:]...)
+				}
+			}
+		}
+
 		if err != nil {
 			return errors.WrapIfWithDetails(err, "failed to list PVCs")
 		}
