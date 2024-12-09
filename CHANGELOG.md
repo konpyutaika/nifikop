@@ -12,6 +12,7 @@
 ### Fixed Bugs
 
 - [PR #476](https://github.com/konpyutaika/nifikop/pull/476) - **[Operator/NifiCluster]** Fixed istio init race condition and pod reconciliation.
+- [PR #495](https://github.com/konpyutaika/nifikop/pull/495) - **[Operator/NifiCluster]** Fixed configuration file property values.
 
 ### Deprecated
 
