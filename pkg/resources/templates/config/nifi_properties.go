@@ -25,7 +25,8 @@ var NifiPropertiesTemplate = `# Licensed to the Apache Software Foundation (ASF)
 # limitations under the License.
 
 # Core Properties #
-nifi.flow.configuration.file=../data/flow.json.gz
+nifi.flow.configuration.file=../data/flow.xml.gz
+nifi.flow.configuration.json.file=../data/flow.json.gz
 nifi.flow.configuration.archive.enabled=true
 nifi.flow.configuration.archive.dir=../data/archive/
 nifi.flow.configuration.archive.max.time=30 days
