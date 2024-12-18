@@ -2,6 +2,7 @@ package nifi
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"reflect"
 	"sort"
@@ -691,7 +692,6 @@ func (r *Reconciler) reconcileNifiPod(log zap.Logger, desiredPod *corev1.Pod) (e
 					uniqueContainers = append(uniqueContainers, c)
 				}
 			}
-			desiredPod.Spec.InitContainers = uniqueContainers
 		}
 		// If there are extra containers from webhook injections we need to add them
 		if len(currentPod.Spec.Containers) > len(desiredPod.Spec.Containers) {
@@ -704,7 +704,6 @@ func (r *Reconciler) reconcileNifiPod(log zap.Logger, desiredPod *corev1.Pod) (e
 					uniqueContainers = append(uniqueContainers, c)
 				}
 			}
-			desiredPod.Spec.Containers = uniqueContainers
 		}
 		// Remove problematic fields if istio
 		if _, ok := currentPod.Annotations["istio.io/rev"]; ok {
@@ -712,21 +711,22 @@ func (r *Reconciler) reconcileNifiPod(log zap.Logger, desiredPod *corev1.Pod) (e
 			delete(currentPod.Annotations, "prometheus.io/port")
 			delete(desiredPod.Annotations, "prometheus.io/port")
 			// Liveness probe port is overridden by istio injection
-			desiredContainer := corev1.Container{}
-			for _, c := range desiredPod.Spec.Containers {
-				if c.Name == "nifi" {
-					desiredContainer = c
-				}
-			}
-			currentContainers := []corev1.Container{}
+			currentContainer := corev1.Container{}
 			for _, c := range currentPod.Spec.Containers {
 				if c.Name == "nifi" {
-					c.LivenessProbe = desiredContainer.LivenessProbe
+					currentContainer = c
 				}
-				currentContainers = append(currentContainers, c)
 			}
-			currentPod.Spec.Containers = currentContainers
+			desiredContainers := []corev1.Container{}
+			for _, c := range desiredPod.Spec.Containers {
+				if c.Name == "nifi" {
+					c.LivenessProbe = currentContainer.LivenessProbe
+				}
+				desiredContainers = append(desiredContainers, c)
+			}
+			desiredPod.Spec.Containers = desiredContainers
 		}
+
 		// Check if the resource actually updated
 		patchResult, err := patch.DefaultPatchMaker.Calculate(currentPod, desiredPod, opts...)
 		if err != nil {
@@ -755,6 +755,52 @@ func (r *Reconciler) reconcileNifiPod(log zap.Logger, desiredPod *corev1.Pod) (e
 				return nil, k8sutil.PodReady(currentPod)
 			}
 		} else {
+			// We want to check if the only part of the patch is element ordering, in which case we ignore it due to injection
+			var patch map[string]interface{}
+			if err := json.Unmarshal(patchResult.Patch, &patch); err == nil {
+				ignoreSpec := false
+				if len(patch) == 1 {
+					if spec, ok := patch["spec"].(map[string]interface{}); ok {
+						// If we only have one item in the spec then we check for container or initContainer ordering
+						if len(spec) == 1 {
+							if _, ok := spec["$setElementOrder/containers"]; ok {
+								ignoreSpec = true
+							} else if _, ok := spec["$setElementOrder/initContainers"]; ok {
+								ignoreSpec = true
+							}
+							// If we have two items in the spec then we check for container and initContainer ordering
+						} else if len(spec) == 2 {
+							if _, ok := spec["$setElementOrder/containers"]; ok {
+								if _, ok := spec["$setElementOrder/initContainers"]; ok {
+									ignoreSpec = true
+								}
+							}
+						}
+					}
+				}
+				// Since we can ignore the spec diff due to it only including $setElementOrder we'll proceed as if the pod is in sync
+				if ignoreSpec {
+					if !k8sutil.IsPodTerminatedOrShutdown(currentPod) &&
+						r.NifiCluster.Status.NodesState[currentPod.Labels["nodeId"]].ConfigurationState == v1.ConfigInSync {
+						if val, found := r.NifiCluster.Status.NodesState[desiredPod.Labels["nodeId"]]; found &&
+							val.GracefulActionState.State == v1.GracefulUpscaleRunning &&
+							val.GracefulActionState.ActionStep == v1.ConnectStatus &&
+							k8sutil.PodReady(currentPod) {
+							if err := k8sutil.UpdateNodeStatus(r.Client, []string{desiredPod.Labels["nodeId"]}, r.NifiCluster, r.NifiClusterCurrentStatus,
+								v1.GracefulActionState{ErrorMessage: "", State: v1.GracefulUpscaleSucceeded}, log); err != nil {
+								return errorfactory.New(errorfactory.StatusUpdateError{},
+									err, "could not update node graceful action state"), false
+							}
+						}
+
+						log.Debug("pod resource is in sync",
+							zap.String("clusterName", r.NifiCluster.Name),
+							zap.String("podName", currentPod.Name))
+
+						return nil, k8sutil.PodReady(currentPod)
+					}
+				}
+			}
 			log.Debug("resource diffs",
 				zap.String("patch", string(patchResult.Patch)),
 				zap.String("current", string(patchResult.Current)),
