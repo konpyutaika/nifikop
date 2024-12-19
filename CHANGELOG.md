@@ -3,6 +3,7 @@
 ### Added
 
 - [PR #476](https://github.com/konpyutaika/nifikop/pull/476) - **[Operator/NifiCluster]** Added logic to include injected containers and init containers in desired pod spec.
+- [PR #500](https://github.com/konpyutaika/nifikop/pull/500) - **[Operator/NiFiCluster]** Added support for [Zarf](https://zarf.dev/) patched container images
 
 ### Changed
 
