@@ -727,6 +727,34 @@ func (r *Reconciler) reconcileNifiPod(log zap.Logger, desiredPod *corev1.Pod) (e
 			}
 			currentPod.Spec.Containers = currentContainers
 		}
+		// Patch image name if Zarf has modified the pod spec
+		if _, ok := currentPod.Labels["zarf-agent"]; ok {
+			var oldImage, currentImage string
+			for _, c := range currentPod.Spec.Containers {
+				if c.Name == "nifi" {
+					imageChunks := strings.Split(c.Image, "/")
+					oldTag := strings.Split(imageChunks[len(imageChunks)-1], "-zarf")[0]
+					oldRepoChunks := imageChunks[1 : len(imageChunks)-1]
+					oldImage = fmt.Sprintf("%s/%s", strings.Join(oldRepoChunks, "/"), oldTag)
+					currentImage = c.Image
+				}
+			}
+			log.Debug("Patching Nifi container image for Zarf",
+				zap.String("current", currentImage),
+				zap.String("original", oldImage))
+			desiredContainers := []corev1.Container{}
+			for _, c := range desiredPod.Spec.Containers {
+				if c.Name == "nifi" {
+					// If the incoming image matches the spec from before the zarf patch then the pod is in sync
+					if c.Image == oldImage {
+						// We want to prevent a reconcile loop by setting the incoming image to the zarf image spec
+						c.Image = currentImage
+					}
+				}
+				desiredContainers = append(desiredContainers, c)
+			}
+			desiredPod.Spec.Containers = desiredContainers
+		}
 		// Check if the resource actually updated
 		patchResult, err := patch.DefaultPatchMaker.Calculate(currentPod, desiredPod, opts...)
 		if err != nil {
