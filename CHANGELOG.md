@@ -8,6 +8,7 @@
 
 - [PR #476](https://github.com/konpyutaika/nifikop/pull/476) - **[Operator/NifiCluster]** Move Zookeeper connectivity check from init container to main container.
 - [PR #491](https://github.com/konpyutaika/nifikop/pull/491) - **[Helm Chart]** Added default namespace to configuration replacements.
+- [PR #501](https://github.com/konpyutaika/nifikop/pull/501) - **[Operator]** Upgrade golang to 1.23.3.
 
 ### Fixed Bugs
 
