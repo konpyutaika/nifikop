@@ -8,7 +8,7 @@
         <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
         <generator>https://github.com/jpmonette/feed</generator>
         <language>en</language>
-        <copyright>Copyright © 2024 Konpyūtāika, Inc. Built with Docusaurus.</copyright>
+        <copyright>Copyright © 2025 Konpyūtāika, Inc. Built with Docusaurus.</copyright>
         <item>
             <title><![CDATA[Secured NiFi cluster with NiFiKop with external dns on the Google Cloud Platform]]></title>
             <link>https://konpyutaika.github.io/nifikop/blog/2020-06-30-secured_nifi_cluster_on_gcp_with_external_dns</link>
