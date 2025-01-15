@@ -4,8 +4,8 @@ name: nifikop
 home: https://github.com/konpyutaika/nifikop
 sources:
   - https://github.com/konpyutaika/nifikop
-version: 1.11.4
-appVersion: 1.11.4-release
+version: 1.12.0
+appVersion: 1.12.0-release
 icon: https://konpyutaika.github.io/nifikop/img/nifikop.png
 maintainers:
   - name: erdrix

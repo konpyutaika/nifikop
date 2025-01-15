@@ -70,7 +70,7 @@ spec:
             - /manager
           args:
             - --leader-elect
-          image: ghcr.io/konpyutaika/docker-images/nifikop:v1.11.4-release
+          image: ghcr.io/konpyutaika/docker-images/nifikop:v1.12.0-release
           name: nifikop
           securityContext:
             allowPrivilegeEscalation: false
