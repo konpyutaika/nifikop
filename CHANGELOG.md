@@ -4,6 +4,8 @@
 
 ### Changed
 
+- [PR #511](https://github.com/konpyutaika/nifikop/pull/511) - **[Operator]** Upgrade golang to 1.23.6.
+
 ### Fixed Bugs
 
 ### Deprecated
