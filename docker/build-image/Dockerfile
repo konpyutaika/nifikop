@@ -1,4 +1,4 @@
-ARG GOLANG_VERSION
+ARG GOLANG_VERSION=latest
 
 FROM docker AS docker-base
 COPY --from=docker/buildx-bin:latest /buildx /usr/libexec/docker/cli-plugins/docker-buildx
