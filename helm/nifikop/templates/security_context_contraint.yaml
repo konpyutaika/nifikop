@@ -1,0 +1,52 @@
+{{- $openshift := .Capabilities.APIVersions.Has "security.openshift.io/v1" -}}
+{{- if $openshift -}}
+apiVersion: security.openshift.io/v1
+kind: SecurityContextConstraints
+metadata:
+  labels:
+    app: {{ template "nifikop.name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+    {{- include "userdefined.labels" . }}
+  annotations:
+    {{- include "userdefined.annotations" . }}
+    kubernetes.io/description: {{ .Values.sccName }} provides all features of the restricted-v2 SCC but
+      allows users to run with UID 1000 and any GID.
+  name: {{ template "nifikop.name" . }}-openshift-scc
+allowHostDirVolumePlugin: false
+allowHostIPC: false
+allowHostNetwork: false
+allowHostPID: false
+allowHostPorts: false
+allowPrivilegeEscalation: false
+allowPrivilegedContainer: false
+allowedCapabilities: null
+defaultAddCapabilities: null
+fsGroup:
+  type: RunAsAny
+groups: []
+priority: 10
+readOnlyRootFilesystem: false
+requiredDropCapabilities:
+- ALL
+runAsUser:
+  type: MustRunAs
+  uid: 1000
+seLinuxContext:
+  type: MustRunAs
+supplementalGroups:
+  type: RunAsAny
+users: []
+seccompProfiles:
+- runtime/default
+volumes:
+- configMap
+- csi
+- downwardAPI
+- emptyDir
+- ephemeral
+- persistentVolumeClaim
+- projected
+- secret
+{{- end }}

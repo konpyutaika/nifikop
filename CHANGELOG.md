@@ -2,6 +2,8 @@
 
 ### Added
 
+- [PR #515](https://github.com/konpyutaika/nifikop/pull/515) - **[Helm Chart]** Added SecurityContextContraints to enhance compatibility with Openshift Platform 
+
 ### Changed
 
 - [PR #511](https://github.com/konpyutaika/nifikop/pull/511) - **[Operator]** Upgrade golang to 1.23.6.
