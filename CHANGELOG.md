@@ -11,6 +11,8 @@
 
 ### Fixed Bugs
 
+- [PR #518](https://github.com/konpyutaika/nifikop/pull/518) - **[Helm Chart]** Fixed indentation in file nifi-node-group-autoscaler.yaml
+
 ### Deprecated
 
 ### Removed
