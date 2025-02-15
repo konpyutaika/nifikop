@@ -30,7 +30,18 @@ resources:
     memory: 512Mi
 
 ## RunAsUser for OpenShift compatibility
-runAsUser: 1000
+podSecurityContext:
+  runAsUser: 1000
+
+securityContext:
+  allowPrivilegeEscalation: false
+  # runAsUser: 1000
+  # runAsNonRoot: true
+  # seccompProfile:
+  #   type: RuntimeDefault
+  # capabilities:
+  #   drop:
+  #     - ALL
 
 ## pod spec host aliases for the operator
 ## Ref: https://kubernetes.io/docs/tasks/network/customize-hosts-file-for-pods/
@@ -63,3 +74,4 @@ certManager:
 
 webhook:
   enabled: true
+
