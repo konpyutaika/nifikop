@@ -8,6 +8,9 @@ rules:
   - ""
   resources:
   - configmaps
+  - persistentvolumeclaims
+  - secrets
+  - services
   verbs:
   - create
   - delete
@@ -20,29 +23,10 @@ rules:
   - ""
   resources:
   - namespaces
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - ""
-  resources:
   - nodes
   verbs:
   - get
   - list
-  - watch
-- apiGroups:
-  - ""
-  resources:
-  - persistentvolumeclaims
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
   - watch
 - apiGroups:
   - ""
@@ -56,56 +40,10 @@ rules:
   - update
   - watch
 - apiGroups:
-  - ""
-  resources:
-  - secrets
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - ""
-  resources:
-  - services
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
   - cert-manager.io
   resources:
   - certificates
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - cert-manager.io
-  resources:
   - clusterissuers
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - cert-manager.io
-  resources:
   - issuers
   verbs:
   - create
@@ -119,195 +57,12 @@ rules:
   - nifi.konpyutaika.com
   resources:
   - nificlusters
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - nifi.konpyutaika.com
-  resources:
-  - nificlusters/finalizers
-  verbs:
-  - create
-  - delete
-  - get
-  - patch
-  - update
-- apiGroups:
-  - nifi.konpyutaika.com
-  resources:
-  - nificlusters/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - nifi.konpyutaika.com
-  resources:
   - nificonnections
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - nifi.konpyutaika.com
-  resources:
-  - nificonnections/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - nifi.konpyutaika.com
-  resources:
-  - nificonnections/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - nifi.konpyutaika.com
-  resources:
   - nifidataflows
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - nifi.konpyutaika.com
-  resources:
-  - nifidataflows/finalizers
-  verbs:
-  - create
-  - delete
-  - get
-  - patch
-  - update
-- apiGroups:
-  - nifi.konpyutaika.com
-  resources:
-  - nifidataflows/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - nifi.konpyutaika.com
-  resources:
   - nifinodegroupautoscalers
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - nifi.konpyutaika.com
-  resources:
-  - nifinodegroupautoscalers/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - nifi.konpyutaika.com
-  resources:
-  - nifinodegroupautoscalers/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - nifi.konpyutaika.com
-  resources:
   - nifiparametercontexts
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - nifi.konpyutaika.com
-  resources:
-  - nifiparametercontexts/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - nifi.konpyutaika.com
-  resources:
-  - nifiparametercontexts/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - nifi.konpyutaika.com
-  resources:
   - nifiregistryclients
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - nifi.konpyutaika.com
-  resources:
-  - nifiregistryclients/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - nifi.konpyutaika.com
-  resources:
-  - nifiregistryclients/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - nifi.konpyutaika.com
-  resources:
   - nifiusergroups
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - nifi.konpyutaika.com
-  resources:
-  - nifiusergroups/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - nifi.konpyutaika.com
-  resources:
-  - nifiusergroups/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - nifi.konpyutaika.com
-  resources:
   - nifiusers
   verbs:
   - create
@@ -320,16 +75,39 @@ rules:
 - apiGroups:
   - nifi.konpyutaika.com
   resources:
-  - nifiusers/finalizers
+  - nificlusters/finalizers
+  - nifidataflows/finalizers
   verbs:
+  - create
+  - delete
+  - get
+  - patch
   - update
 - apiGroups:
   - nifi.konpyutaika.com
   resources:
+  - nificlusters/status
+  - nificonnections/status
+  - nifidataflows/status
+  - nifinodegroupautoscalers/status
+  - nifiparametercontexts/status
+  - nifiregistryclients/status
+  - nifiusergroups/status
   - nifiusers/status
   verbs:
   - get
   - patch
+  - update
+- apiGroups:
+  - nifi.konpyutaika.com
+  resources:
+  - nificonnections/finalizers
+  - nifinodegroupautoscalers/finalizers
+  - nifiparametercontexts/finalizers
+  - nifiregistryclients/finalizers
+  - nifiusergroups/finalizers
+  - nifiusers/finalizers
+  verbs:
   - update
 - apiGroups:
   - policy
