@@ -10,6 +10,7 @@
 - [PR #511](https://github.com/konpyutaika/nifikop/pull/511) - **[Operator]** Upgrade golang to 1.23.6.
 - [PR #517](https://github.com/konpyutaika/nifikop/pull/517) - **[Documentation]** Update compatibility matrix.
 - [PR #520](https://github.com/konpyutaika/nifikop/pull/520) - **[Operator]** Upgrade golang to 1.24.0.
+- [PR #521](https://github.com/konpyutaika/nifikop/pull/521) - **[Operator]** Migrated nifikop to operator-sdk to v1.39.1.
 
 ### Fixed Bugs
 

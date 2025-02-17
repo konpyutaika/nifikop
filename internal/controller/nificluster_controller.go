@@ -235,7 +235,7 @@ func (r *NifiClusterReconciler) checkFinalizers(ctx context.Context,
 	var err error
 
 	var namespaces []string
-	if r.Namespaces == nil || len(r.Namespaces) == 0 {
+	if len(r.Namespaces) == 0 {
 		// Fetch a list of all namespaces for DeleteAllOf requests
 		namespaces = make([]string, 0)
 		var namespaceList corev1.NamespaceList

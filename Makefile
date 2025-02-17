@@ -1,13 +1,13 @@
 # Image URL to use all building/pushing image targets
-SERVICE_NAME			:= nifikop
+SERVICE_NAME					:= nifikop
 DOCKER_REGISTRY_BASE 	?= ghcr.io/konpyutaika/docker-images
-IMAGE_TAG				?= $(shell git describe --tags --abbrev=0 --match '[0-9].*[0-9].*[0-9]' 2>/dev/null)
-IMAGE_NAME 				?= $(SERVICE_NAME)
-BUILD_IMAGE				?= ghcr.io/konpyutaika/docker-images/nifikop-build
-GOLANG_VERSION          ?= 1.24.0
-IMAGE_TAG_BASE ?= <registry>/<operator name>
-OS = $(shell go env GOOS)
-ARCH = $(shell go env GOARCH)
+IMAGE_TAG							?= $(shell git describe --tags --abbrev=0 --match '[0-9].*[0-9].*[0-9]' 2>/dev/null)
+IMAGE_NAME 						?= $(SERVICE_NAME)
+BUILD_IMAGE						?= ghcr.io/konpyutaika/docker-images/nifikop-build
+GOLANG_VERSION        ?= 1.24.0
+IMAGE_TAG_BASE 				?= <registry>/<operator name>
+OS 										 = $(shell go env GOOS)
+ARCH 									 = $(shell go env GOARCH)
 
 # workdir
 WORKDIR := /go/nifikop
@@ -27,16 +27,18 @@ $(LOCALBIN):
 	mkdir -p $(LOCALBIN)
 
 ## Tool Binaries
+KUBECTL ?= kubectl
 KUSTOMIZE ?= $(LOCALBIN)/kustomize
 CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen
 ENVTEST ?= $(LOCALBIN)/setup-envtest
-GOLANGCI_LINT ?= $(LOCALBIN)/golangci-lint
+GOLANGCI_LINT = $(LOCALBIN)/golangci-lint
 
 ## Tool Versions
-KUSTOMIZE_VERSION ?= v5.2.1
-CONTROLLER_TOOLS_VERSION ?= v0.14.0
-ENVTEST_K8S_VERSION = 1.28.0
-GOLANGCI_VERSION = 1.55.2
+KUSTOMIZE_VERSION ?= v5.4.3
+CONTROLLER_TOOLS_VERSION ?= v0.16.1
+ENVTEST_K8S_VERSION = 1.31.0
+ENVTEST_VERSION ?= release-0.19
+GOLANGCI_LINT_VERSION ?= v1.59.1
 
 # controls the exit code of linter in case of linting issues
 GOLANGCI_EXIT_CODE = 0
@@ -152,10 +154,9 @@ docker-build:
 build: manager manifests
 
 .PHONY: controller-gen
-controller-gen: $(CONTROLLER_GEN) ## Download controller-gen locally if necessary. If wrong version is installed, it will be overwritten.
+controller-gen: $(CONTROLLER_GEN) ## Download controller-gen locally if necessary.
 $(CONTROLLER_GEN): $(LOCALBIN)
-	test -s $(LOCALBIN)/controller-gen && $(LOCALBIN)/controller-gen --version | grep -q $(CONTROLLER_TOOLS_VERSION) || \
-	GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-tools/cmd/controller-gen@$(CONTROLLER_TOOLS_VERSION)
+	$(call go-install-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen,$(CONTROLLER_TOOLS_VERSION))
 
 .PHONY: lint
 lint: golangci-lint
@@ -195,38 +196,33 @@ endif
 # Install CRDs into a cluster
 .PHONY: install
 install: manifests kustomize
-	$(KUSTOMIZE) build config/crd | kubectl apply -f -
+	$(KUSTOMIZE) build config/crd | ${KUBECTL} apply -f -
 
 # Uninstall CRDs from a cluster
 .PHONY: uninstall
 uninstall: manifests kustomize
-	$(KUSTOMIZE) build config/crd | kubectl delete --ignore-not-found=$(ignore-not-found) -f -
+	$(KUSTOMIZE) build config/crd | ${KUBECTL} delete --ignore-not-found=$(ignore-not-found) -f -
 
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
 .PHONY: deploy
 deploy: manifests kustomize
 	cd config/manager && $(KUSTOMIZE) edit set image controller=$(REPOSITORY):$(VERSION)
-	$(KUSTOMIZE) build config/default | kubectl apply -f -
+	$(KUSTOMIZE) build config/default | ${KUBECTL} apply -f -
 
 # UnDeploy controller from the configured Kubernetes cluster in ~/.kube/config
 .PHONY: undeploy
 undeploy:
-	$(KUSTOMIZE) build config/default | kubectl delete --ignore-not-found=$(ignore-not-found) -f -
+	$(KUSTOMIZE) build config/default | ${KUBECTL} delete --ignore-not-found=$(ignore-not-found) -f -
 
-KUSTOMIZE_INSTALL_SCRIPT ?= "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"
 .PHONY: kustomize
 kustomize: $(KUSTOMIZE) ## Download kustomize locally if necessary.
 $(KUSTOMIZE): $(LOCALBIN)
-	@if test -x $(LOCALBIN)/kustomize && ! $(LOCALBIN)/kustomize version | grep -q $(KUSTOMIZE_VERSION); then \
-		echo "$(LOCALBIN)/kustomize version is not expected $(KUSTOMIZE_VERSION). Removing it before installing."; \
-		rm -rf $(LOCALBIN)/kustomize; \
-	fi
-	test -s $(LOCALBIN)/kustomize || GOBIN=$(LOCALBIN) GO111MODULE=on go install sigs.k8s.io/kustomize/kustomize/v5@$(KUSTOMIZE_VERSION)
+	$(call go-install-tool,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v5,$(KUSTOMIZE_VERSION))
 
 .PHONY: envtest
-envtest: $(ENVTEST) ## Download envtest-setup locally if necessary.
+envtest: $(ENVTEST) ## Download setup-envtest locally if necessary.
 $(ENVTEST): $(LOCALBIN)
-	test -s $(LOCALBIN)/setup-envtest || GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
+	$(call go-install-tool,$(ENVTEST),sigs.k8s.io/controller-runtime/tools/setup-envtest,$(ENVTEST_VERSION))
 
 
 # Generate bundle manifests and metadata, then validate generated files.
@@ -305,18 +301,15 @@ endif
 # To properly provided solutions that supports more than one platform you should use this option.
 PLATFORMS ?= linux/arm64,linux/amd64,linux/s390x,linux/ppc64le
 .PHONY: docker-buildx
-docker-buildx: test ## Build and push docker image for the manager for cross-platform support
-  # copy existing Dockerfile and insert --platform=${BUILDPLATFORM} into Dockerfile.cross, and preserve the original Dockerfile
-	sed -e '1 s/\(^FROM\)/FROM --platform=\$$\{BUILDPLATFORM\}/; t' -e ' 1,// s//FROM --platform=\$$\{BUILDPLATFORM\}/' Dockerfile > Dockerfile.cross
+docker-buildx: ## Build and push docker image for the manager for cross-platform support
 	- ${CONTAINER_TOOL} buildx create --name project-v3-builder
 	${CONTAINER_TOOL} buildx use project-v3-builder
 ifdef PUSHLATEST
-	- ${CONTAINER_TOOL} buildx build --push --platform=$(PLATFORMS) --tag $(REPOSITORY):$(VERSION) --tag $(REPOSITORY):latest -f Dockerfile.cross .
+	- ${CONTAINER_TOOL} buildx build --push --platform=$(PLATFORMS) --tag $(REPOSITORY):$(VERSION) --tag $(REPOSITORY):latest -f Dockerfile .
 else
-	- ${CONTAINER_TOOL} buildx build --push --platform=$(PLATFORMS) --tag $(REPOSITORY):$(VERSION) -f Dockerfile.cross .
+	- ${CONTAINER_TOOL} buildx build --push --platform=$(PLATFORMS) --tag $(REPOSITORY):$(VERSION) -f Dockerfile .
 endif
 	- ${CONTAINER_TOOL} buildx rm project-v3-builder
-	rm Dockerfile.cross
 
 .DEFAULT_GOAL := help
 
@@ -358,18 +351,18 @@ endif
 
 .PHONY: debug-port-forward
 debug-port-forward:
-	kubectl port-forward `kubectl get pod -l app=nifikop -o jsonpath="{.items[0].metadata.name}"` 40000:40000
+	${KUBECTL} port-forward `${KUBECTL} get pod -l app=nifikop -o jsonpath="{.items[0].metadata.name}"` 40000:40000
 
 .PHONY: debug-pod-logs
 debug-pod-logs:
-	kubectl logs -f `kubectl get pod -l app=nifikop -o jsonpath="{.items[0].metadata.name}"`
+	${KUBECTL} logs -f `${KUBECTL} get pod -l app=nifikop -o jsonpath="{.items[0].metadata.name}"`
 
 define debug_telepresence
 	export TELEPRESENCE_REGISTRY=$(TELEPRESENCE_REGISTRY) ; \
 	echo "execute: cat nifi-operator.env" ; \
 	sudo mkdir -p /var/run/secrets/kubernetes.io ; \
-	tdep=$(shell kubectl get deployment -l app=nifikop -o jsonpath='{.items[0].metadata.name}') ; \
-  	echo kubectl get deployment -l app=nifikop -o jsonpath='{.items[0].metadata.name}' ; \
+	tdep=$(shell ${KUBECTL} get deployment -l app=nifikop -o jsonpath='{.items[0].metadata.name}') ; \
+  	echo ${KUBECTL} get deployment -l app=nifikop -o jsonpath='{.items[0].metadata.name}' ; \
 	echo telepresence --swap-deployment $$tdep --mount=/tmp/known --env-file nifi-operator.env $1 $2 ; \
  	telepresence --swap-deployment $$tdep --mount=/tmp/known --env-file nifi-operator.env $1 $2
 endef
@@ -453,8 +446,28 @@ kubectl-nifikop:
 	go build -o bin/kubectl-nifikop ./cmd/kubectl-nifikop/main.go
 
 .PHONY: golangci-lint
-.PHONY: $(GOLANGCI_LINT)
 golangci-lint: $(GOLANGCI_LINT) ## Download golangci-lint locally if necessary.
 $(GOLANGCI_LINT): $(LOCALBIN)
-	test -s $(LOCALBIN)/golangci-lint && $(LOCALBIN)/golangci-lint version --format short | grep -q $(GOLANGCI_VERSION) || \
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(LOCALBIN) v$(GOLANGCI_VERSION)
+	$(call go-install-tool,$(GOLANGCI_LINT),github.com/golangci/golangci-lint/cmd/golangci-lint,$(GOLANGCI_LINT_VERSION))
+
+# go-install-tool will 'go install' any package with custom target and name of binary, if it doesn't exist
+# $1 - target path with name of binary
+# $2 - package url which can be installed
+# $3 - specific version of package
+define go-install-tool
+@[ -f "$(1)-$(3)" ] || { \
+set -e; \
+package=$(2)@$(3) ;\
+echo "Downloading $${package}" ;\
+rm -f $(1) || true ;\
+GOBIN=$(LOCALBIN) go install $${package} ;\
+mv $(1) $(1)-$(3) ;\
+} ;\
+ln -sf $(1)-$(3) $(1)
+endef
+
+.PHONY: build-installer
+build-installer: manifests generate kustomize ## Generate a consolidated YAML with CRDs and deployment.
+	mkdir -p dist
+	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
+	$(KUSTOMIZE) build config/default > dist/install.yaml
