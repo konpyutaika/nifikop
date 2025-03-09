@@ -433,11 +433,11 @@ func (r *Reconciler) createNifiNodeContainer(nodeConfig *v1.NodeConfig, id int32
 			Value: zkAddress,
 		},
 		{
-			Name: "POD_IP",
+			Name: "POD_IPS",
 			ValueFrom: &corev1.EnvVarSource{
 				FieldRef: &corev1.ObjectFieldSelector{
 					APIVersion: "v1",
-					FieldPath:  "status.podIP",
+					FieldPath:  "status.podIPs",
 				},
 			},
 		},
@@ -484,13 +484,13 @@ notMatchedIp=true
 while $notMatchedIp
 do
 	echo "failed to reach %s"
-	echo "Found: $ipResolved, expecting: $POD_IP"
-    sleep 5
+	echo "Found: $ipResolved, expecting: $POD_IPS"
+	sleep 5
 
-	ipResolved=$(curl -v -4 -m 1 --connect-timeout 1 %s 2>&1 | grep -o 'Trying [0-9.]*' | awk '{gsub(/\.\.\./, ""); print $2}' | head -n 1)
+	ipResolved=$(curl -v -m 1 --connect-timeout 1 %s 2>&1 | egrep -o 'Trying [0-9.]*|Trying [0-9a-f:]*' | awk '{gsub(/\.\.\./, ""); print $2}' | awk -F':' 'NF == 1 {print $1} NF > 1 {OFS=":"; NF--; print $0}' | head -n 1)
 	echo "Found: $ipResolved"
-    if [[ "$ipResolved" == "$POD_IP" ]]; then
-		echo Ip match for $POD_IP
+	if [[ "$POD_IPS" == *"$ipResolved"* ]]; then
+		echo Ip match for $POD_IPS
 		notMatchedIp=false
 	fi
 done
