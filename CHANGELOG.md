@@ -15,7 +15,8 @@
 
 ### Fixed Bugs
 
-- [PR #518](https://github.com/konpyutaika/nifikop/pull/518) - **[Helm Chart]** Fixed indentation in file nifi-node-group-autoscaler.yaml
+- [PR #518](https://github.com/konpyutaika/nifikop/pull/518) - **[Helm Chart]** Fixed indentation in file nifi-node-group-autoscaler.yaml.
+- [PR #527](https://github.com/konpyutaika/nifikop/pull/527) - **[Operator]** Docker building time explode.
 
 ### Deprecated
 
