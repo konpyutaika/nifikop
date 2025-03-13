@@ -4,6 +4,7 @@
 
 - [PR #515](https://github.com/konpyutaika/nifikop/pull/515) - **[Helm Chart]** Added SecurityContextContraints to enhance compatibility with Openshift Platform 
 - [PR #519](https://github.com/konpyutaika/nifikop/pull/519) - **[Helm Chart]** Added securityContext override to nifikop helm chart for increased compatibility with strict PSA enforcement.
+- [PR #525](https://github.com/konpyutaika/nifikop/pull/525) - **[Operator/NiFiCluster]** Added support for IPv6 in NifiClutser
 
 ### Changed
 
