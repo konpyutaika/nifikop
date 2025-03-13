@@ -4,7 +4,7 @@ DOCKER_REGISTRY_BASE 	?= ghcr.io/konpyutaika/docker-images
 IMAGE_TAG							?= $(shell git describe --tags --abbrev=0 --match '[0-9].*[0-9].*[0-9]' 2>/dev/null)
 IMAGE_NAME 						?= $(SERVICE_NAME)
 BUILD_IMAGE						?= ghcr.io/konpyutaika/docker-images/nifikop-build
-GOLANG_VERSION        ?= 1.24.0
+GOLANG_VERSION        ?= 1.24.1
 IMAGE_TAG_BASE 				?= <registry>/<operator name>
 OS 										 = $(shell go env GOOS)
 ARCH 									 = $(shell go env GOARCH)
@@ -301,15 +301,18 @@ endif
 # To properly provided solutions that supports more than one platform you should use this option.
 PLATFORMS ?= linux/arm64,linux/amd64,linux/s390x,linux/ppc64le
 .PHONY: docker-buildx
-docker-buildx: ## Build and push docker image for the manager for cross-platform support
+docker-buildx: test ## Build and push docker image for the manager for cross-platform support
+  # copy existing Dockerfile and insert --platform=${BUILDPLATFORM} into Dockerfile.cross, and preserve the original Dockerfile
+	sed -e '1 s/\(^FROM\)/FROM --platform=\$$\{BUILDPLATFORM\}/; t' -e ' 1,// s//FROM --platform=\$$\{BUILDPLATFORM\}/' Dockerfile > Dockerfile.cross
 	- ${CONTAINER_TOOL} buildx create --name project-v3-builder
 	${CONTAINER_TOOL} buildx use project-v3-builder
 ifdef PUSHLATEST
-	- ${CONTAINER_TOOL} buildx build --push --platform=$(PLATFORMS) --tag $(REPOSITORY):$(VERSION) --tag $(REPOSITORY):latest -f Dockerfile .
+	- ${CONTAINER_TOOL} buildx build --push --platform=$(PLATFORMS) --tag $(REPOSITORY):$(VERSION) --tag $(REPOSITORY):latest -f Dockerfile.cross .
 else
-	- ${CONTAINER_TOOL} buildx build --push --platform=$(PLATFORMS) --tag $(REPOSITORY):$(VERSION) -f Dockerfile .
+	- ${CONTAINER_TOOL} buildx build --push --platform=$(PLATFORMS) --tag $(REPOSITORY):$(VERSION) -f Dockerfile.cross .
 endif
 	- ${CONTAINER_TOOL} buildx rm project-v3-builder
+	rm Dockerfile.cross
 
 .DEFAULT_GOAL := help
 
@@ -380,7 +383,7 @@ debug-telepresence-with-alias:
 build-ci-image:
 	${CONTAINER_TOOL} build --cache-from $(BUILD_IMAGE):latest \
 	  --build-arg GOLANG_VERSION=$(GOLANG_VERSION) \
-	  --build-arg GOLANGCI_VERSION=$(GOLANGCI_VERSION) \
+	  --build-arg GOLANGCI_VERSION=$(GOLANGCI_LINT_VERSION) \
 		-t $(BUILD_IMAGE):latest \
 		-t $(BUILD_IMAGE):$(GOLANG_VERSION) \
 		-f $(DEV_DIR)/Dockerfile \

@@ -12,10 +12,12 @@
 - [PR #517](https://github.com/konpyutaika/nifikop/pull/517) - **[Documentation]** Update compatibility matrix.
 - [PR #520](https://github.com/konpyutaika/nifikop/pull/520) - **[Operator]** Upgrade golang to 1.24.0.
 - [PR #521](https://github.com/konpyutaika/nifikop/pull/521) - **[Operator]** Migrated nifikop to operator-sdk to v1.39.1.
+- [PR #526](https://github.com/konpyutaika/nifikop/pull/526) - **[Operator]** Upgrade golang to 1.24.1.
 
 ### Fixed Bugs
 
-- [PR #518](https://github.com/konpyutaika/nifikop/pull/518) - **[Helm Chart]** Fixed indentation in file nifi-node-group-autoscaler.yaml
+- [PR #518](https://github.com/konpyutaika/nifikop/pull/518) - **[Helm Chart]** Fixed indentation in file nifi-node-group-autoscaler.yaml.
+- [PR #527](https://github.com/konpyutaika/nifikop/pull/527) - **[Operator]** Docker building time explode.
 
 ### Deprecated
 
