@@ -2,6 +2,18 @@
 
 ### Added
 
+### Changed
+
+### Fixed Bugs
+
+### Deprecated
+
+### Removed
+
+## v1.13.0
+
+### Added
+
 - [PR #515](https://github.com/konpyutaika/nifikop/pull/515) - **[Helm Chart]** Added SecurityContextContraints to enhance compatibility with Openshift Platform 
 - [PR #519](https://github.com/konpyutaika/nifikop/pull/519) - **[Helm Chart]** Added securityContext override to nifikop helm chart for increased compatibility with strict PSA enforcement.
 
@@ -12,17 +24,13 @@
 - [PR #520](https://github.com/konpyutaika/nifikop/pull/520) - **[Operator]** Upgrade golang to 1.24.0.
 - [PR #521](https://github.com/konpyutaika/nifikop/pull/521) - **[Operator]** Migrated nifikop to operator-sdk to v1.39.1.
 - [PR #526](https://github.com/konpyutaika/nifikop/pull/526) - **[Operator]** Upgrade golang to 1.24.1.
-- [PR #530](https://github.com/konpyutaika/nifikop/pull/530) - **[NiGoApi]** Upgrade NiGoApi to v0.1.5.
+- [PR #530](https://github.com/konpyutaika/nifikop/pull/530) - **[NiGoApi]** Upgrade NiGoApi to v0.1.6.
 - [PR #532](https://github.com/konpyutaika/nifikop/pull/532) - **[Documentation]** Upgrade dependencies.
 
 ### Fixed Bugs
 
 - [PR #518](https://github.com/konpyutaika/nifikop/pull/518) - **[Helm Chart]** Fixed indentation in file nifi-node-group-autoscaler.yaml.
 - [PR #527](https://github.com/konpyutaika/nifikop/pull/527) - **[Operator]** Docker building time explode.
-
-### Deprecated
-
-### Removed
 
 ## v1.12.0
 
