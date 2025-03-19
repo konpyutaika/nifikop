@@ -53,6 +53,17 @@ cluster:
     secretKeys:
       username: "username"
       password: "password"
+  
+  oidcConfiguration:
+    enabled: false
+    discoveryUrl: ""
+    clientId: ""
+    clientSecretRef:
+      name: "oidcClientSecret"
+      namespace: "nifi"
+    patternDn: "CN=([^,])(?:, (?:O|OU)=.)?"
+    valueDn: "$1"
+    transformDn: "NONE"
 
   pod:
     # -- Annotations to apply to every pod
