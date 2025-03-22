@@ -9,7 +9,7 @@ require (
 	github.com/cert-manager/cert-manager v1.12.14
 	github.com/go-logr/logr v1.4.2
 	github.com/go-logr/zapr v1.3.0
-	github.com/golang-jwt/jwt/v4 v4.5.1
+	github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/imdario/mergo v0.3.14
 	github.com/jarcoal/httpmock v1.3.0
 	github.com/konpyutaika/nigoapi v0.1.6
