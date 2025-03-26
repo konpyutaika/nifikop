@@ -167,6 +167,19 @@ func userGroupIsSync(
 			return false
 		}
 	}
+
+	for _, tenant := range entity.Component.Users {
+		notFound := true
+		for _, expected := range users {
+			if expected.Status.Id == tenant.Id {
+				notFound = false
+				break
+			}
+		}
+		if notFound {
+			return false
+		}
+	}
 	return true
 }
 
@@ -192,6 +205,22 @@ func updateUserGroupEntity(userGroup *v1.NifiUserGroup, users []*v1.NifiUser, en
 	for _, user := range users {
 		entity.Component.Users = append(entity.Component.Users, nigoapi.TenantEntity{Id: user.Status.Id})
 	}
+
+	n := 0
+	for _, tenant := range entity.Component.Users {
+		Found := false
+		for _, user := range users {
+			if user.Status.Id == tenant.Id {
+				Found = true
+				break
+			}
+		}
+		if Found {
+			entity.Component.Users[n] = tenant
+			n++
+		}
+	}
+	entity.Component.Users = entity.Component.Users[:n]
 }
 
 func userGroupContainsAccessPolicy(userGroup *v1.NifiUserGroup, entity nigoapi.AccessPolicyEntity, rootPGId string) bool {
