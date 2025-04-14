@@ -105,8 +105,10 @@ spec:
               name: webhook-server
               protocol: TCP
             {{- end }}
+          {{- if .Values.securityContext }}
           securityContext:
-            allowPrivilegeEscalation: false
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          {{- end }}
           env:
             - name: WATCH_NAMESPACE
               {{- if .Values.namespaces }}

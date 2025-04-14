@@ -70,7 +70,8 @@ spec:
             - /manager
           args:
             - --leader-elect
-          image: ghcr.io/konpyutaika/docker-images/nifikop:v1.11.4-release
+            - --health-probe-bind-address=:8081
+          image: ghcr.io/konpyutaika/docker-images/nifikop:v1.13.0-release
           name: nifikop
           securityContext:
             allowPrivilegeEscalation: false

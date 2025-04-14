@@ -3,7 +3,8 @@ run:
 
 linters-settings:
   gci:
-    local-prefixes: github.com/konpyutaika/nifikop
+    sections:
+      - prefix("github.com/konpyutaika/nifikop")
   goconst:
     min-len: 3
     min-occurrences: 3
@@ -40,6 +41,9 @@ linters-settings:
     line-length: 300
   misspell:
     locale: US
+  revive:
+    rules:
+      - name: comment-spacings
 
 linters:
   disable-all: true
@@ -50,7 +54,6 @@ linters:
     - errcheck
     - errorlint
     - exhaustive
-    - exportloopref
     - gci
     - goconst
     - gocritic
@@ -64,6 +67,7 @@ linters:
     - lll
     - misspell
     - nolintlint
+    - ginkgolinter
     - prealloc
     - revive
     - staticcheck

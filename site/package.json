@@ -13,8 +13,8 @@
     }
   },
   "devDependencies": {
-    "husky": "^9.1.6",
-    "prettier": "^3.3.3",
-    "pretty-quick": "^4.0.0"
+    "husky": "^9.1.7",
+    "prettier": "^3.5.3",
+    "pretty-quick": "^4.1.1"
   }
 }

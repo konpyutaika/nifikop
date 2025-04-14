@@ -1,3 +1,4 @@
+{{- $openshift := .Capabilities.APIVersions.Has "security.openshift.io/v1" -}}
 {{- if .Values.rbacEnable }}
 {{- range  $namespace := $.Values.namespaces }}
 {{- $_ := set $ "vals" $.Values }}
@@ -88,6 +89,8 @@ rules:
   - "nifiparametercontexts"
   - "nifinodegroupautoscalers"
   - "nificonnections"
+  - "nifiusers/finalizers"
+  - "nificlusters/finalizers"
   verbs:
   - create
   - delete
@@ -171,6 +174,16 @@ rules:
   verbs:
     - create
     - patch
+{{- if $openshift }}
+- apiGroups:
+  - security.openshift.io 
+  resourceNames:
+  - {{ template "nifikop.name" $_ }}-openshift-scc
+  resources:
+  - securitycontextconstraints 
+  verbs: 
+  - use
+{{- end }}
 ---
 {{- end}}
 {{- end}}
