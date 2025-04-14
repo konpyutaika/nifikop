@@ -19,7 +19,7 @@ spec:
   upscaleStrategy: {{ .upscaleStrategy }}
   downscaleStrategy: {{ .downscaleStrategy }}
   {{ if .replicas }}
-    replicas: {{ .replicas }}
+  replicas: {{ .replicas }}
   {{ end }}
 {{ end }}
 {{ end }}

@@ -111,7 +111,7 @@ spec:
       replaceSecretConfig:
         data: {{ .Values.cluster.logbackConfig.replaceSecretConfig.data }}
         name: {{ .Values.cluster.logbackConfig.replaceSecretConfig.name }}
-        namespace: {{ .Values.cluster.logbackConfig.replaceSecretConfig.namespace }}
+        namespace: {{ default .Release.Namespace .Values.cluster.logbackConfig.replaceSecretConfig.namespace }}
     {{- else }}
       # the default
       replaceSecretConfig:
@@ -123,14 +123,14 @@ spec:
       replaceConfigMap:
         data: {{ .Values.cluster.logbackConfig.replaceConfigMap.data }}
         name: {{ .Values.cluster.logbackConfig.replaceConfigMap.name }}
-        namespace: {{ .Values.cluster.logbackConfig.replaceConfigMap.namespace }}
+        namespace: {{ default .Release.Namespace .Values.cluster.logbackConfig.replaceConfigMap.namespace }}
     {{- end }}
     nifiProperties:
     {{- if .Values.cluster.nifiProperties.overrideSecretConfig }}
       overrideSecretConfig:
         data: {{ .Values.cluster.nifiProperties.overrideSecretConfig.data }}
         name: {{ .Values.cluster.nifiProperties.overrideSecretConfig.name }}
-        namespace: {{ .Values.cluster.nifiProperties.overrideSecretConfig.namespace }}
+        namespace: {{ default .Release.Namespace .Values.cluster.nifiProperties.overrideSecretConfig.namespace }}
     {{- else }}
       # the default
       overrideSecretConfig:
@@ -142,7 +142,7 @@ spec:
       overrideConfigMap:
         data: {{ .Values.cluster.nifiProperties.overrideConfigMap.data }}
         name: {{ .Values.cluster.nifiProperties.overrideConfigMap.name }}
-        namespace: {{ .Values.cluster.nifiProperties.overrideConfigMap.namespace }}
+        namespace: {{ default .Release.Namespace .Values.cluster.nifiProperties.overrideConfigMap.namespace }}
     {{- end }}
       webProxyHosts:
       {{- toYaml .Values.cluster.nifiProperties.webProxyHosts | nindent 8}}
