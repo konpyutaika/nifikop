@@ -1,0 +1,154 @@
+{
+  "docs": [
+    {
+      "type": "category",
+      "label": "Concepts",
+      "items": [
+        "1_concepts/1_start_here",
+        "1_concepts/2_design_principles",
+        "1_concepts/3_features",
+        "1_concepts/4_roadmap"
+      ]
+    },
+    {
+      "type": "category",
+      "label": "Deploy NiFiKop",
+      "items": [
+        "2_deploy_nifikop/1_quick_start",
+        "2_deploy_nifikop/2_customizable_install_with_helm",
+        "2_deploy_nifikop/3_kubectl_plugin"
+      ]
+    },
+    {
+      "type": "category",
+      "label": "Manage NiFi",
+      "items": [
+        {
+          "type": "category",
+          "label": "Manage cluster",
+          "items": [
+            "3_manage_nifi/1_manage_clusters/0_design_principles",
+            {
+              "type": "category",
+              "label": "Deploy cluster",
+              "items": [
+                "3_manage_nifi/1_manage_clusters/1_deploy_cluster/1_quick_start",
+                "3_manage_nifi/1_manage_clusters/1_deploy_cluster/2_nodes_configuration",
+                {
+                  "type": "category",
+                  "label": "Expose cluster",
+                  "items": [
+                    "3_manage_nifi/1_manage_clusters/1_deploy_cluster/3_expose_cluster/1_kubernetes_service",
+                    "3_manage_nifi/1_manage_clusters/1_deploy_cluster/3_expose_cluster/2_istio_service_mesh"
+                  ]
+                },
+                "3_manage_nifi/1_manage_clusters/1_deploy_cluster/4_ssl_configuration",
+                {
+                  "type": "category",
+                  "label": "Users authentication",
+                  "items": [
+                    "3_manage_nifi/1_manage_clusters/1_deploy_cluster/5_users_authentication/1_oidc"
+                  ]
+                },
+                {
+                  "type": "category",
+                  "label": "Users authorization",
+                  "items": [
+                    "3_manage_nifi/1_manage_clusters/1_deploy_cluster/6_users_authorization/1_custom_user_authorizer"
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "category",
+              "label": "Cluster scaling",
+              "items": [
+                "3_manage_nifi/1_manage_clusters/2_cluster_scaling/1_scaling_mechanism",
+                {
+                  "type": "category",
+                  "label": "Auto scaling",
+                  "items": [
+                    "3_manage_nifi/1_manage_clusters/2_cluster_scaling/2_auto_scaling/0_design_principles",
+                    "3_manage_nifi/1_manage_clusters/2_cluster_scaling/2_auto_scaling/1_using_keda"
+                  ]
+                }
+              ]
+            },
+            "3_manage_nifi/1_manage_clusters/3_external_cluster"
+          ]
+        },
+        {
+          "type": "category",
+          "label": "Manage users & accesses",
+          "items": [
+            "3_manage_nifi/2_manage_users_and_accesses/1_users_management",
+            "3_manage_nifi/2_manage_users_and_accesses/2_groups_management",
+            "3_manage_nifi/2_manage_users_and_accesses/3_managed_groups"
+          ]
+        },
+        {
+          "type": "category",
+          "label": "Manage DataFlows",
+          "items": [
+            "3_manage_nifi/3_manage_dataflows/0_design_principles",
+            "3_manage_nifi/3_manage_dataflows/1_deploy_dataflow"
+          ]
+        },
+        {
+          "type": "category",
+          "label": "Manage Connections",
+          "items": [
+            "3_manage_nifi/4_manage_connections/1_deploy_connection"
+          ]
+        }
+      ]
+    },
+    "4_compatibility_versions",
+    {
+      "type": "category",
+      "label": "Reference",
+      "items": [
+        {
+          "type": "category",
+          "label": "NiFi Cluster",
+          "items": [
+            "5_references/1_nifi_cluster/1_nifi_cluster",
+            "5_references/1_nifi_cluster/2_read_only_config",
+            "5_references/1_nifi_cluster/3_node_config",
+            "5_references/1_nifi_cluster/4_node",
+            "5_references/1_nifi_cluster/5_node_state",
+            "5_references/1_nifi_cluster/6_listeners_config",
+            "5_references/1_nifi_cluster/7_external_service_config"
+          ]
+        },
+        "5_references/2_nifi_user",
+        "5_references/3_nifi_registry_client",
+        "5_references/4_nifi_parameter_context",
+        "5_references/5_nifi_dataflow",
+        "5_references/6_nifi_usergroup",
+        "5_references/7_nifi_nodegroup_autoscaler",
+        "5_references/8_nifi_connection"
+      ]
+    },
+    {
+      "type": "category",
+      "label": "Contributing",
+      "items": [
+        "6_contributing/0_contribution_organization",
+        "6_contributing/1_developer_guide",
+        "6_contributing/2_reporting_bugs",
+        "6_contributing/3_credits"
+      ]
+    },
+    {
+      "type": "category",
+      "label": "Upgrade Guides",
+      "items": [
+        "7_upgrade_guides/1_v0.7.x_to_v0.8.0",
+        "7_upgrade_guides/2_v0.14.1_to_v0.15.0",
+        "7_upgrade_guides/3_v0.16.0_to_v1.0.0",
+        "7_upgrade_guides/4_v1.3.1_to_v1.4.0"
+      ]
+    }
+  ]
+}
