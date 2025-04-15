@@ -8,6 +8,8 @@
 
 ### Fixed Bugs
 
+- [PR #536](https://github.com/konpyutaika/nifikop/pull/536) - **[Operator/NifiUserGroup]** Fixed users removal from usergroups 
+
 ### Deprecated
 
 ### Removed

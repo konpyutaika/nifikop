@@ -151,7 +151,7 @@ func userGroupIsSync(
 	userGroup *v1.NifiUserGroup,
 	users []*v1.NifiUser,
 	entity *nigoapi.UserGroupEntity) bool {
-	if userGroup.GetIdentity() != entity.Component.Identity {
+	if userGroup.GetIdentity() != entity.Component.Identity || len(users) != len(entity.Component.Users) {
 		return false
 	}
 
@@ -189,6 +189,7 @@ func updateUserGroupEntity(userGroup *v1.NifiUserGroup, users []*v1.NifiUser, en
 
 	entity.Component.Identity = userGroup.GetIdentity()
 
+	entity.Component.Users = make([]nigoapi.TenantEntity, 0)
 	for _, user := range users {
 		entity.Component.Users = append(entity.Component.Users, nigoapi.TenantEntity{Id: user.Status.Id})
 	}
