@@ -158,6 +158,7 @@ func (r *NifiClusterTaskReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		return err
 	}
 	builder := ctrl.NewControllerManagedBy(mgr).
+		Named("nificlustertask").
 		For(&v1.NifiCluster{}).
 		WithLogConstructor(logCtr)
 
@@ -424,9 +425,6 @@ func (r *NifiClusterTaskReconciler) checkNCActionStep(nodeId string, nifiCluster
 				return errorfactory.New(errorfactory.NifiClusterNotReady{}, err, "nifi cluster communication error for cluster "+nifiCluster.Name)
 			}
 
-			if err != nil {
-				return err
-			}
 			err = k8sutil.UpdateNodeStatus(r.Client, []string{nodeId}, nifiCluster, currentStatus, timedOutNodeNCState, r.Log)
 			if err != nil {
 				return errors.WrapIfWithDetails(err, "could not update status for node(s)", "clusterName", nifiCluster.Name, "id(s)", nodeId)

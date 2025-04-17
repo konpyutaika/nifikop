@@ -5,13 +5,13 @@ sidebar_label: Design Principles
 ---
 
 :::info
-These feature have been scpoed by the community, please find the discussion and technical scoping [here] (https://docs.google.com/document/d/1QNGSNNjWx4CGt5-NvX9ZArQMfyrwjw-B95f54GUNdB0/edit#heading=h.t9xh94v7viuj).
+These feature have been scoped by the community, please find the discussion and technical scoping [here](https://docs.google.com/document/d/1QNGSNNjWx4CGt5-NvX9ZArQMfyrwjw-B95f54GUNdB0/edit#heading=h.t9xh94v7viuj).
 :::
 
 ## Design reflexion
 
 If you read the technical scoping above, we explored many options for enabling automatic scaling of NiFi clusters.
-After much discussion, it turned out that we wanted to mimic the approach and design behind auto-scaling a deployment with [HPA] (https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/).
+After much discussion, it turned out that we wanted to mimic the approach and design behind auto-scaling a deployment with [HPA](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/).
 
 If we look at how this works, you define a `Deployment`, which will manage a `ReplicaSet` which will manage `Pods`. And you define your `HPA` which will manage the scale field of the `Deployment`.
 For our `NiFiCluster` we considered the same kind of separation of concerns: we define a new resource `NifiNodeGroupAutoScaler` that manages the `NifiCluster` that will manage the `Pods`. And you define your `HPA` which will manage the scale field of the `Deployment`.

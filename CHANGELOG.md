@@ -2,21 +2,60 @@
 
 ### Added
 
-- [PR #476](https://github.com/konpyutaika/nifikop/pull/476) - **[Operator/NifiCluster]** Added logic to include injected containers and init containers in desired pod spec.
 - [PR #500](https://github.com/konpyutaika/nifikop/pull/500) - **[Operator/NiFiCluster]** Added support for [Zarf](https://zarf.dev/) patched container images
+
+### Changed
+
+- [PR #538](https://github.com/konpyutaika/nifikop/pull/538) - **[Operator]** Upgrade golang to 1.24.2.
+
+### Fixed Bugs
+
+- [PR #536](https://github.com/konpyutaika/nifikop/pull/536) - **[Operator/NifiUserGroup]** Fixed users removal from usergroups 
+
+### Deprecated
+
+### Removed
+
+## v1.13.0
+
+### Added
+
+- [PR #515](https://github.com/konpyutaika/nifikop/pull/515) - **[Helm Chart]** Added SecurityContextContraints to enhance compatibility with Openshift Platform 
+- [PR #519](https://github.com/konpyutaika/nifikop/pull/519) - **[Helm Chart]** Added securityContext override to nifikop helm chart for increased compatibility with strict PSA enforcement.
+
+### Changed
+
+- [PR #511](https://github.com/konpyutaika/nifikop/pull/511) - **[Operator]** Upgrade golang to 1.23.6.
+- [PR #517](https://github.com/konpyutaika/nifikop/pull/517) - **[Documentation]** Update compatibility matrix.
+- [PR #520](https://github.com/konpyutaika/nifikop/pull/520) - **[Operator]** Upgrade golang to 1.24.0.
+- [PR #521](https://github.com/konpyutaika/nifikop/pull/521) - **[Operator]** Migrated nifikop to operator-sdk to v1.39.1.
+- [PR #526](https://github.com/konpyutaika/nifikop/pull/526) - **[Operator]** Upgrade golang to 1.24.1.
+- [PR #530](https://github.com/konpyutaika/nifikop/pull/530) - **[NiGoApi]** Upgrade NiGoApi to v0.1.6.
+- [PR #532](https://github.com/konpyutaika/nifikop/pull/532) - **[Documentation]** Upgrade dependencies.
+
+### Fixed Bugs
+
+- [PR #518](https://github.com/konpyutaika/nifikop/pull/518) - **[Helm Chart]** Fixed indentation in file nifi-node-group-autoscaler.yaml.
+- [PR #527](https://github.com/konpyutaika/nifikop/pull/527) - **[Operator]** Docker building time explode.
+
+## v1.12.0
+
+### Added
+
+- [PR #476](https://github.com/konpyutaika/nifikop/pull/476) - **[Operator/NifiCluster]** Added logic to include injected containers and init containers in desired pod spec.
+- [PR #493](https://github.com/konpyutaika/nifikop/pull/493) - **[Operator/NifiCluster]** Added logic to rename/delete PVC.
 
 ### Changed
 
 - [PR #476](https://github.com/konpyutaika/nifikop/pull/476) - **[Operator/NifiCluster]** Move Zookeeper connectivity check from init container to main container.
 - [PR #491](https://github.com/konpyutaika/nifikop/pull/491) - **[Helm Chart]** Added default namespace to configuration replacements.
+- [PR #501](https://github.com/konpyutaika/nifikop/pull/501) - **[Operator]** Upgrade golang to 1.23.4.
+- [PR #502](https://github.com/konpyutaika/nifikop/pull/502) - **[NiGoApi]** Upgrade NiGoApi to v0.1.5.
+- [PR #504](https://github.com/konpyutaika/nifikop/pull/504) - **[Documentation]** Upgrade dependencies.
 
 ### Fixed Bugs
 
 - [PR #476](https://github.com/konpyutaika/nifikop/pull/476) - **[Operator/NifiCluster]** Fixed istio init race condition and pod reconciliation.
-
-### Deprecated
-
-### Removed
 
 ## v1.11.4
 

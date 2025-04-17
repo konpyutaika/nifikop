@@ -5,30 +5,30 @@ import (
 	"testing"
 	"time"
 
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	v12 "github.com/konpyutaika/nifikop/api/v1"
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 )
 
 var (
-	time1 = v1.NewTime(time.Now().UTC().Add(time.Duration(5) * time.Hour))
-	time2 = v1.NewTime(time.Now().UTC().Add(time.Duration(10) * time.Hour))
-	time3 = v1.NewTime(time.Now().UTC().Add(time.Duration(15) * time.Hour))
-	time4 = v1.NewTime(time.Now().UTC().Add(time.Duration(20) * time.Hour))
+	time1 = metav1.NewTime(time.Now().UTC().Add(time.Duration(5) * time.Hour))
+	time2 = metav1.NewTime(time.Now().UTC().Add(time.Duration(10) * time.Hour))
+	time3 = metav1.NewTime(time.Now().UTC().Add(time.Duration(15) * time.Hour))
+	time4 = metav1.NewTime(time.Now().UTC().Add(time.Duration(20) * time.Hour))
 )
 
 var lifo = LIFOHorizontalDownscaleStrategy{
 	NifiNodeGroupAutoscaler: &v1alpha1.NifiNodeGroupAutoscaler{
 		Spec: v1alpha1.NifiNodeGroupAutoscalerSpec{
-			NodeLabelsSelector: &v1.LabelSelector{
+			NodeLabelsSelector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{"scale_me": "true"},
 			},
 		},
 	},
-	NifiCluster: &v12.NifiCluster{
-		Spec: v12.NifiClusterSpec{
-			Nodes: []v12.Node{
+	NifiCluster: &v1.NifiCluster{
+		Spec: v1.NifiClusterSpec{
+			Nodes: []v1.Node{
 				{Id: 2, NodeConfigGroup: "scale-group", Labels: map[string]string{"scale_me": "true"}},
 				{Id: 3, NodeConfigGroup: "scale-group", Labels: map[string]string{"scale_me": "true"}},
 				{Id: 4, NodeConfigGroup: "scale-group", Labels: map[string]string{"scale_me": "true"}},
@@ -36,8 +36,8 @@ var lifo = LIFOHorizontalDownscaleStrategy{
 				{Id: 6, NodeConfigGroup: "scale-group", Labels: map[string]string{"scale_me": "true"}},
 			},
 		},
-		Status: v12.NifiClusterStatus{
-			NodesState: map[string]v12.NodeState{
+		Status: v1.NifiClusterStatus{
+			NodesState: map[string]v1.NodeState{
 				"2": {
 					CreationTime: &time1,
 				},
@@ -61,14 +61,14 @@ var lifo = LIFOHorizontalDownscaleStrategy{
 var simple = SimpleHorizontalUpscaleStrategy{
 	NifiNodeGroupAutoscaler: &v1alpha1.NifiNodeGroupAutoscaler{
 		Spec: v1alpha1.NifiNodeGroupAutoscalerSpec{
-			NodeLabelsSelector: &v1.LabelSelector{
+			NodeLabelsSelector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{"scale_me": "true"},
 			},
 		},
 	},
-	NifiCluster: &v12.NifiCluster{
-		Spec: v12.NifiClusterSpec{
-			Nodes: []v12.Node{
+	NifiCluster: &v1.NifiCluster{
+		Spec: v1.NifiClusterSpec{
+			Nodes: []v1.Node{
 				{Id: 2, NodeConfigGroup: "scale-group", Labels: map[string]string{"scale_me": "true"}},
 				{Id: 3, NodeConfigGroup: "scale-group", Labels: map[string]string{"scale_me": "true"}},
 				{Id: 4, NodeConfigGroup: "scale-group", Labels: map[string]string{"scale_me": "true"}},
@@ -76,8 +76,8 @@ var simple = SimpleHorizontalUpscaleStrategy{
 				{Id: 6, NodeConfigGroup: "scale-group", Labels: map[string]string{"scale_me": "true"}},
 			},
 		},
-		Status: v12.NifiClusterStatus{
-			NodesState: map[string]v12.NodeState{
+		Status: v1.NifiClusterStatus{
+			NodesState: map[string]v1.NodeState{
 				"2": {
 					CreationTime: &time1,
 				},
@@ -181,7 +181,7 @@ func TestSimpleAddNoNodes(t *testing.T) {
 }
 
 func TestComputeNewNodeIds(t *testing.T) {
-	nodeList := []v12.Node{
+	nodeList := []v1.Node{
 		{
 			Id: 1,
 		},
