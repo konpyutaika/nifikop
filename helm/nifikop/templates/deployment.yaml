@@ -184,6 +184,9 @@ spec:
             - name: REQUEUE_OFFSET
               value: {{ .Values.requeue.offset }}
             {{- end }}
+            {{- if .Values.additionalEnvs }}
+              {{- toYaml .Values.additionalEnvs | nindent 12 }}
+            {{- end }}
           livenessProbe:
             httpGet:
               path: /healthz

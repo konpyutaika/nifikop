@@ -89,3 +89,11 @@ requeue:
     dataFlow: ~
     connection: ~
   offset: ~
+
+additionalEnvs: []
+  # - name: MY_ENV
+  #   value: my_value
+  # - name: MY_ENV2
+  #   valueFrom:
+  #     secretKeyRef:
+  #       name: my-secret
