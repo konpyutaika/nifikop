@@ -34,7 +34,8 @@ The following tables lists the configurable parameters of the NiFi Operator Helm
 | `resources`                      | Pod resource requests & limits                                                                                                                                                       | `{}`                     |
 | `metrics.enabled`                | deploy service for metrics                                                                                                                                                           | `false`                  |
 | `metrics.port`                   | Set port for operator metrics                                                                                                                                                        | `8081`                   |
-| `debug.enabled`                  | activate DEBUG log level                                                                                                                                                             | `false`                  |
+| `logLevel`                       | Log level to output                                                                                                                                                                  | `Info`                   |
+| `logEncoding`                    | Log encoding to use. Either `json` or `console`                                                                                                                                      | `json`                   |
 | `certManager.clusterScoped`      | If true setup cluster scoped resources                                                                                                                                               | `false`                  |
 | `namespaces`                     | List of namespaces where Operator watches for custom resources. Make sure the operator ServiceAccount is granted `get` permissions on this `Node` resource when using limited RBACs. | `""` i.e. all namespaces |
 | `nodeSelector`                   | Node selector configuration for operator pod                                                                                                                                         | `{}`                     |
@@ -76,7 +77,7 @@ You can make a dry run of the chart before deploying:
 helm install nifikop konpyutaika-incubator/nifikop \
     --dry-run \
     --debug.enabled \
-    --set debug.enabled=true \
+    --set logLevel="Debug" \
     --set namespaces={"nifikop"}
 ```
 
