@@ -75,3 +75,17 @@ certManager:
 webhook:
   enabled: true
 
+requeue:
+  interval:
+    clusterTaskRunning: ~
+    clusterTaskTimeout: ~
+    clusterTaskNotReady: ~
+    clusterTaskNoNode: ~
+    users: ~
+    nodeGroupAutoscaler: ~
+    registryClient: ~
+    parameterContext: ~
+    userGroup: ~
+    dataFlow: ~
+    connection: ~
+  offset: ~

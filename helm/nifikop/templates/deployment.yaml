@@ -136,6 +136,54 @@ spec:
               value: {{ default "Info" .Values.logLevel }}
             - name: LOG_ENCODING
               value: {{ default "json" .Values.logEncoding }}
+            {{- if .Values.requeue.interval.clusterTaskRunning }}
+            - name: CLUSTER_TASK_RUNNING_REQUEUE_INTERVAL
+              value: {{ .Values.requeue.interval.clusterTaskRunning }}
+            {{- end }}
+            {{- if .Values.requeue.interval.clusterTaskTimeout }}
+            - name: CLUSTER_TASK_TIMEOUT_REQUEUE_INTERVAL
+              value: {{ .Values.requeue.interval.clusterTaskTimeout }}
+            {{- end }}
+            {{- if .Values.requeue.interval.clusterTaskNotReady }}
+            - name: CLUSTER_TASK_NOT_READY_REQUEUE_INTERVAL
+              value: {{ .Values.requeue.interval.clusterTaskNotReady }}
+            {{- end }}
+            {{- if .Values.requeue.interval.clusterTaskNoNode }}
+            - name: CLUSTER_TASK_NO_NODE_INTERVAL
+              value: {{ .Values.requeue.interval.clusterTaskNoNode }}
+            {{- end }}
+            {{- if .Values.requeue.interval.users }}
+            - name: USERS_REQUEUE_INTERVAL
+              value: {{ .Values.requeue.interval.users }}
+            {{- end }}
+            {{- if .Values.requeue.interval.nodeGroupAutoscaler }}
+            - name: NODE_GROUP_AUTOSCALER_REQUEUE_INTERVAL
+              value: {{ .Values.requeue.interval.nodeGroupAutoscaler }}
+            {{- end }}
+            {{- if .Values.requeue.interval.registryClient }}
+            - name: REGISTRY_CLIENT_REQUEUE_INTERVAL
+              value: {{ .Values.requeue.interval.registryClient }}
+            {{- end }}
+            {{- if .Values.requeue.interval.parameterContext }}
+            - name: PARAMETER_CONTEXT_REQUEUE_INTERVAL
+              value: {{ .Values.requeue.interval.parameterContext }}
+            {{- end }}
+            {{- if .Values.requeue.interval.userGroup }}
+            - name: USER_GROUP_REQUEUE_INTERVAL
+              value: {{ .Values.requeue.interval.userGroup }}
+            {{- end }}
+            {{- if .Values.requeue.interval.dataFlow }}
+            - name: DATAFLOW_REQUEUE_INTERVAL
+              value: {{ .Values.requeue.interval.dataFlow }}
+            {{- end }}
+            {{- if .Values.requeue.interval.connection }}
+            - name: CONNECTION_REQUEUE_INTERVAL
+              value: {{ .Values.requeue.interval.connection }}
+            {{- end }}
+            {{- if .Values.requeue.offset }}
+            - name: REQUEUE_OFFSET
+              value: {{ .Values.requeue.offset }}
+            {{- end }}
           livenessProbe:
             httpGet:
               path: /healthz
