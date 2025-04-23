@@ -2,7 +2,8 @@
 
 ### Added
 
-- [PR #500](https://github.com/konpyutaika/nifikop/pull/500) - **[Operator/NiFiCluster]** Added support for [Zarf](https://zarf.dev/) patched container images
+- [PR #500](https://github.com/konpyutaika/nifikop/pull/500) - **[Operator/NiFiCluster]** Added support for [Zarf](https://zarf.dev/) patched container images.
+- [PR #543](https://github.com/konpyutaika/nifikop/pull/543) - **[Helm Chart]** Added values for requeue environment variables.
 
 ### Changed
 
