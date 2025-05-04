@@ -81,7 +81,7 @@ helm repo update
 # You have to create the namespace before executing following command
 helm install cert-manager \
     --namespace cert-manager \
-    --version v1.7.2 jetstack/cert-manager
+    --version v1.17.2 jetstack/cert-manager
 ```
 
 </TabItem>
