@@ -15,6 +15,14 @@ cluster:
   # -- the type of cluster manager: zookeeper or kubernetes. Operator will put zookeeper by default
   # @default -- zookeeper
   manager:
+  # -- the kubernetes manager serviceAccount details
+  managerServiceAccount:
+    # @default -- include "nifi-cluster.fullname" .
+    name:
+    # -- Annotations to apply to the serviceAccount
+    annotations: {}
+    # -- Labels to apply to the serviceAccount
+    labels: {}
   # -- the hostname and port of the zookeeper service
   zkAddress: "nifi-cluster-zookeeper:2181"
   # -- the path in zookeeper to store this cluster's state

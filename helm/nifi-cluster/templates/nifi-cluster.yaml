@@ -175,10 +175,10 @@ spec:
   {{- if empty .Values.cluster.nodeConfigGroups }}
     {{- if eq .Values.cluster.manager "kubernetes" }}
     default-group:
-      serviceAccountName: {{ include "nifi-cluster.fullname" . }}
+      serviceAccountName: {{ tpl (default (include "nifi-cluster.fullname" .) .Values.serviceAccount.name) . }}
     {{- end }}
   {{- else }}
-  {{- toYaml .Values.cluster.nodeConfigGroups | nindent 4 }}
+  {{- tpl (toYaml .Values.cluster.nodeConfigGroups) . | nindent 4 }}
   {{- end }}
   nodes:
   {{- toYaml .Values.cluster.nodes | nindent 4 }}
