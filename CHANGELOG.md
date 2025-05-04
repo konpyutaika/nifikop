@@ -8,7 +8,7 @@
 ### Changed
 
 - [PR #538](https://github.com/konpyutaika/nifikop/pull/538) - **[Operator]** Upgrade golang to 1.24.2.
-- [PR #530](https://github.com/konpyutaika/nifikop/pull/551) - **[NiGoApi]** Upgrade NiGoApi to v0.1.7.
+- [PR #530](https://github.com/konpyutaika/nifikop/pull/551) - **[NiGoApi]** Upgrade NiGoApi to v0.1.8.
 
 ### Fixed Bugs
 
