@@ -12,7 +12,7 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/imdario/mergo v0.3.14
 	github.com/jarcoal/httpmock v1.3.0
-	github.com/konpyutaika/nigoapi v0.1.6
+	github.com/konpyutaika/nigoapi v0.1.7
 	github.com/onsi/ginkgo/v2 v2.19.0
 	github.com/onsi/gomega v1.33.1
 	github.com/pavel-v-chernykh/keystore-go v2.1.0+incompatible
