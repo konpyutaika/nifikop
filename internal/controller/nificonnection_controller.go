@@ -24,7 +24,6 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/banzaicloud/k8s-objectmatcher/patch"
-	"github.com/konpyutaika/nigoapi/pkg/nifi"
 	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -38,12 +37,14 @@ import (
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/connection"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/dataflow"
+	"github.com/konpyutaika/nifikop/pkg/clientwrappers/processgroup"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	"github.com/konpyutaika/nifikop/pkg/k8sutil"
 	"github.com/konpyutaika/nifikop/pkg/nificlient/config"
 	"github.com/konpyutaika/nifikop/pkg/util"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
 	nifiutil "github.com/konpyutaika/nifikop/pkg/util/nifi"
+	"github.com/konpyutaika/nigoapi/pkg/nifi"
 )
 
 var connectionFinalizer string = fmt.Sprintf("nificonnections.%s/finalizer", v1alpha1.GroupVersion.Group)
@@ -264,6 +265,8 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	sourceComponent := &v1alpha1.ComponentInformation{}
 	if instance.Spec.Source.Type == v1alpha1.ComponentDataflow {
 		sourceComponent, err = r.GetDataflowComponentInformation(instance.Spec.Source, true)
+	} else if instance.Spec.Source.Type == v1alpha1.ComponentProcessGroup {
+		sourceComponent, err = r.GetResourceComponentInformation(instance.Spec.Source, true)
 	}
 
 	// If the source cannot be found, requeue with error
@@ -278,6 +281,8 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	destinationComponent := &v1alpha1.ComponentInformation{}
 	if instance.Spec.Source.Type == v1alpha1.ComponentDataflow {
 		destinationComponent, err = r.GetDataflowComponentInformation(instance.Spec.Destination, false)
+	} else if instance.Spec.Source.Type == v1alpha1.ComponentProcessGroup {
+		destinationComponent, err = r.GetResourceComponentInformation(instance.Spec.Destination, false)
 	}
 
 	// If the destination cannot be found, requeue with error
@@ -672,8 +677,19 @@ func (r *NifiConnectionReconciler) DeleteConnection(ctx context.Context, clientC
 
 		// Check is the NifiDataflow's update strategy is on drain
 		if sourceInstance.Spec.UpdateStrategy == v1.DrainStrategy {
+
+			// Get ParentProcessGroup
+			var parentProcessGroup *v1alpha1.NifiResource
+			if sourceInstance.Spec.ParentProcessGroupReference != nil {
+				parentProcessGroupNamespace :=
+					GetResourceRefNamespace(sourceInstance.Namespace, *sourceInstance.Spec.ParentProcessGroupReference)
+
+				parentProcessGroup, err = k8sutil.LookupNifiResource(r.Client,
+					sourceInstance.Spec.ParentProcessGroupReference.Name, parentProcessGroupNamespace)
+			}
+
 			// Check if the dataflow is empty
-			isEmpty, err := dataflow.IsDataflowEmpty(sourceInstance, clientConfig)
+			isEmpty, err := dataflow.IsDataflowEmpty(sourceInstance, clientConfig, parentProcessGroup)
 			if err != nil {
 				return err
 			}
@@ -681,6 +697,49 @@ func (r *NifiConnectionReconciler) DeleteConnection(ctx context.Context, clientC
 			// If the dataflow is empty, stop the output-port of the dataflow
 			if isEmpty {
 				if err := r.StopDataflowComponent(ctx, original.Spec.Source, true); err != nil {
+					return err
+				}
+			}
+		}
+	} else if original.Spec.Source.Type == v1alpha1.ComponentProcessGroup {
+		// Retrieve NifiResource information
+		sourceInstance, err := k8sutil.LookupNifiResource(r.Client, original.Spec.Source.Name, original.Spec.Source.Namespace)
+		if err != nil {
+			return err
+		}
+
+		// Check Resource is Process Group
+		if sourceInstance.Spec.Type != v1.ResourceProcessGroup {
+			return errors.New("source resource is expected to be Process Group, but actual reasource is not")
+		}
+
+		// Get ParentProcessGroup
+		var parentProcessGroup *v1alpha1.NifiResource
+		if sourceInstance.Spec.ParentProcessGroupReference != nil {
+			parentProcessGroupNamespace :=
+				GetResourceRefNamespace(sourceInstance.Namespace, *sourceInstance.Spec.ParentProcessGroupReference)
+
+			parentProcessGroup, err = k8sutil.LookupNifiResource(r.Client,
+				sourceInstance.Spec.ParentProcessGroupReference.Name, parentProcessGroupNamespace)
+		}
+
+		// Check is the NifiResource's update strategy is on drain
+		// Extracted from Configuraion
+		sourceInstanceConfig, err := sourceInstance.Spec.GetConfiguration()
+		if err != nil {
+			return err
+		}
+		if sourceInstanceConfig["updateStrategy"] == v1.DrainStrategy {
+
+			// Check if the process group is empty
+			isEmpty, err := processgroup.IsProcessGroupEmpty(sourceInstance, parentProcessGroup, clientConfig)
+			if err != nil {
+				return err
+			}
+
+			// If the process group is empty, stop the output-port of the process group
+			if isEmpty {
+				if err := r.StopProcessGroupComponent(ctx, original.Spec.Source, true); err != nil {
 					return err
 				}
 			}
@@ -757,6 +816,86 @@ func (r *NifiConnectionReconciler) DeleteConnection(ctx context.Context, clientC
 			}
 			return nil
 		}
+	} else if original.Spec.Destination.Type == v1alpha1.ComponentProcessGroup {
+		// Retrieve NifiResource information
+		destinationInstance, err := k8sutil.LookupNifiResource(r.Client, original.Spec.Destination.Name, original.Spec.Destination.Namespace)
+		if err != nil {
+			return err
+		}
+
+		// Check Resource is Process Group
+		if destinationInstance.Spec.Type != v1.ResourceProcessGroup {
+			return errors.New("source resource is expected to be Process Group, but actual reasource is not")
+		}
+
+		// Extracted from Configuraion
+		destinationInstanceConfig, err := destinationInstance.Spec.GetConfiguration()
+		if err != nil {
+			return err
+		}
+
+		// If the NifiResource's update strategy is on drop and the NifiConnection's too, stop the input-port of the process group
+		if destinationInstanceConfig["updateStrategy"] == v1.DropStrategy && instance.Spec.UpdateStrategy == v1.DropStrategy {
+			if err := r.StopProcessGroupComponent(ctx, original.Spec.Destination, false); err != nil {
+				return err
+			}
+		}
+
+		// Retrieve the connection information
+		connectionEntity, err := connection.GetConnectionInformation(instance, clientConfig)
+		if err != nil {
+			return err
+		}
+		if connectionEntity == nil {
+			return nil
+		}
+
+		// If the source is stopped, the connection is not empty and the connections's update strategy is on drain:
+		// force the dataflow to stay started
+		if !connectionEntity.Component.Source.Running &&
+			connectionEntity.Status.AggregateSnapshot.FlowFilesQueued != 0 &&
+			instance.Spec.UpdateStrategy == v1.DrainStrategy {
+			if err := r.ForceStartProcessGroupComponent(ctx, original.Spec.Destination); err != nil {
+				return err
+			}
+			// If the source is stopped, the destination is running and the connection is empty:
+			// unforce the dataflow to stay started and stop the input-port of the dataflow
+		} else if !connectionEntity.Component.Source.Running && connectionEntity.Component.Destination.Running &&
+			connectionEntity.Status.AggregateSnapshot.FlowFilesQueued == 0 {
+			if err := r.UnForceStartProcessGroupComponent(ctx, original.Spec.Destination); err != nil {
+				return err
+			}
+			if err := r.StopProcessGroupComponent(ctx, original.Spec.Destination, false); err != nil {
+				return err
+			}
+			// If the source is stopped, the destination is stopped, the connection is not empty and the destination's update strategy is on drop:
+			// empty the connection
+		} else if !connectionEntity.Component.Source.Running && !connectionEntity.Component.Destination.Running &&
+			connectionEntity.Status.AggregateSnapshot.FlowFilesQueued != 0 && destinationInstanceConfig["updateStrategy"] == v1.DropStrategy &&
+			instance.Spec.UpdateStrategy == v1.DropStrategy {
+			if err := connection.DropConnectionFlowFiles(instance, clientConfig); err != nil {
+				return err
+			}
+			// If the source is stopped, the destination is stopped and the connection is empty:
+			// delete the connection, unstop the output-port of the source and unstop the input-port of th destination
+		} else if !connectionEntity.Component.Source.Running && !connectionEntity.Component.Destination.Running &&
+			connectionEntity.Status.AggregateSnapshot.FlowFilesQueued == 0 {
+			if err := connection.DeleteConnection(instance, clientConfig); err != nil {
+				return err
+			}
+
+			// Check if the source component is a NifiDataflow
+			if original.Spec.Source.Type == v1alpha1.ComponentProcessGroup {
+				if err := r.UnStopProcessGroupComponent(ctx, original.Spec.Source, true); err != nil {
+					return err
+				}
+			}
+
+			if err := r.UnStopProcessGroupComponent(ctx, original.Spec.Destination, false); err != nil {
+				return err
+			}
+			return nil
+		}
 	}
 	return errorfactory.NifiConnectionDeleting{}
 }
@@ -780,12 +919,26 @@ func (r *NifiConnectionReconciler) RetrieveNifiClusterRef(src v1alpha1.Component
 		}
 
 		srcClusterRef = srcDataflow.Spec.ClusterRef
+	} else if src.Type == v1alpha1.ComponentProcessGroup {
+		srcDataflow, err := k8sutil.LookupNifiResource(r.Client, src.Name, src.Namespace)
+		if err != nil {
+			return nil, err
+		}
+
+		srcClusterRef = srcDataflow.Spec.ClusterRef
 	}
 
 	var dstClusterRef = v1.ClusterReference{}
 	// Retrieve the destination clusterRef from a NifiDataflow resource
 	if dst.Type == v1alpha1.ComponentDataflow {
 		dstDataflow, err := k8sutil.LookupNifiDataflow(r.Client, dst.Name, dst.Namespace)
+		if err != nil {
+			return nil, err
+		}
+
+		dstClusterRef = dstDataflow.Spec.ClusterRef
+	} else if src.Type == v1alpha1.ComponentProcessGroup {
+		dstDataflow, err := k8sutil.LookupNifiResource(r.Client, src.Name, src.Namespace)
 		if err != nil {
 			return nil, err
 		}
@@ -894,6 +1047,101 @@ func (r *NifiConnectionReconciler) GetDataflowComponentInformation(c v1alpha1.Co
 	}
 }
 
+func (r *NifiConnectionReconciler) GetResourceComponentInformation(c v1alpha1.ComponentReference, isSource bool) (*v1alpha1.ComponentInformation, error) {
+	// TODO Make Generic for all possible NiFi Resources
+	var portType string = "input"
+	if isSource {
+		portType = "output"
+	}
+	r.Log.Debug("Retrieve the resource port information",
+		zap.String("resourceName", c.Name),
+		zap.String("resourceNamespace", c.Namespace),
+		zap.String("portName", c.SubName),
+		zap.String("portType", portType))
+
+	instance, err := k8sutil.LookupNifiResource(r.Client, c.Name, c.Namespace)
+	if err != nil {
+		return nil, err
+	} else {
+		// Prepare cluster connection configurations
+		var clientConfig *clientconfig.NifiConfig
+		var clusterConnect clientconfig.ClusterConnect
+
+		// Get the client config manager associated to the cluster ref.
+		clusterRef := instance.Spec.ClusterRef
+		clusterRef.Namespace = GetClusterRefNamespace(instance.Namespace, instance.Spec.ClusterRef)
+		configManager := config.GetClientConfigManager(r.Client, clusterRef)
+
+		// Generate the connect object
+		if clusterConnect, err = configManager.BuildConnect(); err != nil {
+			return nil, err
+		}
+
+		// Generate the client configuration.
+		clientConfig, err = configManager.BuildConfig()
+		if err != nil {
+			return nil, err
+		}
+
+		// Ensure the cluster is ready to receive actions
+		if !clusterConnect.IsReady(r.Log) {
+			return nil, errors.New(fmt.Sprintf("Cluster %s in %s not ready for resource %s in %s", clusterRef.Name, clusterRef.Namespace, instance.Name, instance.Namespace))
+		}
+
+		processGroupInformation, err := processgroup.GetProcessGroupInformation(instance, clientConfig)
+		if err != nil {
+			return nil, err
+		}
+
+		r.Log.Debug("got process info")
+
+		// Error if the dataflow does not exist
+		if processGroupInformation == nil {
+			return nil, errors.New(fmt.Sprintf("ProcessGroup %s in %s does not exist in the cluster", instance.Name, instance.Namespace))
+		}
+
+		// Retrieve the ports
+		var ports = []nifi.PortEntity{}
+		if isSource {
+			ports = processGroupInformation.ProcessGroupFlow.Flow.OutputPorts
+		} else {
+			ports = processGroupInformation.ProcessGroupFlow.Flow.InputPorts
+		}
+
+		r.Log.Debug("got PORTS info")
+
+		// Error if no port exists in the dataflow
+		if len(ports) == 0 {
+			return nil, errors.New(fmt.Sprintf("No port available for Process Group %s in %s", instance.Name, instance.Namespace))
+		}
+
+		// Search the targeted port
+		targetPort := nifi.PortEntity{}
+		foundTarget := false
+		for _, port := range ports {
+			if port.Component.Name == c.SubName {
+				targetPort = port
+				foundTarget = true
+			}
+		}
+
+		// Error if the targeted port is not found
+		if !foundTarget {
+			return nil, errors.New(fmt.Sprintf("Port %s not found: %s in %s", c.SubName, instance.Name, instance.Namespace))
+		}
+
+		// Return all the information on the targeted port of the dataflow
+		information := &v1alpha1.ComponentInformation{
+			Id:            targetPort.Id,
+			Type:          targetPort.Component.Type_,
+			GroupId:       targetPort.Component.ParentGroupId,
+			ParentGroupId: processGroupInformation.ProcessGroupFlow.ParentGroupId,
+			ClusterRef:    clusterRef,
+		}
+		return information, nil
+	}
+}
+
 // Set the maintenance label to force the stop of a port.
 func (r *NifiConnectionReconciler) StopDataflowComponent(ctx context.Context, c v1alpha1.ComponentReference, isSource bool) error {
 	var portType string = "input"
@@ -941,6 +1189,53 @@ func (r *NifiConnectionReconciler) StopDataflowComponent(ctx context.Context, c 
 	return nil
 }
 
+// Set the maintenance label to force the stop of a port.
+func (r *NifiConnectionReconciler) StopProcessGroupComponent(ctx context.Context, c v1alpha1.ComponentReference, isSource bool) error {
+	var portType string = "input"
+	if isSource {
+		portType = "output"
+	}
+	r.Log.Debug("Set label to stop the port of the process group",
+		zap.String("processgroupName", c.Name),
+		zap.String("processgroupNamespace", c.Namespace),
+		zap.String("portName", c.SubName),
+		zap.String("portType", portType))
+
+	// Retrieve K8S Resurce object
+	instance, err := k8sutil.LookupNifiResource(r.Client, c.Name, c.Namespace)
+	instanceOriginal := instance.DeepCopy()
+	if err != nil {
+		return err
+	} else {
+		labels := instance.GetLabels()
+
+		// Check that the label is not already set with a different value
+		if !isSource {
+			if label, ok := labels[nifiutil.StopInputPortLabel]; ok {
+				if label != c.SubName {
+					return errors.New(fmt.Sprintf("Label %s is already set on the NifiResource %s", nifiutil.StopInputPortLabel, instance.Name))
+				}
+			} else {
+				labels[nifiutil.StopInputPortLabel] = c.SubName
+				instance.SetLabels(labels)
+				return r.Client.Patch(ctx, instance, client.MergeFrom(instanceOriginal))
+			}
+		} else {
+			// Set the label
+			if label, ok := labels[nifiutil.StopOutputPortLabel]; ok {
+				if label != c.SubName {
+					return errors.New(fmt.Sprintf("Label %s is already set on the NifiResource %s", nifiutil.StopOutputPortLabel, instance.Name))
+				}
+			} else {
+				labels[nifiutil.StopOutputPortLabel] = c.SubName
+				instance.SetLabels(labels)
+				return r.Client.Patch(ctx, instance, client.MergeFrom(instanceOriginal))
+			}
+		}
+	}
+	return nil
+}
+
 // Unset the maintenance label to force the stop of a port.
 func (r *NifiConnectionReconciler) UnStopDataflowComponent(ctx context.Context, c v1alpha1.ComponentReference, isSource bool) error {
 	r.Log.Debug("Unset label to stop the port of the dataflow",
@@ -949,6 +1244,42 @@ func (r *NifiConnectionReconciler) UnStopDataflowComponent(ctx context.Context, 
 
 	// Retrieve K8S Dataflow object
 	instance, err := k8sutil.LookupNifiDataflow(r.Client, c.Name, c.Namespace)
+	instanceOriginal := instance.DeepCopy()
+	if err != nil {
+		return err
+	} else {
+		// Set the label
+		labels := instance.GetLabels()
+
+		if !isSource {
+			// If the label is set with the correct value, delete it
+			if label, ok := labels[nifiutil.StopInputPortLabel]; ok {
+				if label == c.SubName {
+					delete(labels, nifiutil.StopInputPortLabel)
+				}
+			}
+		} else {
+			// If the label is set with the correct value, delete it
+			if label, ok := labels[nifiutil.StopOutputPortLabel]; ok {
+				if label == c.SubName {
+					delete(labels, nifiutil.StopOutputPortLabel)
+				}
+			}
+		}
+
+		instance.SetLabels(labels)
+		return r.Client.Patch(ctx, instance, client.MergeFrom(instanceOriginal))
+	}
+}
+
+// Unset the maintenance label to force the stop of a port.
+func (r *NifiConnectionReconciler) UnStopProcessGroupComponent(ctx context.Context, c v1alpha1.ComponentReference, isSource bool) error {
+	r.Log.Debug("Unset label to stop the port of the processGroup",
+		zap.String("processGroupName", c.Name),
+		zap.String("processGroupNamespace", c.Namespace))
+
+	// Retrieve K8S Resource object
+	instance, err := k8sutil.LookupNifiResource(r.Client, c.Name, c.Namespace)
 	instanceOriginal := instance.DeepCopy()
 	if err != nil {
 		return err
@@ -1005,6 +1336,34 @@ func (r *NifiConnectionReconciler) ForceStartDataflowComponent(ctx context.Conte
 	return nil
 }
 
+// Set the maintenance label to force the start of a process group.
+func (r *NifiConnectionReconciler) ForceStartProcessGroupComponent(ctx context.Context, c v1alpha1.ComponentReference) error {
+	r.Log.Debug("Set label to force the start of the process group",
+		zap.String("processgroupName", c.Name),
+		zap.String("processgroupNamespace", c.Namespace))
+
+	// Retrieve K8S Resource object
+	instance, err := k8sutil.LookupNifiResource(r.Client, c.Name, c.Namespace)
+	instanceOriginal := instance.DeepCopy()
+	if err != nil {
+		return err
+	} else {
+		labels := instance.GetLabels()
+		// Check that the label is not already set with a different value
+		if label, ok := labels[nifiutil.ForceStartLabel]; ok {
+			if label != "true" {
+				return errors.New(fmt.Sprintf("Label %s is already set on the NifiDataflow %s", nifiutil.StopInputPortLabel, instance.Name))
+			}
+		} else {
+			// Set the label
+			labels[nifiutil.ForceStartLabel] = "true"
+			instance.SetLabels(labels)
+			return r.Client.Patch(ctx, instance, client.MergeFrom(instanceOriginal))
+		}
+	}
+	return nil
+}
+
 // Unset the maintenance label to force the start of a dataflow.
 func (r *NifiConnectionReconciler) UnForceStartDataflowComponent(ctx context.Context, c v1alpha1.ComponentReference) error {
 	r.Log.Debug("Unset label to force the start of the dataflow",
@@ -1013,6 +1372,28 @@ func (r *NifiConnectionReconciler) UnForceStartDataflowComponent(ctx context.Con
 
 	// Retrieve K8S Dataflow object
 	instance, err := k8sutil.LookupNifiDataflow(r.Client, c.Name, c.Namespace)
+	instanceOriginal := instance.DeepCopy()
+	if err != nil {
+		return err
+	} else {
+		// Unset the label
+		labels := instance.GetLabels()
+
+		delete(labels, nifiutil.ForceStartLabel)
+
+		instance.SetLabels(labels)
+		return r.Client.Patch(ctx, instance, client.MergeFrom(instanceOriginal))
+	}
+}
+
+// Unset the maintenance label to force the start of a process group.
+func (r *NifiConnectionReconciler) UnForceStartProcessGroupComponent(ctx context.Context, c v1alpha1.ComponentReference) error {
+	r.Log.Debug("Unset label to force the start of the process group",
+		zap.String("processgroupName", c.Name),
+		zap.String("processgroupNamespace", c.Namespace))
+
+	// Retrieve K8S Resource object
+	instance, err := k8sutil.LookupNifiResource(r.Client, c.Name, c.Namespace)
 	instanceOriginal := instance.DeepCopy()
 	if err != nil {
 		return err

@@ -35,6 +35,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	v1 "github.com/konpyutaika/nifikop/api/v1"
+	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/dataflow"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/inputport"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/outputport"
@@ -135,6 +136,39 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		}
 	}
 
+	var parentProcessGroup *v1alpha1.NifiResource
+	var parentProcessGroupNamespace string
+	if instance.Spec.ParentProcessGroupReference != nil {
+		parentProcessGroupNamespace =
+			GetResourceRefNamespace(current.Namespace, *current.Spec.ParentProcessGroupReference)
+
+		if parentProcessGroup, err = k8sutil.LookupNifiResource(r.Client,
+			current.Spec.ParentProcessGroupReference.Name, parentProcessGroupNamespace); err != nil {
+			// This shouldn't trigger anymore, but leaving it here as a safetybelt
+			if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {
+				r.Log.Info("Dataflow is already gone, there is nothing we can do",
+					zap.String("dataflow", instance.Name))
+				if err = r.removeFinalizer(ctx, instance, patchInstance); err != nil {
+					return RequeueWithError(r.Log, "failed to remove finalizer for dataflow "+instance.Name, err)
+				}
+				return Reconciled()
+			}
+
+			msg := fmt.Sprintf("Failed to lookup reference parent process group for dataflow %s: %s in %s",
+				instance.Name, current.Spec.ParentProcessGroupReference.Name, parentProcessGroupNamespace)
+			r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceParentProcessGroupError", msg)
+
+			return RequeueWithError(r.Log, msg, err)
+		}
+
+		if parentProcessGroup.Spec.Type != v1.ResourceProcessGroup {
+			msg := fmt.Sprintf("Parent process group reference %s/%s Type is not ProcessGroup", current.Spec.ParentProcessGroupReference.Name, parentProcessGroupNamespace)
+			r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceParentProcessGroupError", msg)
+
+			return RequeueWithError(r.Log, msg, err)
+		}
+	}
+
 	var parameterContext *v1.NifiParameterContext
 	var parameterContextNamespace string
 	if current.Spec.ParameterContextRef != nil {
@@ -169,6 +203,12 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	registryClusterRef.Namespace = registryClientNamespace
 	clusterRefs = append(clusterRefs, registryClusterRef)
 
+	if parentProcessGroup != nil {
+		parentProcessGroupClusterRef := parentProcessGroup.Spec.ClusterRef
+		parentProcessGroupClusterRef.Namespace = parentProcessGroupNamespace
+		clusterRefs = append(clusterRefs, parentProcessGroupClusterRef)
+	}
+
 	if parameterContext != nil {
 		parameterContextClusterRef := parameterContext.Spec.ClusterRef
 		parameterContextClusterRef.Namespace = parameterContextNamespace
@@ -185,6 +225,14 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceClusterError", msg)
 
 		return RequeueWithError(r.Log, msg, errors.New("inconsistent cluster references"))
+	}
+
+	// Check if Parent Process Group has UUID
+	if parentProcessGroup != nil && parentProcessGroup.Status.UUID == "" {
+		msg := fmt.Sprintf("Parent process group doesn't have a UUID yet for dataflow %s: %s in %s",
+			instance.Name, instance.Spec.ClusterRef.Name, currentClusterRef.Namespace)
+		r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceResourceError", msg)
+		return RequeueWithError(r.Log, msg, errors.New("parent process group not created yet"))
 	}
 
 	// Prepare cluster connection configurations
@@ -267,7 +315,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 			if labelValue, ok := instance.Labels[nifiutil.ForceStopLabel]; ok {
 				// Stop dataflow operation
 				if labelValue == "true" {
-					err = dataflow.UnscheduleDataflow(instance, clientConfig)
+					err = dataflow.UnscheduleDataflow(instance, clientConfig, parentProcessGroup)
 					if err != nil {
 						return RequeueWithError(r.Log, "failed to stop dataflow "+instance.Name, err)
 					}
@@ -321,7 +369,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 
 	// Check if marked for deletion and if so run finalizers
 	if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {
-		return r.checkFinalizers(ctx, instance, clientConfig, patchInstance)
+		return r.checkFinalizers(ctx, instance, parentProcessGroup, clientConfig, patchInstance)
 	}
 
 	// Ensure the cluster is ready to receive actions
@@ -339,7 +387,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	// Ìn case of the cluster reference changed.
 	if !v1.ClusterRefsEquals([]v1.ClusterReference{instance.Spec.ClusterRef, current.Spec.ClusterRef}) {
 		// Delete the resource on the previous cluster.
-		if _, err := dataflow.RemoveDataflow(instance, clientConfig); err != nil {
+		if _, err := dataflow.RemoveDataflow(instance, parentProcessGroup, clientConfig); err != nil {
 			msg := fmt.Sprintf("Failed to delete NifiDataflow %s from cluster %s before moving in %s",
 				instance.Name, original.Spec.ClusterRef.Name, original.Spec.ClusterRef.Name)
 			r.Recorder.Event(instance, corev1.EventTypeWarning, "RemoveError", msg)
@@ -378,7 +426,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 				instance.Name, instance.Spec.BucketId,
 				instance.Spec.FlowId, strconv.FormatInt(int64(*instance.Spec.FlowVersion), 10)))
 
-		processGroupStatus, err := dataflow.CreateDataflow(instance, clientConfig, registryClient)
+		processGroupStatus, err := dataflow.CreateDataflow(instance, clientConfig, registryClient, parentProcessGroup)
 		if err != nil {
 			r.Recorder.Event(instance, corev1.EventTypeWarning, "CreationFailed",
 				fmt.Sprintf("Creation failed dataflow %s based on flow {bucketId: %s, flowId: %s, version: %s}",
@@ -425,7 +473,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 				instance.Name, instance.Spec.BucketId,
 				instance.Spec.FlowId, strconv.FormatInt(int64(*instance.Spec.FlowVersion), 10)))
 
-		status, err := dataflow.SyncDataflow(instance, clientConfig, registryClient, parameterContext)
+		status, err := dataflow.SyncDataflow(instance, clientConfig, registryClient, parameterContext, parentProcessGroup)
 		if status != nil {
 			instance.Status = *status
 			if err := r.patchStatus(ctx, instance, patchInstance, current.Status); err != nil {
@@ -475,7 +523,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	}
 
 	// Check if the flow is out of sync
-	isOutOfSink, err := dataflow.IsOutOfSyncDataflow(instance, clientConfig, registryClient, parameterContext)
+	isOutOfSink, err := dataflow.IsOutOfSyncDataflow(instance, clientConfig, registryClient, parameterContext, parentProcessGroup)
 	if err != nil {
 		return RequeueWithError(r.Log, "failed to check sync for NifiDataflow "+instance.Name, err)
 	}
@@ -605,13 +653,13 @@ func (r *NifiDataflowReconciler) updateAndFetchLatest(ctx context.Context,
 	return flow, nil
 }
 
-func (r *NifiDataflowReconciler) checkFinalizers(ctx context.Context, flow *v1.NifiDataflow,
+func (r *NifiDataflowReconciler) checkFinalizers(ctx context.Context, flow *v1.NifiDataflow, parentProcessGroup *v1alpha1.NifiResource,
 	config *clientconfig.NifiConfig, patcher client.Patch) (reconcile.Result, error) {
 	r.Log.Info("NiFi dataflow is marked for deletion",
 		zap.String("dataflow", flow.Name))
 	var err error
 	if util.StringSliceContains(flow.GetFinalizers(), dataflowFinalizer) {
-		if err = r.finalizeNifiDataflow(flow, config); err != nil {
+		if err = r.finalizeNifiDataflow(flow, parentProcessGroup, config); err != nil {
 			switch errors.Cause(err).(type) {
 			case errorfactory.NifiConnectionDropping, errorfactory.NifiFlowDraining:
 				return RequeueAfter(util.GetRequeueInterval(r.RequeueInterval, r.RequeueOffset))
@@ -635,7 +683,7 @@ func (r *NifiDataflowReconciler) removeFinalizer(ctx context.Context, flow *v1.N
 	return err
 }
 
-func (r *NifiDataflowReconciler) finalizeNifiDataflow(flow *v1.NifiDataflow, config *clientconfig.NifiConfig) error {
+func (r *NifiDataflowReconciler) finalizeNifiDataflow(flow *v1.NifiDataflow, parentProcessGroup *v1alpha1.NifiResource, config *clientconfig.NifiConfig) error {
 	exists, err := dataflow.DataflowExist(flow, config)
 	if err != nil {
 		return err
@@ -647,7 +695,7 @@ func (r *NifiDataflowReconciler) finalizeNifiDataflow(flow *v1.NifiDataflow, con
 				flow.Name, flow.Spec.BucketId,
 				flow.Spec.FlowId, strconv.FormatInt(int64(*flow.Spec.FlowVersion), 10)))
 
-		if _, err = dataflow.RemoveDataflow(flow, config); err != nil {
+		if _, err = dataflow.RemoveDataflow(flow, parentProcessGroup, config); err != nil {
 			return err
 		}
 		r.Recorder.Event(flow, corev1.EventTypeNormal, "Removed",

@@ -187,7 +187,7 @@ test-with-vendor: manifests generate fmt lint helm-chart-version-match govuln en
 # Run against the configured Kubernetes cluster in ~/.kube/config
 .PHONY: run
 run: generate fmt manifests
-	go run ./cmd/main.go
+	go run ./cmd/main.go $(RUN_ARGS)
 
 ifndef ignore-not-found
   ignore-not-found = false

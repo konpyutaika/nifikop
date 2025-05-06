@@ -23,6 +23,9 @@ type ClusterScalingStrategy string
 // DataflowState defines the state of a NifiDataflow.
 type DataflowState string
 
+// ResourceState defines the state of a NifiResource.
+type ResourceState string
+
 // ConnectionState defines the state of a NifiConnection.
 type ConnectionState string
 
@@ -276,6 +279,17 @@ const (
 )
 
 const (
+	// ResourceStateCreated describes the status of a NifiResource as created.
+	ResourceStateCreated ResourceState = "Created"
+	// ResourceStateStarting describes the status of a NifiResource as starting.
+	ResourceStateStarting ResourceState = "Starting"
+	// ResourceStateRunning describes the status of a NifiResource as running.
+	ResourceStateRan ResourceState = "Ran"
+	// ResourceStateOutOfSync describes the status of a NifiResource as out of sync.
+	ResourceStateOutOfSync ResourceState = "OutOfSync"
+	// ResourceStateInSync describes the status of a NifiResource as in sync.
+	ResourceStateInSync ResourceState = "InSync"
+
 	// DataflowStateCreated describes the status of a NifiDataflow as created.
 	DataflowStateCreated DataflowState = "Created"
 	// DataflowStateStarting describes the status of a NifiDataflow as starting.
@@ -495,7 +509,7 @@ const (
 )
 
 // Change the list to {"dataflow","input-port","output-port","processor","process-group"} when all the type are available
-// +kubebuilder:validation:Enum={"dataflow"}
+// +kubebuilder:validation:Enum={"dataflow","process-group"}
 type ComponentType string
 
 const (

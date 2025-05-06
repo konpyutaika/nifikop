@@ -1,0 +1,27 @@
+apiVersion: nifi.konpyutaika.com/v1alpha1
+kind: NifiResource
+metadata:
+  labels:
+    app.kubernetes.io/name: nifikop
+    app.kubernetes.io/managed-by: kustomize
+  name: nifiresource-sample
+spec:
+  name: "Process Group Sample"
+  type: process-group
+  comments: "This is a sample process group"
+  configuration:
+    logFileSuffix: "sample"
+    defaultBackPressureDataSizeThreshold: 1 GB
+    defaultBackPressureObjectThreshold: 2000
+    defaultFlowFileExpiration: 30 sec
+    executionEngine: STATELESS
+    position:
+      x: 23
+      y: 23
+    skipInvalidControllerService: true
+    parameterContextRef:
+      Name: dataflow-lifecycle
+      Namespace: nifikop
+  clusterRef:
+    name: mynifi
+    namespace: nifikop

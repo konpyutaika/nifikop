@@ -65,6 +65,7 @@ type RequeueConfig struct {
 	RegistryClientRequeueInterval      int
 	NodeGroupAutoscalerRequeueInterval int
 	ParameterContextRequeueInterval    int
+	ResourceRequeueInterval            int
 	UserGroupRequeueInterval           int
 	DataFlowRequeueInterval            int
 	ConnectionRequeueInterval          int
@@ -83,6 +84,7 @@ func NewRequeueConfig() *RequeueConfig {
 		UserRequeueInterval:                util.MustConvertToInt(util.GetEnvWithDefault("USERS_REQUEUE_INTERVAL", "15"), "USERS_REQUEUE_INTERVAL"),
 		NodeGroupAutoscalerRequeueInterval: util.MustConvertToInt(util.GetEnvWithDefault("NODE_GROUP_AUTOSCALER_REQUEUE_INTERVAL", "15"), "NODE_GROUP_AUTOSCALER_REQUEUE_INTERVAL"),
 		RegistryClientRequeueInterval:      util.MustConvertToInt(util.GetEnvWithDefault("REGISTRY_CLIENT_REQUEUE_INTERVAL", "15"), "REGISTRY_CLIENT_REQUEUE_INTERVAL"),
+		ResourceRequeueInterval:            util.MustConvertToInt(util.GetEnvWithDefault("RESOURCE_REQUEUE_INTERVAL", "15"), "RESOURCE_REQUEUE_INTERVAL"),
 		ParameterContextRequeueInterval:    util.MustConvertToInt(util.GetEnvWithDefault("PARAMETER_CONTEXT_REQUEUE_INTERVAL", "15"), "PARAMETER_CONTEXT_REQUEUE_INTERVAL"),
 		UserGroupRequeueInterval:           util.MustConvertToInt(util.GetEnvWithDefault("USER_GROUP_REQUEUE_INTERVAL", "15"), "USER_GROUP_REQUEUE_INTERVAL"),
 		DataFlowRequeueInterval:            util.MustConvertToInt(util.GetEnvWithDefault("DATAFLOW_REQUEUE_INTERVAL", "15"), "DATAFLOW_REQUEUE_INTERVAL"),

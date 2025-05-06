@@ -2,6 +2,7 @@ package util
 
 import (
 	"crypto/sha1"
+	"encoding/json"
 	"fmt"
 	"math/rand"
 	"os"
@@ -404,4 +405,27 @@ func IsSecretResourceVersionUpdated(secrets []*corev1.Secret, secretsResourceVer
 	}
 
 	return false
+}
+
+func DecodeMapToStruct[T any](m any) (*T, error) {
+	if m == nil {
+		return nil, nil
+	}
+
+	b, err := json.Marshal(m)
+	if err != nil {
+		return nil, err
+	}
+
+	// If marshaled JSON is empty object, return nil
+	if string(b) == "{}" {
+		return nil, nil
+	}
+
+	var result T
+	if err := json.Unmarshal(b, &result); err != nil {
+		return nil, err
+	}
+
+	return &result, nil
 }
