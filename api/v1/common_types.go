@@ -135,6 +135,13 @@ type ClusterReference struct {
 	Namespace string `json:"namespace,omitempty"`
 }
 
+// ResourceReference states a reference to a nifi resource for dataflow
+// provisioning.
+type ResourceReference struct {
+	Name      string `json:"name"`
+	Namespace string `json:"namespace,omitempty"`
+}
+
 // RegistryClientReference states a reference to a registry client for dataflow
 // provisioning.
 type RegistryClientReference struct {
@@ -490,4 +497,20 @@ const (
 	NonPrimaryClusterDownscaleStrategy ClusterScalingStrategy = "nonprimary"
 	// downscale strategy targeting nodes which are least busy in terms of # flowfiles in queues.
 	LeastBusyClusterDownscaleStrategy ClusterScalingStrategy = "leastbusy"
+)
+
+// Change the list to {"connection", "controller-service", "funnel", "input-port","output-port", "parameter-context", "processor", "process-group", "remote-process-group"} when all the type are available
+// +kubebuilder:validation:Enum={"process-group"}
+type ResourceType string
+
+const (
+	ProcessGroup ResourceType = "process-group"
+	// Processor          NiFiResourceType = "processor"
+	// Connection         NiFiResourceType = "connection"
+	// InputPort          NiFiResourceType = "input-port"
+	// OutputPort         NiFiResourceType = "output-port"
+	// Funnel             NiFiResourceType = "funnel"
+	// ControllerService  NiFiResourceType = "controller-service"
+	// RemoteProcessGroup NiFiResourceType = "remote-process-group"
+	// ParameterContext   NiFiResourceType = "parameter-context"
 )

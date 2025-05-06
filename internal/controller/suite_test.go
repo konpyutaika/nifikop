@@ -32,9 +32,10 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
+	crewv1 "sigs.k8s.io/kubebuilder/testdata/project-v4/api/v1"
+
 	v1 "github.com/konpyutaika/nifikop/api/v1"
 	v1alpha1 "github.com/konpyutaika/nifikop/api/v1alpha1"
-	crewv1 "sigs.k8s.io/kubebuilder/testdata/project-v4/api/v1"
 	//+kubebuilder:scaffold:imports
 )
 

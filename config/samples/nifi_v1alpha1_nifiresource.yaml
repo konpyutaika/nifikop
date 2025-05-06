@@ -1,0 +1,9 @@
+apiVersion: nifi.konpyutaika.com/v1alpha1
+kind: NifiResource
+metadata:
+  labels:
+    app.kubernetes.io/name: nifikop
+    app.kubernetes.io/managed-by: kustomize
+  name: nifiresource-sample
+spec:
+  # TODO(user): Add fields here

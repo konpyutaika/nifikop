@@ -123,6 +123,17 @@ func GetClusterRefNamespace(ns string, ref v1.ClusterReference) string {
 	return clusterNamespace
 }
 
+// GetResourceRefNamespace returns the expected namespace for a Nifi resource
+// referenced by a dataflow CR. It takes the namespace of the CR as the first
+// argument and the reference itself as the second.
+func GetResourceRefNamespace(ns string, ref v1.ResourceReference) string {
+	resourcetNamespace := ref.Namespace
+	if resourcetNamespace == "" {
+		return ns
+	}
+	return resourcetNamespace
+}
+
 // GetRegistryClientRefNamespace returns the expected namespace for a Nifi registry client
 // referenced by a dataflow CR. It takes the namespace of the CR as the first
 // argument and the reference itself as the second.
