@@ -3,6 +3,7 @@
 ### Added
 
 - [PR #500](https://github.com/konpyutaika/nifikop/pull/500) - **[Operator/NiFiCluster]** Added support for [Zarf](https://zarf.dev/) patched container images.
+- [PR #525](https://github.com/konpyutaika/nifikop/pull/525) - **[Operator/NiFiCluster]** Added support for IPv6 in NifiClutser
 - [PR #544](https://github.com/konpyutaika/nifikop/pull/544) - **[Helm Chart]** Added additionnal envs.
 - [PR #553](https://github.com/konpyutaika/nifikop/pull/553) - **[Helm Chart]** Added Service Account annotations and labels
 
