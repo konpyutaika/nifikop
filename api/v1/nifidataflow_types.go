@@ -33,6 +33,8 @@ type NifiDataflowSpec struct {
 	RegistryClientRef *RegistryClientReference `json:"registryClientRef,omitempty"`
 	// describes the way the operator will deal with data when a dataflow will be updated: drop or drain
 	UpdateStrategy ComponentUpdateStrategy `json:"updateStrategy"`
+	// describes than name that will be used on the created Process Group
+	DisplayName string `json:"displayName,omitempty"`
 }
 
 type FlowPosition struct {
@@ -168,6 +170,13 @@ func (d *NifiDataflowSpec) GetParentProcessGroupID(rootProcessGroupId string) st
 		return rootProcessGroupId
 	}
 	return d.ParentProcessGroupID
+}
+
+func (d *NifiDataflow) GetDisplayName() string {
+	if d.Spec.DisplayName == "" {
+		return d.Name
+	}
+	return d.Spec.DisplayName
 }
 
 func (p *FlowPosition) GetX() int64 {

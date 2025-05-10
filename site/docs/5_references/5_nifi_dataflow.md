@@ -32,6 +32,7 @@ spec:
     name: dataflow-lifecycle
     namespace: nifikop
   updateStrategy: drain
+  displayName: Dataflow Lifecycle
 ```
 
 ## NifiDataflow
@@ -59,6 +60,7 @@ spec:
 |clusterRef|[ClusterReference](./2_nifi_user#clusterreference)| contains the reference to the NifiCluster with the one the user is linked. |Yes| - |
 |parameterContextRef|[ParameterContextReference](./4_nifi_parameter_context#parametercontextreference)| contains the reference to the ParameterContext with the one the dataflow is linked. |No| - |
 |registryClientRef|[RegistryClientReference](./3_nifi_registry_client#registryclientreference)| contains the reference to the NifiRegistry with the one the dataflow is linked. |Yes| - |
+|displayName|string|the display name for the flow. |No| - |
 
 ## NifiDataflowStatus
 

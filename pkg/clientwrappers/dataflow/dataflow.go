@@ -257,7 +257,7 @@ func isParentProcessGroupChanged(
 }
 
 func isNameChanged(flow *v1.NifiDataflow, pgFlowEntity *nigoapi.ProcessGroupEntity) bool {
-	return flow.Name != pgFlowEntity.Component.Name
+	return flow.GetDisplayName() != pgFlowEntity.Component.Name
 }
 
 // isVersionSync check if the flow version is out of sync.
@@ -337,7 +337,7 @@ func SyncDataflow(
 
 	if isNameChanged(flow, pGEntity) || isPostionChanged(flow, pGEntity) {
 		pGEntity.Component.ParentGroupId = flow.Spec.GetParentProcessGroupID(config.RootProcessGroupId)
-		pGEntity.Component.Name = flow.Name
+		pGEntity.Component.Name = flow.GetDisplayName()
 
 		var xPos, yPos float64
 		if flow.Spec.FlowPosition == nil || flow.Spec.FlowPosition.X == nil {
@@ -867,7 +867,7 @@ func updateProcessGroupEntity(
 		entity.Component = &nigoapi.ProcessGroupDto{}
 	}
 
-	entity.Component.Name = flow.Name
+	entity.Component.Name = flow.GetDisplayName()
 	entity.Component.ParentGroupId = flow.Spec.GetParentProcessGroupID(config.RootProcessGroupId)
 
 	var xPos, yPos float64
