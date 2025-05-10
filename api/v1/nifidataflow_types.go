@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -33,6 +34,8 @@ type NifiDataflowSpec struct {
 	RegistryClientRef *RegistryClientReference `json:"registryClientRef,omitempty"`
 	// describes the way the operator will deal with data when a dataflow will be updated: drop or drain
 	UpdateStrategy ComponentUpdateStrategy `json:"updateStrategy"`
+	// contains the reference to the NifiResource which is the Parent Process Group for this dataflow
+	ParentProcessGroupReference *ResourceReference `json:"parentProcessGroupRef,omitempty"`
 }
 
 type FlowPosition struct {
@@ -63,6 +66,8 @@ type UpdateRequest struct {
 	NotFound bool `json:"notFound,omitempty"`
 	// the number of consecutive retries made in case of a NotFound error (limit: 3).
 	NotFoundRetryCount int32 `json:"notFoundRetryCount,omitempty"`
+	// contains the reference to the NifiResource which is the Parent Process Group for this dataflow
+	ParentProcessGroupReference *ResourceReference `json:"parentProcessGroupRef,omitempty"`
 }
 
 type DropRequest struct {
@@ -163,11 +168,14 @@ func (d *NifiDataflowSpec) SyncNever() bool {
 	return d.GetSyncMode() == SyncNever
 }
 
-func (d *NifiDataflowSpec) GetParentProcessGroupID(rootProcessGroupId string) string {
-	if d.ParentProcessGroupID == "" {
+func (d *NifiDataflowSpec) GetParentProcessGroupID(rootProcessGroupId string, parentProcessGroupRef *v1alpha1.NifiResource) string {
+	if parentProcessGroupRef != nil && parentProcessGroupRef.Spec.Type == ProcessGroup && parentProcessGroupRef.Status.UUID != "" {
+		return parentProcessGroupRef.Status.UUID
+	} else if d.ParentProcessGroupID == "" {
 		return rootProcessGroupId
+	} else {
+		return d.ParentProcessGroupID
 	}
-	return d.ParentProcessGroupID
 }
 
 func (p *FlowPosition) GetX() int64 {

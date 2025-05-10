@@ -3,7 +3,7 @@ package connection
 import (
 	nigoapi "github.com/konpyutaika/nigoapi/pkg/nifi"
 
-	"github.com/konpyutaika/nifikop/api/v1alpha1"
+	v1alpha1 "github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers"
 	"github.com/konpyutaika/nifikop/pkg/common"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"

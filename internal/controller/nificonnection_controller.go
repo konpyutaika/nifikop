@@ -24,7 +24,6 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/banzaicloud/k8s-objectmatcher/patch"
-	"github.com/konpyutaika/nigoapi/pkg/nifi"
 	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -38,12 +37,14 @@ import (
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/connection"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/dataflow"
+	"github.com/konpyutaika/nifikop/pkg/clientwrappers/processgroup"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	"github.com/konpyutaika/nifikop/pkg/k8sutil"
 	"github.com/konpyutaika/nifikop/pkg/nificlient/config"
 	"github.com/konpyutaika/nifikop/pkg/util"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
 	nifiutil "github.com/konpyutaika/nifikop/pkg/util/nifi"
+	"github.com/konpyutaika/nigoapi/pkg/nifi"
 )
 
 var connectionFinalizer string = fmt.Sprintf("nificonnections.%s/finalizer", v1alpha1.GroupVersion.Group)
@@ -264,6 +265,8 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	sourceComponent := &v1alpha1.ComponentInformation{}
 	if instance.Spec.Source.Type == v1alpha1.ComponentDataflow {
 		sourceComponent, err = r.GetDataflowComponentInformation(instance.Spec.Source, true)
+	} else if instance.Spec.Source.Type == v1alpha1.ComponentProcessGroup {
+		sourceComponent, err = r.GetResourceComponentInformation(instance.Spec.Source, true)
 	}
 
 	// If the source cannot be found, requeue with error
@@ -278,6 +281,8 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	destinationComponent := &v1alpha1.ComponentInformation{}
 	if instance.Spec.Source.Type == v1alpha1.ComponentDataflow {
 		destinationComponent, err = r.GetDataflowComponentInformation(instance.Spec.Destination, false)
+	} else if instance.Spec.Source.Type == v1alpha1.ComponentProcessGroup {
+		destinationComponent, err = r.GetResourceComponentInformation(instance.Spec.Source, true)
 	}
 
 	// If the destination cannot be found, requeue with error
@@ -672,8 +677,19 @@ func (r *NifiConnectionReconciler) DeleteConnection(ctx context.Context, clientC
 
 		// Check is the NifiDataflow's update strategy is on drain
 		if sourceInstance.Spec.UpdateStrategy == v1.DrainStrategy {
+
+			// Get ParentProcessGroup
+			var parentProcessGroup *v1alpha1.NifiResource
+			if sourceInstance.Spec.ParameterContextRef != nil {
+				parentProcessGroupNamespace :=
+					GetResourceRefNamespace(sourceInstance.Namespace, *sourceInstance.Spec.ParentProcessGroupReference)
+
+				parentProcessGroup, err = k8sutil.LookupNifiResource(r.Client,
+					sourceInstance.Spec.ParentProcessGroupReference.Name, parentProcessGroupNamespace)
+			}
+
 			// Check if the dataflow is empty
-			isEmpty, err := dataflow.IsDataflowEmpty(sourceInstance, clientConfig)
+			isEmpty, err := dataflow.IsDataflowEmpty(sourceInstance, clientConfig, parentProcessGroup)
 			if err != nil {
 				return err
 			}
@@ -780,12 +796,26 @@ func (r *NifiConnectionReconciler) RetrieveNifiClusterRef(src v1alpha1.Component
 		}
 
 		srcClusterRef = srcDataflow.Spec.ClusterRef
+	} else if src.Type == v1alpha1.ComponentProcessGroup {
+		srcDataflow, err := k8sutil.LookupNifiResource(r.Client, src.Name, src.Namespace)
+		if err != nil {
+			return nil, err
+		}
+
+		srcClusterRef = srcDataflow.Spec.ClusterRef
 	}
 
 	var dstClusterRef = v1.ClusterReference{}
 	// Retrieve the destination clusterRef from a NifiDataflow resource
 	if dst.Type == v1alpha1.ComponentDataflow {
 		dstDataflow, err := k8sutil.LookupNifiDataflow(r.Client, dst.Name, dst.Namespace)
+		if err != nil {
+			return nil, err
+		}
+
+		dstClusterRef = dstDataflow.Spec.ClusterRef
+	} else if src.Type == v1alpha1.ComponentProcessGroup {
+		dstDataflow, err := k8sutil.LookupNifiResource(r.Client, src.Name, src.Namespace)
 		if err != nil {
 			return nil, err
 		}
@@ -888,6 +918,101 @@ func (r *NifiConnectionReconciler) GetDataflowComponentInformation(c v1alpha1.Co
 			Type:          targetPort.Component.Type_,
 			GroupId:       targetPort.Component.ParentGroupId,
 			ParentGroupId: dataflowInformation.ProcessGroupFlow.ParentGroupId,
+			ClusterRef:    clusterRef,
+		}
+		return information, nil
+	}
+}
+
+func (r *NifiConnectionReconciler) GetResourceComponentInformation(c v1alpha1.ComponentReference, isSource bool) (*v1alpha1.ComponentInformation, error) {
+	// TODO Make Generic for all possible NiFi Resources
+	var portType string = "input"
+	if isSource {
+		portType = "output"
+	}
+	r.Log.Debug("Retrieve the resource port information",
+		zap.String("resourceName", c.Name),
+		zap.String("resourceNamespace", c.Namespace),
+		zap.String("portName", c.SubName),
+		zap.String("portType", portType))
+
+	instance, err := k8sutil.LookupNifiResource(r.Client, c.Name, c.Namespace)
+	if err != nil {
+		return nil, err
+	} else {
+		// Prepare cluster connection configurations
+		var clientConfig *clientconfig.NifiConfig
+		var clusterConnect clientconfig.ClusterConnect
+
+		// Get the client config manager associated to the cluster ref.
+		clusterRef := instance.Spec.ClusterRef
+		clusterRef.Namespace = GetClusterRefNamespace(instance.Namespace, instance.Spec.ClusterRef)
+		configManager := config.GetClientConfigManager(r.Client, clusterRef)
+
+		// Generate the connect object
+		if clusterConnect, err = configManager.BuildConnect(); err != nil {
+			return nil, err
+		}
+
+		// Generate the client configuration.
+		clientConfig, err = configManager.BuildConfig()
+		if err != nil {
+			return nil, err
+		}
+
+		// Ensure the cluster is ready to receive actions
+		if !clusterConnect.IsReady(r.Log) {
+			return nil, errors.New(fmt.Sprintf("Cluster %s in %s not ready for resource %s in %s", clusterRef.Name, clusterRef.Namespace, instance.Name, instance.Namespace))
+		}
+
+		processGroupInformation, err := processgroup.GetProcessGroupInformation(instance, clientConfig)
+		if err != nil {
+			return nil, err
+		}
+
+		r.Log.Debug("got process info")
+
+		// Error if the dataflow does not exist
+		if processGroupInformation == nil {
+			return nil, errors.New(fmt.Sprintf("ProcessGroup %s in %s does not exist in the cluster", instance.Name, instance.Namespace))
+		}
+
+		// Retrieve the ports
+		var ports = []nifi.PortEntity{}
+		if isSource {
+			ports = processGroupInformation.ProcessGroupFlow.Flow.OutputPorts
+		} else {
+			ports = processGroupInformation.ProcessGroupFlow.Flow.InputPorts
+		}
+
+		r.Log.Debug("got PORTS info")
+
+		// Error if no port exists in the dataflow
+		if len(ports) == 0 {
+			return nil, errors.New(fmt.Sprintf("No port available for Process Group %s in %s", instance.Name, instance.Namespace))
+		}
+
+		// Search the targeted port
+		targetPort := nifi.PortEntity{}
+		foundTarget := false
+		for _, port := range ports {
+			if port.Component.Name == c.SubName {
+				targetPort = port
+				foundTarget = true
+			}
+		}
+
+		// Error if the targeted port is not found
+		if !foundTarget {
+			return nil, errors.New(fmt.Sprintf("Port %s not found: %s in %s", c.SubName, instance.Name, instance.Namespace))
+		}
+
+		// Return all the information on the targeted port of the dataflow
+		information := &v1alpha1.ComponentInformation{
+			Id:            targetPort.Id,
+			Type:          targetPort.Component.Type_,
+			GroupId:       targetPort.Component.ParentGroupId,
+			ParentGroupId: processGroupInformation.ProcessGroupFlow.ParentGroupId,
 			ClusterRef:    clusterRef,
 		}
 		return information, nil

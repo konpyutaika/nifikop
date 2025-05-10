@@ -154,8 +154,9 @@ func (d *NifiDataflowSpec) SyncNever() bool {
 func (d *NifiDataflowSpec) GetParentProcessGroupID(rootProcessGroupId string) string {
 	if d.ParentProcessGroupID == "" {
 		return rootProcessGroupId
+	} else {
+		return d.ParentProcessGroupID
 	}
-	return d.ParentProcessGroupID
 }
 
 func (p *FlowPosition) GetX() int64 {
