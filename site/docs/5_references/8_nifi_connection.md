@@ -44,13 +44,13 @@ spec:
   updateStrategy: drain
 ```
 
-## NifiDataflow
+## NifiConnection
 
 |Field|Type|Description|Required|Default|
 |-----|----|-----------|--------|-------|
 |metadata|[ObjectMetadata](https://godoc.org/k8s.io/apimachinery/pkg/apis/meta/v1#ObjectMeta)|is metadata that all persisted resources must have, which includes all objects dataflows must create.|No|nil|
-|spec|[NifiConnectionSpec](#nificonnectionspec)|defines the desired state of NifiDataflow.|No|nil|
-|status|[NifiConnectionStatus](#nificonnectionstatus)|defines the observed state of NifiDataflow.|No|nil|
+|spec|[NifiConnectionSpec](#nificonnectionspec)|defines the desired state of NifiConnection.|No|nil|
+|status|[NifiConnectionStatus](#nificonnectionstatus)|defines the observed state of NifiConnection.|No|nil|
 
 ## NifiConnectionSpec
 

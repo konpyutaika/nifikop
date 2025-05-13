@@ -40,6 +40,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
 	"github.com/go-logr/zapr"
+
 	v1 "github.com/konpyutaika/nifikop/api/v1"
 	v1alpha1 "github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/internal/controller"
@@ -76,7 +77,7 @@ func main() {
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
 	flag.BoolVar(&certManagerEnabled, "cert-manager-enabled", false, "Enable cert-manager integration")
-	flag.BoolVar(&webhookEnabled, "webhook-enabled", true, "Enable CRDs conversion webhook.")
+	flag.BoolVar(&webhookEnabled, "webhook-enabled", true, "Enable CRDs conversion webhook.") //TODO Revert
 	flag.BoolVar(&secureMetrics, "metrics-secure", true, "If set, the metrics endpoint is served securely via HTTPS. Use --metrics-secure=false to use HTTP instead.")
 	flag.BoolVar(&enableHTTP2, "enable-http2", false, "If set, HTTP/2 will be enabled for the metrics and webhook servers")
 
@@ -296,6 +297,18 @@ func main() {
 		os.Exit(1)
 	}
 
+	if err = (&controller.NifiResourceReconciler{
+		Client:          mgr.GetClient(),
+		Log:             *logger.Named("controller").Named("NifiResource"),
+		Scheme:          mgr.GetScheme(),
+		Recorder:        mgr.GetEventRecorderFor("nifi-resource"),
+		RequeueInterval: multipliers.ResourceRequeueInterval,
+		RequeueOffset:   multipliers.RequeueOffset,
+	}).SetupWithManager(mgr); err != nil {
+		logger.Error("unable to create controller", zap.String("controller", "NifiResource"), zap.Error(err))
+		os.Exit(1)
+	}
+
 	if webhookEnabled {
 		if err = (&v1alpha1.NifiUser{}).SetupWebhookWithManager(mgr); err != nil {
 			logger.Error("unable to create webhook", zap.String("webhook", "NifiUser"), zap.Error(err))
@@ -322,6 +335,7 @@ func main() {
 			os.Exit(1)
 		}
 	}
+
 	//+kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {

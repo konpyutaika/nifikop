@@ -9,7 +9,9 @@ You can create NiFi connections either:
 * directly against the cluster through its REST API (using UI or some home made scripts), or
 * via the `NifiConnection` CRD.
 
-To deploy a [NifiConnection] you have to start by deploying at least 2 [NifiDataflows] because **NiFiKop** manages connection between 2 [NifiDataflows].
+To deploy a [NifiConnection] you have to start by deploying:
+* at least 2 [NifiDataflows] because **NiFiKop** manages connection between 2 [NifiDataflows].
+* at least 2 [NifiResources] because **NiFiKop** manages connection between 2 [NifiResources].
 
 If you want more details about how to deploy [NifiDataflow], just have a look on the [how to deploy dataflow page](../3_manage_dataflows/1_deploy_dataflow).
 

@@ -102,7 +102,7 @@ func (nCon *NifiConnectionSpec) IsValid() bool {
 }
 
 func (ref *ComponentReference) IsValid() bool {
-	return ref.Type == ComponentDataflow && ref.SubName != ""
+	return ref.Type == ComponentDataflow && ref.SubName != "" || ref.Type == ComponentProcessGroup && ref.SubName != ""
 }
 
 func (conf *ConnectionConfiguration) IsValid() bool {

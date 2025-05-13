@@ -35,6 +35,8 @@ type NifiDataflowSpec struct {
 	UpdateStrategy ComponentUpdateStrategy `json:"updateStrategy"`
 	// describes than name that will be used on the created Process Group
 	DisplayName string `json:"displayName,omitempty"`
+	// contains the reference to the NifiResource which is the Parent Process Group for this dataflow
+	ParentProcessGroupReference *ResourceReference `json:"parentProcessGroupRef,omitempty"`
 }
 
 type FlowPosition struct {
@@ -165,11 +167,14 @@ func (d *NifiDataflowSpec) SyncNever() bool {
 	return d.GetSyncMode() == SyncNever
 }
 
-func (d *NifiDataflowSpec) GetParentProcessGroupID(rootProcessGroupId string) string {
-	if d.ParentProcessGroupID == "" {
+func (d *NifiDataflowSpec) GetParentProcessGroupID(rootProcessGroupId string, parentProcessGroup *ParentProcessGroup) string {
+	if parentProcessGroup != nil && parentProcessGroup.Type == ResourceProcessGroup && parentProcessGroup.UUID != "" {
+		return parentProcessGroup.UUID
+	} else if d.ParentProcessGroupID == "" {
 		return rootProcessGroupId
+	} else {
+		return d.ParentProcessGroupID
 	}
-	return d.ParentProcessGroupID
 }
 
 func (d *NifiDataflow) GetDisplayName() string {

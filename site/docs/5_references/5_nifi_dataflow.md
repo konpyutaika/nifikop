@@ -13,6 +13,9 @@ metadata:
   name: dataflow-lifecycle
 spec:
   parentProcessGroupID: "16cfd2ec-0174-1000-0000-00004b9b35cc"
+  # parentProcessGroupRef:
+  #   name: parent-dataflow-lifecycle
+  #   namespace: nifikop
   bucketId: "01ced6cc-0378-4893-9403-f6c70d080d4f"
   flowId: "9b2fb465-fb45-49e7-94fe-45b16b642ac9"
   flowVersion: 2
@@ -57,8 +60,9 @@ spec:
 |skipInvalidControllerService|bool|whether the flow is considered as ran if some controller services are still invalid or not. |Yes| false |
 |skipInvalidComponent|bool|whether the flow is considered as ran if some components are still invalid or not. |Yes| false |
 |updateStrategy|[ComponentUpdateStrategy](#componentupdatestrategy)|describes the way the operator will deal with data when a dataflow will be updated: Drop or Drain |Yes| drain |
-|clusterRef|[ClusterReference](./2_nifi_user#clusterreference)| contains the reference to the NifiCluster with the one the user is linked. |Yes| - |
+|clusterRef|[ClusterReference](./2_nifi_user#clusterreference)| contains the reference to the NifiCluster with the one the dataflow is linked. |Yes| - |
 |parameterContextRef|[ParameterContextReference](./4_nifi_parameter_context#parametercontextreference)| contains the reference to the ParameterContext with the one the dataflow is linked. |No| - |
+|parentProcessGroupRef|[ResourceReference](./9_nifi_resource#resourcereference)| contains the reference to the Resource with the one the dataflow is linked. |No| - |
 |registryClientRef|[RegistryClientReference](./3_nifi_registry_client#registryclientreference)| contains the reference to the NifiRegistry with the one the dataflow is linked. |Yes| - |
 |displayName|string|the display name for the flow. |No| - |
 

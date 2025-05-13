@@ -1,8 +1,14 @@
 ## Append samples you want in your CSV to this file as resources ##
 resources:
+- nifi_v1_nificluster_external.yaml
 - nifi_v1_nificluster.yaml
-- nifi_v1_nifiusergroup.yaml
 - nifi_v1_nifidataflow.yaml
 - nifi_v1_nifiparametercontext.yaml
-- nifi_v1_nifinodegroupautoscaler.yaml
+- nifi_v1_nifiregistryclient.yaml
+- nifi_v1_nifiuser.yaml
+- nifi_v1_nifiusergroup.yaml
+- nifi_v1alpha1_nificonnection.yaml
+- nifi_v1alpha1_nifinodegroupautoscaler.yaml
+- nifi_v1alpha1_nifiresource_process_group.yaml
+
 # +kubebuilder:scaffold:manifestskustomizesamples
