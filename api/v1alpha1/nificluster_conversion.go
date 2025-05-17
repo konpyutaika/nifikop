@@ -406,6 +406,7 @@ func convertExternalServiceSpec(src ExternalServiceSpec) v1.ExternalServiceSpec 
 		LoadBalancerIP:           src.LoadBalancerIP,
 		LoadBalancerSourceRanges: src.LoadBalancerSourceRanges,
 		ExternalName:             src.ExternalName,
+		SessionAffinity:          corev1.ServiceAffinityClientIP,
 	}
 }
 

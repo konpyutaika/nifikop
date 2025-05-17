@@ -3,20 +3,21 @@
 ### Added
 
 - [PR #500](https://github.com/konpyutaika/nifikop/pull/500) - **[Operator/NiFiCluster]** Added support for [Zarf](https://zarf.dev/) patched container images.
-- [PR #525](https://github.com/konpyutaika/nifikop/pull/525) - **[Operator/NiFiCluster]** Added support for IPv6 in NifiClutser
+- [PR #525](https://github.com/konpyutaika/nifikop/pull/525) - **[Operator/NiFiCluster]** Added support for IPv6 in `NifiCluster`.
 - [PR #544](https://github.com/konpyutaika/nifikop/pull/544) - **[Helm Chart]** Added additionnal envs.
-- [PR #553](https://github.com/konpyutaika/nifikop/pull/553) - **[Helm Chart]** Added Service Account annotations and labels
-- [PR #555](https://github.com/konpyutaika/nifikop/pull/555) - **[Operator/NiFiDataflow]** Added displayName optional field
+- [PR #553](https://github.com/konpyutaika/nifikop/pull/553) - **[Helm Chart]** Added `Service Account` annotations and labels.
+- [PR #555](https://github.com/konpyutaika/nifikop/pull/555) - **[Operator/NiFiDataflow]** Added `displayName` optional field.
+- [PR #562](https://github.com/konpyutaika/nifikop/pull/562) - **[Operator/NiFiCluster]** Added `sessionAffinity` field in external service.
 
 ### Changed
 
 - [PR #538](https://github.com/konpyutaika/nifikop/pull/538) - **[Operator]** Upgrade golang to 1.24.2.
 - [PR #530](https://github.com/konpyutaika/nifikop/pull/551) - **[NiGoApi]** Upgrade NiGoApi to v0.1.8.
-- [PR #557](https://github.com/konpyutaika/nifikop/pull/557) - **[Operator]** Upgrade golang to 1.24.2.
+- [PR #557](https://github.com/konpyutaika/nifikop/pull/557) - **[Operator]** Upgrade golang to 1.24.3.
 
 ### Fixed Bugs
 
-- [PR #536](https://github.com/konpyutaika/nifikop/pull/536) - **[Operator/NifiUserGroup]** Fixed users removal from usergroups 
+- [PR #536](https://github.com/konpyutaika/nifikop/pull/536) - **[Operator/NifiUserGroup]** Fixed users removal from user groups.
 
 ### Deprecated
 
