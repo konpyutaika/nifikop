@@ -63,7 +63,7 @@ values={[
 ```bash
 # Install the CustomResourceDefinitions and cert-manager itself
 kubectl apply -f \
-    https://github.com/jetstack/cert-manager/releases/download/v1.7.2/cert-manager.yaml
+    https://github.com/jetstack/cert-manager/releases/download/v1.17.2/cert-manager.yaml
 ```
 
 </TabItem>
@@ -72,7 +72,7 @@ kubectl apply -f \
 ```bash
 # Install CustomResourceDefinitions first
 kubectl apply --validate=false -f \
-   https://github.com/jetstack/cert-manager/releases/download/v1.7.2/cert-manager.crds.yaml
+   https://github.com/jetstack/cert-manager/releases/download/v1.17.2/cert-manager.crds.yaml
 
 # Add the jetstack helm repo
 helm repo add jetstack https://charts.jetstack.io

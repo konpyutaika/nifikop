@@ -109,6 +109,9 @@ spec:
                             - port
                             type: object
                           type: array
+                        sessionAffinity:
+                          default: ClientIP
+                          type: string
                         type:
                           type: string
                       required:

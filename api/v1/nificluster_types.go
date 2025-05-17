@@ -578,6 +578,14 @@ type ExternalServiceSpec struct {
 	// (possibly modified by topology and other features).
 	// +optional
 	InternalTrafficPolicy *corev1.ServiceInternalTrafficPolicy `json:"internalTrafficPolicy,omitempty" protobuf:"bytes,23,opt,name=internalTrafficPolicy,casttype=ServiceInternalTrafficPolicy"`
+	// Supports "ClientIP" and "None". Used to maintain session affinity.
+	// Enable client IP based session affinity.
+	// Must be ClientIP or None.
+	// Defaults to ClientIP.
+	// More info: https://kubernetes.io/docs/concepts/services-networking/service/#virtual-ips-and-service-proxies
+	// +kubebuilder:default:=ClientIP
+	// +optional
+	SessionAffinity corev1.ServiceAffinity `json:"sessionAffinity,omitempty" protobuf:"bytes,7,opt,name=sessionAffinity,casttype=ServiceAffinity"`
 }
 
 type PortConfig struct {
