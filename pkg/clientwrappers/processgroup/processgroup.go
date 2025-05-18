@@ -210,7 +210,7 @@ func processGroupIsSync(resource *v1alpha1.NifiResource, entity *nigoapi.Process
 		}
 	}
 
-	return resource.GetName() == entity.Component.Name, nil
+	return resource.GetDisplayName() == entity.Component.Name, nil
 }
 
 func updateProcessGroupEntity(resource *v1alpha1.NifiResource, entity *nigoapi.ProcessGroupEntity) error {
@@ -234,6 +234,8 @@ func updateProcessGroupEntity(resource *v1alpha1.NifiResource, entity *nigoapi.P
 	if entity.Component == nil {
 		entity.Component = &nigoapi.ProcessGroupDto{}
 	}
+
+	entity.Component.Name = resource.GetDisplayName()
 
 	if val, ok := config["comments"].(string); ok {
 		entity.Component.Comments = val

@@ -105,13 +105,27 @@ func TestGetUserRefNamespace(t *testing.T) {
 func TestGetComponentRefNamespace(t *testing.T) {
 	ns := "test-namespace"
 	ref := v1alpha1.ComponentReference{
-		Name: "test-cluster",
+		Name: "test-component",
 	}
 	if refNS := GetComponentRefNamespace(ns, ref); refNS != "test-namespace" {
 		t.Error("Expected to get 'test-namespace', got:", refNS)
 	}
 	ref.Namespace = "another-namespace"
 	if refNS := GetComponentRefNamespace(ns, ref); refNS != "another-namespace" {
+		t.Error("Expected to get 'another-namespace', got:", refNS)
+	}
+}
+
+func TestGetResourceRefNamespace(t *testing.T) {
+	ns := "test-namespace"
+	ref := v1alpha1.ResourceReference{
+		Name: "test-resource",
+	}
+	if refNS := GetResourceRefNamespace(ns, ref); refNS != "test-namespace" {
+		t.Error("Expected to get 'test-namespace', got:", refNS)
+	}
+	ref.Namespace = "another-namespace"
+	if refNS := GetResourceRefNamespace(ns, ref); refNS != "another-namespace" {
 		t.Error("Expected to get 'another-namespace', got:", refNS)
 	}
 }

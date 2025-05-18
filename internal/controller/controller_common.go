@@ -167,8 +167,8 @@ func GetUserRefNamespace(ns string, ref v1.UserReference) string {
 	return userNamespace
 }
 
-// getComponentRefNamespace returns the expected namespace for a Nifi cluster
-// referenced by a user/dataflow CR. It takes the namespace of the CR as the first
+// getComponentRefNamespace returns the expected namespace for a Nifi component
+// referenced by a connection CR. It takes the namespace of the CR as the first
 // argument and the reference itself as the second.
 func GetComponentRefNamespace(ns string, ref v1alpha1.ComponentReference) string {
 	componentNamespace := ref.Namespace
@@ -176,6 +176,17 @@ func GetComponentRefNamespace(ns string, ref v1alpha1.ComponentReference) string
 		return ns
 	}
 	return componentNamespace
+}
+
+// GetResourceRefNamespace returns the expected namespace for a Nifi resource
+// referenced by a resource/dataflow CR. It takes the namespace of the CR as the first
+// argument and the reference itself as the second.
+func GetResourceRefNamespace(ns string, ref v1alpha1.ResourceReference) string {
+	resourceNamespace := ref.Namespace
+	if resourceNamespace == "" {
+		return ns
+	}
+	return resourceNamespace
 }
 
 func GetLogConstructor(mgr manager.Manager, obj runtime.Object) (func(*reconcile.Request) logr.Logger, error) {

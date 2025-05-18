@@ -164,6 +164,13 @@ type UserReference struct {
 	Namespace string `json:"namespace,omitempty"`
 }
 
+// ResourceReference states a reference to a resource for resource/dataflow
+// provisioning.
+type ResourceReference struct {
+	Name      string `json:"name"`
+	Namespace string `json:"namespace,omitempty"`
+}
+
 type AccessPolicy struct {
 	// +kubebuilder:validation:Enum={"global","component"}
 	// type defines the kind of access policy, could be "global" or "component".

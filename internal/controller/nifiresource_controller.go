@@ -189,7 +189,7 @@ func (r *NifiResourceReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		}
 		// Update the last view configuration to the current one.
 		if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(current); err != nil {
-			return RequeueWithError(r.Log, "could not apply last state to annotation for registry client "+instance.Name, err)
+			return RequeueWithError(r.Log, "could not apply last state to annotation for resource "+instance.Name, err)
 		}
 		if err := r.Client.Patch(ctx, current, patchCurrent); err != nil {
 			return RequeueWithError(r.Log, "failed to update NifiRegistryClient "+instance.Name, err)
@@ -197,10 +197,30 @@ func (r *NifiResourceReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		return RequeueAfter(interval)
 	}
 
+	// Retrieve the parent process group reference
+	parentProcessGroupRef := instance.Spec.ParentProcessGroupRef
+	if parentProcessGroupRef != nil {
+		parentProcessGroupRef.Namespace = GetResourceRefNamespace(instance.Namespace, *instance.Spec.ParentProcessGroupRef)
+
+		parentProcessGroup := &v1alpha1.NifiResource{}
+		if parentProcessGroup, err = k8sutil.LookupNifiResource(r.Client, parentProcessGroupRef.Name, parentProcessGroupRef.Namespace); err != nil {
+			return RequeueWithError(r.Log, "failed to lookup referenced resource", err)
+		}
+
+		if !parentProcessGroup.Spec.IsProcessGroup() {
+			return RequeueWithError(r.Log, "the referenced resource is not a process group", err)
+		}
+		if parentProcessGroup.Status.Id == "" {
+			return RequeueWithError(r.Log, "the referenced process group is not created yet", err)
+		}
+
+		instance.Spec.ParentProcessGroupID = parentProcessGroup.Status.Id
+	}
+
 	r.Recorder.Event(instance, corev1.EventTypeNormal, "Reconciling",
 		"Reconciling resource "+instance.Name)
 
-	// Check if the NiFi registry client already exist
+	// Check if the NiFi resource already exist
 	exist, err := r.existResource(instance, clientConfig)
 	if err != nil {
 		return RequeueWithError(r.Log, "failure checking for existing resource "+instance.Name, err)
@@ -235,11 +255,11 @@ func (r *NifiResourceReconciler) Reconcile(ctx context.Context, req ctrl.Request
 
 	// Sync NifiResource resource with NiFi side component
 	r.Recorder.Event(instance, corev1.EventTypeNormal, "Synchronizing",
-		fmt.Sprintf("Synchronizing registry client %s", instance.Name))
+		fmt.Sprintf("Synchronizing resource %s", instance.Name))
 	status, err := r.syncResource(instance, clientConfig)
 	if err != nil {
 		r.Recorder.Event(instance, corev1.EventTypeNormal, "SynchronizingFailed",
-			fmt.Sprintf("Synchronizing registry client %s failed", instance.Name))
+			fmt.Sprintf("Synchronizing resource %s failed", instance.Name))
 		return RequeueWithError(r.Log, "failed to sync NifiRegistryClient "+instance.Name, err)
 	}
 
