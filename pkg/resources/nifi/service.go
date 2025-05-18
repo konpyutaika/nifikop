@@ -61,7 +61,7 @@ func (r *Reconciler) externalServices(log zap.Logger) []runtimeClient.Object {
 				r.NifiCluster),
 			Spec: corev1.ServiceSpec{
 				Type:                     eService.Spec.Type,
-				SessionAffinity:          corev1.ServiceAffinityClientIP,
+				SessionAffinity:          eService.Spec.SessionAffinity,
 				Selector:                 nifiutil.LabelsForNifi(r.NifiCluster.Name),
 				Ports:                    usedPorts,
 				ClusterIP:                eService.Spec.ClusterIP,

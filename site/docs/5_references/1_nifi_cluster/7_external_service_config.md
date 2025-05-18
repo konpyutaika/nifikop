@@ -67,6 +67,7 @@ Field|Type|Description|Required|Default|
 |loadBalancerClass|string| loadBalancerClass is the class of the load balancer implementation this Service belongs to. | No | - |
 |externalTrafficPolicy|string| See the Kubernetes [traffic policies](https://kubernetes.io/docs/reference/networking/virtual-ips/#traffic-policies) documentation. | No | Depends on the `Service` type. |
 |internalTrafficPolicy|string| See the Kubernetes [traffic policies](https://kubernetes.io/docs/reference/networking/virtual-ips/#traffic-policies) documentation. | No | Depends on the `Service` type. |
+|sessionAffinity|string| See the Kubernetes [session affinity](https://kubernetes.io/docs/reference/networking/virtual-ips/#session-affinity) documentation. | No | `ClientIP` |
 
 ## PortConfig
 
