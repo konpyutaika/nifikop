@@ -118,7 +118,7 @@ func TestGetComponentRefNamespace(t *testing.T) {
 
 func TestGetResourceRefNamespace(t *testing.T) {
 	ns := "test-namespace"
-	ref := v1alpha1.ResourceReference{
+	ref := v1.ResourceReference{
 		Name: "test-resource",
 	}
 	if refNS := GetResourceRefNamespace(ns, ref); refNS != "test-namespace" {

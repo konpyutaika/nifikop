@@ -35,7 +35,7 @@ type NifiDataflowSpec struct {
 	UpdateStrategy ComponentUpdateStrategy `json:"updateStrategy"`
 	// the name of the dataflow (if not set, the name of the CR will be used).
 	DisplayName string `json:"displayName,omitempty"`
-	// the reference to the parent process group where you want to deploy your resource, if not set deploy at root level (is not used for all types of resource).
+	// the reference to the parent process group where you want to deploy your resource, if not set deploy at root level.
 	ParentProcessGroupRef *ResourceReference `json:"parentProcessGroupRef,omitempty"`
 }
 
