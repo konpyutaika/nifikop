@@ -204,7 +204,21 @@ func (r *NifiResourceReconciler) Reconcile(ctx context.Context, req ctrl.Request
 
 		parentProcessGroup := &v1alpha1.NifiResource{}
 		if parentProcessGroup, err = k8sutil.LookupNifiResource(r.Client, parentProcessGroupRef.Name, parentProcessGroupRef.Namespace); err != nil {
-			return RequeueWithError(r.Log, "failed to lookup referenced resource", err)
+			// This shouldn't trigger anymore, but leaving it here as a safetybelt
+			if k8sutil.IsMarkedForDeletion(instance.ObjectMeta) {
+				r.Log.Error("Parent process group is already gone, there is nothing we can do",
+					zap.String("resource", instance.Name),
+					zap.String("parentProcessGroupName", parentProcessGroupRef.Name))
+				if err = r.removeFinalizer(ctx, instance, patchInstance); err != nil {
+					return RequeueWithError(r.Log, "failed to remove finalizer for resource "+instance.Name, err)
+				}
+				return Reconciled()
+			}
+			r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceParentProcessGroupError",
+				fmt.Sprintf("Failed to lookup reference parent process group: %s in %s",
+					&instance.Spec.ParentProcessGroupRef.Name, parentProcessGroup.Namespace))
+			// the cluster does not exist - should have been caught pre-flight
+			return RequeueWithError(r.Log, "failed to lookup referenced parent process group resource for resource "+instance.Name, err)
 		}
 
 		if !parentProcessGroup.Spec.IsProcessGroup() {
