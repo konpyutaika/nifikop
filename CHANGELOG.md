@@ -8,6 +8,8 @@
 - [PR #553](https://github.com/konpyutaika/nifikop/pull/553) - **[Helm Chart]** Added `Service Account` annotations and labels.
 - [PR #555](https://github.com/konpyutaika/nifikop/pull/555) - **[Operator/NiFiDataflow]** Added `displayName` optional field.
 - [PR #562](https://github.com/konpyutaika/nifikop/pull/562) - **[Operator/NiFiCluster]** Added `sessionAffinity` field in external service.
+- [PR #564](https://github.com/konpyutaika/nifikop/pull/564) - **[Operator/NifiResource]** Implementation of `NifiResource` controller.
+- [PR #564](https://github.com/konpyutaika/nifikop/pull/564) - **[Operator/NiFiDataflow]** Added `parentProcessGroupRef` optional field.
 
 ### Changed
 
