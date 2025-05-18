@@ -17,8 +17,11 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"encoding/json"
+
 	v1 "github.com/konpyutaika/nifikop/api/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	runtime "k8s.io/apimachinery/pkg/runtime"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
@@ -34,6 +37,8 @@ type NifiResourceSpec struct {
 	ParentProcessGroupID string `json:"parentProcessGroupID,omitempty"`
 	// the name of the resource (if not set, the name of the CR will be used).
 	DisplayName string `json:"displayName,omitempty"`
+	// the configuration of the resource (e.g. the process group configuration).
+	Configuration runtime.RawExtension `json:"configuration,omitempty"`
 }
 
 // NifiResourceStatus defines the observed state of NifiResource
@@ -81,6 +86,14 @@ func (r *NifiResourceSpec) GetParentProcessGroupID(rootProcessGroupId string) st
 		return rootProcessGroupId
 	}
 	return r.ParentProcessGroupID
+}
+
+func (r *NifiResourceSpec) GetConfiguration() (map[string]interface{}, error) {
+	var configuration map[string]interface{}
+	if err := json.Unmarshal(r.Configuration.Raw, &configuration); err != nil {
+		return nil, err
+	}
+	return configuration, nil
 }
 
 func (r *NifiResourceSpec) IsProcessGroup() bool {

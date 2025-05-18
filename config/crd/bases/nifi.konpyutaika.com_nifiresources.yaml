@@ -35,6 +35,9 @@ spec:
                 required:
                 - name
                 type: object
+              configuration:
+                type: object
+                x-kubernetes-preserve-unknown-fields: true
               displayName:
                 type: string
               parentProcessGroupID:
