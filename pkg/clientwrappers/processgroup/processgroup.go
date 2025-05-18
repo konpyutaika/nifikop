@@ -9,6 +9,7 @@ import (
 	v1alpha1 "github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers"
 	"github.com/konpyutaika/nifikop/pkg/common"
+	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	"github.com/konpyutaika/nifikop/pkg/nificlient"
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
 )
@@ -69,6 +70,29 @@ func SyncProcessGroup(resource *v1alpha1.NifiResource,
 		return nil, err
 	}
 
+	if isParentProcessGroupChanged(resource, config, entity) {
+		snippet, err := nClient.CreateSnippet(nigoapi.SnippetEntity{
+			Snippet: &nigoapi.SnippetDto{
+				ParentGroupId: entity.Component.ParentGroupId,
+				ProcessGroups: map[string]nigoapi.RevisionDto{entity.Id: *entity.Revision},
+			},
+		})
+		if err := clientwrappers.ErrorCreateOperation(log, err, "Create snippet"); err != nil {
+			return nil, err
+		}
+
+		_, err = nClient.UpdateSnippet(nigoapi.SnippetEntity{
+			Snippet: &nigoapi.SnippetDto{
+				Id:            snippet.Snippet.Id,
+				ParentGroupId: resource.Spec.GetParentProcessGroupID(config.RootProcessGroupId),
+			},
+		})
+		if err := clientwrappers.ErrorUpdateOperation(log, err, "Update snippet"); err != nil {
+			return nil, err
+		}
+		return &resource.Status, errorfactory.NifiProcessGroupSyncing{}
+	}
+
 	isSync, err := processGroupIsSync(resource, entity)
 	if err != nil {
 		return nil, err
@@ -113,6 +137,13 @@ func RemoveProcessGroup(resource *v1alpha1.NifiResource,
 	err = nClient.RemoveProcessGroup(*entity)
 
 	return clientwrappers.ErrorRemoveOperation(log, err, "Remove resource")
+}
+
+func isParentProcessGroupChanged(
+	resource *v1alpha1.NifiResource,
+	config *clientconfig.NifiConfig,
+	entity *nigoapi.ProcessGroupEntity) bool {
+	return resource.Spec.GetParentProcessGroupID(config.RootProcessGroupId) != entity.Component.ParentGroupId
 }
 
 func processGroupIsSync(resource *v1alpha1.NifiResource, entity *nigoapi.ProcessGroupEntity) (bool, error) {
