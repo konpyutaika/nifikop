@@ -90,7 +90,7 @@ func SyncProcessGroup(resource *v1alpha1.NifiResource,
 		if err := clientwrappers.ErrorUpdateOperation(log, err, "Update snippet"); err != nil {
 			return nil, err
 		}
-		return &resource.Status, errorfactory.NifiProcessGroupSyncing{}
+		return &resource.Status, errorfactory.NifiParentProcessGroupSyncing{}
 	}
 
 	isSync, err := processGroupIsSync(resource, entity)
