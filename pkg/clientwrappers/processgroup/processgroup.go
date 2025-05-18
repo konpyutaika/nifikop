@@ -119,10 +119,9 @@ func updateProcessGroupEntity(resource *v1alpha1.NifiResource, entity *nigoapi.P
 		}
 	}
 
-	// entity.Component.Properties = make(map[string]string)
+	if entity.Component == nil {
+		entity.Component = &nigoapi.ProcessGroupDto{}
+	}
 
 	entity.Component.Name = resource.GetName()
-	// entity.Component.Description = registryClient.Spec.Description
-	// entity.Uri = registryClient.Spec.Uri
-	// entity.Component.Properties["url"] = registryClient.Spec.Uri
 }

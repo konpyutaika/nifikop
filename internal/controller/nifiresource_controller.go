@@ -349,10 +349,11 @@ func (r *NifiResourceReconciler) updateStatus(ctx context.Context, resource *v1a
 
 func (r *NifiResourceReconciler) existResource(resource *v1alpha1.NifiResource,
 	config *clientconfig.NifiConfig) (bool, error) {
+	var err error
 	exist := false
 
 	if resource.Spec.IsProcessGroup() {
-		if exist, err := processgroup.ExistProcessGroup(resource, config); err != nil {
+		if exist, err = processgroup.ExistProcessGroup(resource, config); err != nil {
 			return exist, err
 		}
 	}
@@ -362,10 +363,11 @@ func (r *NifiResourceReconciler) existResource(resource *v1alpha1.NifiResource,
 
 func (r *NifiResourceReconciler) createResource(resource *v1alpha1.NifiResource,
 	config *clientconfig.NifiConfig) (*v1alpha1.NifiResourceStatus, error) {
+	var err error
 	status := &v1alpha1.NifiResourceStatus{}
 
 	if resource.Spec.IsProcessGroup() {
-		if status, err := processgroup.CreateProcessGroup(resource, config); err != nil {
+		if status, err = processgroup.CreateProcessGroup(resource, config); err != nil {
 			return status, err
 		}
 	}
@@ -375,10 +377,11 @@ func (r *NifiResourceReconciler) createResource(resource *v1alpha1.NifiResource,
 
 func (r *NifiResourceReconciler) syncResource(resource *v1alpha1.NifiResource,
 	config *clientconfig.NifiConfig) (*v1alpha1.NifiResourceStatus, error) {
+	var err error
 	status := &v1alpha1.NifiResourceStatus{}
 
 	if resource.Spec.IsProcessGroup() {
-		if status, err := processgroup.SyncProcessGroup(resource, config); err != nil {
+		if status, err = processgroup.SyncProcessGroup(resource, config); err != nil {
 			return status, err
 		}
 	}
@@ -388,10 +391,13 @@ func (r *NifiResourceReconciler) syncResource(resource *v1alpha1.NifiResource,
 
 func (r *NifiResourceReconciler) removeResource(resource *v1alpha1.NifiResource,
 	config *clientconfig.NifiConfig) error {
+	var err error
+
 	if resource.Spec.IsProcessGroup() {
-		if err := processgroup.RemoveProcessGroup(resource, config); err != nil {
+		if err = processgroup.RemoveProcessGroup(resource, config); err != nil {
 			return err
 		}
 	}
+
 	return nil
 }
