@@ -216,7 +216,7 @@ func (r *NifiResourceReconciler) Reconcile(ctx context.Context, req ctrl.Request
 			}
 			r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceParentProcessGroupError",
 				fmt.Sprintf("Failed to lookup reference parent process group: %s in %s",
-					&instance.Spec.ParentProcessGroupRef.Name, parentProcessGroup.Namespace))
+					instance.Spec.ParentProcessGroupRef.Name, parentProcessGroup.Namespace))
 			// the cluster does not exist - should have been caught pre-flight
 			return RequeueWithError(r.Log, "failed to lookup referenced parent process group resource for resource "+instance.Name, err)
 		}
