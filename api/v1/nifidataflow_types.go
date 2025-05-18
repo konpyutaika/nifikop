@@ -21,7 +21,7 @@ type NifiDataflowSpec struct {
 	FlowPosition *FlowPosition `json:"flowPosition,omitempty"`
 	// contains the reference to the ParameterContext with the one the dataflow is linked.
 	ParameterContextRef *ParameterContextReference `json:"parameterContextRef,omitempty"`
-	// if the flow will be synchronized once, continuously or never
+	// if the flow will be synchronized once, continuously or never.
 	SyncMode *DataflowSyncMode `json:"syncMode,omitempty"`
 	// whether the flow is considered as ran if some controller services are still invalid or not.
 	SkipInvalidControllerService bool `json:"skipInvalidControllerService,omitempty"`
@@ -31,9 +31,9 @@ type NifiDataflowSpec struct {
 	ClusterRef ClusterReference `json:"clusterRef,omitempty"`
 	// contains the reference to the NifiRegistry with the one the dataflow is linked.
 	RegistryClientRef *RegistryClientReference `json:"registryClientRef,omitempty"`
-	// describes the way the operator will deal with data when a dataflow will be updated: drop or drain
+	// describes the way the operator will deal with data when a dataflow will be updated: drop or drain.
 	UpdateStrategy ComponentUpdateStrategy `json:"updateStrategy"`
-	// describes than name that will be used on the created Process Group
+	// the name of the dataflow (if not set, the name of the CR will be used).
 	DisplayName string `json:"displayName,omitempty"`
 }
 
