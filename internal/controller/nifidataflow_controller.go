@@ -35,6 +35,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	v1 "github.com/konpyutaika/nifikop/api/v1"
+	v1alpha1 "github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/dataflow"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/inputport"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/outputport"
@@ -353,6 +354,26 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 			return RequeueWithError(r.Log, "failed to update NifiDataflow "+instance.Name, err)
 		}
 		return RequeueAfter(interval)
+	}
+
+	// Retrieve the parent process group reference
+	parentProcessGroupRef := instance.Spec.ParentProcessGroupRef
+	if parentProcessGroupRef != nil {
+		parentProcessGroupRef.Namespace = GetResourceRefNamespace(instance.Namespace, *instance.Spec.ParentProcessGroupRef)
+
+		parentProcessGroup := &v1alpha1.NifiResource{}
+		if parentProcessGroup, err = k8sutil.LookupNifiResource(r.Client, parentProcessGroupRef.Name, parentProcessGroupRef.Namespace); err != nil {
+			return RequeueWithError(r.Log, "failed to lookup referenced resource", err)
+		}
+
+		if !parentProcessGroup.Spec.IsProcessGroup() {
+			return RequeueWithError(r.Log, "the referenced resource is not a process group", err)
+		}
+		if parentProcessGroup.Status.Id == "" {
+			return RequeueWithError(r.Log, "the referenced process group is not created yet", err)
+		}
+
+		instance.Spec.ParentProcessGroupID = parentProcessGroup.Status.Id
 	}
 
 	if (instance.Spec.SyncNever() && len(instance.Status.State) > 0) ||

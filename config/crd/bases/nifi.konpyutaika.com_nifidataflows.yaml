@@ -64,6 +64,15 @@ spec:
                 type: object
               parentProcessGroupID:
                 type: string
+              parentProcessGroupRef:
+                properties:
+                  name:
+                    type: string
+                  namespace:
+                    type: string
+                required:
+                - name
+                type: object
               registryClientRef:
                 properties:
                   name:

@@ -36,7 +36,7 @@ type NifiResourceSpec struct {
 	// the UUID of the parent process group where you want to deploy your resource, if not set deploy at root level (is not used for all types of resource).
 	ParentProcessGroupID string `json:"parentProcessGroupID,omitempty"`
 	// the reference to the parent process group where you want to deploy your resource, if not set deploy at root level (is not used for all types of resource).
-	ParentProcessGroupRef *ResourceReference `json:"parentProcessGroupRef,omitempty"`
+	ParentProcessGroupRef *v1.ResourceReference `json:"parentProcessGroupRef,omitempty"`
 	// the name of the resource (if not set, the name of the CR will be used).
 	DisplayName string `json:"displayName,omitempty"`
 	// the configuration of the resource (e.g. the process group configuration).

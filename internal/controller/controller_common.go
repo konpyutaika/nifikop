@@ -181,7 +181,7 @@ func GetComponentRefNamespace(ns string, ref v1alpha1.ComponentReference) string
 // GetResourceRefNamespace returns the expected namespace for a Nifi resource
 // referenced by a resource/dataflow CR. It takes the namespace of the CR as the first
 // argument and the reference itself as the second.
-func GetResourceRefNamespace(ns string, ref v1alpha1.ResourceReference) string {
+func GetResourceRefNamespace(ns string, ref v1.ResourceReference) string {
 	resourceNamespace := ref.Namespace
 	if resourceNamespace == "" {
 		return ns

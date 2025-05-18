@@ -163,6 +163,13 @@ type UserReference struct {
 	Namespace string `json:"namespace,omitempty"`
 }
 
+// ResourceReference states a reference to a resource for resource/dataflow
+// provisioning.
+type ResourceReference struct {
+	Name      string `json:"name"`
+	Namespace string `json:"namespace,omitempty"`
+}
+
 // SecretResourceVersion states the resourceVersion of secret.
 type SecretResourceVersion struct {
 	// Name of the secret

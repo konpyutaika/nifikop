@@ -1291,7 +1291,11 @@ func (in *NifiResourceList) DeepCopyObject() runtime.Object {
 func (in *NifiResourceSpec) DeepCopyInto(out *NifiResourceSpec) {
 	*out = *in
 	out.ClusterRef = in.ClusterRef
-	out.ParentProcessGroupRef = in.ParentProcessGroupRef
+	if in.ParentProcessGroupRef != nil {
+		in, out := &in.ParentProcessGroupRef, &out.ParentProcessGroupRef
+		*out = new(apiv1.ResourceReference)
+		**out = **in
+	}
 	in.Configuration.DeepCopyInto(&out.Configuration)
 }
 
