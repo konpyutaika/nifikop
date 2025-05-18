@@ -62,6 +62,7 @@ rules:
   - nifinodegroupautoscalers
   - nifiparametercontexts
   - nifiregistryclients
+  - nifiresources
   - nifiusergroups
   - nifiusers
   verbs:
@@ -92,6 +93,7 @@ rules:
   - nifinodegroupautoscalers/status
   - nifiparametercontexts/status
   - nifiregistryclients/status
+  - nifiresources/status
   - nifiusergroups/status
   - nifiusers/status
   verbs:
@@ -105,6 +107,7 @@ rules:
   - nifinodegroupautoscalers/finalizers
   - nifiparametercontexts/finalizers
   - nifiregistryclients/finalizers
+  - nifiresources/finalizers
   - nifiusergroups/finalizers
   - nifiusers/finalizers
   verbs:

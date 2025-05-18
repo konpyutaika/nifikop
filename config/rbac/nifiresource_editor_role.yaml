@@ -1,0 +1,27 @@
+# permissions for end users to edit nifiresources.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: nifikop
+    app.kubernetes.io/managed-by: kustomize
+  name: nifiresource-editor-role
+rules:
+- apiGroups:
+  - nifi.konpyutaika.com
+  resources:
+  - nifiresources
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - nifi.konpyutaika.com
+  resources:
+  - nifiresources/status
+  verbs:
+  - get
