@@ -10,7 +10,7 @@ import (
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/konpyutaika/nifikop/api/v1alpha1"
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/pkg/plugin/common"
 	nifiutil "github.com/konpyutaika/nifikop/pkg/util/nifi"
 )
@@ -87,7 +87,7 @@ func (o *options) validate() error {
 
 // run runs the stop command.
 func (o *options) run(cmd *cobra.Command) error {
-	item := &v1alpha1.NifiDataflow{}
+	item := &v1.NifiDataflow{}
 	err := o.Client.Get(context.TODO(), client.ObjectKey{Namespace: o.UserNamespace, Name: o.name}, item)
 	if err != nil && apierrors.IsNotFound(err) {
 		return fmt.Errorf("NifiDataflow %s/%s not found", o.UserNamespace, o.name)

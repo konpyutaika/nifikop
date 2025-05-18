@@ -9,6 +9,7 @@ import (
 	"github.com/konpyutaika/nifikop/cmd/kubectl-nifikop/nifidataflow"
 	"github.com/konpyutaika/nifikop/cmd/kubectl-nifikop/nifigroupautoscaler"
 	"github.com/konpyutaika/nifikop/cmd/kubectl-nifikop/nifiregistryclient"
+	"github.com/konpyutaika/nifikop/cmd/kubectl-nifikop/nifiresource"
 	"github.com/konpyutaika/nifikop/cmd/kubectl-nifikop/nifiuser"
 	"github.com/konpyutaika/nifikop/cmd/kubectl-nifikop/nifiusergroup"
 )
@@ -41,6 +42,7 @@ func NewCmd(streams genericclioptions.IOStreams) *cobra.Command {
 	cmd.AddCommand(nifiusergroup.New(streams))
 	cmd.AddCommand(nifiregistryclient.New(streams))
 	cmd.AddCommand(nifigroupautoscaler.New(streams))
+	cmd.AddCommand(nifiresource.New(streams))
 
 	o := newOptions(streams)
 	o.configFlags.AddFlags(cmd.Flags())
