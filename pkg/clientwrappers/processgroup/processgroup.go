@@ -38,7 +38,7 @@ func ExistProcessGroup(resource *v1alpha1.NifiResource, config *clientconfig.Nif
 }
 
 func CreateProcessGroup(resource *v1alpha1.NifiResource,
-	config *clientconfig.NifiConfig) (*v1alpha1.NifiResourceStatus, error) {
+	config *clientconfig.NifiConfig, parentProcessGroupId string) (*v1alpha1.NifiResourceStatus, error) {
 	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
 		return nil, err
@@ -47,7 +47,7 @@ func CreateProcessGroup(resource *v1alpha1.NifiResource,
 	scratchEntity := nigoapi.ProcessGroupEntity{}
 	updateProcessGroupEntity(resource, &scratchEntity)
 
-	entity, err := nClient.CreateProcessGroup(scratchEntity, resource.Spec.GetParentProcessGroupID(config.RootProcessGroupId))
+	entity, err := nClient.CreateProcessGroup(scratchEntity, resource.Spec.GetParentProcessGroupID(config.RootProcessGroupId, parentProcessGroupId))
 	if err := clientwrappers.ErrorCreateOperation(log, err, "Failed to create resource "+resource.Name); err != nil {
 		return nil, err
 	}
@@ -59,7 +59,7 @@ func CreateProcessGroup(resource *v1alpha1.NifiResource,
 }
 
 func SyncProcessGroup(resource *v1alpha1.NifiResource,
-	config *clientconfig.NifiConfig) (*v1alpha1.NifiResourceStatus, error) {
+	config *clientconfig.NifiConfig, parentProcessGroupId string) (*v1alpha1.NifiResourceStatus, error) {
 	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
 		return nil, err
@@ -70,7 +70,7 @@ func SyncProcessGroup(resource *v1alpha1.NifiResource,
 		return nil, err
 	}
 
-	if isParentProcessGroupChanged(resource, config, entity) {
+	if isParentProcessGroupChanged(resource, config, entity, parentProcessGroupId) {
 		snippet, err := nClient.CreateSnippet(nigoapi.SnippetEntity{
 			Snippet: &nigoapi.SnippetDto{
 				ParentGroupId: entity.Component.ParentGroupId,
@@ -84,7 +84,7 @@ func SyncProcessGroup(resource *v1alpha1.NifiResource,
 		_, err = nClient.UpdateSnippet(nigoapi.SnippetEntity{
 			Snippet: &nigoapi.SnippetDto{
 				Id:            snippet.Snippet.Id,
-				ParentGroupId: resource.Spec.GetParentProcessGroupID(config.RootProcessGroupId),
+				ParentGroupId: resource.Spec.GetParentProcessGroupID(config.RootProcessGroupId, parentProcessGroupId),
 			},
 		})
 		if err := clientwrappers.ErrorUpdateOperation(log, err, "Update snippet"); err != nil {
@@ -142,8 +142,9 @@ func RemoveProcessGroup(resource *v1alpha1.NifiResource,
 func isParentProcessGroupChanged(
 	resource *v1alpha1.NifiResource,
 	config *clientconfig.NifiConfig,
-	entity *nigoapi.ProcessGroupEntity) bool {
-	return resource.Spec.GetParentProcessGroupID(config.RootProcessGroupId) != entity.Component.ParentGroupId
+	entity *nigoapi.ProcessGroupEntity,
+	parentProcessGroupId string) bool {
+	return resource.Spec.GetParentProcessGroupID(config.RootProcessGroupId, parentProcessGroupId) != entity.Component.ParentGroupId
 }
 
 func processGroupIsSync(resource *v1alpha1.NifiResource, entity *nigoapi.ProcessGroupEntity) (bool, error) {

@@ -358,6 +358,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 
 	// Retrieve the parent process group reference
 	parentProcessGroupRef := instance.Spec.ParentProcessGroupRef
+	parentProcessGroupId := ""
 	if parentProcessGroupRef != nil {
 		parentProcessGroupRef.Namespace = GetResourceRefNamespace(instance.Namespace, *instance.Spec.ParentProcessGroupRef)
 
@@ -387,7 +388,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 			return RequeueWithError(r.Log, "the referenced process group is not created yet", err)
 		}
 
-		instance.Spec.ParentProcessGroupID = parentProcessGroup.Status.Id
+		parentProcessGroupId = parentProcessGroup.Status.Id
 	}
 
 	if (instance.Spec.SyncNever() && len(instance.Status.State) > 0) ||
@@ -413,7 +414,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 				instance.Name, instance.Spec.BucketId,
 				instance.Spec.FlowId, strconv.FormatInt(int64(*instance.Spec.FlowVersion), 10)))
 
-		processGroupStatus, err := dataflow.CreateDataflow(instance, clientConfig, registryClient)
+		processGroupStatus, err := dataflow.CreateDataflow(instance, clientConfig, registryClient, parentProcessGroupId)
 		if err != nil {
 			r.Recorder.Event(instance, corev1.EventTypeWarning, "CreationFailed",
 				fmt.Sprintf("Creation failed dataflow %s based on flow {bucketId: %s, flowId: %s, version: %s}",
@@ -460,7 +461,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 				instance.Name, instance.Spec.BucketId,
 				instance.Spec.FlowId, strconv.FormatInt(int64(*instance.Spec.FlowVersion), 10)))
 
-		status, err := dataflow.SyncDataflow(instance, clientConfig, registryClient, parameterContext)
+		status, err := dataflow.SyncDataflow(instance, clientConfig, registryClient, parameterContext, parentProcessGroupId)
 		if status != nil {
 			instance.Status = *status
 			if err := r.patchStatus(ctx, instance, patchInstance, current.Status); err != nil {
@@ -510,7 +511,7 @@ func (r *NifiDataflowReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	}
 
 	// Check if the flow is out of sync
-	isOutOfSink, err := dataflow.IsOutOfSyncDataflow(instance, clientConfig, registryClient, parameterContext)
+	isOutOfSink, err := dataflow.IsOutOfSyncDataflow(instance, clientConfig, registryClient, parameterContext, parentProcessGroupId)
 	if err != nil {
 		return RequeueWithError(r.Log, "failed to check sync for NifiDataflow "+instance.Name, err)
 	}

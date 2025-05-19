@@ -83,11 +83,13 @@ func (r *NifiResource) GetDisplayName() string {
 	return r.Name
 }
 
-func (r *NifiResourceSpec) GetParentProcessGroupID(rootProcessGroupId string) string {
-	if r.ParentProcessGroupID == "" {
+func (r *NifiResourceSpec) GetParentProcessGroupID(rootProcessGroupId, parentProcessGroupId string) string {
+	if parentProcessGroupId != "" {
+		return parentProcessGroupId
+	} else if r.ParentProcessGroupID != "" {
 		return rootProcessGroupId
 	}
-	return r.ParentProcessGroupID
+	return rootProcessGroupId
 }
 
 func (r *NifiResourceSpec) GetConfiguration() (map[string]interface{}, error) {

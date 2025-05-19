@@ -199,6 +199,7 @@ func (r *NifiResourceReconciler) Reconcile(ctx context.Context, req ctrl.Request
 
 	// Retrieve the parent process group reference
 	parentProcessGroupRef := instance.Spec.ParentProcessGroupRef
+	parentProcessGroupId := ""
 	if parentProcessGroupRef != nil {
 		parentProcessGroupRef.Namespace = GetResourceRefNamespace(instance.Namespace, *instance.Spec.ParentProcessGroupRef)
 
@@ -228,7 +229,7 @@ func (r *NifiResourceReconciler) Reconcile(ctx context.Context, req ctrl.Request
 			return RequeueWithError(r.Log, "the referenced process group is not created yet", err)
 		}
 
-		instance.Spec.ParentProcessGroupID = parentProcessGroup.Status.Id
+		parentProcessGroupId = parentProcessGroup.Status.Id
 	}
 
 	r.Recorder.Event(instance, corev1.EventTypeNormal, "Reconciling",
@@ -244,7 +245,7 @@ func (r *NifiResourceReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		// Create NiFi resource
 		r.Recorder.Event(instance, corev1.EventTypeNormal, "Creating",
 			fmt.Sprintf("Creating resource %s", instance.Name))
-		status, err := r.createResource(instance, clientConfig)
+		status, err := r.createResource(instance, clientConfig, parentProcessGroupId)
 		if err != nil {
 			return RequeueWithError(r.Log, "failure creating resource "+instance.Name, err)
 		}
@@ -270,7 +271,7 @@ func (r *NifiResourceReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	// Sync NifiResource resource with NiFi side component
 	r.Recorder.Event(instance, corev1.EventTypeNormal, "Synchronizing",
 		fmt.Sprintf("Synchronizing resource %s", instance.Name))
-	status, err := r.syncResource(instance, clientConfig)
+	status, err := r.syncResource(instance, clientConfig, parentProcessGroupId)
 	if err != nil {
 		r.Recorder.Event(instance, corev1.EventTypeNormal, "SynchronizingFailed",
 			fmt.Sprintf("Synchronizing resource %s failed", instance.Name))
@@ -396,12 +397,12 @@ func (r *NifiResourceReconciler) existResource(resource *v1alpha1.NifiResource,
 }
 
 func (r *NifiResourceReconciler) createResource(resource *v1alpha1.NifiResource,
-	config *clientconfig.NifiConfig) (*v1alpha1.NifiResourceStatus, error) {
+	config *clientconfig.NifiConfig, parentProcessGroupId string) (*v1alpha1.NifiResourceStatus, error) {
 	var err error
 	status := &v1alpha1.NifiResourceStatus{}
 
 	if resource.Spec.IsProcessGroup() {
-		if status, err = processgroup.CreateProcessGroup(resource, config); err != nil {
+		if status, err = processgroup.CreateProcessGroup(resource, config, parentProcessGroupId); err != nil {
 			return status, err
 		}
 	}
@@ -410,12 +411,12 @@ func (r *NifiResourceReconciler) createResource(resource *v1alpha1.NifiResource,
 }
 
 func (r *NifiResourceReconciler) syncResource(resource *v1alpha1.NifiResource,
-	config *clientconfig.NifiConfig) (*v1alpha1.NifiResourceStatus, error) {
+	config *clientconfig.NifiConfig, parentProcessGroupId string) (*v1alpha1.NifiResourceStatus, error) {
 	var err error
 	status := &v1alpha1.NifiResourceStatus{}
 
 	if resource.Spec.IsProcessGroup() {
-		if status, err = processgroup.SyncProcessGroup(resource, config); err != nil {
+		if status, err = processgroup.SyncProcessGroup(resource, config, parentProcessGroupId); err != nil {
 			return status, err
 		}
 	}
