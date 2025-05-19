@@ -20,6 +20,7 @@
 ### Fixed Bugs
 
 - [PR #536](https://github.com/konpyutaika/nifikop/pull/536) - **[Operator/NifiUserGroup]** Fixed users removal from user groups.
+- [PR #565](https://github.com/konpyutaika/nifikop/pull/565) - **[Operator/NifiConnection]** Fixed requeue interval divided by 3.
 
 ### Deprecated
 
