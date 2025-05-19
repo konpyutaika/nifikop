@@ -523,7 +523,7 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		if err := r.updateStatus(ctx, instance, current.Status); err != nil {
 			return RequeueWithError(r.Log, "failed to update status for NifiConnection "+instance.Name, err)
 		}
-		return RequeueAfter(interval / 3)
+		return RequeueAfter(interval)
 	}
 
 	// Ensure NifiConnection label
@@ -551,7 +551,7 @@ func (r *NifiConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 			instance.Spec.Source.Name, instance.Spec.Source.Namespace, instance.Spec.Source.Type,
 			instance.Spec.Destination.Name, instance.Spec.Destination.Namespace, instance.Spec.Destination.Type))
 
-	return RequeueAfter(interval / 3)
+	return RequeueAfter(interval)
 }
 
 // SetupWithManager sets up the controller with the Manager.
