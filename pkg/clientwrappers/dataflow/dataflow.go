@@ -84,7 +84,7 @@ func GetDataflowInformation(flow *v1.NifiDataflow, config *clientconfig.NifiConf
 
 // CreateDataflow will deploy the NifiDataflow on NiFi Cluster.
 func CreateDataflow(flow *v1.NifiDataflow, config *clientconfig.NifiConfig,
-	registry *v1.NifiRegistryClient) (*v1.NifiDataflowStatus, error) {
+	registry *v1.NifiRegistryClient, parentProcessGroupId string) (*v1.NifiDataflowStatus, error) {
 	log.Debug("Creating dataflow",
 		zap.String("clusterName", flow.Spec.ClusterRef.Name),
 		zap.String("flowId", flow.Spec.FlowId),
@@ -96,9 +96,9 @@ func CreateDataflow(flow *v1.NifiDataflow, config *clientconfig.NifiConfig,
 	}
 
 	scratchEntity := nigoapi.ProcessGroupEntity{}
-	updateProcessGroupEntity(flow, registry, config, &scratchEntity)
+	updateProcessGroupEntity(flow, registry, config, &scratchEntity, parentProcessGroupId)
 
-	entity, err := nClient.CreateProcessGroup(scratchEntity, flow.Spec.GetParentProcessGroupID(config.RootProcessGroupId))
+	entity, err := nClient.CreateProcessGroup(scratchEntity, flow.Spec.GetParentProcessGroupID(config.RootProcessGroupId, parentProcessGroupId))
 
 	if err := clientwrappers.ErrorCreateOperation(log, err, "Create process-group"); err != nil {
 		return nil, err
@@ -208,7 +208,8 @@ func IsOutOfSyncDataflow(
 	flow *v1.NifiDataflow,
 	config *clientconfig.NifiConfig,
 	registry *v1.NifiRegistryClient,
-	parameterContext *v1.NifiParameterContext) (bool, error) {
+	parameterContext *v1.NifiParameterContext,
+	parentProcessGroupId string) (bool, error) {
 	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
 		return false, err
@@ -227,7 +228,7 @@ func IsOutOfSyncDataflow(
 
 	return isParameterContextChanged(parameterContext, processGroups) ||
 		isVersioningChanged(flow, registry, pGEntity) || !isVersionSync(flow, pGEntity) || localChanged(pGEntity) ||
-		isParentProcessGroupChanged(flow, config, pGEntity) || isNameChanged(flow, pGEntity) || isPostionChanged(flow, pGEntity), nil
+		isParentProcessGroupChanged(flow, config, pGEntity, parentProcessGroupId) || isNameChanged(flow, pGEntity) || isPostionChanged(flow, pGEntity), nil
 }
 
 func isParameterContextChanged(
@@ -252,8 +253,9 @@ func isParameterContextChanged(
 func isParentProcessGroupChanged(
 	flow *v1.NifiDataflow,
 	config *clientconfig.NifiConfig,
-	pgFlowEntity *nigoapi.ProcessGroupEntity) bool {
-	return flow.Spec.GetParentProcessGroupID(config.RootProcessGroupId) != pgFlowEntity.Component.ParentGroupId
+	pgFlowEntity *nigoapi.ProcessGroupEntity,
+	parentProcessGroupId string) bool {
+	return flow.Spec.GetParentProcessGroupID(config.RootProcessGroupId, parentProcessGroupId) != pgFlowEntity.Component.ParentGroupId
 }
 
 func isNameChanged(flow *v1.NifiDataflow, pgFlowEntity *nigoapi.ProcessGroupEntity) bool {
@@ -292,7 +294,8 @@ func SyncDataflow(
 	flow *v1.NifiDataflow,
 	config *clientconfig.NifiConfig,
 	registry *v1.NifiRegistryClient,
-	parameterContext *v1.NifiParameterContext) (*v1.NifiDataflowStatus, error) {
+	parameterContext *v1.NifiParameterContext,
+	parentProcessGroupId string) (*v1.NifiDataflowStatus, error) {
 	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
 		return nil, err
@@ -336,7 +339,7 @@ func SyncDataflow(
 	}
 
 	if isNameChanged(flow, pGEntity) || isPostionChanged(flow, pGEntity) {
-		pGEntity.Component.ParentGroupId = flow.Spec.GetParentProcessGroupID(config.RootProcessGroupId)
+		pGEntity.Component.ParentGroupId = flow.Spec.GetParentProcessGroupID(config.RootProcessGroupId, parentProcessGroupId)
 		pGEntity.Component.Name = flow.GetDisplayName()
 
 		var xPos, yPos float64
@@ -364,7 +367,7 @@ func SyncDataflow(
 		return &flow.Status, errorfactory.NifiFlowSyncing{}
 	}
 
-	if isParentProcessGroupChanged(flow, config, pGEntity) {
+	if isParentProcessGroupChanged(flow, config, pGEntity, parentProcessGroupId) {
 		snippet, err := nClient.CreateSnippet(nigoapi.SnippetEntity{
 			Snippet: &nigoapi.SnippetDto{
 				ParentGroupId: pGEntity.Component.ParentGroupId,
@@ -378,7 +381,7 @@ func SyncDataflow(
 		_, err = nClient.UpdateSnippet(nigoapi.SnippetEntity{
 			Snippet: &nigoapi.SnippetDto{
 				Id:            snippet.Snippet.Id,
-				ParentGroupId: flow.Spec.GetParentProcessGroupID(config.RootProcessGroupId),
+				ParentGroupId: flow.Spec.GetParentProcessGroupID(config.RootProcessGroupId, parentProcessGroupId),
 			},
 		})
 		if err := clientwrappers.ErrorUpdateOperation(log, err, "Update snippet"); err != nil {
@@ -421,7 +424,7 @@ func SyncDataflow(
 		}
 	}
 
-	isOutOfSink, err := IsOutOfSyncDataflow(flow, config, registry, parameterContext)
+	isOutOfSink, err := IsOutOfSyncDataflow(flow, config, registry, parameterContext, parentProcessGroupId)
 	if err != nil {
 		return &flow.Status, err
 	}
@@ -554,14 +557,12 @@ func prepareUpdatePG(flow *v1.NifiDataflow, config *clientconfig.NifiConfig) (*v
 		}
 	} else {
 		// Check all components are ok
-		flowEntity, err := nClient.GetFlow(flow.Spec.GetParentProcessGroupID(config.RootProcessGroupId))
-		if err := clientwrappers.ErrorGetOperation(log, err, "Get flow"); err != nil {
+		pgEntity, err := nClient.GetProcessGroup(flow.Status.ProcessGroupID)
+		if err := clientwrappers.ErrorGetOperation(log, err, "Get process group"); err != nil {
+			if err == nificlient.ErrNifiClusterReturned404 {
+				return nil, errorfactory.NifiFlowDraining{}
+			}
 			return nil, err
-		}
-
-		pgEntity := processGroupFromFlow(flowEntity, flow)
-		if pgEntity == nil {
-			return nil, errorfactory.NifiFlowDraining{}
 		}
 
 		// If flow is not fully drained
@@ -688,14 +689,12 @@ func UnscheduleDataflow(flow *v1.NifiDataflow, config *clientconfig.NifiConfig) 
 	}
 
 	// Check all components are ok
-	flowEntity, err := nClient.GetFlow(flow.Spec.GetParentProcessGroupID(config.RootProcessGroupId))
-	if err := clientwrappers.ErrorGetOperation(log, err, "Get flow"); err != nil {
+	pgEntity, err := nClient.GetProcessGroup(flow.Status.ProcessGroupID)
+	if err := clientwrappers.ErrorGetOperation(log, err, "Get process group"); err != nil {
+		if err == nificlient.ErrNifiClusterReturned404 {
+			return errorfactory.NifiFlowScheduling{}
+		}
 		return err
-	}
-
-	pgEntity := processGroupFromFlow(flowEntity, flow)
-	if pgEntity == nil {
-		return errorfactory.NifiFlowScheduling{}
 	}
 
 	if pgEntity.RunningCount > 0 {
@@ -705,18 +704,18 @@ func UnscheduleDataflow(flow *v1.NifiDataflow, config *clientconfig.NifiConfig) 
 	return nil
 }
 
-// processGroupFromFlow convert a ProcessGroupFlowEntity to NifiDataflow.
-func processGroupFromFlow(
-	flowEntity *nigoapi.ProcessGroupFlowEntity,
-	flow *v1.NifiDataflow) *nigoapi.ProcessGroupEntity {
-	for _, entity := range flowEntity.ProcessGroupFlow.Flow.ProcessGroups {
-		if entity.Id == flow.Status.ProcessGroupID {
-			return &entity
-		}
-	}
+// // processGroupFromFlow convert a ProcessGroupFlowEntity to NifiDataflow.
+// func processGroupFromFlow(
+// 	flowEntity *nigoapi.ProcessGroupFlowEntity,
+// 	flow *v1.NifiDataflow) *nigoapi.ProcessGroupEntity {
+// 	for _, entity := range flowEntity.ProcessGroupFlow.Flow.ProcessGroups {
+// 		if entity.Id == flow.Status.ProcessGroupID {
+// 			return &entity
+// 		}
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
 // // inputConnectionFromFlow retrieve all input connection from a list of input ports
 // func inputConnectionFromFlow(flowEntity *nigoapi.ProcessGroupFlowEntity,
@@ -849,7 +848,8 @@ func updateProcessGroupEntity(
 	flow *v1.NifiDataflow,
 	registry *v1.NifiRegistryClient,
 	config *clientconfig.NifiConfig,
-	entity *nigoapi.ProcessGroupEntity) {
+	entity *nigoapi.ProcessGroupEntity,
+	parentProcessGroupId string) {
 	stringFactory := func() string { return "" }
 
 	var defaultVersion int64 = 0
@@ -868,7 +868,7 @@ func updateProcessGroupEntity(
 	}
 
 	entity.Component.Name = flow.GetDisplayName()
-	entity.Component.ParentGroupId = flow.Spec.GetParentProcessGroupID(config.RootProcessGroupId)
+	entity.Component.ParentGroupId = flow.Spec.GetParentProcessGroupID(config.RootProcessGroupId, parentProcessGroupId)
 
 	var xPos, yPos float64
 	if entity.Component.Position != nil {
@@ -927,14 +927,12 @@ func IsDataflowEmpty(flow *v1.NifiDataflow, config *clientconfig.NifiConfig) (bo
 		return false, err
 	}
 
-	flowEntity, err := nClient.GetFlow(flow.Spec.GetParentProcessGroupID(config.RootProcessGroupId))
-	if err := clientwrappers.ErrorGetOperation(log, err, "Get flow"); err != nil {
+	pgEntity, err := nClient.GetProcessGroup(flow.Status.ProcessGroupID)
+	if err := clientwrappers.ErrorGetOperation(log, err, "Get process group"); err != nil {
+		if err == nificlient.ErrNifiClusterReturned404 {
+			return false, errorfactory.NifiFlowDraining{}
+		}
 		return false, err
-	}
-
-	pgEntity := processGroupFromFlow(flowEntity, flow)
-	if pgEntity == nil {
-		return false, errorfactory.NifiFlowDraining{}
 	}
 
 	return pgEntity.Status.AggregateSnapshot.FlowFilesQueued == 0, nil

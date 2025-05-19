@@ -95,6 +95,9 @@ type NifiConnectionSyncing struct{ error }
 // NifiConnectionDeleting states that the connection is still deleting.
 type NifiConnectionDeleting struct{ error }
 
+// NifiParentProcessGroupSyncing states that the parent process group is still deleting.
+type NifiParentProcessGroupSyncing struct{ error }
+
 // New creates a new error factory error.
 func New(t interface{}, err error, msg string, wrapArgs ...interface{}) error {
 	var wrapped error

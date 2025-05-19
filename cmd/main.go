@@ -40,7 +40,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
 	"github.com/go-logr/zapr"
+
 	v1 "github.com/konpyutaika/nifikop/api/v1"
+	nifiv1alpha1 "github.com/konpyutaika/nifikop/api/v1alpha1"
 	v1alpha1 "github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/internal/controller"
 	"github.com/konpyutaika/nifikop/pkg/common"
@@ -56,6 +58,7 @@ func init() {
 
 	utilruntime.Must(v1alpha1.AddToScheme(scheme))
 	utilruntime.Must(v1.AddToScheme(scheme))
+	utilruntime.Must(nifiv1alpha1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 }
 
@@ -293,6 +296,18 @@ func main() {
 		RequeueOffset:   multipliers.RequeueOffset,
 	}).SetupWithManager(mgr); err != nil {
 		logger.Error("unable to create controller", zap.String("controller", "NifiConnection"), zap.Error(err))
+		os.Exit(1)
+	}
+
+	if err = (&controller.NifiResourceReconciler{
+		Client:          mgr.GetClient(),
+		Log:             *logger.Named("controller").Named("NifiResource"),
+		Scheme:          mgr.GetScheme(),
+		Recorder:        mgr.GetEventRecorderFor("nifi-resource"),
+		RequeueInterval: multipliers.ResourceRequeueInterval,
+		RequeueOffset:   multipliers.RequeueOffset,
+	}).SetupWithManager(mgr); err != nil {
+		logger.Error("unable to create controller", zap.String("controller", "NifiResource"), zap.Error(err))
 		os.Exit(1)
 	}
 

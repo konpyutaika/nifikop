@@ -13,15 +13,15 @@ import (
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	v1 "github.com/konpyutaika/nifikop/api/v1"
+	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/plugin/common"
 )
 
 var getExample = `
-  # view all NifiRegistryClient in the current namespace
+  # view all NifiResource in the current namespace
   %[1]s get
 
-  # view NifiRegistryClient foo
+  # view NifiResource foo
   %[1]s get foo
 `
 
@@ -46,9 +46,9 @@ func newOptions(streams genericclioptions.IOStreams) *options {
 func New(streams genericclioptions.IOStreams) *cobra.Command {
 	o := newOptions(streams)
 	cmd := &cobra.Command{
-		Use:          "get [NifiRegistryClient name]",
-		Short:        "Get NifiRegistryClient",
-		Example:      fmt.Sprintf(getExample, "kubectl nifikop nifiregistryclient"),
+		Use:          "get [NifiResource name]",
+		Short:        "Get NifiResource",
+		Example:      fmt.Sprintf(getExample, "kubectl nifikop nifiresource"),
 		SilenceUsage: true,
 		RunE: func(c *cobra.Command, args []string) error {
 			if err := o.complete(c, args); err != nil {
@@ -85,14 +85,14 @@ func (o *options) validate() error {
 
 // run runs the get command.
 func (o *options) run() error {
-	list := &v1.NifiRegistryClientList{}
+	list := &v1alpha1.NifiResourceList{}
 
 	if o.name == "" {
 		if err := o.Client.List(context.TODO(), list, &client.ListOptions{Namespace: o.UserNamespace}); err != nil {
-			return fmt.Errorf("unable to list NifiRegistryClient: %w", err)
+			return fmt.Errorf("unable to list NifiResource: %w", err)
 		}
 	} else {
-		item := &v1.NifiRegistryClient{}
+		item := &v1alpha1.NifiResource{}
 		err := o.Client.Get(context.TODO(), client.ObjectKey{Namespace: o.UserNamespace, Name: o.name}, item)
 		if err != nil && apierrors.IsNotFound(err) {
 			return fmt.Errorf("NifiRegistryClient %s/%s not found", o.UserNamespace, o.name)

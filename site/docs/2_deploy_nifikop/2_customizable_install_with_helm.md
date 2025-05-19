@@ -27,6 +27,7 @@ It will use Custom Ressources Definition CRDs:
 - `nifidataflows.nifi.konpyutaika.com`,
 - `nifinodegroupautoscalers.nifi.konpyutaika.com`,
 - `nificonnections.nifi.konpyutaika.com`,
+- `nifiresources.nifi.konpyutaika.com`,
 
 ### Configuration
 
@@ -83,6 +84,7 @@ kubectl apply -f https://raw.githubusercontent.com/konpyutaika/nifikop/master/co
 kubectl apply -f https://raw.githubusercontent.com/konpyutaika/nifikop/master/config/crd/bases/nifi.konpyutaika.com_nifiregistryclients.yaml
 kubectl apply -f https://raw.githubusercontent.com/konpyutaika/nifikop/master/config/crd/bases/nifi.konpyutaika.com_nifinodegroupautoscalers.yaml
 kubectl apply -f https://raw.githubusercontent.com/konpyutaika/nifikop/master/config/crd/bases/nifi.konpyutaika.com_nificonnections.yaml
+kubectl apply -f https://raw.githubusercontent.com/konpyutaika/nifikop/master/config/crd/bases/nifi.konpyutaika.com_nifiresources.yaml
 ```
 
 :::

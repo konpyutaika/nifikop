@@ -49,6 +49,7 @@ spec:
 |Field|Type|Description|Required|Default|
 |-----|----|-----------|--------|--------|
 |parentProcessGroupID|string|the UUID of the parent process group where you want to deploy your dataflow, if not set deploy at root level. |No| - |
+|parentProcessGroupRef|[ResourceReference](./9_nifi_resource.md#resourcereference)|the reference to the parent process group where you want to deploy your resource, if not set deploy at root level. |No| - |
 |bucketId|string|the UUID of the Bucket containing the flow. |Yes| - |
 |flowId|string|the UUID of the flow to run. |Yes| - |
 |flowVersion|*int32|the version of the flow to run. |Yes| - |

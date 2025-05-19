@@ -35,6 +35,8 @@ type NifiDataflowSpec struct {
 	UpdateStrategy ComponentUpdateStrategy `json:"updateStrategy"`
 	// the name of the dataflow (if not set, the name of the CR will be used).
 	DisplayName string `json:"displayName,omitempty"`
+	// the reference to the parent process group where you want to deploy your resource, if not set deploy at root level.
+	ParentProcessGroupRef *ResourceReference `json:"parentProcessGroupRef,omitempty"`
 }
 
 type FlowPosition struct {
@@ -165,11 +167,13 @@ func (d *NifiDataflowSpec) SyncNever() bool {
 	return d.GetSyncMode() == SyncNever
 }
 
-func (d *NifiDataflowSpec) GetParentProcessGroupID(rootProcessGroupId string) string {
-	if d.ParentProcessGroupID == "" {
+func (d *NifiDataflowSpec) GetParentProcessGroupID(rootProcessGroupId, parentProcessGroupId string) string {
+	if parentProcessGroupId != "" {
+		return parentProcessGroupId
+	} else if d.ParentProcessGroupID != "" {
 		return rootProcessGroupId
 	}
-	return d.ParentProcessGroupID
+	return rootProcessGroupId
 }
 
 func (d *NifiDataflow) GetDisplayName() string {

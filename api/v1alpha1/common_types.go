@@ -164,6 +164,13 @@ type UserReference struct {
 	Namespace string `json:"namespace,omitempty"`
 }
 
+// ResourceReference states a reference to a resource for resource/dataflow
+// provisioning.
+type ResourceReference struct {
+	Name      string `json:"name"`
+	Namespace string `json:"namespace,omitempty"`
+}
+
 type AccessPolicy struct {
 	// +kubebuilder:validation:Enum={"global","component"}
 	// type defines the kind of access policy, could be "global" or "component".
@@ -494,7 +501,20 @@ const (
 	LeastBusyClusterDownscaleStrategy ClusterScalingStrategy = "leastbusy"
 )
 
-// Change the list to {"dataflow","input-port","output-port","processor","process-group"} when all the type are available
+// Change the list to {"input-port","output-port","processor","funnel","process-group","controller-service"} when all the type are available
+// +kubebuilder:validation:Enum={"process-group"}
+type ResourceType string
+
+const (
+	ResourcetInputPort        ResourceType = "input-port"
+	ResourceOutputPort        ResourceType = "output-port"
+	ResourceProcessor         ResourceType = "processor"
+	ResourceFunnel            ResourceType = "funnel"
+	ResourceProcessGroup      ResourceType = "process-group"
+	ResourceControllerService ResourceType = "controller-service"
+)
+
+// Change the list to {"dataflow","input-port","output-port","processor","funnel","process-group"} when all the type are available
 // +kubebuilder:validation:Enum={"dataflow"}
 type ComponentType string
 

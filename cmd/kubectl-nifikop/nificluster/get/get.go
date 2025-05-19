@@ -12,7 +12,7 @@ import (
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/konpyutaika/nifikop/api/v1alpha1"
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/pkg/plugin/common"
 )
 
@@ -84,14 +84,14 @@ func (o *options) validate() error {
 
 // run runs the get command.
 func (o *options) run() error {
-	list := &v1alpha1.NifiClusterList{}
+	list := &v1.NifiClusterList{}
 
 	if o.name == "" {
 		if err := o.Client.List(context.TODO(), list, &client.ListOptions{Namespace: o.UserNamespace}); err != nil {
 			return fmt.Errorf("unable to list NifiCluster: %w", err)
 		}
 	} else {
-		item := &v1alpha1.NifiCluster{}
+		item := &v1.NifiCluster{}
 		err := o.Client.Get(context.TODO(), client.ObjectKey{Namespace: o.UserNamespace, Name: o.name}, item)
 		if err != nil && apierrors.IsNotFound(err) {
 			return fmt.Errorf("NifiCluster %s/%s not found", o.UserNamespace, o.name)

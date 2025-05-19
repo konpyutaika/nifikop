@@ -89,6 +89,7 @@ rules:
   - "nifiparametercontexts"
   - "nifinodegroupautoscalers"
   - "nificonnections"
+  - "nifiresources"
   - "nifiusers/finalizers"
   - "nificlusters/finalizers"
   verbs:
@@ -139,6 +140,7 @@ rules:
   - nifiparametercontexts/status
   - nifinodegroupautoscalers/status
   - nificonnections/status
+  - nifiresources/status
   verbs:
   - get
   - update

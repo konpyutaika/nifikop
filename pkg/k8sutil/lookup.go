@@ -8,6 +8,7 @@ import (
 	runtimeClient "sigs.k8s.io/controller-runtime/pkg/client"
 
 	v1 "github.com/konpyutaika/nifikop/api/v1"
+	"github.com/konpyutaika/nifikop/api/v1alpha1"
 )
 
 // LookupNifiCluster returns the running cluster instance based on its name and namespace.
@@ -49,5 +50,12 @@ func LookupNifiUser(client runtimeClient.Client, userName, userNamespace string)
 func LookupNifiDataflow(client runtimeClient.Client, dataflowName, dataflowNamespace string) (dataflow *v1.NifiDataflow, err error) {
 	dataflow = &v1.NifiDataflow{}
 	err = client.Get(context.TODO(), types.NamespacedName{Name: dataflowName, Namespace: dataflowNamespace}, dataflow)
+	return
+}
+
+// LookupNifiResource returns the dataflow instance based on its name and namespace.
+func LookupNifiResource(client runtimeClient.Client, resourceName, resourceNamespace string) (resource *v1alpha1.NifiResource, err error) {
+	resource = &v1alpha1.NifiResource{}
+	err = client.Get(context.TODO(), types.NamespacedName{Name: resourceName, Namespace: resourceNamespace}, resource)
 	return
 }

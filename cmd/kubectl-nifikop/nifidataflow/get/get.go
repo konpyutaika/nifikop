@@ -12,7 +12,7 @@ import (
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/konpyutaika/nifikop/api/v1alpha1"
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/pkg/plugin/common"
 )
 
@@ -84,14 +84,14 @@ func (o *options) validate() error {
 
 // run runs the get command.
 func (o *options) run() error {
-	list := &v1alpha1.NifiDataflowList{}
+	list := &v1.NifiDataflowList{}
 
 	if o.name == "" {
 		if err := o.Client.List(context.TODO(), list, &client.ListOptions{Namespace: o.UserNamespace}); err != nil {
 			return fmt.Errorf("unable to list NifiDataflow: %w", err)
 		}
 	} else {
-		item := &v1alpha1.NifiDataflow{}
+		item := &v1.NifiDataflow{}
 		err := o.Client.Get(context.TODO(), client.ObjectKey{Namespace: o.UserNamespace, Name: o.name}, item)
 		if err != nil && apierrors.IsNotFound(err) {
 			return fmt.Errorf("NifiDataflow %s/%s not found", o.UserNamespace, o.name)
