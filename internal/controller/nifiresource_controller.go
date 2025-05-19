@@ -192,7 +192,7 @@ func (r *NifiResourceReconciler) Reconcile(ctx context.Context, req ctrl.Request
 			return RequeueWithError(r.Log, "could not apply last state to annotation for resource "+instance.Name, err)
 		}
 		if err := r.Client.Patch(ctx, current, patchCurrent); err != nil {
-			return RequeueWithError(r.Log, "failed to update NifiRegistryClient "+instance.Name, err)
+			return RequeueWithError(r.Log, "failed to update NifiResource "+instance.Name, err)
 		}
 		return RequeueAfter(interval)
 	}
@@ -274,7 +274,7 @@ func (r *NifiResourceReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	if err != nil {
 		r.Recorder.Event(instance, corev1.EventTypeNormal, "SynchronizingFailed",
 			fmt.Sprintf("Synchronizing resource %s failed", instance.Name))
-		return RequeueWithError(r.Log, "failed to sync NifiRegistryClient "+instance.Name, err)
+		return RequeueWithError(r.Log, "failed to sync NifiResource "+instance.Name, err)
 	}
 
 	instance.Status = *status
