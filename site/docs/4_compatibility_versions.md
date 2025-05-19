@@ -267,3 +267,33 @@ Nifikop supports for the following features for connecting two dataflows togethe
 | NiFi 2.2      | Yes                   | Yes                          | No                       |
 | NiFi 2.3      | Yes                   | Yes                          | No                       |
 | NiFi 2.4      | Yes                   | Yes                          | No                       |
+
+
+### NiFi process group
+
+Nifikop supports for the following features for managing process group:
+
+| NiFi Version  | ProcessGroup deployment |
+|---------------|-------------------------|
+| NiFi 1.16     | Yes                     |
+| NiFi 1.17     | Yes                     |
+| NiFi 1.18     | Yes                     |
+| NiFi 1.19     | Yes                     |
+| NiFi 1.20     | Yes                     |
+| NiFi 1.21     | Yes                     |
+| NiFi 1.22     | Yes                     |
+| NiFi 1.23     | Yes                     |
+| NiFi 1.24     | Yes                     |
+| NiFi 1.25     | Yes                     |
+| NiFi 1.26     | Yes                     |
+| NiFi 1.27     | Yes                     |
+| NiFi 1.28     | Yes                     |
+| NiFi 2.0.0-M1 | Yes                     |
+| NiFi 2.0.0-M2 | Yes                     |
+| NiFi 2.0.0-M3 | Yes                     |
+| NiFi 2.0.0-M4 | Yes                     |
+| NiFi 2.0      | Yes                     |
+| NiFi 2.1      | Yes                     |
+| NiFi 2.2      | Yes                     |
+| NiFi 2.3      | Yes                     |
+| NiFi 2.4      | Yes                     |

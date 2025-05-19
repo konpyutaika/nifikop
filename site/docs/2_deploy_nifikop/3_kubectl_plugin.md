@@ -26,6 +26,7 @@ Available Commands:
   nificonnection      
   nifidataflow        
   nifigroupautoscaler 
+  nifiresource        
   nifiregistryclient  
   nifiuser            
   nifiusergroup 
