@@ -315,6 +315,19 @@ ingress:
 # Enabling monitoring creates a `ServiceMonitor` custom resource and routes logs to the output of your choice
 monitoring:
   enabled: false
+  # For NiFi Version 2 use the https or http listener
+  internalListenersType: "prometheus"
+  # For NiFi Version 2 use the /nifi-api/flow/metrics/prometheus
+  path: "/metrics"
+  # Optional fields to provide the ServiceMonitor see the following documentation for more information
+  # https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md#monitoring.coreos.com/v1.Endpoint 
+  #tlsConfig:
+  #  caFile: 
+  #  certFile:
+  #  keyFile:
+  #  insecureSkipVerify:
+  #  serverName:
+  #interval: 
 
 # Logging is enabled by the banzai cloud logging operator. This can be deployed stand-alone or as a part of the Rancher Logging application.
 # Do not enable this unless you've installed rancher-logging or the banzai logging operator directly.
