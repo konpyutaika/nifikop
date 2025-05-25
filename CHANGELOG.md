@@ -10,6 +10,7 @@
 - [PR #562](https://github.com/konpyutaika/nifikop/pull/562) - **[Operator/NiFiCluster]** Added `sessionAffinity` field in external service.
 - [PR #564](https://github.com/konpyutaika/nifikop/pull/564) - **[Operator/NifiResource]** Implementation of `NifiResource` controller.
 - [PR #564](https://github.com/konpyutaika/nifikop/pull/564) - **[Operator/NiFiDataflow]** Added `parentProcessGroupRef` optional field.
+- [PR #570](https://github.com/konpyutaika/nifikop/pull/570) - **[Helm Chart]** Added `tlsConfig` support for the Service Monitor and ability to use NiFi version 2 monitoring paths.
 
 ### Changed
 
