@@ -7,37 +7,36 @@ metadata:
     {{- include "nifi-cluster.labels" . | nindent 4 }}
 spec:
   endpoints:
-  {{- range .Values.cluster.listenersConfig.internalListeners }}
-  {{- if eq .type .Values.monitoring.internalListenersType }}
-  {{- /*this is the name of the metrics port specified in the nifi-cluster service configuration*/}}
-  - path: {{ .Values.monitoring.path }}
-    port: {{ .name }}
-    {{- if .Values.monitoring.tlsConfig }}
+  {{- range $internalListener := .Values.cluster.listenersConfig.internalListeners }}
+  {{- if eq $internalListener.type $.Values.monitoring.internalListenersType }}
+  - path: {{ $.Values.monitoring.path }}
+    port: {{ $internalListener.name }}
+    {{- if $.Values.monitoring.tlsConfig }}
     tlsConfig:
-      {{- with .Values.monitoring.tlsConfig.caFile }}
+      {{- with $.Values.monitoring.tlsConfig.caFile }}
       caFile: {{ . }}
       {{- end }}
-      {{- with .Values.monitoring.tlsConfig.certFile }}
+      {{- with $.Values.monitoring.tlsConfig.certFile }}
       certFile: {{ . }}
       {{- end }}
-      {{- with .Values.monitoring.tlsConfig.keyFile }}
+      {{- with $.Values.monitoring.tlsConfig.keyFile }}
       keyFile: {{ . }}
       {{- end }}
-      {{- with .Values.monitoring.tlsConfig.insecureSkipVerify }}
+      {{- with $.Values.monitoring.tlsConfig.insecureSkipVerify }}
       insecureSkipVerify: {{ . }}
       {{- end }}
-      {{- with .Values.monitoring.tlsConfig.serverName }}
+      {{- with $.Values.monitoring.tlsConfig.serverName }}
       serverName: {{ . }}
       {{- end }}
     {{- end }}
-    {{- with .Values.monitoring.interval }}
+    {{- with $.Values.monitoring.interval }}
     interval: {{ . }}
     {{- end }}
   {{- end }}
   {{- end }}
   namespaceSelector:
     matchNames:
-    - {{ .Release.Namespace }}
+      - {{ .Release.Namespace }}
   selector:
     matchLabels:
       nifi_cr: {{ include "nifi-cluster.fullname" . }}
