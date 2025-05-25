@@ -145,8 +145,8 @@ Now deploy the helm chart:
 helm install nifikop \
     oci://ghcr.io/konpyutaika/helm-charts/nifikop \
     --namespace=nifi \
-    --version 1.13.0 \
-    --set image.tag=v1.13.0-release \
+    --version 1.14.0 \
+    --set image.tag=v1.14.0-release \
     --set resources.requests.memory=256Mi \
     --set resources.requests.cpu=250m \
     --set resources.limits.memory=256Mi \
