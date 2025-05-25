@@ -2,6 +2,18 @@
 
 ### Added
 
+### Changed
+
+### Fixed Bugs
+
+### Deprecated
+
+### Removed
+
+## v1.14.0
+
+### Added
+
 - [PR #500](https://github.com/konpyutaika/nifikop/pull/500) - **[Operator/NiFiCluster]** Added support for [Zarf](https://zarf.dev/) patched container images.
 - [PR #525](https://github.com/konpyutaika/nifikop/pull/525) - **[Operator/NiFiCluster]** Added support for IPv6 in `NifiCluster`.
 - [PR #544](https://github.com/konpyutaika/nifikop/pull/544) - **[Helm Chart]** Added additionnal envs.
@@ -23,10 +35,6 @@
 - [PR #536](https://github.com/konpyutaika/nifikop/pull/536) - **[Operator/NifiUserGroup]** Fixed users removal from user groups.
 - [PR #565](https://github.com/konpyutaika/nifikop/pull/565) - **[Operator/NifiConnection]** Fixed requeue interval divided by 3.
 - [PR #569](https://github.com/konpyutaika/nifikop/pull/569) - **[Helm Chart]** Fixed templates when cert manager is disabled.
-
-### Deprecated
-
-### Removed
 
 ## v1.13.0
 

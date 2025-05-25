@@ -33,7 +33,7 @@ body:
     attributes:
       label: NiFiKop version
       description: NiFiKop release or git SHA
-      placeholder: v1.13.0-release
+      placeholder: v1.14.0-release
 
   - type: input
     attributes:
