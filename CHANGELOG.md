@@ -6,6 +6,8 @@
 
 ### Fixed Bugs
 
+- [PR #573](https://github.com/konpyutaika/nifikop/pull/573) - **[Helm Chart]** Fixed template not resolving for service monitor.
+
 ### Deprecated
 
 ### Removed
