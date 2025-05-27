@@ -7,6 +7,7 @@
 ### Fixed Bugs
 
 - [PR #573](https://github.com/konpyutaika/nifikop/pull/573) - **[Helm Chart]** Fixed template not resolving for service monitor.
+- [PR #576](https://github.com/konpyutaika/nifikop/pull/576) - **[Helm Chart]** Fixed template not passing in webhook.enabled or certManager.enabled as arguments for the operator.
 
 ### Deprecated
 
