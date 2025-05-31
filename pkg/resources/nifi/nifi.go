@@ -76,7 +76,13 @@ func getCreatedPVCForNode(c client.Client, nodeID int32, namespace, crName strin
 	if err != nil {
 		return nil, err
 	}
-	return foundPVCList.Items, nil
+        PVCList := make([]corev1.PersistentVolumeClaim, 0)
+        for _, pvc := range foundPVCList.Items {
+                if !k8sutil.IsMarkedForDeletion(pvc.ObjectMeta) {
+                        PVCList = append(PVCList, pvc)
+                }
+        }
+        return PVCList, nil
 }
 
 // Reconcile implements the reconcile logic for nifi.
