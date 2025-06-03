@@ -69,7 +69,6 @@ var LoginIdentityProvidersTemplate = `<?xml version="1.0" encoding="UTF-8" stand
     <provider>
         <identifier>ldap-provider</identifier>
         <class>org.apache.nifi.ldap.LdapProvider</class>
-        <property name="Authentication Strategy">{{.LdapConfiguration.AuthenticationStrategy}}</property>
         <property name="Authentication Strategy">{{or .LdapConfiguration.AuthenticationStrategy "START_TLS"}}</property>
         <property name="Manager DN">{{.LdapConfiguration.ManagerDn}}</property>
         <property name="Manager Password">{{.LdapConfiguration.ManagerPassword}}</property>
