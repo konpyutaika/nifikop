@@ -295,7 +295,6 @@ func (r *Reconciler) getStateManagementConfigString(nConfig *v1.NodeConfig, id i
 func (r *Reconciler) getLoginIdentityProvidersConfigString(nConfig *v1.NodeConfig, id int32, log zap.Logger) string {
 	var out bytes.Buffer
 	t := template.Must(template.New("nConfig-config").Parse(config.LoginIdentityProvidersTemplate))
-	r.NifiCluster.Spec.LdapConfiguration.AuthenticationStrategy = "TTO"
 	if err := t.Execute(&out, map[string]interface{}{
 		"NifiCluster":             r.NifiCluster,
 		"Id":                      id,
