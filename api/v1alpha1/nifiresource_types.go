@@ -87,7 +87,7 @@ func (r *NifiResourceSpec) GetParentProcessGroupID(rootProcessGroupId, parentPro
 	if parentProcessGroupId != "" {
 		return parentProcessGroupId
 	} else if r.ParentProcessGroupID != "" {
-		return rootProcessGroupId
+		return r.ParentProcessGroupID
 	}
 	return rootProcessGroupId
 }

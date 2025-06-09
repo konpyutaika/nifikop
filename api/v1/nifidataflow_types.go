@@ -171,7 +171,7 @@ func (d *NifiDataflowSpec) GetParentProcessGroupID(rootProcessGroupId, parentPro
 	if parentProcessGroupId != "" {
 		return parentProcessGroupId
 	} else if d.ParentProcessGroupID != "" {
-		return rootProcessGroupId
+		return d.ParentProcessGroupID
 	}
 	return rootProcessGroupId
 }
