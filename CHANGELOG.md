@@ -2,6 +2,18 @@
 
 ### Added
 
+### Changed
+
+### Fixed Bugs
+
+### Deprecated
+
+### Removed
+
+## v1.14.1
+
+### Added
+
 - [PR #586](https://github.com/konpyutaika/nifikop/pull/586) - **[Documentation]** Added NifiCluster examples for LDAP / OIDC / HTTP on NiFi 2.
 
 ### Changed
@@ -15,10 +27,6 @@
 - [PR #580](https://github.com/konpyutaika/nifikop/pull/580) - **[Operator/NifiCluster]** Fixed deleted PVC detection.
 - [PR #581](https://github.com/konpyutaika/nifikop/pull/581) - **[Operator/NifiCluster]** Removed duplicate property in LDAP configuration.
 - [PR #584](https://github.com/konpyutaika/nifikop/pull/584) - **[Operator/NifiDataflow]** Fixed parent process group function.
-
-### Deprecated
-
-### Removed
 
 ## v1.14.0
 
