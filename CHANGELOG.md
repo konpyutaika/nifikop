@@ -10,6 +10,7 @@
 - [PR #576](https://github.com/konpyutaika/nifikop/pull/576) - **[Helm Chart]** Fixed template not passing in webhook.enabled or certManager.enabled as arguments for the operator.
 - [PR #580](https://github.com/konpyutaika/nifikop/pull/580) - **[Operator/NifiCluster]** Fixed deleted PVC detection.
 - [PR #581](https://github.com/konpyutaika/nifikop/pull/581) - **[Operator/NifiCluster]** Removed duplicate property in LDAP configuration.
+- [PR #584](https://github.com/konpyutaika/nifikop/pull/584) - **[Operator/NifiDataflow]** Fixed parent process group function.
 
 ### Deprecated
 
