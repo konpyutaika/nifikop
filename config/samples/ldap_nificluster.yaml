@@ -1,0 +1,344 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ldap
+  namespace: nifikop
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: openldap
+  namespace: nifikop
+spec:
+  ports:
+    - port: 389
+      targetPort: 389
+      protocol: TCP
+      name: ldap
+  selector:
+    app: openldap
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: openldap-users
+  namespace: nifikop
+data:
+  nifikop.ldif: |
+    dn: uid=nifikop,dc=konpyutaika,dc=local
+    objectClass: inetOrgPerson
+    objectClass: posixAccount
+    objectClass: top
+    cn: NiFiKoP
+    sn: Operator
+    uid: nifikop
+    uidNumber: 10001
+    gidNumber: 10001
+    homeDirectory: /home/nifikop
+    userPassword: {SSHA}RKQnj5grdA5/9sUzejXog3Yjo9cH6tFd
+## username: nifikop
+## password: nifikop
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: openldap
+  namespace: nifikop
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: openldap
+  template:
+    metadata:
+      labels:
+        app: openldap
+    spec:
+      initContainers:
+        - name: copy-ldif
+          image: busybox
+          command: ["sh", "-c", "cp /ldif/* /ldif-writable/"]
+          volumeMounts:
+            - name: openldap-users
+              mountPath: /ldif
+            - name: openldap-users-writable
+              mountPath: /ldif-writable
+      containers:
+        - name: openldap
+          image: osixia/openldap:1.5.0
+          ports:
+            - containerPort: 389
+          env:
+            - name: LDAP_ORGANISATION
+              value: "Konpyutaika"
+            - name: LDAP_DOMAIN
+              value: "konpyutaika.local"
+            - name: LDAP_ADMIN_PASSWORD
+              value: "admin"
+            - name: LDAP_REMOVE_CONFIG_AFTER_SETUP
+              value: "false"
+          volumeMounts:
+            - name: openldap-users-writable
+              mountPath: /container/service/slapd/assets/config/bootstrap/ldif/custom
+      volumes:
+        - name: openldap-users
+          configMap:
+            name: openldap-users
+        - name: openldap-users-writable
+          emptyDir: {}
+---
+apiVersion: nifi.konpyutaika.com/v1
+kind: NifiCluster
+metadata:
+  name: nifikop
+  namespace: nifikop
+spec:
+  clusterImage: apache/nifi:2.4.0
+  nodeUserIdentityTemplate: node-%d-nifikop
+  externalServices:
+    - name: nifikop
+      spec:
+        portConfigs:
+          - internalListenerName: https
+            port: 443
+          - internalListenerName: s2s
+            port: 10000
+        type: LoadBalancer
+  listenersConfig:
+    internalListeners:
+      - containerPort: 8443
+        name: https
+        type: https
+      - containerPort: 6007
+        name: cluster
+        type: cluster
+      - containerPort: 10000
+        name: s2s
+        type: s2s
+    sslSecrets:
+      create: true
+      tlsSecretName: nifikop-tls
+  nifiClusterTaskSpec:
+    retryDurationMinutes: 10
+  managedAdminUsers:
+    - identity: nifikop
+      name: nifikop
+  ldapConfiguration:
+    enabled: true
+    url: ldap://openldap.nifikop.svc.cluster.local:389
+    searchBase: dc=konpyutaika,dc=local
+    searchFilter: (uid={0})
+    authenticationStrategy: SIMPLE
+    managerDn: cn=admin,dc=konpyutaika,dc=local
+    managerPassword: admin
+    referralStrategy: FOLLOW
+    identityStrategy: USE_DN
+  nodeConfigGroups:
+    default_group:
+      fsGroup: 1337
+      isNode: true
+      resourcesRequirements:
+        limits:
+          cpu: "4"
+          memory: 3Gi
+        requests:
+          cpu: "4"
+          memory: 2Gi
+      serviceAccountName: nifikop-cluster
+      storageConfigs:
+        - mountPath: /opt/nifi/nifi-current/logs
+          name: logs
+          pvcSpec:
+            accessModes:
+              - ReadWriteOnce
+            resources:
+              requests:
+                storage: 5Gi
+        - mountPath: /opt/nifi/data
+          name: data
+          pvcSpec:
+            accessModes:
+              - ReadWriteOnce
+            resources:
+              requests:
+                storage: 5Gi
+        - mountPath: /opt/nifi/flowfile_repository
+          name: flowfile-repository
+          pvcSpec:
+            accessModes:
+              - ReadWriteOnce
+            resources:
+              requests:
+                storage: 10Gi
+        - mountPath: /opt/nifi/nifi-current/conf
+          name: conf
+          pvcSpec:
+            accessModes:
+              - ReadWriteOnce
+            resources:
+              requests:
+                storage: 5Gi
+        - mountPath: /opt/nifi/content_repository
+          name: content-repository-default
+          pvcSpec:
+            accessModes:
+              - ReadWriteOnce
+            resources:
+              requests:
+                storage: 10Gi
+        - mountPath: /opt/nifi/provenance_repository
+          name: provenance-repository-default
+          pvcSpec:
+            accessModes:
+              - ReadWriteOnce
+            resources:
+              requests:
+                storage: 10Gi
+        - mountPath: /opt/nifi/extensions
+          name: extensions-repository
+          pvcSpec:
+            accessModes:
+              - ReadWriteOnce
+            resources:
+              requests:
+                storage: 1Gi
+  nodes:
+    - id: 0
+      labels:
+        nifi_cr: nifikop
+        nifi_node_group: default_group
+      nodeConfigGroup: default_group
+  propagateLabels: false
+  readOnlyConfig:
+    bootstrapProperties:
+      nifiJvmMemory: 3g
+      overrideConfigs: |
+        # Java 8 Tuning see https://community.hortonworks.com/articles/7882/hdfnifi-best-practices-for-setting-up-a-high-perfo.html for references
+        java.arg.7=-XX:ReservedCodeCacheSize=256m
+        java.arg.8=-XX:+UseCodeCacheFlushing
+    maximumTimerDrivenThreadCount: 40
+    nifiProperties:
+      overrideConfigs: |
+        nifi.nar.library.autoload.directory=../extensions
+        nifi.security.identity.mapping.pattern.dn=CN=([^,]*)(?:, (?:O|OU)=.*)?
+        nifi.security.identity.mapping.value.dn=$1
+        nifi.security.identity.mapping.transform.dn=NONE
+        nifi.security.identity.mapping.pattern.ldap=^uid=([^,]+),.*
+        nifi.security.identity.mapping.value.ldap=$1
+        nifi.security.identity.mapping.transform.ldap=NONE
+        nifi.sensitive.props.key=nifikopnifikopnifikop
+      webProxyHosts:
+        - nifikop.127.0.0.1.nip.io:443
+        - nifikop.127.0.0.1.nip.io
+  service:
+    headlessEnabled: true
+  sidecarConfigs:
+    - args:
+        - tail
+        - -n+1
+        - -F
+        - /var/log/nifi-app.log
+      image: busybox:1.36
+      name: app-log
+      resources:
+        limits:
+          cpu: 50m
+          memory: 50Mi
+        requests:
+          cpu: 50m
+          memory: 50Mi
+      volumeMounts:
+        - mountPath: /var/log
+          name: logs
+    - args:
+        - tail
+        - -n+1
+        - -F
+        - /var/log/nifi-bootstrap.log
+      image: busybox:1.36
+      name: bootstrap-log
+      resources:
+        limits:
+          cpu: 50m
+          memory: 50Mi
+        requests:
+          cpu: 50m
+          memory: 50Mi
+      volumeMounts:
+        - mountPath: /var/log
+          name: logs
+    - args:
+        - tail
+        - -n+1
+        - -F
+        - /var/log/nifi-user.log
+      image: busybox:1.36
+      name: user-log
+      resources:
+        limits:
+          cpu: 50m
+          memory: 50Mi
+        requests:
+          cpu: 50m
+          memory: 50Mi
+      volumeMounts:
+        - mountPath: /var/log
+          name: logs
+  clusterManager: kubernetes
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nifikop
+  namespace: nifikop
+  annotations:
+    nginx.org/ssl-services: nifikop
+    nginx.org/lb-method: ip_hash
+spec:
+  rules:
+    - host: nifikop.127.0.0.1.nip.io
+      http:
+        paths:
+          - backend:
+              service:
+                name: nifikop
+                port:
+                  number: 443
+            path: /
+            pathType: Prefix
+  tls:
+    - hosts:
+        - nifikop.127.0.0.1.nip.io
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: nifikop-cluster
+  namespace: nifikop
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: nifikop-cluster
+  namespace: nifikop
+rules:
+- apiGroups: ["coordination.k8s.io"]
+  resources: ["leases"]
+  verbs: ["*"]
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["*"]
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: nifikop-cluster
+  namespace: nifikop
+subjects:
+  - kind: ServiceAccount
+    name: nifikop-cluster
+    namespace: nifikop
+roleRef:
+  kind: Role
+  name: nifikop-cluster
+  apiGroup: rbac.authorization.k8s.io
