@@ -4,6 +4,8 @@
 
 ### Changed
 
+- [PR #585](https://github.com/konpyutaika/nifikop/pull/585) - **[Operator]** Upgrade golang to 1.24.4.
+
 ### Fixed Bugs
 
 - [PR #573](https://github.com/konpyutaika/nifikop/pull/573) - **[Helm Chart]** Fixed template not resolving for service monitor.
