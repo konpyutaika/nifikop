@@ -2,6 +2,8 @@
 
 ### Added
 
+- [PR #586](https://github.com/konpyutaika/nifikop/pull/586) - **[Documentation]** Added NifiCluster examples for LDAP / OIDC / HTTP on NiFi 2.
+
 ### Changed
 
 - [PR #585](https://github.com/konpyutaika/nifikop/pull/585) - **[Operator]** Upgrade golang to 1.24.4.
