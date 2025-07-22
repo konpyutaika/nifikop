@@ -6,6 +6,8 @@
 
 ### Fixed Bugs
 
+- [PR #592](https://github.com/konpyutaika/nifikop/pull/592) - **[Operator]** Add missing timeout value to api HTTP client
+
 ### Deprecated
 
 ### Removed
