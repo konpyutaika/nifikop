@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	NifiDefaultTimeout = int64(5)
+	NifiDefaultTimeout = int64(30)
 )
 
 type Manager interface {

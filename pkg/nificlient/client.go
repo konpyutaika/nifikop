@@ -230,9 +230,9 @@ func (n *nifiClient) getNifiGoApiConfig() (config *nigoapi.Configuration) {
 		}
 	}
 
-	config.HTTPClient = &http.Client{}
+	config.HTTPClient = &http.Client{Timeout: n.timeout}
 	if transport != nil {
-		config.HTTPClient = &http.Client{Transport: transport}
+		config.HTTPClient.Transport = transport
 	}
 
 	config.BasePath = fmt.Sprintf("%s://%s/nifi-api", protocol, n.opts.NifiURI)
@@ -248,7 +248,6 @@ func (n *nifiClient) getNifiGoApiConfig() (config *nigoapi.Configuration) {
 
 func (n *nifiClient) getNiNodeGoApiConfig(nodeId int32) (config *nigoapi.Configuration) {
 	config = nigoapi.NewConfiguration()
-	config.HTTPClient = &http.Client{}
 	protocol := "http"
 
 	var transport *http.Transport = nil
@@ -268,9 +267,9 @@ func (n *nifiClient) getNiNodeGoApiConfig(nodeId int32) (config *nigoapi.Configu
 			transport.Proxy = http.ProxyURL(proxyUrl)
 		}
 	}
-	config.HTTPClient = &http.Client{}
+	config.HTTPClient = &http.Client{Timeout: n.timeout}
 	if transport != nil {
-		config.HTTPClient = &http.Client{Transport: transport}
+		config.HTTPClient.Transport = transport
 	}
 
 	config.BasePath = fmt.Sprintf("%s://%s/nifi-api", protocol, n.opts.NodesURI[nodeId].RequestHost)
