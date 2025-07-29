@@ -4,6 +4,8 @@
 
 ### Changed
 
+- [PR #593](https://github.com/konpyutaika/nifikop/pull/593) - **[Operator]** Upgrade golang to 1.24.5.
+
 ### Fixed Bugs
 
 - [PR #592](https://github.com/konpyutaika/nifikop/pull/592) - **[Operator]** Add missing timeout value to api HTTP client
