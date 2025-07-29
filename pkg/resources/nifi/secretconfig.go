@@ -40,17 +40,17 @@ func (r *Reconciler) secretConfig(id int32, nodeConfig *v1.NodeConfig, serverPas
 		),
 		Data: map[string][]byte{
 			"nifi.properties":                     []byte(r.generateNifiPropertiesNodeConfig(id, nodeConfig, serverPass, clientPass, superUsers, log)),
-			"zookeeper.properties":                []byte(r.generateZookeeperPropertiesNodeConfig(id, nodeConfig, log)),
-			"state-management.xml":                []byte(r.getStateManagementConfigString(nodeConfig, id, log)),
-			"login-identity-providers.xml":        []byte(r.getLoginIdentityProvidersConfigString(nodeConfig, id, log)),
-			"logback.xml":                         []byte(r.getLogbackConfigString(nodeConfig, id, log)),
-			"bootstrap.conf":                      []byte(r.generateBootstrapPropertiesNodeConfig(id, nodeConfig, log)),
-			"bootstrap-notification-services.xml": []byte(r.getBootstrapNotificationServicesConfigString(nodeConfig, id, log)),
+			"zookeeper.properties":                []byte(r.generateZookeeperPropertiesNodeConfig(id, log)),
+			"state-management.xml":                []byte(r.getStateManagementConfigString(id, log)),
+			"login-identity-providers.xml":        []byte(r.getLoginIdentityProvidersConfigString(id, log)),
+			"logback.xml":                         []byte(r.getLogbackConfigString(id, log)),
+			"bootstrap.conf":                      []byte(r.generateBootstrapPropertiesNodeConfig(id, log)),
+			"bootstrap-notification-services.xml": []byte(r.getBootstrapNotificationServicesConfigString(id, log)),
 		},
 	}
 
 	if configcommon.UseSSL(r.NifiCluster) {
-		secret.Data["authorizers.xml"] = []byte(r.getAuthorizersConfigString(nodeConfig, id, log))
+		secret.Data["authorizers.xml"] = []byte(r.getAuthorizersConfigString(id, log))
 	}
 	return secret
 }
@@ -187,7 +187,7 @@ func generateSuperUsers(users []string) (suStrings []string) {
 //  Zookeeper properties configuration //
 /////////////////////////////////////////
 
-func (r Reconciler) generateZookeeperPropertiesNodeConfig(id int32, nodeConfig *v1.NodeConfig, log zap.Logger) string {
+func (r Reconciler) generateZookeeperPropertiesNodeConfig(id int32, log zap.Logger) string {
 	var readOnlyClusterConfig map[string]string
 
 	if &r.NifiCluster.Spec.ReadOnlyConfig != (&v1.ReadOnlyConfig{}) && &r.NifiCluster.Spec.ReadOnlyConfig.ZookeeperProperties != (&v1.ZookeeperProperties{}) {
@@ -228,7 +228,7 @@ func (r Reconciler) generateZookeeperPropertiesNodeConfig(id int32, nodeConfig *
 			zap.Error(err))
 	}
 
-	if err := mergo.Merge(&completeConfigMap, util.ParsePropertiesFormat(r.getZookeeperPropertiesConfigString(nodeConfig, id, log))); err != nil {
+	if err := mergo.Merge(&completeConfigMap, util.ParsePropertiesFormat(r.getZookeeperPropertiesConfigString(id, log))); err != nil {
 		log.Error("error occurred during merging operator generated configs",
 			zap.String("clusterName", r.NifiCluster.Name),
 			zap.Int32("nodeId", id),
@@ -247,7 +247,7 @@ func (r Reconciler) generateZookeeperPropertiesNodeConfig(id int32, nodeConfig *
 	return strings.Join(completeConfig, "\n")
 }
 
-func (r *Reconciler) getZookeeperPropertiesConfigString(nConfig *v1.NodeConfig, id int32, log zap.Logger) string {
+func (r *Reconciler) getZookeeperPropertiesConfigString(id int32, log zap.Logger) string {
 	base := r.NifiCluster.Spec.ReadOnlyConfig.ZookeeperProperties.DeepCopy()
 	for _, node := range r.NifiCluster.Spec.Nodes {
 		if node.Id == id && node.ReadOnlyConfig != nil && &node.ReadOnlyConfig.ZookeeperProperties != (&v1.ZookeeperProperties{}) {
@@ -270,7 +270,7 @@ func (r *Reconciler) getZookeeperPropertiesConfigString(nConfig *v1.NodeConfig, 
 //  State Management configuration //
 /////////////////////////////////////
 
-func (r *Reconciler) getStateManagementConfigString(nConfig *v1.NodeConfig, id int32, log zap.Logger) string {
+func (r *Reconciler) getStateManagementConfigString(id int32, log zap.Logger) string {
 	var out bytes.Buffer
 	t := template.Must(template.New("nConfig-config").Parse(config.StateManagementTemplate))
 	if err := t.Execute(&out, map[string]interface{}{
@@ -292,7 +292,7 @@ func (r *Reconciler) getStateManagementConfigString(nConfig *v1.NodeConfig, id i
 //  Login identity providers configuration //
 /////////////////////////////////////////////
 
-func (r *Reconciler) getLoginIdentityProvidersConfigString(nConfig *v1.NodeConfig, id int32, log zap.Logger) string {
+func (r *Reconciler) getLoginIdentityProvidersConfigString(id int32, log zap.Logger) string {
 	var out bytes.Buffer
 	t := template.Must(template.New("nConfig-config").Parse(config.LoginIdentityProvidersTemplate))
 	if err := t.Execute(&out, map[string]interface{}{
@@ -313,7 +313,7 @@ func (r *Reconciler) getLoginIdentityProvidersConfigString(nConfig *v1.NodeConfi
 //  Logback configuration //
 ////////////////////////////
 
-func (r *Reconciler) getLogbackConfigString(nConfig *v1.NodeConfig, id int32, log zap.Logger) string {
+func (r *Reconciler) getLogbackConfigString(id int32, log zap.Logger) string {
 	for _, node := range r.NifiCluster.Spec.Nodes {
 		if node.Id == id && node.ReadOnlyConfig != nil && &node.ReadOnlyConfig.LogbackConfig != (&v1.LogbackConfig{}) {
 			if node.ReadOnlyConfig.LogbackConfig.ReplaceSecretConfig != nil {
@@ -381,7 +381,7 @@ func (r *Reconciler) getLogbackConfigString(nConfig *v1.NodeConfig, id int32, lo
 //  Bootstrap notification service configuration //
 ///////////////////////////////////////////////////
 
-func (r *Reconciler) getBootstrapNotificationServicesConfigString(nConfig *v1.NodeConfig, id int32, log zap.Logger) string {
+func (r *Reconciler) getBootstrapNotificationServicesConfigString(id int32, log zap.Logger) string {
 	for _, node := range r.NifiCluster.Spec.Nodes {
 		if node.Id == id && node.ReadOnlyConfig != nil && &node.ReadOnlyConfig.BootstrapNotificationServicesReplaceConfig != (&v1.BootstrapNotificationServicesConfig{}) {
 			if node.ReadOnlyConfig.BootstrapNotificationServicesReplaceConfig.ReplaceSecretConfig != nil {
@@ -450,7 +450,7 @@ func (r *Reconciler) getBootstrapNotificationServicesConfigString(nConfig *v1.No
 ////////////////////////////////
 
 // TODO: Check if cases where is it necessary before using it (seems to be used for secured use cases).
-func (r *Reconciler) getAuthorizersConfigString(nConfig *v1.NodeConfig, id int32, log zap.Logger) string {
+func (r *Reconciler) getAuthorizersConfigString(id int32, log zap.Logger) string {
 	nodeList := make(map[string]string)
 
 	authorizersTemplate := config.EmptyAuthorizersTemplate
@@ -531,7 +531,7 @@ func (r *Reconciler) getAuthorizersConfigString(nConfig *v1.NodeConfig, id int32
 //  Bootstrap properties configuration  //
 //////////////////////////////////////////
 
-func (r Reconciler) generateBootstrapPropertiesNodeConfig(id int32, nodeConfig *v1.NodeConfig, log zap.Logger) string {
+func (r Reconciler) generateBootstrapPropertiesNodeConfig(id int32, log zap.Logger) string {
 	var readOnlyClusterConfig map[string]string
 
 	if &r.NifiCluster.Spec.ReadOnlyConfig != (&v1.ReadOnlyConfig{}) && &r.NifiCluster.Spec.ReadOnlyConfig.BootstrapProperties != (&v1.BootstrapProperties{}) {
@@ -572,7 +572,7 @@ func (r Reconciler) generateBootstrapPropertiesNodeConfig(id int32, nodeConfig *
 			zap.Error(err))
 	}
 
-	if err := mergo.Merge(&completeConfigMap, util.ParsePropertiesFormat(r.getBootstrapPropertiesConfigString(nodeConfig, id, log))); err != nil {
+	if err := mergo.Merge(&completeConfigMap, util.ParsePropertiesFormat(r.getBootstrapPropertiesConfigString(id, log))); err != nil {
 		log.Error("error occurred during merging operator generated configs",
 			zap.String("clusterName", r.NifiCluster.Name),
 			zap.Int32("nodeId", id),
@@ -591,7 +591,7 @@ func (r Reconciler) generateBootstrapPropertiesNodeConfig(id int32, nodeConfig *
 	return strings.Join(completeConfig, "\n")
 }
 
-func (r *Reconciler) getBootstrapPropertiesConfigString(nConfig *v1.NodeConfig, id int32, log zap.Logger) string {
+func (r *Reconciler) getBootstrapPropertiesConfigString(id int32, log zap.Logger) string {
 	base := r.NifiCluster.Spec.ReadOnlyConfig.BootstrapProperties.DeepCopy()
 	for _, node := range r.NifiCluster.Spec.Nodes {
 		if node.Id == id && node.ReadOnlyConfig != nil && &node.ReadOnlyConfig.BootstrapProperties != (&v1.BootstrapProperties{}) {
@@ -627,7 +627,13 @@ func (r *Reconciler) GetNifiPropertiesBase(id int32) *v1.NifiProperties {
 
 func (r Reconciler) getSecrectConfig(ctx context.Context, ref v1.SecretConfigReference) (conf string, err error) {
 	secret := &corev1.Secret{}
-	err = r.Client.Get(ctx, types.NamespacedName{Name: ref.Name, Namespace: ref.Namespace}, secret)
+
+	secretNamespace := ref.Namespace
+	if secretNamespace == "" {
+		secretNamespace = r.NifiCluster.Namespace
+	}
+
+	err = r.Client.Get(ctx, types.NamespacedName{Name: ref.Name, Namespace: secretNamespace}, secret)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			return conf, errorfactory.New(errorfactory.ResourceNotReady{}, err, "config secret not ready")
@@ -641,7 +647,13 @@ func (r Reconciler) getSecrectConfig(ctx context.Context, ref v1.SecretConfigRef
 
 func (r Reconciler) getConfigMap(ctx context.Context, ref v1.ConfigmapReference) (conf string, err error) {
 	configmap := &corev1.ConfigMap{}
-	err = r.Client.Get(ctx, types.NamespacedName{Name: ref.Name, Namespace: ref.Namespace}, configmap)
+
+	configmapNamespace := ref.Namespace
+	if configmapNamespace == "" {
+		configmapNamespace = r.NifiCluster.Namespace
+	}
+
+	err = r.Client.Get(ctx, types.NamespacedName{Name: ref.Name, Namespace: configmapNamespace}, configmap)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			return conf, errorfactory.New(errorfactory.ResourceNotReady{}, err, "configmap not ready")

@@ -76,13 +76,13 @@ func getCreatedPVCForNode(c client.Client, nodeID int32, namespace, crName strin
 	if err != nil {
 		return nil, err
 	}
-        PVCList := make([]corev1.PersistentVolumeClaim, 0)
-        for _, pvc := range foundPVCList.Items {
-                if !k8sutil.IsMarkedForDeletion(pvc.ObjectMeta) {
-                        PVCList = append(PVCList, pvc)
-                }
-        }
-        return PVCList, nil
+	PVCList := make([]corev1.PersistentVolumeClaim, 0)
+	for _, pvc := range foundPVCList.Items {
+		if !k8sutil.IsMarkedForDeletion(pvc.ObjectMeta) {
+			PVCList = append(PVCList, pvc)
+		}
+	}
+	return PVCList, nil
 }
 
 // Reconcile implements the reconcile logic for nifi.
@@ -315,13 +315,13 @@ func (r *Reconciler) Reconcile(log zap.Logger) error {
 
 	if r.NifiCluster.Spec.ReadOnlyConfig.MaximumTimerDrivenThreadCount != nil ||
 		r.NifiCluster.Spec.ReadOnlyConfig.MaximumEventDrivenThreadCount != nil {
-		if err := r.reconcileMaximumThreadCounts(log); err != nil {
+		if err := r.reconcileMaximumThreadCounts(); err != nil {
 			return errors.WrapIf(err, "failed to reconcile ressource")
 		}
 	}
 
 	if r.NifiCluster.Spec.GetMetricPort() != nil {
-		if err := r.reconcilePrometheusReportingTask(log); err != nil {
+		if err := r.reconcilePrometheusReportingTask(); err != nil {
 			return errors.WrapIf(err, "failed to reconcile ressource")
 		}
 	}
@@ -1049,7 +1049,7 @@ func (r *Reconciler) reconcileNifiUsersAndGroups(log zap.Logger) error {
 	return nil
 }
 
-func (r *Reconciler) reconcilePrometheusReportingTask(log zap.Logger) error {
+func (r *Reconciler) reconcilePrometheusReportingTask() error {
 	var err error
 
 	patchNifiCluster := client.MergeFrom(r.NifiCluster.DeepCopy())
@@ -1099,7 +1099,7 @@ func (r *Reconciler) reconcilePrometheusReportingTask(log zap.Logger) error {
 	return nil
 }
 
-func (r *Reconciler) reconcileMaximumThreadCounts(log zap.Logger) error {
+func (r *Reconciler) reconcileMaximumThreadCounts() error {
 	configManager := config.GetClientConfigManager(r.Client, v1.ClusterReference{
 		Namespace: r.NifiCluster.Namespace,
 		Name:      r.NifiCluster.Name,
