@@ -4,16 +4,22 @@
 
 ### Changed
 
+### Fixed Bugs
+
+### Deprecated
+
+### Removed
+
+## v1.14.2
+
+### Changed
+
 - [PR #593](https://github.com/konpyutaika/nifikop/pull/593) - **[Operator]** Upgrade golang to 1.24.5.
 
 ### Fixed Bugs
 
 - [PR #592](https://github.com/konpyutaika/nifikop/pull/592) - **[Operator]** Add missing timeout value to api HTTP client.
 - [PR #594](https://github.com/konpyutaika/nifikop/pull/594) - **[Operator/NifiCluster]** Fallback on NiFiCluster namespace for `overrideSecretConfig` and `overrideConfigMap` if none is provided.
-
-### Deprecated
-
-### Removed
 
 ## v1.14.1
 
