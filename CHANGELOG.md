@@ -2,6 +2,8 @@
 
 ### Added
 
+- [PR #601](https://github.com/konpyutaika/nifikop/pull/601) - **[Documentation]** Added NifiCluster example for Single User authentication on NiFi 2.
+
 ### Changed
 
 - [PR #597](https://github.com/konpyutaika/nifikop/pull/597) - **[NiGoApi]** Upgrade NiGoApi to v0.1.9.
