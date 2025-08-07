@@ -93,7 +93,7 @@ metadata:
   name: nifikop
   namespace: nifikop
 spec:
-  clusterImage: apache/nifi:2.4.0
+  clusterImage: apache/nifi:2.5.0
   nodeUserIdentityTemplate: node-%d-nifikop
   externalServices:
     - name: nifikop
