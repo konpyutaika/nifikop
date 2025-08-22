@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nifikop
+  namespace: nifi
+  annotations:
+    nginx.ingress.kubernetes.io/backend-protocol: HTTPS
+    nginx.ingress.kubernetes.io/ssl-passthrough: 'false'
+    nginx.ingress.kubernetes.io/use-regex: 'true'
+spec:
+  ingressClassName: nginx
+  rules:
+  # use your domain name here
+    - host: mydomain.example.com
+      http:
+        paths: 
+            # use your context path here
+          - path: /nifidev(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: nifi-nginx-proxy
+                port:
+                  number: 443
