@@ -1,3 +1,13 @@
+kind: Secret
+apiVersion: v1
+metadata:
+  name: single-user-credentials
+  namespace: nifikop
+type: Opaque
+stringData:
+  username: nifikop
+  password: nifikopnifikopnifikop
+---
 apiVersion: nifi.konpyutaika.com/v1
 kind: NifiCluster
 metadata:
@@ -6,31 +16,40 @@ metadata:
 spec:
   clusterImage: apache/nifi:2.5.0
   nodeUserIdentityTemplate: node-%d-nifikop
+  singleUserConfiguration:
+    enabled: true
+    authorizerEnabled: true
+    secretRef:
+      name: "single-user-credentials"
+      namespace: "nifikop"
+    secretKeys:
+      username: "username"
+      password: "password"
   externalServices:
     - name: nifikop
       spec:
         portConfigs:
-          - internalListenerName: http
-            port: 8080
+          - internalListenerName: https
+            port: 443
           - internalListenerName: s2s
             port: 10000
         type: LoadBalancer
   listenersConfig:
     internalListeners:
-      - containerPort: 8080
-        name: http
-        type: http
+      - containerPort: 8443
+        name: https
+        type: https
       - containerPort: 6007
         name: cluster
         type: cluster
       - containerPort: 10000
         name: s2s
         type: s2s
+    sslSecrets:
+      create: true
+      tlsSecretName: nifikop-tls
   nifiClusterTaskSpec:
     retryDurationMinutes: 10
-  managedAdminUsers:
-    - identity: juldrixx@gmail.com
-      name: jguitton
   nodeConfigGroups:
     default_group:
       fsGroup: 1337
@@ -120,7 +139,7 @@ spec:
         nifi.nar.library.autoload.directory=../extensions
         nifi.sensitive.props.key=nifikopnifikopnifikop
       webProxyHosts:
-        - nifikop.127.0.0.1.nip.io:8080
+        - nifikop.127.0.0.1.nip.io:443
         - nifikop.127.0.0.1.nip.io
   service:
     headlessEnabled: true
@@ -195,7 +214,7 @@ spec:
               service:
                 name: nifikop
                 port:
-                  number: 8080
+                  number: 443
             path: /
             pathType: Prefix
 ---
@@ -211,12 +230,12 @@ metadata:
   name: nifikop-cluster
   namespace: nifikop
 rules:
-- apiGroups: ["coordination.k8s.io"]
-  resources: ["leases"]
-  verbs: ["*"]
-- apiGroups: [""]
-  resources: ["configmaps"]
-  verbs: ["*"]
+  - apiGroups: ["coordination.k8s.io"]
+    resources: ["leases"]
+    verbs: ["*"]
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["*"]
 ---
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1

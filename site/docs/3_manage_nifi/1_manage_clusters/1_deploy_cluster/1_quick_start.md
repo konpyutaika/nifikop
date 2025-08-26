@@ -132,6 +132,7 @@ kubectl create -n nifi -f config/samples/simplenificluster.yaml
 :::info
 You can find other examples for NiFi 2 for:
 - HTTP: `config/samples/http_nificluster.yaml`
+- SINGLE USER: `config/samples/single_user_nificluster.yaml`
 - OIDC: `config/samples/oidc_nificluster.yaml`
 - LDAP: `config/samples/ldap_nificluster.yaml`
 :::
