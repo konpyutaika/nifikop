@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nifi-nginx-proxy
+  namespace: nifi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nifi-nginx-proxy
+  template:
+    metadata:
+      labels:
+        app: nifi-nginx-proxy
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.25-alpine
+          ports:
+            - containerPort: 443
+          volumeMounts:
+            - name: tls-certs
+              mountPath: /etc/nginx/certs
+              readOnly: true
+            - name: nginx-conf
+              mountPath: /etc/nginx/conf.d
+      volumes:
+        - name: tls-certs
+          secret:
+            secretName: mydomain-tls-secret # Generate or use any valid SSL credentials. Then change this to your TLS secret name
+        - name: nginx-conf
+          configMap:
+            name: nifi-nginx-conf
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nifi-nginx-proxy
+  namespace: nifi
+spec:
+  type: ClusterIP
+  ports:
+    - port: 443
+      targetPort: 443
+  selector:
+    app: nifi-nginx-proxy 
