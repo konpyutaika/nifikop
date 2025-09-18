@@ -2,6 +2,7 @@ package nifi
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"reflect"
 	"sort"
@@ -46,6 +47,86 @@ const (
 	clientKeystoreVolume = "client-ks-files"
 	clientKeystorePath   = "/var/run/secrets/java.io/keystores/client"
 )
+
+func isLinkerdInjected(p *corev1.Pod) bool {
+	if p == nil {
+		return false
+	}
+	if _, ok := p.Annotations["linkerd.io/proxy-version"]; ok {
+		return true
+	}
+	if v, ok := p.Annotations["linkerd.io/inject"]; ok && (v == "enabled" || v == "true") {
+		return true
+	}
+	for _, c := range p.Spec.Containers {
+		if c.Name == "linkerd-proxy" {
+			return true
+		}
+	}
+	return false
+}
+
+func unionLinkerdAnnotations(desired, current *corev1.Pod) {
+	if desired.Annotations == nil {
+		desired.Annotations = map[string]string{}
+	}
+	for k, v := range current.Annotations {
+		if strings.HasPrefix(k, "linkerd.io/") || strings.HasPrefix(k, "config.linkerd.io/") {
+			desired.Annotations[k] = v
+		}
+	}
+}
+
+func unionLinkerdVolumes(desired, current *corev1.Pod) {
+	have := make(map[string]struct{}, len(desired.Spec.Volumes))
+	for _, v := range desired.Spec.Volumes {
+		have[v.Name] = struct{}{}
+	}
+	for _, v := range current.Spec.Volumes {
+		if strings.HasPrefix(v.Name, "linkerd-") || strings.HasPrefix(v.Name, "kube-api-access-") {
+			if _, ok := have[v.Name]; !ok {
+				desired.Spec.Volumes = append(desired.Spec.Volumes, v)
+				have[v.Name] = struct{}{}
+			}
+		}
+	}
+}
+
+func unionLinkerdVolumeMounts(dst, src []corev1.Container) []corev1.Container {
+	idx := make(map[string]int, len(dst))
+	for i := range dst {
+		idx[dst[i].Name] = i
+	}
+	for _, sc := range src {
+		di, ok := idx[sc.Name]
+		if !ok {
+			continue
+		}
+		have := make(map[string]struct{}, len(dst[di].VolumeMounts))
+		for _, m := range dst[di].VolumeMounts {
+			have[m.Name] = struct{}{}
+		}
+		for _, m := range sc.VolumeMounts {
+			if strings.HasPrefix(m.Name, "linkerd-") || strings.HasPrefix(m.Name, "kube-api-access-") {
+				if _, ok := have[m.Name]; !ok {
+					dst[di].VolumeMounts = append(dst[di].VolumeMounts, m)
+					have[m.Name] = struct{}{}
+				}
+			}
+		}
+	}
+	return dst
+}
+
+func meshAwareMerge(desired, current *corev1.Pod) {
+	if !isLinkerdInjected(current) {
+		return
+	}
+	unionLinkerdAnnotations(desired, current)
+	unionLinkerdVolumes(desired, current)
+	desired.Spec.Containers = unionLinkerdVolumeMounts(desired.Spec.Containers, current.Spec.Containers)
+	desired.Spec.InitContainers = unionLinkerdVolumeMounts(desired.Spec.InitContainers, current.Spec.InitContainers)
+}
 
 // Reconciler implements the Component Reconciler.
 type Reconciler struct {
@@ -799,7 +880,8 @@ func (r *Reconciler) reconcileNifiPod(log zap.Logger, desiredPod *corev1.Pod) (e
 			}
 			desiredPod.Spec.Containers = desiredContainers
 		}
-		// Check if the resource actually updated
+		// Linkerd – normalize desired against current before diffing
+		meshAwareMerge(desiredPod, currentPod)
 		patchResult, err := patch.DefaultPatchMaker.Calculate(currentPod, desiredPod, opts...)
 		if err != nil {
 			log.Error("could not match pod objects",
@@ -827,6 +909,39 @@ func (r *Reconciler) reconcileNifiPod(log zap.Logger, desiredPod *corev1.Pod) (e
 				return nil, k8sutil.PodReady(currentPod)
 			}
 		} else {
+			var pr map[string]interface{}
+			if err := json.Unmarshal(patchResult.Patch, &pr); err == nil {
+				if spec, ok := pr["spec"].(map[string]interface{}); ok && len(spec) > 0 {
+					onlyOrder := true
+					for k := range spec {
+						if !strings.HasPrefix(k, "$setElementOrder/") {
+							onlyOrder = false
+							break
+						}
+					}
+					if onlyOrder {
+						if !k8sutil.IsPodTerminatedOrShutdown(currentPod) &&
+							r.NifiCluster.Status.NodesState[currentPod.Labels["nodeId"]].ConfigurationState == v1.ConfigInSync {
+							if val, found := r.NifiCluster.Status.NodesState[desiredPod.Labels["nodeId"]]; found &&
+								val.GracefulActionState.State == v1.GracefulUpscaleRunning &&
+								val.GracefulActionState.ActionStep == v1.ConnectStatus &&
+								k8sutil.PodReady(currentPod) {
+								if err := k8sutil.UpdateNodeStatus(
+									r.Client, []string{desiredPod.Labels["nodeId"]},
+									r.NifiCluster, r.NifiClusterCurrentStatus,
+									v1.GracefulActionState{ErrorMessage: "", State: v1.GracefulUpscaleSucceeded}, log,
+								); err != nil {
+									return errorfactory.New(errorfactory.StatusUpdateError{}, err, "could not update node graceful action state"), false
+								}
+							}
+							log.Debug("pod resource is in sync (order-only diff ignored)",
+								zap.String("clusterName", r.NifiCluster.Name),
+								zap.String("podName", currentPod.Name))
+							return nil, k8sutil.PodReady(currentPod)
+						}
+					}
+				}
+			}
 			log.Debug("resource diffs",
 				zap.String("patch", string(patchResult.Patch)),
 				zap.String("current", string(patchResult.Current)),
