@@ -140,6 +140,27 @@ func (r *Reconciler) pod(node v1.Node, nodeConfig *v1.NodeConfig, pvcs []corev1.
 	// curl -kv --cert /var/run/secrets/java.io/keystores/client/tls.crt --key /var/run/secrets/java.io/keystores/client/tls.key https://nifi.trycatchlearn.fr:8433/nifi
 	// curl -kv --cert /var/run/secrets/java.io/keystores/client/tls.crt --key /var/run/secrets/java.io/keystores/client/tls.key https://securenc-headless.external-dns-test.gcp.trycatchlearn.fr:8443/nifi-api/controller/cluster
 	// keytool -import -noprompt -keystore /home/nifi/truststore.jks -file /var/run/secrets/java.io/keystores/server/ca.crt -storepass $(cat /var/run/secrets/java.io/keystores/server/password) -alias test1
+	// Build Affinity from user input, falling back to operator defaults for anti-affinity
+	var aff *corev1.Affinity
+	{
+		tmp := &corev1.Affinity{}
+		if nodeConfig.NodeAffinity != nil {
+			tmp.NodeAffinity = nodeConfig.NodeAffinity.DeepCopy()
+		}
+		if nodeConfig.PodAffinity != nil {
+			tmp.PodAffinity = nodeConfig.PodAffinity.DeepCopy()
+		}
+		// If the user provides PodAntiAffinity (even `{}`), use it; otherwise keep the default
+		if nodeConfig.PodAntiAffinity != nil {
+			tmp.PodAntiAffinity = nodeConfig.PodAntiAffinity.DeepCopy()
+		} else {
+			tmp.PodAntiAffinity = generatePodAntiAffinity(r.NifiCluster.Name, r.NifiCluster.Spec.OneNifiNodePerNode)
+		}
+		if tmp.NodeAffinity != nil || tmp.PodAffinity != nil || tmp.PodAntiAffinity != nil {
+			aff = tmp
+		}
+	}
+
 	pod := &corev1.Pod{
 		//ObjectMeta: templates.ObjectMetaWithAnnotations(
 		ObjectMeta: templates.ObjectMetaWithGeneratedNameAndAnnotations(
@@ -154,10 +175,8 @@ func (r *Reconciler) pod(node v1.Node, nodeConfig *v1.NodeConfig, pvcs []corev1.
 				FSGroup:        nodeConfig.GetFSGroup(),
 				SeccompProfile: seccompProfile,
 			},
-			InitContainers: podInitContainers,
-			Affinity: &corev1.Affinity{
-				PodAntiAffinity: generatePodAntiAffinity(r.NifiCluster.Name, r.NifiCluster.Spec.OneNifiNodePerNode),
-			},
+			InitContainers:                podInitContainers,
+			Affinity:                      aff,
 			TopologySpreadConstraints:     r.NifiCluster.Spec.TopologySpreadConstraints,
 			Containers:                    r.injectAdditionalFields(nodeConfig, r.generateContainers(nodeConfig, node.Id, podVolumeMounts, zkAddress, singleUserConfiguration)),
 			HostAliases:                   allHostAliases,
@@ -179,9 +198,6 @@ func (r *Reconciler) pod(node v1.Node, nodeConfig *v1.NodeConfig, pvcs []corev1.
 		r.NifiCluster.Spec.Service.GetServiceTemplate())
 	//}
 
-	if nodeConfig.NodeAffinity != nil {
-		pod.Spec.Affinity.NodeAffinity = nodeConfig.NodeAffinity
-	}
 	return pod
 }
 
