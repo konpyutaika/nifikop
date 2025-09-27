@@ -1,0 +1,128 @@
+run:
+  timeout: 10m
+
+linters-settings:
+  gci:
+    sections:
+      - prefix("github.com/konpyutaika/nifikop")
+  goconst:
+    min-len: 3
+    min-occurrences: 3
+  gocritic:
+    enabled-tags:
+      - diagnostic
+      - experimental
+      - opinionated
+      - performance
+      - style
+    disabled-checks:
+      - dupImport
+      - ifElseChain
+      - octalLiteral
+      - whyNoLint
+      - wrapperFunc
+      - importShadow
+      - unnamedResult
+      - unnecessaryBlock
+    settings:
+      rangeValCopy:
+        sizeThreshold: 512
+      hugeParam:
+        sizeThreshold: 512
+  gocyclo:
+    min-complexity: 16
+  goheader:
+    template-path: ./hack/boilerplate.go.txt
+  dupl:
+    threshold: 200
+  govet: {}
+  lll:
+    line-length: 300
+  misspell:
+    locale: US
+  revive:
+    rules:
+      - name: comment-spacings
+
+linters:
+  disable-all: true
+  enable:
+    - asciicheck
+    - bodyclose
+    - dogsled
+    - errcheck
+    - errorlint
+    - exhaustive
+    - gci
+    - goconst
+    - gocritic
+    - godot
+    - gofmt
+    - goprintffuncname
+    - gosec
+    - gosimple
+    - govet
+    - ineffassign
+    - lll
+    - misspell
+    - nolintlint
+    - ginkgolinter
+    - prealloc
+    - revive
+    - shadow
+    - staticcheck
+    - stylecheck
+    - typecheck
+    - unconvert
+    - unparam
+    - unused
+    - whitespace
+
+issues:
+  # Excluding configuration per-path and per-linter
+  exclude-rules:
+    # Exclude some linters from running on tests files.
+    - path: _test(ing)?\.go
+      linters:
+        - gocyclo
+        - errcheck
+        - dupl
+        - gosec
+        - unparam
+        - lll
+
+    # Ease some gocritic warnings on test files.
+    - path: _test\.go
+      text: "(unnamedResult|exitAfterDefer)"
+      linters:
+        - gocritic
+
+    # This is a "potential hardcoded credentials" warning. It's triggered by
+    # any variable with 'secret' in the same, and thus hits a lot of false
+    # positives in Kubernetes land where a Secret is an object type.
+    - text: "G101:"
+      linters:
+        - gosec
+
+    # The header check doesn't correctly parse the header as a code comment and is
+    # triggered by the perceived diff. The header check still correctly detects missing
+    # license headers and is useful for some cases.
+    - text: "Actual:"
+      linters:
+        - goheader
+    # Exclude gci check for //+kubebuilder:scaffold:imports comments. Waiting to
+    # resolve https://github.com/daixiang0/gci/issues/135
+    - path: cmd/main.go
+      linters:
+        - gci
+    - path: cmd/kubectl-nifikop/main.go
+      linters:
+        - gci
+    - path: internal/controller/suite_test.go
+      linters:
+        - gci
+  # Maximum issues count per one linter. Set to 0 to disable. Default is 50.
+  max-issues-per-linter: 0
+
+  # Maximum count of issues with the same text. Set to 0 to disable. Default is 3.
+  max-same-issues: 0
