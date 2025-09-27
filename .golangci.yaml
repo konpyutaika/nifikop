@@ -21,7 +21,6 @@ linters:
     - nolintlint
     - prealloc
     - revive
-    - shadow
     - staticcheck
     - unconvert
     - unparam
