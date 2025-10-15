@@ -1,9 +1,8 @@
 {{- if .Values.monitoring.enabled }}
-{{- $fullname := include "nifi-cluster.fullname" . }}
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: {{- include "nifi-cluster.fullname" . }}
+  name: {{ include "nifi-cluster.fullname" . }}
   labels:
     {{- include "nifi-cluster.labels" . | nindent 4 }}
 spec:
@@ -80,5 +79,5 @@ spec:
       - {{ .Release.Namespace }}
   selector:
     matchLabels:
-      nifi_cr: {{- include "nifi-cluster.fullname" . }}
+      nifi_cr: {{ include "nifi-cluster.fullname" . }}
 {{- end }}
