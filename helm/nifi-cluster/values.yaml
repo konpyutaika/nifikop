@@ -325,9 +325,14 @@ monitoring:
   #  caFile: 
   #  certFile:
   #  keyFile:
+  #  # secretName, secret where certificates are stored
+  #  secretName: 
   #  insecureSkipVerify:
   #  serverName:
   #interval: 
+  #authorization
+  #  bearerTokenSecretName:
+  #  bearerTokenKey: 
 
 # Logging is enabled by the banzai cloud logging operator. This can be deployed stand-alone or as a part of the Rancher Logging application.
 # Do not enable this unless you've installed rancher-logging or the banzai logging operator directly.
