@@ -1,8 +1,9 @@
 {{- if .Values.monitoring.enabled }}
+{{- $fullname := include "nifi-cluster.fullname" . }}
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: {{ include "nifi-cluster.fullname" . }}
+  name: {{- include "nifi-cluster.fullname" . }}
   labels:
     {{- include "nifi-cluster.labels" . | nindent 4 }}
 spec:
@@ -11,8 +12,23 @@ spec:
   {{- if eq $internalListener.type $.Values.monitoring.internalListenersType }}
   - path: {{ $.Values.monitoring.path }}
     port: {{ $internalListener.name }}
+    {{- if or $.Values.monitoring.tlsConfig $.Values.monitoring.authorization }}
+    scheme: https
     {{- if $.Values.monitoring.tlsConfig }}
     tlsConfig:
+      {{- if $.Values.monitoring.tlsConfig.secretName }}
+      ca:
+        secret:
+          key: ca.crt
+          name: {{ $.Values.monitoring.tlsConfig.secretName }}
+      cert:
+        secret:
+          key: tls.crt
+          name: {{ $.Values.monitoring.tlsConfig.secretName }}
+      keySecret:
+        key: tls.key
+        name: {{ $.Values.monitoring.tlsConfig.secretName }}
+      {{- else }}
       {{- with $.Values.monitoring.tlsConfig.caFile }}
       caFile: {{ . }}
       {{- end }}
@@ -22,6 +38,7 @@ spec:
       {{- with $.Values.monitoring.tlsConfig.keyFile }}
       keyFile: {{ . }}
       {{- end }}
+      {{- end }}
       {{- with $.Values.monitoring.tlsConfig.insecureSkipVerify }}
       insecureSkipVerify: {{ . }}
       {{- end }}
@@ -29,9 +46,33 @@ spec:
       serverName: {{ . }}
       {{- end }}
     {{- end }}
+    {{- end }}
+    {{- if $.Values.monitoring.authorization }}
+    authorization:
+      credentials:
+        key: {{ $.Values.monitoring.authorization.bearerTokenKey | default('nifi_token') }}
+        name: {{ $.Values.monitoring.authorization.bearerTokenSecretName }}
+    {{- end }}
     {{- with $.Values.monitoring.interval }}
     interval: {{ . }}
     {{- end }}
+    relabelings:
+      - action: keep
+        regex: '(.+?)(?:-all-node|-headless)$'
+        sourceLabels:
+          - __meta_kubernetes_service_name
+      - action: replace
+        regex: '(.+);(.+);(.+)'
+        replacement: '${1}.${2}.svc.cluster.local:${3}'
+        sourceLabels:
+          - __meta_kubernetes_service_name
+          - __meta_kubernetes_namespace
+          - __meta_kubernetes_pod_container_port_number
+        targetLabel: __address__
+      - action: replace
+        sourceLabels:
+          - __meta_kubernetes_service_label_nifi_cr
+        targetLabel: nifi_cluster_name
   {{- end }}
   {{- end }}
   namespaceSelector:
@@ -39,5 +80,5 @@ spec:
       - {{ .Release.Namespace }}
   selector:
     matchLabels:
-      nifi_cr: {{ include "nifi-cluster.fullname" . }}
+      nifi_cr: {{- include "nifi-cluster.fullname" . }}
 {{- end }}
