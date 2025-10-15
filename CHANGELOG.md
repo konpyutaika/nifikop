@@ -4,7 +4,7 @@
 
 - [PR #601](https://github.com/konpyutaika/nifikop/pull/601) - **[Documentation]** Added NifiCluster example for Single User authentication on NiFi 2.
 - [PR #607](https://github.com/konpyutaika/nifikop/pull/607) - **[Operator/NiFiCluster]** Added support for [Linkerd](https://linkerd.io/) patched container images.
-- [PR #613](https://github.com/konpyutaika/nifikop/pull/613) - **[Helm Chart]** Add authentication method for Service Monitor, fix missing `scheme` parameter and endpoint url
+- [PR #614](https://github.com/konpyutaika/nifikop/pull/614) - **[Helm Chart]** Add authentication method for Service Monitor, fix missing `scheme` parameter and endpoint url
 
 ### Changed
 
