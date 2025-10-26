@@ -2,21 +2,27 @@
 
 ### Added
 
-- [PR #601](https://github.com/konpyutaika/nifikop/pull/601) - **[Documentation]** Added NifiCluster example for Single User authentication on NiFi 2.
-- [PR #607](https://github.com/konpyutaika/nifikop/pull/607) - **[Operator/NiFiCluster]** Added support for [Linkerd](https://linkerd.io/) patched container images.
-- [PR #614](https://github.com/konpyutaika/nifikop/pull/614) - **[Helm Chart]** Add authentication method for Service Monitor, fix missing `scheme` parameter and endpoint url
-
 ### Changed
-
-- [PR #597](https://github.com/konpyutaika/nifikop/pull/597) - **[NiGoApi]** Upgrade NiGoApi to v0.1.9.
-- [PR #609](https://github.com/konpyutaika/nifikop/pull/609) - **[Operator]** Upgrade golang to 1.25.1.
-- [PR #616](https://github.com/konpyutaika/nifikop/pull/616) - **[NiGoApi]** Upgrade NiGoApi to v0.1.10.
 
 ### Fixed Bugs
 
 ### Deprecated
 
 ### Removed
+
+## v1.15.0
+
+### Added
+
+- [PR #601](https://github.com/konpyutaika/nifikop/pull/601) - **[Documentation]** Added NifiCluster example for Single User authentication on NiFi 2.
+- [PR #607](https://github.com/konpyutaika/nifikop/pull/607) - **[Operator/NiFiCluster]** Added support for [Linkerd](https://linkerd.io/) patched container images.
+- [PR #614](https://github.com/konpyutaika/nifikop/pull/614) - **[Helm Chart]** Add authentication method for Service Monitor, fix missing `scheme` parameter and endpoint url.
+
+### Changed
+
+- [PR #597](https://github.com/konpyutaika/nifikop/pull/597) - **[NiGoApi]** Upgrade NiGoApi to v0.1.9.
+- [PR #609](https://github.com/konpyutaika/nifikop/pull/609) - **[Operator]** Upgrade golang to 1.25.1.
+- [PR #616](https://github.com/konpyutaika/nifikop/pull/616) - **[NiGoApi]** Upgrade NiGoApi to v0.1.10.
 
 ## v1.14.2
 
