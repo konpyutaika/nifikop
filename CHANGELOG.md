@@ -10,6 +10,7 @@
 
 - [PR #597](https://github.com/konpyutaika/nifikop/pull/597) - **[NiGoApi]** Upgrade NiGoApi to v0.1.9.
 - [PR #609](https://github.com/konpyutaika/nifikop/pull/609) - **[Operator]** Upgrade golang to 1.25.1.
+- [PR #616](https://github.com/konpyutaika/nifikop/pull/616) - **[NiGoApi]** Upgrade NiGoApi to v0.1.10.
 
 ### Fixed Bugs
 
