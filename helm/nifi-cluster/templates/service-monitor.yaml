@@ -49,7 +49,7 @@ spec:
     {{- if $.Values.monitoring.authorization }}
     authorization:
       credentials:
-        key: {{ $.Values.monitoring.authorization.bearerTokenKey | default('nifi_token') }}
+        key: {{ $.Values.monitoring.authorization.bearerTokenKey | default "nifi_token" }}
         name: {{ $.Values.monitoring.authorization.bearerTokenSecretName }}
     {{- end }}
     {{- with $.Values.monitoring.interval }}
