@@ -112,12 +112,6 @@ spec:
         data: {{ .Values.cluster.logbackConfig.replaceSecretConfig.data }}
         name: {{ .Values.cluster.logbackConfig.replaceSecretConfig.name }}
         namespace: {{ default .Release.Namespace .Values.cluster.logbackConfig.replaceSecretConfig.namespace }}
-    {{- else }}
-      # the default
-      replaceSecretConfig:
-        data: logback.xml
-        name: {{ include "nifi-cluster.fullname" . }}
-        namespace: {{ .Release.Namespace }}
     {{- end }}
     {{- if .Values.cluster.logbackConfig.replaceConfigMap }}
       replaceConfigMap:
