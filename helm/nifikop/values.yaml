@@ -2,7 +2,7 @@
 ##
 image:
   repository: ghcr.io/konpyutaika/docker-images/nifikop
-  tag: v1.15.0-release
+  tag: v1.15.1-release
   pullPolicy: Always
   imagePullSecrets:
     enabled: false

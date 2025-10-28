@@ -4,15 +4,21 @@
 
 ### Changed
 
+### Fixed Bugs
+
+### Deprecated
+
+### Removed
+
+## v1.15.1
+
+### Changed
+
 - [PR #622](https://github.com/konpyutaika/nifikop/pull/622) - **[Operator]** Upgrade golang to 1.25.3.
 
 ### Fixed Bugs
 
 - [PR #620](https://github.com/konpyutaika/nifikop/pull/620) - **[Helm Chart]** Fix usage for helm `default` function in Service Monitor template.
-
-### Deprecated
-
-### Removed
 
 ## v1.15.0
 
