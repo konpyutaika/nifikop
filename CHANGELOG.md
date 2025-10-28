@@ -5,6 +5,7 @@
 ### Changed
 
 ### Fixed Bugs
+- [PR #618](https://github.com/konpyutaika/nifikop/pull/618) - **[Helm Chart]** Fixed template unwanted "(" for service monitor.
 
 ### Deprecated
 
