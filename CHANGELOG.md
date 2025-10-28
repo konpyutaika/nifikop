@@ -1,5 +1,7 @@
 ## Unreleased
 
+- [PR #620](https://github.com/konpyutaika/nifikop/pull/620) - **[Helm Chart]** Fix usage for helm `default` function in Service Monitor template
+
 ### Added
 
 ### Changed
@@ -16,7 +18,7 @@
 
 - [PR #601](https://github.com/konpyutaika/nifikop/pull/601) - **[Documentation]** Added NifiCluster example for Single User authentication on NiFi 2.
 - [PR #607](https://github.com/konpyutaika/nifikop/pull/607) - **[Operator/NiFiCluster]** Added support for [Linkerd](https://linkerd.io/) patched container images.
-- [PR #614](https://github.com/konpyutaika/nifikop/pull/614) - **[Helm Chart]** Add authentication method for Service Monitor, fix missing `scheme` parameter and endpoint url.
+- [PR #614](https://github.com/konpyutaika/nifikop/pull/614) - **[Helm Chart]** Add authentication method for Service Monitor, fix missing `scheme` parameter and endpoint url. 
 
 ### Changed
 
