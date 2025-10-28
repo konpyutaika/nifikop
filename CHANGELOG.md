@@ -6,6 +6,8 @@
 
 ### Changed
 
+- [PR #622](https://github.com/konpyutaika/nifikop/pull/622) - **[Operator]** Upgrade golang to 1.25.3.
+
 ### Fixed Bugs
 
 ### Deprecated
