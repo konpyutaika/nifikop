@@ -12,6 +12,7 @@
 - [PR #609](https://github.com/konpyutaika/nifikop/pull/609) - **[Operator]** Upgrade golang to 1.25.1.
 
 ### Fixed Bugs
+- [PR #615](https://github.com/konpyutaika/nifikop/pull/615) - **[Helm]** Fix logic issue with logback replaceSecretConfig and replaceConfigMap and default settings
 
 ### Deprecated
 
