@@ -5,6 +5,7 @@
 ### Changed
 
 ### Fixed Bugs
+- [PR #615](https://github.com/konpyutaika/nifikop/pull/615) - **[Helm]** Fix logic issue with logback replaceSecretConfig and replaceConfigMap and default settings
 
 ### Deprecated
 
