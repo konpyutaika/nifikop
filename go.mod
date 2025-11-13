@@ -1,6 +1,6 @@
 module github.com/konpyutaika/nifikop
 
-go 1.25.1
+go 1.25.3
 
 require (
 	emperror.dev/errors v0.8.1
@@ -12,7 +12,7 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/imdario/mergo v0.3.14
 	github.com/jarcoal/httpmock v1.3.0
-	github.com/konpyutaika/nigoapi v0.1.9
+	github.com/konpyutaika/nigoapi v0.1.10
 	github.com/onsi/ginkgo/v2 v2.19.0
 	github.com/onsi/gomega v1.33.1
 	github.com/pavel-v-chernykh/keystore-go v2.1.0+incompatible
