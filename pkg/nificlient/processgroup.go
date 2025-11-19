@@ -56,6 +56,9 @@ func (n *nifiClient) UpdateProcessGroup(entity nigoapi.ProcessGroupEntity) (*nig
 		return nil, ErrNoNodeClientsAvailable
 	}
 
+	// Remove VersionControlInformation to avoid Cannot set Version Control Info because process group is already under version control
+	entity.Component.VersionControlInformation = nil
+
 	// Request on Nifi Rest API to update the versioned process group
 	pgEntity, rsp, body, err := client.ProcessGroupsApi.UpdateProcessGroup(context, entity, entity.Id)
 	if err := errorUpdateOperation(rsp, body, err, n.log); err != nil {
