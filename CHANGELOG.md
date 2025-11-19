@@ -6,6 +6,7 @@
 
 ### Fixed Bugs
 - [PR #615](https://github.com/konpyutaika/nifikop/pull/615) - **[Helm]** Fix logic issue with logback replaceSecretConfig and replaceConfigMap and default settings
+- [PR #627](https://github.com/konpyutaika/nifikop/pull/627) - **[Operator/NifiDataflow]** Remove VersionControlInformation to avoid Cannot set Version Control Info because process group is already under version control
 
 ### Deprecated
 
