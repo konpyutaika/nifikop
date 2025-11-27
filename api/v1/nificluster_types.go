@@ -366,6 +366,16 @@ type NodeConfig struct {
 	// priorityClassName can be used to set the priority class applied to the node
 	// +optional
 	PriorityClassName *string `json:"priorityClassName,omitempty"`
+	// podAffinity allows scheduling this node's Pod near other Pods.
+	// If nil, no podAffinity is set on the Pod (Kubernetes default).
+	// https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#inter-pod-affinity-and-anti-affinity
+	// +optional
+	PodAffinity *corev1.PodAffinity `json:"podAffinity,omitempty"`
+	// podAntiAffinity allows scheduling this node's Pod away from other Pods.
+	// If nil, the operator's default pod anti-affinity behavior is used.
+	// If set (even to {}), it overrides the operator's default anti-affinity for this node.
+	// +optional
+	PodAntiAffinity *corev1.PodAntiAffinity `json:"podAntiAffinity,omitempty"`
 }
 
 type Metadata struct {

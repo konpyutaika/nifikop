@@ -29,6 +29,22 @@ NodeConfig defines the node configuration
       # nodeAffinity can be specified, operator populates this value if new pvc added later to node
       # https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#node-affinity
 #      nodeAffinity:
+      # podAffinity allows scheduling this node's Pod near other Pods.
+      # If not set, no podAffinity is configured on the Pod.
+      # https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#inter-pod-affinity-and-anti-affinity
+#      podAffinity:
+#        requiredDuringSchedulingIgnoredDuringExecution:
+#          - topologyKey: kubernetes.io/hostname
+#            labelSelector:
+#              matchExpressions:
+#                - key: app.kubernetes.io/name
+#                  operator: In
+#                  values: ["forklift"]
+      # podAntiAffinity allows scheduling this node's Pod away from other Pods.
+      # If omitted, the operator's default pod anti-affinity behavior is used.
+      # If set (even {}), it disables the default anti-affinity and uses the
+      # provided PodAntiAffinity configuration as-is.
+#      podAntiAffinity: {}
       # imagePullPolicy define the pull policy for NiFi cluster docker image
       imagePullPolicy: IfNotPresent
       # priorityClassName define the name of the priority class to be applied to these nodes

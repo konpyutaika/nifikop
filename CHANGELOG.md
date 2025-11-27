@@ -2,6 +2,8 @@
 
 ### Added
 
+- [PR #608](https://github.com/konpyutaika/nifikop/pull/608) - **[Operator/NifiCluster]** Add podAffinity/podAntiAffinity support to enable safe co-location with external dependencies. (Fixes [#608](https://github.com/konpyutaika/nifikop/issues/608))
+
 ### Changed
 
 ### Fixed Bugs
