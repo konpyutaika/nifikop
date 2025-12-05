@@ -2,6 +2,18 @@
 
 ### Added
 
+### Changed
+
+### Fixed Bugs
+
+### Deprecated
+
+### Removed
+
+## v1.16.0
+
+### Added
+
 - [PR #608](https://github.com/konpyutaika/nifikop/pull/608) - **[Operator/NifiCluster]** Add podAffinity/podAntiAffinity support to enable safe co-location with external dependencies.
 
 ### Changed
@@ -10,12 +22,9 @@
 - [PR #632](https://github.com/konpyutaika/nifikop/pull/632) - **[Documentation]** Upgrade dependencies.
 
 ### Fixed Bugs
+
 - [PR #615](https://github.com/konpyutaika/nifikop/pull/615) - **[Helm]** Fix logic issue with logback replaceSecretConfig and replaceConfigMap and default settings.
 - [PR #627](https://github.com/konpyutaika/nifikop/pull/627) - **[Operator/NifiDataflow]** Remove VersionControlInformation to avoid Cannot set Version Control Info because process group is already under version control.
-
-### Deprecated
-
-### Removed
 
 ## v1.15.1
 
