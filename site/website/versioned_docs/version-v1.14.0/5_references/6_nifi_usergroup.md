@@ -38,7 +38,7 @@ spec:
 |-----|----|-----------|--------|--------|
 |identity|string| Used to define the group's identity on NiFi cluster side, when the group's name doesn't suit Kubernetes resource name requirements. |No| - |
 |clusterRef|[ClusterReference](./2_nifi_user#clusterreference)|  contains the reference to the NifiCluster with the one the user is linked. |Yes| - |
-|usersRef|\[&nbsp;\][UserReference](#userref)| contains the list of reference to NifiUsers that are part to the group. |No| [] |
+|usersRef|\[&nbsp;\][UserReference](#userreference)| contains the list of reference to NifiUsers that are part to the group. |No| [] |
 |accessPolicies|\[&nbsp;\][AccessPolicy](./2_nifi_user#accesspolicy)| defines the list of access policies that will be granted to the group. |No| [] |
 
 ## NifiUserGroupStatus

@@ -55,7 +55,7 @@ spec:
 |Field|Type|Description|Required|Default|
 |-----|----|-----------|--------|-------|
 |clusterRef|[ClusterReference](./2_nifi_user#clusterreference)|  contains the reference to the NifiCluster with the one the user is linked. |Yes| - |
-|type|[ComponentType](#resourcetype)|the type of the resource (e.g. process-group).|Yes| - |
+|type|[ComponentType](#componenttype)|the type of the resource (e.g. process-group).|Yes| - |
 |parentProcessGroupID|string|the UUID of the parent process group where you want to deploy your resource, if not set deploy at root level (is not used for all types of resource). |No| - |
 |parentProcessGroupRef|[ResourceReference](#resourcereference)|the reference to the parent process group where you want to deploy your resource, if not set deploy at root level (is not used for all types of resource). |No| - |
 |displayName|string|the name of the resource (if not set, the name of the CR will be used). |No| - |

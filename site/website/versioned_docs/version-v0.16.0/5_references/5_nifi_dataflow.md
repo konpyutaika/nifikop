@@ -39,11 +39,11 @@ spec:
 |Field|Type|Description|Required|Default|
 |-----|----|-----------|--------|--------|
 |metadata|[ObjectMetadata](https://godoc.org/k8s.io/apimachinery/pkg/apis/meta/v1#ObjectMeta)|is metadata that all persisted resources must have, which includes all objects dataflows must create.|No|nil|
-|spec|[NifiDataflowSpec](#NifiDataflowspec)|defines the desired state of NifiDataflow.|No|nil|
-|status|[NifiDataflowStatus](#NifiDataflowstatus)|defines the observed state of NifiDataflow.|No|nil|
+|spec|[NifiDataflowSpec](#nifidataflowspec)|defines the desired state of NifiDataflow.|No|nil|
+|status|[NifiDataflowStatus](#nifidataflowstatus)|defines the observed state of NifiDataflow.|No|nil|
 
 
-## NifiDataflowsSpec
+## NifiDataflowSpec
 
 |Field|Type|Description|Required|Default|
 |-----|----|-----------|--------|--------|
