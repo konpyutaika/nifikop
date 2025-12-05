@@ -55,7 +55,7 @@ spec:
 |spec|[NifiParameterContextSpec](#nifiparametercontextspec)|defines the desired state of NifiParameterContext.|No|nil|
 |status|[NifiParameterContextStatus](#nifiparametercontextstatus)|defines the observed state of NifiParameterContext.|No|nil|
 
-## NifiParameterContextsSpec
+## NifiParameterContextSpec
 
 |Field|Type|Description|Required|Default|
 |-----|----|-----------|--------|--------|

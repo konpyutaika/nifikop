@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const glob = require('glob-promise');
+const {glob} = require('glob');
 const path = require('path');
 const fs = require('fs-extra');
 
@@ -15,7 +15,7 @@ async function generateSimpleHtmlFiles(outDir) {
   console.log('generateSimpleHtmlFiles', outDir);
 
   const pattern = path.join(outDir, '/**/index.html');
-  const filePaths = (await glob(pattern)).filter(filePath => {
+  const filePaths = (await glob(pattern, {posix: true})).filter(filePath => {
     return filePath !== path.join(outDir, '/index.html');
   });
 

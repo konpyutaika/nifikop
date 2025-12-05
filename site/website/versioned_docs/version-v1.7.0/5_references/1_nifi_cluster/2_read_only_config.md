@@ -151,7 +151,7 @@ readOnlyConfig:
 |bootstrapProperties|[BootstrapProperties](#bootstrapproperties)|bootstrap.conf configuration that will be applied to the node.|No|nil|
 |logbackConfig|[LogbackConfig](#logbackconfig)|logback.xml configuration that will be applied to the node.|No|nil|
 |authorizerConfig|[AuthorizerConfig](#authorizerconfig)|authorizers.xml configuration template that will be applied to the node.|No|nil|
-|bootstrapNotificationServicesConfig|[BootstrapNotificationServices](#bootstrapnotificationservices)|bootstrap_notification_services.xml configuration that will be applied to the node.|No|nil|
+|bootstrapNotificationServicesConfig|[BootstrapNotificationServicesConfig](#bootstrapnotificationservicesconfig)|bootstrap_notification_services.xml configuration that will be applied to the node.|No|nil|
 
 
 

@@ -9,7 +9,7 @@ You can create NiFi dataflows either:
 * directly against the cluster through its REST API (using UI or some home made scripts), or
 * via the `NifiDataflow` CRD.
 
-If you want more details about the design, just have a look on the [design page](./0_design_principles#dataflow-lifecycle-management)
+If you want more details about the design, just have a look on the [design page](./0_design_principles)
 
 To deploy a [NifiDataflow] you have to start by deploying a [NifiRegistryClient] because **NiFiKop** manages dataflow using the [NiFi Registry feature](https://nifi.apache.org/registry).
 

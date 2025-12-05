@@ -33,10 +33,10 @@ spec:
 |Field|Type|Description|Required|Default|
 |-----|----|-----------|--------|--------|
 |metadata|[ObjectMetadata](https://godoc.org/k8s.io/apimachinery/pkg/apis/meta/v1#ObjectMeta)|is metadata that all persisted resources must have, which includes all objects parameter contexts must create.|No|nil|
-|spec|[NifiParameterContextSpec](#NifiParameterContextspec)|defines the desired state of NifiParameterContext.|No|nil|
-|status|[NifiParameterContextStatus](#NifiParameterContextstatus)|defines the observed state of NifiParameterContext.|No|nil|
+|spec|[NifiParameterContextSpec](#nifiparametercontextspec)|defines the desired state of NifiParameterContext.|No|nil|
+|status|[NifiParameterContextStatus](#nifiparametercontextstatus)|defines the observed state of NifiParameterContext.|No|nil|
 
-## NifiParameterContextsSpec
+## NifiParameterContextSpec
 
 |Field|Type|Description|Required|Default|
 |-----|----|-----------|--------|--------|
@@ -84,3 +84,10 @@ spec:
 |failureReason|string| an explication of why the request failed, or null if this request has not failed. |Yes| - |
 |percentCompleted|int32| the percentage complete of the request, between 0 and 100. |Yes| - |
 |state|string| the state of the request. |Yes| - |
+
+## ParameterContextReference
+
+|Field|Type|Description|Required|Default|
+|-----|----|-----------|--------|--------|
+|name|string| name of the NifiParameterContext. |Yes| - |
+|namespace|string| the NifiParameterContext namespace location. |No| - |

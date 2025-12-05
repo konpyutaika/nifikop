@@ -26,7 +26,7 @@ spec:
 |spec|[NifiRegistryClientSpec](#nifiregistryclientspec)|defines the desired state of NifiRegistryClient.|No|nil|
 |status|[NifiRegistryClientStatus](#nifiregistryclientstatus)|defines the observed state of NifiRegistryClient.|No|nil|
 
-## NifiRegistryClientsSpec
+## NifiRegistryClientSpec
 
 |Field|Type|Description|Required|Default|
 |-----|----|-----------|--------|--------|
@@ -40,3 +40,10 @@ spec:
 |-----|----|-----------|--------|--------|
 |id|string| nifi registry client's id. |Yes| - |
 |version|int64| the last nifi registry client revision version catched. |Yes| - |
+
+## RegistryClientReference
+
+|Field|Type|Description|Required|Default|
+|-----|----|-----------|--------|--------|
+|name|string| name of the NifiRegistryClient. |Yes| - |
+|namespace|string| the NifiRegistryClient namespace location. |Yes| - |

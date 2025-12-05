@@ -43,7 +43,7 @@ spec:
 |status|[NifiDataflowStatus](#nifidataflowstatus)|defines the observed state of NifiDataflow.|No|nil|
 
 
-## NifiDataflowsSpec
+## NifiDataflowSpec
 
 |Field|Type|Description|Required|Default|
 |-----|----|-----------|--------|--------|

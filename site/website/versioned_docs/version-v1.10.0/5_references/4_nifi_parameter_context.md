@@ -55,7 +55,7 @@ spec:
 |spec|[NifiParameterContextSpec](#nifiparametercontextspec)|defines the desired state of NifiParameterContext.|No|nil|
 |status|[NifiParameterContextStatus](#nifiparametercontextstatus)|defines the observed state of NifiParameterContext.|No|nil|
 
-## NifiParameterContextsSpec
+## NifiParameterContextSpec
 
 |Field|Type|Description|Required|Default|
 |-----|----|-----------|--------|--------|
@@ -74,7 +74,7 @@ spec:
 |version|int64| the last nifi parameter context revision version catched. |Yes| - |
 |latestUpdateRequest|[ParameterContextUpdateRequest](#parametercontextupdaterequest)|the latest update request. |Yes| - |
 |version|int64| the last nifi parameter context revision version catched. |Yes| - |
-|LatestSecretsResourceVersion|\[&nbsp;\][SecretResourceVersion](#secretResourceVersion)|the latest `resourceVersion` of the secrets. |No| - |
+|LatestSecretsResourceVersion|\[&nbsp;\][SecretResourceVersion](#secretresourceversion)|the latest `resourceVersion` of the secrets. |No| - |
 
 ## Parameter
 

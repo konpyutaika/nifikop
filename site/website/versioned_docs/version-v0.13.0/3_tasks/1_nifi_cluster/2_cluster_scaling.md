@@ -9,12 +9,12 @@ This tasks shows you how to perform a gracefull cluster scale up and scale down.
 ## Before you begin
 
 - Setup NiFiKop by following the instructions in the [Installation guide](../../2_setup/1_getting_started.md).
-- Deploy the [Simple NiFi](../../2_setup/1_getting_started.md#easy-way-installing-with-helm) sample cluster.
+- Deploy the [Simple NiFi](../../2_setup/1_getting_started.md#installing-with-helm) sample cluster.
 - Review the [Node](../../5_references/1_nifi_cluster/4_node.md) references doc. 
 
 ## About this task
 
-The [Simple NiFi](../../2_setup/1_getting_started.md#easy-way-installing-with-helm) example consists of a three nodes NiFi cluster. 
+The [Simple NiFi](../../2_setup/1_getting_started.md#installing-with-helm) example consists of a three nodes NiFi cluster. 
 A node decommission must follow a strict procedure, described in the [NiFi documentation](https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#decommission-nodes): 
 
 1. Disconnect the node
