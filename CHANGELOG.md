@@ -19,6 +19,7 @@
 ### Changed
 
 - [PR #630](https://github.com/konpyutaika/nifikop/pull/630) - **[Operator]** Upgrade golang to 1.25.5.
+- [PR #632](https://github.com/konpyutaika/nifikop/pull/632) - **[Documentation]** Upgrade dependencies.
 
 ### Fixed Bugs
 
