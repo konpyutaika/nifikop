@@ -2,13 +2,15 @@
 
 ### Added
 
-- [PR #608](https://github.com/konpyutaika/nifikop/pull/608) - **[Operator/NifiCluster]** Add podAffinity/podAntiAffinity support to enable safe co-location with external dependencies. (Fixes [#608](https://github.com/konpyutaika/nifikop/issues/608))
+- [PR #608](https://github.com/konpyutaika/nifikop/pull/608) - **[Operator/NifiCluster]** Add podAffinity/podAntiAffinity support to enable safe co-location with external dependencies.
 
 ### Changed
 
+- [PR #630](https://github.com/konpyutaika/nifikop/pull/630) - **[Operator]** Upgrade golang to 1.25.5.
+
 ### Fixed Bugs
-- [PR #615](https://github.com/konpyutaika/nifikop/pull/615) - **[Helm]** Fix logic issue with logback replaceSecretConfig and replaceConfigMap and default settings
-- [PR #627](https://github.com/konpyutaika/nifikop/pull/627) - **[Operator/NifiDataflow]** Remove VersionControlInformation to avoid Cannot set Version Control Info because process group is already under version control
+- [PR #615](https://github.com/konpyutaika/nifikop/pull/615) - **[Helm]** Fix logic issue with logback replaceSecretConfig and replaceConfigMap and default settings.
+- [PR #627](https://github.com/konpyutaika/nifikop/pull/627) - **[Operator/NifiDataflow]** Remove VersionControlInformation to avoid Cannot set Version Control Info because process group is already under version control.
 
 ### Deprecated
 
