@@ -182,7 +182,14 @@ nifi.security.user.authorizer=single-user-authorizer
 {{else}}
 nifi.security.user.authorizer={{ .Authorizer }}
 {{end}}
-{{if .LdapConfiguration.Enabled}}
+{{ if .OidcConfiguration.Enabled}}
+nifi.security.user.oidc.discovery.url={{ .OidcConfiguration.discoveryUrl }}
+nifi.security.user.oidc.client.id={{ .OidcConfiguration.clientId }}
+nifi.security.user.oidc.client.secret=clientSecret
+nifi.security.identity.mapping.pattern.dn={{ .OidcConfiguration.patternDn }}
+nifi.security.identity.mapping.value.dn={{ .OidcConfiguration.valueDn }}
+nifi.security.identity.mapping.transform.dn={{ .OidcConfiguration.transformDn }}
+{{else if .LdapConfiguration.Enabled}}
 nifi.security.user.login.identity.provider=ldap-provider
 {{else if .SingleUserConfiguration.Enabled}}
 nifi.security.user.login.identity.provider=single-user-provider
