@@ -6,6 +6,8 @@
 
 ### Fixed Bugs
 
+- [PR #637](https://github.com/konpyutaika/nifikop/pull/637) - **[Operator/NifiCluster]** Restart NiFi node pods when cert-manager rotates mounted TLS material to prevent stale zombie certificates. (Fixes #628, #636)
+
 ### Deprecated
 
 ### Removed
