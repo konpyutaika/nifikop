@@ -2,6 +2,8 @@ package nifi
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"reflect"
@@ -37,7 +39,11 @@ import (
 )
 
 const (
-	componentName = "nifi"
+	componentName                   = "nifi"
+	podServerCertHashAnnotation     = "nifikop.konpyutaika.com/server-cert-hash"
+	podClientCertHashAnnotation     = "nifikop.konpyutaika.com/client-cert-hash"
+	podServerCertNotAfterAnnotation = "nifikop.konpyutaika.com/server-cert-not-after"
+	podClientCertNotAfterAnnotation = "nifikop.konpyutaika.com/client-cert-not-after"
 
 	nodeSecretVolumeMount = "node-config"
 	nodeTmp               = "node-tmp"
@@ -128,6 +134,330 @@ func meshAwareMerge(desired, current *corev1.Pod) {
 	desired.Spec.InitContainers = unionLinkerdVolumeMounts(desired.Spec.InitContainers, current.Spec.InitContainers)
 }
 
+func secretCertMaterialHash(s *corev1.Secret) string {
+	if s == nil || s.Data == nil {
+		return ""
+	}
+
+	keys := []string{
+		corev1.TLSCertKey,
+		corev1.TLSPrivateKeyKey,
+		"ca.crt",
+		v1.PasswordKey,
+		"keystore.jks",
+		"truststore.jks",
+	}
+
+	h := sha256.New()
+	for _, k := range keys {
+		h.Write([]byte(k))
+		h.Write([]byte{0})
+
+		if b, ok := s.Data[k]; ok {
+			h.Write(b)
+		}
+
+		h.Write([]byte{0})
+	}
+	return hex.EncodeToString(h.Sum(nil))
+}
+
+func podAnn(p *corev1.Pod, key string) string {
+	if p == nil || p.Annotations == nil {
+		return ""
+	}
+	return p.Annotations[key]
+}
+
+func podCertHashesDiffer(current, desired *corev1.Pod) bool {
+	return podAnn(current, podServerCertHashAnnotation) != podAnn(desired, podServerCertHashAnnotation) ||
+		podAnn(current, podClientCertHashAnnotation) != podAnn(desired, podClientCertHashAnnotation)
+}
+
+func parseRFC3339(s string) (time.Time, bool) {
+	if strings.TrimSpace(s) == "" {
+		return time.Time{}, false
+	}
+	t, err := time.Parse(time.RFC3339, s)
+	if err != nil {
+		return time.Time{}, false
+	}
+	return t, true
+}
+
+func minNonZeroTime(a, b time.Time) time.Time {
+	if a.IsZero() {
+		return b
+	}
+	if b.IsZero() {
+		return a
+	}
+	if a.Before(b) {
+		return a
+	}
+	return b
+}
+
+func parseDay(s string) (time.Weekday, bool) {
+	switch strings.ToLower(strings.TrimSpace(s)) {
+	case "mon", "monday":
+		return time.Monday, true
+	case "tue", "tues", "tuesday":
+		return time.Tuesday, true
+	case "wed", "wednesday":
+		return time.Wednesday, true
+	case "thu", "thur", "thurs", "thursday":
+		return time.Thursday, true
+	case "fri", "friday":
+		return time.Friday, true
+	case "sat", "saturday":
+		return time.Saturday, true
+	case "sun", "sunday":
+		return time.Sunday, true
+	default:
+		return 0, false
+	}
+}
+
+func prevWeekday(w time.Weekday) time.Weekday {
+	if w == time.Sunday {
+		return time.Saturday
+	}
+	return w - 1
+}
+
+func parseClockMinutes(s string) (int, error) {
+	// expects "HH:MM"
+	t, err := time.Parse("15:04", strings.TrimSpace(s))
+	if err != nil {
+		return 0, err
+	}
+	return t.Hour()*60 + t.Minute(), nil
+}
+
+func weekdayInList(days []v1.Weekday, wd time.Weekday) bool {
+	if len(days) == 0 {
+		return true
+	}
+	for _, d := range days {
+		w, ok := parseDay(string(d))
+		if ok && w == wd {
+			return true
+		}
+	}
+	return false
+}
+
+func nowInAnyCertWindow(now time.Time, tz string, windows []v1.CertRotationWindow) (bool, error) {
+	if tz == "" || len(windows) == 0 {
+		return false, nil
+	}
+	loc, err := time.LoadLocation(tz)
+	if err != nil {
+		return false, err
+	}
+
+	local := now.In(loc)
+	wd := local.Weekday()
+	mins := local.Hour()*60 + local.Minute()
+
+	for _, w := range windows {
+		startM, err := parseClockMinutes(w.Start)
+		if err != nil {
+			return false, err
+		}
+		endM, err := parseClockMinutes(w.End)
+		if err != nil {
+			return false, err
+		}
+
+		if startM == endM {
+			return false, fmt.Errorf("invalid certRotation window: start == end (start=%q end=%q days=%v)", w.Start, w.End, w.Days)
+		}
+
+		if startM < endM {
+			if weekdayInList(w.Days, wd) && mins >= startM && mins < endM {
+				return true, nil
+			}
+			continue
+		}
+
+		// spans midnight (e.g. 22:00 -> 06:00)
+		okToday := weekdayInList(w.Days, wd)
+		okPrev := weekdayInList(w.Days, prevWeekday(wd))
+
+		if okToday && mins >= startM {
+			return true, nil
+		}
+		if okPrev && mins < endM {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
+func isCertOnlyPatch(patchBytes []byte) bool {
+	if len(patchBytes) == 0 {
+		return false
+	}
+
+	var pr map[string]interface{}
+	if err := json.Unmarshal(patchBytes, &pr); err != nil {
+		return false
+	}
+
+	if len(pr) == 0 {
+		return false
+	}
+
+	for k := range pr {
+		if k != "metadata" && k != "spec" {
+			return false
+		}
+	}
+
+	if specAny, ok := pr["spec"]; ok {
+		spec, ok := specAny.(map[string]interface{})
+		if !ok {
+			return false
+		}
+		for k := range spec {
+			if !strings.HasPrefix(k, "$setElementOrder/") {
+				return false
+			}
+		}
+	}
+
+	// Allow metadata only if it contains ONLY annotations
+	if metaAny, ok := pr["metadata"]; ok {
+		meta, ok := metaAny.(map[string]interface{})
+		if !ok {
+			return false
+		}
+		for k := range meta {
+			if k != "annotations" {
+				return false
+			}
+		}
+
+		annAny, ok := meta["annotations"]
+		if !ok {
+			return false
+		}
+		ann, ok := annAny.(map[string]interface{})
+		if !ok {
+			return false
+		}
+
+		allowed := map[string]struct{}{
+			podServerCertHashAnnotation:                        {},
+			podClientCertHashAnnotation:                        {},
+			podServerCertNotAfterAnnotation:                    {},
+			podClientCertNotAfterAnnotation:                    {},
+			"banzaicloud.com/last-applied":                     {},
+			"kubectl.kubernetes.io/last-applied-configuration": {},
+		}
+		for k := range ann {
+			if _, ok := allowed[k]; !ok {
+				return false
+			}
+		}
+	}
+
+	return true
+}
+
+// returns (delay, reason, error). If delay=true => do NOT restart now.
+func (r *Reconciler) shouldDelayCertRotationRestart(
+	log zap.Logger,
+	currentPod, desiredPod *corev1.Pod,
+	patchBytes []byte,
+) (bool, string, error) {
+	p := r.NifiCluster.Spec.CertRotation
+	if p == nil || p.Strategy != v1.CertRotationWindowed {
+		return false, "", nil
+	}
+
+	tz := strings.TrimSpace(p.Timezone)
+	if tz == "" || len(p.Windows) == 0 {
+		log.Warn("certRotation strategy is Windowed but timezone/windows are not set; falling back to Immediate behavior",
+			zap.String("timezone", p.Timezone),
+			zap.Int("windows", len(p.Windows)),
+		)
+		return false, "", nil
+	}
+
+	if !podCertHashesDiffer(currentPod, desiredPod) {
+		return false, "", nil
+	}
+
+	if !isCertOnlyPatch(patchBytes) {
+		return false, "", nil
+	}
+
+	now := time.Now().UTC()
+	inWin, err := nowInAnyCertWindow(now, tz, p.Windows)
+	if err != nil {
+		log.Warn("invalid certRotation window config; falling back to immediate restart", zap.Error(err))
+		return false, "", nil
+	}
+	if inWin {
+		return false, "", nil
+	}
+
+	urgentBefore := 24 * time.Hour
+	if p.UrgentBefore != nil {
+		urgentBefore = p.UrgentBefore.Duration
+	}
+
+	srvExp, _ := parseRFC3339(podAnn(currentPod, podServerCertNotAfterAnnotation))
+	cliExp, _ := parseRFC3339(podAnn(currentPod, podClientCertNotAfterAnnotation))
+	exp := minNonZeroTime(srvExp, cliExp)
+
+	if exp.IsZero() {
+		dsrv, _ := parseRFC3339(podAnn(desiredPod, podServerCertNotAfterAnnotation))
+		dcli, _ := parseRFC3339(podAnn(desiredPod, podClientCertNotAfterAnnotation))
+		dexp := minNonZeroTime(dsrv, dcli)
+
+		if dexp.IsZero() {
+			log.Warn("missing cert expiry annotations; delaying until maintenance window",
+				zap.String("podName", currentPod.Name),
+			)
+			return true, "missing pod expiry annotations (pre-feature pod); delaying until window", nil
+		}
+
+		ttl := dexp.Sub(now)
+		if ttl <= urgentBefore {
+			log.Warn("cert rotation urgent (desired expiry); restarting outside maintenance window",
+				zap.String("podName", currentPod.Name),
+				zap.Duration("timeToExpiry", ttl),
+				zap.Duration("urgentBefore", urgentBefore),
+			)
+			return false, "", nil
+		}
+
+		log.Warn("missing pod expiry annotations; delaying until maintenance window",
+			zap.String("podName", currentPod.Name),
+			zap.Duration("timeToExpiryFromDesired", ttl),
+			zap.Duration("urgentBefore", urgentBefore),
+		)
+		return true, "missing pod expiry annotations (pre-feature pod); delaying until window", nil
+	}
+
+	ttl := exp.Sub(now)
+	if ttl <= urgentBefore {
+		log.Warn("cert rotation urgent (loaded expiry); restarting outside maintenance window",
+			zap.String("podName", currentPod.Name),
+			zap.Duration("timeToExpiry", ttl),
+			zap.Duration("urgentBefore", urgentBefore),
+		)
+		return false, "", nil
+	}
+
+	return true, fmt.Sprintf("outside maintenance window; timeToExpiry=%s urgentBefore=%s", ttl, urgentBefore), nil
+}
+
 // Reconciler implements the Component Reconciler.
 type Reconciler struct {
 	resources.Reconciler
@@ -181,6 +511,8 @@ func (r *Reconciler) Reconcile(log zap.Logger) error {
 			zap.String("clusterNamespace", r.NifiCluster.Namespace))
 		return nil
 	}
+
+	var pendingRolling error
 	// TODO: manage external LB
 	uniqueHostnamesMap := make(map[string]struct{})
 
@@ -199,7 +531,7 @@ func (r *Reconciler) Reconcile(log zap.Logger) error {
 	sort.Strings(uniqueHostnames)
 
 	// Setup the PKI if using SSL
-	if r.NifiCluster.Spec.ListenersConfig.SSLSecrets != nil {
+	if r.NifiCluster.Spec.ListenersConfig != nil && r.NifiCluster.Spec.ListenersConfig.SSLSecrets != nil {
 		// reconcile the PKI
 		if err := pki.GetPKIManager(r.Client, r.NifiCluster).ReconcilePKI(context.TODO(), log, r.Scheme, uniqueHostnames); err != nil {
 			return err
@@ -223,7 +555,7 @@ func (r *Reconciler) Reconcile(log zap.Logger) error {
 	for _, node := range r.NifiCluster.Spec.Nodes {
 		// We need to grab names for servers and client in case user is enabling ACLs
 		// That way we can continue to manage dataflows and users
-		serverPass, clientPass, superUsers, err := r.getServerAndClientDetails(node.Id)
+		serverPass, clientPass, superUsers, serverHash, clientHash, serverNotAfter, clientNotAfter, err := r.getServerAndClientDetails(node.Id)
 		if err != nil {
 			return err
 		}
@@ -322,15 +654,40 @@ func (r *Reconciler) Reconcile(log zap.Logger) error {
 			}
 		}
 		o = r.pod(node, nodeConfig, pvcs, log)
-		err, isReady := r.reconcileNifiPod(log, o.(*corev1.Pod))
+		pod := o.(*corev1.Pod)
+
+		if r.NifiCluster.Spec.ListenersConfig != nil && r.NifiCluster.Spec.ListenersConfig.SSLSecrets != nil {
+			if pod.Annotations == nil {
+				pod.Annotations = map[string]string{}
+			}
+
+			pod.Annotations[podServerCertHashAnnotation] = serverHash
+			pod.Annotations[podClientCertHashAnnotation] = clientHash
+
+			pod.Annotations[podServerCertNotAfterAnnotation] = serverNotAfter.UTC().Format(time.RFC3339)
+			pod.Annotations[podClientCertNotAfterAnnotation] = clientNotAfter.UTC().Format(time.RFC3339)
+		}
+
+		err, isReady := r.reconcileNifiPod(log, pod)
 		if err != nil {
+			if isReconcileRollingUpgradeErr(err) {
+				pendingRolling = err
+				break
+			}
 			return err
 		}
-		if nodeState, ok := r.NifiCluster.Status.NodesState[o.(*corev1.Pod).Labels["nodeId"]]; ok &&
+
+		if nodeState, ok := r.NifiCluster.Status.NodesState[pod.Labels["nodeId"]]; ok &&
 			nodeState.PodIsReady != isReady {
-			if err = k8sutil.UpdateNodeStatus(r.Client, []string{o.(*corev1.Pod).Labels["nodeId"]}, r.NifiCluster, r.NifiClusterCurrentStatus, isReady, log); err != nil {
-				return errors.WrapIfWithDetails(err, "could not update status for node(s)",
-					"id(s)", o.(*corev1.Pod).Labels["nodeId"])
+			if err = k8sutil.UpdateNodeStatus(
+				r.Client,
+				[]string{pod.Labels["nodeId"]},
+				r.NifiCluster,
+				r.NifiClusterCurrentStatus,
+				isReady,
+				log,
+			); err != nil {
+				return errors.WrapIfWithDetails(err, "could not update status for node(s)", "id(s)", pod.Labels["nodeId"])
 			}
 		}
 	}
@@ -361,6 +718,11 @@ func (r *Reconciler) Reconcile(log zap.Logger) error {
 	err = r.reconcileNifiPodDelete(log)
 	if err != nil {
 		return errors.WrapIf(err, "failed to reconcile resource")
+	}
+
+	if pendingRolling != nil {
+		log.Info("Requeueing due to pending rolling upgrade", zap.Error(pendingRolling))
+		return pendingRolling
 	}
 
 	configManager := config.GetClientConfigManager(r.Client, v1.ClusterReference{
@@ -410,7 +772,8 @@ func (r *Reconciler) Reconcile(log zap.Logger) error {
 	log.Info("Successfully reconciled cluster",
 		zap.String("component", componentName),
 		zap.String("clusterName", r.NifiCluster.Name),
-		zap.String("clusterNamespace", r.NifiCluster.Namespace))
+		zap.String("clusterNamespace", r.NifiCluster.Namespace),
+	)
 
 	return nil
 }
@@ -577,42 +940,112 @@ func arePodsAlreadyDeleted(pods []corev1.Pod, log zap.Logger) bool {
 	return true
 }
 
-func (r *Reconciler) getServerAndClientDetails(nodeId int32) (string, string, []string, error) {
-	if r.NifiCluster.Spec.ListenersConfig.SSLSecrets == nil {
-		return "", "", []string{}, nil
-	}
-	serverName := types.NamespacedName{Name: fmt.Sprintf(pkicommon.NodeServerCertTemplate, r.NifiCluster.Name, nodeId), Namespace: r.NifiCluster.Namespace}
-	serverSecret := &corev1.Secret{}
-	if err := r.Client.Get(context.TODO(), serverName, serverSecret); err != nil {
-		if apierrors.IsNotFound(err) {
-			return "", "", nil, errorfactory.New(errorfactory.ResourceNotReady{}, err, "server secret not ready")
-		}
-		return "", "", nil, errors.WrapIfWithDetails(err, "failed to get server secret")
-	}
-	serverPass := string(serverSecret.Data[v1.PasswordKey])
-
-	clientName := types.NamespacedName{Name: r.NifiCluster.GetNifiControllerUserIdentity(), Namespace: r.NifiCluster.Namespace}
-	clientSecret := &corev1.Secret{}
-	if err := r.Client.Get(context.TODO(), clientName, clientSecret); err != nil {
-		if apierrors.IsNotFound(err) {
-			return "", "", nil, errorfactory.New(errorfactory.ResourceNotReady{}, err, "client secret not ready")
-		}
-		return "", "", nil, errors.WrapIfWithDetails(err, "failed to get client secret")
-	}
-	clientPass := string(clientSecret.Data[v1.PasswordKey])
-
-	superUsers := make([]string, 0)
-	for _, secret := range []*corev1.Secret{serverSecret, clientSecret} {
-		cert, err := certutil.DecodeCertificate(secret.Data[corev1.TLSCertKey])
-		if err != nil {
-			return "", "", nil, errors.WrapIfWithDetails(err, "failed to decode certificate")
-		}
-		superUsers = append(superUsers, cert.Subject.String())
+func requireTLSSecretReady(secret *corev1.Secret, which string) error {
+	if secret == nil || secret.Data == nil {
+		return errorfactory.New(
+			errorfactory.ResourceNotReady{},
+			errors.New("secret data not populated yet"),
+			fmt.Sprintf("%s secret not ready", which),
+		)
 	}
 
-	return serverPass, clientPass, superUsers, nil
+	if len(secret.Data[corev1.TLSCertKey]) == 0 {
+		return errorfactory.New(
+			errorfactory.ResourceNotReady{},
+			errors.New("tls.crt missing/empty"),
+			fmt.Sprintf("%s secret not ready", which),
+		)
+	}
+
+	if secret.Type == corev1.SecretTypeTLS {
+		if len(secret.Data[corev1.TLSPrivateKeyKey]) == 0 {
+			return errorfactory.New(
+				errorfactory.ResourceNotReady{},
+				errors.New("tls.key missing/empty"),
+				fmt.Sprintf("%s secret not ready", which),
+			)
+		}
+	}
+
+	if len(secret.Data[v1.PasswordKey]) == 0 {
+		return errorfactory.New(
+			errorfactory.ResourceNotReady{},
+			errors.New("password missing/empty"),
+			fmt.Sprintf("%s secret not ready", which),
+		)
+	}
+
+	return nil
 }
 
+func (r *Reconciler) getServerAndClientDetails(nodeId int32) (string, string, []string, string, string, time.Time, time.Time, error) {
+	if r.NifiCluster.Spec.ListenersConfig == nil || r.NifiCluster.Spec.ListenersConfig.SSLSecrets == nil {
+		return "", "", []string{}, "", "", time.Time{}, time.Time{}, nil
+	}
+
+	serverName := types.NamespacedName{
+		Name:      fmt.Sprintf(pkicommon.NodeServerCertTemplate, r.NifiCluster.Name, nodeId),
+		Namespace: r.NifiCluster.Namespace,
+	}
+	serverSecret := &corev1.Secret{}
+	if err := r.DirectClient.Get(context.TODO(), serverName, serverSecret); err != nil {
+		if apierrors.IsNotFound(err) {
+			return "", "", []string{}, "", "", time.Time{}, time.Time{},
+				errorfactory.New(errorfactory.ResourceNotReady{}, err, "server secret not ready")
+		}
+		return "", "", []string{}, "", "", time.Time{}, time.Time{},
+			errors.WrapIfWithDetails(err, "failed to get server secret")
+	}
+
+	if err := requireTLSSecretReady(serverSecret, "server"); err != nil {
+		return "", "", []string{}, "", "", time.Time{}, time.Time{}, err
+	}
+
+	serverPass := string(serverSecret.Data[v1.PasswordKey])
+	serverHash := secretCertMaterialHash(serverSecret)
+
+	serverCert, err := certutil.DecodeCertificate(serverSecret.Data[corev1.TLSCertKey])
+	if err != nil {
+		return "", "", []string{}, "", "", time.Time{}, time.Time{},
+			errorfactory.New(errorfactory.ResourceNotReady{}, err, "server certificate not ready/decodable yet")
+	}
+	serverNotAfter := serverCert.NotAfter
+
+	clientName := types.NamespacedName{
+		Name:      r.NifiCluster.GetNifiControllerUserIdentity(),
+		Namespace: r.NifiCluster.Namespace,
+	}
+	clientSecret := &corev1.Secret{}
+	if err := r.DirectClient.Get(context.TODO(), clientName, clientSecret); err != nil {
+		if apierrors.IsNotFound(err) {
+			return "", "", []string{}, "", "", time.Time{}, time.Time{},
+				errorfactory.New(errorfactory.ResourceNotReady{}, err, "client secret not ready")
+		}
+		return "", "", []string{}, "", "", time.Time{}, time.Time{},
+			errors.WrapIfWithDetails(err, "failed to get client secret")
+	}
+
+	if err := requireTLSSecretReady(clientSecret, "client"); err != nil {
+		return "", "", []string{}, "", "", time.Time{}, time.Time{}, err
+	}
+
+	clientPass := string(clientSecret.Data[v1.PasswordKey])
+	clientHash := secretCertMaterialHash(clientSecret)
+
+	clientCert, err := certutil.DecodeCertificate(clientSecret.Data[corev1.TLSCertKey])
+	if err != nil {
+		return "", "", []string{}, "", "", time.Time{}, time.Time{},
+			errorfactory.New(errorfactory.ResourceNotReady{}, err, "client certificate not ready/decodable yet")
+	}
+	clientNotAfter := clientCert.NotAfter
+
+	superUsers := []string{
+		serverCert.Subject.String(),
+		clientCert.Subject.String(),
+	}
+
+	return serverPass, clientPass, superUsers, serverHash, clientHash, serverNotAfter, clientNotAfter, nil
+}
 func generateNodeIdsFromPodSlice(pods []corev1.Pod) []string {
 	ids := make([]string, len(pods))
 	for i, node := range pods {
@@ -887,16 +1320,30 @@ func (r *Reconciler) reconcileNifiPod(log zap.Logger, desiredPod *corev1.Pod) (e
 			log.Error("could not match pod objects",
 				zap.String("clusterName", r.NifiCluster.Name),
 				zap.String("kind", desiredType.String()),
-				zap.Error(err))
-		} else if patchResult.IsEmpty() {
+				zap.String("podName", currentPod.Name),
+				zap.Error(err),
+			)
+
+			return errorfactory.New(errorfactory.APIFailure{}, err, "could not calculate pod patch"), false
+		}
+
+		if patchResult.IsEmpty() {
 			if !k8sutil.IsPodTerminatedOrShutdown(currentPod) &&
 				r.NifiCluster.Status.NodesState[currentPod.Labels["nodeId"]].ConfigurationState == v1.ConfigInSync {
+
 				if val, found := r.NifiCluster.Status.NodesState[desiredPod.Labels["nodeId"]]; found &&
 					val.GracefulActionState.State == v1.GracefulUpscaleRunning &&
 					val.GracefulActionState.ActionStep == v1.ConnectStatus &&
 					k8sutil.PodReady(currentPod) {
-					if err := k8sutil.UpdateNodeStatus(r.Client, []string{desiredPod.Labels["nodeId"]}, r.NifiCluster, r.NifiClusterCurrentStatus,
-						v1.GracefulActionState{ErrorMessage: "", State: v1.GracefulUpscaleSucceeded}, log); err != nil {
+
+					if err := k8sutil.UpdateNodeStatus(
+						r.Client,
+						[]string{desiredPod.Labels["nodeId"]},
+						r.NifiCluster,
+						r.NifiClusterCurrentStatus,
+						v1.GracefulActionState{ErrorMessage: "", State: v1.GracefulUpscaleSucceeded},
+						log,
+					); err != nil {
 						return errorfactory.New(errorfactory.StatusUpdateError{},
 							err, "could not update node graceful action state"), false
 					}
@@ -911,33 +1358,26 @@ func (r *Reconciler) reconcileNifiPod(log zap.Logger, desiredPod *corev1.Pod) (e
 		} else {
 			var pr map[string]interface{}
 			if err := json.Unmarshal(patchResult.Patch, &pr); err == nil {
-				if spec, ok := pr["spec"].(map[string]interface{}); ok && len(spec) > 0 {
-					onlyOrder := true
-					for k := range spec {
-						if !strings.HasPrefix(k, "$setElementOrder/") {
-							onlyOrder = false
-							break
-						}
-					}
-					if onlyOrder {
-						if !k8sutil.IsPodTerminatedOrShutdown(currentPod) &&
-							r.NifiCluster.Status.NodesState[currentPod.Labels["nodeId"]].ConfigurationState == v1.ConfigInSync {
-							if val, found := r.NifiCluster.Status.NodesState[desiredPod.Labels["nodeId"]]; found &&
-								val.GracefulActionState.State == v1.GracefulUpscaleRunning &&
-								val.GracefulActionState.ActionStep == v1.ConnectStatus &&
-								k8sutil.PodReady(currentPod) {
-								if err := k8sutil.UpdateNodeStatus(
-									r.Client, []string{desiredPod.Labels["nodeId"]},
-									r.NifiCluster, r.NifiClusterCurrentStatus,
-									v1.GracefulActionState{ErrorMessage: "", State: v1.GracefulUpscaleSucceeded}, log,
-								); err != nil {
-									return errorfactory.New(errorfactory.StatusUpdateError{}, err, "could not update node graceful action state"), false
-								}
+				if len(pr) == 1 {
+					if spec, ok := pr["spec"].(map[string]interface{}); ok && len(spec) > 0 {
+						onlyOrder := true
+						for k := range spec {
+							if !strings.HasPrefix(k, "$setElementOrder/") {
+								onlyOrder = false
+								break
 							}
-							log.Debug("pod resource is in sync (order-only diff ignored)",
-								zap.String("clusterName", r.NifiCluster.Name),
-								zap.String("podName", currentPod.Name))
-							return nil, k8sutil.PodReady(currentPod)
+						}
+
+						if onlyOrder {
+							if !k8sutil.IsPodTerminatedOrShutdown(currentPod) &&
+								r.NifiCluster.Status.NodesState[currentPod.Labels["nodeId"]].ConfigurationState == v1.ConfigInSync {
+
+								log.Debug("pod resource is in sync (order-only diff ignored)",
+									zap.String("clusterName", r.NifiCluster.Name),
+									zap.String("podName", currentPod.Name))
+
+								return nil, k8sutil.PodReady(currentPod)
+							}
 						}
 					}
 				}
@@ -947,6 +1387,21 @@ func (r *Reconciler) reconcileNifiPod(log zap.Logger, desiredPod *corev1.Pod) (e
 				zap.String("current", string(patchResult.Current)),
 				zap.String("modified", string(patchResult.Modified)),
 				zap.String("original", string(patchResult.Original)))
+		}
+
+		if delay, reason, derr := r.shouldDelayCertRotationRestart(log, currentPod, desiredPod, patchResult.Patch); derr != nil {
+			log.Warn("cert rotation gate errored; falling back to immediate restart", zap.Error(derr))
+		} else if delay {
+			log.Info("Delaying pod restart for cert rotation", zap.String("podName", currentPod.Name), zap.String("reason", reason))
+
+			return errorfactory.New(
+				errorfactory.ReconcileRollingUpgrade{},
+				errors.New("cert rotation pending (outside maintenance window)"),
+				"waiting for cert rotation maintenance window",
+				"pod", currentPod.Name,
+				"nodeId", currentPod.Labels["nodeId"],
+				"details", reason,
+			), k8sutil.PodReady(currentPod)
 		}
 
 		if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(desiredPod); err != nil {
@@ -1162,6 +1617,14 @@ func (r *Reconciler) reconcileNifiUsersAndGroups(log zap.Logger) error {
 	}
 
 	return nil
+}
+
+func isReconcileRollingUpgradeErr(err error) bool {
+	if err == nil {
+		return false
+	}
+	_, ok := errors.Cause(err).(errorfactory.ReconcileRollingUpgrade)
+	return ok
 }
 
 func (r *Reconciler) reconcilePrometheusReportingTask() error {

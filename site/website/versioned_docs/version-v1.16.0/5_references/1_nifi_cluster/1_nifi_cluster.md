@@ -128,6 +128,9 @@ spec:
 | clusterImage              | string                                                                                         | can specify the whole nificluster image in one place.                                                                                                                                                                                                                                                                                    | No               | ""                         |
 | oneNifiNodePerNode        | boolean                                                                                        | if set to true every nifi node is started on a new node, if there is not enough node to do that it will stay in pending state. If set to false the operator also tries to schedule the nifi node to a unique node but if the node number is insufficient the nifi node will be scheduled to a node where a nifi node is already running. | No               | nil                        |
 | propagateLabels           | boolean                                                                                        | whether the labels defined on the `NifiCluster` metadata will be propagated to resources created by the operator or not.                                                                                                                                                                                                                 | Yes              | false                      |
+
+| certRotation              | [CertRotationPolicy](#certrotationpolicy) | controls restart timing for cert-driven rollouts when mounted TLS material changes (e.g. cert-manager Secret rotation). | No               | nil                        |
+
 | managedAdminUsers         | \[&nbsp;\][ManagedUser](#managedusers)                                                              | contains the list of users that will be added to the managed admin group (with all rights).                                                                                                                                                                                                                                              | No               | []                         |
 | managedReaderUsers        | \[&nbsp;\][ManagedUser](#managedusers)                                                              | contains the list of users that will be added to the managed admin group (with all rights).                                                                                                                                                                                                                                              | No               | []                         |
 | readOnlyConfig            | [ReadOnlyConfig](./2_read_only_config)                                                         | specifies the read-only type Nifi config cluster wide, all theses will be merged with node specified readOnly configurations, so it can be overwritten per node.                                                                                                                                                                         | No               | nil                        |
@@ -250,3 +253,46 @@ spec:
 | ------------------------ | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | ZookeeperClusterManager  | zookeeper  | indicates that the cluster leader election and state management will be managed with ZooKeeper. When Zookeeper is configured, you must also configure `NifiCluster.spec.zkPath` and `NifiCluster.spec.zkAddress`. |
 | KubernetesClusterManager | kubernetes | indicates that the cluster leader election and state management will be managed with Kubernetes resources, with `Leases` and `ConfigMaps` respectively.                                                           |
+
+## CertRotationPolicy
+
+| Field        | Type                                | Description                                                                                                                                 | Required | Default     |
+| ------------ | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ----------- |
+| strategy     | Enum={"Immediate","Windowed"}       | restart timing strategy. `Immediate` restarts as soon as TLS material changes are detected. `Windowed` defers until a maintenance window.    | No       | `Immediate` |
+| urgentBefore | duration                            | restart immediately if the *loaded* certificate expires within this duration (e.g. `24h`, `15m`, `2h30m`), even outside the window.        | No       | `24h`       |
+| timezone     | string                              | IANA timezone used to evaluate maintenance windows (e.g. `Europe/London`). **Required when** `strategy=Windowed`.                           | No       | ""          |
+| windows      | [&nbsp;][][CertRotationWindow](#certrotationwindow) | list of maintenance windows used when `strategy=Windowed`.                                                                                  | No       | []          |
+
+## CertRotationWindow
+
+| Field | Type                         | Description                                                                 | Required | Default |
+| ----- | ---------------------------- | --------------------------------------------------------------------------- | -------- | ------- |
+| days  | [&nbsp;][][Weekday](#weekday) | weekdays this window applies to.                                            | No       | []      |
+| start | string                       | window start time in `HH:MM` (24-hour).                                     | Yes      | -       |
+| end   | string                       | window end time in `HH:MM` (24-hour).                                       | Yes      | -       |
+
+## Weekday
+
+Weekday is one of: `Mon`, `Tue`, `Wed`, `Thu`, `Fri`, `Sat`, `Sun`.
+
+### Examples
+
+**Immediate (default)**
+```yaml
+spec:
+  certRotation:
+    strategy: Immediate
+```
+
+**Windowed**
+```yaml
+spec:
+  certRotation:
+    strategy: Windowed
+    timezone: Europe/London
+    urgentBefore: 24h
+    windows:
+      - days: ["Mon","Tue","Wed","Thu","Fri"]
+        start: "23:55"
+        end: "23:59"
+```

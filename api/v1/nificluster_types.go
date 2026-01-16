@@ -97,6 +97,9 @@ type NifiClusterSpec struct {
 	// VaultConfig         	VaultConfig         `json:"vaultConfig,omitempty"`
 	// listenerConfig specifies nifi's listener specifig configs
 	ListenersConfig *ListenersConfig `json:"listenersConfig,omitempty"`
+	// certRotation controls when NiFi node pods are restarted to pick up rotated TLS material.
+	// +optional
+	CertRotation *CertRotationPolicy `json:"certRotation,omitempty"`
 	// SidecarsConfig defines additional sidecar configurations
 	SidecarConfigs []corev1.Container `json:"sidecarConfigs,omitempty" patchStrategy:"merge" patchMergeKey:"name" protobuf:"bytes,2,rep,name=containers"`
 	// ExternalService specifies settings required to access nifi externally

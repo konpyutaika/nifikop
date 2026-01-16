@@ -30,6 +30,17 @@ cluster:
   # -- whether or not to only deploy one nifi pod per node in this cluster
   oneNifiNodePerNode: false
 
+  # certRotation controls how NiFi node pods restart when TLS material rotates.
+  # If unset, operator default behaviour applies (Immediate).
+  # certRotation:
+  #   strategy: Windowed   # Immediate | Windowed
+  #   timezone: "Europe/Madrid"
+  #   urgentBefore: 24h
+  #   windows:
+  #     - days: ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]
+  #       start: "23:55"
+  #       end: "23:59"
+
   # -- the template to use to create nodes.
   # see https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster#nificlusterspec
   # @default -- "node-%d-<cluster-name>"
