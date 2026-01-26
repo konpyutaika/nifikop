@@ -8,6 +8,10 @@ spec:
   {{- if .Values.cluster.clientType }}
   clientType: {{ .Values.cluster.clientType }}
   {{- end }}
+  {{- with .Values.cluster.certRotation }}
+  certRotation:
+  {{- toYaml . | nindent 4 }}
+  {{- end }}
   {{- if .Values.cluster.type }}
   type: {{ .Values.cluster.type }}
   {{- end }}

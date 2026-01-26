@@ -17,6 +17,7 @@ limitations under the License.
 package controller
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"strings"
@@ -30,9 +31,14 @@ import (
 	policyv1beta1 "k8s.io/api/policy/v1beta1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/event"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	v1 "github.com/konpyutaika/nifikop/api/v1"
@@ -200,29 +206,59 @@ func (r *NifiClusterReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	if err != nil {
 		return err
 	}
-	if util.IsK8sPrior1_21() {
-		return ctrl.NewControllerManagedBy(mgr).
-			For(&v1.NifiCluster{}).
-			WithLogConstructor(logCtr).
-			Owns(&policyv1beta1.PodDisruptionBudget{}).
-			Owns(&corev1.Service{}).
-			Owns(&corev1.Pod{}).
-			Owns(&corev1.ConfigMap{}).
-			Owns(&corev1.PersistentVolumeClaim{}).
-			Complete(r)
-	}
 
-	return ctrl.NewControllerManagedBy(mgr).
+	b := ctrl.NewControllerManagedBy(mgr).
 		For(&v1.NifiCluster{}).
 		WithLogConstructor(logCtr).
-		Owns(&policyv1.PodDisruptionBudget{}).
 		Owns(&corev1.Service{}).
 		Owns(&corev1.Pod{}).
 		Owns(&corev1.ConfigMap{}).
 		Owns(&corev1.PersistentVolumeClaim{}).
-		Complete(r)
-}
+		Watches(
+			&corev1.Secret{},
+			handler.EnqueueRequestsFromMapFunc(r.tlsSecretToNifiClusterRequests),
+			builder.WithPredicates(predicate.Funcs{
+				CreateFunc: func(e event.CreateEvent) bool {
+					s, ok := e.Object.(*corev1.Secret)
+					if !ok {
+						return false
+					}
+					return hasNifiClusterEnqueueHint(s)
+				},
+				UpdateFunc: func(e event.UpdateEvent) bool {
+					oldS, ok1 := e.ObjectOld.(*corev1.Secret)
+					newS, ok2 := e.ObjectNew.(*corev1.Secret)
+					if !ok1 || !ok2 {
+						return false
+					}
 
+					newHint := hasNifiClusterEnqueueHint(newS)
+					if !newHint {
+						return false
+					}
+
+					if tlsMaterialChanged(oldS, newS) {
+						return true
+					}
+
+					oldHint := hasNifiClusterEnqueueHint(oldS)
+					return oldHint != newHint
+				},
+				DeleteFunc: func(e event.DeleteEvent) bool {
+					return false
+				},
+				GenericFunc: func(e event.GenericEvent) bool { return false },
+			}),
+		)
+
+	if util.IsK8sPrior1_21() {
+		b = b.Owns(&policyv1beta1.PodDisruptionBudget{})
+	} else {
+		b = b.Owns(&policyv1.PodDisruptionBudget{})
+	}
+
+	return b.Complete(r)
+}
 func (r *NifiClusterReconciler) checkFinalizers(ctx context.Context,
 	cluster *v1.NifiCluster, patcher client.Patch) (reconcile.Result, error) {
 	r.Log.Info("NifiCluster is marked for deletion, checking for children", zap.String("clusterName", cluster.Name))
@@ -254,7 +290,7 @@ func (r *NifiClusterReconciler) checkFinalizers(ctx context.Context,
 		return result, err
 	}
 
-	if cluster.IsInternal() && cluster.Spec.ListenersConfig.SSLSecrets != nil {
+	if cluster.IsInternal() && cluster.Spec.ListenersConfig != nil && cluster.Spec.ListenersConfig.SSLSecrets != nil {
 		// If we haven't deleted all nifiusers yet, iterate namespaces and delete all nifiusers
 		// with the matching label.
 		if util.StringSliceContains(cluster.GetFinalizers(), clusterUsersFinalizer) {
@@ -399,7 +435,7 @@ func (r *NifiClusterReconciler) updateAndFetchLatest(ctx context.Context,
 func (r *NifiClusterReconciler) ensureFinalizers(ctx context.Context,
 	cluster *v1.NifiCluster, patcher client.Patch) (updated *v1.NifiCluster, err error) {
 	finalizers := []string{clusterFinalizer}
-	if cluster.IsInternal() && cluster.Spec.ListenersConfig.SSLSecrets != nil {
+	if cluster.IsInternal() && cluster.Spec.ListenersConfig != nil && cluster.Spec.ListenersConfig.SSLSecrets != nil {
 		finalizers = append(finalizers, clusterUsersFinalizer)
 	}
 	for _, finalizer := range finalizers {
@@ -409,4 +445,156 @@ func (r *NifiClusterReconciler) ensureFinalizers(ctx context.Context,
 		cluster.SetFinalizers(append(cluster.GetFinalizers(), finalizer))
 	}
 	return r.updateAndFetchLatest(ctx, cluster, patcher)
+}
+
+func isNifiGroup(apiVersion string) bool {
+	grp := strings.SplitN(apiVersion, "/", 2)[0]
+	return grp == v1.GroupVersion.Group
+}
+
+func hasNifiClusterEnqueueHint(s *corev1.Secret) bool {
+	if s == nil || !isTLSMaterialSecret(s) {
+		return false
+	}
+
+	if s.Labels != nil && (s.Labels["nifi_cr"] != "" || s.Labels["nifiCluster"] != "") {
+		return true
+	}
+
+	for _, ref := range s.OwnerReferences {
+		if !isNifiGroup(ref.APIVersion) {
+			continue
+		}
+		if ref.Kind == "NifiCluster" || ref.Kind == "NifiUser" {
+			return true
+		}
+	}
+	return false
+}
+
+func tlsMaterialChanged(oldS, newS *corev1.Secret) bool {
+	if oldS == nil || newS == nil {
+		return false
+	}
+
+	keys := []string{
+		corev1.TLSCertKey,
+		corev1.TLSPrivateKeyKey,
+		"ca.crt",
+		v1.PasswordKey,
+		"keystore.jks",
+		"truststore.jks",
+	}
+
+	for _, k := range keys {
+		if !bytes.Equal(oldS.Data[k], newS.Data[k]) {
+			return true
+		}
+	}
+	return false
+}
+
+func isTLSMaterialSecret(s *corev1.Secret) bool {
+	if s == nil {
+		return false
+	}
+	if s.Type == corev1.SecretTypeTLS {
+		return true
+	}
+	if s.Data == nil {
+		return false
+	}
+
+	if s.Data[corev1.TLSCertKey] != nil || s.Data[corev1.TLSPrivateKeyKey] != nil {
+		return true
+	}
+	if s.Data["keystore.jks"] != nil || s.Data["truststore.jks"] != nil {
+		return true
+	}
+	return false
+}
+
+func clusterFromNifiClusterLabel(v, defaultNS string) (types.NamespacedName, bool) {
+	v = strings.TrimSpace(v)
+	if v == "" {
+		return types.NamespacedName{}, false
+	}
+
+	parts := strings.Split(v, ".")
+	if len(parts) == 1 {
+		return types.NamespacedName{Name: v, Namespace: defaultNS}, true
+	}
+	if len(parts) == 2 && parts[0] != "" && parts[1] != "" {
+		return types.NamespacedName{Name: parts[0], Namespace: parts[1]}, true
+	}
+
+	return types.NamespacedName{}, false
+}
+
+func (r *NifiClusterReconciler) tlsSecretToNifiClusterRequests(ctx context.Context, obj client.Object) []reconcile.Request {
+	s, ok := obj.(*corev1.Secret)
+	if !ok || s == nil || !isTLSMaterialSecret(s) {
+		return nil
+	}
+	ns := s.Namespace
+
+	if s.Labels != nil {
+		if cr := s.Labels["nifi_cr"]; cr != "" {
+			return []reconcile.Request{{NamespacedName: types.NamespacedName{Name: cr, Namespace: ns}}}
+		}
+		if v := s.Labels["nifiCluster"]; v != "" {
+			if nn, ok := clusterFromNifiClusterLabel(v, ns); ok {
+				return []reconcile.Request{{NamespacedName: nn}}
+			}
+		}
+	}
+
+	// 1) Direct ownership by NifiCluster
+	for _, ref := range s.OwnerReferences {
+		if isNifiGroup(ref.APIVersion) && ref.Kind == "NifiCluster" {
+			return []reconcile.Request{{NamespacedName: types.NamespacedName{Name: ref.Name, Namespace: ns}}}
+		}
+	}
+
+	for _, ref := range s.OwnerReferences {
+		if isNifiGroup(ref.APIVersion) && ref.Kind == "NifiUser" {
+			u := &v1.NifiUser{}
+			if err := r.DirectClient.Get(ctx, types.NamespacedName{Name: ref.Name, Namespace: ns}, u); err != nil {
+				if apierrors.IsForbidden(err) {
+					r.Log.Warn("Forbidden reading NifiUser (RBAC missing?)",
+						zap.String("nifiuser", ref.Name),
+						zap.String("namespace", ns),
+						zap.Error(err),
+					)
+				}
+				continue
+			}
+			if u.Spec.ClusterRef.Name != "" {
+				ns2 := u.Spec.ClusterRef.Namespace
+				if strings.TrimSpace(ns2) == "" {
+					ns2 = ns
+				}
+				return []reconcile.Request{{
+					NamespacedName: types.NamespacedName{
+						Name:      u.Spec.ClusterRef.Name,
+						Namespace: ns2,
+					},
+				}}
+			}
+
+			// Legacy fallback: labels
+			if u.Labels != nil {
+				if v := u.Labels["nifiCluster"]; v != "" {
+					if nn, ok := clusterFromNifiClusterLabel(v, ns); ok {
+						return []reconcile.Request{{NamespacedName: nn}}
+					}
+				}
+				if cr := u.Labels["nifi_cr"]; cr != "" { // keep in case other installs use it
+					return []reconcile.Request{{NamespacedName: types.NamespacedName{Name: cr, Namespace: ns}}}
+				}
+			}
+		}
+	}
+
+	return nil
 }

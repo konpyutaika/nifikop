@@ -26,6 +26,45 @@ spec:
             type: object
           spec:
             properties:
+              certRotation:
+                properties:
+                  strategy:
+                    default: Immediate
+                    enum:
+                    - Immediate
+                    - Windowed
+                    type: string
+                  timezone:
+                    type: string
+                  urgentBefore:
+                    type: string
+                  windows:
+                    items:
+                      properties:
+                        days:
+                          items:
+                            enum:
+                            - Mon
+                            - Tue
+                            - Wed
+                            - Thu
+                            - Fri
+                            - Sat
+                            - Sun
+                            type: string
+                          type: array
+                        end:
+                          pattern: ^([01][0-9]|2[0-3]):[0-5][0-9]$
+                          type: string
+                        start:
+                          pattern: ^([01][0-9]|2[0-3]):[0-5][0-9]$
+                          type: string
+                      required:
+                      - end
+                      - start
+                      type: object
+                    type: array
+                type: object
               clientType:
                 enum:
                 - tls
