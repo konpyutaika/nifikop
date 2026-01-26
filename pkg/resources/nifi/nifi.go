@@ -1372,6 +1372,24 @@ func (r *Reconciler) reconcileNifiPod(log zap.Logger, desiredPod *corev1.Pod) (e
 							if !k8sutil.IsPodTerminatedOrShutdown(currentPod) &&
 								r.NifiCluster.Status.NodesState[currentPod.Labels["nodeId"]].ConfigurationState == v1.ConfigInSync {
 
+								if val, found := r.NifiCluster.Status.NodesState[desiredPod.Labels["nodeId"]]; found &&
+									val.GracefulActionState.State == v1.GracefulUpscaleRunning &&
+									val.GracefulActionState.ActionStep == v1.ConnectStatus &&
+									k8sutil.PodReady(currentPod) {
+
+									if err := k8sutil.UpdateNodeStatus(
+										r.Client,
+										[]string{desiredPod.Labels["nodeId"]},
+										r.NifiCluster,
+										r.NifiClusterCurrentStatus,
+										v1.GracefulActionState{ErrorMessage: "", State: v1.GracefulUpscaleSucceeded},
+										log,
+									); err != nil {
+										return errorfactory.New(errorfactory.StatusUpdateError{},
+											err, "could not update node graceful action state"), false
+									}
+								}
+
 								log.Debug("pod resource is in sync (order-only diff ignored)",
 									zap.String("clusterName", r.NifiCluster.Name),
 									zap.String("podName", currentPod.Name))
@@ -1382,6 +1400,7 @@ func (r *Reconciler) reconcileNifiPod(log zap.Logger, desiredPod *corev1.Pod) (e
 					}
 				}
 			}
+
 			log.Debug("resource diffs",
 				zap.String("patch", string(patchResult.Patch)),
 				zap.String("current", string(patchResult.Current)),
