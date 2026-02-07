@@ -44,7 +44,7 @@
     "sass": "^1.94.2",
     "sass-loader": "^16.0.6",
     "typescript": "^5.9.3",
-    "webpack": "^5.103.0"
+    "webpack": "^5.104.1"
   },
   "devDependencies": {
     "alex": "^11.0.1",
