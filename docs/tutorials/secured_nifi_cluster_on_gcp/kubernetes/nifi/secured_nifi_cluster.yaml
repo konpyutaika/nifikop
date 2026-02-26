@@ -8,8 +8,6 @@ spec:
   zkAddress: "zookeeper.zookeeper:2181"
   zkPath: "/securednificluster"
   clusterImage: "apache/nifi:1.11.4"
-  clusterSecure: true
-  siteToSiteSecure: true
   oneNifiNodePerNode: true
   initialAdminUser: <your google account email>
   readOnlyConfig:

@@ -102,8 +102,7 @@ kind: NifiCluster
 ...
 spec:
   ...
-  clusterSecure: true
-  siteToSiteSecure: true
+  # TLS is configured through listenersConfig and sslSecrets.
   ...
   listenersConfig:
     clusterDomain: <DNS zone name>
