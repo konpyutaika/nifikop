@@ -5,6 +5,7 @@
 ### Changed
 
 - [PR #641](https://github.com/konpyutaika/nifikop/pull/641) - **[Operator]** Upgrade golang to 1.25.7.
+- [PR #645](https://github.com/konpyutaika/nifikop/pull/645) - **[Dependencies]** Bump opentelemetry-go to v1.40.0.
 
 ### Fixed Bugs
 
