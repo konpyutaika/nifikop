@@ -8,6 +8,8 @@
 
 ### Fixed Bugs
 
+- [PR #644](https://github.com/konpyutaika/nifikop/pull/644) - **[Helm Chart]** Fix `serviceAccountName` value path for Kubernetes manager mode by using `cluster.managerServiceAccount.name`.
+
 ### Deprecated
 
 ### Removed
