@@ -438,8 +438,8 @@ type ListenersConfig struct {
 
 // SSLSecrets defines the Nifi SSL secrets.
 type SSLSecrets struct {
-	// tlsSecretName should contain all ssl certs required by nifi including: caCert, caKey, clientCert, clientKey
-	// serverCert, serverKey, peerCert, peerKey
+	// tlsSecretName references a secret containing TLS material.
+	// With create=false and pkiBackend=cert-manager, it must contain at least caCert and caKey.
 	TLSSecretName string `json:"tlsSecretName,omitempty"`
 	// create tells the installed cert manager to create the required certs keys
 	Create bool `json:"create,omitempty"`

@@ -55,9 +55,8 @@ Field|Type|Description|Required|Default|
 
 Field|Type|Description|Required|Default|
 |-----|----|-----------|--------|--------|
-|tlsSecretName|string| should contain all ssl certs required by nifi including: caCert, caKey, clientCert, clientKey serverCert, serverKey, peerCert, peerKey. | Yes | - |
+|tlsSecretName|string| Name of the Kubernetes secret containing TLS material. With `create=false` and `pkiBackend=cert-manager`, the secret must include at least `caCert` and `caKey` (the operator issues node/controller certs from this CA). | Yes | - |
 |create|boolean| tells the installed cert manager to create the required certs keys. | Yes | - |
 |clusterScoped|boolean| defines if the Issuer created is cluster or namespace scoped. | Yes | - |
 |issuerRef|[ObjectReference](https://docs.cert-manager.io/en/release-0.9/reference/api-docs/index.html#objectreference-v1alpha1)| IssuerRef allow to use an existing issuer to act as CA: https://cert-manager.io/docs/concepts/issuer/ | No | - |
 |pkiBackend|enum{"cert-manager"}| | Yes | - |
-
