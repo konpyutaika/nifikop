@@ -42,7 +42,7 @@ spec:
 If `listenersConfig.sslSecrets.create` is set to `false` (with the default `cert-manager` PKI backend), the operator will look for the secret at `listenersConfig.sslSecrets.tlsSecretName` and expect these values:
 
 | key | value |
-|-----|-------|
+|------|-------|
 | caCert | The CA certificate |
 | caKey | The CA private key |
 
