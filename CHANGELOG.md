@@ -8,6 +8,8 @@
 
 ### Fixed Bugs
 
+- [PR #643](https://github.com/konpyutaika/nifikop/pull/643) - **[Documentation]** Fix SSL documentation and examples by removing legacy `clusterSecure` / `siteToSiteSecure` fields, updating cert-manager Issuer apiVersion to `cert-manager.io/v1`, and clarifying `sslSecrets.tlsSecretName` requirements.
+
 ### Deprecated
 
 ### Removed
