@@ -2,7 +2,7 @@
 
 ### Added
 
-- [Issue #648](https://github.com/konpyutaika/nifikop/issues/648) - **[Operator/NifiCluster]** Add `spec.pod.terminationGracePeriodSeconds` support for NiFi pods.
+- [PR #650](https://github.com/konpyutaika/nifikop/pull/650) - **[Operator/NifiCluster]** Add `spec.pod.terminationGracePeriodSeconds` support for NiFi pods.
 
 ### Changed
 
