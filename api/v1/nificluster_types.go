@@ -175,6 +175,11 @@ type PodPolicy struct {
 	// A list of host aliases to include in every pod's /etc/hosts configuration in the scenario where DNS is not available.
 	// +optional
 	HostAliases []corev1.HostAlias `json:"hostAliases,omitempty"`
+	// TerminationGracePeriodSeconds specifies how long Kubernetes should wait for the pod to shut down gracefully before forcefully terminating it.
+	// +optional
+	// +kubebuilder:default=120
+	// +kubebuilder:validation:Minimum=0
+	TerminationGracePeriodSeconds *int64 `json:"terminationGracePeriodSeconds,omitempty"`
 	// Override the default readiness probe settings
 	// +optional
 	ReadinessProbe *corev1.Probe `json:"readinessProbe,omitempty"`

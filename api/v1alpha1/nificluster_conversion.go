@@ -103,11 +103,12 @@ func convertNifiClusterSecretRef(src SecretReference, dst *v1.NifiCluster) {
 
 func convertNifiClusterPodPolicy(src PodPolicy, dst *v1.NifiCluster) {
 	dst.Spec.Pod = v1.PodPolicy{
-		HostAliases:    src.HostAliases,
-		Annotations:    src.Annotations,
-		Labels:         src.Labels,
-		ReadinessProbe: nil,
-		LivenessProbe:  nil,
+		HostAliases:                   src.HostAliases,
+		Annotations:                   src.Annotations,
+		Labels:                        src.Labels,
+		TerminationGracePeriodSeconds: src.TerminationGracePeriodSeconds,
+		ReadinessProbe:                nil,
+		LivenessProbe:                 nil,
 	}
 }
 
@@ -552,9 +553,10 @@ func convertNifiClusterFromSecretRef(src v1.SecretReference, dst *NifiCluster) {
 
 func convertNifiClusterFromPodPolicy(src v1.PodPolicy, dst *NifiCluster) {
 	dst.Spec.Pod = PodPolicy{
-		HostAliases: src.HostAliases,
-		Annotations: src.Annotations,
-		Labels:      src.Labels,
+		HostAliases:                   src.HostAliases,
+		Annotations:                   src.Annotations,
+		Labels:                        src.Labels,
+		TerminationGracePeriodSeconds: src.TerminationGracePeriodSeconds,
 	}
 }
 

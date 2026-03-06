@@ -30,6 +30,9 @@ spec:
     hostAliases:
     {{- toYaml .Values.cluster.pod.hostAliases | nindent 6}}
   {{- end }}
+  {{- if ne .Values.cluster.pod.terminationGracePeriodSeconds nil }}
+    terminationGracePeriodSeconds: {{ .Values.cluster.pod.terminationGracePeriodSeconds }}
+  {{- end }}
   {{- if .Values.cluster.pod.livenessProbe }}
     livenessProbe:
     {{- toYaml .Values.cluster.pod.livenessProbe | nindent 6}}
