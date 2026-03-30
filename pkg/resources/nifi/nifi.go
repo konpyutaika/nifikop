@@ -477,6 +477,93 @@ func New(client client.Client, directClient client.Reader, scheme *runtime.Schem
 	}
 }
 
+func desiredNodesStableForClusterAPIs(cluster *v1.NifiCluster) (bool, string) {
+	if cluster == nil {
+		return false, "cluster is nil"
+	}
+
+	if len(cluster.Spec.Nodes) == 0 {
+		return false, "no desired nodes"
+	}
+
+	if len(cluster.Status.NodesState) == 0 {
+		return false, "no node status entries yet"
+	}
+
+	for _, node := range cluster.Spec.Nodes {
+		nodeID := fmt.Sprint(node.Id)
+		nodeState, ok := cluster.Status.NodesState[nodeID]
+		if !ok {
+			return false, fmt.Sprintf("node %s status missing", nodeID)
+		}
+
+		if nodeState.ConfigurationState != v1.ConfigInSync {
+			return false, fmt.Sprintf("node %s configurationState=%s", nodeID, nodeState.ConfigurationState)
+		}
+
+		if !nodeState.PodIsReady {
+			return false, fmt.Sprintf("node %s pod not ready", nodeID)
+		}
+
+		if nodeState.GracefulActionState.State != v1.GracefulUpscaleSucceeded {
+			return false, fmt.Sprintf("node %s gracefulState=%s", nodeID, nodeState.GracefulActionState.State)
+		}
+	}
+
+	return true, ""
+}
+
+func isOrderOnlyPodPatch(patchBytes []byte) bool {
+	var pr map[string]interface{}
+	if err := json.Unmarshal(patchBytes, &pr); err != nil {
+		return false
+	}
+
+	if len(pr) != 1 {
+		return false
+	}
+
+	spec, ok := pr["spec"].(map[string]interface{})
+	if !ok || len(spec) == 0 {
+		return false
+	}
+
+	for k := range spec {
+		if !strings.HasPrefix(k, "$setElementOrder/") {
+			return false
+		}
+	}
+
+	return true
+}
+
+func shouldDelayNoDiffConnectingPodRecycle(cluster *v1.NifiCluster, pod *corev1.Pod) (bool, string) {
+	if cluster == nil || pod == nil {
+		return false, ""
+	}
+
+	nodeID := pod.Labels["nodeId"]
+	nodeState, ok := cluster.Status.NodesState[nodeID]
+	if !ok {
+		return false, ""
+	}
+
+	if nodeState.GracefulActionState.State != v1.GracefulUpscaleRunning ||
+		nodeState.GracefulActionState.ActionStep != v1.ConnectStatus {
+		return false, ""
+	}
+
+	if pod.Status.Phase != corev1.PodRunning {
+		return false, ""
+	}
+
+	if !k8sutil.IsPodContainsTerminatedContainer(pod) {
+		return false, ""
+	}
+
+	return true, fmt.Sprintf("node %s pod is unchanged and still connecting", nodeID)
+}
+
 func getCreatedPVCForNode(c client.Client, nodeID int32, namespace, crName string) ([]corev1.PersistentVolumeClaim, error) {
 	foundPVCList := &corev1.PersistentVolumeClaimList{}
 	matchingLabels := client.MatchingLabels{
@@ -725,6 +812,11 @@ func (r *Reconciler) Reconcile(log zap.Logger) error {
 		return pendingRolling
 	}
 
+	if ok, reason := desiredNodesStableForClusterAPIs(r.NifiCluster); !ok {
+		log.Debug("Skipping cluster-wide NiFi API reconciliation until desired nodes are stable", zap.String("reason", reason))
+		return errorfactory.New(errorfactory.NodesNotReady{}, errors.New(reason), "waiting for desired nodes to become stable")
+	}
+
 	configManager := config.GetClientConfigManager(r.Client, v1.ClusterReference{
 		Namespace: r.NifiCluster.Namespace,
 		Name:      r.NifiCluster.Name,
@@ -735,7 +827,6 @@ func (r *Reconciler) Reconcile(log zap.Logger) error {
 		return errors.WrapIf(err, "Failed to create HTTP client the for referenced cluster")
 	}
 
-	// TODO: Ensure usage and needing
 	err = scale.EnsureRemovedNodes(clientConfig, r.NifiCluster)
 	if err != nil && len(r.NifiCluster.Status.NodesState) > 0 {
 		return err
@@ -1328,8 +1419,29 @@ func (r *Reconciler) reconcileNifiPod(log zap.Logger, desiredPod *corev1.Pod) (e
 		}
 
 		if patchResult.IsEmpty() {
-			if !k8sutil.IsPodTerminatedOrShutdown(currentPod) &&
-				r.NifiCluster.Status.NodesState[currentPod.Labels["nodeId"]].ConfigurationState == v1.ConfigInSync {
+			if delay, reason := shouldDelayNoDiffConnectingPodRecycle(r.NifiCluster, currentPod); delay {
+				log.Info("Delaying no-diff pod recycle while node is still connecting",
+					zap.String("clusterName", r.NifiCluster.Name),
+					zap.String("podName", currentPod.Name),
+					zap.String("nodeId", currentPod.Labels["nodeId"]),
+					zap.String("reason", reason),
+					zap.String("phase", string(currentPod.Status.Phase)),
+				)
+
+				return errorfactory.New(
+					errorfactory.ReconcileRollingUpgrade{},
+					errors.New(reason),
+					"waiting before recreating unchanged connecting pod",
+					"pod", currentPod.Name,
+					"nodeId", currentPod.Labels["nodeId"],
+				), k8sutil.PodReady(currentPod)
+			}
+
+			// A startup pod can be temporarily marked ConfigOutOfSync while its
+			// dependent secrets/users are still reconciling. If the desired pod
+			// already matches the current pod, do not recycle it just because it
+			// is not Ready yet.
+			if !k8sutil.IsPodTerminatedOrShutdown(currentPod) {
 
 				if val, found := r.NifiCluster.Status.NodesState[desiredPod.Labels["nodeId"]]; found &&
 					val.GracefulActionState.State == v1.GracefulUpscaleRunning &&
@@ -1356,48 +1468,50 @@ func (r *Reconciler) reconcileNifiPod(log zap.Logger, desiredPod *corev1.Pod) (e
 				return nil, k8sutil.PodReady(currentPod)
 			}
 		} else {
-			var pr map[string]interface{}
-			if err := json.Unmarshal(patchResult.Patch, &pr); err == nil {
-				if len(pr) == 1 {
-					if spec, ok := pr["spec"].(map[string]interface{}); ok && len(spec) > 0 {
-						onlyOrder := true
-						for k := range spec {
-							if !strings.HasPrefix(k, "$setElementOrder/") {
-								onlyOrder = false
-								break
-							}
-						}
+			if isOrderOnlyPodPatch(patchResult.Patch) {
+				if delay, reason := shouldDelayNoDiffConnectingPodRecycle(r.NifiCluster, currentPod); delay {
+					log.Info("Delaying order-only pod recycle while node is still connecting",
+						zap.String("clusterName", r.NifiCluster.Name),
+						zap.String("podName", currentPod.Name),
+						zap.String("nodeId", currentPod.Labels["nodeId"]),
+						zap.String("reason", reason),
+						zap.String("phase", string(currentPod.Status.Phase)),
+					)
 
-						if onlyOrder {
-							if !k8sutil.IsPodTerminatedOrShutdown(currentPod) &&
-								r.NifiCluster.Status.NodesState[currentPod.Labels["nodeId"]].ConfigurationState == v1.ConfigInSync {
+					return errorfactory.New(
+						errorfactory.ReconcileRollingUpgrade{},
+						errors.New(reason),
+						"waiting before recreating unchanged connecting pod",
+						"pod", currentPod.Name,
+						"nodeId", currentPod.Labels["nodeId"],
+					), k8sutil.PodReady(currentPod)
+				}
 
-								if val, found := r.NifiCluster.Status.NodesState[desiredPod.Labels["nodeId"]]; found &&
-									val.GracefulActionState.State == v1.GracefulUpscaleRunning &&
-									val.GracefulActionState.ActionStep == v1.ConnectStatus &&
-									k8sutil.PodReady(currentPod) {
+				if !k8sutil.IsPodTerminatedOrShutdown(currentPod) {
 
-									if err := k8sutil.UpdateNodeStatus(
-										r.Client,
-										[]string{desiredPod.Labels["nodeId"]},
-										r.NifiCluster,
-										r.NifiClusterCurrentStatus,
-										v1.GracefulActionState{ErrorMessage: "", State: v1.GracefulUpscaleSucceeded},
-										log,
-									); err != nil {
-										return errorfactory.New(errorfactory.StatusUpdateError{},
-											err, "could not update node graceful action state"), false
-									}
-								}
+					if val, found := r.NifiCluster.Status.NodesState[desiredPod.Labels["nodeId"]]; found &&
+						val.GracefulActionState.State == v1.GracefulUpscaleRunning &&
+						val.GracefulActionState.ActionStep == v1.ConnectStatus &&
+						k8sutil.PodReady(currentPod) {
 
-								log.Debug("pod resource is in sync (order-only diff ignored)",
-									zap.String("clusterName", r.NifiCluster.Name),
-									zap.String("podName", currentPod.Name))
-
-								return nil, k8sutil.PodReady(currentPod)
-							}
+						if err := k8sutil.UpdateNodeStatus(
+							r.Client,
+							[]string{desiredPod.Labels["nodeId"]},
+							r.NifiCluster,
+							r.NifiClusterCurrentStatus,
+							v1.GracefulActionState{ErrorMessage: "", State: v1.GracefulUpscaleSucceeded},
+							log,
+						); err != nil {
+							return errorfactory.New(errorfactory.StatusUpdateError{},
+								err, "could not update node graceful action state"), false
 						}
 					}
+
+					log.Debug("pod resource is in sync (order-only diff ignored)",
+						zap.String("clusterName", r.NifiCluster.Name),
+						zap.String("podName", currentPod.Name))
+
+					return nil, k8sutil.PodReady(currentPod)
 				}
 			}
 
@@ -1461,7 +1575,10 @@ func (r *Reconciler) reconcileNifiPod(log zap.Logger, desiredPod *corev1.Pod) (e
 			}
 		}
 
-		log.Info(fmt.Sprintf("Deleting pod %s", currentPod.Name))
+		log.Info("Deleting pod",
+			zap.String("podName", currentPod.Name),
+			zap.String("nodeId", currentPod.Labels["nodeId"]),
+		)
 		err = r.Client.Delete(context.TODO(), currentPod)
 		if err != nil {
 			return errorfactory.New(errorfactory.APIFailure{},

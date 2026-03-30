@@ -25,6 +25,10 @@ func TestDescribeCluster(t *testing.T) {
 	assert.IsType(ErrNifiClusterReturned404, err)
 	assert.Nil(clusterEntity)
 
+	clusterEntity, err = testDescribeCluster(t, 409)
+	assert.IsType(ErrNifiClusterReturned409, err)
+	assert.Nil(clusterEntity)
+
 	clusterEntity, err = testDescribeCluster(t, 500)
 	assert.IsType(ErrNifiClusterNotReturned200, err)
 	assert.Nil(clusterEntity)
@@ -69,6 +73,10 @@ func TestGetClusterNode(t *testing.T) {
 
 	nodeEntity, err = testGetClusterNode(t, cluster, 0, 500)
 	assert.IsType(ErrNifiClusterNotReturned200, err)
+	assert.Nil(nodeEntity)
+
+	nodeEntity, err = testGetClusterNode(t, cluster, 0, 409)
+	assert.IsType(ErrNifiClusterReturned409, err)
 	assert.Nil(nodeEntity)
 }
 

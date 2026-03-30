@@ -2,7 +2,10 @@ package scale
 
 import (
 	"fmt"
+	"strings"
 	"time"
+
+	emperrors "emperror.dev/errors"
 
 	v1 "github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers"
@@ -13,6 +16,50 @@ import (
 )
 
 var log = common.CustomLogger().Named("scale-method")
+
+func isRetryableConnectCheckError(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	if emperrors.Is(err, nificlient.ErrNifiClusterReturned404) ||
+		emperrors.Is(err, nificlient.ErrNifiClusterReturned409) ||
+		emperrors.Is(err, nificlient.ErrNoNodeClientsAvailable) {
+		return true
+	}
+
+	msg := strings.ToLower(err.Error())
+	for _, needle := range []string{
+		strings.ToLower(nificlient.ErrNifiClusterReturned404.Error()),
+		strings.ToLower(nificlient.ErrNifiClusterReturned409.Error()),
+		strings.ToLower(nificlient.ErrNoNodeClientsAvailable.Error()),
+	} {
+		if strings.Contains(msg, needle) {
+			return true
+		}
+	}
+
+	root := emperrors.Cause(err)
+	if root != nil {
+		msg = strings.ToLower(root.Error())
+	}
+
+	for _, needle := range []string{
+		"no such host",
+		"connection refused",
+		"context deadline exceeded",
+		"client.timeout exceeded",
+		"connect timed out",
+		"tls: handshake timeout",
+		"eof",
+	} {
+		if strings.Contains(msg, needle) {
+			return true
+		}
+	}
+
+	return false
+}
 
 // TODO: rework upscale to check that the node is connected before ending operation.
 // UpScaleCluster upscales Nifi cluster.
@@ -145,6 +192,9 @@ func CheckIfNCActionStepFinished(actionStep v1.ActionStep, config *clientconfig.
 
 	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
+		if actionStep == v1.ConnectNodeAction && isRetryableConnectCheckError(err) {
+			return false, nil
+		}
 		return false, err
 	}
 
