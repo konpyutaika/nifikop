@@ -11,8 +11,6 @@ spec:
   zkAddress: "zookeeper.zookeeper:2181"
   zkPath: "/sec"
   clusterImage: "apache/nifi:1.11.4"
-  clusterSecure: true
-  siteToSiteSecure: true
   oneNifiNodePerNode: false
   initialAdminUser: <your google account email>
   propagateLabels: true

@@ -2,10 +2,18 @@
 
 ### Added
 
+- [PR #650](https://github.com/konpyutaika/nifikop/pull/650) - **[Operator/NifiCluster]** Add `spec.pod.terminationGracePeriodSeconds` support for NiFi pods.
+
 ### Changed
+
+- [PR #641](https://github.com/konpyutaika/nifikop/pull/641) - **[Operator]** Upgrade golang to 1.25.7.
+- [PR #657](https://github.com/konpyutaika/nifikop/pull/657) - **[Operator]** Upgrade golang to 1.26.2.
 
 ### Fixed Bugs
 
+- [PR #655](https://github.com/konpyutaika/nifikop/pull/655) - **[Operator/NifiCluster]** Update Zookeeper connectivity validation.
+- [PR #646](https://github.com/konpyutaika/nifikop/pull/646) - **[Documentation]** Fix SSL documentation and examples by removing legacy `clusterSecure` / `siteToSiteSecure` fields, updating cert-manager Issuer apiVersion to `cert-manager.io/v1`, and clarifying `sslSecrets.tlsSecretName` requirements.
+- [PR #644](https://github.com/konpyutaika/nifikop/pull/644) - **[Helm Chart]** Fix `serviceAccountName` value path for Kubernetes manager mode by using `cluster.managerServiceAccount.name`.
 - [PR #637](https://github.com/konpyutaika/nifikop/pull/637) - **[Operator/NifiCluster]** Restart NiFi node pods when cert-manager rotates mounted TLS material to prevent stale zombie certificates. (Fixes #628, #636)
 
 ### Deprecated

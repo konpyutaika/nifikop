@@ -4586,6 +4586,11 @@ spec:
                         format: int32
                         type: integer
                     type: object
+                  terminationGracePeriodSeconds:
+                    default: 120
+                    format: int64
+                    minimum: 0
+                    type: integer
                 type: object
               propagateLabels:
                 type: boolean

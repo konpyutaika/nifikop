@@ -39,14 +39,14 @@ spec:
 
 - `readOnlyConfig.nifiProperties.webProxyHosts`: A list of allowed HTTP Host header values to consider when NiFi is running securely and will be receiving requests to a different host[:port] than it is bound to. [web-properties](https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#web-properties)
 
-If `listenersConfig.sslSecrets.create` is set to `false`, the operator will look for the secret at `listenersConfig.sslSecrets.tlsSecretName` and expect these values:
+If `listenersConfig.sslSecrets.create` is set to `false` (with the default `cert-manager` PKI backend), the operator will look for the secret at `listenersConfig.sslSecrets.tlsSecretName` and expect these values:
 
 | key | value |
-|-----|-------|
+|------|-------|
 | caCert | The CA certificate |
 | caKey | The CA private key |
-| clientCert | A client certificate (this will be used by operator for NiFI operations) |
-| clientKey | The private key for clientCert |
+
+The operator uses this CA material to issue node and controller certificates via cert-manager.
 
 ## Using an existing Issuer
 
@@ -70,7 +70,7 @@ To do this, you have to:
 1. Create an issuer:
 
 ```yaml
-apiVersion: cert-manager.io/v1alpha2
+apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
   name: letsencrypt-staging
@@ -102,8 +102,7 @@ kind: NifiCluster
 ...
 spec:
   ...
-  clusterSecure: true
-  siteToSiteSecure: true
+  # TLS is configured through listenersConfig and sslSecrets.
   ...
   listenersConfig:
     clusterDomain: <DNS zone name>

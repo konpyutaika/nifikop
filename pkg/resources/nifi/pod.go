@@ -35,6 +35,8 @@ const (
 	defaultInitContainerRequestsCPU    = "0.5"
 	defaultInitContainerRequestsMemory = "0.5Gi"
 
+	defaultTerminationGracePeriodSeconds int64 = 120
+
 	ContainerName string = "nifi"
 )
 
@@ -141,6 +143,11 @@ func (r *Reconciler) pod(node v1.Node, nodeConfig *v1.NodeConfig, pvcs []corev1.
 	// curl -kv --cert /var/run/secrets/java.io/keystores/client/tls.crt --key /var/run/secrets/java.io/keystores/client/tls.key https://securenc-headless.external-dns-test.gcp.trycatchlearn.fr:8443/nifi-api/controller/cluster
 	// keytool -import -noprompt -keystore /home/nifi/truststore.jks -file /var/run/secrets/java.io/keystores/server/ca.crt -storepass $(cat /var/run/secrets/java.io/keystores/server/password) -alias test1
 	// Build Affinity from user input, falling back to operator defaults for anti-affinity
+	terminationGracePeriodSeconds := util.Int64Pointer(defaultTerminationGracePeriodSeconds)
+	if r.NifiCluster.Spec.Pod.TerminationGracePeriodSeconds != nil {
+		terminationGracePeriodSeconds = r.NifiCluster.Spec.Pod.TerminationGracePeriodSeconds
+	}
+
 	var aff *corev1.Affinity
 	{
 		tmp := &corev1.Affinity{}
@@ -175,6 +182,7 @@ func (r *Reconciler) pod(node v1.Node, nodeConfig *v1.NodeConfig, pvcs []corev1.
 				FSGroup:        nodeConfig.GetFSGroup(),
 				SeccompProfile: seccompProfile,
 			},
+			TerminationGracePeriodSeconds: terminationGracePeriodSeconds,
 			InitContainers:                podInitContainers,
 			Affinity:                      aff,
 			TopologySpreadConstraints:     r.NifiCluster.Spec.TopologySpreadConstraints,
@@ -182,7 +190,6 @@ func (r *Reconciler) pod(node v1.Node, nodeConfig *v1.NodeConfig, pvcs []corev1.
 			HostAliases:                   allHostAliases,
 			Volumes:                       podVolumes,
 			RestartPolicy:                 corev1.RestartPolicyNever,
-			TerminationGracePeriodSeconds: util.Int64Pointer(120),
 			DNSPolicy:                     corev1.DNSClusterFirst,
 			ImagePullSecrets:              nodeConfig.GetImagePullSecrets(),
 			ServiceAccountName:            nodeConfig.GetServiceAccount(),
@@ -527,8 +534,8 @@ do
 
 		echo "Checking Zookeeper Host: [${zk_host_port[0]}] Port: [${zk_host_port[1]}]"
 		set +e
-		curl --telnet-option 'BOGUS=1' --connect-timeout 2 -s telnet://${zk_host_port[0]}:${zk_host_port[1]} < /dev/null
-		if [ $? -eq 48 ]; then
+		timeout 2 bash -c "</dev/tcp/${zk_host_port[0]}/${zk_host_port[1]}" 2>/dev/null
+		if [ $? -eq 0 ]; then
 			echo "Connected to ${zk_host_port}"
 			connected=1
 		fi
