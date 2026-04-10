@@ -527,8 +527,8 @@ do
 
 		echo "Checking Zookeeper Host: [${zk_host_port[0]}] Port: [${zk_host_port[1]}]"
 		set +e
-		curl --telnet-option 'BOGUS=1' --connect-timeout 2 -s telnet://${zk_host_port[0]}:${zk_host_port[1]} < /dev/null
-		if [ $? -eq 48 ]; then
+		timeout 2 bash -c "</dev/tcp/${zk_host_port[0]}/${zk_host_port[1]}" 2>/dev/null
+		if [ $? -eq 0 ]; then
 			echo "Connected to ${zk_host_port}"
 			connected=1
 		fi
