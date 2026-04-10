@@ -5,6 +5,7 @@
 ### Changed
 
 - [PR #641](https://github.com/konpyutaika/nifikop/pull/641) - **[Operator]** Upgrade golang to 1.25.7.
+- [PR #657](https://github.com/konpyutaika/nifikop/pull/657) - **[Operator]** Upgrade golang to 1.26.2.
 
 ### Fixed Bugs
 
@@ -936,3 +937,4 @@
 ### Removed
 
 ### Fixed Bugs
+- [PR #655](https://github.com/konpyutaika/nifikop/pull/655) - **[Operator/NifiCluster]** Update Zookeeper connectivity validation.
