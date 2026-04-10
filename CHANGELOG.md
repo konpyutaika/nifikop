@@ -8,6 +8,7 @@
 
 - [PR #641](https://github.com/konpyutaika/nifikop/pull/641) - **[Operator]** Upgrade golang to 1.25.7.
 - [PR #657](https://github.com/konpyutaika/nifikop/pull/657) - **[Operator]** Upgrade golang to 1.26.2.
+- [PR #616](https://github.com/konpyutaika/nifikop/pull/658) - **[NiGoApi]** Upgrade NiGoApi to v0.1.13.
 
 ### Fixed Bugs
 
