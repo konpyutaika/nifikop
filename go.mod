@@ -12,7 +12,7 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/imdario/mergo v0.3.14
 	github.com/jarcoal/httpmock v1.3.0
-	github.com/konpyutaika/nigoapi v0.1.10
+	github.com/konpyutaika/nigoapi v0.1.13
 	github.com/onsi/ginkgo/v2 v2.19.0
 	github.com/onsi/gomega v1.33.1
 	github.com/pavel-v-chernykh/keystore-go v2.1.0+incompatible
@@ -113,7 +113,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/net v0.48.0 // indirect
-	golang.org/x/oauth2 v0.34.0 // indirect; indiect
+	golang.org/x/oauth2 v0.36.0 // indirect; indiect
 	golang.org/x/sys v0.42.0 // indirect
 	golang.org/x/term v0.38.0 // indirect
 	golang.org/x/text v0.32.0 // indirect
