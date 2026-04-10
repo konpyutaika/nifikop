@@ -14,7 +14,7 @@ func (n *nifiClient) UpdateOutputPortRunStatus(id string, entity nigoapi.PortRun
 	}
 
 	// Request on Nifi Rest API to update the output port run status
-	processor, rsp, body, err := client.OutputPortsApi.UpdateRunStatus3(context, entity, id)
+	processor, rsp, body, err := client.OutputPortsApi.UpdateRunStatus4(context, entity, id)
 	if err := errorUpdateOperation(rsp, body, err, n.log); err != nil {
 		return nil, err
 	}

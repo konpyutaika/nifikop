@@ -69,7 +69,7 @@ func (n *nifiClient) UpdateRunStatusReportingTask(id string, entity nigoapi.Repo
 	}
 
 	// Request on Nifi Rest API to update the reporting task
-	out, rsp, body, err := client.ReportingTasksApi.UpdateRunStatus5(context, entity, id)
+	out, rsp, body, err := client.ReportingTasksApi.UpdateRunStatus6(context, entity, id)
 	if err := errorUpdateOperation(rsp, body, err, n.log); err != nil {
 		return nil, err
 	}
