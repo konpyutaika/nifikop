@@ -130,13 +130,7 @@ type PodPolicy struct {
 	// Labels specifies additional labels to attach to the pods the operator creates
 	Labels map[string]string `json:"labels,omitempty"`
 	// A list of host aliases to include in every pod's /etc/hosts configuration in the scenario where DNS is not available.
-	// +optional
 	HostAliases []corev1.HostAlias `json:"hostAliases,omitempty"`
-	// TerminationGracePeriodSeconds specifies how long Kubernetes should wait for the pod to shut down gracefully before forcefully terminating it.
-	// +optional
-	// +kubebuilder:default=120
-	// +kubebuilder:validation:Minimum=0
-	TerminationGracePeriodSeconds *int64 `json:"terminationGracePeriodSeconds,omitempty"`
 }
 
 // rollingUpgradeConfig specifies the rolling upgrade config for the cluster

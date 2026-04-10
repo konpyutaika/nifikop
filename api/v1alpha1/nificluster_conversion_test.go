@@ -80,8 +80,7 @@ func assertNifiClustersEqual(anc *NifiCluster, nc *v1.NifiCluster, t *testing.T)
 	}
 	if !reflect.DeepEqual(anc.Spec.Pod.Annotations, nc.Spec.Pod.Annotations) ||
 		!reflect.DeepEqual(anc.Spec.Pod.Labels, nc.Spec.Pod.Labels) ||
-		!reflect.DeepEqual(anc.Spec.Pod.HostAliases, nc.Spec.Pod.HostAliases) ||
-		!reflect.DeepEqual(anc.Spec.Pod.TerminationGracePeriodSeconds, nc.Spec.Pod.TerminationGracePeriodSeconds) {
+		!reflect.DeepEqual(anc.Spec.Pod.HostAliases, nc.Spec.Pod.HostAliases) {
 		t.Error("pod policies not equal")
 	}
 	if !reflect.DeepEqual(anc.Spec.InitContainers, nc.Spec.InitContainers) {
@@ -397,7 +396,6 @@ func createNifiCluster() *NifiCluster {
 						Hostnames: []string{"blah.host"},
 					},
 				},
-				TerminationGracePeriodSeconds: func(i int64) *int64 { return &i }(120),
 			},
 			InitContainers: []corev1.Container{
 				{
