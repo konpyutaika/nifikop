@@ -175,6 +175,10 @@ nifi.security.keyPasswd={{ .ServerKeystorePassword }}
 nifi.security.truststore={{ .ServerKeystorePath }}/{{ .TrustStoreFile }}
 nifi.security.truststoreType=JKS
 nifi.security.truststorePasswd={{ .ServerKeystorePassword }}
+{{ if .TLSAutoReloadEnabled }}
+nifi.security.autoreload.enabled=true
+nifi.security.autoreload.interval={{ .TLSAutoReloadInterval }}
+{{ end }}
 {{ end }}
 nifi.security.needClientAuth={{ .NeedClientAuth }}
 {{if and .SingleUserConfiguration.AuthorizerEnabled .SingleUserConfiguration.Enabled}}

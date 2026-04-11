@@ -150,6 +150,8 @@ func (r *Reconciler) getNifiPropertiesConfigString(nConfig *v1.NodeConfig, id in
 		"ClusterSecure":                      useSSL,
 		"WebProxyHosts":                      webProxyHosts,
 		"NeedClientAuth":                     base.NeedClientAuth,
+		"TLSAutoReloadEnabled":               base.IsTLSAutoReloadEnabled(),
+		"TLSAutoReloadInterval":              base.GetTLSAutoReloadInterval(),
 		"Authorizer":                         base.GetAuthorizer(),
 		"SSLEnabledForInternalCommunication": r.NifiCluster.Spec.ListenersConfig.SSLSecrets != nil && util.IsSSLEnabledForInternalCommunication(r.NifiCluster.Spec.ListenersConfig.InternalListeners),
 		"SuperUsers":                         strings.Join(generateSuperUsers(superUsers), ";"),

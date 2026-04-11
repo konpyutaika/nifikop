@@ -16,6 +16,7 @@
 
 - [PR #650](https://github.com/konpyutaika/nifikop/pull/650) - **[Operator/NifiCluster]** Add `spec.pod.terminationGracePeriodSeconds` support for NiFi pods.
 - [PR #660](https://github.com/konpyutaika/nifikop/pull/660) - **[Operator/NifiRegistryClient]** Introduce `v2alpha1` CRD version with support for Git-based registry backends (GitHub, GitLab) in addition to the existing NiFi Registry server.
+- [PR #659](https://github.com/konpyutaika/nifikop/pull/659) - **[Operator/NifiCluster]** Add `spec.readOnlyConfig.nifiProperties.tlsAutoReload` to enable native NiFi TLS auto-reload with validation and a one-time rollout when the setting changes.
 
 ### Changed
 

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -39,6 +40,9 @@ import (
 const (
 	componentName = "nifi"
 
+	podTLSAutoReloadEnabledAnnotation  = "nifikop.konpyutaika.com/tls-autoreload-enabled"
+	podTLSAutoReloadIntervalAnnotation = "nifikop.konpyutaika.com/tls-autoreload-interval"
+
 	nodeSecretVolumeMount = "node-config"
 	nodeTmp               = "node-tmp"
 
@@ -47,6 +51,8 @@ const (
 	clientKeystoreVolume = "client-ks-files"
 	clientKeystorePath   = "/var/run/secrets/java.io/keystores/client"
 )
+
+var tlsAutoReloadIntervalRegexp = regexp.MustCompile(`^[[:space:]]*[1-9][0-9]*[[:space:]]+(millis|milliseconds?|ms|secs?|seconds?|mins?|minutes?|hours?|days?)[[:space:]]*$`)
 
 func isLinkerdInjected(p *corev1.Pod) bool {
 	if p == nil {
@@ -90,6 +96,44 @@ func unionLinkerdVolumes(desired, current *corev1.Pod) {
 			}
 		}
 	}
+}
+
+func applyTLSAutoReloadAnnotations(pod *corev1.Pod, properties *v1.NifiProperties) {
+	if pod == nil {
+		return
+	}
+
+	if pod.Annotations == nil {
+		pod.Annotations = map[string]string{}
+	}
+
+	delete(pod.Annotations, podTLSAutoReloadEnabledAnnotation)
+	delete(pod.Annotations, podTLSAutoReloadIntervalAnnotation)
+
+	if properties == nil || !properties.IsTLSAutoReloadEnabled() {
+		return
+	}
+
+	pod.Annotations[podTLSAutoReloadEnabledAnnotation] = "true"
+	pod.Annotations[podTLSAutoReloadIntervalAnnotation] = properties.GetTLSAutoReloadInterval()
+}
+
+func validateTLSAutoReloadProperties(properties *v1.NifiProperties) error {
+	if properties == nil || !properties.IsTLSAutoReloadEnabled() {
+		return nil
+	}
+
+	interval := properties.GetTLSAutoReloadInterval()
+	if !tlsAutoReloadIntervalRegexp.MatchString(interval) {
+		return errorfactory.New(
+			errorfactory.FatalReconcileError{},
+			errors.New("invalid tlsAutoReload interval"),
+			"tlsAutoReload.interval must look like '10 secs', '500 ms', '30 mins' or '12 hours'",
+			"interval", interval,
+		)
+	}
+
+	return nil
 }
 
 func unionLinkerdVolumeMounts(dst, src []corev1.Container) []corev1.Container {
@@ -308,6 +352,17 @@ func (r *Reconciler) Reconcile(log zap.Logger) error {
 			return errors.WrapIfWithDetails(err, "failed to list PVCs")
 		}
 
+		nifiProperties := r.GetNifiPropertiesBase(node.Id)
+		if err := validateTLSAutoReloadProperties(nifiProperties); err != nil {
+			return err
+		}
+		if nifiProperties.IsTLSAutoReloadEnabled() && r.NifiCluster.Spec.ListenersConfig.SSLSecrets == nil {
+			log.Warn("tlsAutoReload is enabled but TLS is not configured; no autoreload properties will be rendered",
+				zap.String("clusterName", r.NifiCluster.Name),
+				zap.Int32("nodeId", node.Id),
+			)
+		}
+
 		o := r.secretConfig(node.Id, nodeConfig, serverPass, clientPass, superUsers, log)
 		err = k8sutil.Reconcile(log, r.Client, o, r.NifiCluster, &r.NifiClusterCurrentStatus)
 		if err != nil {
@@ -322,15 +377,18 @@ func (r *Reconciler) Reconcile(log zap.Logger) error {
 			}
 		}
 		o = r.pod(node, nodeConfig, pvcs, log)
-		err, isReady := r.reconcileNifiPod(log, o.(*corev1.Pod))
+		pod := o.(*corev1.Pod)
+		applyTLSAutoReloadAnnotations(pod, nifiProperties)
+
+		err, isReady := r.reconcileNifiPod(log, pod)
 		if err != nil {
 			return err
 		}
-		if nodeState, ok := r.NifiCluster.Status.NodesState[o.(*corev1.Pod).Labels["nodeId"]]; ok &&
+		if nodeState, ok := r.NifiCluster.Status.NodesState[pod.Labels["nodeId"]]; ok &&
 			nodeState.PodIsReady != isReady {
-			if err = k8sutil.UpdateNodeStatus(r.Client, []string{o.(*corev1.Pod).Labels["nodeId"]}, r.NifiCluster, r.NifiClusterCurrentStatus, isReady, log); err != nil {
+			if err = k8sutil.UpdateNodeStatus(r.Client, []string{pod.Labels["nodeId"]}, r.NifiCluster, r.NifiClusterCurrentStatus, isReady, log); err != nil {
 				return errors.WrapIfWithDetails(err, "could not update status for node(s)",
-					"id(s)", o.(*corev1.Pod).Labels["nodeId"])
+					"id(s)", pod.Labels["nodeId"])
 			}
 		}
 	}
