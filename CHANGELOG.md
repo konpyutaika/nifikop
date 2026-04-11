@@ -2,6 +2,18 @@
 
 ### Added
 
+### Changed
+
+### Fixed Bugs
+
+### Deprecated
+
+### Removed
+
+## v1.17.0
+
+### Added
+
 - [PR #650](https://github.com/konpyutaika/nifikop/pull/650) - **[Operator/NifiCluster]** Add `spec.pod.terminationGracePeriodSeconds` support for NiFi pods.
 - [PR #660](https://github.com/konpyutaika/nifikop/pull/660) - **[Operator/NifiRegistryClient]** Introduce `v2alpha1` CRD version with support for Git-based registry backends (GitHub, GitLab) in addition to the existing NiFi Registry server.
 
@@ -17,10 +29,6 @@
 - [PR #655](https://github.com/konpyutaika/nifikop/pull/655) - **[Operator/NifiCluster]** Update Zookeeper connectivity validation.
 - [PR #646](https://github.com/konpyutaika/nifikop/pull/646) - **[Documentation]** Fix SSL documentation and examples by removing legacy `clusterSecure` / `siteToSiteSecure` fields, updating cert-manager Issuer apiVersion to `cert-manager.io/v1`, and clarifying `sslSecrets.tlsSecretName` requirements.
 - [PR #644](https://github.com/konpyutaika/nifikop/pull/644) - **[Helm Chart]** Fix `serviceAccountName` value path for Kubernetes manager mode by using `cluster.managerServiceAccount.name`.
-
-### Deprecated
-
-### Removed
 
 ## v1.16.0
 
