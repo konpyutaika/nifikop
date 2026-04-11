@@ -8,6 +8,7 @@ import (
 	"go.uber.org/zap"
 
 	v1 "github.com/konpyutaika/nifikop/api/v1"
+	v2alpha1 "github.com/konpyutaika/nifikop/api/v2alpha1"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers"
 	"github.com/konpyutaika/nifikop/pkg/common"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
@@ -84,7 +85,7 @@ func GetDataflowInformation(flow *v1.NifiDataflow, config *clientconfig.NifiConf
 
 // CreateDataflow will deploy the NifiDataflow on NiFi Cluster.
 func CreateDataflow(flow *v1.NifiDataflow, config *clientconfig.NifiConfig,
-	registry *v1.NifiRegistryClient, parentProcessGroupId string) (*v1.NifiDataflowStatus, error) {
+	registry *v2alpha1.NifiRegistryClient, parentProcessGroupId string) (*v1.NifiDataflowStatus, error) {
 	log.Debug("Creating dataflow",
 		zap.String("clusterName", flow.Spec.ClusterRef.Name),
 		zap.String("flowId", flow.Spec.FlowId),
@@ -207,7 +208,7 @@ func ScheduleDataflow(flow *v1.NifiDataflow, config *clientconfig.NifiConfig) er
 func IsOutOfSyncDataflow(
 	flow *v1.NifiDataflow,
 	config *clientconfig.NifiConfig,
-	registry *v1.NifiRegistryClient,
+	registry *v2alpha1.NifiRegistryClient,
 	parameterContext *v1.NifiParameterContext,
 	parentProcessGroupId string) (bool, error) {
 	nClient, err := common.NewClusterConnection(log, config)
@@ -264,7 +265,7 @@ func isNameChanged(flow *v1.NifiDataflow, pgFlowEntity *nigoapi.ProcessGroupEnti
 
 // isVersionSync check if the flow version is out of sync.
 func isVersionSync(flow *v1.NifiDataflow, pgFlowEntity *nigoapi.ProcessGroupEntity) bool {
-	return fmt.Sprint(*flow.Spec.FlowVersion) == fmt.Sprint(pgFlowEntity.Component.VersionControlInformation.Version)
+	return flow.Spec.FlowVersion.String() == fmt.Sprint(pgFlowEntity.Component.VersionControlInformation.Version)
 }
 
 func localChanged(pgFlowEntity *nigoapi.ProcessGroupEntity) bool {
@@ -274,7 +275,7 @@ func localChanged(pgFlowEntity *nigoapi.ProcessGroupEntity) bool {
 // isVersioningChanged check if the versioning configuration is out of sync on process group.
 func isVersioningChanged(
 	flow *v1.NifiDataflow,
-	registry *v1.NifiRegistryClient,
+	registry *v2alpha1.NifiRegistryClient,
 	pgFlowEntity *nigoapi.ProcessGroupEntity) bool {
 	return pgFlowEntity.Component.VersionControlInformation == nil ||
 		flow.Spec.FlowId != pgFlowEntity.Component.VersionControlInformation.FlowId ||
@@ -293,7 +294,7 @@ func isPostionChanged(flow *v1.NifiDataflow, pgFlowEntity *nigoapi.ProcessGroupE
 func SyncDataflow(
 	flow *v1.NifiDataflow,
 	config *clientconfig.NifiConfig,
-	registry *v1.NifiRegistryClient,
+	registry *v2alpha1.NifiRegistryClient,
 	parameterContext *v1.NifiParameterContext,
 	parentProcessGroupId string) (*v1.NifiDataflowStatus, error) {
 	nClient, err := common.NewClusterConnection(log, config)
@@ -479,7 +480,7 @@ func SyncDataflow(
 					RegistryId: registry.Status.Id,
 					BucketId:   flow.Spec.BucketId,
 					FlowId:     flow.Spec.FlowId,
-					Version:    *flow.Spec.FlowVersion,
+					Version:    flow.Spec.FlowVersion.String(),
 				},
 			},
 		)
@@ -846,7 +847,7 @@ func updateRequest2Status(updateRequest *nigoapi.VersionedFlowUpdateRequestEntit
 
 func updateProcessGroupEntity(
 	flow *v1.NifiDataflow,
-	registry *v1.NifiRegistryClient,
+	registry *v2alpha1.NifiRegistryClient,
 	config *clientconfig.NifiConfig,
 	entity *nigoapi.ProcessGroupEntity,
 	parentProcessGroupId string) {
@@ -904,7 +905,7 @@ func updateProcessGroupEntity(
 		RegistryId:       registry.Status.Id,
 		BucketId:         flow.Spec.BucketId,
 		FlowId:           flow.Spec.FlowId,
-		Version:          fmt.Sprint(*flow.Spec.FlowVersion),
+		Version:          flow.Spec.FlowVersion.String(),
 	}
 }
 

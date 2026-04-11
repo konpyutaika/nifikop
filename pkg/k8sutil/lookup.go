@@ -9,6 +9,7 @@ import (
 
 	v1 "github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
+	v2alpha1 "github.com/konpyutaika/nifikop/api/v2alpha1"
 )
 
 // LookupNifiCluster returns the running cluster instance based on its name and namespace.
@@ -19,8 +20,8 @@ func LookupNifiCluster(client runtimeClient.Client, clusterName, clusterNamespac
 }
 
 // LookupNifiRegistryClient returns the running registry client instance based on its name and namespace.
-func LookupNifiRegistryClient(client runtimeClient.Client, registryClientName, registryClientNamespace string) (registryClient *v1.NifiRegistryClient, err error) {
-	registryClient = &v1.NifiRegistryClient{}
+func LookupNifiRegistryClient(client runtimeClient.Client, registryClientName, registryClientNamespace string) (registryClient *v2alpha1.NifiRegistryClient, err error) {
+	registryClient = &v2alpha1.NifiRegistryClient{}
 	err = client.Get(context.TODO(), types.NamespacedName{Name: registryClientName, Namespace: registryClientNamespace}, registryClient)
 	return
 }

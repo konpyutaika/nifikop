@@ -397,12 +397,37 @@ nodeGroupAutoscalers:
 registryClients:
   - name: default
     enabled: false
-    endpoint: http://nifi-registry
     description: "Default NiFi Registry client"
-  - name: alternate
-    enabled: false
-    endpoint: http://nifi-registry
-    description: "Alternate NiFi Registry client"
+    type: registry  # registry, github, or gitlab
+    registryClientConfig:
+      uri: http://nifi-registry
+  # -- GitHub registry client example
+  # - name: github
+  #   enabled: false
+  #   description: "GitHub flow registry"
+  #   type: github
+  #   githubConfig:
+  #     repositoryOwner: my-org
+  #     repositoryName: nifi-flows
+  #     authenticationType: PERSONAL_ACCESS_TOKEN  # NONE, PERSONAL_ACCESS_TOKEN, APP_INSTALLATION
+  #     personalAccessTokenSecretRef:
+  #       name: github-pat-secret
+  #       namespace: ""
+  #       data: token
+  #     defaultBranch: main
+  # -- GitLab registry client example
+  # - name: gitlab
+  #   enabled: false
+  #   description: "GitLab flow registry"
+  #   type: gitlab
+  #   gitlabConfig:
+  #     repositoryNamespace: my-group/my-subgroup
+  #     repositoryName: nifi-flows
+  #     accessTokenSecretRef:
+  #       name: gitlab-token-secret
+  #       namespace: ""
+  #       data: token
+  #     defaultBranch: main
 
 # -- Parameter context configurations.
 # This is required if you wish to deploy versioned flows via the dataflow config. However, 

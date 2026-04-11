@@ -1,6 +1,6 @@
 {{ range .Values.registryClients }}
 {{ if .enabled }}
-apiVersion: nifi.konpyutaika.com/v1
+apiVersion: nifi.konpyutaika.com/v2alpha1
 kind: NifiRegistryClient
 metadata:
   name: {{ include "nifi-cluster.fullname" $ }}-{{ .name }}-registry-client
@@ -9,8 +9,102 @@ metadata:
 spec:
   clusterRef:
     name: {{ include "nifi-cluster.fullname" $ }}
-  description: {{ default "NiFi Registry client" .description }}
-  uri: {{ .endpoint }}
+  {{- with .description }}
+  description: {{ . }}
+  {{- end }}
+  type: {{ default "registry" .type }}
+  {{- if or (not .type) (eq .type "registry") }}
+  {{- with .registryClientConfig }}
+  registryClientConfig:
+    uri: {{ .uri }}
+  {{- end }}
+  {{- end }}
+  {{- if eq .type "github" }}
+  {{- with .githubConfig }}
+  githubConfig:
+    {{- with .apiUrl }}
+    apiUrl: {{ . }}
+    {{- end }}
+    repositoryOwner: {{ .repositoryOwner }}
+    repositoryName: {{ .repositoryName }}
+    {{- with .authenticationType }}
+    authenticationType: {{ . }}
+    {{- end }}
+    {{- with .personalAccessTokenSecretRef }}
+    personalAccessTokenSecretRef:
+      name: {{ .name }}
+      {{- with .namespace }}
+      namespace: {{ . }}
+      {{- end }}
+      data: {{ .data }}
+    {{- end }}
+    {{- with .appId }}
+    appId: {{ . }}
+    {{- end }}
+    {{- with .appPrivateKeySecretRef }}
+    appPrivateKeySecretRef:
+      name: {{ .name }}
+      {{- with .namespace }}
+      namespace: {{ . }}
+      {{- end }}
+      data: {{ .data }}
+    {{- end }}
+    {{- with .defaultBranch }}
+    defaultBranch: {{ . }}
+    {{- end }}
+    {{- with .repositoryPath }}
+    repositoryPath: {{ . }}
+    {{- end }}
+    {{- with .directoryFilterExclusion }}
+    directoryFilterExclusion: {{ . }}
+    {{- end }}
+    {{- with .parameterContextValues }}
+    parameterContextValues: {{ . }}
+    {{- end }}
+  {{- end }}
+  {{- end }}
+  {{- if eq .type "gitlab" }}
+  {{- with .gitlabConfig }}
+  gitlabConfig:
+    {{- with .url }}
+    url: {{ . }}
+    {{- end }}
+    {{- with .apiVersion }}
+    apiVersion: {{ . }}
+    {{- end }}
+    repositoryNamespace: {{ .repositoryNamespace }}
+    repositoryName: {{ .repositoryName }}
+    {{- with .authenticationType }}
+    authenticationType: {{ . }}
+    {{- end }}
+    {{- with .accessTokenSecretRef }}
+    accessTokenSecretRef:
+      name: {{ .name }}
+      {{- with .namespace }}
+      namespace: {{ . }}
+      {{- end }}
+      data: {{ .data }}
+    {{- end }}
+    {{- with .connectTimeout }}
+    connectTimeout: {{ . }}
+    {{- end }}
+    {{- with .readTimeout }}
+    readTimeout: {{ . }}
+    {{- end }}
+    {{- with .defaultBranch }}
+    defaultBranch: {{ . }}
+    {{- end }}
+    {{- with .repositoryPath }}
+    repositoryPath: {{ . }}
+    {{- end }}
+    {{- with .directoryFilterExclusion }}
+    directoryFilterExclusion: {{ . }}
+    {{- end }}
+    {{- with .parameterContextValues }}
+    parameterContextValues: {{ . }}
+    {{- end }}
+  {{- end }}
+  {{- end }}
 ---
 {{ end }}
 {{ end }}
