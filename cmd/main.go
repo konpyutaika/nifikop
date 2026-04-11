@@ -44,6 +44,7 @@ import (
 	v1 "github.com/konpyutaika/nifikop/api/v1"
 	nifiv1alpha1 "github.com/konpyutaika/nifikop/api/v1alpha1"
 	v1alpha1 "github.com/konpyutaika/nifikop/api/v1alpha1"
+	nifiv2alpha1 "github.com/konpyutaika/nifikop/api/v2alpha1"
 	"github.com/konpyutaika/nifikop/internal/controller"
 	"github.com/konpyutaika/nifikop/pkg/common"
 	//+kubebuilder:scaffold:imports
@@ -59,6 +60,7 @@ func init() {
 	utilruntime.Must(v1alpha1.AddToScheme(scheme))
 	utilruntime.Must(v1.AddToScheme(scheme))
 	utilruntime.Must(nifiv1alpha1.AddToScheme(scheme))
+	utilruntime.Must(nifiv2alpha1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 }
 

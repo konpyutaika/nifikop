@@ -3,6 +3,7 @@
 ### Added
 
 - [PR #650](https://github.com/konpyutaika/nifikop/pull/650) - **[Operator/NifiCluster]** Add `spec.pod.terminationGracePeriodSeconds` support for NiFi pods.
+- [PR #660](https://github.com/konpyutaika/nifikop/pull/660) - **[Operator/NifiRegistryClient]** Introduce `v2alpha1` CRD version with support for Git-based registry backends (GitHub, GitLab) in addition to the existing NiFi Registry server.
 - [PR #659](https://github.com/konpyutaika/nifikop/pull/659) - **[Operator/NifiCluster]** Add `spec.readOnlyConfig.nifiProperties.tlsAutoReload` to enable native NiFi TLS auto-reload with validation and a one-time rollout when the setting changes.
 
 ### Changed
@@ -10,6 +11,7 @@
 - [PR #641](https://github.com/konpyutaika/nifikop/pull/641) - **[Operator]** Upgrade golang to 1.25.7.
 - [PR #657](https://github.com/konpyutaika/nifikop/pull/657) - **[Operator]** Upgrade golang to 1.26.2.
 - [PR #616](https://github.com/konpyutaika/nifikop/pull/658) - **[NiGoApi]** Upgrade NiGoApi to v0.1.13.
+- [PR #660](https://github.com/konpyutaika/nifikop/pull/660) - **[Operator/NifiDataflow]** `spec.flowVersion` now accepts an integer or a string to support commit hash versions used by Git-based registries.
 
 ### Fixed Bugs
 

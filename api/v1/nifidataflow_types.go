@@ -2,6 +2,7 @@ package v1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
@@ -16,7 +17,7 @@ type NifiDataflowSpec struct {
 	// the UUID of the flow to run.
 	FlowId string `json:"flowId"`
 	// the version of the flow to run, then the latest version of flow will be used.
-	FlowVersion *int32 `json:"flowVersion,omitempty"`
+	FlowVersion *intstr.IntOrString `json:"flowVersion,omitempty"`
 	// the position of your dataflow in the canvas.
 	FlowPosition *FlowPosition `json:"flowPosition,omitempty"`
 	// contains the reference to the ParameterContext with the one the dataflow is linked.

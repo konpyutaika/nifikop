@@ -33,6 +33,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	v1 "github.com/konpyutaika/nifikop/api/v1"
+	v2alpha1 "github.com/konpyutaika/nifikop/api/v2alpha1"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers/registryclient"
 	"github.com/konpyutaika/nifikop/pkg/k8sutil"
 	"github.com/konpyutaika/nifikop/pkg/nificlient/config"
@@ -40,7 +41,7 @@ import (
 	"github.com/konpyutaika/nifikop/pkg/util/clientconfig"
 )
 
-var registryClientFinalizer = fmt.Sprintf("nifiregistryclients.%s/finalizer", v1.GroupVersion.Group)
+var registryClientFinalizer = fmt.Sprintf("nifiregistryclients.%s/finalizer", v2alpha1.GroupVersion.Group)
 
 // NifiRegistryClientReconciler reconciles a NifiRegistryClient object.
 type NifiRegistryClientReconciler struct {
@@ -70,7 +71,7 @@ func (r *NifiRegistryClientReconciler) Reconcile(ctx context.Context, req ctrl.R
 	var err error
 
 	// Fetch the NifiRegistryClient instance
-	var instance = &v1.NifiRegistryClient{}
+	var instance = &v2alpha1.NifiRegistryClient{}
 	if err = r.Client.Get(ctx, req.NamespacedName, instance); err != nil {
 		if apierrors.IsNotFound(err) {
 			// Request object not found, could have been deleted after reconcile request.
@@ -95,11 +96,11 @@ func (r *NifiRegistryClientReconciler) Reconcile(ctx context.Context, req ctrl.R
 	}
 
 	// Check if the cluster reference changed.
-	original := &v1.NifiRegistryClient{}
+	original := &v2alpha1.NifiRegistryClient{}
 	current := instance.DeepCopy()
 	patchCurrent := client.MergeFrom(current.DeepCopy())
 	json.Unmarshal(o, original)
-	if !v1.ClusterRefsEquals([]v1.ClusterReference{original.Spec.ClusterRef, instance.Spec.ClusterRef}) {
+	if !v2alpha1.ClusterRefsEquals([]v2alpha1.ClusterReference{original.Spec.ClusterRef, instance.Spec.ClusterRef}) {
 		instance.Spec.ClusterRef = original.Spec.ClusterRef
 	}
 
@@ -109,8 +110,8 @@ func (r *NifiRegistryClientReconciler) Reconcile(ctx context.Context, req ctrl.R
 
 	// Get the client config manager associated to the cluster ref.
 	clusterRef := instance.Spec.ClusterRef
-	clusterRef.Namespace = GetClusterRefNamespace(instance.Namespace, instance.Spec.ClusterRef)
-	configManager := config.GetClientConfigManager(r.Client, clusterRef)
+	clusterRef.Namespace = GetClusterRefNamespace(instance.Namespace, v1.ClusterReference{Name: instance.Spec.ClusterRef.Name, Namespace: instance.Spec.ClusterRef.Namespace})
+	configManager := config.GetClientConfigManager(r.Client, v1.ClusterReference{Name: clusterRef.Name, Namespace: clusterRef.Namespace})
 
 	// Generate the connect object
 	if clusterConnect, err = configManager.BuildConnect(); err != nil {
@@ -125,7 +126,7 @@ func (r *NifiRegistryClientReconciler) Reconcile(ctx context.Context, req ctrl.R
 			return Reconciled()
 		}
 		// If the referenced cluster no more exist, just skip the deletion requirement in cluster ref change case.
-		if !v1.ClusterRefsEquals([]v1.ClusterReference{instance.Spec.ClusterRef, current.Spec.ClusterRef}) {
+		if !v2alpha1.ClusterRefsEquals([]v2alpha1.ClusterReference{instance.Spec.ClusterRef, current.Spec.ClusterRef}) {
 			if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(current); err != nil {
 				return RequeueWithError(r.Log, "could not apply last state to annotation to registry client "+instance.Name, err)
 			}
@@ -177,7 +178,7 @@ func (r *NifiRegistryClientReconciler) Reconcile(ctx context.Context, req ctrl.R
 	}
 
 	// Ìn case of the cluster reference changed.
-	if !v1.ClusterRefsEquals([]v1.ClusterReference{instance.Spec.ClusterRef, current.Spec.ClusterRef}) {
+	if !v2alpha1.ClusterRefsEquals([]v2alpha1.ClusterReference{instance.Spec.ClusterRef, current.Spec.ClusterRef}) {
 		// Delete the resource on the previous cluster.
 		if err := registryclient.RemoveRegistryClient(instance, clientConfig); err != nil {
 			r.Recorder.Event(instance, corev1.EventTypeWarning, "RemoveError",
@@ -198,6 +199,12 @@ func (r *NifiRegistryClientReconciler) Reconcile(ctx context.Context, req ctrl.R
 	r.Recorder.Event(instance, corev1.EventTypeNormal, "Reconciling",
 		"Reconciling registry client "+instance.Name)
 
+	// Resolve secrets referenced by the registry client spec.
+	secrets, err := r.resolveSecrets(instance)
+	if err != nil {
+		return RequeueWithError(r.Log, "failed to resolve secrets for registry client "+instance.Name, err)
+	}
+
 	// Check if the NiFi registry client already exist
 	exist, err := registryclient.ExistRegistryClient(instance, clientConfig)
 	if err != nil {
@@ -208,7 +215,7 @@ func (r *NifiRegistryClientReconciler) Reconcile(ctx context.Context, req ctrl.R
 		// Create NiFi registry client
 		r.Recorder.Event(instance, corev1.EventTypeNormal, "Creating",
 			fmt.Sprintf("Creating registry client %s", instance.Name))
-		status, err := registryclient.CreateRegistryClient(instance, clientConfig)
+		status, err := registryclient.CreateRegistryClient(instance, secrets, clientConfig)
 		if err != nil {
 			return RequeueWithError(r.Log, "failure creating registry client "+instance.Name, err)
 		}
@@ -234,7 +241,7 @@ func (r *NifiRegistryClientReconciler) Reconcile(ctx context.Context, req ctrl.R
 	// Sync RegistryClient resource with NiFi side component
 	r.Recorder.Event(instance, corev1.EventTypeNormal, "Synchronizing",
 		fmt.Sprintf("Synchronizing registry client %s", instance.Name))
-	status, err := registryclient.SyncRegistryClient(instance, clientConfig)
+	status, err := registryclient.SyncRegistryClient(instance, secrets, clientConfig)
 	if err != nil {
 		r.Recorder.Event(instance, corev1.EventTypeNormal, "SynchronizingFailed",
 			fmt.Sprintf("Synchronizing registry client %s failed", instance.Name))
@@ -276,18 +283,18 @@ func (r *NifiRegistryClientReconciler) Reconcile(ctx context.Context, req ctrl.R
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *NifiRegistryClientReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	logCtr, err := GetLogConstructor(mgr, &v1.NifiRegistryClient{})
+	logCtr, err := GetLogConstructor(mgr, &v2alpha1.NifiRegistryClient{})
 	if err != nil {
 		return err
 	}
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&v1.NifiRegistryClient{}).
+		For(&v2alpha1.NifiRegistryClient{}).
 		WithLogConstructor(logCtr).
 		Complete(r)
 }
 
 func (r *NifiRegistryClientReconciler) ensureClusterLabel(ctx context.Context, cluster clientconfig.ClusterConnect,
-	registryClient *v1.NifiRegistryClient, patcher client.Patch) (*v1.NifiRegistryClient, error) {
+	registryClient *v2alpha1.NifiRegistryClient, patcher client.Patch) (*v2alpha1.NifiRegistryClient, error) {
 	labels := ApplyClusterReferenceLabel(cluster, registryClient.GetLabels())
 	if !reflect.DeepEqual(labels, registryClient.GetLabels()) {
 		registryClient.SetLabels(labels)
@@ -297,7 +304,7 @@ func (r *NifiRegistryClientReconciler) ensureClusterLabel(ctx context.Context, c
 }
 
 func (r *NifiRegistryClientReconciler) updateAndFetchLatest(ctx context.Context,
-	registryClient *v1.NifiRegistryClient, patcher client.Patch) (*v1.NifiRegistryClient, error) {
+	registryClient *v2alpha1.NifiRegistryClient, patcher client.Patch) (*v2alpha1.NifiRegistryClient, error) {
 	typeMeta := registryClient.TypeMeta
 	err := r.Client.Patch(ctx, registryClient, patcher)
 	if err != nil {
@@ -308,7 +315,7 @@ func (r *NifiRegistryClientReconciler) updateAndFetchLatest(ctx context.Context,
 }
 
 func (r *NifiRegistryClientReconciler) checkFinalizers(ctx context.Context,
-	registryClient *v1.NifiRegistryClient, config *clientconfig.NifiConfig, patcher client.Patch) (reconcile.Result, error) {
+	registryClient *v2alpha1.NifiRegistryClient, config *clientconfig.NifiConfig, patcher client.Patch) (reconcile.Result, error) {
 	r.Log.Info("NiFi registry client is marked for deletion. Removing finalizers.",
 		zap.String("registryClient", registryClient.Name))
 	var err error
@@ -323,7 +330,7 @@ func (r *NifiRegistryClientReconciler) checkFinalizers(ctx context.Context,
 	return Reconciled()
 }
 
-func (r *NifiRegistryClientReconciler) removeFinalizer(ctx context.Context, registryClient *v1.NifiRegistryClient, patcher client.Patch) error {
+func (r *NifiRegistryClientReconciler) removeFinalizer(ctx context.Context, registryClient *v2alpha1.NifiRegistryClient, patcher client.Patch) error {
 	r.Log.Debug("Removing finalizer for NifiRegistryClient",
 		zap.String("registryClient", registryClient.Name))
 	registryClient.SetFinalizers(util.StringSliceRemove(registryClient.GetFinalizers(), registryClientFinalizer))
@@ -331,7 +338,7 @@ func (r *NifiRegistryClientReconciler) removeFinalizer(ctx context.Context, regi
 	return err
 }
 
-func (r *NifiRegistryClientReconciler) finalizeNifiRegistryClient(registryClient *v1.NifiRegistryClient,
+func (r *NifiRegistryClientReconciler) finalizeNifiRegistryClient(registryClient *v2alpha1.NifiRegistryClient,
 	config *clientconfig.NifiConfig) error {
 	if err := registryclient.RemoveRegistryClient(registryClient, config); err != nil {
 		return err
@@ -342,7 +349,40 @@ func (r *NifiRegistryClientReconciler) finalizeNifiRegistryClient(registryClient
 	return nil
 }
 
-func (r *NifiRegistryClientReconciler) updateStatus(ctx context.Context, registryClient *v1.NifiRegistryClient, currentStatus v1.NifiRegistryClientStatus) error {
+func (r *NifiRegistryClientReconciler) resolveSecrets(registryClient *v2alpha1.NifiRegistryClient) (map[string]*corev1.Secret, error) {
+	secrets := make(map[string]*corev1.Secret)
+	var refs []*v2alpha1.SecretConfigReference
+
+	switch registryClient.Spec.Type {
+	case v2alpha1.GitHubRegistryClientType:
+		if cfg := registryClient.Spec.GitHubConfig; cfg != nil {
+			refs = append(refs, cfg.PersonalAccessTokenSecretRef, cfg.AppPrivateKeySecretRef)
+		}
+	case v2alpha1.GitLabRegistryClientType:
+		if cfg := registryClient.Spec.GitLabConfig; cfg != nil {
+			refs = append(refs, cfg.AccessTokenSecretRef)
+		}
+	}
+
+	for _, ref := range refs {
+		if ref == nil {
+			continue
+		}
+		ns := ref.Namespace
+		if ns == "" {
+			ns = registryClient.Namespace
+		}
+		secret, err := k8sutil.LookupSecret(r.Client, ref.Name, ns)
+		if err != nil {
+			return nil, err
+		}
+		secrets[ref.Name] = secret
+	}
+
+	return secrets, nil
+}
+
+func (r *NifiRegistryClientReconciler) updateStatus(ctx context.Context, registryClient *v2alpha1.NifiRegistryClient, currentStatus v2alpha1.NifiRegistryClientStatus) error {
 	if !reflect.DeepEqual(registryClient.Status, currentStatus) {
 		return r.Client.Status().Update(ctx, registryClient)
 	}

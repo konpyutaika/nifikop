@@ -40,7 +40,8 @@ func assertDataflowsEqual(df *NifiDataflow, v1df *v1.NifiDataflow, t *testing.T)
 	if df.Spec.FlowId != v1df.Spec.FlowId {
 		t.Error("flow ids are not equal")
 	}
-	if df.Spec.FlowVersion != v1df.Spec.FlowVersion {
+	if v1df.Spec.FlowVersion == nil || df.Spec.FlowVersion == nil ||
+		int32(v1df.Spec.FlowVersion.IntValue()) != *df.Spec.FlowVersion {
 		t.Error("flow versions are not equal")
 	}
 	if df.Spec.FlowPosition.X != v1df.Spec.FlowPosition.X ||

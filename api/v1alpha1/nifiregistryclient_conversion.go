@@ -5,25 +5,25 @@ import (
 
 	"sigs.k8s.io/controller-runtime/pkg/conversion"
 
-	v1 "github.com/konpyutaika/nifikop/api/v1"
+	v2alpha1 "github.com/konpyutaika/nifikop/api/v2alpha1"
 )
 
-// ConvertTo converts a v1alpha1 to v1 (Hub).
+// ConvertTo converts a v1alpha1 to v2alpha1 (Hub).
 func (src *NifiRegistryClient) ConvertTo(dst conversion.Hub) error {
-	ncV1 := dst.(*v1.NifiRegistryClient)
+	ncV2 := dst.(*v2alpha1.NifiRegistryClient)
 
-	if err := ConvertNifiRegistryClientTo(src, ncV1); err != nil {
+	if err := ConvertNifiRegistryClientTo(src, ncV2); err != nil {
 		return fmt.Errorf("unable to convert NifiRegistryClient %s/%s to version: %v, err: %w", src.Namespace, src.Name, dst.GetObjectKind().GroupVersionKind().Version, err)
 	}
 
 	return nil
 }
 
-// ConvertFrom converts a v1 (Hub) to v1alpha1 (local).
+// ConvertFrom converts a v2alpha1 (Hub) to v1alpha1 (local).
 func (dst *NifiRegistryClient) ConvertFrom(src conversion.Hub) error { //nolint
-	ncV1 := src.(*v1.NifiRegistryClient)
-	dst.ObjectMeta = ncV1.ObjectMeta
-	if err := ConvertNifiRegistryClientFrom(dst, ncV1); err != nil {
+	ncV2 := src.(*v2alpha1.NifiRegistryClient)
+	dst.ObjectMeta = ncV2.ObjectMeta
+	if err := ConvertNifiRegistryClientFrom(dst, ncV2); err != nil {
 		return fmt.Errorf("unable to convert NifiRegistryClient %s/%s from version: %v, err: %w", dst.Namespace, dst.Name, src.GetObjectKind().GroupVersionKind().Version, err)
 	}
 	return nil
@@ -31,39 +31,38 @@ func (dst *NifiRegistryClient) ConvertFrom(src conversion.Hub) error { //nolint
 
 // ---- Convert TO ----
 
-// ConvertNifiRegistryClientTo use to convert v1alpha1.NifiRegistryClient to v1.NifiRegistryClient.
-func ConvertNifiRegistryClientTo(src *NifiRegistryClient, dst *v1.NifiRegistryClient) error {
-	// Copying ObjectMeta as a whole
+// ConvertNifiRegistryClientTo converts a v1alpha1.NifiRegistryClient to v2alpha1.NifiRegistryClient.
+func ConvertNifiRegistryClientTo(src *NifiRegistryClient, dst *v2alpha1.NifiRegistryClient) error {
 	dst.ObjectMeta = src.ObjectMeta
 
-	// Convert spec
 	if err := convertNifiRegistryClientSpec(&src.Spec, dst); err != nil {
 		return err
 	}
 
-	// Convert status
 	if err := convertNifiRegistryClientStatus(&src.Status, dst); err != nil {
 		return err
 	}
 	return nil
 }
 
-// Convert the top level structs.
-func convertNifiRegistryClientSpec(src *NifiRegistryClientSpec, dst *v1.NifiRegistryClient) error {
+func convertNifiRegistryClientSpec(src *NifiRegistryClientSpec, dst *v2alpha1.NifiRegistryClient) error {
 	if src == nil {
 		return nil
 	}
-	dst.Spec.Uri = src.Uri
 	dst.Spec.Description = src.Description
-	convertNifiRegistryClientSpecClusterRef(src.ClusterRef, dst)
+	dst.Spec.ClusterRef = v2alpha1.ClusterReference{
+		Name:      src.ClusterRef.Name,
+		Namespace: src.ClusterRef.Namespace,
+	}
+	// v1alpha1 only supported the NiFi Registry type.
+	dst.Spec.Type = v2alpha1.RegistryClientType
+	dst.Spec.RegistryClientConfig = &v2alpha1.RegistryClientConfig{
+		Uri: src.Uri,
+	}
 	return nil
 }
 
-func convertNifiRegistryClientSpecClusterRef(src ClusterReference, dst *v1.NifiRegistryClient) {
-	dst.Spec.ClusterRef = getV1ClusterReference(src)
-}
-
-func convertNifiRegistryClientStatus(src *NifiRegistryClientStatus, dst *v1.NifiRegistryClient) error {
+func convertNifiRegistryClientStatus(src *NifiRegistryClientStatus, dst *v2alpha1.NifiRegistryClient) error {
 	if src == nil {
 		return nil
 	}
@@ -74,39 +73,37 @@ func convertNifiRegistryClientStatus(src *NifiRegistryClientStatus, dst *v1.Nifi
 
 // ---- Convert FROM ----
 
-// ConvertNifiRegistryClientFrom use to convert v1alpha1.NifiRegistryClient from v1.NifiRegistryClient.
-func ConvertNifiRegistryClientFrom(dst *NifiRegistryClient, src *v1.NifiRegistryClient) error {
-	// Copying ObjectMeta as a whole
+// ConvertNifiRegistryClientFrom converts a v2alpha1.NifiRegistryClient to v1alpha1.NifiRegistryClient.
+func ConvertNifiRegistryClientFrom(dst *NifiRegistryClient, src *v2alpha1.NifiRegistryClient) error {
 	dst.ObjectMeta = src.ObjectMeta
 
-	// Convert spec
 	if err := convertFromNifiRegistryClientSpec(&src.Spec, dst); err != nil {
 		return err
 	}
 
-	// Convert status
 	if err := convertFromNifiRegistryClientStatus(&src.Status, dst); err != nil {
 		return err
 	}
 	return nil
 }
 
-// Convert the top level structs.
-func convertFromNifiRegistryClientSpec(src *v1.NifiRegistryClientSpec, dst *NifiRegistryClient) error {
+func convertFromNifiRegistryClientSpec(src *v2alpha1.NifiRegistryClientSpec, dst *NifiRegistryClient) error {
 	if src == nil {
 		return nil
 	}
-	dst.Spec.Uri = src.Uri
 	dst.Spec.Description = src.Description
-	convertFromNifiRegistryClientSpecClusterRef(src.ClusterRef, dst)
+	dst.Spec.ClusterRef = ClusterReference{
+		Name:      src.ClusterRef.Name,
+		Namespace: src.ClusterRef.Namespace,
+	}
+	// v1alpha1 only has Uri; use RegistryClientConfig if present.
+	if src.RegistryClientConfig != nil {
+		dst.Spec.Uri = src.RegistryClientConfig.Uri
+	}
 	return nil
 }
 
-func convertFromNifiRegistryClientSpecClusterRef(src v1.ClusterReference, dst *NifiRegistryClient) {
-	dst.Spec.ClusterRef = getClusterReference(src)
-}
-
-func convertFromNifiRegistryClientStatus(src *v1.NifiRegistryClientStatus, dst *NifiRegistryClient) error {
+func convertFromNifiRegistryClientStatus(src *v2alpha1.NifiRegistryClientStatus, dst *NifiRegistryClient) error {
 	if src == nil {
 		return nil
 	}

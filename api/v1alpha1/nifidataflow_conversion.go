@@ -3,6 +3,7 @@ package v1alpha1
 import (
 	"fmt"
 
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/conversion"
 
 	v1 "github.com/konpyutaika/nifikop/api/v1"
@@ -57,7 +58,10 @@ func convertNifiDataflowSpec(src *NifiDataflowSpec, dst *v1.NifiDataflow) error 
 	dst.Spec.ParentProcessGroupID = src.ParentProcessGroupID
 	dst.Spec.BucketId = src.BucketId
 	dst.Spec.FlowId = src.FlowId
-	dst.Spec.FlowVersion = src.FlowVersion
+	if src.FlowVersion != nil {
+		fv := intstr.FromInt32(*src.FlowVersion)
+		dst.Spec.FlowVersion = &fv
+	}
 	convertNifiDataflowFlowPosition(src.FlowPosition, dst)
 	convertNifiDataflowParameterContextRef(src.ParameterContextRef, dst)
 	if src.SyncMode != nil {
@@ -189,7 +193,10 @@ func convertFromNifiDataflowSpec(src *v1.NifiDataflowSpec, dst *NifiDataflow) er
 	dst.Spec.ParentProcessGroupID = src.ParentProcessGroupID
 	dst.Spec.BucketId = src.BucketId
 	dst.Spec.FlowId = src.FlowId
-	dst.Spec.FlowVersion = src.FlowVersion
+	if src.FlowVersion != nil && src.FlowVersion.Type == intstr.Int {
+		fv := src.FlowVersion.IntVal
+		dst.Spec.FlowVersion = &fv
+	}
 	convertFromNifiDataflowFlowPosition(src.FlowPosition, dst)
 	convertFromNifiDataflowParameterContextRef(src.ParameterContextRef, dst)
 	if src.SyncMode != nil {

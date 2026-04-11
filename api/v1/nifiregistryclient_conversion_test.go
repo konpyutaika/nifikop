@@ -1,4 +1,4 @@
-package v1alpha1
+package v1
 
 import (
 	"testing"
@@ -11,12 +11,12 @@ import (
 func TestNifiRegistryClientConversion(t *testing.T) {
 	rc := createNifiRegistryClient()
 
-	// convert v1alpha1 to v2alpha1
+	// convert v1 to v2alpha1
 	v2rc := &v2alpha1.NifiRegistryClient{}
 	rc.ConvertTo(v2rc)
 	assertRegistryClientsEqual(rc, v2rc, t)
 
-	// convert v2alpha1 to v1alpha1
+	// convert v2alpha1 to v1
 	newClient := &NifiRegistryClient{}
 	newClient.ConvertFrom(v2rc)
 	assertRegistryClientsEqual(newClient, v2rc, t)

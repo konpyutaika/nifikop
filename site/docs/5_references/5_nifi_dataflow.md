@@ -52,7 +52,7 @@ spec:
 |parentProcessGroupRef|[ResourceReference](./9_nifi_resource.md#resourcereference)|the reference to the parent process group where you want to deploy your resource, if not set deploy at root level. |No| - |
 |bucketId|string|the UUID of the Bucket containing the flow. |Yes| - |
 |flowId|string|the UUID of the flow to run. |Yes| - |
-|flowVersion|*int32|the version of the flow to run. |Yes| - |
+|flowVersion|int or string|the version of the flow to run. Accepts an integer (e.g. `2`) for NiFi Registry backends, or a commit hash string for git-based backends (GitHub, GitLab). |No| - |
 |flowPosition|[FlowPosition](#flowposition)|the position of your dataflow in the canvas. |No| - |
 |syncMode|Enum={"never","always","once"}|if the flow will be synchronized once, continuously or never. |No| always |
 |skipInvalidControllerService|bool|whether the flow is considered as ran if some controller services are still invalid or not. |Yes| false |

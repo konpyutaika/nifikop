@@ -55,7 +55,7 @@ spec:
             type: object
         type: object
     served: true
-    storage: true
+    storage: false
     subresources:
       status: {}
   - name: v1alpha1
@@ -100,5 +100,204 @@ spec:
         type: object
     served: true
     storage: false
+    subresources:
+      status: {}
+  - name: v2alpha1
+    schema:
+      openAPIV3Schema:
+        properties:
+          apiVersion:
+            type: string
+          kind:
+            type: string
+          metadata:
+            type: object
+          spec:
+            properties:
+              clusterRef:
+                properties:
+                  name:
+                    type: string
+                  namespace:
+                    type: string
+                required:
+                - name
+                type: object
+              description:
+                type: string
+              githubConfig:
+                properties:
+                  apiUrl:
+                    type: string
+                  appId:
+                    type: string
+                  appPrivateKeySecretRef:
+                    properties:
+                      data:
+                        type: string
+                      name:
+                        type: string
+                      namespace:
+                        type: string
+                    required:
+                    - data
+                    - name
+                    type: object
+                  authenticationType:
+                    enum:
+                    - NONE
+                    - PERSONAL_ACCESS_TOKEN
+                    - APP_INSTALLATION
+                    type: string
+                  defaultBranch:
+                    type: string
+                  directoryFilterExclusion:
+                    type: string
+                  parameterContextValues:
+                    enum:
+                    - RETAIN
+                    - REMOVE
+                    - IGNORE_CHANGES
+                    type: string
+                  personalAccessTokenSecretRef:
+                    properties:
+                      data:
+                        type: string
+                      name:
+                        type: string
+                      namespace:
+                        type: string
+                    required:
+                    - data
+                    - name
+                    type: object
+                  repositoryName:
+                    type: string
+                  repositoryOwner:
+                    type: string
+                  repositoryPath:
+                    type: string
+                required:
+                - repositoryName
+                - repositoryOwner
+                type: object
+                x-kubernetes-validations:
+                - message: personalAccessTokenSecretRef is required when authenticationType
+                    is PERSONAL_ACCESS_TOKEN
+                  rule: '!has(self.authenticationType) || self.authenticationType
+                    != ''PERSONAL_ACCESS_TOKEN'' || has(self.personalAccessTokenSecretRef)'
+                - message: appId and appPrivateKeySecretRef are required when authenticationType
+                    is APP_INSTALLATION
+                  rule: '!has(self.authenticationType) || self.authenticationType
+                    != ''APP_INSTALLATION'' || (has(self.appId) && has(self.appPrivateKeySecretRef))'
+              gitlabConfig:
+                properties:
+                  accessTokenSecretRef:
+                    properties:
+                      data:
+                        type: string
+                      name:
+                        type: string
+                      namespace:
+                        type: string
+                    required:
+                    - data
+                    - name
+                    type: object
+                  apiVersion:
+                    enum:
+                    - V4
+                    type: string
+                  authenticationType:
+                    enum:
+                    - ACCESS_TOKEN
+                    type: string
+                  connectTimeout:
+                    type: string
+                  defaultBranch:
+                    type: string
+                  directoryFilterExclusion:
+                    type: string
+                  parameterContextValues:
+                    enum:
+                    - RETAIN
+                    - REMOVE
+                    - IGNORE_CHANGES
+                    type: string
+                  readTimeout:
+                    type: string
+                  repositoryName:
+                    type: string
+                  repositoryNamespace:
+                    type: string
+                  repositoryPath:
+                    type: string
+                  url:
+                    type: string
+                required:
+                - repositoryName
+                - repositoryNamespace
+                type: object
+                x-kubernetes-validations:
+                - message: accessTokenSecretRef is required when authenticationType
+                    is ACCESS_TOKEN or not set
+                  rule: (has(self.authenticationType) && self.authenticationType !=
+                    'ACCESS_TOKEN') || has(self.accessTokenSecretRef)
+              registryClientConfig:
+                properties:
+                  uri:
+                    type: string
+                required:
+                - uri
+                type: object
+              type:
+                allOf:
+                - enum:
+                  - registry
+                  - github
+                  - gitlab
+                - enum:
+                  - registry
+                  - github
+                  - gitlab
+                default: registry
+                type: string
+            type: object
+            x-kubernetes-validations:
+            - message: registryClientConfig is required when type is 'registry'
+              rule: self.type != 'registry' || has(self.registryClientConfig)
+            - message: githubConfig is required when type is 'github'
+              rule: self.type != 'github' || has(self.githubConfig)
+            - message: gitlabConfig is required when type is 'gitlab'
+              rule: self.type != 'gitlab' || has(self.gitlabConfig)
+          status:
+            properties:
+              id:
+                type: string
+              latestSecretsResourceVersion:
+                items:
+                  properties:
+                    name:
+                      type: string
+                    namespace:
+                      type: string
+                    resourceVersion:
+                      type: string
+                  required:
+                  - name
+                  - namespace
+                  - resourceVersion
+                  type: object
+                type: array
+              version:
+                format: int64
+                type: integer
+            required:
+            - id
+            - version
+            type: object
+        type: object
+    served: true
+    storage: true
     subresources:
       status: {}

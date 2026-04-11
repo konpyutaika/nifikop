@@ -135,4 +135,12 @@ resources:
   kind: NifiResource
   path: github.com/konpyutaika/nifikop/api/v1alpha1
   version: v1alpha1
+- api:
+    crdVersion: v1
+    namespaced: true
+  domain: konpyutaika.com
+  group: nifi
+  kind: NifiRegistryClient
+  path: github.com/konpyutaika/nifikop/api/v2alpha1
+  version: v2alpha1
 version: "3"
