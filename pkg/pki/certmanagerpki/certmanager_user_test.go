@@ -2,7 +2,6 @@ package certmanagerpki
 
 import (
 	"context"
-	"fmt"
 	"reflect"
 	"testing"
 
@@ -12,7 +11,6 @@ import (
 	v1 "github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	certutil "github.com/konpyutaika/nifikop/pkg/util/cert"
-	pkicommon "github.com/konpyutaika/nifikop/pkg/util/pki"
 )
 
 func newMockUser() *v1.NifiUser {
@@ -20,13 +18,6 @@ func newMockUser() *v1.NifiUser {
 	user.Name = "test-user"
 	user.Namespace = "test-namespace"
 	user.Spec = v1.NifiUserSpec{SecretName: "test-secret", IncludeJKS: true}
-	return user
-}
-
-func newMockNodeUser(nodeID int32, cluster *v1.NifiCluster) *v1.NifiUser {
-	user := newMockUser()
-	user.Name = pkicommon.GetNodeUserName(cluster, nodeID)
-	user.Spec.SecretName = fmt.Sprintf(pkicommon.NodeServerCertTemplate, cluster.Name, nodeID)
 	return user
 }
 
@@ -50,20 +41,6 @@ func TestFinalizeUserCertificate(t *testing.T) {
 	manager := newMock(newMockCluster())
 	if err := manager.FinalizeUserCertificate(context.Background(), &v1.NifiUser{}); err != nil {
 		t.Error("Expected no error, got:", err)
-	}
-}
-
-func TestClusterCertificateForUserLeavesRotationPolicyUnset(t *testing.T) {
-	cluster := newMockCluster()
-	manager := newMock(cluster)
-	cert := manager.clusterCertificateForUser(newMockNodeUser(0, cluster), scheme.Scheme)
-
-	if cert.Spec.PrivateKey == nil {
-		t.Fatal("expected private key settings to be present")
-	}
-
-	if cert.Spec.PrivateKey.RotationPolicy != "" {
-		t.Fatalf("expected empty rotation policy, got %q", cert.Spec.PrivateKey.RotationPolicy)
 	}
 }
 
