@@ -147,6 +147,12 @@ func (c *certManager) getUserSecret(ctx context.Context, user *v1.NifiUser) (sec
 // clusterCertificateForUser generates a Certificate object for a NifiUser.
 func (c *certManager) clusterCertificateForUser(user *v1.NifiUser, scheme *runtime.Scheme) *certv1.Certificate {
 	caName, caKind, caGroup := c.getCA()
+	privateKey := &certv1.CertificatePrivateKey{
+		Encoding:  certv1.PKCS8,
+		Algorithm: certv1.RSAKeyAlgorithm,
+		Size:      4096,
+	}
+
 	cert := &certv1.Certificate{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      user.GetName(),
@@ -162,11 +168,7 @@ func (c *certManager) clusterCertificateForUser(user *v1.NifiUser, scheme *runti
 				Kind:  caKind,
 				Group: caGroup,
 			},
-			PrivateKey: &certv1.CertificatePrivateKey{
-				Encoding:  certv1.PKCS8,
-				Algorithm: certv1.RSAKeyAlgorithm,
-				Size:      4096,
-			},
+			PrivateKey: privateKey,
 		},
 	}
 	if user.Spec.IncludeJKS {

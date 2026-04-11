@@ -270,9 +270,20 @@ type NifiProperties struct {
 	WebProxyHosts []string `json:"webProxyHosts,omitempty"`
 	// Nifi security client auth
 	NeedClientAuth bool `json:"needClientAuth,omitempty"`
+	// TLSAutoReload enables NiFi SSL context auto-reload when keystore/truststore contents change.
+	TLSAutoReload *TLSAutoReloadConfig `json:"tlsAutoReload,omitempty"`
 	// Indicates which of the configured authorizers in the authorizers.xml file to use
 	// https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#authorizer-configuration
 	Authorizer string `json:"authorizer,omitempty"`
+}
+
+// TLSAutoReloadConfig controls NiFi SSL context auto-reload behavior.
+type TLSAutoReloadConfig struct {
+	// Enabled turns on NiFi SSL context auto-reload.
+	Enabled bool `json:"enabled,omitempty"`
+	// Interval controls how often NiFi checks keystore/truststore files for changes.
+	// +kubebuilder:validation:Pattern:="^[[:space:]]*[1-9][0-9]*[[:space:]]+(millis|milliseconds?|ms|secs?|seconds?|mins?|minutes?|hours?|days?)[[:space:]]*$"
+	Interval string `json:"interval,omitempty"`
 }
 
 // ZookeeperProperties configuration that will be applied to the node.
@@ -887,6 +898,19 @@ func (nProperties NifiProperties) GetAuthorizer() string {
 		return nProperties.Authorizer
 	}
 	return "managed-authorizer"
+}
+
+// IsTLSAutoReloadEnabled returns true when NiFi SSL context auto-reload is enabled.
+func (nProperties NifiProperties) IsTLSAutoReloadEnabled() bool {
+	return nProperties.TLSAutoReload != nil && nProperties.TLSAutoReload.Enabled
+}
+
+// GetTLSAutoReloadInterval returns the default "10 secs" interval when not specified.
+func (nProperties NifiProperties) GetTLSAutoReloadInterval() string {
+	if nProperties.TLSAutoReload != nil && nProperties.TLSAutoReload.Interval != "" {
+		return nProperties.TLSAutoReload.Interval
+	}
+	return "10 secs"
 }
 
 func (nSpec *NifiClusterSpec) GetMetricPort() *int {

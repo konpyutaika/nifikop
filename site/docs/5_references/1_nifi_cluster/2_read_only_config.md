@@ -78,6 +78,14 @@ readOnlyConfig:
     #      webProxyHosts:
     # Nifi security client auth
     needClientAuth: false
+    # Native NiFi TLS keystore/truststore auto-reload. Only meaningful when TLS is enabled.
+    # Supported when the target NiFi version exposes nifi.security.autoreload.*.
+    # Verify compatibility with your chosen NiFi release.
+    # Enabling this or changing the interval causes a one-time rolling restart so
+    # the updated nifi.properties is copied into the running NiFi container.
+    tlsAutoReload:
+      enabled: true
+      interval: 10 secs
     # Indicates which of the configured authorizers in the authorizers.xml file to use
     # https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#authorizer-configuration
   #      authorizer:
@@ -165,7 +173,15 @@ readOnlyConfig:
 |overrideSecretConfig|[SecretConfigReference](#secretconfigreference)|Additionnal nifi.properties configuration that will override the one produced based on template, configurations, overrideConfigMap and overrideConfigs.|No|nil|
 |webProxyHosts|\[&nbsp;\]string| A list of allowed HTTP Host header values to consider when NiFi is running securely and will be receiving requests to a different host[:port] than it is bound to. [web-properties](https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#web-properties)|No|""|
 |needClientAuth|boolean|Nifi security client auth.|No|false|
+|tlsAutoReload|[TLSAutoReloadConfig](#tlsautoreloadconfig)|Configures native NiFi SSL context auto-reload when keystore and truststore files change. Supported when the target NiFi version exposes `nifi.security.autoreload.*`. Enabling this or changing the interval causes a one-time rolling restart.|No|nil|
 |authorizer|string|Indicates which of the configured authorizers in the authorizers.xml file to use [authorizer-configuration](https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#authorizer-configuration)|No|"managed-authorizer"|
+
+## TLSAutoReloadConfig
+
+|Field|Type|Description|Required|Default|
+|-----|----|-----------|--------|--------|
+|enabled|boolean|Turns on NiFi SSL context auto-reload.|No|false|
+|interval|string|How often NiFi checks keystore/truststore files for changes.|No|"10 secs"|
 
 
 ## ZookeeperProperties

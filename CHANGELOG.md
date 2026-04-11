@@ -3,6 +3,7 @@
 ### Added
 
 - [PR #650](https://github.com/konpyutaika/nifikop/pull/650) - **[Operator/NifiCluster]** Add `spec.pod.terminationGracePeriodSeconds` support for NiFi pods.
+- [PR #000](https://github.com/konpyutaika/nifikop/pull/000) - **[Operator/NifiCluster]** Add `spec.readOnlyConfig.nifiProperties.tlsAutoReload` to enable native NiFi TLS auto-reload with validation and a one-time rollout when the setting changes.
 
 ### Changed
 

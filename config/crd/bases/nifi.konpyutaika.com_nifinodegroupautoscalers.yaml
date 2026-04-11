@@ -1895,6 +1895,14 @@ spec:
                         - data
                         - name
                         type: object
+                      tlsAutoReload:
+                        properties:
+                          enabled:
+                            type: boolean
+                          interval:
+                            pattern: ^[[:space:]]*[1-9][0-9]*[[:space:]]+(millis|milliseconds?|ms|secs?|seconds?|mins?|minutes?|hours?|days?)[[:space:]]*$
+                            type: string
+                        type: object
                       webProxyHosts:
                         items:
                           type: string
