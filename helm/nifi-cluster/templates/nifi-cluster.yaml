@@ -178,13 +178,21 @@ spec:
         namespace: {{ .Release.Namespace }}
       nifiJvmMemory: {{ .Values.cluster.bootstrapProperties.nifiJvmMemory }}
   nodeConfigGroups:
+  {{- $managerServiceAccountName := include "nifi-cluster.managerServiceAccountName" . }}
   {{- if empty .Values.cluster.nodeConfigGroups }}
     {{- if eq .Values.cluster.manager "kubernetes" }}
     default-group:
-      serviceAccountName: {{ tpl (default (include "nifi-cluster.fullname" .) .Values.cluster.managerServiceAccount.name) . }}
+      serviceAccountName: {{ $managerServiceAccountName }}
     {{- end }}
   {{- else }}
-  {{- tpl (toYaml .Values.cluster.nodeConfigGroups) . | nindent 4 }}
+  {{- range $groupName, $groupConfig := .Values.cluster.nodeConfigGroups }}
+    {{- $renderedGroup := deepCopy $groupConfig }}
+    {{- if and (eq $.Values.cluster.manager "kubernetes") (not $renderedGroup.serviceAccountName) }}
+    {{- $_ := set $renderedGroup "serviceAccountName" $managerServiceAccountName }}
+    {{- end }}
+    {{ $groupName }}:
+{{ toYaml $renderedGroup | nindent 6 }}
+  {{- end }}
   {{- end }}
   nodes:
   {{- toYaml .Values.cluster.nodes | nindent 4 }}

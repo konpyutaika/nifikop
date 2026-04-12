@@ -1,0 +1,24 @@
+{{- if .Values.rbacEnable }}
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  labels:
+    app: {{ template "nifikop.name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+    {{- include "userdefined.labels" . }}
+  annotations:
+    {{- include "userdefined.annotations" . }}
+  name: {{ template "nifikop.name" . }}-leader-election
+  namespace: {{ .Release.Namespace }}
+subjects:
+- kind: ServiceAccount
+  name: {{ if and .Values.serviceAccount .Values.serviceAccount.name }}{{ .Values.serviceAccount.name }}{{ else }}{{ template "nifikop.name" . }}{{ end }}
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: Role
+  name: {{ template "nifikop.name" . }}-leader-election
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}

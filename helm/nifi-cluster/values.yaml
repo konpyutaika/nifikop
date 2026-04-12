@@ -12,7 +12,7 @@ cluster:
   # -- the full name of the cluster. This is used to set a portion of the name of various nifikop resources
   nameOverride: "nifi-cluster"
   fullnameOverride: ""
-  # -- the type of cluster manager: zookeeper or kubernetes. Operator will put zookeeper by default
+  # -- the type of cluster manager: zookeeper or kubernetes. Kubernetes manager mode requires a NiFi 2.x image. Operator will put zookeeper by default
   # @default -- zookeeper
   manager:
   # -- the kubernetes manager serviceAccount details

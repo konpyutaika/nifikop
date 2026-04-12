@@ -24,6 +24,13 @@ If release name contains chart name it will be used as a full name.
 {{- end }}
 
 {{/*
+Resolve the service account name used by NiFi pods in kubernetes manager mode.
+*/}}
+{{- define "nifi-cluster.managerServiceAccountName" -}}
+{{- tpl (default (include "nifi-cluster.fullname" .) .Values.cluster.managerServiceAccount.name) . -}}
+{{- end }}
+
+{{/*
 Create chart name and version as used by the chart label.
 */}}
 {{- define "nifi-cluster.chart" -}}

@@ -1,0 +1,36 @@
+{{- if .Values.rbacEnable }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    app: {{ template "nifikop.name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+    {{- include "userdefined.labels" . }}
+  annotations:
+    {{- include "userdefined.annotations" . }}
+  name: {{ template "nifikop.name" . }}-leader-election
+  namespace: {{ .Release.Namespace }}
+rules:
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+{{- end }}

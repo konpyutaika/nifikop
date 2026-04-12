@@ -111,3 +111,67 @@ func TestExternalServices(t *testing.T) {
 	assert.Equal(t, esconfig.Spec.PortConfigs[0].Protocol, externalServices[0].(*corev1.Service).Spec.Ports[0].Protocol, "service protocol should be same as external service")
 	assert.Equal(t, esconfig.Spec.PortConfigs[0].Port, externalServices[0].(*corev1.Service).Spec.Ports[0].Port, "service port name should be same as external service")
 }
+
+func TestHeadlessServicePublishesNotReadyAddressesForKubernetesManager(t *testing.T) {
+	r := resources.Reconciler{
+		NifiCluster: &v1.NifiCluster{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "cluster",
+				Namespace: "namespace",
+			},
+			Spec: v1.NifiClusterSpec{
+				ClusterManager: v1.KubernetesClusterManager,
+				ListenersConfig: &v1.ListenersConfig{
+					InternalListeners: []v1.InternalListenerConfig{
+						{
+							Name:          "https",
+							ContainerPort: 8443,
+							Protocol:      corev1.ProtocolTCP,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	rec := Reconciler{
+		Reconciler: r,
+	}
+
+	headlessService := rec.headlessService().(*corev1.Service)
+
+	assert.Equal(t, corev1.ClusterIPNone, headlessService.Spec.ClusterIP)
+	assert.True(t, headlessService.Spec.PublishNotReadyAddresses)
+}
+
+func TestHeadlessServiceDoesNotPublishNotReadyAddressesForZookeeperManager(t *testing.T) {
+	r := resources.Reconciler{
+		NifiCluster: &v1.NifiCluster{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "cluster",
+				Namespace: "namespace",
+			},
+			Spec: v1.NifiClusterSpec{
+				ClusterManager: v1.ZookeeperClusterManager,
+				ListenersConfig: &v1.ListenersConfig{
+					InternalListeners: []v1.InternalListenerConfig{
+						{
+							Name:          "https",
+							ContainerPort: 8443,
+							Protocol:      corev1.ProtocolTCP,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	rec := Reconciler{
+		Reconciler: r,
+	}
+
+	headlessService := rec.headlessService().(*corev1.Service)
+
+	assert.Equal(t, corev1.ClusterIPNone, headlessService.Spec.ClusterIP)
+	assert.False(t, headlessService.Spec.PublishNotReadyAddresses)
+}

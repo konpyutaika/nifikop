@@ -12,6 +12,7 @@ import (
 func (r *Reconciler) headlessService() runtimeClient.Object {
 	// InternalListeners ports
 	usedPorts := generateServicePortForInternalListeners(r.NifiCluster.Spec.ListenersConfig.InternalListeners)
+	publishNotReadyAddresses := r.NifiCluster.Spec.ClusterManager == "kubernetes"
 
 	return &corev1.Service{
 		ObjectMeta: templates.ObjectMetaWithAnnotations(
@@ -24,11 +25,12 @@ func (r *Reconciler) headlessService() runtimeClient.Object {
 			r.NifiCluster,
 		),
 		Spec: corev1.ServiceSpec{
-			Type:            corev1.ServiceTypeClusterIP,
-			SessionAffinity: corev1.ServiceAffinityNone,
-			Selector:        nifiutils.LabelsForNifi(r.NifiCluster.Name),
-			Ports:           usedPorts,
-			ClusterIP:       corev1.ClusterIPNone,
+			Type:                     corev1.ServiceTypeClusterIP,
+			SessionAffinity:          corev1.ServiceAffinityNone,
+			Selector:                 nifiutils.LabelsForNifi(r.NifiCluster.Name),
+			Ports:                    usedPorts,
+			ClusterIP:                corev1.ClusterIPNone,
+			PublishNotReadyAddresses: publishNotReadyAddresses,
 		},
 	}
 }

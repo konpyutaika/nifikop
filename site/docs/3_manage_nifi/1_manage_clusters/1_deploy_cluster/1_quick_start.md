@@ -117,6 +117,7 @@ roleRef:
 
 :::info
 In this case, you need to set `clusterManager` in `NiFiCluster`'s specification to `kubernetes`.
+Kubernetes manager mode requires a NiFi 2.x image. NiFi 1.x images still expect ZooKeeper-backed cluster coordination during bootstrap.
 You can also use the Helm chart to create your cluster and it will take care of it for you.
 :::
 
