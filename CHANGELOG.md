@@ -6,6 +6,8 @@
 
 ### Fixed Bugs
 
+- [PR #662](https://github.com/konpyutaika/nifikop/pull/662) - **[Operator/Helm Chart/NifiCluster]** Fix Kubernetes manager mode by adding operator leader-election RBAC, propagating the manager `serviceAccountName` to explicit `nodeConfigGroups`, and publishing not-ready headless addresses only in Kubernetes mode.
+
 ### Deprecated
 
 ### Removed
