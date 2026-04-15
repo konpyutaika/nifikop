@@ -33,4 +33,14 @@ rules:
   verbs:
   - create
   - patch
+{{- if or (eq (include "nifikop.openshift.scc.create" .) "true") .Values.openshift.scc.existingName }}
+- apiGroups:
+  - security.openshift.io
+  resourceNames:
+  - {{ include "nifikop.openshift.scc.name" . }}
+  resources:
+  - securitycontextconstraints
+  verbs:
+  - use
+{{- end }}
 {{- end }}

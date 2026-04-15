@@ -1,0 +1,16 @@
+{{- if eq (include "nifi-cluster.openshift.scc.enabled" .) "true" -}}
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ include "nifi-cluster.fullname" . }}-openshift-scc
+rules:
+  - apiGroups:
+      - security.openshift.io
+    resources:
+      - securitycontextconstraints
+    resourceNames:
+      - {{ include "nifi-cluster.openshift.scc.name" . }}
+    verbs:
+      - use
+{{- end }}

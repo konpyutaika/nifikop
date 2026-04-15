@@ -30,6 +30,26 @@ cluster:
   # -- whether or not to only deploy one nifi pod per node in this cluster
   oneNifiNodePerNode: false
 
+  # -- OpenShift SCC support for NiFi workloads.
+  openshift:
+    scc:
+      # -- Create a dedicated SCC for NiFi workloads on OpenShift.
+      # The SCC is only rendered when the cluster exposes the security.openshift.io/v1 API.
+      create: false
+      # -- Name of a pre-existing SCC to use instead of creating one.
+      # When set, the chart skips SCC creation but still creates a Role/RoleBinding granting
+      # the workload service account permission to use the named SCC.
+      existingName: ""
+      serviceAccount:
+        # -- Create a dedicated service account for SCC binding when manager != kubernetes.
+        # When manager=kubernetes the managerServiceAccount is used instead.
+        create: true
+        # -- Leave empty to default to the release fullname.
+        name: ""
+        # -- Annotations applied to the SCC workload service account when it is created by the chart.
+        annotations: {}
+        # -- Labels applied to the SCC workload service account when it is created by the chart.
+        labels: {}
   # -- the template to use to create nodes.
   # see https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster#nificlusterspec
   # @default -- "node-%d-<cluster-name>"

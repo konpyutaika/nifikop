@@ -62,3 +62,15 @@ Return the appropriate apiVersion value to use for the capi-operator managed k8s
 {{- $name := default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
 {{- printf "%s-webhook-cert" $name -}}
 {{- end -}}
+
+{{- define "nifikop.openshift.scc.create" -}}
+{{- if and .Values.openshift.scc.create (.Capabilities.APIVersions.Has "security.openshift.io/v1") -}}true{{- end -}}
+{{- end -}}
+
+{{- define "nifikop.openshift.scc.name" -}}
+{{- if .Values.openshift.scc.existingName -}}
+{{- .Values.openshift.scc.existingName -}}
+{{- else -}}
+{{- printf "%s-openshift-scc" (include "nifikop.name" .) -}}
+{{- end -}}
+{{- end -}}

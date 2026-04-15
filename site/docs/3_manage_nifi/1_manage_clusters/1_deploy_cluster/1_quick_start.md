@@ -139,26 +139,6 @@ You can find other examples for NiFi 2 for:
 :::
 
 ### On OpenShift
+For OpenShift deployments, set `cluster.openshift.scc.create=true` to create a dedicated SCC for NiFi workloads, or point to an existing SCC with `cluster.openshift.scc.existingName`.
 
-```bash
-# Add your zookeeper svc name to the configuration
-kubectl create -n nifi -f config/samples/simplenificluster.yaml
-### On OpenShift
-
-We need to get the uid/gid for the RunAsUser and the fsGroup for the namespace we deploy our nificluster in.
-
-```bash
-uid=$(kubectl get namespace nifi -o=jsonpath='{.metadata.annotations.openshift\.io/sa\.scc\.supplemental-groups}' | sed 's/\/10000$//' | tr -d '[:space:]')
-```
-
-Then update the config/samples/openshift file with our uid value.
-
-```bash
-sed -i "s/1000690000/$uid/g" config/samples/openshift.yaml
-```
-
-And after you can deploy a simple NiFi cluster.
-
-```bash
-kubectl create -n nifi -f config/samples/openshift.yaml
-```
+See `helm/nifi-cluster/examples/values-openshift-scc.yaml` for a full example.
