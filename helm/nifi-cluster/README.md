@@ -59,7 +59,6 @@ A Helm chart for deploying NiFi clusters in Kubernetes
 | cluster.nodeUserIdentityTemplate | string | "node-%d-<cluster-name>" | the template to use to create nodes. see https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster#nificlusterspec |
 | cluster.nodes | list | `[{"id":1,"nodeConfigGroup":"default-group"}]` | Defines the list of nodes in the cluster with their id's and config to apply.    See https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster#nificlusterspec |
 | cluster.oneNifiNodePerNode | bool | `false` | whether or not to only deploy one nifi pod per node in this cluster |
-| cluster.openshift | object | `{"scc":{"create":false,"existingName":"","serviceAccount":{"annotations":{},"create":true,"labels":{},"name":""}}}` | OpenShift SCC support for NiFi workloads. |
 | cluster.openshift.scc.create | bool | `false` | Create a dedicated SCC for NiFi workloads on OpenShift. Only rendered when the cluster exposes `security.openshift.io/v1`. |
 | cluster.openshift.scc.existingName | string | `""` | Name of a pre-existing SCC to use instead of creating one. The chart creates a Role/RoleBinding granting the workload SA permission to use the named SCC. |
 | cluster.openshift.scc.serviceAccount.annotations | object | `{}` | Annotations applied to the SCC workload service account when it is created by the chart. |

@@ -139,6 +139,21 @@ You can find other examples for NiFi 2 for:
 :::
 
 ### On OpenShift
-For OpenShift deployments, set `cluster.openshift.scc.create=true` to create a dedicated SCC for NiFi workloads, or point to an existing SCC with `cluster.openshift.scc.existingName`.
+For OpenShift deployments, use the Helm chart values to enable SCC support for NiFi workloads:
 
-See `helm/nifi-cluster/examples/values-openshift-scc.yaml` for a full example.
+```yaml
+cluster:
+  openshift:
+    scc:
+      create: true
+```
+
+If your cluster already provides an approved SCC, use:
+
+```yaml
+cluster:
+  openshift:
+    scc:
+      create: false
+      existingName: my-existing-scc
+```

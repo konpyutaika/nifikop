@@ -105,8 +105,7 @@ for the operator pod. This is gated on the `security.openshift.io/v1` API being 
 
 - `openshift.scc.create=true` (default) creates and binds a dedicated SCC.
 - To use a pre-existing SCC instead, set `openshift.scc.create=false` and `openshift.scc.existingName=<your-scc>`.
-
-See `helm/nifikop/examples/values-openshift.yaml` for a full example.
+- The same OCI install command works on OpenShift. The OpenShift-specific part is just the values you pass to Helm.
 
 ### Listing deployed charts
 

@@ -160,7 +160,7 @@ Add the following parameter if you are using this instance to only deploy unsecu
 :::
 
 ### On OpenShift
-On OpenShift the chart can create a dedicated SCC for the operator pod. Set `openshift.scc.create=true` or point to an existing SCC with `openshift.scc.existingName`.
+The same OCI install command works on OpenShift. The OpenShift-specific part is enabling SCC support for the operator pod.
 
 ```bash
 helm install nifikop \
@@ -176,4 +176,9 @@ helm install nifikop \
     --set openshift.scc.create=true
 ```
 
-If your cluster already provides an approved SCC, set `openshift.scc.create=false` and `openshift.scc.existingName=<your-scc-name>` instead.
+If your cluster already provides an approved SCC, use:
+
+```bash
+--set openshift.scc.create=false \
+--set openshift.scc.existingName=<your-scc-name>
+```
