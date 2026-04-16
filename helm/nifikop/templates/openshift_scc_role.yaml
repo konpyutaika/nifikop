@@ -1,6 +1,6 @@
 {{- if and .Values.rbacEnable (or (eq (include "nifikop.openshift.scc.create" .) "true") .Values.openshift.scc.existingName) }}
 ---
-kind: Role
+kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   labels:
@@ -11,8 +11,7 @@ metadata:
     {{- include "userdefined.labels" . }}
   annotations:
     {{- include "userdefined.annotations" . }}
-  name: {{ template "nifikop.name" . }}-openshift-scc
-  namespace: {{ .Release.Namespace }}
+  name: system:openshift:scc:{{ include "nifikop.openshift.scc.name" . }}
 rules:
 - apiGroups:
   - security.openshift.io

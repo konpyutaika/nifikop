@@ -176,16 +176,6 @@ rules:
   verbs:
     - create
     - patch
-{{- if or (eq (include "nifikop.openshift.scc.create" $_) "true") $.Values.openshift.scc.existingName }}
-- apiGroups:
-  - security.openshift.io
-  resourceNames:
-  - {{ include "nifikop.openshift.scc.name" $_ }}
-  resources:
-  - securitycontextconstraints
-  verbs:
-  - use
-{{- end }}
 ---
 {{- end}}
 {{- end}}
