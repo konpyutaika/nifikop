@@ -7,6 +7,7 @@
 ### Fixed Bugs
 
 - [PR #662](https://github.com/konpyutaika/nifikop/pull/662) - **[Operator/Helm Chart/NifiCluster]** Fix Kubernetes manager mode by adding operator leader-election RBAC, propagating the manager `serviceAccountName` to explicit `nodeConfigGroups`, and publishing not-ready headless addresses only in Kubernetes mode.
+- [PR #663](https://github.com/konpyutaika/nifikop/pull/663) - **[Helm Chart/OpenShift]** Add explicit OpenShift SCC support for the operator and NiFi workloads, including support for existing SCCs and corrected SCC RBAC handling.
 
 ### Deprecated
 
