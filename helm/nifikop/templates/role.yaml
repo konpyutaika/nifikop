@@ -1,4 +1,3 @@
-{{- $openshift := .Capabilities.APIVersions.Has "security.openshift.io/v1" -}}
 {{- if .Values.rbacEnable }}
 {{- range  $namespace := $.Values.namespaces }}
 {{- $_ := set $ "vals" $.Values }}
