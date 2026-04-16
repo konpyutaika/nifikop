@@ -37,12 +37,12 @@ cluster:
       # The SCC is only rendered when the cluster exposes the security.openshift.io/v1 API.
       create: false
       # -- Name of a pre-existing SCC to use instead of creating one.
-      # When set, the chart skips SCC creation but still creates a Role/RoleBinding granting
-      # the workload service account permission to use the named SCC.
+      # When set, the chart skips SCC creation but still creates a ClusterRole/ClusterRoleBinding
+      # granting the workload service account permission to use the named SCC.
       existingName: ""
       serviceAccount:
         # -- Create a dedicated service account for SCC binding when manager != kubernetes.
-        # When manager=kubernetes the managerServiceAccount is used instead.
+        # Ignored when manager=kubernetes, where managerServiceAccount is used instead.
         create: true
         # -- Leave empty to default to the release fullname.
         name: ""
