@@ -1,0 +1,25 @@
+{{- if and .Values.rbacEnable (or (eq (include "nifikop.openshift.scc.create" .) "true") .Values.openshift.scc.existingName) }}
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  labels:
+    app: {{ template "nifikop.name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+    {{- include "userdefined.labels" . }}
+  annotations:
+    {{- include "userdefined.annotations" . }}
+  name: {{ template "nifikop.name" . }}-openshift-scc
+  namespace: {{ .Release.Namespace }}
+rules:
+- apiGroups:
+  - security.openshift.io
+  resourceNames:
+  - {{ include "nifikop.openshift.scc.name" . }}
+  resources:
+  - securitycontextconstraints
+  verbs:
+  - use
+{{- end }}
