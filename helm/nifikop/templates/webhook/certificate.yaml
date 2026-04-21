@@ -1,15 +1,25 @@
 # The following manifests contain a self-signed issuer CR and a certificate CR.
 # More document can be found at https://docs.cert-manager.io
 # WARNING: Targets CertManager v1.0. Check https://cert-manager.io/docs/installation/upgrading/ for breaking changes.
-{{- if and .Values.certManager.enabled .Values.webhook.enabled }}
+{{- $webhook := .Values.webhook | default dict -}}
+{{- $tls := $webhook.tls | default dict -}}
+{{- $mode := default "certManager" $tls.mode -}}
+{{- $tlsCertManager := $tls.certManager | default dict -}}
+{{- $issuerRef := $tlsCertManager.issuerRef | default dict -}}
+{{- $issuerName := default "selfsigned-issuer" $issuerRef.name -}}
+{{- $issuerKind := default "Issuer" $issuerRef.kind -}}
+{{- $issuerGroup := default "cert-manager.io" $issuerRef.group -}}
+{{- if and $webhook.enabled (eq $mode "certManager") }}
+{{- if $tlsCertManager.createIssuer }}
 apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
-  name: selfsigned-issuer
+  name: {{ $issuerName }}
   namespace: {{ $.Release.Namespace }}
 spec:
   selfSigned: {}
 ---
+{{- end }}
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
@@ -21,7 +31,10 @@ spec:
     - {{ template "webhook.service.name" . }}.{{ $.Release.Namespace }}.svc
     - {{ template "webhook.service.name" . }}.{{ $.Release.Namespace }}.svc.cluster.local
   issuerRef:
-    kind: Issuer
-    name: selfsigned-issuer
-  secretName: {{ template "webhook.secret.name" . }} # this secret will not be prefixed, since it's not managed by kustomize
+    kind: {{ $issuerKind }}
+    name: {{ $issuerName }}
+{{- if ne $issuerGroup "cert-manager.io" }}
+    group: {{ $issuerGroup }}
+{{- end }}
+  secretName: {{ template "webhook.tls.secret.name" . }} # this secret will not be prefixed, since it's not managed by kustomize
 {{- end }}

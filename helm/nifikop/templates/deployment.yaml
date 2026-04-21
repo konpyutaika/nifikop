@@ -64,7 +64,7 @@ spec:
         - name: cert
           secret:
             defaultMode: 420
-            secretName: {{ template "webhook.secret.name" . }}
+            secretName: {{ template "webhook.tls.secret.name" . }}
         {{- end }}
       {{- if .Values.podSecurityContext }}
       {{- with .Values.podSecurityContext }}
@@ -161,4 +161,3 @@ spec:
             readOnly: true
           {{- end }}
       terminationGracePeriodSeconds: 10
-
