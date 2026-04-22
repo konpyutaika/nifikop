@@ -82,6 +82,11 @@ webhook:
     #   existingSecret: the chart mounts a pre-created TLS secret and does
     #                   not create a Certificate or Issuer.
     mode: certManager
+    # Shared compatibility override for the webhook TLS secret name.
+    # In certManager mode this sets Certificate.spec.secretName; in
+    # existingSecret mode this names the pre-created secret to mount.
+    # The mode-specific values below take precedence when set.
+    secretName: ""
     certManager:
       # When true, create a namespaced self-signed Issuer for the webhook
       # Certificate. Set to false to reference an existing Issuer or
@@ -96,7 +101,7 @@ webhook:
       secretName: ""
     existingSecret:
       # Name of the pre-created TLS secret to mount. Required when the
-      # resolved mode is existingSecret.
+      # resolved mode is existingSecret unless webhook.tls.secretName is set.
       name: ""
 
 additionalEnvs: []
