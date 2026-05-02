@@ -22,3 +22,20 @@ func (n *nifiClient) GetControllerService(id string) (*nigoapi.ControllerService
 
 	return &out, nil
 }
+
+func (n *nifiClient) CreateControllerService(entity nigoapi.ControllerServiceEntity) (*nigoapi.ControllerServiceEntity, error) {
+	// Get nigoapi client, favoring the one associated to the coordinator node.
+	client, context := n.privilegeCoordinatorClient()
+	if client == nil {
+		n.log.Error("Error during creating node client", zap.Error(ErrNoNodeClientsAvailable))
+		return nil, ErrNoNodeClientsAvailable
+	}
+
+	// Request on Nifi Rest API to create the controller service
+	out, rsp, body, err := client.ControllerApi.CreateControllerService(context, entity)
+	if err := errorCreateOperation(rsp, body, err, n.log); err != nil {
+		return nil, err
+	}
+
+	return &out, nil
+}

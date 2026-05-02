@@ -143,6 +143,7 @@ type NifiClient interface {
 
 	// ControllerSevice func
 	GetControllerService(id string) (*nigoapi.ControllerServiceEntity, error)
+	CreateControllerService(entity nigoapi.ControllerServiceEntity) (*nigoapi.ControllerServiceEntity, error)
 
 	Build() error
 }
