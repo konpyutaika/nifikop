@@ -130,6 +130,43 @@ func testUpdateControllerService(t *testing.T, entity *nigoapi.ControllerService
 	return client.UpdateControllerService(*entity)
 }
 
+func TestRemoveControllerService(t *testing.T) {
+	assert := assert.New(t)
+
+	mockEntity := MockRootControllerService("16cfd2ec-0174-1000-0000-00004b9b35cc", "controllerservice-mock", "http://uri:8888")
+
+	err := testRemoveControllerService(t, &mockEntity, 200)
+	assert.Nil(err)
+
+	err = testRemoveControllerService(t, &mockEntity, 404)
+	assert.Nil(err)
+
+	err = testRemoveControllerService(t, &mockEntity, 500)
+	assert.IsType(ErrNifiClusterNotReturned200, err)
+}
+
+func testRemoveControllerService(t *testing.T, entity *nigoapi.ControllerServiceEntity, status int) error {
+	cluster := testClusterMock(t)
+
+	client, err := testClientFromCluster(cluster, false)
+	if err != nil {
+		return err
+	}
+
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	url := nifiAddress(cluster, fmt.Sprintf("/controller-services/%s", entity.Id))
+	httpmock.RegisterResponder(http.MethodDelete, url,
+		func(req *http.Request) (*http.Response, error) {
+			return httpmock.NewJsonResponse(
+				status,
+				entity)
+		})
+
+	return client.RemoveControllerService(*entity)
+}
+
 func MockRootControllerService(id, name, uri string) nigoapi.ControllerServiceEntity {
 	var version int64 = 10
 	return nigoapi.ControllerServiceEntity{
