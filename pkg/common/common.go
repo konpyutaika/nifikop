@@ -63,6 +63,7 @@ func NewClusterConnection(log *zap.Logger, config *clientconfig.NifiConfig) (nod
 type RequeueConfig struct {
 	UserRequeueInterval                int
 	RegistryClientRequeueInterval      int
+	ControllerServiceRequeueInterval   int
 	NodeGroupAutoscalerRequeueInterval int
 	ParameterContextRequeueInterval    int
 	UserGroupRequeueInterval           int
@@ -84,6 +85,7 @@ func NewRequeueConfig() *RequeueConfig {
 		UserRequeueInterval:                util.MustConvertToInt(util.GetEnvWithDefault("USERS_REQUEUE_INTERVAL", "15"), "USERS_REQUEUE_INTERVAL"),
 		NodeGroupAutoscalerRequeueInterval: util.MustConvertToInt(util.GetEnvWithDefault("NODE_GROUP_AUTOSCALER_REQUEUE_INTERVAL", "15"), "NODE_GROUP_AUTOSCALER_REQUEUE_INTERVAL"),
 		RegistryClientRequeueInterval:      util.MustConvertToInt(util.GetEnvWithDefault("REGISTRY_CLIENT_REQUEUE_INTERVAL", "15"), "REGISTRY_CLIENT_REQUEUE_INTERVAL"),
+		ControllerServiceRequeueInterval:   util.MustConvertToInt(util.GetEnvWithDefault("CONTROLLER_SERVICE_REQUEUE_INTERVAL", "15"), "CONTROLLER_SERVICE_REQUEUE_INTERVAL"),
 		ParameterContextRequeueInterval:    util.MustConvertToInt(util.GetEnvWithDefault("PARAMETER_CONTEXT_REQUEUE_INTERVAL", "15"), "PARAMETER_CONTEXT_REQUEUE_INTERVAL"),
 		UserGroupRequeueInterval:           util.MustConvertToInt(util.GetEnvWithDefault("USER_GROUP_REQUEUE_INTERVAL", "15"), "USER_GROUP_REQUEUE_INTERVAL"),
 		DataFlowRequeueInterval:            util.MustConvertToInt(util.GetEnvWithDefault("DATAFLOW_REQUEUE_INTERVAL", "15"), "DATAFLOW_REQUEUE_INTERVAL"),
