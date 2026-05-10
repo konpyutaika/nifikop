@@ -44,7 +44,11 @@ The following tables lists the configurable parameters of the NiFi Operator Helm
 | `serviceAccount.create`          | Whether the SA creation is delegated to the chart or not                                                                                                                             | `true`                   |
 | `serviceAccount.name`            | Name of the SA used for NiFiKop deployment                                                                                                                                           | release name             |
 | `webhook.enabled`                | Enable webhook migration                                                                                                                                                             | `true`                   |
-| `runAsUser`                      | Specify RunAsUser uid for NiFiKop operator pod                                                                                                                                       | `1000`                   |
+| `podSecurityContext`             | Pod security context for the operator pod                                                                                                                                            | `runAsUser: 1000`        |
+| `securityContext`                | Container security context for the operator container                                                                                                                                | `allowPrivilegeEscalation=false` |
+| `hostAliases`                    | Pod spec host aliases for the operator pod                                                                                                                                           | `[]`                     |
+| `openshift.scc.create`           | Create a dedicated SCC for the operator on OpenShift. Only rendered when the cluster exposes `security.openshift.io/v1`.                                                            | `true`                   |
+| `openshift.scc.existingName`     | Name of a pre-existing SCC to use instead of creating one. The chart grants the operator SA permission to use the named SCC.                                                        | `""`                     |
 | `additionalEnvs`                 | List of additional environment variables to set in the NiFiKop operator pod.                                                                                                         | `[]`                     |
 
 Specify each parameter using the `--set key=value[,key=value]` argument to `helm install`. For example,
@@ -93,6 +97,15 @@ $ helm install nifikop konpyutaika-incubator/nifikop --replace --set image.tag=a
 ```
 
 > the `--replace` flag allow you to reuses a charts release name
+
+### OpenShift
+
+For OpenShift deployments the chart can create a dedicated SecurityContextConstraints resource
+for the operator pod. This is gated on the `security.openshift.io/v1` API being present.
+
+- `openshift.scc.create=true` (default) creates and binds a dedicated SCC.
+- To use a pre-existing SCC instead, set `openshift.scc.create=false` and `openshift.scc.existingName=<your-scc>`.
+- The same OCI install command works on OpenShift. The OpenShift-specific part is just the values you pass to Helm.
 
 ### Listing deployed charts
 

@@ -1,3 +1,4 @@
+{{- $defaultNodeServiceAccountName := include "nifi-cluster.defaultNodeServiceAccountName" . | trim -}}
 apiVersion: nifi.konpyutaika.com/v1
 kind: NifiCluster
 metadata:
@@ -177,21 +178,24 @@ spec:
         name: {{ include "nifi-cluster.fullname" . }}
         namespace: {{ .Release.Namespace }}
       nifiJvmMemory: {{ .Values.cluster.bootstrapProperties.nifiJvmMemory }}
+  {{- if and (empty .Values.cluster.nodeConfigGroups) (not $defaultNodeServiceAccountName) }}
+  nodeConfigGroups: {}
+  {{- else }}
   nodeConfigGroups:
-  {{- $managerServiceAccountName := include "nifi-cluster.managerServiceAccountName" . }}
   {{- if empty .Values.cluster.nodeConfigGroups }}
-    {{- if eq .Values.cluster.manager "kubernetes" }}
     default-group:
-      serviceAccountName: {{ $managerServiceAccountName }}
+    {{- if $defaultNodeServiceAccountName }}
+      serviceAccountName: {{ $defaultNodeServiceAccountName }}
     {{- end }}
   {{- else }}
   {{- range $groupName, $groupConfig := .Values.cluster.nodeConfigGroups }}
     {{- $renderedGroup := deepCopy $groupConfig }}
-    {{- if and (eq $.Values.cluster.manager "kubernetes") (not $renderedGroup.serviceAccountName) }}
-    {{- $_ := set $renderedGroup "serviceAccountName" $managerServiceAccountName }}
+    {{- if and $defaultNodeServiceAccountName (not $renderedGroup.serviceAccountName) }}
+    {{- $_ := set $renderedGroup "serviceAccountName" $defaultNodeServiceAccountName }}
     {{- end }}
     {{ $groupName }}:
 {{ toYaml $renderedGroup | nindent 6 }}
+  {{- end }}
   {{- end }}
   {{- end }}
   nodes:

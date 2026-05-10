@@ -1,0 +1,33 @@
+cluster:
+  openshift:
+    scc:
+      create: true
+      # To use a pre-existing SCC instead of creating one:
+      # create: false
+      # existingName: my-existing-scc
+
+  nifiProperties:
+    overrideConfigs: |
+      nifi.web.proxy.context.path=/nifi-cluster
+
+  nodeConfigGroups:
+    default-group:
+      isNode: true
+      imagePullPolicy: IfNotPresent
+      storageConfigs:
+        - mountPath: /opt/nifi/data
+          name: data
+          pvcSpec:
+            accessModes:
+              - ReadWriteOnce
+            storageClassName: standard
+            resources:
+              requests:
+                storage: 10Gi
+      resourcesRequirements:
+        requests:
+          cpu: "500m"
+          memory: 2Gi
+        limits:
+          cpu: "1"
+          memory: 2Gi

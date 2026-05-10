@@ -52,7 +52,53 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Selector labels
 */}}
-# {{- define "nifi-cluster.selectorLabels" -}}
-# app.kubernetes.io/name: {{ include "nifi-cluster.name" . }}
-# app.kubernetes.io/instance: {{ .Release.Name }}
-# {{- end }}
+{{- define "nifi-cluster.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "nifi-cluster.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{/*
+OpenShift SCC helpers.
+*/}}
+{{- define "nifi-cluster.openshift.scc.create" -}}
+{{- if and .Values.cluster.openshift.scc.create (.Capabilities.APIVersions.Has "security.openshift.io/v1") -}}true{{- end -}}
+{{- end -}}
+
+{{- define "nifi-cluster.openshift.scc.name" -}}
+{{- if .Values.cluster.openshift.scc.existingName -}}
+{{- .Values.cluster.openshift.scc.existingName -}}
+{{- else -}}
+{{- printf "%s-openshift-scc" (include "nifi-cluster.fullname" .) -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+True when any SCC mode is active (create or existing).
+*/}}
+{{- define "nifi-cluster.openshift.scc.enabled" -}}
+{{- if or (eq (include "nifi-cluster.openshift.scc.create" .) "true") (not (empty .Values.cluster.openshift.scc.existingName)) -}}true{{- end -}}
+{{- end -}}
+
+{{/*
+Resolve the workload service account name for NiFi pods.
+When manager=kubernetes, use the manager SA. Otherwise use the SCC SA name.
+*/}}
+{{- define "nifi-cluster.workloadServiceAccountName" -}}
+{{- if eq .Values.cluster.manager "kubernetes" -}}
+{{- include "nifi-cluster.managerServiceAccountName" . -}}
+{{- else -}}
+{{- tpl (default (include "nifi-cluster.fullname" .) .Values.cluster.openshift.scc.serviceAccount.name) . -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Resolve the default node service account name to inject into nodeConfigGroups.
+Returns the workload SA when SCC mode is active or manager=kubernetes.
+*/}}
+{{- define "nifi-cluster.defaultNodeServiceAccountName" -}}
+{{- if eq (include "nifi-cluster.openshift.scc.enabled" .) "true" -}}
+{{- include "nifi-cluster.workloadServiceAccountName" . -}}
+{{- else if eq .Values.cluster.manager "kubernetes" -}}
+{{- include "nifi-cluster.managerServiceAccountName" . -}}
+{{- end -}}
+{{- end -}}

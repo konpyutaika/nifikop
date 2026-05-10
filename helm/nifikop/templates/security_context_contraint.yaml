@@ -1,5 +1,4 @@
-{{- $openshift := .Capabilities.APIVersions.Has "security.openshift.io/v1" -}}
-{{- if $openshift -}}
+{{- if eq (include "nifikop.openshift.scc.create" .) "true" -}}
 apiVersion: security.openshift.io/v1
 kind: SecurityContextConstraints
 metadata:
@@ -11,9 +10,9 @@ metadata:
     {{- include "userdefined.labels" . }}
   annotations:
     {{- include "userdefined.annotations" . }}
-    kubernetes.io/description: {{ .Values.sccName }} provides all features of the restricted-v2 SCC but
+    kubernetes.io/description: {{ include "nifikop.openshift.scc.name" . }} provides all features of the restricted-v2 SCC but
       allows users to run with UID 1000 and any GID.
-  name: {{ template "nifikop.name" . }}-openshift-scc
+  name: {{ include "nifikop.openshift.scc.name" . }}
 allowHostDirVolumePlugin: false
 allowHostIPC: false
 allowHostNetwork: false
@@ -26,7 +25,7 @@ defaultAddCapabilities: null
 fsGroup:
   type: RunAsAny
 groups: []
-priority: 10
+priority: null
 readOnlyRootFilesystem: false
 requiredDropCapabilities:
 - ALL
