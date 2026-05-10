@@ -43,7 +43,15 @@ The following tables lists the configurable parameters of the NiFi Operator Helm
 | `tolerations`                    | Toleration configuration for operator pod                                                                                                                                            | `{}`                     |
 | `serviceAccount.create`          | Whether the SA creation is delegated to the chart or not                                                                                                                             | `true`                   |
 | `serviceAccount.name`            | Name of the SA used for NiFiKop deployment                                                                                                                                           | release name             |
-| `webhook.enabled`                | Enable webhook migration                                                                                                                                                             | `true`                   |
+| `webhook.enabled`                | Enable the operator webhook                                                                                                                                                          | `true`                   |
+| `webhook.tls.mode`               | How the webhook TLS cert is provided. One of `certManager`, `existingSecret`. Use `existingSecret` to bring your own pre-created TLS secret.                                         | `certManager`            |
+| `webhook.tls.secretName`         | Shared compatibility override for the webhook TLS secret name. In `certManager` mode this sets the `Certificate` `secretName`; in `existingSecret` mode it names the pre-created secret. | `""`                     |
+| `webhook.tls.certManager.createIssuer`     | When `mode=certManager`, create a namespaced self-signed `Issuer` for the webhook `Certificate`. Set to `false` to reference an existing Issuer/ClusterIssuer via `issuerRef`.             | `true`                   |
+| `webhook.tls.certManager.issuerRef.name`   | Name of the cert-manager Issuer/ClusterIssuer used by the webhook `Certificate`. When `createIssuer=true` the chart also creates an Issuer with this name.                                 | `selfsigned-issuer`      |
+| `webhook.tls.certManager.issuerRef.kind`   | Kind of the issuer referenced by the webhook `Certificate`. Use `ClusterIssuer` to bring your own cluster-scoped issuer; must be `Issuer` when `createIssuer=true`.                        | `Issuer`                 |
+| `webhook.tls.certManager.issuerRef.group`  | API group of the issuer. Rendered on the `Certificate` only when set to a non-default value (e.g. `awspca.cert-manager.io`). Must be `cert-manager.io` when `createIssuer=true`.           | `cert-manager.io`        |
+| `webhook.tls.certManager.secretName`       | Mode-specific override for the `Certificate` `secretName`. Takes precedence over `webhook.tls.secretName`.                                                                                | `""`                     |
+| `webhook.tls.existingSecret.name`          | Mode-specific override for the pre-created TLS secret name. Takes precedence over `webhook.tls.secretName` in `existingSecret` mode.                                                       | `""`                     |
 | `runAsUser`                      | Specify RunAsUser uid for NiFiKop operator pod                                                                                                                                       | `1000`                   |
 | `additionalEnvs`                 | List of additional environment variables to set in the NiFiKop operator pod.                                                                                                         | `[]`                     |
 
@@ -99,6 +107,45 @@ $ helm install nifikop konpyutaika-incubator/nifikop --replace --set image.tag=a
 ```
 helm list
 ```
+
+### Webhook TLS configuration
+
+The chart keeps the default self-signed cert-manager flow unchanged. With `certManager.enabled=true` and `webhook.tls.mode=certManager`, it creates a self-signed `Issuer`, creates a webhook `Certificate`, and mounts the resulting secret into the operator deployment.
+
+For backward compatibility, the shared `webhook.tls.secretName` value still works in both modes. The newer mode-specific keys `webhook.tls.certManager.secretName` and `webhook.tls.existingSecret.name` are also supported and take precedence when set.
+
+To reuse an existing cert-manager `ClusterIssuer`, disable the chart-created `Issuer` and point the webhook `Certificate` at the issuer you already manage:
+
+```yaml
+certManager:
+  enabled: true
+
+webhook:
+  enabled: true
+  tls:
+    mode: certManager
+    secretName: nifikop-webhook-tls
+    certManager:
+      createIssuer: false
+      issuerRef:
+        name: corp-platform-cluster-issuer
+        kind: ClusterIssuer
+        group: cert-manager.io
+```
+
+To bring your own webhook serving certificate secret, switch to `existingSecret` mode. Either the legacy shared `secretName` key or the mode-specific `existingSecret.name` key can be used:
+
+```yaml
+webhook:
+  enabled: true
+  tls:
+    mode: existingSecret
+    secretName: nifikop-webhook-precreated-tls
+```
+
+`certManager` mode manages a webhook `Certificate` resource for you. `existingSecret` mode only mounts an already-created TLS secret into the operator pod.
+
+If you rely on cert-manager CA injection for conversion webhook trust, keep using `certManager` mode or manage CA bundle injection separately. The Helm chart does not template CRD conversion webhook CA annotations today, and `existingSecret` mode intentionally skips creating the `Certificate` resource that cert-manager would normally watch for `inject-ca-from`.
 
 ### Get Status for the helm deployment
 
