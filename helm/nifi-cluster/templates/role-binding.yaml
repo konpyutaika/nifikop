@@ -6,7 +6,7 @@ metadata:
   name: {{ include "nifi-cluster.fullname" . }}
 subjects:
   - kind: ServiceAccount
-    name: {{ include "nifi-cluster.fullname" . }}
+    name: {{ include "nifi-cluster.managerServiceAccountName" . }}
 roleRef:
   kind: Role
   apiGroup: rbac.authorization.k8s.io

@@ -7,6 +7,7 @@
 ### Fixed Bugs
 
 - [PR #662](https://github.com/konpyutaika/nifikop/pull/662) - **[Operator/Helm Chart/NifiCluster]** Fix Kubernetes manager mode by adding operator leader-election RBAC, propagating the manager `serviceAccountName` to explicit `nodeConfigGroups`, and publishing not-ready headless addresses only in Kubernetes mode.
+- [PR #667](https://github.com/konpyutaika/nifikop/pull/667) - **[Helm Chart/NifiCluster]** Fix `RoleBinding` subject name to correctly reference the `ServiceAccount` created by the chart, using `managerServiceAccount.name` when overridden.
 
 ### Deprecated
 
