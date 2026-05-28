@@ -4,6 +4,8 @@
 
 ### Changed
 
+- [PR #681](https://github.com/konpyutaika/nifikop/pull/681) - **[Operator]** Upgrade golang to 1.26.3.
+
 ### Fixed Bugs
 
 - [PR #662](https://github.com/konpyutaika/nifikop/pull/662) - **[Helm Chart]** Fix Kubernetes manager mode by adding operator leader-election RBAC, propagating the manager `serviceAccountName` to explicit `nodeConfigGroups`, and publishing not-ready headless addresses only in Kubernetes mode.
