@@ -86,6 +86,7 @@ rules:
   - "nificlusters"
   - "nifidataflows"
   - "nifiregistryclients"
+  - "nificontrollerservices"
   - "nifiparametercontexts"
   - "nifinodegroupautoscalers"
   - "nificonnections"
@@ -137,6 +138,7 @@ rules:
   - nificlusters/status
   - nifidataflows/status
   - nifiregistryclients/status
+  - nificontrollerservices/status
   - nifiparametercontexts/status
   - nifinodegroupautoscalers/status
   - nificonnections/status

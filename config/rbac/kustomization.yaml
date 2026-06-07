@@ -18,7 +18,8 @@ resources:
 # More info: https://book.kubebuilder.io/reference/metrics.html
 - metrics_auth_role.yaml
 - metrics_auth_role_binding.yaml
-- metrics_reader_role.yaml# For each CRD, "Admin", "Editor" and "Viewer" roles are scaffolded by
+- metrics_reader_role.yaml
+# For each CRD, "Admin", "Editor" and "Viewer" roles are scaffolded by
 # default, aiding admins in cluster management. Those roles are
 # not used by the nifikop itself. You can comment the following lines
 # if you do not want those helpers be installed with your Project.
@@ -26,3 +27,6 @@ resources:
 - nifiregistryclient_editor_role.yaml
 - nifiregistryclient_viewer_role.yaml
 
+- nificontrollerservice_admin_role.yaml
+- nificontrollerservice_editor_role.yaml
+- nificontrollerservice_viewer_role.yaml
