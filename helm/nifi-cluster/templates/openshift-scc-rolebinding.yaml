@@ -1,0 +1,27 @@
+{{- if eq (include "nifi-cluster.openshift.scc.enabled" .) "true" -}}
+{{- $workloadServiceAccount := include "nifi-cluster.workloadServiceAccountName" . | trim -}}
+{{- $serviceAccounts := dict -}}
+{{- if empty .Values.cluster.nodeConfigGroups -}}
+{{- $_ := set $serviceAccounts (default "default" $workloadServiceAccount) true -}}
+{{- else -}}
+{{- range $name, $nodeConfigGroup := .Values.cluster.nodeConfigGroups -}}
+{{- $saName := default (default "default" $workloadServiceAccount) $nodeConfigGroup.serviceAccountName -}}
+{{- $_ := set $serviceAccounts $saName true -}}
+{{- end -}}
+{{- end -}}
+{{- range $serviceAccountName := keys $serviceAccounts | sortAlpha }}
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ printf "%s-openshift-scc-%s" (include "nifi-cluster.fullname" $) ($serviceAccountName | replace "_" "-" | replace "." "-" ) | trunc 63 | trimSuffix "-" }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ $serviceAccountName }}
+    namespace: {{ $.Release.Namespace }}
+roleRef:
+  kind: ClusterRole
+  apiGroup: rbac.authorization.k8s.io
+  name: system:openshift:scc:{{ include "nifi-cluster.openshift.scc.name" $ }}
+{{- end }}
+{{- end }}

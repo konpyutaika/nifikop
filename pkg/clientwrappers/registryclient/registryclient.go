@@ -316,4 +316,3 @@ func updateEntity_GitLab(cfg *v2alpha1.GitLabConfig, secrets map[string]*corev1.
 		entity.Component.Properties["Parameter Context Values"] = string(*cfg.ParameterContextValues)
 	}
 }
-
