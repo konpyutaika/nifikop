@@ -704,6 +704,9 @@ type PrometheusReportingTaskStatus struct {
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 // +kubebuilder:storageversion
+// +kubebuilder:printcolumn:name="Cluster state",type="string",JSONPath=".status.state",description="The current operational state of the NiFi cluster"
+// +kubebuilder:printcolumn:name="Upgrade Errors",type="integer",JSONPath=".status.rollingUpgradeStatus.errorCount",description="Number of errors encountered during rolling upgrades"
+// +kubebuilder:printcolumn:name="Last Upgrade",type="string",JSONPath=".status.rollingUpgradeStatus.lastSuccess",description="Timestamp of the last successful rolling upgrade"
 
 // NifiCluster is the Schema for the nificlusters API.
 type NifiCluster struct {

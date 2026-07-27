@@ -2,12 +2,18 @@
 
 ### Added
 
+- [PR #692](https://github.com/konpyutaika/nifikop/pull/692) - **[Operator/NifiCluster]** Add printcolumns to NiFiCluster resource.
+
 ### Changed
+
+- [PR #681](https://github.com/konpyutaika/nifikop/pull/681) - **[Operator]** Upgrade golang to 1.26.3.
+- [PR #707](https://github.com/konpyutaika/nifikop/pull/707) - **[Operator]** Upgrade golang to 1.26.5.
 
 ### Fixed Bugs
 
+- [PR #662](https://github.com/konpyutaika/nifikop/pull/662) - **[Helm Chart]** Fix Kubernetes manager mode by adding operator leader-election RBAC, propagating the manager `serviceAccountName` to explicit `nodeConfigGroups`, and publishing not-ready headless addresses only in Kubernetes mode.
+- [PR #680](https://github.com/konpyutaika/nifikop/pull/680) - **[Helm Chart]** Rollback part of change on NiFiCluster introduced by [PR #662](https://github.com/konpyutaika/nifikop/pull/662).
 - [PR #668](https://github.com/konpyutaika/nifikop/pull/668) - **[Helm Chart]** Add configurable operator webhook TLS support with backward-compatible cert-manager and existing-secret flows.
-- [PR #662](https://github.com/konpyutaika/nifikop/pull/662) - **[Operator/Helm Chart/NifiCluster]** Fix Kubernetes manager mode by adding operator leader-election RBAC, propagating the manager `serviceAccountName` to explicit `nodeConfigGroups`, and publishing not-ready headless addresses only in Kubernetes mode.
 
 ### Deprecated
 

@@ -31,7 +31,7 @@ orbs:
     executors:
       operator-build:
         docker:
-          - image: ghcr.io/konpyutaika/docker-images/nifikop-build:1.26.2
+          - image: ghcr.io/konpyutaika/docker-images/nifikop-build:1.26.5@sha256:37884223cce14aec8b0b49706f3c5de9847ecc07dc458911ccd28e7e32e3e553
     # Define jobs list
     jobs:
       # Build job, which build operator docker image (with operator-sdk build)
