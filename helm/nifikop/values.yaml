@@ -74,6 +74,35 @@ certManager:
 
 webhook:
   enabled: true
+  tls:
+    # How the operator webhook serving certificate is provided:
+    #   certManager:    the chart creates a cert-manager Certificate (and
+    #                   optionally a self-signed Issuer). Requires
+    #                   certManager.enabled=true.
+    #   existingSecret: the chart mounts a pre-created TLS secret and does
+    #                   not create a Certificate or Issuer.
+    mode: certManager
+    # Shared compatibility override for the webhook TLS secret name.
+    # In certManager mode this sets Certificate.spec.secretName; in
+    # existingSecret mode this names the pre-created secret to mount.
+    # The mode-specific values below take precedence when set.
+    secretName: ""
+    certManager:
+      # When true, create a namespaced self-signed Issuer for the webhook
+      # Certificate. Set to false to reference an existing Issuer or
+      # ClusterIssuer via issuerRef instead.
+      createIssuer: true
+      issuerRef:
+        name: selfsigned-issuer
+        kind: Issuer
+        group: cert-manager.io
+      # Override the Certificate's secretName. When empty, defaults to
+      # <chart-name>-webhook-server-cert.
+      secretName: ""
+    existingSecret:
+      # Name of the pre-created TLS secret to mount. Required when the
+      # resolved mode is existingSecret unless webhook.tls.secretName is set.
+      name: ""
 
 additionalEnvs: []
   # - name: MY_ENV
