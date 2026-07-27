@@ -14,7 +14,20 @@ spec:
     singular: nificluster
   scope: Namespaced
   versions:
-  - name: v1
+  - additionalPrinterColumns:
+    - description: The current operational state of the NiFi cluster
+      jsonPath: .status.state
+      name: Cluster state
+      type: string
+    - description: Number of errors encountered during rolling upgrades
+      jsonPath: .status.rollingUpgradeStatus.errorCount
+      name: Upgrade Errors
+      type: integer
+    - description: Timestamp of the last successful rolling upgrade
+      jsonPath: .status.rollingUpgradeStatus.lastSuccess
+      name: Last Upgrade
+      type: string
+    name: v1
     schema:
       openAPIV3Schema:
         properties:
