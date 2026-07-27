@@ -33,6 +33,17 @@ resources:
 podSecurityContext:
   runAsUser: 1000
 
+## OpenShift-specific behavior for the operator chart.
+openshift:
+  scc:
+    ## Create a dedicated SCC for the operator on OpenShift.
+    ## The SCC is only rendered when the cluster exposes the security.openshift.io/v1 API.
+    create: true
+    ## Name of a pre-existing SCC to use instead of creating one.
+    ## When set, the chart skips SCC creation but still grants the operator service account
+    ## permission to use the named SCC.
+    existingName: ""
+
 securityContext:
   allowPrivilegeEscalation: false
   # runAsUser: 1000

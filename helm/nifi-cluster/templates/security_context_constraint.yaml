@@ -1,0 +1,44 @@
+{{- if eq (include "nifi-cluster.openshift.scc.create" .) "true" -}}
+apiVersion: security.openshift.io/v1
+kind: SecurityContextConstraints
+metadata:
+  name: {{ include "nifi-cluster.openshift.scc.name" . }}
+  labels:
+    {{- include "nifi-cluster.labels" . | nindent 4 }}
+  annotations:
+    kubernetes.io/description: {{ include "nifi-cluster.openshift.scc.name" . }} provides a restricted-style SCC for NiFi workloads.
+allowHostDirVolumePlugin: false
+allowHostIPC: false
+allowHostNetwork: false
+allowHostPID: false
+allowHostPorts: false
+allowPrivilegeEscalation: false
+allowPrivilegedContainer: false
+allowedCapabilities: null
+defaultAddCapabilities: null
+fsGroup:
+  type: RunAsAny
+groups: []
+priority: null
+readOnlyRootFilesystem: false
+requiredDropCapabilities:
+  - ALL
+runAsUser:
+  type: RunAsAny
+seLinuxContext:
+  type: MustRunAs
+supplementalGroups:
+  type: RunAsAny
+users: []
+seccompProfiles:
+  - runtime/default
+volumes:
+  - configMap
+  - csi
+  - downwardAPI
+  - emptyDir
+  - ephemeral
+  - persistentVolumeClaim
+  - projected
+  - secret
+{{- end }}

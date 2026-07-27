@@ -1,0 +1,15 @@
+openshift:
+  scc:
+    create: true
+    # To use a pre-existing SCC instead of creating one:
+    # create: false
+    # existingName: my-existing-scc
+
+securityContext:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+  capabilities:
+    drop:
+      - ALL

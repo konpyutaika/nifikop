@@ -160,23 +160,25 @@ Add the following parameter if you are using this instance to only deploy unsecu
 :::
 
 ### On OpenShift
-The restricted SCC according to the DOC from OpenShift: "Denies access to all host features and requires pods to be run with a UID, and SELinux context that are allocated to the namespace." So in order to deploy NiFiKop on OpenShift we need to get the openshift.io/sa.scc.uid-range annotation of the namespace that we will deploy NiFiKop into. 
+The same OCI install command works on OpenShift. The OpenShift-specific part is enabling SCC support for the operator pod.
 
-Get the uid for the nifi namespace:
-```bash
-uid=$(kubectl get namespace nifi -o=jsonpath='{.metadata.annotations.openshift\.io/sa\.scc\.supplemental-groups}' | sed 's/\/10000$//' | tr -d '[:space:]')
-```
-Set RunAsUser on install with helm:
 ```bash
 helm install nifikop \
-    nifikop \
+    oci://ghcr.io/konpyutaika/helm-charts/nifikop \
     --namespace=nifi \
-    --version 1.1.1 \
-    --set image.tag=v1.1.1-release \
+    --version 1.17.0 \
+    --set image.tag=v1.17.0-release \
     --set resources.requests.memory=256Mi \
     --set resources.requests.cpu=250m \
     --set resources.limits.memory=256Mi \
     --set resources.limits.cpu=250m \
     --set namespaces={"nifi"} \
-    --set runAsUser=$uid
+    --set openshift.scc.create=true
+```
+
+If your cluster already provides an approved SCC, use:
+
+```bash
+--set openshift.scc.create=false \
+--set openshift.scc.existingName=<your-scc-name>
 ```
