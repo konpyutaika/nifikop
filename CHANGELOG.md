@@ -13,6 +13,7 @@
 
 - [PR #662](https://github.com/konpyutaika/nifikop/pull/662) - **[Helm Chart]** Fix Kubernetes manager mode by adding operator leader-election RBAC, propagating the manager `serviceAccountName` to explicit `nodeConfigGroups`, and publishing not-ready headless addresses only in Kubernetes mode.
 - [PR #680](https://github.com/konpyutaika/nifikop/pull/680) - **[Helm Chart]** Rollback part of change on NiFiCluster introduced by [PR #662](https://github.com/konpyutaika/nifikop/pull/662).
+- [PR #668](https://github.com/konpyutaika/nifikop/pull/668) - **[Helm Chart]** Add configurable operator webhook TLS support with backward-compatible cert-manager and existing-secret flows.
 
 ### Deprecated
 
