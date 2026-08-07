@@ -111,6 +111,8 @@ type NifiClusterSpec struct {
 	ControllerUserIdentity *string `json:"controllerUserIdentity,omitempty"`
 	// SingleUserConfiguration if enabled handles the information related to this authentication method
 	SingleUserConfiguration SingleUserConfiguration `json:"singleUserConfiguration,omitempty"`
+	// OidcConfiguration if enabled handles the information related to this authentication method
+	OidcConfiguration OidcConfiguration `json:"oidcConfiguration,omitempty"`
 
 	// @TODO: Block Controller change
 }
@@ -132,6 +134,37 @@ type SingleUserConfiguration struct {
 	// +kubebuilder:default:={"username": "username", "password": "password"}
 	// +optional
 	SecretKeys UserSecretKeys `json:"secretKeys,omitempty"`
+}
+
+// You can look into single-user access here: https://exceptionfactory.com/posts/2021/07/21/single-user-access-and-https-in-apache-nifi/
+type OidcConfiguration struct {
+	// enabled specifies whether or not the cluster should use single user authentication for Nifi
+	// +kubebuilder:default:=false
+	// +optional
+	Enabled bool `json:"enabled"`
+	// authorizerEnabled specifies if the cluster should use use the single-user-authorizer instead of the managed-authorizer
+	// +kubebuilder:default:=
+	// +optional
+	DiscoveryUrl string `json:"discoveryUrl,omitempty"`
+	// authorizerEnabled specifies if the cluster should use use the single-user-authorizer instead of the managed-authorizer
+	// +kubebuilder:default:=
+	// +optional
+	ClientId string `json:"clientId,omitempty"`
+	// secretRef references the secret containing the informations required to authentiticate to the cluster
+	// +optional
+	ClientSecretRef *SecretReference `json:"clientSecretRef,omitempty"`
+	// authorizerEnabled specifies if the cluster should use use the single-user-authorizer instead of the managed-authorizer
+	// +kubebuilder:default:=CN=([^,])(?:, (?:O|OU)=.)?
+	// +optional
+	PatternDn string `json:"patternDn,omitempty"`
+	// authorizerEnabled specifies if the cluster should use use the single-user-authorizer instead of the managed-authorizer
+	// +kubebuilder:default:=$1
+	// +optional
+	ValueDn string `json:"valueDn,omitempty"`
+	// authorizerEnabled specifies if the cluster should use use the single-user-authorizer instead of the managed-authorizer
+	// +kubebuilder:default:=None
+	// +optional
+	TransformDn string `json:"transformDn,omitempty"`
 }
 
 type UserSecretKeys struct {
