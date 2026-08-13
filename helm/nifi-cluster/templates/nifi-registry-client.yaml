@@ -105,6 +105,36 @@ spec:
     {{- end }}
   {{- end }}
   {{- end }}
+  {{- if eq .type "azuredevops" }}
+  {{- with .azureDevOpsConfig }}
+  azureDevOpsConfig:
+    {{- with .apiUrl }}
+    apiUrl: {{ . }}
+    {{- end }}
+    organization: {{ .organization }}
+    project: {{ .project }}
+    repositoryName: {{ .repositoryName }}
+    {{- with .authenticationStrategy }}
+    authenticationStrategy: {{ . }}
+    {{- end }}
+    {{- with .oauthTokenProviderId }}
+    oauthTokenProviderId: {{ . }}
+    {{- end }}
+    webClientServiceId: {{ .webClientServiceId }}
+    {{- with .defaultBranch }}
+    defaultBranch: {{ . }}
+    {{- end }}
+    {{- with .repositoryPath }}
+    repositoryPath: {{ . }}
+    {{- end }}
+    {{- with .directoryFilterExclusion }}
+    directoryFilterExclusion: {{ . }}
+    {{- end }}
+    {{- with .parameterContextValues }}
+    parameterContextValues: {{ . }}
+    {{- end }}
+  {{- end }}
+  {{- end }}
 ---
 {{ end }}
 {{ end }}

@@ -11,6 +11,7 @@ import (
 // +kubebuilder:validation:XValidation:rule="self.type != 'registry' || has(self.registryClientConfig)",message="registryClientConfig is required when type is 'registry'"
 // +kubebuilder:validation:XValidation:rule="self.type != 'github' || has(self.githubConfig)",message="githubConfig is required when type is 'github'"
 // +kubebuilder:validation:XValidation:rule="self.type != 'gitlab' || has(self.gitlabConfig)",message="gitlabConfig is required when type is 'gitlab'"
+// +kubebuilder:validation:XValidation:rule="self.type != 'azuredevops' || has(self.azureDevOpsConfig)",message="azureDevOpsConfig is required when type is 'azuredevops'"
 type NifiRegistryClientSpec struct {
 	// The description of the registry client.
 	// +optional
@@ -19,7 +20,7 @@ type NifiRegistryClientSpec struct {
 	// +optional
 	ClusterRef ClusterReference `json:"clusterRef,omitempty"`
 	// Type of the registry client.
-	// +kubebuilder:validation:Enum=registry;github;gitlab
+	// +kubebuilder:validation:Enum=registry;github;gitlab;azuredevops
 	// +kubebuilder:default=registry
 	// +optional
 	Type NifiRegistryClientType `json:"type,omitempty"`
@@ -38,6 +39,11 @@ type NifiRegistryClientSpec struct {
 	// Required when type is "gitlab".
 	// +optional
 	GitLabConfig *GitLabConfig `json:"gitlabConfig,omitempty"`
+
+	// AzureDevOpsConfig holds configuration for an Azure DevOps type client.
+	// Required when type is "azuredevops".
+	// +optional
+	AzureDevOpsConfig *AzureDevOpsConfig `json:"azureDevOpsConfig,omitempty"`
 }
 
 // RegistryClientConfig holds configuration for a NiFi Registry server client.
@@ -126,6 +132,43 @@ type GitLabConfig struct {
 	ParameterContextValues *RegistryClientParameterContextValues `json:"parameterContextValues,omitempty"`
 }
 
+// AzureDevOpsConfig holds configuration for an Azure DevOps flow registry client.
+// +kubebuilder:validation:XValidation:rule="(has(self.authenticationStrategy) && self.authenticationStrategy != 'SERVICE_PRINCIPAL') || has(self.oauthTokenProviderId)",message="oauthTokenProviderId is required when authenticationStrategy is SERVICE_PRINCIPAL or not set"
+type AzureDevOpsConfig struct {
+	// Base URL of the Azure DevOps instance. Defaults to https://dev.azure.com.
+	// +optional
+	ApiUrl *string `json:"apiUrl,omitempty"`
+	// The Azure DevOps organization.
+	Organization string `json:"organization"`
+	// The Azure DevOps project.
+	Project string `json:"project"`
+	// Name of the repository.
+	RepositoryName string `json:"repositoryName"`
+	// Strategy for authenticating with Azure DevOps.
+	// +optional
+	AuthenticationStrategy *AzureDevOpsAuthenticationStrategy `json:"authenticationStrategy,omitempty"`
+	// Identifier of the NiFi OAuth2 Access Token Provider controller service that
+	// provides access tokens (for example a provider configured with Entra ID
+	// client credentials). Required when authenticationStrategy is SERVICE_PRINCIPAL.
+	// +optional
+	OAuthTokenProviderId *string `json:"oauthTokenProviderId,omitempty"`
+	// Identifier of the NiFi Web Client Service controller service used to
+	// communicate with Azure DevOps.
+	WebClientServiceId string `json:"webClientServiceId"`
+	// Default branch of the repository.
+	// +optional
+	DefaultBranch *string `json:"defaultBranch,omitempty"`
+	// Path within the repository for storing data. Defaults to repository root.
+	// +optional
+	RepositoryPath *string `json:"repositoryPath,omitempty"`
+	// Regex pattern for directories to exclude. Defaults to [.].* (hidden directories).
+	// +optional
+	DirectoryFilterExclusion *string `json:"directoryFilterExclusion,omitempty"`
+	// How to handle parameter context values.
+	// +optional
+	ParameterContextValues *RegistryClientParameterContextValues `json:"parameterContextValues,omitempty"`
+}
+
 // NifiRegistryClientStatus defines the observed state of NifiRegistryClient.
 type NifiRegistryClientStatus struct {
 	// The nifi registry client's id.
@@ -170,6 +213,8 @@ func (s *NifiRegistryClientSpec) GetType() string {
 		return "org.apache.nifi.github.GitHubFlowRegistryClient"
 	case GitLabRegistryClientType:
 		return "org.apache.nifi.gitlab.GitLabFlowRegistryClient"
+	case AzureDevOpsRegistryClientType:
+		return "org.apache.nifi.azure.devops.AzureDevOpsFlowRegistryClient"
 	default: // RegistryClientType
 		return "org.apache.nifi.registry.flow.NifiRegistryFlowRegistryClient"
 	}
