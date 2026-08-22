@@ -178,7 +178,7 @@ type AccessPolicy struct {
 	// +kubebuilder:validation:Enum={"read","write"}
 	// action defines the kind of action that will be granted, could be "read" or "write"
 	Action AccessPolicyAction `json:"action"`
-	// +kubebuilder:validation:Enum={"/system","/flow","/controller","/parameter-context","/provenance","/restricted-components","/policies","/tenants","/site-to-site","/proxy","/counters","/","/operation","/provenance-data","/data","/policies","/data-transfer"}
+	// +kubebuilder:validation:Enum={"/system","/flow","/controller","/parameter-context","/provenance","/restricted-components","/policies","/tenants","/site-to-site","/proxy","/counters","/","/operation","/provenance-data","/data","/policies","/data-transfer","/connectors"}
 	// resource defines the kind of resource targeted by this access policies, please refer to the following page:
 	// https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#access-policies
 	Resource AccessPolicyResource `json:"resource"`
@@ -243,6 +243,8 @@ const (
 	ProxyAccessPolicyResource AccessPolicyResource = "/proxy"
 	// About counters.
 	CountersAccessPolicyResource AccessPolicyResource = "/counters"
+	// About Connectors (NiFi 2.x global access policy).
+	ConnectorsAccessPolicyResource AccessPolicyResource = "/connectors"
 
 	// Component
 	// About the component configuration details.
