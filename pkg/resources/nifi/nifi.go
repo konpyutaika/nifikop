@@ -376,7 +376,10 @@ func (r *Reconciler) Reconcile(log zap.Logger) error {
 				return errors.WrapIfWithDetails(err, "failed to reconcile resource", "resource", o.GetObjectKind().GroupVersionKind())
 			}
 		}
-		o = r.pod(node, nodeConfig, pvcs, log)
+		o, err = r.pod(node, nodeConfig, pvcs, log)
+		if err != nil {
+			return errors.WrapIfWithDetails(err, "failed to generate pod", "nodeId", node.Id)
+		}
 		pod := o.(*corev1.Pod)
 		applyTLSAutoReloadAnnotations(pod, nifiProperties)
 
