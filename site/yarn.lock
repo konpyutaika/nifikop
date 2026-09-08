@@ -2,38 +2,39 @@
 # yarn lockfile v1
 
 
-"@ai-sdk/gateway@2.0.18":
-  version "2.0.18"
-  resolved "https://registry.npmjs.org/@ai-sdk/gateway/-/gateway-2.0.18.tgz"
-  integrity sha512-sDQcW+6ck2m0pTIHW6BPHD7S125WD3qNkx/B8sEzJp/hurocmJ5Cni0ybExg6sQMGo+fr/GWOwpHF1cmCdg5rQ==
+"@ai-sdk/gateway@2.0.147":
+  version "2.0.147"
+  resolved "https://registry.yarnpkg.com/@ai-sdk/gateway/-/gateway-2.0.147.tgz#114d1365e90c0ac5d16c190977c04ccb16c79ac9"
+  integrity sha512-uBi+N+9ApEKPrasD+QeUhGoDaXGZF4VuEfBrd1eh/taKQeThK02RzbPsLP9UmJNZJnqjr+7VPcZ5+Cj65QfGiw==
   dependencies:
-    "@ai-sdk/provider" "2.0.0"
-    "@ai-sdk/provider-utils" "3.0.18"
-    "@vercel/oidc" "3.0.5"
+    "@ai-sdk/provider" "2.0.3"
+    "@ai-sdk/provider-utils" "3.0.36"
+    "@vercel/oidc" "3.1.0"
 
-"@ai-sdk/provider-utils@3.0.18":
-  version "3.0.18"
-  resolved "https://registry.npmjs.org/@ai-sdk/provider-utils/-/provider-utils-3.0.18.tgz"
-  integrity sha512-ypv1xXMsgGcNKUP+hglKqtdDuMg68nWHucPPAhIENrbFAI+xCHiqPVN8Zllxyv1TNZwGWUghPxJXU+Mqps0YRQ==
+"@ai-sdk/provider-utils@3.0.36":
+  version "3.0.36"
+  resolved "https://registry.yarnpkg.com/@ai-sdk/provider-utils/-/provider-utils-3.0.36.tgz#56b3fe27db86c8ef88e43a2ff5cd358c4523f2a6"
+  integrity sha512-2eSw90hn32Je6n2a8Gf4dJ2EoecPJuOCWqwZCw+BkhPq2LOS01HX3s6ljgOm0iIkZiD5aAuMdpOw17rYKQF/Zg==
   dependencies:
-    "@ai-sdk/provider" "2.0.0"
+    "@ai-sdk/provider" "2.0.3"
     "@standard-schema/spec" "^1.0.0"
     eventsource-parser "^3.0.6"
+    undici "^5.29.0"
 
-"@ai-sdk/provider@2.0.0":
-  version "2.0.0"
-  resolved "https://registry.npmjs.org/@ai-sdk/provider/-/provider-2.0.0.tgz"
-  integrity sha512-6o7Y2SeO9vFKB8lArHXehNuusnpddKPk7xqL7T2/b+OvXMRIXUO1rR4wcv1hAFUAT9avGZshty3Wlua/XA7TvA==
+"@ai-sdk/provider@2.0.3":
+  version "2.0.3"
+  resolved "https://registry.yarnpkg.com/@ai-sdk/provider/-/provider-2.0.3.tgz#8a3727d31947c6238e59dcbb72b7e1a871fd570c"
+  integrity sha512-h88OPkavHTiN9tMn2l5awAznGB0lXzjcLhgR1/rvjB2zlLprsNxbM2tt6OJsHUxduLC3klq0/eqaSf6fX5XVww==
   dependencies:
     json-schema "^0.4.0"
 
 "@ai-sdk/react@^2.0.30":
-  version "2.0.107"
-  resolved "https://registry.npmjs.org/@ai-sdk/react/-/react-2.0.107.tgz"
-  integrity sha512-rv0u+tAi2r2zJu2uSLXcC3TBgGrkQIWXRM+i6us6qcGmYQ2kOu2VYg+lxviOSGPhL9PVebvTlN5x8mf3rDqX+w==
+  version "2.0.256"
+  resolved "https://registry.yarnpkg.com/@ai-sdk/react/-/react-2.0.256.tgz#d603aa851c3f718a47ad60ce4d87505db43ffff7"
+  integrity sha512-tR6EPQ++wEqAFcyoCBPBkGY2CATOk57hysEXxms8tRFBRCqfclCGal9RL0FgNEXvEymb8to1lHlj+btMoTylwg==
   dependencies:
-    "@ai-sdk/provider-utils" "3.0.18"
-    ai "5.0.107"
+    "@ai-sdk/provider-utils" "3.0.36"
+    ai "5.0.253"
     swr "^2.2.5"
     throttleit "2.1.0"
 
@@ -2066,6 +2067,11 @@
     utility-types "^3.10.0"
     webpack "^5.88.1"
 
+"@fastify/busboy@^2.0.0":
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/@fastify/busboy/-/busboy-2.1.1.tgz#b9da6a878a371829a0502c9b6c1c143ef6663f4d"
+  integrity sha512-vBZP4NlzfOlerQTnba4aqZoMhE/a9HY7HRqoOPaETQcSQuWEIyZMHGfVu6w9wGtGK5fED5qRs2DteVCjOH60sA==
+
 "@hapi/hoek@^9.0.0", "@hapi/hoek@^9.3.0":
   version "9.3.0"
   resolved "https://registry.npmjs.org/@hapi/hoek/-/hoek-9.3.0.tgz"
@@ -3143,10 +3149,10 @@
   resolved "https://registry.npmjs.org/@ungap/structured-clone/-/structured-clone-1.3.0.tgz"
   integrity sha512-WmoN8qaIAo7WTYWbAZuG8PYEhn5fkz7dZrqTBZ7dtt//lL2Gwms1IcnQ5yHqjDfX8Ft5j4YzDM23f87zBfDe9g==
 
-"@vercel/oidc@3.0.5":
-  version "3.0.5"
-  resolved "https://registry.npmjs.org/@vercel/oidc/-/oidc-3.0.5.tgz"
-  integrity sha512-fnYhv671l+eTTp48gB4zEsTW/YtRgRPnkI2nT7x6qw5rkI1Lq2hTmQIpHPgyThI0znLK+vX2n9XxKdXZ7BUbbw==
+"@vercel/oidc@3.1.0":
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/@vercel/oidc/-/oidc-3.1.0.tgz#066caee449b84079f33c7445fc862464fe10ec32"
+  integrity sha512-Fw28YZpRnA3cAHHDlkt7xQHiJ0fcL+NRcIqsocZQUSmbzeIKRpwttJjik5ZGanXP+vlA4SbTg+AbA3bP363l+w==
 
 "@webassemblyjs/ast@1.14.1", "@webassemblyjs/ast@^1.14.1":
   version "1.14.1"
@@ -3342,14 +3348,14 @@ aggregate-error@^3.0.0:
     clean-stack "^2.0.0"
     indent-string "^4.0.0"
 
-ai@5.0.107, ai@^5.0.30:
-  version "5.0.107"
-  resolved "https://registry.npmjs.org/ai/-/ai-5.0.107.tgz"
-  integrity sha512-laZlS9ZC/DZfSaxPgrBqI4mM+kxRvTPBBQfa74ceBFskkunZKEsaGVFNEs4cfyGa3nCCCl1WO/fjxixp4V8Zag==
+ai@5.0.253, ai@^5.0.30:
+  version "5.0.253"
+  resolved "https://registry.yarnpkg.com/ai/-/ai-5.0.253.tgz#c62dec135157ddc14db575f9ab3d6242d3ca2486"
+  integrity sha512-Z784HqUI3GOYiK/CACH9H8A7aqf67cuUnNslS2+//TJZZzCCFuQq6L2socSkIeVGkB8kC4arThXAYl6lWOq/lQ==
   dependencies:
-    "@ai-sdk/gateway" "2.0.18"
-    "@ai-sdk/provider" "2.0.0"
-    "@ai-sdk/provider-utils" "3.0.18"
+    "@ai-sdk/gateway" "2.0.147"
+    "@ai-sdk/provider" "2.0.3"
+    "@ai-sdk/provider-utils" "3.0.36"
     "@opentelemetry/api" "1.9.0"
 
 ajv-formats@^2.1.1:
@@ -10933,6 +10939,13 @@ undici-types@~7.16.0:
   version "7.16.0"
   resolved "https://registry.npmjs.org/undici-types/-/undici-types-7.16.0.tgz"
   integrity sha512-Zz+aZWSj8LE6zoxD+xrjh4VfkIG8Ya6LvYkZqtUQGJPZjYl53ypCaUwWqo7eI0x66KBGeRo+mlBEkMSeSZ38Nw==
+
+undici@^5.29.0:
+  version "5.29.0"
+  resolved "https://registry.yarnpkg.com/undici/-/undici-5.29.0.tgz#419595449ae3f2cdcba3580a2e8903399bd1f5a3"
+  integrity sha512-raqeBD6NQK4SkWhQzeYKd1KmIG6dllBOTt55Rmkt4HtI9mwdWtJljnrXjAFUBLTSN67HWrOIZ3EPF4kjUw80Bg==
+  dependencies:
+    "@fastify/busboy" "^2.0.0"
 
 unherit@^3.0.0:
   version "3.0.1"
