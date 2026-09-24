@@ -106,6 +106,8 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           {{- end }}
           env:
+            {{- /* Leaving WATCH_NAMESPACE unset makes the operator watch all namespaces. */}}
+            {{- if not .Values.watchAnyNamespace }}
             - name: WATCH_NAMESPACE
               {{- if .Values.namespaces }}
               value: {{ join "," .Values.namespaces }}
@@ -114,6 +116,7 @@ spec:
                 fieldRef:
                   fieldPath: metadata.namespace
               {{- end }}
+            {{- end }}
             - name: POD_NAME
               valueFrom:
                 fieldRef:

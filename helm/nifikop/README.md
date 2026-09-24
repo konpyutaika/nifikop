@@ -37,7 +37,9 @@ The following tables lists the configurable parameters of the NiFi Operator Helm
 | `logLevel`                       | Log level to output                                                                                                                                                                  | `Info`                   |
 | `logEncoding`                    | Log encoding to use. Either `json` or `console`                                                                                                                                      | `json`                   |
 | `certManager.clusterScoped`      | If true setup cluster scoped resources                                                                                                                                               | `false`                  |
-| `namespaces`                     | List of namespaces where Operator watches for custom resources. Make sure the operator ServiceAccount is granted `get` permissions on this `Node` resource when using limited RBACs. | `""` i.e. all namespaces |
+| `namespaces`                     | List of namespaces where the operator watches for custom resources. Empty means the release namespace only. Ignored when `watchAnyNamespace` is `true`.                             | `[]`                     |
+| `watchAnyNamespace`              | Watch every namespace in the cluster. Leaves `WATCH_NAMESPACE` unset and binds the operator RBAC cluster-wide. Requires `createClusterScopedResources=true`.                         | `false`                  |
+| `createClusterScopedResources`   | Create `ClusterRole`/`ClusterRoleBinding` resources. When `false`, only namespaced `Role`/`RoleBinding` are rendered in the watched namespaces (incompatible with `watchAnyNamespace` and `certManager.clusterScoped`). | `true`                   |
 | `nodeSelector`                   | Node selector configuration for operator pod                                                                                                                                         | `{}`                     |
 | `affinity`                       | Node affinity configuration for operator pod                                                                                                                                         | `{}`                     |
 | `tolerations`                    | Toleration configuration for operator pod                                                                                                                                            | `{}`                     |
@@ -106,6 +108,28 @@ $ helm install nifikop konpyutaika-incubator/nifikop --replace --set image.tag=a
 ```
 
 > the `--replace` flag allow you to reuses a charts release name
+
+### Watched namespaces and RBAC
+
+By default the operator watches the namespace it is installed in. To watch a fixed set of namespaces:
+
+```console
+$ helm install nifikop konpyutaika-incubator/nifikop --set namespaces={"nifi","data"}
+```
+
+To watch every namespace in the cluster:
+
+```console
+$ helm install nifikop konpyutaika-incubator/nifikop --set watchAnyNamespace=true
+```
+
+Namespaced permissions are defined once as a `ClusterRole` and bound with a `RoleBinding` in each watched
+namespace, or with a single `ClusterRoleBinding` when `watchAnyNamespace=true`. A second `ClusterRole` grants
+read access to `namespaces` and `nodes` (and `clusterissuers` when `certManager.clusterScoped=true`), which the
+operator needs regardless of the watched namespaces.
+
+If cluster-scoped RBAC is not permitted in your cluster, set `createClusterScopedResources=false` to render a
+`Role`/`RoleBinding` pair in each watched namespace instead. This mode cannot watch all namespaces.
 
 ### OpenShift
 
