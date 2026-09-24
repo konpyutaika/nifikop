@@ -2231,6 +2231,9 @@ spec:
                             type: string
                           type: object
                       type: object
+                    podOverrides:
+                      type: object
+                      x-kubernetes-preserve-unknown-fields: true
                     priorityClassName:
                       type: string
                     provenanceStorage:
@@ -3787,6 +3790,9 @@ spec:
                                 type: string
                               type: object
                           type: object
+                        podOverrides:
+                          type: object
+                          x-kubernetes-preserve-unknown-fields: true
                         priorityClassName:
                           type: string
                         provenanceStorage:

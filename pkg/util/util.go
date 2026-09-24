@@ -215,9 +215,20 @@ func GetNodeConfig(node v1.Node, clusterSpec v1.NifiClusterSpec) (*v1.NodeConfig
 		nConfig = node.NodeConfig.DeepCopy()
 	}
 
+	// podOverrides is not layered: a node-level override replaces the group's wholesale. mergo would
+	// otherwise deep-merge the two templates and concatenate their container/volume lists.
+	nodeOverrides := nConfig.PodOverrides
+	nConfig.PodOverrides = nil
+
 	err := mergo.Merge(nConfig, clusterSpec.NodeConfigGroups[node.NodeConfigGroup], mergo.WithAppendSlice)
 	if err != nil {
 		return nil, errors.WrapIf(err, "could not merge nodeConfig with ConfigGroup")
+	}
+	if nodeOverrides != nil {
+		nConfig.PodOverrides = nodeOverrides
+	} else if nConfig.PodOverrides != nil {
+		// mergo copies the group's pointer; do not alias the cached NifiCluster object.
+		nConfig.PodOverrides = nConfig.PodOverrides.DeepCopy()
 	}
 	return nConfig, nil
 }

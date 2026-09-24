@@ -4,6 +4,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -401,3 +402,48 @@ func TestIsSecretResourceVersionUpdated(t *testing.T) {
 		t.Errorf("Expected true, but got false")
 	}
 }
+
+func TestGetNodeConfigPodOverridesNodeLevelReplacesGroup(t *testing.T) {
+	groupOverrides := &corev1.PodTemplateSpec{
+		Spec: corev1.PodSpec{
+			PriorityClassName: "group",
+			Containers:        []corev1.Container{{Name: "group-sidecar"}},
+		},
+	}
+	nodeOverrides := &corev1.PodTemplateSpec{
+		Spec: corev1.PodSpec{
+			Containers: []corev1.Container{{Name: "node-sidecar"}},
+		},
+	}
+	spec := v1.NifiClusterSpec{
+		NodeConfigGroups: map[string]v1.NodeConfig{
+			"default": {PodOverrides: groupOverrides, PriorityClassName: ptrTo("group-pc")},
+		},
+	}
+
+	// node without its own override inherits the group's
+	got, err := GetNodeConfig(v1.Node{Id: 0, NodeConfigGroup: "default"}, spec)
+	assert.NoError(t, err)
+	assert.Equal(t, groupOverrides, got.PodOverrides)
+
+	// node with its own override replaces the group's wholesale (no deep merge)
+	got, err = GetNodeConfig(v1.Node{
+		Id:              1,
+		NodeConfigGroup: "default",
+		NodeConfig:      &v1.NodeConfig{PodOverrides: nodeOverrides},
+	}, spec)
+	assert.NoError(t, err)
+	assert.Equal(t, nodeOverrides, got.PodOverrides)
+	assert.Equal(t, "", got.PodOverrides.Spec.PriorityClassName)
+	assert.Len(t, got.PodOverrides.Spec.Containers, 1)
+	// other fields still merge as before
+	assert.Equal(t, "group-pc", *got.PriorityClassName)
+
+	// the group's template is copied, never aliased into the returned config
+	got, err = GetNodeConfig(v1.Node{Id: 2, NodeConfigGroup: "default"}, spec)
+	assert.NoError(t, err)
+	assert.NotSame(t, groupOverrides, got.PodOverrides)
+	assert.Equal(t, groupOverrides, got.PodOverrides)
+}
+
+func ptrTo[T any](v T) *T { return &v }

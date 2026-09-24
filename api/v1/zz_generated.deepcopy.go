@@ -1291,6 +1291,11 @@ func (in *NodeConfig) DeepCopyInto(out *NodeConfig) {
 		*out = new(string)
 		**out = **in
 	}
+	if in.PodOverrides != nil {
+		in, out := &in.PodOverrides, &out.PodOverrides
+		*out = new(corev1.PodTemplateSpec)
+		(*in).DeepCopyInto(*out)
+	}
 	if in.PodAffinity != nil {
 		in, out := &in.PodAffinity, &out.PodAffinity
 		*out = new(corev1.PodAffinity)

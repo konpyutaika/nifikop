@@ -5,6 +5,7 @@ import (
 	"sort"
 	"strings"
 
+	"emperror.dev/errors"
 	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -40,7 +41,7 @@ const (
 	ContainerName string = "nifi"
 )
 
-func (r *Reconciler) pod(node v1.Node, nodeConfig *v1.NodeConfig, pvcs []corev1.PersistentVolumeClaim, log zap.Logger) runtimeClient.Object {
+func (r *Reconciler) pod(node v1.Node, nodeConfig *v1.NodeConfig, pvcs []corev1.PersistentVolumeClaim, log zap.Logger) (runtimeClient.Object, error) {
 	zkAddress := r.NifiCluster.Spec.ZKAddress
 	singleUserConfiguration := r.NifiCluster.Spec.SingleUserConfiguration
 	dataVolume, dataVolumeMount := generateDataVolumeAndVolumeMount(pvcs)
@@ -205,7 +206,13 @@ func (r *Reconciler) pod(node v1.Node, nodeConfig *v1.NodeConfig, pvcs []corev1.
 		r.NifiCluster.Spec.Service.GetServiceTemplate())
 	//}
 
-	return pod
+	// podOverrides is the user's escape hatch: applied last so it wins over every proxy field above.
+	pod, err := applyPodOverrides(pod, nodeConfig.PodOverrides)
+	if err != nil {
+		return nil, errors.WrapIfWithDetails(err, "invalid podOverrides", "nodeId", node.Id)
+	}
+
+	return pod, nil
 }
 
 func generateDataVolumeAndVolumeMount(pvcs []corev1.PersistentVolumeClaim) (volume []corev1.Volume, volumeMount []corev1.VolumeMount) {

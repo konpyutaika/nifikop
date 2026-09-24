@@ -3,6 +3,7 @@
 ### Added
 
 - [PR #692](https://github.com/konpyutaika/nifikop/pull/692) - **[Operator/NifiCluster]** Add printcolumns to NiFiCluster resource.
+- [PR #727](https://github.com/konpyutaika/nifikop/pull/727) - **[Operator/NifiCluster]** Add `podOverrides` to `NodeConfig`: a `PodTemplateSpec` strategic-merged onto the generated NiFi pod as a last-resort escape hatch for pod settings without a dedicated field.
 
 ### Changed
 

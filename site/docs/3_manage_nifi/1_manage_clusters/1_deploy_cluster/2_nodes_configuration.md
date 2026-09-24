@@ -398,5 +398,74 @@ Here is an example of how to do this in the `NiFiCluster` configuration:
 ```
 
 
+## Pod overrides
+
+Every pod setting listed above has a dedicated field on `NodeConfig`. When you need a pod setting the operator does not expose (a new Kubernetes field, a sidecar, a tweak to the `nifi` container), `podOverrides` lets you patch the generated pod directly instead of waiting for a new field.
+
+`podOverrides` takes a [PodTemplateSpec](https://pkg.go.dev/k8s.io/api/core/v1#PodTemplateSpec) and is applied to the pod the operator generates as a [strategic merge patch](https://kubernetes.io/docs/tasks/manage-kubernetes-objects/update-api-object-kubectl-patch/#use-a-strategic-merge-patch-to-update-a-deployment), after every other `NodeConfig` field. Whatever you set here wins.
+
+```yaml
+  nodeConfigGroups:
+    default_group:
+      runAsUser: 1000                  # existing fields keep working
+      podOverrides:
+        metadata:
+          annotations:
+            example.com/owner: data-team
+        spec:
+          hostUsers: false             # a pod field the operator has no proxy for
+          securityContext:
+            runAsUser: 1000650000      # overrides the value derived from runAsUser above
+          containers:
+            - name: nifi               # the operator-managed container: merged by name
+              securityContext:
+                readOnlyRootFilesystem: true
+            - name: log-shipper        # an unknown name is appended as a new container
+              image: example/log-shipper:1.0
+              volumeMounts:
+                - name: logs
+                  mountPath: /var/log/nifi
+```
+
+How the merge behaves:
+
+- Objects merge recursively. `livenessProbe: {initialDelaySeconds: 300}` changes that one field and keeps the operator's period and thresholds; `affinity: {nodeAffinity: ...}` keeps the operator's `podAntiAffinity`.
+- Lists that Kubernetes merges by key are merged by that key: `containers`, `initContainers` and `volumes` by `name`, `env` by `name`, `ports` by `containerPort`, `volumeMounts` by `mountPath`. A `containers` entry named `nifi` patches the operator's container; any other name is appended after the operator's containers. Every `containers`, `initContainers` and `volumes` entry must have a unique `name`.
+- Lists without a merge key are replaced: `tolerations`, `command`, `args`, `topologySpreadConstraints`, `imagePullSecrets`. Setting `tolerations` here discards the ones from the `tolerations` field above.
+- Scalars are replaced. `false` and `0` count as set (`hostUsers: false`, `runAsNonRoot: false`, `terminationGracePeriodSeconds: 0`).
+- `metadata.labels` and `metadata.annotations` are merged into the pod metadata (override wins on conflict), except the labels the operator uses to find its pods (`app`, `nifi_cr`, `nodeId`). Other metadata fields are ignored; the operator owns the pod's identity.
+- `spec.hostname`, `spec.subdomain` and `spec.restartPolicy` are owned by the operator and cannot be overridden.
+- A `podOverrides` set on a node (`nodes[].nodeConfig.podOverrides`) replaces the group's `podOverrides` wholesale; the two are not merged. A `podOverrides` in a `NifiNodeGroupAutoscaler`'s `nodeConfig` is applied to the nodes it creates.
+
+What you cannot do with it:
+
+- Remove anything the operator sets. Unset fields in the override are ignored, so there is no way to delete an operator env var, volume, mount, argument or `nodeSelector` key.
+- Change the *kind* of an operator-managed union field. Patching the operator's `data` volume with `emptyDir` leaves both `persistentVolumeClaim` and `emptyDir` set; the same applies to probe handlers (`httpGet` to `exec`) and `env` entries (`value` to `valueFrom`). The API server rejects the resulting pod. Add your own volume, probe or variable instead.
+- Reuse an operator key: a `ports` entry with the same `containerPort` or a `volumeMounts` entry with the same `mountPath` replaces the operator's entry rather than adding one.
+- Place an init container before the operator's. User init containers always run after them.
+
+Things to know before you use it:
+
+- The field has no schema in the CRD (a typed schema would nearly triple the size of the `NifiCluster` CRD). A typo such as `hostUser: false` is accepted by the API server, kept on the resource and silently ignored by the operator. Check the generated pod after a change.
+- Adding to `podOverrides` rolls the affected pods like any other `NodeConfig` change. Removing a container, init container or toleration you previously added does not: the operator tolerates containers injected by admission webhooks and keeps existing ones. Delete the pod to apply a removal.
+- The operator does not protect its own settings. Overriding the `nifi` container's `command`, probes, ports or the configuration volume mounts can break the cluster and is not supported. Prefer the dedicated `NodeConfig` fields whenever one exists.
+- An override the operator cannot apply (for example a container without a `name`) fails the reconcile for that node with an error in the operator logs; the pod is not created.
+
+### Example: OpenShift `restricted-v3`
+
+OpenShift 4.20 ships the `restricted-v3` SCC, which requires pods to opt into user namespaces with `hostUsers: false` and keeps the `MustRunAsRange` rule for `runAsUser`. Both can be satisfied from `podOverrides`, using a UID from the namespace's `openshift.io/sa.scc.uid-range` annotation:
+
+```yaml
+  nodeConfigGroups:
+    default_group:
+      podOverrides:
+        spec:
+          hostUsers: false
+          securityContext:
+            runAsUser: 1000650000
+            fsGroup: 1000650000
+```
+
+
 [NodeConfigGroup]: ../../../5_references/1_nifi_cluster/3_node_config
 [ReadOnlyConfig]: ../../../5_references/1_nifi_cluster/2_read_only_config
