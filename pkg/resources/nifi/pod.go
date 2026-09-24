@@ -182,6 +182,7 @@ func (r *Reconciler) pod(node v1.Node, nodeConfig *v1.NodeConfig, pvcs []corev1.
 				FSGroup:        nodeConfig.GetFSGroup(),
 				SeccompProfile: seccompProfile,
 			},
+			HostUsers:                     nodeConfig.HostUsers,
 			TerminationGracePeriodSeconds: terminationGracePeriodSeconds,
 			InitContainers:                podInitContainers,
 			Affinity:                      aff,

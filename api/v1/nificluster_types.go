@@ -340,6 +340,11 @@ type NodeConfig struct {
 	// FSGroup define the id of the group for each volumes in Nifi image
 	// +kubebuilder:validation:Minimum=1
 	FSGroup *int64 `json:"fsGroup,omitempty"`
+	// hostUsers controls whether the node pods run in the host user namespace (Kubernetes default when unset).
+	// Set to false to run the pods in a dedicated Linux user namespace, which is required by OpenShift SCCs
+	// with userNamespaceLevel: RequirePodLevel (e.g. restricted-v3).
+	// https://kubernetes.io/docs/concepts/workloads/pods/user-namespaces/
+	HostUsers *bool `json:"hostUsers,omitempty"`
 	// Set this to true if the instance is a node in a cluster.
 	// https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#basic-cluster-setup
 	IsNode *bool `json:"isNode,omitempty"`
