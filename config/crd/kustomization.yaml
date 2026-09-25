@@ -8,6 +8,7 @@ resources:
 - bases/nifi.konpyutaika.com_nifidataflows.yaml
 - bases/nifi.konpyutaika.com_nifiparametercontexts.yaml
 
+- bases/nifi.konpyutaika.com_nificontrollerservices.yaml
 - bases/nifi.konpyutaika.com_nifiregistryclients.yaml
 - bases/nifi.konpyutaika.com_nifinodegroupautoscalers.yaml
 - bases/nifi.konpyutaika.com_nificonnections.yaml

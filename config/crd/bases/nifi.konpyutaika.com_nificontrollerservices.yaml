@@ -1,0 +1,93 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.18.0
+  name: nificontrollerservices.nifi.konpyutaika.com
+spec:
+  group: nifi.konpyutaika.com
+  names:
+    kind: NifiControllerService
+    listKind: NifiControllerServiceList
+    plural: nificontrollerservices
+    singular: nificontrollerservice
+  scope: Namespaced
+  versions:
+  - name: v2alpha1
+    schema:
+      openAPIV3Schema:
+        properties:
+          apiVersion:
+            type: string
+          kind:
+            type: string
+          metadata:
+            type: object
+          spec:
+            properties:
+              clusterRef:
+                properties:
+                  name:
+                    type: string
+                  namespace:
+                    type: string
+                required:
+                - name
+                type: object
+              description:
+                type: string
+              standardWebClientServiceProviderSpec:
+                properties:
+                  connectTimeout:
+                    default: 10 secs
+                    type: string
+                  readTimeout:
+                    default: 10 secs
+                    type: string
+                  writeTimeout:
+                    default: 10 secs
+                    type: string
+                type: object
+              type:
+                default: org.apache.nifi.web.client.provider.service.StandardWebClientServiceProvider
+                enum:
+                - org.apache.nifi.web.client.provider.service.StandardWebClientServiceProvider
+                type: string
+            type: object
+            x-kubernetes-validations:
+            - message: standardWebClientServiceProviderSpec is required when type
+                is 'org.apache.nifi.web.client.provider.service.StandardWebClientServiceProvider'
+              rule: self.type != 'org.apache.nifi.web.client.provider.service.StandardWebClientServiceProvider'
+                || has(self.standardWebClientServiceProviderSpec)
+          status:
+            properties:
+              id:
+                type: string
+              latestSecretsResourceVersion:
+                items:
+                  properties:
+                    name:
+                      type: string
+                    namespace:
+                      type: string
+                    resourceVersion:
+                      type: string
+                  required:
+                  - name
+                  - namespace
+                  - resourceVersion
+                  type: object
+                type: array
+              version:
+                format: int64
+                type: integer
+            required:
+            - id
+            - version
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}

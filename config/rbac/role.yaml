@@ -58,6 +58,7 @@ rules:
   resources:
   - nificlusters
   - nificonnections
+  - nificontrollerservices
   - nifidataflows
   - nifinodegroupautoscalers
   - nifiparametercontexts
@@ -89,6 +90,7 @@ rules:
   resources:
   - nificlusters/status
   - nificonnections/status
+  - nificontrollerservices/status
   - nifidataflows/status
   - nifinodegroupautoscalers/status
   - nifiparametercontexts/status
@@ -104,6 +106,7 @@ rules:
   - nifi.konpyutaika.com
   resources:
   - nificonnections/finalizers
+  - nificontrollerservices/finalizers
   - nifinodegroupautoscalers/finalizers
   - nifiparametercontexts/finalizers
   - nifiregistryclients/finalizers

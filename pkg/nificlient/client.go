@@ -141,6 +141,12 @@ type NifiClient interface {
 	UpdateConnection(entity nigoapi.ConnectionEntity) (*nigoapi.ConnectionEntity, error)
 	DeleteConnection(entity nigoapi.ConnectionEntity) error
 
+	// ControllerSevice func
+	GetControllerService(id string) (*nigoapi.ControllerServiceEntity, error)
+	CreateControllerService(entity nigoapi.ControllerServiceEntity) (*nigoapi.ControllerServiceEntity, error)
+	UpdateControllerService(entity nigoapi.ControllerServiceEntity) (*nigoapi.ControllerServiceEntity, error)
+	RemoveControllerService(entity nigoapi.ControllerServiceEntity) error
+
 	Build() error
 }
 

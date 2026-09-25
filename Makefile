@@ -365,9 +365,9 @@ define debug_telepresence
 	echo "execute: cat nifi-operator.env" ; \
 	sudo mkdir -p /var/run/secrets/kubernetes.io ; \
 	tdep=$(shell ${KUBECTL} get deployment -l app=nifikop -o jsonpath='{.items[0].metadata.name}') ; \
-  	echo ${KUBECTL} get deployment -l app=nifikop -o jsonpath='{.items[0].metadata.name}' ; \
+	echo ${KUBECTL} get deployment -l app=nifikop -o jsonpath='{.items[0].metadata.name}' ; \
 	echo telepresence --swap-deployment $$tdep --mount=/tmp/known --env-file nifi-operator.env $1 $2 ; \
- 	telepresence --swap-deployment $$tdep --mount=/tmp/known --env-file nifi-operator.env $1 $2
+	telepresence --swap-deployment $$tdep --mount=/tmp/known --env-file nifi-operator.env $1 $2
 endef
 
 .PHONY: debug-telepresence

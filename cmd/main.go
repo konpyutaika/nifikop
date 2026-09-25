@@ -276,6 +276,18 @@ func main() {
 		os.Exit(1)
 	}
 
+	if err = (&controller.NifiControllerServiceReconciler{
+		Client:          mgr.GetClient(),
+		Log:             *logger.Named("controller").Named("NifiControllerService"),
+		Scheme:          mgr.GetScheme(),
+		Recorder:        mgr.GetEventRecorderFor("nifi-controller-service"),
+		RequeueInterval: multipliers.ControllerServiceRequeueInterval,
+		RequeueOffset:   multipliers.RequeueOffset,
+	}).SetupWithManager(mgr); err != nil {
+		logger.Error("unable to create controller", zap.String("controller", "NifiControllerService"), zap.Error(err))
+		os.Exit(1)
+	}
+
 	if err = (&controller.NifiNodeGroupAutoscalerReconciler{
 		Client:          mgr.GetClient(),
 		APIReader:       mgr.GetAPIReader(),
