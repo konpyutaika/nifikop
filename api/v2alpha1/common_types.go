@@ -1,7 +1,7 @@
 package v2alpha1
 
 // NifiRegistryClientType defines the type of registry client.
-// +kubebuilder:validation:Enum={"registry","github","gitlab"}
+// +kubebuilder:validation:Enum={"registry","github","gitlab","azuredevops"}
 type NifiRegistryClientType string
 
 const (
@@ -11,6 +11,8 @@ const (
 	GitHubRegistryClientType NifiRegistryClientType = "github"
 	// GitLabRegistryClientType indicates a GitLab repository.
 	GitLabRegistryClientType NifiRegistryClientType = "gitlab"
+	// AzureDevOpsRegistryClientType indicates an Azure DevOps repository.
+	AzureDevOpsRegistryClientType NifiRegistryClientType = "azuredevops"
 )
 
 // ClusterReference states a reference to a cluster for registry client provisioning.
@@ -66,6 +68,14 @@ type GitLabAuthenticationType string
 
 const (
 	GitLabAuthAccessToken GitLabAuthenticationType = "ACCESS_TOKEN"
+)
+
+// AzureDevOpsAuthenticationStrategy defines the authentication strategy for Azure DevOps.
+// +kubebuilder:validation:Enum=SERVICE_PRINCIPAL
+type AzureDevOpsAuthenticationStrategy string
+
+const (
+	AzureDevOpsAuthServicePrincipal AzureDevOpsAuthenticationStrategy = "SERVICE_PRINCIPAL"
 )
 
 // SecretResourceVersion states the resourceVersion of a secret at last sync.

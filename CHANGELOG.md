@@ -3,6 +3,7 @@
 ### Added
 
 - [PR #692](https://github.com/konpyutaika/nifikop/pull/692) - **[Operator/NifiCluster]** Add printcolumns to NiFiCluster resource.
+- [PR #714](https://github.com/konpyutaika/nifikop/pull/714) - **[Operator/NifiRegistryClient]** Add `azuredevops` registry client type for the Azure DevOps flow registry client introduced in NiFi 2.11.0.
 
 ### Changed
 

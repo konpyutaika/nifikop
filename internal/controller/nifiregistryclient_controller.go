@@ -362,6 +362,9 @@ func (r *NifiRegistryClientReconciler) resolveSecrets(registryClient *v2alpha1.N
 		if cfg := registryClient.Spec.GitLabConfig; cfg != nil {
 			refs = append(refs, cfg.AccessTokenSecretRef)
 		}
+	case v2alpha1.AzureDevOpsRegistryClientType:
+		// The Azure DevOps client has no secret-backed properties: authentication is
+		// delegated to an OAuth2 Access Token Provider controller service in NiFi.
 	}
 
 	for _, ref := range refs {

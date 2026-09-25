@@ -459,6 +459,20 @@ registryClients:
   #       namespace: ""
   #       data: token
   #     defaultBranch: main
+  # -- Azure DevOps registry client example
+  # - name: azuredevops
+  #   enabled: false
+  #   description: "Azure DevOps flow registry"
+  #   type: azuredevops
+  #   azureDevOpsConfig:
+  #     organization: my-org
+  #     project: my-project
+  #     repositoryName: nifi-flows
+  #     authenticationStrategy: SERVICE_PRINCIPAL
+  #     # NiFi controller service ids
+  #     oauthTokenProviderId: 8a1b2c3d-0000-1000-8000-00aa00bb00cc
+  #     webClientServiceId: 9b2c3d4e-0000-1000-8000-00aa00bb00cc
+  #     defaultBranch: main
 
 # -- Parameter context configurations.
 # This is required if you wish to deploy versioned flows via the dataflow config. However, 

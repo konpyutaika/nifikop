@@ -161,6 +161,8 @@ func registryClientIsSync(registryClient *v2alpha1.NifiRegistryClient, secrets m
 		return registryClientIsSync_GitHub(registryClient.Spec.GitHubConfig, entity)
 	case v2alpha1.GitLabRegistryClientType:
 		return registryClientIsSync_GitLab(registryClient.Spec.GitLabConfig, entity)
+	case v2alpha1.AzureDevOpsRegistryClientType:
+		return registryClientIsSync_AzureDevOps(registryClient.Spec.AzureDevOpsConfig, entity)
 	}
 	return true
 }
@@ -204,6 +206,23 @@ func registryClientIsSync_GitLab(cfg *v2alpha1.GitLabConfig, entity *nigoapi.Flo
 		(cfg.ParameterContextValues == nil || string(*cfg.ParameterContextValues) == entity.Component.Properties["Parameter Context Values"])
 }
 
+func registryClientIsSync_AzureDevOps(cfg *v2alpha1.AzureDevOpsConfig, entity *nigoapi.FlowRegistryClientEntity) bool {
+	if cfg == nil {
+		return true
+	}
+	return (cfg.ApiUrl == nil || *cfg.ApiUrl == entity.Component.Properties["Azure DevOps API URL"]) &&
+		cfg.Organization == entity.Component.Properties["Organization"] &&
+		cfg.Project == entity.Component.Properties["Project"] &&
+		cfg.RepositoryName == entity.Component.Properties["Repository Name"] &&
+		(cfg.AuthenticationStrategy == nil || string(*cfg.AuthenticationStrategy) == entity.Component.Properties["Authentication Strategy"]) &&
+		(cfg.OAuthTokenProviderId == nil || *cfg.OAuthTokenProviderId == entity.Component.Properties["OAuth2 Access Token Provider"]) &&
+		cfg.WebClientServiceId == entity.Component.Properties["Web Client Service"] &&
+		(cfg.DefaultBranch == nil || *cfg.DefaultBranch == entity.Component.Properties["Default Branch"]) &&
+		(cfg.RepositoryPath == nil || *cfg.RepositoryPath == entity.Component.Properties["Repository Path"]) &&
+		(cfg.DirectoryFilterExclusion == nil || *cfg.DirectoryFilterExclusion == entity.Component.Properties["Directory Filter Exclusion"]) &&
+		(cfg.ParameterContextValues == nil || string(*cfg.ParameterContextValues) == entity.Component.Properties["Parameter Context Values"])
+}
+
 func updateRegistryClientEntity(registryClient *v2alpha1.NifiRegistryClient, secrets map[string]*corev1.Secret, entity *nigoapi.FlowRegistryClientEntity) {
 	var defaultVersion int64 = 0
 
@@ -234,6 +253,8 @@ func updateRegistryClientEntity(registryClient *v2alpha1.NifiRegistryClient, sec
 		updateEntity_GitHub(registryClient.Spec.GitHubConfig, secrets, entity)
 	case v2alpha1.GitLabRegistryClientType:
 		updateEntity_GitLab(registryClient.Spec.GitLabConfig, secrets, entity)
+	case v2alpha1.AzureDevOpsRegistryClientType:
+		updateEntity_AzureDevOps(registryClient.Spec.AzureDevOpsConfig, entity)
 	}
 }
 
@@ -303,6 +324,37 @@ func updateEntity_GitLab(cfg *v2alpha1.GitLabConfig, secrets map[string]*corev1.
 	if cfg.ReadTimeout != nil {
 		entity.Component.Properties["Read Timeout"] = *cfg.ReadTimeout
 	}
+	if cfg.DefaultBranch != nil {
+		entity.Component.Properties["Default Branch"] = *cfg.DefaultBranch
+	}
+	if cfg.RepositoryPath != nil {
+		entity.Component.Properties["Repository Path"] = *cfg.RepositoryPath
+	}
+	if cfg.DirectoryFilterExclusion != nil {
+		entity.Component.Properties["Directory Filter Exclusion"] = *cfg.DirectoryFilterExclusion
+	}
+	if cfg.ParameterContextValues != nil {
+		entity.Component.Properties["Parameter Context Values"] = string(*cfg.ParameterContextValues)
+	}
+}
+
+func updateEntity_AzureDevOps(cfg *v2alpha1.AzureDevOpsConfig, entity *nigoapi.FlowRegistryClientEntity) {
+	if cfg == nil {
+		return
+	}
+	if cfg.ApiUrl != nil {
+		entity.Component.Properties["Azure DevOps API URL"] = *cfg.ApiUrl
+	}
+	entity.Component.Properties["Organization"] = cfg.Organization
+	entity.Component.Properties["Project"] = cfg.Project
+	entity.Component.Properties["Repository Name"] = cfg.RepositoryName
+	if cfg.AuthenticationStrategy != nil {
+		entity.Component.Properties["Authentication Strategy"] = string(*cfg.AuthenticationStrategy)
+	}
+	if cfg.OAuthTokenProviderId != nil {
+		entity.Component.Properties["OAuth2 Access Token Provider"] = *cfg.OAuthTokenProviderId
+	}
+	entity.Component.Properties["Web Client Service"] = cfg.WebClientServiceId
 	if cfg.DefaultBranch != nil {
 		entity.Component.Properties["Default Branch"] = *cfg.DefaultBranch
 	}

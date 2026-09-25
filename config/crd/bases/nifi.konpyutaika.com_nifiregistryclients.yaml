@@ -114,6 +114,47 @@ spec:
             type: object
           spec:
             properties:
+              azureDevOpsConfig:
+                properties:
+                  apiUrl:
+                    type: string
+                  authenticationStrategy:
+                    enum:
+                    - SERVICE_PRINCIPAL
+                    type: string
+                  defaultBranch:
+                    type: string
+                  directoryFilterExclusion:
+                    type: string
+                  oauthTokenProviderId:
+                    type: string
+                  organization:
+                    type: string
+                  parameterContextValues:
+                    enum:
+                    - RETAIN
+                    - REMOVE
+                    - IGNORE_CHANGES
+                    type: string
+                  project:
+                    type: string
+                  repositoryName:
+                    type: string
+                  repositoryPath:
+                    type: string
+                  webClientServiceId:
+                    type: string
+                required:
+                - organization
+                - project
+                - repositoryName
+                - webClientServiceId
+                type: object
+                x-kubernetes-validations:
+                - message: oauthTokenProviderId is required when authenticationStrategy
+                    is SERVICE_PRINCIPAL or not set
+                  rule: (has(self.authenticationStrategy) && self.authenticationStrategy
+                    != 'SERVICE_PRINCIPAL') || has(self.oauthTokenProviderId)
               clusterRef:
                 properties:
                   name:
@@ -256,10 +297,12 @@ spec:
                   - registry
                   - github
                   - gitlab
+                  - azuredevops
                 - enum:
                   - registry
                   - github
                   - gitlab
+                  - azuredevops
                 default: registry
                 type: string
             type: object
@@ -270,6 +313,8 @@ spec:
               rule: self.type != 'github' || has(self.githubConfig)
             - message: gitlabConfig is required when type is 'gitlab'
               rule: self.type != 'gitlab' || has(self.gitlabConfig)
+            - message: azureDevOpsConfig is required when type is 'azuredevops'
+              rule: self.type != 'azuredevops' || has(self.azureDevOpsConfig)
           status:
             properties:
               id:
