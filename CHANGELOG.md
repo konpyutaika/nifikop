@@ -17,6 +17,7 @@
 - [PR #668](https://github.com/konpyutaika/nifikop/pull/668) - **[Helm Chart]** Add configurable operator webhook TLS support with backward-compatible cert-manager and existing-secret flows.
 - [PR #664](https://github.com/konpyutaika/nifikop/pull/664) - **[Helm Chart/OpenShift]** Add explicit OpenShift SCC support for the operator and NiFi workloads, including support for existing SCCs and corrected SCC RBAC handling.
 - [PR #725](https://github.com/konpyutaika/nifikop/pull/725) - **[Helm Chart]** Fix RBAC when `namespaces` is empty: the chart rendered no `Role`/`RoleBinding` at all while the operator watched the release namespace. The release namespace is now the default watched namespace. Grant `namespaces`/`nodes` read access and move `clusterissuers` to a `ClusterRole`, since a namespaced `Role` cannot grant cluster-scoped resources.
+- [PR #717](https://github.com/konpyutaika/nifikop/pull/717) - **[Operator/NifiUserGroup]** Add missing `/counters` access policy.
 
 ### Deprecated
 
