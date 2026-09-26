@@ -153,7 +153,6 @@ spec:
                       - /data
                       - /policies
                       - /data-transfer
-                      - /connectors
                       type: string
                     type:
                       enum:
