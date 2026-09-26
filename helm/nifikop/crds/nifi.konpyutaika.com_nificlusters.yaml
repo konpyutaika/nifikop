@@ -1765,6 +1765,8 @@ spec:
                         - ip
                         type: object
                       type: array
+                    hostUsers:
+                      type: boolean
                     image:
                       type: string
                     imagePullPolicy:
@@ -3321,6 +3323,8 @@ spec:
                             - ip
                             type: object
                           type: array
+                        hostUsers:
+                          type: boolean
                         image:
                           type: string
                         imagePullPolicy:

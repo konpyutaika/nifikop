@@ -1220,6 +1220,11 @@ func (in *NodeConfig) DeepCopyInto(out *NodeConfig) {
 		*out = new(int64)
 		**out = **in
 	}
+	if in.HostUsers != nil {
+		in, out := &in.HostUsers, &out.HostUsers
+		*out = new(bool)
+		**out = **in
+	}
 	if in.IsNode != nil {
 		in, out := &in.IsNode, &out.IsNode
 		*out = new(bool)
