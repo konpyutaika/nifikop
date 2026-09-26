@@ -1,180 +1,47 @@
 {{- if .Values.rbacEnable }}
-{{- range  $namespace := $.Values.namespaces }}
-{{- $_ := set $ "vals" $.Values }}
+{{- include "nifikop.rbac.validate" . }}
+{{- if .Values.createClusterScopedResources }}
+{{- /*
+Namespaced permissions are defined once as a ClusterRole and bound per watched
+namespace (RoleBinding) or cluster-wide (ClusterRoleBinding), see role_binding.yaml.
+*/}}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app: {{ template "nifikop.name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+    {{- include "userdefined.labels" . }}
+  annotations:
+    {{- include "userdefined.annotations" . }}
+  name: {{ template "nifikop.fullname" . }}-namespaced
+rules:
+{{ include "nifikop.rbac.namespacedRules" . }}
+{{- else }}
+{{- /*
+Without cluster-scoped resources, fall back to one Role per watched namespace.
+*/}}
+{{- $namespaces := include "nifikop.watchNamespaces" . | fromYamlArray }}
+{{- range $namespace := $namespaces }}
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   labels:
-    app: {{ template "nifikop.name" $_ }}
+    app: {{ template "nifikop.name" $ }}
     chart: {{ $.Chart.Name }}-{{ $.Chart.Version }}
     heritage: {{ $.Release.Service }}
     release: {{ $.Release.Name }}
-    {{- include "userdefined.labels" $_ }}
+    {{- include "userdefined.labels" $ }}
   annotations:
-    {{- include "userdefined.annotations" $_ }}
-  name: {{ template "nifikop.name" $_ }}
-  namespace: {{$namespace}}
+    {{- include "userdefined.annotations" $ }}
+  name: {{ template "nifikop.name" $ }}
+  namespace: {{ $namespace }}
 rules:
-- apiGroups:
-  - ""
-  resources:
-  - pods
-  - services
-  - services/finalizers
-  - endpoints
-  - persistentvolumeclaims
-  - events
-  - configmaps
-  - secrets
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - apps
-  resources:
-  - deployments
-  - daemonsets
-  - replicasets
-  - statefulsets
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - monitoring.coreos.com
-  resources:
-  - servicemonitors
-  verbs:
-  - get
-  - create
-- apiGroups:
-  - apps
-  resourceNames:
-  - nifikop
-  resources:
-  - deployments/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - ""
-  resources:
-  - pods
-  verbs:
-  - get
-- apiGroups:
-  - apps
-  resources:
-  - replicasets
-  - deployments
-  verbs:
-  - get
-- apiGroups:
-  - nifi.konpyutaika.com
-  resources:
-  - "nifiusers"
-  - "nifiusergroups"
-  - "nificlusters"
-  - "nifidataflows"
-  - "nifiregistryclients"
-  - "nifiparametercontexts"
-  - "nifinodegroupautoscalers"
-  - "nificonnections"
-  - "nifiresources"
-  - "nifiusers/finalizers"
-  - "nificlusters/finalizers"
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-  - deletecollection
-- apiGroups:
-  - autoscaling
-  resources:
-  - horizontalpodautoscalers
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - cert-manager.io
-  resources:
-  - issuers
-  {{-  if $.Values.certManager.clusterScoped }}
-  - clusterissuers
-  {{- end }}
-  - certificates
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - nifi.konpyutaika.com
-  resources:
-  - nifiusers/status
-  - nifiusergroups/status
-  - nificlusters/status
-  - nifidataflows/status
-  - nifiregistryclients/status
-  - nifiparametercontexts/status
-  - nifinodegroupautoscalers/status
-  - nificonnections/status
-  - nifiresources/status
-  verbs:
-  - get
-  - update
-  - patch
-- apiGroups:
-  - policy
-  resources:
-  - poddisruptionbudgets
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-    - coordination.k8s.io
-  resources:
-    - leases
-  verbs:
-    - get
-    - list
-    - watch
-    - create
-    - update
-    - patch
-    - delete
-- apiGroups:
-    - ""
-  resources:
-    - events
-  verbs:
-    - create
-    - patch
----
-{{- end}}
-{{- end}}
+{{ include "nifikop.rbac.namespacedRules" $ }}
+{{- end }}
+{{- end }}
+{{- end }}

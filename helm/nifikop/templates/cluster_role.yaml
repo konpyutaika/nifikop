@@ -1,0 +1,64 @@
+{{- if and .Values.rbacEnable .Values.createClusterScopedResources }}
+{{- /*
+Permissions on cluster-scoped resources (namespaces, nodes, optionally ClusterIssuers).
+These can only be granted through a ClusterRole, regardless of which namespaces are watched.
+*/}}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app: {{ template "nifikop.name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+    {{- include "userdefined.labels" . }}
+  annotations:
+    {{- include "userdefined.annotations" . }}
+  name: {{ template "nifikop.fullname" . }}-global
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - namespaces
+  - nodes
+  verbs:
+  - get
+  - list
+  - watch
+{{- if .Values.certManager.clusterScoped }}
+- apiGroups:
+  - cert-manager.io
+  resources:
+  - clusterissuers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+{{- end }}
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  labels:
+    app: {{ template "nifikop.name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+    {{- include "userdefined.labels" . }}
+  annotations:
+    {{- include "userdefined.annotations" . }}
+  name: {{ template "nifikop.fullname" . }}-global
+subjects:
+- kind: ServiceAccount
+  name: {{ template "nifikop.serviceAccountName" . }}
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: ClusterRole
+  name: {{ template "nifikop.fullname" . }}-global
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}

@@ -135,3 +135,204 @@ Return the appropriate apiVersion value to use for the capi-operator managed k8s
 {{- end -}}
 {{- end -}}
 {{- end -}}
+
+{{/*
+Name of the ServiceAccount the operator runs as.
+*/}}
+{{- define "nifikop.serviceAccountName" -}}
+{{- if and .Values.serviceAccount .Values.serviceAccount.name -}}
+{{- .Values.serviceAccount.name -}}
+{{- else -}}
+{{- template "nifikop.name" . -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Namespaces the operator watches when not cluster-wide, as a YAML list.
+Defaults to the release namespace. Consume with `| fromYamlArray`.
+*/}}
+{{- define "nifikop.watchNamespaces" -}}
+{{- if .Values.namespaces -}}
+{{- toYaml .Values.namespaces -}}
+{{- else -}}
+{{- list .Release.Namespace | toYaml -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Reject value combinations that cannot produce working RBAC.
+*/}}
+{{- define "nifikop.rbac.validate" -}}
+{{- if and .Values.watchAnyNamespace (not .Values.createClusterScopedResources) -}}
+{{- fail "watchAnyNamespace=true requires createClusterScopedResources=true (cluster-wide watch needs a ClusterRoleBinding)" -}}
+{{- end -}}
+{{- if and .Values.watchAnyNamespace .Values.namespaces -}}
+{{- fail "namespaces must be empty when watchAnyNamespace=true" -}}
+{{- end -}}
+{{- if and .Values.certManager.clusterScoped (not .Values.createClusterScopedResources) -}}
+{{- fail "certManager.clusterScoped=true requires createClusterScopedResources=true (ClusterIssuer access cannot be granted by a namespaced Role)" -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Permissions on namespaced resources, shared by the ClusterRole and per-namespace Role variants.
+*/}}
+{{- define "nifikop.rbac.namespacedRules" -}}
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - services
+  - services/finalizers
+  - endpoints
+  - persistentvolumeclaims
+  - events
+  - configmaps
+  - secrets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  - daemonsets
+  - replicasets
+  - statefulsets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - monitoring.coreos.com
+  resources:
+  - servicemonitors
+  verbs:
+  - get
+  - create
+- apiGroups:
+  - apps
+  resourceNames:
+  - nifikop
+  resources:
+  - deployments/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - get
+- apiGroups:
+  - apps
+  resources:
+  - replicasets
+  - deployments
+  verbs:
+  - get
+- apiGroups:
+  - nifi.konpyutaika.com
+  resources:
+  - "nifiusers"
+  - "nifiusergroups"
+  - "nificlusters"
+  - "nifidataflows"
+  - "nifiregistryclients"
+  - "nifiparametercontexts"
+  - "nifinodegroupautoscalers"
+  - "nificonnections"
+  - "nifiresources"
+  - "nifiusers/finalizers"
+  - "nificlusters/finalizers"
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+  - deletecollection
+- apiGroups:
+  - autoscaling
+  resources:
+  - horizontalpodautoscalers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - cert-manager.io
+  resources:
+  - issuers
+  - certificates
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - nifi.konpyutaika.com
+  resources:
+  - nifiusers/status
+  - nifiusergroups/status
+  - nificlusters/status
+  - nifidataflows/status
+  - nifiregistryclients/status
+  - nifiparametercontexts/status
+  - nifinodegroupautoscalers/status
+  - nificonnections/status
+  - nifiresources/status
+  verbs:
+  - get
+  - update
+  - patch
+- apiGroups:
+  - policy
+  resources:
+  - poddisruptionbudgets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+{{- end -}}
