@@ -10,8 +10,13 @@ image:
 vaultAddress: ""
 # vaultSecret containing a `ca.crt` key with the Vault CA Certificate
 vaultSecret: ""
-# set of namespaces where the operator watches resources
+## Namespaces where the operator watches for custom resources.
+## An empty list means the release namespace only. Ignored when watchAnyNamespace is true.
 namespaces: []
+
+## If true, watch every namespace in the cluster. WATCH_NAMESPACE is left unset and the
+## operator RBAC is bound cluster-wide. Requires createClusterScopedResources=true.
+watchAnyNamespace: false
 
 # Optional labels to add to all deployed resources
 labels: {}
@@ -65,6 +70,13 @@ createCustomResource: true
 ## If true, create & use RBAC resources
 ##
 rbacEnable: true
+
+## If true, create cluster-scoped RBAC (ClusterRole/ClusterRoleBinding). Namespaced permissions
+## are defined once as a ClusterRole and bound per watched namespace, and the operator gets
+## get/list/watch on namespaces and nodes (plus ClusterIssuers when certManager.clusterScoped).
+## Set to false to render only namespaced Roles/RoleBindings in the watched namespaces; this
+## is incompatible with watchAnyNamespace and certManager.clusterScoped.
+createClusterScopedResources: true
 
 ## If true, create serviceAccount
 ##

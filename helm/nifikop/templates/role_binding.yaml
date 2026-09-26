@@ -1,6 +1,36 @@
 {{- if .Values.rbacEnable }}
-{{- range  $namespace := $.Values.namespaces }}
-{{- $_ := set $ "vals" $.Values }}
+{{- if .Values.watchAnyNamespace }}
+{{- /*
+Cluster-wide: bind the namespaced ClusterRole to the operator across all namespaces.
+*/}}
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  labels:
+    app: {{ template "nifikop.name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+    {{- include "userdefined.labels" . }}
+  annotations:
+    {{- include "userdefined.annotations" . }}
+  name: {{ template "nifikop.fullname" . }}-namespaced
+subjects:
+- kind: ServiceAccount
+  name: {{ template "nifikop.serviceAccountName" . }}
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: ClusterRole
+  name: {{ template "nifikop.fullname" . }}-namespaced
+  apiGroup: rbac.authorization.k8s.io
+{{- else }}
+{{- /*
+Namespace list: one RoleBinding per watched namespace. It references the shared
+ClusterRole when cluster-scoped resources are allowed, otherwise the per-namespace Role.
+*/}}
+{{- $namespaces := include "nifikop.watchNamespaces" . | fromYamlArray }}
+{{- range $namespace := $namespaces }}
 ---
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
@@ -10,19 +40,24 @@ metadata:
     chart: {{ $.Chart.Name }}-{{ $.Chart.Version }}
     heritage: {{ $.Release.Service }}
     release: {{ $.Release.Name }}
-    {{- include "userdefined.labels" $_ }}
+    {{- include "userdefined.labels" $ }}
   annotations:
-    {{- include "userdefined.annotations" $_ }}
+    {{- include "userdefined.annotations" $ }}
   name: {{ template "nifikop.name" $ }}
   namespace: {{ $namespace }}
 subjects:
 - kind: ServiceAccount
-  name: {{ if and $.Values.serviceAccount $.Values.serviceAccount.name }}{{ $.Values.serviceAccount.name }}{{ else }}{{ template "nifikop.name" $ }}{{ end }}
+  name: {{ template "nifikop.serviceAccountName" $ }}
   namespace: {{ $.Release.Namespace }}
 roleRef:
+  {{- if $.Values.createClusterScopedResources }}
+  kind: ClusterRole
+  name: {{ template "nifikop.fullname" $ }}-namespaced
+  {{- else }}
   kind: Role
   name: {{ template "nifikop.name" $ }}
+  {{- end }}
   apiGroup: rbac.authorization.k8s.io
 {{- end }}
 {{- end }}
----
+{{- end }}
