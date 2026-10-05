@@ -6,6 +6,7 @@
 - [PR #723](https://github.com/konpyutaika/nifikop/pull/723) - **[Operator/NifiCluster]** Add `hostUsers` to `NodeConfig` so NiFi pods can run in a Linux user namespace (`hostUsers: false`), as required by OpenShift SCCs with `userNamespaceLevel: RequirePodLevel` (e.g. `restricted-v3`).
 - [PR #725](https://github.com/konpyutaika/nifikop/pull/725) - **[Helm Chart]** Add `watchAnyNamespace` to run the operator cluster-wide, and `createClusterScopedResources` to control cluster-scoped RBAC. Namespaced permissions are now a single `ClusterRole` bound per watched namespace or cluster-wide.
 - [PR #727](https://github.com/konpyutaika/nifikop/pull/727) - **[Operator/NifiCluster]** Add `podOverrides` to `NodeConfig`: a `PodTemplateSpec` strategic-merged onto the generated NiFi pod as a last-resort escape hatch for pod settings without a dedicated field.
+- [PR #XXX](https://github.com/konpyutaika/nifikop/pull/XXX) - **[Operator/NifiCluster]** Add an operator-managed PKI backend so that TLS-secured clusters work without cert-manager. The operator generates the cluster CA and issues and renews node and user certificates itself. It is selected with `-cert-manager-enabled=false` (Helm `certManager.enabled: false`), or detected at startup when the flag is not passed.
 
 ### Changed
 

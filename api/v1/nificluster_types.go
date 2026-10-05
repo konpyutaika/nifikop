@@ -996,6 +996,17 @@ func (c *NifiCluster) IsInternal() bool {
 	return c.GetType() == InternalCluster
 }
 
+// GetSSLSecrets returns the cluster's TLS configuration, or nil when there is none.
+// listenersConfig is optional, so reading sslSecrets through it directly panics on a
+// cluster that leaves it out - and on the deletion path that leaves the cluster stuck,
+// because every retry panics before its finalizer is removed.
+func (c *NifiCluster) GetSSLSecrets() *SSLSecrets {
+	if c.Spec.ListenersConfig == nil {
+		return nil
+	}
+	return c.Spec.ListenersConfig.SSLSecrets
+}
+
 func (c NifiCluster) IsExternal() bool {
 	return c.GetType() != InternalCluster
 }
