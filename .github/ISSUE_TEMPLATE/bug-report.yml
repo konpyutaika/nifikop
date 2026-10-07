@@ -45,7 +45,7 @@ body:
     attributes:
       label: NiFiKop version
       description: NiFiKop release or git SHA
-      placeholder: v1.17.0-release
+      placeholder: v1.18.0-release
     validations:
       required: true
 
@@ -72,7 +72,7 @@ body:
     attributes:
       label: NiFi version
       description: Insert release NiFi version here
-      placeholder: 1.17.0
+      placeholder: 1.18.0
 
   - type: textarea
     attributes:

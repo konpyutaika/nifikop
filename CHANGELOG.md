@@ -26,6 +26,30 @@
 
 ### Removed
 
+## v1.18.0
+
+### Added
+
+- [PR #692](https://github.com/konpyutaika/nifikop/pull/692) - **[Operator/NifiCluster]** Add printcolumns to NiFiCluster resource.
+- [PR #723](https://github.com/konpyutaika/nifikop/pull/723) - **[Operator/NifiCluster]** Add `hostUsers` to `NodeConfig` so NiFi pods can run in a Linux user namespace (`hostUsers: false`), as required by OpenShift SCCs with `userNamespaceLevel: RequirePodLevel` (e.g. `restricted-v3`).
+- [PR #725](https://github.com/konpyutaika/nifikop/pull/725) - **[Helm Chart]** Add `watchAnyNamespace` to run the operator cluster-wide, and `createClusterScopedResources` to control cluster-scoped RBAC. Namespaced permissions are now a single `ClusterRole` bound per watched namespace or cluster-wide.
+- [PR #727](https://github.com/konpyutaika/nifikop/pull/727) - **[Operator/NifiCluster]** Add `podOverrides` to `NodeConfig`: a `PodTemplateSpec` strategic-merged onto the generated NiFi pod as a last-resort escape hatch for pod settings without a dedicated field.
+- [PR #743](https://github.com/konpyutaika/nifikop/pull/743) - **[Operator/NifiCluster]** Add an operator-managed PKI backend so that TLS-secured clusters work without cert-manager. The operator generates the cluster CA and issues and renews node and user certificates itself. It is selected with `-cert-manager-enabled=false` (Helm `certManager.enabled: false`), or detected at startup when the flag is not passed.
+
+### Changed
+
+- [PR #681](https://github.com/konpyutaika/nifikop/pull/681) - **[Operator]** Upgrade golang to 1.26.3.
+- [PR #707](https://github.com/konpyutaika/nifikop/pull/707) - **[Operator]** Upgrade golang to 1.26.5.
+
+### Fixed Bugs
+
+- [PR #662](https://github.com/konpyutaika/nifikop/pull/662) - **[Helm Chart]** Fix Kubernetes manager mode by adding operator leader-election RBAC, propagating the manager `serviceAccountName` to explicit `nodeConfigGroups`, and publishing not-ready headless addresses only in Kubernetes mode.
+- [PR #680](https://github.com/konpyutaika/nifikop/pull/680) - **[Helm Chart]** Rollback part of change on NiFiCluster introduced by [PR #662](https://github.com/konpyutaika/nifikop/pull/662).
+- [PR #668](https://github.com/konpyutaika/nifikop/pull/668) - **[Helm Chart]** Add configurable operator webhook TLS support with backward-compatible cert-manager and existing-secret flows.
+- [PR #664](https://github.com/konpyutaika/nifikop/pull/664) - **[Helm Chart/OpenShift]** Add explicit OpenShift SCC support for the operator and NiFi workloads, including support for existing SCCs and corrected SCC RBAC handling.
+- [PR #725](https://github.com/konpyutaika/nifikop/pull/725) - **[Helm Chart]** Fix RBAC when `namespaces` is empty: the chart rendered no `Role`/`RoleBinding` at all while the operator watched the release namespace. The release namespace is now the default watched namespace. Grant `namespaces`/`nodes` read access and move `clusterissuers` to a `ClusterRole`, since a namespaced `Role` cannot grant cluster-scoped resources.
+- [PR #717](https://github.com/konpyutaika/nifikop/pull/717) - **[Operator/NifiUserGroup]** Add missing `/counters` access policy.
+
 ## v1.17.0
 
 ### Added
