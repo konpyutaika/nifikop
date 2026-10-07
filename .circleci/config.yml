@@ -223,6 +223,9 @@ orbs:
           - checkout:
               path: /home/circleci/nifikop
           - run:
+              name: install-make
+              command: apt-get update && apt-get install -y --no-install-recommends make
+          - run:
               name: publish-helm
               command: |
                 if [[ $(echo "$CIRCLE_BRANCH" | grep -c "pull") -gt 0 ]]; then
