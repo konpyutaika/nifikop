@@ -8,6 +8,7 @@ import (
 	"crypto/x509/pkix"
 	"encoding/pem"
 	"errors"
+	"fmt"
 	"math/big"
 	mathrand "math/rand"
 	"strings"
@@ -42,7 +43,11 @@ func DecodeKey(raw []byte) (parsedKey []byte, err error) {
 	} else {
 		keytype = certv1.PKCS1
 	}
-	rsaKey := key.(*rsa.PrivateKey)
+	rsaKey, ok := key.(*rsa.PrivateKey)
+	if !ok {
+		err = fmt.Errorf("unsupported private key type %T, expected RSA", key)
+		return
+	}
 	if keytype == certv1.PKCS1 {
 		parsedKey = x509.MarshalPKCS1PrivateKey(rsaKey)
 	} else {

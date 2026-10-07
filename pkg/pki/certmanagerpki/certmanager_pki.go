@@ -26,7 +26,7 @@ func (c *certManager) FinalizePKI(ctx context.Context, logger zap.Logger) error 
 		zap.String("clusterName", c.cluster.Name))
 
 	// Safety check that we are actually doing something
-	if c.cluster.Spec.ListenersConfig.SSLSecrets == nil {
+	if c.cluster.GetSSLSecrets() == nil {
 		return nil
 	}
 

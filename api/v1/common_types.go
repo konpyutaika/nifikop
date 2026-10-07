@@ -278,6 +278,14 @@ const (
 const (
 	// PKIBackendCertManager invokes cert-manager for user certificate management.
 	PKIBackendCertManager PKIBackend = "cert-manager"
+	// PKIBackendOperator has the operator issue user certificates itself, for clusters
+	// where cert-manager is not installed. It is deliberately left out of the PKIBackend
+	// enum above: widening the enum means shipping a new CRD, and Helm does not upgrade
+	// CRDs held in a chart's crds/ directory, so an existing install would reject the
+	// value. The backend is selected instead by starting the operator with
+	// -cert-manager-enabled=false, which makes it the default for clusters that do not
+	// name a backend.
+	PKIBackendOperator PKIBackend = "operator"
 	// TODO: Add vault
 	// PKIBackendVault invokes vault PKI for user certificate management
 	// PKIBackendVault PKIBackend = "vault".

@@ -254,7 +254,7 @@ func (r *NifiClusterReconciler) checkFinalizers(ctx context.Context,
 		return result, err
 	}
 
-	if cluster.IsInternal() && cluster.Spec.ListenersConfig.SSLSecrets != nil {
+	if cluster.IsInternal() && cluster.GetSSLSecrets() != nil {
 		// If we haven't deleted all nifiusers yet, iterate namespaces and delete all nifiusers
 		// with the matching label.
 		if util.StringSliceContains(cluster.GetFinalizers(), clusterUsersFinalizer) {

@@ -29,8 +29,11 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
 	certv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+	"k8s.io/client-go/discovery"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
@@ -47,6 +50,7 @@ import (
 	nifiv2alpha1 "github.com/konpyutaika/nifikop/api/v2alpha1"
 	"github.com/konpyutaika/nifikop/internal/controller"
 	"github.com/konpyutaika/nifikop/pkg/common"
+	"github.com/konpyutaika/nifikop/pkg/pki"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -90,6 +94,23 @@ func main() {
 	logger := common.CustomLogger()
 
 	ctrl.SetLogger(zapr.NewLogger(logger))
+
+	// Without cert-manager the operator signs certificates itself. Selecting the backend
+	// here rather than per cluster keeps it out of the CRD, so no CRD upgrade is needed
+	// to run on a cluster that has no cert-manager installed.
+	//
+	// The decision is made from the live cluster rather than at chart render time: an
+	// offline `helm template` cannot see the API versions a cluster serves, so letting a
+	// chart decide would quietly switch a working cert-manager install onto the other
+	// backend. An explicit -cert-manager-enabled always wins.
+	if !isFlagSet("cert-manager-enabled") {
+		certManagerEnabled = certManagerInstalled(logger)
+	}
+
+	if !certManagerEnabled {
+		pki.SetDefaultBackend(v1.PKIBackendOperator)
+		logger.Info("cert-manager integration disabled, using the operator-managed PKI backend")
+	}
 
 	watchNamespace, err := getWatchNamespace()
 	if err != nil {
@@ -368,4 +389,49 @@ func getWatchNamespace() (string, error) {
 		return "", fmt.Errorf("%s must be set", watchNamespaceEnvVar)
 	}
 	return ns, nil
+}
+
+// isFlagSet reports whether a flag was given on the command line, as opposed to holding
+// its default.
+func isFlagSet(name string) bool {
+	found := false
+	flag.Visit(func(f *flag.Flag) {
+		if f.Name == name {
+			found = true
+		}
+	})
+	return found
+}
+
+// certManagerInstalled asks the API server whether it serves cert-manager certificates.
+// Discovery is available to any authenticated client, so this needs no extra RBAC. A
+// cluster that gains or loses cert-manager afterwards needs the operator restarted.
+func certManagerInstalled(logger *zap.Logger) bool {
+	discoveryClient, err := discovery.NewDiscoveryClientForConfig(ctrl.GetConfigOrDie())
+	if err != nil {
+		logger.Error("could not build a discovery client, assuming cert-manager is present", zap.Error(err))
+		return true
+	}
+
+	resources, err := discoveryClient.ServerResourcesForGroupVersion(certv1.SchemeGroupVersion.String())
+	if err != nil {
+		if apierrors.IsNotFound(err) || meta.IsNoMatchError(err) {
+			logger.Info("cert-manager is not installed on this cluster")
+			return false
+		}
+		// Anything else is a failure to ask, not an answer. Assume the safer of the two,
+		// which is to leave an existing cert-manager install alone.
+		logger.Error("could not determine whether cert-manager is installed, assuming it is", zap.Error(err))
+		return true
+	}
+
+	for _, resource := range resources.APIResources {
+		if resource.Kind == certv1.CertificateKind {
+			logger.Info("cert-manager detected on this cluster")
+			return true
+		}
+	}
+
+	logger.Info("cert-manager is not installed on this cluster")
+	return false
 }

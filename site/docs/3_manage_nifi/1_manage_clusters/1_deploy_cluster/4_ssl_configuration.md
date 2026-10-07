@@ -48,6 +48,37 @@ If `listenersConfig.sslSecrets.create` is set to `false` (with the default `cert
 
 The operator uses this CA material to issue node and controller certificates via cert-manager.
 
+## Without cert-manager: operator-managed PKI
+
+By default the operator issues node and user certificates through cert-manager. On clusters without cert-manager, it can issue them itself instead.
+
+The backend is chosen once, when the operator starts:
+
+- `-cert-manager-enabled=true` (Helm `certManager.enabled: true`, the default): certificates are issued by cert-manager, as before.
+- `-cert-manager-enabled=false` (Helm `certManager.enabled: false`): the operator issues certificates itself.
+- Flag not passed: the operator asks the API server whether it serves cert-manager `Certificate`s and picks the matching backend. If that check fails, the operator assumes cert-manager is installed and logs an error.
+
+Restart the operator if cert-manager is installed or removed afterwards. Moving an existing cluster from one backend to the other is not supported, because the other backend issues new certificates from a different CA. A `NifiCluster` that sets `listenersConfig.sslSecrets.pkiBackend: cert-manager` always uses cert-manager, whatever the operator was started with.
+
+:::warning
+Earlier versions issued certificates through cert-manager even when the operator ran with `-cert-manager-enabled=false`; the flag only turned off watching cert-manager `Certificate`s. If you run the operator that way on a cluster that has cert-manager, set `listenersConfig.sslSecrets.pkiBackend: cert-manager` on your clusters, or start the operator with `-cert-manager-enabled=true`, before upgrading. Otherwise their certificates are reissued from a new CA.
+:::
+
+With the operator-managed PKI:
+
+- The CA is kept in the `<cluster name>-ca-certificate` secret (`ca.crt`, `tls.crt`, `tls.key`), owned by the `NifiCluster`. It is an RSA 4096 CA valid for 10 years.
+- Each `NifiUser`, including the controller and node users, gets a secret with the same keys the cert-manager backend produces (`tls.crt`, `tls.key`, `ca.crt`, `keystore.jks`, `truststore.jks`, `password`), owned by that `NifiUser`. Pods mount them exactly as before.
+- Certificates are valid for one year and are reissued two thirds of the way through their lifetime. The keystore password is kept across reissues.
+- With `sslSecrets.create: false`, the secret named by `sslSecrets.tlsSecretName` supplies `caCert` and `caKey`, as described above. The operator copies the CA into `<cluster name>-ca-certificate` and never writes to your secret. The copy is deleted with the cluster; your secret is not. Your secret must not itself be named `<cluster name>-ca-certificate`. RSA and ECDSA keys are accepted, and `caCert` may include intermediate certificates. If your secret is deleted, the operator stops issuing certificates.
+- `sslSecrets.issuerRef` names a cert-manager issuer, so it is rejected.
+- When the cluster is deleted, the operator removes only the secrets it created.
+
+:::tip
+Set [`readOnlyConfig.nifiProperties.tlsAutoReload.enabled: true`](../../../5_references/1_nifi_cluster/2_read_only_config.md) so that NiFi picks up reissued certificates without a restart. Otherwise a reissued certificate is only used once the pod restarts, which has to happen before the previous certificate expires.
+:::
+
+The operator's own webhook also needs a serving certificate. Without cert-manager, provide one with `webhook.tls.mode: existingSecret` or disable the webhook with `webhook.enabled: false`.
+
 ## Using an existing Issuer
 
 As described in the [Reference section](../../../5_references/1_nifi_cluster/6_listeners_config.md#sslsecrets), instead of using a self-signed certificate as CA, you can use an existing one.
