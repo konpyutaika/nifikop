@@ -735,11 +735,14 @@ func (r *Reconciler) reconcileNifiPVC(nodeId int32, log zap.Logger, desiredPVC *
 				return errors.WrapIf(err, "could not apply last state to annotation")
 			}
 
-			if isDesiredStorageValueInvalid(desiredPVC, currentPVC) {
-				return errorfactory.New(errorfactory.InternalError{}, errors.New("could not modify pvc size"),
-					"one can not reduce the size of a PVC", "kind", desiredType)
-			}
 			resReq := desiredPVC.Spec.Resources.Requests
+			if isDesiredStorageValueInvalid(desiredPVC, currentPVC) {
+				log.Warn("PVC storage request in spec is smaller than the existing PVC; keeping current size and continuing reconcile",
+					zap.String("clusterName", r.NifiCluster.Name),
+					zap.String("pvcName", currentPVC.Name),
+					zap.String("pvcNamespace", currentPVC.Namespace))
+				resReq = currentPVC.Spec.Resources.Requests
+			}
 			labels := desiredPVC.Labels
 			annotations := desiredPVC.Annotations
 			desiredPVC = currentPVC.DeepCopy()
