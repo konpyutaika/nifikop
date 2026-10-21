@@ -102,6 +102,11 @@ func (r ClusterState) IsReady() bool {
 	return r == NifiClusterRunning || r == NifiClusterReconciling
 }
 
+// IsHibernation returns true when the cluster is hibernating or hibernated.
+func (r ClusterState) IsHibernation() bool {
+	return r == NifiClusterHibernating || r == NifiClusterHibernated
+}
+
 // NifiAccessType hold info about Nifi ACL.
 type NifiAccessType string
 
@@ -424,6 +429,10 @@ const (
 	NifiClusterRunning ClusterState = "ClusterRunning"
 	// NifiClusterNoNodes states that the cluster has no nodes.
 	NifiClusterNoNodes ClusterState = "NifiClusterNoNodes"
+	// NifiClusterHibernating states that the cluster pods are being stopped for hibernation.
+	NifiClusterHibernating ClusterState = "ClusterHibernating"
+	// NifiClusterHibernated states that every cluster pod is stopped.
+	NifiClusterHibernated ClusterState = "ClusterHibernated"
 
 	// ConfigInSync states that the generated nodeConfig is in sync with the Node.
 	ConfigInSync ConfigurationState = "ConfigInSync"

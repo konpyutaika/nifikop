@@ -81,6 +81,11 @@ func (r *NifiClusterTaskReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 	}
 	current := instance.DeepCopy()
 
+	// No task can run against the NiFi API while the cluster is hibernated. Tasks resume after wake-up.
+	if instance.Spec.Hibernate {
+		return RequeueAfter(intervalNotReady)
+	}
+
 	var nodesWithRunningNCTask []string
 
 	for nodeId, nodeStatus := range instance.Status.NodesState {

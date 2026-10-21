@@ -114,6 +114,14 @@ func (r *NifiNodeGroupAutoscalerReconciler) Reconcile(ctx context.Context, req c
 		return RequeueWithError(r.Log, fmt.Sprintf("failed to look up cluster reference %v+", clusterRef), err)
 	}
 
+	// Do not change the cluster nodes while it is hibernated. Scaling resumes after wake-up.
+	if cluster.Spec.Hibernate {
+		r.Log.Debug("Cluster is hibernated, skipping autoscaling",
+			zap.String("clusterName", cluster.Name),
+			zap.String("nodeGroup", nodeGroupAutoscaler.Spec.NodeConfigGroupId))
+		return RequeueAfter(util.GetRequeueInterval(r.RequeueInterval, r.RequeueOffset))
+	}
+
 	// Determine how many replicas there currently are and how many are desired for the appropriate node group
 	numDesiredReplicas := nodeGroupAutoscaler.Spec.Replicas
 	currentReplicas, err := r.getManagedNodes(nodeGroupAutoscaler, cluster.Spec.Nodes)

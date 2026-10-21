@@ -27,6 +27,7 @@ A Helm chart for deploying NiFi clusters in Kubernetes
 | cluster.disruptionBudget | object | `{}` | see https://konpyutaika.github.io/nifikop/docs/5_references/1_nifi_cluster#disruptionbudget |
 | cluster.externalServices | list | `[{"metadata":{"annotations":{},"labels":{}},"name":"nifi-cluster-ip","spec":{"portConfigs":[{"internalListenerName":"http","port":8080}],"type":"ClusterIP"}}]` | Additional k8s services to create and target internal listener ports. Ingress will use these to route traffic to the cluster |
 | cluster.fullnameOverride | string | `""` |  |
+| cluster.hibernate | bool | `false` | stop every NiFi pod while keeping PVCs, node configuration and node status. Set back to false to restart the nodes.    See https://konpyutaika.github.io/nifikop/docs/3_manage_nifi/1_manage_clusters/4_cluster_hibernation |
 | cluster.image.repository | string | `"apache/nifi"` |  |
 | cluster.image.tag | string | `""` | Only set this if you want to override the chart AppVersion |
 | cluster.initContainerImage.repository | string | `"bash"` |  |

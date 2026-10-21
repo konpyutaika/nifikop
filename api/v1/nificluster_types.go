@@ -72,6 +72,11 @@ type NifiClusterSpec struct {
 	OneNifiNodePerNode bool `json:"oneNifiNodePerNode,omitempty"`
 	// propage
 	PropagateLabels bool `json:"propagateLabels,omitempty"`
+	// hibernate, when true, stops every NiFi pod of the cluster. PVCs, per-node configuration and node
+	// status are kept whatever the storage reclaimPolicy. Set it back to false to restart the nodes on
+	// their existing volumes.
+	// +optional
+	Hibernate bool `json:"hibernate,omitempty"`
 	// managedAdminUsers contains the list of users that will be added to the managed admin group (with all rights)
 	ManagedAdminUsers []ManagedUser `json:"managedAdminUsers,omitempty"`
 	// managedReaderUsers contains the list of users that will be added to the managed reader group (with all view rights)

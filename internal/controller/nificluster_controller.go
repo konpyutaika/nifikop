@@ -107,6 +107,16 @@ func (r *NifiClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return RequeueAfter(time.Duration(15) * time.Second)
 	}
 
+	if instance.Spec.Hibernate {
+		return r.reconcileHibernation(ctx, instance, current, patchInstance)
+	}
+
+	if instance.Status.State.IsHibernation() {
+		if err := r.wakeUpFromHibernation(instance, current); err != nil {
+			return RequeueWithError(r.Log, err.Error(), err)
+		}
+	}
+
 	if len(instance.Spec.Nodes) == 0 && len(instance.Status.NodesState) == 0 {
 		intervalNoNode := util.GetRequeueInterval(r.RequeueIntervals["CLUSTER_TASK_NO_NODE_INTERVAL"], r.RequeueOffset)
 		r.Recorder.Event(instance, corev1.EventTypeNormal, string(v1.NifiClusterNoNodes),
