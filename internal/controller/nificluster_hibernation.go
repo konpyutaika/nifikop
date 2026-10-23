@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"fmt"
 	"sort"
 
 	"go.uber.org/zap"
@@ -17,10 +18,34 @@ import (
 )
 
 const (
-	eventNifiClusterHibernating = "NifiClusterHibernating"
-	eventNifiClusterHibernated  = "NifiClusterHibernated"
-	eventNifiClusterWakingUp    = "NifiClusterWakingUp"
+	eventNifiClusterHibernationPending = "NifiClusterHibernationPending"
+	eventNifiClusterHibernating        = "NifiClusterHibernating"
+	eventNifiClusterHibernated         = "NifiClusterHibernated"
+	eventNifiClusterWakingUp           = "NifiClusterWakingUp"
 )
+
+// nodesBlockingHibernation returns the nodes whose upscale or downscale is still in progress. Hibernation
+// must not start while there are some: removed nodes are only cleaned up through their running pods, so
+// stopping those pods would leave the downscale stuck and the cluster never ready again.
+// Once hibernation has started, it goes on whatever the node status.
+func nodesBlockingHibernation(cluster *v1.NifiCluster) []string {
+	if cluster.Status.State.IsHibernation() {
+		return nil
+	}
+	inSpec := make(map[string]bool, len(cluster.Spec.Nodes))
+	for _, node := range cluster.Spec.Nodes {
+		inSpec[fmt.Sprint(node.Id)] = true
+	}
+	blocking := make([]string, 0)
+	for nodeId, nodeState := range cluster.Status.NodesState {
+		state := nodeState.GracefulActionState.State
+		if !inSpec[nodeId] || state.IsRunningState() || state.IsRequiredState() {
+			blocking = append(blocking, nodeId)
+		}
+	}
+	sort.Strings(blocking)
+	return blocking
+}
 
 // reconcileHibernation stops every NiFi pod of the cluster. Unlike removing nodes from spec.nodes, it never
 // deletes PVCs, node config secrets or node services, and it keeps the node status so that the nodes restart
@@ -96,9 +121,15 @@ func (r *NifiClusterReconciler) reconcileHibernation(ctx context.Context, instan
 
 // wakeUpFromHibernation moves a hibernated cluster back to the initialized state. The usual reconcile then
 // recreates the pods, which reattach to their PVCs, and sets the cluster to running once the nodes are ready.
-func (r *NifiClusterReconciler) wakeUpFromHibernation(instance *v1.NifiCluster, current *v1.NifiCluster) error {
+// A cluster created with hibernate: true has no node status yet: it goes to the initializing state instead,
+// so the reconcile marks its nodes as init cluster nodes before creating them.
+func (r *NifiClusterReconciler) wakeUpFromHibernation(instance, current *v1.NifiCluster) error {
 	r.Log.Info("NifiCluster waking up from hibernation", zap.String("clusterName", instance.Name))
 	r.Recorder.Event(instance, corev1.EventTypeNormal, eventNifiClusterWakingUp,
 		"NifiCluster is waking up from hibernation")
-	return k8sutil.UpdateCRStatus(r.Client, instance, current.Status, v1.NifiClusterInitialized, r.Log)
+	state := v1.NifiClusterInitialized
+	if len(instance.Status.NodesState) == 0 {
+		state = v1.NifiClusterInitializing
+	}
+	return k8sutil.UpdateCRStatus(r.Client, instance, current.Status, state, r.Log)
 }

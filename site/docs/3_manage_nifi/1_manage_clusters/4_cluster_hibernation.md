@@ -28,6 +28,9 @@ The cluster state moves to `ClusterHibernating` while pods are stopping, then to
 kubectl get nificluster simplenifi -o jsonpath='{.status.state}'
 ```
 
+If a node upscale or downscale is in progress, hibernation waits for it to finish before stopping any pod. The
+cluster keeps running meanwhile, and the operator records a `NifiClusterHibernationPending` event.
+
 Each pod gets `terminationGracePeriodSeconds` (default `120`) to shut down. Its `preStop` hook runs
 `nifi.sh stop`, which waits up to `graceful.shutdown.seconds` (default `20`) for NiFi to stop. Keep
 `terminationGracePeriodSeconds` higher than `graceful.shutdown.seconds`.

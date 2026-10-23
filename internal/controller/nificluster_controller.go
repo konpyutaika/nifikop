@@ -108,7 +108,16 @@ func (r *NifiClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	}
 
 	if instance.Spec.Hibernate {
-		return r.reconcileHibernation(ctx, instance, current, patchInstance)
+		blocking := nodesBlockingHibernation(instance)
+		if len(blocking) == 0 {
+			return r.reconcileHibernation(ctx, instance, current, patchInstance)
+		}
+		// Let the usual reconcile finish the node changes first, then hibernate.
+		r.Log.Info("NifiCluster hibernation waits for node changes to finish",
+			zap.String("clusterName", instance.Name),
+			zap.Strings("nodeIds", blocking))
+		r.Recorder.Event(instance, corev1.EventTypeNormal, eventNifiClusterHibernationPending,
+			"NifiCluster hibernation waits for the upscale or downscale of nodes "+strings.Join(blocking, ",")+" to finish")
 	}
 
 	if instance.Status.State.IsHibernation() {
@@ -409,7 +418,7 @@ func (r *NifiClusterReconciler) updateAndFetchLatest(ctx context.Context,
 func (r *NifiClusterReconciler) ensureFinalizers(ctx context.Context,
 	cluster *v1.NifiCluster, patcher client.Patch) (updated *v1.NifiCluster, err error) {
 	finalizers := []string{clusterFinalizer}
-	if cluster.IsInternal() && cluster.Spec.ListenersConfig.SSLSecrets != nil {
+	if cluster.IsInternal() && cluster.GetSSLSecrets() != nil {
 		finalizers = append(finalizers, clusterUsersFinalizer)
 	}
 	for _, finalizer := range finalizers {

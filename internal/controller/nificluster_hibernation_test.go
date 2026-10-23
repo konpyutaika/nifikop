@@ -41,7 +41,8 @@ func hibernationTestObjects() []client.Object {
 		},
 	}
 
-	objs := []client.Object{cluster}
+	objs := make([]client.Object, 0, 9)
+	objs = append(objs, cluster)
 	for _, id := range []string{"0", "1"} {
 		labels := nifiutil.LabelsForNifi(hibernationTestCluster)
 		labels["nodeId"] = id
@@ -63,6 +64,15 @@ func hibernationTestObjects() []client.Object {
 		)
 	}
 	return objs
+}
+
+// hibernationTestListeners returns the listeners the usual reconcile needs to build the node pods.
+func hibernationTestListeners() *v1.ListenersConfig {
+	return &v1.ListenersConfig{InternalListeners: []v1.InternalListenerConfig{
+		{Type: "http", Name: "http", ContainerPort: 8080},
+		{Type: "cluster", Name: "cluster", ContainerPort: 6007},
+		{Type: "s2s", Name: "s2s", ContainerPort: 10000},
+	}}
 }
 
 func newHibernationTestReconciler(t *testing.T, objs ...client.Object) *NifiClusterReconciler {
@@ -190,7 +200,10 @@ func TestWakeUpFromHibernation(t *testing.T) {
 	for _, state := range []v1.ClusterState{v1.NifiClusterHibernating, v1.NifiClusterHibernated} {
 		cluster := &v1.NifiCluster{
 			ObjectMeta: metav1.ObjectMeta{Name: hibernationTestCluster, Namespace: hibernationTestNamespace},
-			Status:     v1.NifiClusterStatus{State: state},
+			Status: v1.NifiClusterStatus{
+				State:      state,
+				NodesState: map[string]v1.NodeState{"0": {InitClusterNode: v1.IsInitClusterNode}},
+			},
 		}
 		r := newHibernationTestReconciler(t, cluster)
 		current := cluster.DeepCopy()
@@ -208,5 +221,121 @@ func TestWakeUpFromHibernation(t *testing.T) {
 		if got.Status.State.IsReady() {
 			t.Errorf("from %s: expected woken cluster not ready until nodes are up", state)
 		}
+	}
+}
+
+func TestWakeUpClusterCreatedHibernated(t *testing.T) {
+	cluster := &v1.NifiCluster{
+		ObjectMeta: metav1.ObjectMeta{Name: hibernationTestCluster, Namespace: hibernationTestNamespace},
+		Spec: v1.NifiClusterSpec{
+			Hibernate:       true,
+			ListenersConfig: hibernationTestListeners(),
+			Nodes:           []v1.Node{{Id: 0, NodeConfig: &v1.NodeConfig{}}, {Id: 1, NodeConfig: &v1.NodeConfig{}}},
+		},
+	}
+	r := newHibernationTestReconciler(t, cluster)
+
+	got := reconcileHibernationTestCluster(t, r)
+	if got.Status.State != v1.NifiClusterHibernated {
+		t.Fatalf("expected state %s, got %s", v1.NifiClusterHibernated, got.Status.State)
+	}
+
+	got.Spec.Hibernate = false
+	if err := r.Client.Update(context.TODO(), got); err != nil {
+		t.Fatal(err)
+	}
+
+	// The rest of the reconcile needs a real cluster: only the initialization step is checked here.
+	key := client.ObjectKeyFromObject(cluster)
+	_, _ = r.Reconcile(context.TODO(), reconcile.Request{NamespacedName: key})
+	if err := r.Client.Get(context.TODO(), key, got); err != nil {
+		t.Fatal(err)
+	}
+
+	if got.Status.State == v1.NifiClusterHibernated || got.Status.State == v1.NifiClusterInitializing {
+		t.Errorf("expected cluster initialized after first wake-up, got state %s", got.Status.State)
+	}
+	for _, id := range []string{"0", "1"} {
+		if !got.Status.NodesState[id].InitClusterNode {
+			t.Errorf("expected node %s marked as init cluster node", id)
+		}
+	}
+}
+
+func TestNodesBlockingHibernation(t *testing.T) {
+	done := v1.NodeState{GracefulActionState: v1.GracefulActionState{State: v1.GracefulUpscaleSucceeded}}
+	tests := []struct {
+		name     string
+		state    v1.ClusterState
+		nodes    map[string]v1.NodeState
+		expected []string
+	}{
+		{name: "no node change", state: v1.NifiClusterRunning, nodes: map[string]v1.NodeState{"0": done, "1": done}, expected: []string{}},
+		{name: "no node status", state: "", nodes: nil, expected: []string{}},
+		{name: "downscale offloaded", state: v1.NifiClusterRunning, nodes: map[string]v1.NodeState{"0": done, "1": done,
+			"2": {GracefulActionState: v1.GracefulActionState{State: v1.GracefulDownscaleRunning, ActionStep: v1.OffloadStatus}}},
+			expected: []string{"2"}},
+		{name: "removed node not yet downscaling", state: v1.NifiClusterRunning, nodes: map[string]v1.NodeState{"0": done, "1": done, "2": done},
+			expected: []string{"2"}},
+		{name: "upscale required", state: v1.NifiClusterRunning, nodes: map[string]v1.NodeState{"0": done,
+			"1": {GracefulActionState: v1.GracefulActionState{State: v1.GracefulUpscaleRequired}}},
+			expected: []string{"1"}},
+		{name: "hibernation already started", state: v1.NifiClusterHibernating, nodes: map[string]v1.NodeState{"0": done, "1": done,
+			"2": {GracefulActionState: v1.GracefulActionState{State: v1.GracefulDownscaleRunning}}},
+			expected: nil},
+	}
+	for _, tt := range tests {
+		cluster := &v1.NifiCluster{
+			Spec:   v1.NifiClusterSpec{Hibernate: true, Nodes: []v1.Node{{Id: 0}, {Id: 1}}},
+			Status: v1.NifiClusterStatus{State: tt.state, NodesState: tt.nodes},
+		}
+		got := nodesBlockingHibernation(cluster)
+		if len(got) != len(tt.expected) {
+			t.Errorf("%s: expected %v, got %v", tt.name, tt.expected, got)
+			continue
+		}
+		for i := range got {
+			if got[i] != tt.expected[i] {
+				t.Errorf("%s: expected %v, got %v", tt.name, tt.expected, got)
+			}
+		}
+	}
+}
+
+func TestHibernationWaitsForDownscale(t *testing.T) {
+	objs := hibernationTestObjects()
+	cluster := objs[0].(*v1.NifiCluster)
+	// Node 1 was removed from spec.nodes and its downscale is offloading.
+	cluster.Spec.Nodes = []v1.Node{{Id: 0, NodeConfig: &v1.NodeConfig{}}}
+	cluster.Spec.ListenersConfig = hibernationTestListeners()
+	cluster.Status.NodesState["1"] = v1.NodeState{PodIsReady: true, ConfigurationState: v1.ConfigInSync,
+		GracefulActionState: v1.GracefulActionState{State: v1.GracefulDownscaleRunning, ActionStep: v1.OffloadStatus}}
+	r := newHibernationTestReconciler(t, objs...)
+
+	// The usual reconcile runs instead of hibernation; it needs a real cluster, so only hibernation is checked.
+	key := client.ObjectKeyFromObject(cluster)
+	_, _ = r.Reconcile(context.TODO(), reconcile.Request{NamespacedName: key})
+	got := &v1.NifiCluster{}
+	if err := r.Client.Get(context.TODO(), key, got); err != nil {
+		t.Fatal(err)
+	}
+	if got.Status.State.IsHibernation() {
+		t.Errorf("expected hibernation to wait for the downscale, got state %s", got.Status.State)
+	}
+	if !got.Status.NodesState["0"].PodIsReady {
+		t.Error("expected node 0 not stopped while the downscale runs")
+	}
+}
+
+func TestHibernationWithoutListenersConfig(t *testing.T) {
+	cluster := &v1.NifiCluster{
+		ObjectMeta: metav1.ObjectMeta{Name: hibernationTestCluster, Namespace: hibernationTestNamespace},
+		Spec:       v1.NifiClusterSpec{Hibernate: true},
+	}
+	r := newHibernationTestReconciler(t, cluster)
+
+	got := reconcileHibernationTestCluster(t, r)
+	if got.Status.State != v1.NifiClusterHibernated {
+		t.Errorf("expected state %s, got %s", v1.NifiClusterHibernated, got.Status.State)
 	}
 }
