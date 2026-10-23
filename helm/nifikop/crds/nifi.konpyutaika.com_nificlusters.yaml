@@ -134,6 +134,8 @@ spec:
                   - spec
                   type: object
                 type: array
+              hibernate:
+                type: boolean
               initContainerImage:
                 type: string
               initContainers:

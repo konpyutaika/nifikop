@@ -74,7 +74,8 @@
                 }
               ]
             },
-            "3_manage_nifi/1_manage_clusters/3_external_cluster"
+            "3_manage_nifi/1_manage_clusters/3_external_cluster",
+            "3_manage_nifi/1_manage_clusters/4_cluster_hibernation"
           ]
         },
         {

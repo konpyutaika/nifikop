@@ -29,6 +29,9 @@ cluster:
   zkPath: "/cluster"
   # -- whether or not to only deploy one nifi pod per node in this cluster
   oneNifiNodePerNode: false
+  # -- stop every NiFi pod while keeping PVCs, node configuration and node status. Set back to false to restart the nodes.
+  #    See https://konpyutaika.github.io/nifikop/docs/3_manage_nifi/1_manage_clusters/4_cluster_hibernation
+  hibernate: false
 
   # -- OpenShift SCC support for NiFi workloads.
   openshift:
