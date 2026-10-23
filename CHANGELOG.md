@@ -2,7 +2,7 @@
 
 ### Added
 
-- [PR #XXX](https://github.com/konpyutaika/nifikop/pull/XXX) - **[Operator/NifiCluster]** Add `hibernate` to `NifiClusterSpec` to stop every NiFi pod without deleting PVCs, node configuration or node status, whatever the storage `reclaimPolicy`. Closes [#751](https://github.com/konpyutaika/nifikop/issues/751).
+- [PR #756](https://github.com/konpyutaika/nifikop/pull/756) - **[Operator/NifiCluster]** Add `hibernate` to `NifiClusterSpec` to stop every NiFi pod without deleting PVCs, node configuration or node status, whatever the storage `reclaimPolicy`. Closes [#751](https://github.com/konpyutaika/nifikop/issues/751).
 
 ### Changed
 
