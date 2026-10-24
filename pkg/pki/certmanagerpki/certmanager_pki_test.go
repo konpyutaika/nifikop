@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"testing"
 
+	certv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 
@@ -113,5 +114,26 @@ func TestReconcilePKI(t *testing.T) {
 	manager.client.Create(ctx, newPreCreatedSecret())
 	if err := manager.ReconcilePKI(ctx, *log, scheme.Scheme, []string{}); err != nil {
 		t.Error("Expected successful reconcile, got:", err)
+	}
+}
+
+func TestCACertificateLifetime(t *testing.T) {
+	cluster := newMockCluster()
+	newMock(cluster)
+
+	for name, cert := range map[string]*certv1.Certificate{
+		"cluster scoped":   caCertForCluster(cluster, scheme.Scheme),
+		"namespace scoped": caCertForNamespace(cluster, scheme.Scheme),
+	} {
+		if !cert.Spec.IsCA {
+			t.Errorf("%s: expected a CA certificate", name)
+		}
+		// cert-manager defaults a CA to 90 days, so it would be renewed every ~60 days.
+		if cert.Spec.Duration == nil || cert.Spec.Duration.Duration != caCertDuration {
+			t.Errorf("%s: expected duration %s, got %v", name, caCertDuration, cert.Spec.Duration)
+		}
+		if cert.Spec.RenewBefore == nil || cert.Spec.RenewBefore.Duration != caCertRenewBefore {
+			t.Errorf("%s: expected renewBefore %s, got %v", name, caCertRenewBefore, cert.Spec.RenewBefore)
+		}
 	}
 }
