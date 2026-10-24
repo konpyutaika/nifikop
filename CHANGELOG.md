@@ -6,6 +6,8 @@
 
 ### Fixed Bugs
 
+- [PR #XXX](https://github.com/konpyutaika/nifikop/pull/XXX) - **[Operator/PKI]** Give the cert-manager CA certificate a 10 year duration, renewed 30 days before expiry, instead of the cert-manager default of 90 days, so node and user certificates keep chaining to it.
+
 ### Deprecated
 
 ### Removed

@@ -3,6 +3,7 @@ package certmanagerpki
 import (
 	"context"
 	"fmt"
+	"time"
 
 	certv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	certmeta "github.com/cert-manager/cert-manager/pkg/apis/meta/v1"
@@ -229,6 +230,17 @@ func selfSignerForCluster(cluster *v1.NifiCluster, scheme *runtime.Scheme) *cert
 	return selfsigner
 }
 
+const (
+	// caCertDuration is the validity period of the operator-managed CA certificate.
+	// A long-lived CA (matching the ~10y approach PGO uses) keeps the CA key stable for
+	// a decade so issued node/user leaf certs keep chaining to it, instead of the
+	// cert-manager default (90d), which rotates the CA every ~60 days and breaks TLS.
+	caCertDuration = 87600 * time.Hour // ~10 years
+	// caCertRenewBefore keeps CA renewal close to expiry (rather than cert-manager's
+	// ~1/3-of-duration default), so the CA stays put for essentially the full lifetime.
+	caCertRenewBefore = 720 * time.Hour // 30 days
+)
+
 func caCertForCluster(cluster *v1.NifiCluster, scheme *runtime.Scheme) *certv1.Certificate {
 	return &certv1.Certificate{
 		ObjectMeta: metav1.ObjectMeta{
@@ -240,7 +252,9 @@ func caCertForCluster(cluster *v1.NifiCluster, scheme *runtime.Scheme) *certv1.C
 			SecretName: fmt.Sprintf(pkicommon.NodeCACertTemplate, cluster.Name),
 			CommonName: fmt.Sprintf(pkicommon.CAFQDNTemplate,
 				cluster.Name, cluster.Namespace, cluster.Spec.ListenersConfig.GetClusterDomain()),
-			IsCA: true,
+			IsCA:        true,
+			Duration:    &metav1.Duration{Duration: caCertDuration},
+			RenewBefore: &metav1.Duration{Duration: caCertRenewBefore},
 			IssuerRef: certmeta.ObjectReference{
 				Name: fmt.Sprintf(pkicommon.NodeSelfSignerTemplate, cluster.Name),
 				Kind: certv1.ClusterIssuerKind,
@@ -292,7 +306,9 @@ func caCertForNamespace(cluster *v1.NifiCluster, scheme *runtime.Scheme) *certv1
 			SecretName: fmt.Sprintf(pkicommon.NodeCACertTemplate, cluster.Name),
 			CommonName: fmt.Sprintf(pkicommon.CAFQDNTemplate,
 				cluster.Name, cluster.Namespace, cluster.Spec.ListenersConfig.GetClusterDomain()),
-			IsCA: true,
+			IsCA:        true,
+			Duration:    &metav1.Duration{Duration: caCertDuration},
+			RenewBefore: &metav1.Duration{Duration: caCertRenewBefore},
 			IssuerRef: certmeta.ObjectReference{
 				Name: fmt.Sprintf(pkicommon.NodeSelfSignerTemplate, cluster.Name),
 				Kind: certv1.IssuerKind,
