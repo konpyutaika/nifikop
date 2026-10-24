@@ -6,6 +6,8 @@
 
 ### Fixed Bugs
 
+- [PR #758](https://github.com/konpyutaika/nifikop/pull/758) - **[Operator/NifiCluster]** Write the load balance listener to `nifi.cluster.load.balance.port` (NiFi ignored `nifi.cluster.node.load.balance.port`), and set `nifi.cluster.load.balance.host` to the node address.
+
 ### Deprecated
 
 ### Removed
