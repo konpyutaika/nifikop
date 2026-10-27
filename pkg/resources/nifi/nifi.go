@@ -302,9 +302,10 @@ func (r *Reconciler) Reconcile(log zap.Logger) error {
 					zap.Int32("nodeId", node.Id),
 					zap.String("pvcName", existingPvc.Name),
 					zap.String("storageName", storage.Name))
-				// ensure we apply the reclaim policy label to handle PVC deletion properly for pre-existing PVCs
-				existingPvc.Labels[nifiutil.NifiVolumeReclaimPolicyKey] = string(storage.ReclaimPolicy)
-				pvc = existingPvc
+				o := r.pvc(node.Id, storage, log)
+				desired := o.(*corev1.PersistentVolumeClaim)
+				desired.Name = existingPvc.Name
+				pvc = desired
 			}
 			err := r.reconcileNifiPVC(node.Id, log, pvc)
 			if err != nil {
@@ -739,13 +740,7 @@ func (r *Reconciler) reconcileNifiPVC(nodeId int32, log zap.Logger, desiredPVC *
 				return errorfactory.New(errorfactory.InternalError{}, errors.New("could not modify pvc size"),
 					"one can not reduce the size of a PVC", "kind", desiredType)
 			}
-			resReq := desiredPVC.Spec.Resources.Requests
-			labels := desiredPVC.Labels
-			annotations := desiredPVC.Annotations
-			desiredPVC = currentPVC.DeepCopy()
-			desiredPVC.Spec.Resources.Requests = resReq
-			desiredPVC.Labels = labels
-			desiredPVC.Annotations = annotations
+			desiredPVC = pvcForUpdate(currentPVC, desiredPVC)
 			desiredPVC.SetOwnerReferences([]metav1.OwnerReference{templates.ClusterOwnerReference(r.NifiCluster)})
 
 			if err := r.Client.Update(context.TODO(), desiredPVC); err != nil {

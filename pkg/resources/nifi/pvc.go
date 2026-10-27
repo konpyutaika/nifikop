@@ -48,3 +48,14 @@ func (r *Reconciler) storageConfigPVCExists(pvcs []corev1.PersistentVolumeClaim,
 	}
 	return false, nil
 }
+
+// pvcForUpdate merges the desired PVC spec and metadata onto the live object while
+// preserving cluster-assigned spec fields such as volumeName.
+func pvcForUpdate(current, desired *corev1.PersistentVolumeClaim) *corev1.PersistentVolumeClaim {
+	updated := current.DeepCopy()
+	updated.Labels = desired.Labels
+	updated.Annotations = desired.Annotations
+	updated.Spec = *desired.Spec.DeepCopy()
+	updated.Spec.VolumeName = current.Spec.VolumeName
+	return updated
+}

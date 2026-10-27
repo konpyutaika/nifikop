@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	v1 "github.com/konpyutaika/nifikop/api/v1"
@@ -94,4 +95,49 @@ func TestStorageConfigPVCExists(t *testing.T) {
 	exists, pvc = rec.storageConfigPVCExists(pvcList, "NONEXISTENT")
 	assert.False(t, exists)
 	assert.Nil(t, pvc)
+}
+
+func TestPVCForUpdatePreservesVolumeNameAndAppliesSpec(t *testing.T) {
+	vac := "gold"
+	current := &corev1.PersistentVolumeClaim{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "node-pvc",
+		},
+		Spec: corev1.PersistentVolumeClaimSpec{
+			VolumeName: "pv-bound",
+			Resources: corev1.VolumeResourceRequirements{
+				Requests: corev1.ResourceList{
+					corev1.ResourceStorage: mustParseQuantity("10Gi"),
+				},
+			},
+		},
+	}
+	desired := &corev1.PersistentVolumeClaim{
+		ObjectMeta: metav1.ObjectMeta{
+			Labels:      map[string]string{"nodeId": "0"},
+			Annotations: map[string]string{"storageName": "data"},
+		},
+		Spec: corev1.PersistentVolumeClaimSpec{
+			VolumeAttributesClassName: &vac,
+			Resources: corev1.VolumeResourceRequirements{
+				Requests: corev1.ResourceList{
+					corev1.ResourceStorage: mustParseQuantity("20Gi"),
+				},
+			},
+		},
+	}
+
+	updated := pvcForUpdate(current, desired)
+	assert.Equal(t, "pv-bound", updated.Spec.VolumeName)
+	assert.Equal(t, &vac, updated.Spec.VolumeAttributesClassName)
+	assert.Equal(t, mustParseQuantity("20Gi"), updated.Spec.Resources.Requests[corev1.ResourceStorage])
+	assert.Equal(t, "0", updated.Labels["nodeId"])
+}
+
+func mustParseQuantity(s string) resource.Quantity {
+	q, err := resource.ParseQuantity(s)
+	if err != nil {
+		panic(err)
+	}
+	return q
 }
