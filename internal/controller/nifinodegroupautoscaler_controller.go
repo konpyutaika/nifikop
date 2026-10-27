@@ -96,6 +96,7 @@ func (r *NifiNodeGroupAutoscalerReconciler) Reconcile(ctx context.Context, req c
 	// Ensure finalizer for cleanup on deletion
 	if !util.StringSliceContains(nodeGroupAutoscaler.GetFinalizers(), autoscalerFinalizer) {
 		r.Log.Debug("Adding Finalizer for NifiNodeGroupAutoscaler",
+			zap.String("clusterName", nodeGroupAutoscaler.Spec.ClusterRef.Name),
 			zap.String("nodeGroup", nodeGroupAutoscaler.Spec.NodeConfigGroupId))
 		nodeGroupAutoscaler.SetFinalizers(append(nodeGroupAutoscaler.GetFinalizers(), autoscalerFinalizer))
 	}
@@ -165,7 +166,9 @@ func (r *NifiNodeGroupAutoscalerReconciler) Reconcile(ctx context.Context, req c
 			return RequeueWithError(r.Log, fmt.Sprintf("Failed to udpate node group autoscaler state for node group %s", nodeGroupAutoscaler.Spec.NodeConfigGroupId), err)
 		}
 	} else {
-		r.Log.Debug("Cluster replicas config and current number of replicas are the same", zap.Int32("replicas", nodeGroupAutoscaler.Spec.Replicas))
+		r.Log.Debug("Cluster replicas config and current number of replicas are the same",
+			zap.String("clusterName", cluster.Name),
+			zap.Int32("replicas", nodeGroupAutoscaler.Spec.Replicas))
 	}
 
 	// update replica and replica status
