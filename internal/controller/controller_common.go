@@ -30,9 +30,10 @@ var getGvk = apiutil.GVKForObject
 
 // requeueWithError is a convenience wrapper around logging an error message
 // separate from the stacktrace and then passing the error through to the controller
-// manager.
-func RequeueWithError(logger zap.Logger, msg string, err error) (reconcile.Result, error) {
-	logger.Info(msg)
+// manager. Optional zap fields add structured context to the info log; err is not
+// logged here so the controller manager can record it.
+func RequeueWithError(logger zap.Logger, msg string, err error, fields ...zap.Field) (reconcile.Result, error) {
+	logger.Info(msg, fields...)
 	return reconcile.Result{}, err
 }
 
