@@ -18,7 +18,7 @@ func (n *nifiClient) GetParameterContexts() ([]nigoapi.ParameterContextEntity, e
 
 	// Request on Nifi Rest API to get the parameter contexts informations
 	pcEntity, rsp, body, err := client.FlowApi.GetParameterContexts(context)
-	if err := errorGetOperation(rsp, body, err, n.log); err != nil {
+	if err := errorGetOperation(rsp, body, err, n.log, n.clusterName(), n.nodeIdForClient(client)); err != nil {
 		return nil, err
 	}
 
@@ -38,7 +38,7 @@ func (n *nifiClient) GetParameterContext(id string) (*nigoapi.ParameterContextEn
 		context,
 		id,
 		&nigoapi.ParameterContextsApiGetParameterContextOpts{IncludeInheritedParameters: optional.NewBool(false)})
-	if err := errorGetOperation(rsp, body, err, n.log); err != nil {
+	if err := errorGetOperation(rsp, body, err, n.log, n.clusterName(), n.nodeIdForClient(client)); err != nil {
 		return nil, err
 	}
 
@@ -106,7 +106,7 @@ func (n *nifiClient) GetParameterContextUpdateRequest(contextId, id string) (*ni
 
 	// Request on Nifi Rest API to get the parameter context update request information
 	request, rsp, body, err := client.ParameterContextsApi.GetParameterContextUpdate(context, contextId, id)
-	if err := errorGetOperation(rsp, body, err, n.log); err != nil {
+	if err := errorGetOperation(rsp, body, err, n.log, n.clusterName(), n.nodeIdForClient(client)); err != nil {
 		return nil, err
 	}
 

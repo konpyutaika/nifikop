@@ -18,7 +18,7 @@ func (n *nifiClient) GetProcessGroup(id string) (*nigoapi.ProcessGroupEntity, er
 
 	// Request on Nifi Rest API to get the process group informations
 	pGEntity, rsp, body, err := client.ProcessGroupsApi.GetProcessGroup(context, id)
-	if err := errorGetOperation(rsp, body, err, n.log); err != nil {
+	if err := errorGetOperation(rsp, body, err, n.log, n.clusterName(), n.nodeIdForClient(client)); err != nil {
 		return nil, err
 	}
 

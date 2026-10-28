@@ -93,8 +93,9 @@ func (r *NifiClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 			return Reconciled()
 		}
 		// Error reading the object - requeue the request.
-		return RequeueWithError(r.Log, err.Error(), err)
+		return RequeueWithError(r.Log, err.Error(), err, zap.String("clusterName", req.Name))
 	}
+	clusterLog := *r.Log.With(zap.String("clusterName", instance.Name))
 	current := instance.DeepCopy()
 	patchInstance := client.MergeFrom(instance.DeepCopy())
 
@@ -111,29 +112,31 @@ func (r *NifiClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		intervalNoNode := util.GetRequeueInterval(r.RequeueIntervals["CLUSTER_TASK_NO_NODE_INTERVAL"], r.RequeueOffset)
 		r.Recorder.Event(instance, corev1.EventTypeNormal, string(v1.NifiClusterNoNodes),
 			"NifiCluster has no node, nothing to do")
-		if err := k8sutil.UpdateCRStatus(r.Client, instance, current.Status, v1.NifiClusterNoNodes, r.Log); err != nil {
-			return RequeueWithError(r.Log, err.Error(), err)
+		if err := k8sutil.UpdateCRStatus(r.Client, instance, current.Status, v1.NifiClusterNoNodes, clusterLog); err != nil {
+			return RequeueWithError(clusterLog, err.Error(), err)
 		}
 		return RequeueAfter(intervalNoNode)
 	}
 
 	//
 	if len(instance.Spec.Nodes) > 0 && (len(instance.Status.State) == 0 || instance.Status.State == v1.NifiClusterInitializing || instance.Status.State == v1.NifiClusterNoNodes) {
-		if err := k8sutil.UpdateCRStatus(r.Client, instance, current.Status, v1.NifiClusterInitializing, r.Log); err != nil {
-			return RequeueWithError(r.Log, err.Error(), err)
+		if err := k8sutil.UpdateCRStatus(r.Client, instance, current.Status, v1.NifiClusterInitializing, clusterLog); err != nil {
+			return RequeueWithError(clusterLog, err.Error(), err)
 		}
 		for nId := range instance.Spec.Nodes {
-			if err := k8sutil.UpdateNodeStatus(r.Client, []string{fmt.Sprint(instance.Spec.Nodes[nId].Id)}, instance, current.Status, v1.IsInitClusterNode, r.Log); err != nil {
-				return RequeueWithError(r.Log, err.Error(), err)
+			nodeId := instance.Spec.Nodes[nId].Id
+			nodeLog := *clusterLog.With(zap.Int32("nodeId", nodeId))
+			if err := k8sutil.UpdateNodeStatus(r.Client, []string{fmt.Sprint(nodeId)}, instance, current.Status, v1.IsInitClusterNode, nodeLog); err != nil {
+				return RequeueWithError(nodeLog, err.Error(), err)
 			}
 		}
-		if err := k8sutil.UpdateCRStatus(r.Client, instance, current.Status, v1.NifiClusterInitialized, r.Log); err != nil {
-			return RequeueWithError(r.Log, err.Error(), err)
+		if err := k8sutil.UpdateCRStatus(r.Client, instance, current.Status, v1.NifiClusterInitialized, clusterLog); err != nil {
+			return RequeueWithError(clusterLog, err.Error(), err)
 		}
 	}
 
 	if instance.Status.State != v1.NifiClusterRollingUpgrading {
-		r.Log.Debug("NifiCluster starting reconciliation", zap.String("clusterName", instance.Name))
+		clusterLog.Debug("NifiCluster starting reconciliation")
 		r.Recorder.Event(instance, corev1.EventTypeNormal, string(v1.NifiClusterReconciling),
 			"NifiCluster starting reconciliation")
 	}
@@ -145,49 +148,49 @@ func (r *NifiClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	intervalNotReady := util.GetRequeueInterval(r.RequeueIntervals["CLUSTER_TASK_NOT_READY_REQUEUE_INTERVAL"], r.RequeueOffset)
 	intervalRunning := util.GetRequeueInterval(r.RequeueIntervals["CLUSTER_TASK_RUNNING_REQUEUE_INTERVAL"], r.RequeueOffset)
 	for _, rec := range reconcilers {
-		err = rec.Reconcile(r.Log)
+		err = rec.Reconcile(clusterLog)
 		if err != nil {
 			switch errors.Cause(err).(type) {
 			case errorfactory.NodesUnreachable:
-				r.Log.Info("Nodes unreachable, may still be starting up", zap.String("reason", err.Error()))
+				clusterLog.Info("Nodes unreachable, may still be starting up", zap.String("reason", err.Error()))
 				return RequeueAfter(intervalNotReady)
 			case errorfactory.NodesNotReady:
-				r.Log.Info("Nodes not ready, may still be starting up", zap.String("reason", err.Error()))
+				clusterLog.Info("Nodes not ready, may still be starting up", zap.String("reason", err.Error()))
 				return RequeueAfter(intervalNotReady)
 			case errorfactory.ResourceNotReady:
-				r.Log.Info("A new resource was not found or may not be ready", zap.String("reason", err.Error()))
+				clusterLog.Info("A new resource was not found or may not be ready", zap.String("reason", err.Error()))
 				return RequeueAfter(intervalNotReady)
 			case errorfactory.ReconcileRollingUpgrade:
-				r.Log.Info("Rolling Upgrade in Progress", zap.String("reason", err.Error()))
+				clusterLog.Info("Rolling Upgrade in Progress", zap.String("reason", err.Error()))
 				return RequeueAfter(intervalRunning)
 			case errorfactory.NifiClusterNotReady:
 				return RequeueAfter(intervalNotReady)
 			case errorfactory.NifiClusterTaskRunning:
 				return RequeueAfter(intervalRunning)
 			default:
-				return RequeueWithError(r.Log, err.Error(), err)
+				return RequeueWithError(clusterLog, err.Error(), err)
 			}
 		}
 	}
 
-	r.Log.Debug("ensuring finalizers on nificluster", zap.String("clusterName", instance.Name))
+	clusterLog.Debug("ensuring finalizers on nificluster")
 	if instance, err = r.ensureFinalizers(ctx, instance, patchInstance); err != nil {
-		return RequeueWithError(r.Log, "failed to ensure finalizers on nificluster instance "+current.Name, err)
+		return RequeueWithError(clusterLog, "failed to ensure finalizers on nificluster instance "+current.Name, err)
 	}
 
 	// Update rolling upgrade last successful state
 	if instance.Status.State == v1.NifiClusterRollingUpgrading {
-		if err := k8sutil.UpdateRollingUpgradeState(r.Client, instance, current.Status, time.Now(), r.Log); err != nil {
-			return RequeueWithError(r.Log, err.Error(), err)
+		if err := k8sutil.UpdateRollingUpgradeState(r.Client, instance, current.Status, time.Now(), clusterLog); err != nil {
+			return RequeueWithError(clusterLog, err.Error(), err)
 		}
 	}
 
 	if !instance.IsReady() {
-		r.Log.Info("Successfully reconciled NifiCluster", zap.String("clusterName", instance.Name))
+		clusterLog.Info("Successfully reconciled NifiCluster")
 		r.Recorder.Event(instance, corev1.EventTypeNormal, string(v1.NifiClusterRunning),
 			"Successfully reconciled NifiCluster")
-		if err := k8sutil.UpdateCRStatus(r.Client, instance, current.Status, v1.NifiClusterRunning, r.Log); err != nil {
-			return RequeueWithError(r.Log, err.Error(), err)
+		if err := k8sutil.UpdateCRStatus(r.Client, instance, current.Status, v1.NifiClusterRunning, clusterLog); err != nil {
+			return RequeueWithError(clusterLog, err.Error(), err)
 		}
 	}
 

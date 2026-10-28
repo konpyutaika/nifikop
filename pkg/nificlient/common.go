@@ -15,15 +15,19 @@ var ErrNifiClusterNodeNotFound = errors.New("The target node id doesn't exist in
 
 var ErrNoNodeClientsAvailable = errors.New("Cannot create a node client to perform actions")
 
-func errorGetOperation(rsp *http.Response, body *string, err error, log *zap.Logger) error {
+func errorGetOperation(rsp *http.Response, body *string, err error, log *zap.Logger, clusterName string, nodeId int32) error {
 	if rsp != nil && rsp.StatusCode == 404 {
 		log.Error("404 response from nifi node: ",
+			zap.String("clusterName", clusterName),
+			zap.Int32("nodeId", nodeId),
 			zap.String("statusCode", rsp.Status))
 		return ErrNifiClusterReturned404
 	}
 
 	if rsp != nil && rsp.StatusCode != 200 {
 		log.Error("Non 200 response from nifi node",
+			zap.String("clusterName", clusterName),
+			zap.Int32("nodeId", nodeId),
 			zap.String("statusCode", rsp.Status),
 			zap.Stringp("body", body))
 		return ErrNifiClusterNotReturned200
@@ -31,6 +35,8 @@ func errorGetOperation(rsp *http.Response, body *string, err error, log *zap.Log
 
 	if err != nil || rsp == nil {
 		log.Error("Error during talking to nifi node",
+			zap.String("clusterName", clusterName),
+			zap.Int32("nodeId", nodeId),
 			zap.Error(err))
 		return err
 	}

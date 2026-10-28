@@ -32,7 +32,7 @@ func (n *nifiClient) GetVersionUpdateRequest(id string) (*nigoapi.VersionedFlowU
 
 	// Request on Nifi Rest API to get the update request information
 	request, rsp, body, err := client.VersionsApi.GetUpdateRequest(context, id)
-	if err := errorGetOperation(rsp, body, err, n.log); err != nil {
+	if err := errorGetOperation(rsp, body, err, n.log, n.clusterName(), n.nodeIdForClient(client)); err != nil {
 		return nil, err
 	}
 
@@ -66,7 +66,7 @@ func (n *nifiClient) GetVersionRevertRequest(id string) (*nigoapi.VersionedFlowU
 
 	// Request on Nifi Rest API to get the revert request information
 	request, rsp, body, err := client.VersionsApi.GetRevertRequest(context, id)
-	if err := errorGetOperation(rsp, body, err, n.log); err != nil {
+	if err := errorGetOperation(rsp, body, err, n.log, n.clusterName(), n.nodeIdForClient(client)); err != nil {
 		return nil, err
 	}
 

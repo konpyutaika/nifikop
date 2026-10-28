@@ -18,7 +18,7 @@ func (n *nifiClient) GetConnection(id string) (*nigoapi.ConnectionEntity, error)
 
 	// Request on Nifi Rest API to get the connection informations
 	connectionEntity, rsp, body, err := client.ConnectionsApi.GetConnection(context, id)
-	if err := errorGetOperation(rsp, body, err, n.log); err != nil {
+	if err := errorGetOperation(rsp, body, err, n.log, n.clusterName(), n.nodeIdForClient(client)); err != nil {
 		return nil, err
 	}
 

@@ -19,7 +19,7 @@ func (n *nifiClient) GetUserGroups() ([]nigoapi.UserGroupEntity, error) {
 	// Request on Nifi Rest API to get the user groups informations
 	userGroupsEntity, rsp, body, err := client.TenantsApi.GetUserGroups(context)
 
-	if err := errorGetOperation(rsp, body, err, n.log); err != nil {
+	if err := errorGetOperation(rsp, body, err, n.log, n.clusterName(), n.nodeIdForClient(client)); err != nil {
 		return nil, err
 	}
 
@@ -37,7 +37,7 @@ func (n *nifiClient) GetUserGroup(id string) (*nigoapi.UserGroupEntity, error) {
 	// Request on Nifi Rest API to get the user groups informations
 	userGroupEntity, rsp, body, err := client.TenantsApi.GetUserGroup(context, id)
 
-	if err := errorGetOperation(rsp, body, err, n.log); err != nil {
+	if err := errorGetOperation(rsp, body, err, n.log, n.clusterName(), n.nodeIdForClient(client)); err != nil {
 		return nil, err
 	}
 

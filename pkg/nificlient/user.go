@@ -19,7 +19,7 @@ func (n *nifiClient) GetUsers() ([]nigoapi.UserEntity, error) {
 	// Request on Nifi Rest API to get the users informations
 	usersEntity, rsp, body, err := client.TenantsApi.GetUsers(context)
 
-	if err := errorGetOperation(rsp, body, err, n.log); err != nil {
+	if err := errorGetOperation(rsp, body, err, n.log, n.clusterName(), n.nodeIdForClient(client)); err != nil {
 		return nil, err
 	}
 
@@ -37,7 +37,7 @@ func (n *nifiClient) GetUser(id string) (*nigoapi.UserEntity, error) {
 	// Request on Nifi Rest API to get the user informations
 	userEntity, rsp, body, err := client.TenantsApi.GetUser(context, id)
 
-	if err := errorGetOperation(rsp, body, err, n.log); err != nil {
+	if err := errorGetOperation(rsp, body, err, n.log, n.clusterName(), n.nodeIdForClient(client)); err != nil {
 		return nil, err
 	}
 

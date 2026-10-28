@@ -14,7 +14,7 @@ func (n *nifiClient) DescribeCluster() (*nigoapi.ClusterEntity, error) {
 	}
 
 	clusterEntry, rsp, body, err := client.ControllerApi.GetCluster(context)
-	if err := errorGetOperation(rsp, body, err, n.log); err != nil {
+	if err := errorGetOperation(rsp, body, err, n.log, n.clusterName(), n.nodeIdForClient(client)); err != nil {
 		return nil, err
 	}
 
@@ -31,7 +31,7 @@ func (n *nifiClient) DescribeClusterFromNodeId(nodeId int32) (*nigoapi.ClusterEn
 	}
 
 	clusterEntry, rsp, body, err := client.ControllerApi.GetCluster(context)
-	if err := errorGetOperation(rsp, body, err, n.log); err != nil {
+	if err := errorGetOperation(rsp, body, err, n.log, n.clusterName(), nodeId); err != nil {
 		return nil, err
 	}
 
@@ -56,7 +56,7 @@ func (n *nifiClient) GetClusterNode(nId int32) (*nigoapi.NodeEntity, error) {
 	// Request on Nifi Rest API to get the node information
 	nodeEntity, rsp, body, err := client.ControllerApi.GetNode(context, targetedNode.NodeId)
 
-	if err := errorGetOperation(rsp, body, err, n.log); err != nil {
+	if err := errorGetOperation(rsp, body, err, n.log, n.clusterName(), nId); err != nil {
 		return nil, err
 	}
 

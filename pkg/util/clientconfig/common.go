@@ -27,6 +27,7 @@ type ClusterConnect interface {
 
 // NifiConfig are the options to creating a new ClusterAdmin client.
 type NifiConfig struct {
+	ClusterName     string
 	NodeURITemplate string
 	NodesURI        map[int32]NodeUri
 	NifiURI         string
