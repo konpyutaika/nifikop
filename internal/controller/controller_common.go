@@ -33,7 +33,7 @@ var getGvk = apiutil.GVKForObject
 // manager. Optional zap fields add structured context to the info log; err is not
 // logged here so the controller manager can record it.
 func RequeueWithError(logger zap.Logger, msg string, err error, fields ...zap.Field) (reconcile.Result, error) {
-	logger.Info(msg, fields...)
+	logger.Warn(msg, fields...)
 	return reconcile.Result{}, err
 }
 
