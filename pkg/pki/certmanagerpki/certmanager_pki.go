@@ -15,7 +15,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
-	"github.com/konpyutaika/nifikop/api/v1"
+	v1 "github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/pkg/errorfactory"
 	"github.com/konpyutaika/nifikop/pkg/resources/templates"
 	pkicommon "github.com/konpyutaika/nifikop/pkg/util/pki"
@@ -80,7 +80,7 @@ func (c *certManager) FinalizePKI(ctx context.Context, logger zap.Logger) error 
 }
 
 func (c *certManager) ReconcilePKI(ctx context.Context, logger zap.Logger, scheme *runtime.Scheme, externalHostnames []string) (err error) {
-	logger.Info("Reconciling cert-manager PKI",
+	logger.Debug("Reconciling cert-manager PKI",
 		zap.String("clusterName", c.cluster.Name))
 
 	resources, err := c.

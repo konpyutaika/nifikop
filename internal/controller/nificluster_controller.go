@@ -133,7 +133,7 @@ func (r *NifiClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	}
 
 	if instance.Status.State != v1.NifiClusterRollingUpgrading {
-		r.Log.Info("NifiCluster starting reconciliation", zap.String("clusterName", instance.Name))
+		r.Log.Debug("NifiCluster starting reconciliation", zap.String("clusterName", instance.Name))
 		r.Recorder.Event(instance, corev1.EventTypeNormal, string(v1.NifiClusterReconciling),
 			"NifiCluster starting reconciliation")
 	}
