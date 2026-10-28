@@ -136,4 +136,14 @@ func TestReconcileNifiPVC_KeepsLargerManualPVCWhenSpecUnchanged(t *testing.T) {
 
 	want := resource.MustParse("20Gi")
 	assert.Equal(t, 0, want.Cmp(pvcStorageRequest(t, c, existing.Name)))
+
+	pvcAfterFirst := &corev1.PersistentVolumeClaim{}
+	require.NoError(t, c.Get(context.Background(), types.NamespacedName{Namespace: "namespace", Name: existing.Name}, pvcAfterFirst))
+
+	err = rec.reconcileNifiPVC(0, *zap.NewNop(), desired)
+	require.NoError(t, err)
+
+	pvcAfterSecond := &corev1.PersistentVolumeClaim{}
+	require.NoError(t, c.Get(context.Background(), types.NamespacedName{Namespace: "namespace", Name: existing.Name}, pvcAfterSecond))
+	assert.Equal(t, pvcAfterFirst.ResourceVersion, pvcAfterSecond.ResourceVersion)
 }

@@ -729,24 +729,28 @@ func (r *Reconciler) reconcileNifiPVC(nodeId int32, log zap.Logger, desiredPVC *
 		}
 		return nil
 	}
+	desiredPVC = desiredPVC.DeepCopy()
+	desiredPVC.SetName(currentPVC.GetName())
+	desiredPVC.SetGenerateName("")
 	if err == nil {
-		if k8sutil.CheckIfObjectUpdated(log, desiredType, currentPVC, desiredPVC) {
-			if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(desiredPVC); err != nil {
+		pvcToApply := desiredPVC
+		if isDesiredStorageValueInvalid(desiredPVC, currentPVC) {
+			log.Warn("PVC storage request in spec is smaller than the existing PVC; keeping current size and continuing reconcile",
+				zap.String("clusterName", r.NifiCluster.Name),
+				zap.String("pvcName", currentPVC.Name),
+				zap.String("pvcNamespace", currentPVC.Namespace))
+			pvcToApply = desiredPVC.DeepCopy()
+			pvcToApply.Spec.Resources.Requests = currentPVC.Spec.Resources.Requests.DeepCopy()
+		}
+		if k8sutil.CheckIfObjectUpdated(log, desiredType, currentPVC, pvcToApply) {
+			if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(pvcToApply); err != nil {
 				return errors.WrapIf(err, "could not apply last state to annotation")
 			}
 
-			resReq := desiredPVC.Spec.Resources.Requests
-			if isDesiredStorageValueInvalid(desiredPVC, currentPVC) {
-				log.Warn("PVC storage request in spec is smaller than the existing PVC; keeping current size and continuing reconcile",
-					zap.String("clusterName", r.NifiCluster.Name),
-					zap.String("pvcName", currentPVC.Name),
-					zap.String("pvcNamespace", currentPVC.Namespace))
-				resReq = currentPVC.Spec.Resources.Requests
-			}
-			labels := desiredPVC.Labels
-			annotations := desiredPVC.Annotations
+			labels := pvcToApply.Labels
+			annotations := pvcToApply.Annotations
 			desiredPVC = currentPVC.DeepCopy()
-			desiredPVC.Spec.Resources.Requests = resReq
+			desiredPVC.Spec.Resources.Requests = pvcToApply.Spec.Resources.Requests
 			desiredPVC.Labels = labels
 			desiredPVC.Annotations = annotations
 			desiredPVC.SetOwnerReferences([]metav1.OwnerReference{templates.ClusterOwnerReference(r.NifiCluster)})
