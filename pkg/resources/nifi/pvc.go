@@ -1,11 +1,17 @@
 package nifi
 
 import (
+	"context"
 	"fmt"
+	"sort"
 
+	"github.com/banzaicloud/k8s-objectmatcher/patch"
 	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/equality"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	runtimeClient "sigs.k8s.io/controller-runtime/pkg/client"
 
 	v1 "github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/pkg/resources/templates"
@@ -47,4 +53,133 @@ func (r *Reconciler) storageConfigPVCExists(pvcs []corev1.PersistentVolumeClaim,
 		}
 	}
 	return false, nil
+}
+
+// normalizePVCDesiredForReconcile aligns identity metadata on desired with the live PVC so
+// objectmatcher comparisons are stable (GenerateName vs Name).
+func normalizePVCDesiredForReconcile(current, desired *corev1.PersistentVolumeClaim) {
+	desired.Name = current.Name
+	desired.Namespace = current.Namespace
+	desired.GenerateName = ""
+	desired.UID = ""
+	desired.ResourceVersion = ""
+	desired.CreationTimestamp = metav1.Time{}
+}
+
+// preparePVCForDiff returns a copy of desired with the live last-applied annotation, so
+// objectmatcher does not treat operator bookkeeping as perpetual drift.
+func preparePVCForDiff(current, desired *corev1.PersistentVolumeClaim) *corev1.PersistentVolumeClaim {
+	forDiff := desired.DeepCopy()
+	if current.Annotations == nil {
+		return forDiff
+	}
+	lastApplied, ok := current.Annotations[patch.LastAppliedConfig]
+	if !ok {
+		return forDiff
+	}
+	if forDiff.Annotations == nil {
+		forDiff.Annotations = map[string]string{}
+	}
+	forDiff.Annotations[patch.LastAppliedConfig] = lastApplied
+	return forDiff
+}
+
+// pvcNeedsSpecUpdate compares reconcilable PVC spec fields against the live object.
+// This avoids false "in sync" results from banzaicloud three-way merge when
+// last-applied records fields the apiserver did not persist on spec.
+func pvcNeedsSpecUpdate(current, desired *corev1.PersistentVolumeClaim) bool {
+	if !stringPtrEqual(current.Spec.StorageClassName, desired.Spec.StorageClassName) {
+		return true
+	}
+	if !volumeAttributesClassNameEqual(current.Spec.VolumeAttributesClassName, desired.Spec.VolumeAttributesClassName) {
+		return true
+	}
+	if !equality.Semantic.DeepEqual(normalizeAccessModes(current.Spec.AccessModes), normalizeAccessModes(desired.Spec.AccessModes)) {
+		return true
+	}
+	if desired.Spec.Resources.Requests != nil {
+		desiredQty := desired.Spec.Resources.Requests[corev1.ResourceStorage]
+		currentQty := current.Spec.Resources.Requests[corev1.ResourceStorage]
+		if desiredQty.Cmp(currentQty) != 0 {
+			return true
+		}
+	}
+	if desired.Spec.VolumeMode != nil && !equality.Semantic.DeepEqual(current.Spec.VolumeMode, desired.Spec.VolumeMode) {
+		return true
+	}
+	return false
+}
+
+func normalizeAccessModes(modes []corev1.PersistentVolumeAccessMode) []corev1.PersistentVolumeAccessMode {
+	if len(modes) == 0 {
+		return modes
+	}
+	out := append([]corev1.PersistentVolumeAccessMode(nil), modes...)
+	sort.Slice(out, func(i, j int) bool { return out[i] < out[j] })
+	return out
+}
+
+func stringPtrEqual(a, b *string) bool {
+	if a == nil && b == nil {
+		return true
+	}
+	if a == nil || b == nil {
+		return false
+	}
+	return *a == *b
+}
+
+func volumeAttributesClassNameEqual(a, b *string) bool {
+	return stringPtrEqual(normalizeVolumeAttributesClassName(a), normalizeVolumeAttributesClassName(b))
+}
+
+func normalizeVolumeAttributesClassName(name *string) *string {
+	if name == nil || *name == "" {
+		return nil
+	}
+	return name
+}
+
+// applyVolumeAttributesClassNameClear sets spec.volumeAttributesClassName to "" when the
+// NiFiCluster no longer specifies a class. A nil pointer is omitted from JSON on Update,
+// which leaves the existing apiserver value unchanged; an empty string clears it.
+func applyVolumeAttributesClassNameClear(spec *corev1.PersistentVolumeClaimSpec, currentName *string) {
+	if spec.VolumeAttributesClassName != nil {
+		return
+	}
+	if currentName == nil || *currentName == "" {
+		return
+	}
+	empty := ""
+	spec.VolumeAttributesClassName = &empty
+}
+
+func pvcAnnotationsForUpdate(current, desired map[string]string) map[string]string {
+	merged := util.MergeAnnotations(current, desired)
+	delete(merged, patch.LastAppliedConfig)
+	return merged
+}
+
+// pvcForUpdate merges the desired PVC spec and metadata onto the live object while
+// preserving cluster-assigned spec fields such as volumeName.
+func pvcForUpdate(current, desired *corev1.PersistentVolumeClaim) *corev1.PersistentVolumeClaim {
+	updated := current.DeepCopy()
+	updated.Labels = desired.Labels
+	updated.Annotations = pvcAnnotationsForUpdate(current.Annotations, desired.Annotations)
+	updated.Spec = *desired.Spec.DeepCopy()
+	updated.Spec.VolumeName = current.Spec.VolumeName
+	applyVolumeAttributesClassNameClear(&updated.Spec, current.Spec.VolumeAttributesClassName)
+	return updated
+}
+
+// syncPVCLastAppliedAnnotation stores last-applied from the live PVC spec in etcd, not from intent alone.
+func syncPVCLastAppliedAnnotation(c runtimeClient.Client, namespace, name string) error {
+	live := &corev1.PersistentVolumeClaim{}
+	if err := c.Get(context.TODO(), runtimeClient.ObjectKey{Namespace: namespace, Name: name}, live); err != nil {
+		return err
+	}
+	if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(live); err != nil {
+		return err
+	}
+	return c.Update(context.TODO(), live)
 }

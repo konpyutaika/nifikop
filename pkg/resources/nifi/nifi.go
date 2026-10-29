@@ -302,9 +302,10 @@ func (r *Reconciler) Reconcile(log zap.Logger) error {
 					zap.Int32("nodeId", node.Id),
 					zap.String("pvcName", existingPvc.Name),
 					zap.String("storageName", storage.Name))
-				// ensure we apply the reclaim policy label to handle PVC deletion properly for pre-existing PVCs
-				existingPvc.Labels[nifiutil.NifiVolumeReclaimPolicyKey] = string(storage.ReclaimPolicy)
-				pvc = existingPvc
+				o := r.pvc(node.Id, storage, log)
+				desired := o.(*corev1.PersistentVolumeClaim)
+				desired.Name = existingPvc.Name
+				pvc = desired
 			}
 			err := r.reconcileNifiPVC(node.Id, log, pvc)
 			if err != nil {
@@ -730,31 +731,32 @@ func (r *Reconciler) reconcileNifiPVC(nodeId int32, log zap.Logger, desiredPVC *
 		return nil
 	}
 	if err == nil {
-		if k8sutil.CheckIfObjectUpdated(log, desiredType, currentPVC, desiredPVC) {
-			if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(desiredPVC); err != nil {
-				return errors.WrapIf(err, "could not apply last state to annotation")
-			}
+		normalizePVCDesiredForReconcile(currentPVC, desiredPVC)
+		pvcToApply := desiredPVC
+		if isDesiredStorageValueInvalid(desiredPVC, currentPVC) {
+			log.Warn("PVC storage request in spec is smaller than the existing PVC; keeping current size and continuing reconcile",
+				zap.String("clusterName", r.NifiCluster.Name),
+				zap.String("pvcName", currentPVC.Name),
+				zap.String("pvcNamespace", currentPVC.Namespace))
+			pvcToApply = desiredPVC.DeepCopy()
+			pvcToApply.Spec.Resources.Requests = currentPVC.Spec.Resources.Requests.DeepCopy()
+		}
+		needsUpdate := k8sutil.CheckIfObjectUpdated(log, desiredType, currentPVC, preparePVCForDiff(currentPVC, pvcToApply)) ||
+			pvcNeedsSpecUpdate(currentPVC, pvcToApply)
+		if needsUpdate {
+			toUpdate := pvcForUpdate(currentPVC, pvcToApply)
+			toUpdate.SetOwnerReferences([]metav1.OwnerReference{templates.ClusterOwnerReference(r.NifiCluster)})
 
-			if isDesiredStorageValueInvalid(desiredPVC, currentPVC) {
-				return errorfactory.New(errorfactory.InternalError{}, errors.New("could not modify pvc size"),
-					"one can not reduce the size of a PVC", "kind", desiredType)
-			}
-			resReq := desiredPVC.Spec.Resources.Requests
-			labels := desiredPVC.Labels
-			annotations := desiredPVC.Annotations
-			desiredPVC = currentPVC.DeepCopy()
-			desiredPVC.Spec.Resources.Requests = resReq
-			desiredPVC.Labels = labels
-			desiredPVC.Annotations = annotations
-			desiredPVC.SetOwnerReferences([]metav1.OwnerReference{templates.ClusterOwnerReference(r.NifiCluster)})
-
-			if err := r.Client.Update(context.TODO(), desiredPVC); err != nil {
+			if err := r.Client.Update(context.TODO(), toUpdate); err != nil {
 				return errorfactory.New(errorfactory.APIFailure{}, err, "updating resource failed", "kind", desiredType)
+			}
+			if err := syncPVCLastAppliedAnnotation(r.Client, toUpdate.Namespace, toUpdate.Name); err != nil {
+				return errorfactory.New(errorfactory.APIFailure{}, err, "updating pvc last-applied annotation failed", "kind", desiredType)
 			}
 			log.Debug("persistent volume updated",
 				zap.String("clusterName", r.NifiCluster.Name),
-				zap.String("pvcName", desiredPVC.Name),
-				zap.String("pvcNamespace", desiredPVC.Namespace))
+				zap.String("pvcName", toUpdate.Name),
+				zap.String("pvcNamespace", toUpdate.Namespace))
 		}
 	}
 	return nil
