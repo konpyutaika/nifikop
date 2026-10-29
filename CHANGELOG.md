@@ -4,6 +4,8 @@
 
 ### Changed
 
+- [PR #755](https://github.com/konpyutaika/nifikop/pull/755) - **[Operator]** Reduce steady-state log noise; add structured `clusterName` / `nodeGroup` / `nodeId` / `userGroup`.
+
 ### Fixed Bugs
 
 ### Deprecated
