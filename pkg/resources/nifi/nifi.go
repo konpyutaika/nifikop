@@ -731,25 +731,27 @@ func (r *Reconciler) reconcileNifiPVC(nodeId int32, log zap.Logger, desiredPVC *
 		return nil
 	}
 	if err == nil {
-		if k8sutil.CheckIfObjectUpdated(log, desiredType, currentPVC, desiredPVC) {
-			if err := patch.DefaultAnnotator.SetLastAppliedAnnotation(desiredPVC); err != nil {
-				return errors.WrapIf(err, "could not apply last state to annotation")
-			}
-
+		normalizePVCDesiredForReconcile(currentPVC, desiredPVC)
+		needsUpdate := k8sutil.CheckIfObjectUpdated(log, desiredType, currentPVC, desiredPVC) ||
+			pvcNeedsSpecUpdate(currentPVC, desiredPVC)
+		if needsUpdate {
 			if isDesiredStorageValueInvalid(desiredPVC, currentPVC) {
 				return errorfactory.New(errorfactory.InternalError{}, errors.New("could not modify pvc size"),
 					"one can not reduce the size of a PVC", "kind", desiredType)
 			}
-			desiredPVC = pvcForUpdate(currentPVC, desiredPVC)
-			desiredPVC.SetOwnerReferences([]metav1.OwnerReference{templates.ClusterOwnerReference(r.NifiCluster)})
+			toUpdate := pvcForUpdate(currentPVC, desiredPVC)
+			toUpdate.SetOwnerReferences([]metav1.OwnerReference{templates.ClusterOwnerReference(r.NifiCluster)})
 
-			if err := r.Client.Update(context.TODO(), desiredPVC); err != nil {
+			if err := r.Client.Update(context.TODO(), toUpdate); err != nil {
 				return errorfactory.New(errorfactory.APIFailure{}, err, "updating resource failed", "kind", desiredType)
+			}
+			if err := syncPVCLastAppliedAnnotation(r.Client, toUpdate.Namespace, toUpdate.Name); err != nil {
+				return errorfactory.New(errorfactory.APIFailure{}, err, "updating pvc last-applied annotation failed", "kind", desiredType)
 			}
 			log.Debug("persistent volume updated",
 				zap.String("clusterName", r.NifiCluster.Name),
-				zap.String("pvcName", desiredPVC.Name),
-				zap.String("pvcNamespace", desiredPVC.Namespace))
+				zap.String("pvcName", toUpdate.Name),
+				zap.String("pvcNamespace", toUpdate.Namespace))
 		}
 	}
 	return nil

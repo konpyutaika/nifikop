@@ -5,6 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
+	"github.com/banzaicloud/k8s-objectmatcher/patch"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -95,6 +96,52 @@ func TestStorageConfigPVCExists(t *testing.T) {
 	exists, pvc = rec.storageConfigPVCExists(pvcList, "NONEXISTENT")
 	assert.False(t, exists)
 	assert.Nil(t, pvc)
+}
+
+func TestPVCNeedsSpecUpdateVolumeAttributesClassName(t *testing.T) {
+	vac := "rt-content-4000-default"
+	gp3 := "gp3"
+	current := &corev1.PersistentVolumeClaim{
+		Spec: corev1.PersistentVolumeClaimSpec{
+			StorageClassName: &gp3,
+			AccessModes:      []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOncePod},
+			Resources: corev1.VolumeResourceRequirements{
+				Requests: corev1.ResourceList{
+					corev1.ResourceStorage: mustParseQuantity("100Gi"),
+				},
+			},
+		},
+	}
+	desired := current.DeepCopy()
+	desired.Spec.VolumeAttributesClassName = &vac
+
+	assert.False(t, pvcNeedsSpecUpdate(current, current))
+	assert.True(t, pvcNeedsSpecUpdate(current, desired))
+}
+
+func TestPVCForUpdateStripsLastAppliedAnnotation(t *testing.T) {
+	current := &corev1.PersistentVolumeClaim{
+		ObjectMeta: metav1.ObjectMeta{
+			Annotations: map[string]string{
+				patch.LastAppliedConfig: "stale",
+				"mountPath":             "/opt/nifi/content_repository",
+			},
+		},
+	}
+	desired := &corev1.PersistentVolumeClaim{
+		ObjectMeta: metav1.ObjectMeta{
+			Annotations: map[string]string{
+				patch.LastAppliedConfig: "should-not-copy",
+				"storageName":           "content-repository",
+			},
+		},
+	}
+
+	updated := pvcForUpdate(current, desired)
+	_, hasLastApplied := updated.Annotations[patch.LastAppliedConfig]
+	assert.False(t, hasLastApplied)
+	assert.Equal(t, "content-repository", updated.Annotations["storageName"])
+	assert.Equal(t, "/opt/nifi/content_repository", updated.Annotations["mountPath"])
 }
 
 func TestPVCForUpdatePreservesVolumeNameAndAppliesSpec(t *testing.T) {
