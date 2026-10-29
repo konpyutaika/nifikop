@@ -1,9 +1,11 @@
 package nifi
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 	"github.com/banzaicloud/k8s-objectmatcher/patch"
 	corev1 "k8s.io/api/core/v1"
@@ -117,6 +119,16 @@ func TestPVCNeedsSpecUpdateVolumeAttributesClassName(t *testing.T) {
 
 	assert.False(t, pvcNeedsSpecUpdate(current, current))
 	assert.True(t, pvcNeedsSpecUpdate(current, desired))
+
+	currentWithVAC := desired.DeepCopy()
+	desiredWithoutVAC := current.DeepCopy()
+	assert.True(t, pvcNeedsSpecUpdate(currentWithVAC, desiredWithoutVAC))
+	assert.False(t, pvcNeedsSpecUpdate(desiredWithoutVAC, desiredWithoutVAC))
+
+	empty := ""
+	currentWithEmptyVAC := current.DeepCopy()
+	currentWithEmptyVAC.Spec.VolumeAttributesClassName = &empty
+	assert.False(t, pvcNeedsSpecUpdate(currentWithEmptyVAC, desiredWithoutVAC))
 }
 
 func TestPVCForUpdateStripsLastAppliedAnnotation(t *testing.T) {
@@ -179,6 +191,49 @@ func TestPVCForUpdatePreservesVolumeNameAndAppliesSpec(t *testing.T) {
 	assert.Equal(t, &vac, updated.Spec.VolumeAttributesClassName)
 	assert.Equal(t, mustParseQuantity("20Gi"), updated.Spec.Resources.Requests[corev1.ResourceStorage])
 	assert.Equal(t, "0", updated.Labels["nodeId"])
+}
+
+func TestPVCForUpdateRemovesVolumeAttributesClassName(t *testing.T) {
+	vac := "gold"
+	current := &corev1.PersistentVolumeClaim{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "node-pvc",
+		},
+		Spec: corev1.PersistentVolumeClaimSpec{
+			VolumeName:                "pv-bound",
+			VolumeAttributesClassName: &vac,
+			Resources: corev1.VolumeResourceRequirements{
+				Requests: corev1.ResourceList{
+					corev1.ResourceStorage: mustParseQuantity("10Gi"),
+				},
+			},
+		},
+	}
+	desired := &corev1.PersistentVolumeClaim{
+		Spec: corev1.PersistentVolumeClaimSpec{
+			Resources: corev1.VolumeResourceRequirements{
+				Requests: corev1.ResourceList{
+					corev1.ResourceStorage: mustParseQuantity("10Gi"),
+				},
+			},
+		},
+	}
+
+	updated := pvcForUpdate(current, desired)
+	assert.Equal(t, "pv-bound", updated.Spec.VolumeName)
+	requireVolumeAttributesClassNameCleared(t, updated.Spec.VolumeAttributesClassName)
+
+	payload, err := json.Marshal(updated)
+	require.NoError(t, err)
+	assert.Contains(t, string(payload), `"volumeAttributesClassName":""`)
+}
+
+func requireVolumeAttributesClassNameCleared(t *testing.T, name *string) {
+	t.Helper()
+	if name == nil {
+		return
+	}
+	assert.Empty(t, *name)
 }
 
 func mustParseQuantity(s string) resource.Quantity {

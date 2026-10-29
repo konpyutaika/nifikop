@@ -142,3 +142,23 @@ func TestReconcileNifiPVC_KeepsLargerManualPVCWhenSpecUnchanged(t *testing.T) {
 
 	assert.Equal(t, 0, want.Cmp(pvcStorageRequest(t, c, existing.Name)))
 }
+
+func TestReconcileNifiPVC_RemovesVolumeAttributesClassNameWhenRemovedFromNifiCluster(t *testing.T) {
+	cluster := testClusterForPVCReconcile()
+	vac := "rt-content-4000-default"
+	storage := storageConfigWithSize("10Gi")
+	existing := existingNodePVC(cluster, 0, storage, "10Gi")
+	existing.Spec.VolumeAttributesClassName = &vac
+
+	rec, c := newReconcilerForPVC(cluster, existing)
+	desired := rec.pvc(0, storage, *zap.NewNop()).(*corev1.PersistentVolumeClaim)
+
+	err := rec.reconcileNifiPVC(0, *zap.NewNop(), desired)
+	require.NoError(t, err)
+
+	pvc := &corev1.PersistentVolumeClaim{}
+	require.NoError(t, c.Get(context.Background(), types.NamespacedName{Namespace: cluster.Namespace, Name: existing.Name}, pvc))
+	if pvc.Spec.VolumeAttributesClassName != nil {
+		assert.Empty(t, *pvc.Spec.VolumeAttributesClassName)
+	}
+}

@@ -91,7 +91,7 @@ func pvcNeedsSpecUpdate(current, desired *corev1.PersistentVolumeClaim) bool {
 	if !stringPtrEqual(current.Spec.StorageClassName, desired.Spec.StorageClassName) {
 		return true
 	}
-	if !stringPtrEqual(current.Spec.VolumeAttributesClassName, desired.Spec.VolumeAttributesClassName) {
+	if !volumeAttributesClassNameEqual(current.Spec.VolumeAttributesClassName, desired.Spec.VolumeAttributesClassName) {
 		return true
 	}
 	if !equality.Semantic.DeepEqual(normalizeAccessModes(current.Spec.AccessModes), normalizeAccessModes(desired.Spec.AccessModes)) {
@@ -129,6 +129,31 @@ func stringPtrEqual(a, b *string) bool {
 	return *a == *b
 }
 
+func volumeAttributesClassNameEqual(a, b *string) bool {
+	return stringPtrEqual(normalizeVolumeAttributesClassName(a), normalizeVolumeAttributesClassName(b))
+}
+
+func normalizeVolumeAttributesClassName(name *string) *string {
+	if name == nil || *name == "" {
+		return nil
+	}
+	return name
+}
+
+// applyVolumeAttributesClassNameClear sets spec.volumeAttributesClassName to "" when the
+// NiFiCluster no longer specifies a class. A nil pointer is omitted from JSON on Update,
+// which leaves the existing apiserver value unchanged; an empty string clears it.
+func applyVolumeAttributesClassNameClear(spec *corev1.PersistentVolumeClaimSpec, currentName *string) {
+	if spec.VolumeAttributesClassName != nil {
+		return
+	}
+	if currentName == nil || *currentName == "" {
+		return
+	}
+	empty := ""
+	spec.VolumeAttributesClassName = &empty
+}
+
 func pvcAnnotationsForUpdate(current, desired map[string]string) map[string]string {
 	merged := util.MergeAnnotations(current, desired)
 	delete(merged, patch.LastAppliedConfig)
@@ -143,6 +168,7 @@ func pvcForUpdate(current, desired *corev1.PersistentVolumeClaim) *corev1.Persis
 	updated.Annotations = pvcAnnotationsForUpdate(current.Annotations, desired.Annotations)
 	updated.Spec = *desired.Spec.DeepCopy()
 	updated.Spec.VolumeName = current.Spec.VolumeName
+	applyVolumeAttributesClassNameClear(&updated.Spec, current.Spec.VolumeAttributesClassName)
 	return updated
 }
 
