@@ -66,6 +66,24 @@ func normalizePVCDesiredForReconcile(current, desired *corev1.PersistentVolumeCl
 	desired.CreationTimestamp = metav1.Time{}
 }
 
+// preparePVCForDiff returns a copy of desired with the live last-applied annotation, so
+// objectmatcher does not treat operator bookkeeping as perpetual drift.
+func preparePVCForDiff(current, desired *corev1.PersistentVolumeClaim) *corev1.PersistentVolumeClaim {
+	forDiff := desired.DeepCopy()
+	if current.Annotations == nil {
+		return forDiff
+	}
+	lastApplied, ok := current.Annotations[patch.LastAppliedConfig]
+	if !ok {
+		return forDiff
+	}
+	if forDiff.Annotations == nil {
+		forDiff.Annotations = map[string]string{}
+	}
+	forDiff.Annotations[patch.LastAppliedConfig] = lastApplied
+	return forDiff
+}
+
 // pvcNeedsSpecUpdate compares reconcilable PVC spec fields against the live object.
 // This avoids false "in sync" results from banzaicloud three-way merge when
 // last-applied records fields the apiserver did not persist on spec.

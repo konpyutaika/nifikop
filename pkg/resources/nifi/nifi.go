@@ -732,14 +732,19 @@ func (r *Reconciler) reconcileNifiPVC(nodeId int32, log zap.Logger, desiredPVC *
 	}
 	if err == nil {
 		normalizePVCDesiredForReconcile(currentPVC, desiredPVC)
-		needsUpdate := k8sutil.CheckIfObjectUpdated(log, desiredType, currentPVC, desiredPVC) ||
-			pvcNeedsSpecUpdate(currentPVC, desiredPVC)
+		pvcToApply := desiredPVC
+		if isDesiredStorageValueInvalid(desiredPVC, currentPVC) {
+			log.Warn("PVC storage request in spec is smaller than the existing PVC; keeping current size and continuing reconcile",
+				zap.String("clusterName", r.NifiCluster.Name),
+				zap.String("pvcName", currentPVC.Name),
+				zap.String("pvcNamespace", currentPVC.Namespace))
+			pvcToApply = desiredPVC.DeepCopy()
+			pvcToApply.Spec.Resources.Requests = currentPVC.Spec.Resources.Requests.DeepCopy()
+		}
+		needsUpdate := k8sutil.CheckIfObjectUpdated(log, desiredType, currentPVC, preparePVCForDiff(currentPVC, pvcToApply)) ||
+			pvcNeedsSpecUpdate(currentPVC, pvcToApply)
 		if needsUpdate {
-			if isDesiredStorageValueInvalid(desiredPVC, currentPVC) {
-				return errorfactory.New(errorfactory.InternalError{}, errors.New("could not modify pvc size"),
-					"one can not reduce the size of a PVC", "kind", desiredType)
-			}
-			toUpdate := pvcForUpdate(currentPVC, desiredPVC)
+			toUpdate := pvcForUpdate(currentPVC, pvcToApply)
 			toUpdate.SetOwnerReferences([]metav1.OwnerReference{templates.ClusterOwnerReference(r.NifiCluster)})
 
 			if err := r.Client.Update(context.TODO(), toUpdate); err != nil {
