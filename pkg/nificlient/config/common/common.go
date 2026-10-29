@@ -33,7 +33,7 @@ func ClusterConfig(cluster *v1.NifiCluster) *clientconfig.NifiConfig {
 }
 
 func externalClusterConfig(cluster *v1.NifiCluster) *clientconfig.NifiConfig {
-	conf := &clientconfig.NifiConfig{}
+	conf := &clientconfig.NifiConfig{ClusterName: cluster.Name}
 	ref := cluster.Spec
 	nodesURI := generateNodesAddressFromTemplate(ref.Nodes, ref.NodeURITemplate)
 
@@ -50,7 +50,7 @@ func externalClusterConfig(cluster *v1.NifiCluster) *clientconfig.NifiConfig {
 }
 
 func internalClusterConfig(cluster *v1.NifiCluster) *clientconfig.NifiConfig {
-	conf := &clientconfig.NifiConfig{}
+	conf := &clientconfig.NifiConfig{ClusterName: cluster.Name}
 	conf.RootProcessGroupId = cluster.Status.RootProcessGroupId
 	conf.NodeURITemplate = generateNodesURITemplate(cluster)
 	conf.NodesURI = generateNodesAddress(cluster)

@@ -18,7 +18,7 @@ func (n *nifiClient) GetControllerConfig() (*nigoapi.ControllerConfigurationEnti
 
 	out, rsp, body, err := client.ControllerApi.GetControllerConfig(context)
 
-	if err := errorGetOperation(rsp, body, err, n.log); err != nil {
+	if err := errorGetOperation(rsp, body, err, n.log, n.clusterName(), n.nodeIdForClient(client)); err != nil {
 		return nil, err
 	}
 

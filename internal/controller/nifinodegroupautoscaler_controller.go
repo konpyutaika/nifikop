@@ -95,7 +95,9 @@ func (r *NifiNodeGroupAutoscalerReconciler) Reconcile(ctx context.Context, req c
 
 	// Ensure finalizer for cleanup on deletion
 	if !util.StringSliceContains(nodeGroupAutoscaler.GetFinalizers(), autoscalerFinalizer) {
-		r.Log.Info(fmt.Sprintf("Adding Finalizer for NifiNodeGroupAutoscaler node group %s", nodeGroupAutoscaler.Spec.NodeConfigGroupId))
+		r.Log.Debug("Adding Finalizer for NifiNodeGroupAutoscaler",
+			zap.String("clusterName", nodeGroupAutoscaler.Spec.ClusterRef.Name),
+			zap.String("nodeGroup", nodeGroupAutoscaler.Spec.NodeConfigGroupId))
 		nodeGroupAutoscaler.SetFinalizers(append(nodeGroupAutoscaler.GetFinalizers(), autoscalerFinalizer))
 	}
 
@@ -126,7 +128,11 @@ func (r *NifiNodeGroupAutoscalerReconciler) Reconcile(ctx context.Context, req c
 	// then set the autoscaler status to out of sync to indicate we're changing the NifiCluster node config
 	// Additionally, if the autoscaler state is currently out of sync then scale up/down
 	if numDesiredReplicas != numCurrentReplicas || nodeGroupAutoscaler.Status.State == v1alpha1.AutoscalerStateOutOfSync {
-		r.Log.Info(fmt.Sprintf("Replicas changed from %d to %d", numCurrentReplicas, numDesiredReplicas))
+		r.Log.Info("Replicas changed",
+			zap.String("clusterName", cluster.Name),
+			zap.String("nodeGroup", nodeGroupAutoscaler.Spec.NodeConfigGroupId),
+			zap.Int32("currentReplicas", numCurrentReplicas),
+			zap.Int32("desiredReplicas", numDesiredReplicas))
 		if err = r.updateAutoscalerReplicaState(ctx, nodeGroupAutoscaler, current.Status, v1alpha1.AutoscalerStateOutOfSync); err != nil {
 			return RequeueWithError(r.Log, fmt.Sprintf("Failed to udpate node group autoscaler state for node group %s", nodeGroupAutoscaler.Spec.NodeConfigGroupId), err)
 		}
@@ -164,7 +170,9 @@ func (r *NifiNodeGroupAutoscalerReconciler) Reconcile(ctx context.Context, req c
 			return RequeueWithError(r.Log, fmt.Sprintf("Failed to udpate node group autoscaler state for node group %s", nodeGroupAutoscaler.Spec.NodeConfigGroupId), err)
 		}
 	} else {
-		r.Log.Info("Cluster replicas config and current number of replicas are the same", zap.Int32("replicas", nodeGroupAutoscaler.Spec.Replicas))
+		r.Log.Debug("Cluster replicas config and current number of replicas are the same",
+			zap.String("clusterName", cluster.Name),
+			zap.Int32("replicas", nodeGroupAutoscaler.Spec.Replicas))
 	}
 
 	// update replica and replica status
@@ -312,13 +320,17 @@ func (r *NifiNodeGroupAutoscalerReconciler) SetupWithManager(mgr ctrl.Manager) e
 }
 
 func (r *NifiNodeGroupAutoscalerReconciler) checkFinalizers(ctx context.Context, autoscaler *v1alpha1.NifiNodeGroupAutoscaler, patcher runtimeClient.Patch) (reconcile.Result, error) {
-	r.Log.Info("NifiNodeGroupAutoscaler is marked for deletion")
+	r.Log.Info("NifiNodeGroupAutoscaler is marked for deletion",
+		zap.String("clusterName", autoscaler.Spec.ClusterRef.Name),
+		zap.String("nodeGroup", autoscaler.Spec.NodeConfigGroupId))
 
 	var err error
 	if util.StringSliceContains(autoscaler.GetFinalizers(), autoscalerFinalizer) {
 		// no further actions necessary prior to removing finalizer.
 		if err = r.removeFinalizer(ctx, autoscaler, patcher); err != nil {
-			return RequeueWithError(r.Log, "failed to remove finalizer from autoscaler", err)
+			return RequeueWithError(r.Log, "failed to remove finalizer from autoscaler", err,
+				zap.String("clusterName", autoscaler.Spec.ClusterRef.Name),
+				zap.String("nodeGroup", autoscaler.Spec.NodeConfigGroupId))
 		}
 	}
 

@@ -28,7 +28,7 @@ func (n *nifiClient) GetAccessPolicy(action, resource string) (*nigoapi.AccessPo
 
 	accessPolicyEntity, rsp, body, err := client.PoliciesApi.GetAccessPolicyForResource(context, action, resource)
 
-	if err := errorGetOperation(rsp, body, err, n.log.WithOptions()); err != nil {
+	if err := errorGetOperation(rsp, body, err, n.log.WithOptions(), n.clusterName(), n.nodeIdForClient(client)); err != nil {
 		return nil, err
 	}
 

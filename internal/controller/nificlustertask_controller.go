@@ -77,8 +77,9 @@ func (r *NifiClusterTaskReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 			return Reconciled()
 		}
 		// Error reading the object - requeue the request.
-		return RequeueWithError(r.Log, err.Error(), err)
+		return RequeueWithError(r.Log, err.Error(), err, zap.String("clusterName", req.Name))
 	}
+	clusterLog := *r.Log.With(zap.String("clusterName", instance.Name))
 	current := instance.DeepCopy()
 
 	var nodesWithRunningNCTask []string
@@ -90,7 +91,7 @@ func (r *NifiClusterTaskReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 	}
 
 	if len(nodesWithRunningNCTask) > 0 {
-		err = r.handlePodRunningTask(instance, current.Status, nodesWithRunningNCTask, r.Log)
+		err = r.handlePodRunningTask(instance, current.Status, nodesWithRunningNCTask, clusterLog)
 	}
 
 	if err != nil {
@@ -102,7 +103,11 @@ func (r *NifiClusterTaskReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		case errorfactory.NifiClusterTaskTimeout, errorfactory.NifiClusterTaskFailure:
 			return RequeueAfter(intervalTimeout)
 		default:
-			return RequeueWithError(r.Log, err.Error(), err)
+			fields := []zap.Field{}
+			if len(nodesWithRunningNCTask) > 0 {
+				fields = append(fields, zap.Strings("nodeIds", nodesWithRunningNCTask))
+			}
+			return RequeueWithError(clusterLog, err.Error(), err, fields...)
 		}
 	}
 
@@ -118,9 +123,9 @@ func (r *NifiClusterTaskReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 	}
 
 	if len(nodesWithUpscaleRequired) > 0 {
-		err = r.handlePodAddCCTask(instance, current.Status, nodesWithUpscaleRequired)
+		err = r.handlePodAddCCTask(instance, current.Status, nodesWithUpscaleRequired, clusterLog)
 	} else if len(nodesWithDownscaleRequired) > 0 {
-		err = r.handlePodDeleteNCTask(instance, current.Status, nodesWithDownscaleRequired)
+		err = r.handlePodDeleteNCTask(instance, current.Status, nodesWithDownscaleRequired, clusterLog)
 	}
 
 	if err != nil {
@@ -132,7 +137,15 @@ func (r *NifiClusterTaskReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		case errorfactory.NifiClusterTaskTimeout, errorfactory.NifiClusterTaskFailure:
 			return RequeueAfter(intervalTimeout)
 		default:
-			return RequeueWithError(r.Log, err.Error(), err)
+			nodeIds := nodesWithUpscaleRequired
+			if len(nodeIds) == 0 {
+				nodeIds = nodesWithDownscaleRequired
+			}
+			fields := []zap.Field{}
+			if len(nodeIds) > 0 {
+				fields = append(fields, zap.Strings("nodeIds", nodeIds))
+			}
+			return RequeueWithError(clusterLog, err.Error(), err, fields...)
 		}
 	}
 
@@ -198,18 +211,18 @@ func (r *NifiClusterTaskReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return nil
 }
 
-func (r *NifiClusterTaskReconciler) handlePodAddCCTask(nifiCluster *v1.NifiCluster, currentStatus v1.NifiClusterStatus, nodeIds []string) error {
+func (r *NifiClusterTaskReconciler) handlePodAddCCTask(nifiCluster *v1.NifiCluster, currentStatus v1.NifiClusterStatus, nodeIds []string, log zap.Logger) error {
 	for _, nodeId := range nodeIds {
 		actionStep, taskStartTime, scaleErr := scale.UpScaleCluster(nodeId, nifiCluster.Namespace, nifiCluster.Name)
 		if scaleErr != nil {
-			r.Log.Error("Nifi cluster communication error during upscaling node(s)",
+			log.Error("Nifi cluster communication error during upscaling node(s)",
 				zap.String("clusterName", nifiCluster.Name),
-				zap.String("nodeId(s)", nodeId))
+				zap.String("nodeId", nodeId))
 			return errorfactory.New(errorfactory.NifiClusterNotReady{}, scaleErr, fmt.Sprintf("Node id(s): %s", nodeId))
 		}
 		statusErr := k8sutil.UpdateNodeStatus(r.Client, []string{nodeId}, nifiCluster, currentStatus,
 			v1.GracefulActionState{ActionStep: actionStep, State: v1.GracefulUpscaleRunning,
-				TaskStarted: taskStartTime}, r.Log)
+				TaskStarted: taskStartTime}, log)
 		if statusErr != nil {
 			return errors.WrapIfWithDetails(statusErr, "could not update status for node", "clusterName", nifiCluster.Name, "id(s)", nodeId)
 		}
@@ -217,7 +230,7 @@ func (r *NifiClusterTaskReconciler) handlePodAddCCTask(nifiCluster *v1.NifiClust
 	return nil
 }
 
-func (r *NifiClusterTaskReconciler) handlePodDeleteNCTask(nifiCluster *v1.NifiCluster, currentStatus v1.NifiClusterStatus, nodeIds []string) error {
+func (r *NifiClusterTaskReconciler) handlePodDeleteNCTask(nifiCluster *v1.NifiCluster, currentStatus v1.NifiClusterStatus, nodeIds []string, log zap.Logger) error {
 	// Prepare cluster connection configurations
 	var clientConfig *clientconfig.NifiConfig
 	var err error
@@ -234,7 +247,7 @@ func (r *NifiClusterTaskReconciler) handlePodDeleteNCTask(nifiCluster *v1.NifiCl
 
 	for _, nodeId := range nodeIds {
 		if nifiCluster.Status.NodesState[nodeId].GracefulActionState.ActionStep == v1.ConnectNodeAction {
-			err := r.checkNCActionStep(nodeId, nifiCluster, currentStatus, v1.ConnectStatus, nil)
+			err := r.checkNCActionStep(nodeId, nifiCluster, currentStatus, v1.ConnectStatus, nil, log)
 			if err != nil {
 				return err
 			}
@@ -242,14 +255,14 @@ func (r *NifiClusterTaskReconciler) handlePodDeleteNCTask(nifiCluster *v1.NifiCl
 
 		actionStep, taskStartTime, err := scale.DisconnectClusterNode(clientConfig, nodeId)
 		if err != nil {
-			r.Log.Error("nifi cluster communication error during downscaling node(s) id(s)",
+			log.Error("nifi cluster communication error during downscaling node(s) id(s)",
 				zap.String("clusterName", nifiCluster.Name),
 				zap.String("nodeId", nodeId))
 			return errorfactory.New(errorfactory.NifiClusterNotReady{}, err, fmt.Sprintf("node(s) id(s): %s", nodeId))
 		}
 		err = k8sutil.UpdateNodeStatus(r.Client, []string{nodeId}, nifiCluster, currentStatus,
 			v1.GracefulActionState{ActionStep: actionStep, State: v1.GracefulDownscaleRunning,
-				TaskStarted: taskStartTime}, r.Log)
+				TaskStarted: taskStartTime}, log)
 		if err != nil {
 			return errors.WrapIfWithDetails(err, "could not update status for node(s)", "clusterName", nifiCluster.Name, "id(s)", nodeId)
 		}
@@ -276,7 +289,7 @@ func (r *NifiClusterTaskReconciler) handlePodRunningTask(nifiCluster *v1.NifiClu
 	for _, nodeId := range nodeIds {
 		// Check if node finished to connect
 		if nifiCluster.Status.NodesState[nodeId].GracefulActionState.ActionStep == v1.ConnectNodeAction {
-			err := r.checkNCActionStep(nodeId, nifiCluster, currentStatus, v1.ConnectStatus, nil)
+			err := r.checkNCActionStep(nodeId, nifiCluster, currentStatus, v1.ConnectStatus, nil, log)
 			if err != nil {
 				return err
 			}
@@ -284,7 +297,7 @@ func (r *NifiClusterTaskReconciler) handlePodRunningTask(nifiCluster *v1.NifiClu
 
 		// Check if node finished to disconnect
 		if nifiCluster.Status.NodesState[nodeId].GracefulActionState.ActionStep == v1.DisconnectNodeAction {
-			err := r.checkNCActionStep(nodeId, nifiCluster, currentStatus, v1.DisconnectStatus, nil)
+			err := r.checkNCActionStep(nodeId, nifiCluster, currentStatus, v1.DisconnectStatus, nil, log)
 			if err != nil {
 				return err
 			}
@@ -294,7 +307,7 @@ func (r *NifiClusterTaskReconciler) handlePodRunningTask(nifiCluster *v1.NifiClu
 		if nifiCluster.Status.NodesState[nodeId].GracefulActionState.ActionStep == v1.DisconnectStatus {
 			actionStep, taskStartTime, err := scale.OffloadClusterNode(clientConfig, nodeId)
 			if err != nil {
-				r.Log.Error("nifi cluster communication error during removing node id",
+				log.Error("nifi cluster communication error during removing node id",
 					zap.String("clusterName", nifiCluster.Name),
 					zap.String("nodeId", nodeId))
 				return errorfactory.New(errorfactory.NifiClusterNotReady{}, err, fmt.Sprintf("node id: %s", nodeId))
@@ -309,7 +322,7 @@ func (r *NifiClusterTaskReconciler) handlePodRunningTask(nifiCluster *v1.NifiClu
 
 		// Check if node finished to offload data
 		if nifiCluster.Status.NodesState[nodeId].GracefulActionState.ActionStep == v1.OffloadNodeAction {
-			err := r.checkNCActionStep(nodeId, nifiCluster, currentStatus, v1.OffloadStatus, nil)
+			err := r.checkNCActionStep(nodeId, nifiCluster, currentStatus, v1.OffloadStatus, nil, log)
 			if err != nil {
 				return err
 			}
@@ -324,7 +337,7 @@ func (r *NifiClusterTaskReconciler) handlePodRunningTask(nifiCluster *v1.NifiClu
 		if nifiCluster.Status.NodesState[nodeId].GracefulActionState.ActionStep == v1.RemovePodStatus {
 			actionStep, taskStartTime, err := scale.RemoveClusterNode(clientConfig, nodeId)
 			if err != nil {
-				r.Log.Error("nifi cluster communication error during removing node id",
+				log.Error("nifi cluster communication error during removing node id",
 					zap.String("clusterName", nifiCluster.Name),
 					zap.String("nodeId", nodeId))
 				return errorfactory.New(errorfactory.NifiClusterNotReady{}, err, fmt.Sprintf("node id: %s", nodeId))
@@ -340,7 +353,7 @@ func (r *NifiClusterTaskReconciler) handlePodRunningTask(nifiCluster *v1.NifiClu
 		if nifiCluster.Status.NodesState[nodeId].GracefulActionState.ActionStep == v1.RemoveNodeAction {
 			succeedState := v1.GracefulDownscaleSucceeded
 			err := r.checkNCActionStep(nodeId,
-				nifiCluster, currentStatus, v1.RemoveStatus, &succeedState)
+				nifiCluster, currentStatus, v1.RemoveStatus, &succeedState, log)
 			if err != nil {
 				return err
 			}
@@ -349,7 +362,7 @@ func (r *NifiClusterTaskReconciler) handlePodRunningTask(nifiCluster *v1.NifiClu
 	return nil
 }
 
-func (r *NifiClusterTaskReconciler) checkNCActionStep(nodeId string, nifiCluster *v1.NifiCluster, currentStatus v1.NifiClusterStatus, actionStep v1.ActionStep, state *v1.State) error {
+func (r *NifiClusterTaskReconciler) checkNCActionStep(nodeId string, nifiCluster *v1.NifiCluster, currentStatus v1.NifiClusterStatus, actionStep v1.ActionStep, state *v1.State, log zap.Logger) error {
 	// Prepare cluster connection configurations
 	var clientConfig *clientconfig.NifiConfig
 	var err error
@@ -369,9 +382,11 @@ func (r *NifiClusterTaskReconciler) checkNCActionStep(nodeId string, nifiCluster
 	// Check Nifi cluster action status
 	finished, err := scale.CheckIfNCActionStepFinished(nodeState.GracefulActionState.ActionStep, clientConfig, nodeId)
 	if err != nil {
-		r.Log.Sugar().Errorw("Nifi cluster communication error checking running task",
-			"clusterName", nifiCluster.Name,
-			"actionStep", nodeState.GracefulActionState.ActionStep)
+		log.Error("Nifi cluster communication error checking running task",
+			zap.String("clusterName", nifiCluster.Name),
+			zap.String("nodeId", nodeId),
+			zap.String("actionStep", string(nodeState.GracefulActionState.ActionStep)),
+			zap.Error(err))
 		return errorfactory.New(errorfactory.NifiClusterNotReady{}, err, "nifi cluster communication error")
 	}
 
@@ -384,7 +399,7 @@ func (r *NifiClusterTaskReconciler) checkNCActionStep(nodeId string, nifiCluster
 			v1.GracefulActionState{State: succeedState,
 				TaskStarted: nodeState.GracefulActionState.TaskStarted,
 				ActionStep:  actionStep,
-			}, r.Log)
+			}, log)
 		if err != nil {
 			return errors.WrapIfWithDetails(err, "could not update status for node(s)", "clusterName", nifiCluster.Name, "id(s)", nodeId)
 		}
@@ -408,9 +423,10 @@ func (r *NifiClusterTaskReconciler) checkNCActionStep(nodeId string, nifiCluster
 				return err
 			}
 
-			r.Log.Sugar().Infow("Rollback nifi cluster task",
-				"clusterName", nifiCluster.Name,
-				"actionStep", nodeState.GracefulActionState.ActionStep)
+			log.Warn("Rollback nifi cluster task",
+				zap.String("clusterName", nifiCluster.Name),
+				zap.String("nodeId", nodeId),
+				zap.String("actionStep", string(nodeState.GracefulActionState.ActionStep)))
 
 			actionStep, taskStartTime, err := scale.ConnectClusterNode(clientConfig, nodeId)
 
@@ -425,14 +441,17 @@ func (r *NifiClusterTaskReconciler) checkNCActionStep(nodeId string, nifiCluster
 				return errorfactory.New(errorfactory.NifiClusterNotReady{}, err, "nifi cluster communication error for cluster "+nifiCluster.Name)
 			}
 
-			err = k8sutil.UpdateNodeStatus(r.Client, []string{nodeId}, nifiCluster, currentStatus, timedOutNodeNCState, r.Log)
+			err = k8sutil.UpdateNodeStatus(r.Client, []string{nodeId}, nifiCluster, currentStatus, timedOutNodeNCState, log)
 			if err != nil {
 				return errors.WrapIfWithDetails(err, "could not update status for node(s)", "clusterName", nifiCluster.Name, "id(s)", nodeId)
 			}
 		}
 	}
 	// cc task still in progress
-	r.Log.Info("Nifi cluster task is still running", zap.String("actionStep", string(actionStep)))
+	log.Info("Nifi cluster task is still running",
+		zap.String("clusterName", nifiCluster.Name),
+		zap.String("nodeId", nodeId),
+		zap.String("actionStep", string(actionStep)))
 	return errorfactory.New(errorfactory.NifiClusterTaskRunning{}, errors.New("Nifi cluster task is still running for cluster "+nifiCluster.Name), fmt.Sprintf("nc action step: %s", actionStep))
 }
 

@@ -17,7 +17,7 @@ func (n *nifiClient) GetFlow(id string) (*nigoapi.ProcessGroupFlowEntity, error)
 
 	// Request on Nifi Rest API to get the process group flow informations
 	flowPGEntity, rsp, body, err := client.FlowApi.GetFlow1(context, id, nil)
-	if err := errorGetOperation(rsp, body, err, n.log); err != nil {
+	if err := errorGetOperation(rsp, body, err, n.log, n.clusterName(), n.nodeIdForClient(client)); err != nil {
 		return nil, err
 	}
 
@@ -39,7 +39,7 @@ func (n *nifiClient) GetFlowControllerServices(id string) (*nigoapi.ControllerSe
 			IncludeDescendantGroups: optional.NewBool(true),
 		})
 
-	if err := errorGetOperation(rsp, body, err, n.log); err != nil {
+	if err := errorGetOperation(rsp, body, err, n.log, n.clusterName(), n.nodeIdForClient(client)); err != nil {
 		return nil, err
 	}
 

@@ -281,6 +281,31 @@ func (n *nifiClient) getNiNodeGoApiConfig(nodeId int32) (config *nigoapi.Configu
 	return
 }
 
+func (n *nifiClient) clusterName() string {
+	if n.opts == nil {
+		return ""
+	}
+	return n.opts.ClusterName
+}
+
+func (n *nifiClient) nodeIdForClient(client *nigoapi.APIClient) int32 {
+	if client == nil {
+		return 0
+	}
+	for nodeId, nodeClient := range n.nodeClient {
+		if nodeClient == client {
+			return nodeId
+		}
+	}
+	if clientId := n.coordinatorNodeId(); clientId != nil {
+		return *clientId
+	}
+	if clientId := n.privilegeNodeClient(); clientId != nil {
+		return *clientId
+	}
+	return 0
+}
+
 func (n *nifiClient) privilegeCoordinatorClient() (*nigoapi.APIClient, context.Context) {
 	if clientId := n.coordinatorNodeId(); clientId != nil {
 		return n.nodeClient[*clientId], n.opts.NodesContext[*clientId]
