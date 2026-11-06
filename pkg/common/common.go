@@ -69,6 +69,7 @@ type RequeueConfig struct {
 	DataFlowRequeueInterval            int
 	ConnectionRequeueInterval          int
 	ResourceRequeueInterval            int
+	ControllerServiceRequeueInterval   int
 	ClusterTaskRequeueIntervals        map[string]int
 	RequeueOffset                      int
 }
@@ -89,6 +90,7 @@ func NewRequeueConfig() *RequeueConfig {
 		DataFlowRequeueInterval:            util.MustConvertToInt(util.GetEnvWithDefault("DATAFLOW_REQUEUE_INTERVAL", "15"), "DATAFLOW_REQUEUE_INTERVAL"),
 		ConnectionRequeueInterval:          util.MustConvertToInt(util.GetEnvWithDefault("CONNECTION_REQUEUE_INTERVAL", "15"), "CONNECTION_REQUEUE_INTERVAL"),
 		ResourceRequeueInterval:            util.MustConvertToInt(util.GetEnvWithDefault("RESOURCE_REQUEUE_INTERVAL", "15"), "RESOURCE_REQUEUE_INTERVAL"),
+		ControllerServiceRequeueInterval:   util.MustConvertToInt(util.GetEnvWithDefault("CONTROLLER_SERVICE_REQUEUE_INTERVAL", "15"), "CONTROLLER_SERVICE_REQUEUE_INTERVAL"),
 		RequeueOffset:                      util.MustConvertToInt(util.GetEnvWithDefault("REQUEUE_OFFSET", "0"), "REQUEUE_OFFSET"),
 	}
 }
