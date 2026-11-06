@@ -42,6 +42,30 @@ type NifiControllerServiceReconciler struct {
 	Recorder        record.EventRecorder
 	RequeueInterval int
 	RequeueOffset   int
+
+	// ops holds the NiFi side operations. Nil selects the clientwrappers implementation; tests
+	// replace it to exercise the reconciliation without a NiFi cluster.
+	ops *controllerServiceOps
+}
+
+// controllerServiceOps are the NiFi side operations the reconciler depends on.
+type controllerServiceOps struct {
+	exist  func(*v1alpha1.NifiControllerService, *clientconfig.NifiConfig) (bool, error)
+	create func(*v1alpha1.NifiControllerService, *clientconfig.NifiConfig) (*v1alpha1.NifiControllerServiceStatus, error)
+	sync   func(*v1alpha1.NifiControllerService, *clientconfig.NifiConfig) (*v1alpha1.NifiControllerServiceStatus, error)
+	remove func(*v1alpha1.NifiControllerService, *clientconfig.NifiConfig) error
+}
+
+func (r *NifiControllerServiceReconciler) operations() controllerServiceOps {
+	if r.ops != nil {
+		return *r.ops
+	}
+	return controllerServiceOps{
+		exist:  controllerservice.ExistControllerService,
+		create: controllerservice.CreateControllerService,
+		sync:   controllerservice.SyncControllerService,
+		remove: controllerservice.RemoveControllerService,
+	}
 }
 
 // +kubebuilder:rbac:groups=nifi.konpyutaika.com,resources=nificontrollerservices,verbs=get;list;watch;create;update;patch;delete
@@ -163,7 +187,7 @@ func (r *NifiControllerServiceReconciler) Reconcile(ctx context.Context, req ctr
 	// In case of the cluster reference changed.
 	if !v1.ClusterRefsEquals([]v1.ClusterReference{instance.Spec.ClusterRef, current.Spec.ClusterRef}) {
 		// Delete the resource on the previous cluster.
-		if err := controllerservice.RemoveControllerService(instance, clientConfig); err != nil {
+		if err := r.operations().remove(instance, clientConfig); err != nil {
 			if result, handled := r.handleRemoveError(instance, err, interval); handled {
 				return result, nil
 			}
@@ -186,7 +210,7 @@ func (r *NifiControllerServiceReconciler) Reconcile(ctx context.Context, req ctr
 		"Reconciling controller service "+instance.Name)
 
 	// Check if the NiFi controller service already exist
-	exist, err := controllerservice.ExistControllerService(instance, clientConfig)
+	exist, err := r.operations().exist(instance, clientConfig)
 	if err != nil {
 		return RequeueWithError(r.Log, "failure checking for existing controller service "+instance.Name, err)
 	}
@@ -195,7 +219,7 @@ func (r *NifiControllerServiceReconciler) Reconcile(ctx context.Context, req ctr
 		// Create NiFi controller service
 		r.Recorder.Event(instance, corev1.EventTypeNormal, "Creating",
 			fmt.Sprintf("Creating controller service %s", instance.Name))
-		status, err := controllerservice.CreateControllerService(instance, clientConfig)
+		status, err := r.operations().create(instance, clientConfig)
 		if err != nil {
 			return RequeueWithError(r.Log, "failure creating controller service "+instance.Name, err)
 		}
@@ -221,7 +245,7 @@ func (r *NifiControllerServiceReconciler) Reconcile(ctx context.Context, req ctr
 	// Sync the controller service configuration and run state with the NiFi side component.
 	r.Recorder.Event(instance, corev1.EventTypeNormal, "Synchronizing",
 		fmt.Sprintf("Synchronizing controller service %s", instance.Name))
-	status, err := controllerservice.SyncControllerService(instance, clientConfig)
+	status, err := r.operations().sync(instance, clientConfig)
 	if err != nil {
 		r.Recorder.Event(instance, corev1.EventTypeWarning, "SynchronizingFailed",
 			fmt.Sprintf("Synchronizing controller service %s failed", instance.Name))
@@ -351,7 +375,7 @@ func (r *NifiControllerServiceReconciler) removeFinalizer(ctx context.Context, c
 
 func (r *NifiControllerServiceReconciler) finalizeNifiControllerService(controllerService *v1alpha1.NifiControllerService,
 	config *clientconfig.NifiConfig) error {
-	if err := controllerservice.RemoveControllerService(controllerService, config); err != nil {
+	if err := r.operations().remove(controllerService, config); err != nil {
 		return err
 	}
 
