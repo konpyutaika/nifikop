@@ -81,3 +81,45 @@ func (n *nifiClient) RemoveControllerService(entity nigoapi.ControllerServiceEnt
 
 	return errorDeleteOperation(rsp, body, err, n.log)
 }
+
+// UpdateControllerServiceRunStatus requests a state transition (ENABLED or DISABLED) for a
+// controller service. NiFi applies the transition asynchronously: the returned entity reflects
+// the state at the time of the call, so callers must poll until the target state is reached.
+func (n *nifiClient) UpdateControllerServiceRunStatus(entity nigoapi.ControllerServiceEntity, state string) (*nigoapi.ControllerServiceEntity, error) {
+	// Get nigoapi client, favoring the one associated to the coordinator node.
+	client, context := n.privilegeCoordinatorClient()
+	if client == nil {
+		n.log.Error("Error during creating node client", zap.Error(ErrNoNodeClientsAvailable))
+		return nil, ErrNoNodeClientsAvailable
+	}
+
+	// Request on Nifi Rest API to change the controller service run status
+	out, rsp, body, err := client.ControllerServicesApi.UpdateRunStatus2(context,
+		nigoapi.ControllerServiceRunStatusEntity{
+			Revision: entity.Revision,
+			State:    state,
+		}, entity.Id)
+	if err := errorUpdateOperation(rsp, body, err, n.log); err != nil {
+		return nil, err
+	}
+
+	return &out, nil
+}
+
+// GetControllerServiceReferences lists the components referencing a controller service.
+func (n *nifiClient) GetControllerServiceReferences(id string) (*nigoapi.ControllerServiceReferencingComponentsEntity, error) {
+	// Get nigoapi client, favoring the one associated to the coordinator node.
+	client, context := n.privilegeCoordinatorClient()
+	if client == nil {
+		n.log.Error("Error during creating node client", zap.Error(ErrNoNodeClientsAvailable))
+		return nil, ErrNoNodeClientsAvailable
+	}
+
+	// Request on Nifi Rest API to get the controller service references
+	out, rsp, body, err := client.ControllerServicesApi.GetControllerServiceReferences(context, id)
+	if err := errorGetOperation(rsp, body, err, n.log); err != nil {
+		return nil, err
+	}
+
+	return &out, nil
+}

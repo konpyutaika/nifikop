@@ -146,6 +146,8 @@ type NifiClient interface {
 	CreateControllerService(entity nigoapi.ControllerServiceEntity) (*nigoapi.ControllerServiceEntity, error)
 	UpdateControllerService(entity nigoapi.ControllerServiceEntity) (*nigoapi.ControllerServiceEntity, error)
 	RemoveControllerService(entity nigoapi.ControllerServiceEntity) error
+	UpdateControllerServiceRunStatus(entity nigoapi.ControllerServiceEntity, state string) (*nigoapi.ControllerServiceEntity, error)
+	GetControllerServiceReferences(id string) (*nigoapi.ControllerServiceReferencingComponentsEntity, error)
 
 	Build() error
 }
