@@ -248,6 +248,7 @@ Permissions on namespaced resources, shared by the ClusterRole and per-namespace
   - "nificlusters"
   - "nifidataflows"
   - "nifiregistryclients"
+  - "nificontrollerservices"
   - "nifiparametercontexts"
   - "nifinodegroupautoscalers"
   - "nificonnections"
@@ -296,6 +297,7 @@ Permissions on namespaced resources, shared by the ClusterRole and per-namespace
   - nificlusters/status
   - nifidataflows/status
   - nifiregistryclients/status
+  - nificontrollerservices/status
   - nifiparametercontexts/status
   - nifinodegroupautoscalers/status
   - nificonnections/status
