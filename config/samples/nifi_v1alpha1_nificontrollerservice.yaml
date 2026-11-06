@@ -1,0 +1,20 @@
+apiVersion: nifi.konpyutaika.com/v1alpha1
+kind: NifiControllerService
+metadata:
+  name: web-client
+spec:
+  # Contains the reference to the NifiCluster with the one the controller service is linked.
+  clusterRef:
+    name: nc
+    namespace: nifikop
+  # The description of the controller service, stored as the component comments in NiFi.
+  description: "Shared HTTP client for registry clients"
+  # The NiFi class name of the controller service. Created at controller level, so that
+  # flow registry clients and other controller-scoped components can reference it.
+  type: org.apache.nifi.web.client.provider.service.StandardWebClientServiceProvider
+  # The configuration of the controller service when type is StandardWebClientServiceProvider.
+  # Durations use the NiFi time period format.
+  standardWebClientServiceProviderSpec:
+    connectTimeout: "10 secs"
+    readTimeout: "10 secs"
+    writeTimeout: "10 secs"
