@@ -12,6 +12,7 @@ resources:
 - bases/nifi.konpyutaika.com_nifinodegroupautoscalers.yaml
 - bases/nifi.konpyutaika.com_nificonnections.yaml
 - bases/nifi.konpyutaika.com_nifiresources.yaml
+- bases/nifi.konpyutaika.com_nificontrollerservices.yaml
 # +kubebuilder:scaffold:crdkustomizeresource
 
 patchesStrategicMerge:
