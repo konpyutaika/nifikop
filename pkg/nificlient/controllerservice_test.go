@@ -1,8 +1,10 @@
 package nificlient
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"testing"
 
 	"github.com/jarcoal/httpmock"
@@ -52,4 +54,134 @@ func testGetControllerService(t *testing.T, id string, status int) (*nigoapi.Con
 		})
 
 	return client.GetControllerService(id)
+}
+
+func TestCreateControllerService(t *testing.T) {
+	assert := assert.New(t)
+
+	mockEntity := MockControllerService(mockControllerServiceId, "", "controllerservice-mock", "DISABLED")
+
+	entity, err := testCreateControllerService(t, &mockEntity, 201)
+	assert.Nil(err)
+	if assert.NotNil(entity) {
+		assert.Equal(mockControllerServiceId, entity.Id)
+	}
+
+	entity, err = testCreateControllerService(t, &mockEntity, 404)
+	assert.IsType(ErrNifiClusterReturned404, err)
+	assert.Nil(entity)
+
+	entity, err = testCreateControllerService(t, &mockEntity, 500)
+	assert.IsType(ErrNifiClusterNotReturned201, err)
+	assert.Nil(entity)
+}
+
+func testCreateControllerService(t *testing.T, entity *nigoapi.ControllerServiceEntity, status int) (*nigoapi.ControllerServiceEntity, error) {
+	cluster := testClusterMock(t)
+
+	client, err := testClientFromCluster(cluster, false)
+	if err != nil {
+		return nil, err
+	}
+
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	// Controller-level endpoint: the service must be visible to flow registry clients.
+	url := nifiAddress(cluster, "/controller/controller-services")
+	httpmock.RegisterResponder(http.MethodPost, url,
+		func(req *http.Request) (*http.Response, error) {
+			var sent nigoapi.ControllerServiceEntity
+			if err := json.NewDecoder(req.Body).Decode(&sent); err != nil {
+				return httpmock.NewStringResponse(400, err.Error()), nil
+			}
+			assert.Equal(t, entity.Component.Name, sent.Component.Name)
+			assert.Equal(t, entity.Component.Type_, sent.Component.Type_)
+			return httpmock.NewJsonResponse(status, entity)
+		})
+
+	return client.CreateControllerService(*entity)
+}
+
+func TestUpdateControllerService(t *testing.T) {
+	assert := assert.New(t)
+
+	mockEntity := MockControllerService(mockControllerServiceId, "", "controllerservice-mock", "DISABLED")
+
+	entity, err := testUpdateControllerService(t, &mockEntity, 200)
+	assert.Nil(err)
+	if assert.NotNil(entity) {
+		assert.Equal(mockControllerServiceId, entity.Id)
+	}
+
+	entity, err = testUpdateControllerService(t, &mockEntity, 404)
+	assert.IsType(ErrNifiClusterReturned404, err)
+	assert.Nil(entity)
+
+	entity, err = testUpdateControllerService(t, &mockEntity, 500)
+	assert.IsType(ErrNifiClusterNotReturned200, err)
+	assert.Nil(entity)
+}
+
+func testUpdateControllerService(t *testing.T, entity *nigoapi.ControllerServiceEntity, status int) (*nigoapi.ControllerServiceEntity, error) {
+	cluster := testClusterMock(t)
+
+	client, err := testClientFromCluster(cluster, false)
+	if err != nil {
+		return nil, err
+	}
+
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	url := nifiAddress(cluster, fmt.Sprintf("/controller-services/%s", entity.Id))
+	httpmock.RegisterResponder(http.MethodPut, url,
+		func(req *http.Request) (*http.Response, error) {
+			var sent nigoapi.ControllerServiceEntity
+			if err := json.NewDecoder(req.Body).Decode(&sent); err != nil {
+				return httpmock.NewStringResponse(400, err.Error()), nil
+			}
+			assert.Equal(t, entity.Id, sent.Id)
+			assert.Equal(t, *entity.Revision.Version, *sent.Revision.Version)
+			return httpmock.NewJsonResponse(status, entity)
+		})
+
+	return client.UpdateControllerService(*entity)
+}
+
+func TestRemoveControllerService(t *testing.T) {
+	assert := assert.New(t)
+
+	mockEntity := MockControllerService(mockControllerServiceId, "", "controllerservice-mock", "DISABLED")
+
+	err := testRemoveControllerService(t, &mockEntity, 200)
+	assert.Nil(err)
+
+	err = testRemoveControllerService(t, &mockEntity, 404)
+	assert.Nil(err)
+
+	err = testRemoveControllerService(t, &mockEntity, 500)
+	assert.IsType(ErrNifiClusterNotReturned200, err)
+}
+
+func testRemoveControllerService(t *testing.T, entity *nigoapi.ControllerServiceEntity, status int) error {
+	cluster := testClusterMock(t)
+
+	client, err := testClientFromCluster(cluster, false)
+	if err != nil {
+		return err
+	}
+
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	url := nifiAddress(cluster, fmt.Sprintf("/controller-services/%s", entity.Id))
+	httpmock.RegisterResponder(http.MethodDelete, url,
+		func(req *http.Request) (*http.Response, error) {
+			// NiFi requires the current revision version for optimistic locking.
+			assert.Equal(t, strconv.FormatInt(*entity.Revision.Version, 10), req.URL.Query().Get("version"))
+			return httpmock.NewJsonResponse(status, entity)
+		})
+
+	return client.RemoveControllerService(*entity)
 }
