@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	nigoapi "github.com/konpyutaika/nigoapi/pkg/nifi"
+	"go.uber.org/zap"
 
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
 	"github.com/konpyutaika/nifikop/pkg/clientwrappers"
@@ -143,10 +144,14 @@ func RemoveControllerService(controllerService *v1alpha1.NifiControllerService,
 	if err := clientwrappers.ErrorGetOperation(log, err, "Get controller-service references"); err != nil {
 		return err
 	}
+	live, err := liveReferences(nClient, references.ControllerServiceReferencingComponents)
+	if err := clientwrappers.ErrorGetOperation(log, err, "Check controller-service references"); err != nil {
+		return err
+	}
 
-	switch planRemove(entity.Component.State, len(references.ControllerServiceReferencingComponents)) {
+	switch planRemove(entity.Component.State, len(live)) {
 	case actionRefuse:
-		return fmt.Errorf("%w: %s", ErrReferenced, referenceNames(references))
+		return fmt.Errorf("%w: %s", ErrReferenced, referenceNames(live))
 	case actionDisable:
 		if _, err = nClient.UpdateControllerServiceRunStatus(*entity, string(v1alpha1.ControllerServiceStateDisabled)); err != nil {
 			return clientwrappers.ErrorUpdateOperation(log, err, "Disable controller-service")
@@ -208,9 +213,56 @@ func planRemove(state string, referenceCount int) action {
 	}
 }
 
-func referenceNames(references *nigoapi.ControllerServiceReferencingComponentsEntity) string {
+// NiFi reference types, as reported in ControllerServiceReferencingComponentDTO.referenceType.
+const (
+	referenceTypeFlowRegistryClient = "FlowRegistryClient"
+	referenceTypeReportingTask      = "ReportingTask"
+)
+
+// referenceLookup is the part of the NiFi client needed to check that a referencing component
+// still exists.
+type referenceLookup interface {
+	GetRegistryClient(id string) (*nigoapi.FlowRegistryClientEntity, error)
+	GetReportingTask(id string) (*nigoapi.ReportingTaskEntity, error)
+}
+
+// liveReferences drops references to components that no longer exist. NiFi (observed on 2.9.0)
+// keeps a controller service's reference to a flow registry client after that client has been
+// deleted, which would block removal forever. Only the component types this operator can look up
+// are verified; any other type is kept, which errs on the side of not deleting.
+func liveReferences(lookup referenceLookup, references []nigoapi.ControllerServiceReferencingComponentEntity) ([]nigoapi.ControllerServiceReferencingComponentEntity, error) {
+	live := make([]nigoapi.ControllerServiceReferencingComponentEntity, 0, len(references))
+	for _, ref := range references {
+		var err error
+		switch referenceType(ref) {
+		case referenceTypeFlowRegistryClient:
+			_, err = lookup.GetRegistryClient(ref.Id)
+		case referenceTypeReportingTask:
+			_, err = lookup.GetReportingTask(ref.Id)
+		}
+		if err == nificlient.ErrNifiClusterReturned404 {
+			log.Info("Ignoring stale controller service reference to a component that no longer exists",
+				zap.String("referenceId", ref.Id), zap.String("referenceType", referenceType(ref)))
+			continue
+		}
+		if err != nil {
+			return nil, err
+		}
+		live = append(live, ref)
+	}
+	return live, nil
+}
+
+func referenceType(ref nigoapi.ControllerServiceReferencingComponentEntity) string {
+	if ref.Component == nil {
+		return ""
+	}
+	return ref.Component.ReferenceType
+}
+
+func referenceNames(references []nigoapi.ControllerServiceReferencingComponentEntity) string {
 	names := ""
-	for i, ref := range references.ControllerServiceReferencingComponents {
+	for i, ref := range references {
 		if i > 0 {
 			names += ", "
 		}

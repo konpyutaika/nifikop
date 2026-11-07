@@ -1,13 +1,16 @@
 package controllerservice
 
 import (
+	"errors"
 	"testing"
 
 	nigoapi "github.com/konpyutaika/nigoapi/pkg/nifi"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
+	"github.com/konpyutaika/nifikop/pkg/nificlient"
 )
 
 func TestPlanSync(t *testing.T) {
@@ -160,4 +163,69 @@ func TestExtractStatus(t *testing.T) {
 	assert.Equal("x", status.Id)
 	assert.Equal(int64(0), status.Version)
 	assert.Equal(v1alpha1.NifiControllerServiceState(""), status.State)
+}
+
+type stubLookup struct {
+	registryClients map[string]bool
+	reportingTasks  map[string]bool
+	err             error
+}
+
+func (s stubLookup) GetRegistryClient(id string) (*nigoapi.FlowRegistryClientEntity, error) {
+	if s.err != nil {
+		return nil, s.err
+	}
+	if s.registryClients[id] {
+		return &nigoapi.FlowRegistryClientEntity{Id: id}, nil
+	}
+	return nil, nificlient.ErrNifiClusterReturned404
+}
+
+func (s stubLookup) GetReportingTask(id string) (*nigoapi.ReportingTaskEntity, error) {
+	if s.err != nil {
+		return nil, s.err
+	}
+	if s.reportingTasks[id] {
+		return &nigoapi.ReportingTaskEntity{Id: id}, nil
+	}
+	return nil, nificlient.ErrNifiClusterReturned404
+}
+
+func reference(id, name, refType string) nigoapi.ControllerServiceReferencingComponentEntity {
+	return nigoapi.ControllerServiceReferencingComponentEntity{
+		Id:        id,
+		Component: &nigoapi.ControllerServiceReferencingComponentDto{Id: id, Name: name, ReferenceType: refType},
+	}
+}
+
+func TestLiveReferences(t *testing.T) {
+	lookup := stubLookup{
+		registryClients: map[string]bool{"rc-live": true},
+		reportingTasks:  map[string]bool{"rt-live": true},
+	}
+	refs := []nigoapi.ControllerServiceReferencingComponentEntity{
+		reference("rc-live", "bitbucket-flows", "FlowRegistryClient"),
+		reference("rc-stale", "deleted-client", "FlowRegistryClient"),
+		reference("rt-live", "site-to-site", "ReportingTask"),
+		reference("rt-stale", "deleted-task", "ReportingTask"),
+		reference("rule-1", "analysis-rule", "FlowAnalysisRule"),
+		{Id: "no-component"},
+	}
+
+	live, err := liveReferences(lookup, refs)
+	require.NoError(t, err)
+
+	var ids []string
+	for _, r := range live {
+		ids = append(ids, r.Id)
+	}
+	assert.Equal(t, []string{"rc-live", "rt-live", "rule-1", "no-component"}, ids,
+		"stale lookups are dropped, unknown types are kept conservatively")
+	assert.Equal(t, "bitbucket-flows (FlowRegistryClient), site-to-site (ReportingTask), analysis-rule (FlowAnalysisRule), no-component", referenceNames(live))
+}
+
+func TestLiveReferencesLookupError(t *testing.T) {
+	_, err := liveReferences(stubLookup{err: errors.New("nifi unavailable")},
+		[]nigoapi.ControllerServiceReferencingComponentEntity{reference("rc", "x", "FlowRegistryClient")})
+	assert.Error(t, err, "a failed existence check must not be mistaken for a stale reference")
 }
