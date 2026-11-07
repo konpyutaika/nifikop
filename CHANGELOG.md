@@ -2,6 +2,7 @@
 
 ### Added
 
+- [PR #686](https://github.com/konpyutaika/nifikop/pull/686) - **[Operator/NifiControllerService]** Add the `NifiControllerService` resource (`v1alpha1`) to manage controller-level NiFi controller services, starting with `StandardWebClientServiceProvider`. The operator creates the service, enables it, keeps its configuration in sync through a disable and re-enable cycle, exposes the observed run state in the status, and refuses deletion while other components still reference it.
 ### Changed
 
 ### Fixed Bugs
