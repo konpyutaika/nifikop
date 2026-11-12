@@ -37,15 +37,18 @@ func ExistProcessGroup(resource *v1alpha1.NifiResource, config *clientconfig.Nif
 	return entity != nil, nil
 }
 
+// CreateProcessGroup creates the process group and binds it to the given parameter context id (empty means unbound).
 func CreateProcessGroup(resource *v1alpha1.NifiResource,
-	config *clientconfig.NifiConfig, parentProcessGroupId string) (*v1alpha1.NifiResourceStatus, error) {
+	config *clientconfig.NifiConfig, parentProcessGroupId, parameterContextId string) (*v1alpha1.NifiResourceStatus, error) {
 	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
 		return nil, err
 	}
 
 	scratchEntity := nigoapi.ProcessGroupEntity{}
-	updateProcessGroupEntity(resource, &scratchEntity)
+	if err := updateProcessGroupEntity(resource, &scratchEntity, parameterContextId); err != nil {
+		return nil, err
+	}
 
 	entity, err := nClient.CreateProcessGroup(scratchEntity, resource.Spec.GetParentProcessGroupID(config.RootProcessGroupId, parentProcessGroupId))
 	if err := clientwrappers.ErrorCreateOperation(log, err, "Failed to create resource "+resource.Name); err != nil {
@@ -58,8 +61,9 @@ func CreateProcessGroup(resource *v1alpha1.NifiResource,
 	}, nil
 }
 
+// SyncProcessGroup syncs the process group, including its parameter context binding (empty id means unbound).
 func SyncProcessGroup(resource *v1alpha1.NifiResource,
-	config *clientconfig.NifiConfig, parentProcessGroupId string) (*v1alpha1.NifiResourceStatus, error) {
+	config *clientconfig.NifiConfig, parentProcessGroupId, parameterContextId string) (*v1alpha1.NifiResourceStatus, error) {
 	nClient, err := common.NewClusterConnection(log, config)
 	if err != nil {
 		return nil, err
@@ -93,13 +97,13 @@ func SyncProcessGroup(resource *v1alpha1.NifiResource,
 		return &resource.Status, errorfactory.NifiParentProcessGroupSyncing{}
 	}
 
-	isSync, err := processGroupIsSync(resource, entity)
+	isSync, err := processGroupIsSync(resource, entity, parameterContextId)
 	if err != nil {
 		return nil, err
 	}
 
 	if !isSync {
-		if err := updateProcessGroupEntity(resource, entity); err != nil {
+		if err := updateProcessGroupEntity(resource, entity, parameterContextId); err != nil {
 			return nil, err
 		}
 		entity, err = nClient.UpdateProcessGroup(*entity)
@@ -130,7 +134,8 @@ func RemoveProcessGroup(resource *v1alpha1.NifiResource,
 		return err
 	}
 
-	if err := updateProcessGroupEntity(resource, entity); err != nil {
+	// Keep the current binding: deletion must not depend on the referenced parameter context still existing.
+	if err := updateProcessGroupEntity(resource, entity, boundParameterContextId(entity)); err != nil {
 		return err
 	}
 
@@ -147,10 +152,21 @@ func isParentProcessGroupChanged(
 	return resource.Spec.GetParentProcessGroupID(config.RootProcessGroupId, parentProcessGroupId) != entity.Component.ParentGroupId
 }
 
-func processGroupIsSync(resource *v1alpha1.NifiResource, entity *nigoapi.ProcessGroupEntity) (bool, error) {
+func boundParameterContextId(entity *nigoapi.ProcessGroupEntity) string {
+	if entity == nil || entity.Component == nil || entity.Component.ParameterContext == nil {
+		return ""
+	}
+	return entity.Component.ParameterContext.Id
+}
+
+func processGroupIsSync(resource *v1alpha1.NifiResource, entity *nigoapi.ProcessGroupEntity, parameterContextId string) (bool, error) {
 	config, err := resource.Spec.GetConfiguration()
 	if err != nil {
 		return false, err
+	}
+
+	if boundParameterContextId(entity) != parameterContextId {
+		return false, nil
 	}
 
 	if comments, ok := config["comments"].(string); ok {
@@ -214,7 +230,7 @@ func processGroupIsSync(resource *v1alpha1.NifiResource, entity *nigoapi.Process
 	return resource.GetDisplayName() == entity.Component.Name, nil
 }
 
-func updateProcessGroupEntity(resource *v1alpha1.NifiResource, entity *nigoapi.ProcessGroupEntity) error {
+func updateProcessGroupEntity(resource *v1alpha1.NifiResource, entity *nigoapi.ProcessGroupEntity, parameterContextId string) error {
 	config, err := resource.Spec.GetConfiguration()
 	if err != nil {
 		return err
@@ -274,6 +290,13 @@ func updateProcessGroupEntity(resource *v1alpha1.NifiResource, entity *nigoapi.P
 		}
 
 		entity.Component.Position = &position
+	}
+
+	// An empty reference unbinds the parameter context, as done for NifiDataflow.
+	if parameterContextId == "" {
+		entity.Component.ParameterContext = &nigoapi.ParameterContextReferenceEntity{}
+	} else {
+		entity.Component.ParameterContext = &nigoapi.ParameterContextReferenceEntity{Id: parameterContextId}
 	}
 
 	return nil

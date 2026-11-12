@@ -19,6 +19,7 @@ package controller
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"reflect"
 
@@ -56,6 +57,7 @@ type NifiResourceReconciler struct {
 // +kubebuilder:rbac:groups=nifi.konpyutaika.com,resources=nifiresources,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=nifi.konpyutaika.com,resources=nifiresources/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=nifi.konpyutaika.com,resources=nifiresources/finalizers,verbs=update
+// +kubebuilder:rbac:groups=nifi.konpyutaika.com,resources=nifiparametercontexts,verbs=get;list;watch
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -232,6 +234,42 @@ func (r *NifiResourceReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		parentProcessGroupId = parentProcessGroup.Status.Id
 	}
 
+	// Retrieve the referenced parameter context (only used for process groups).
+	parameterContextId := ""
+	if instance.Spec.IsProcessGroup() && instance.Spec.ParameterContextRef != nil {
+		parameterContextNamespace := GetParameterContextRefNamespace(instance.Namespace, *instance.Spec.ParameterContextRef)
+
+		parameterContext, err := k8sutil.LookupNifiParameterContext(r.Client,
+			instance.Spec.ParameterContextRef.Name, parameterContextNamespace)
+		if err != nil {
+			msg := fmt.Sprintf("Failed to lookup reference parameter-context for resource %s: %s in %s",
+				instance.Name, instance.Spec.ParameterContextRef.Name, parameterContextNamespace)
+			r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceParameterContextError", msg)
+			return RequeueWithError(r.Log, msg, err)
+		}
+
+		parameterContextClusterRef := parameterContext.Spec.ClusterRef
+		parameterContextClusterRef.Namespace = GetClusterRefNamespace(parameterContextNamespace, parameterContext.Spec.ClusterRef)
+		if !v1.ClusterRefsEquals([]v1.ClusterReference{clusterRef, parameterContextClusterRef}) {
+			msg := fmt.Sprintf("The referenced parameter-context %s in %s does not target the same cluster as resource %s",
+				parameterContext.Name, parameterContextNamespace, instance.Name)
+			r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceClusterError", msg)
+			return RequeueWithError(r.Log, msg, errors.New("inconsistent cluster references"))
+		}
+
+		if parameterContext.Status.Id == "" {
+			r.Log.Debug("Parameter context is not created yet, will wait until it is.",
+				zap.String("resource", instance.Name),
+				zap.String("parameterContext", parameterContext.Name))
+			r.Recorder.Event(instance, corev1.EventTypeWarning, "ReferenceParameterContextNotReady",
+				fmt.Sprintf("The referenced parameter-context is not created yet: %s in %s",
+					parameterContext.Name, parameterContextNamespace))
+			return RequeueAfter(interval)
+		}
+
+		parameterContextId = parameterContext.Status.Id
+	}
+
 	r.Recorder.Event(instance, corev1.EventTypeNormal, "Reconciling",
 		"Reconciling resource "+instance.Name)
 
@@ -245,7 +283,7 @@ func (r *NifiResourceReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		// Create NiFi resource
 		r.Recorder.Event(instance, corev1.EventTypeNormal, "Creating",
 			fmt.Sprintf("Creating resource %s", instance.Name))
-		status, err := r.createResource(instance, clientConfig, parentProcessGroupId)
+		status, err := r.createResource(instance, clientConfig, parentProcessGroupId, parameterContextId)
 		if err != nil {
 			return RequeueWithError(r.Log, "failure creating resource "+instance.Name, err)
 		}
@@ -271,7 +309,7 @@ func (r *NifiResourceReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	// Sync NifiResource resource with NiFi side component
 	r.Recorder.Event(instance, corev1.EventTypeNormal, "Synchronizing",
 		fmt.Sprintf("Synchronizing resource %s", instance.Name))
-	status, err := r.syncResource(instance, clientConfig, parentProcessGroupId)
+	status, err := r.syncResource(instance, clientConfig, parentProcessGroupId, parameterContextId)
 	if err != nil {
 		r.Recorder.Event(instance, corev1.EventTypeNormal, "SynchronizingFailed",
 			fmt.Sprintf("Synchronizing resource %s failed", instance.Name))
@@ -397,12 +435,12 @@ func (r *NifiResourceReconciler) existResource(resource *v1alpha1.NifiResource,
 }
 
 func (r *NifiResourceReconciler) createResource(resource *v1alpha1.NifiResource,
-	config *clientconfig.NifiConfig, parentProcessGroupId string) (*v1alpha1.NifiResourceStatus, error) {
+	config *clientconfig.NifiConfig, parentProcessGroupId, parameterContextId string) (*v1alpha1.NifiResourceStatus, error) {
 	var err error
 	status := &v1alpha1.NifiResourceStatus{}
 
 	if resource.Spec.IsProcessGroup() {
-		if status, err = processgroup.CreateProcessGroup(resource, config, parentProcessGroupId); err != nil {
+		if status, err = processgroup.CreateProcessGroup(resource, config, parentProcessGroupId, parameterContextId); err != nil {
 			return status, err
 		}
 	}
@@ -411,12 +449,12 @@ func (r *NifiResourceReconciler) createResource(resource *v1alpha1.NifiResource,
 }
 
 func (r *NifiResourceReconciler) syncResource(resource *v1alpha1.NifiResource,
-	config *clientconfig.NifiConfig, parentProcessGroupId string) (*v1alpha1.NifiResourceStatus, error) {
+	config *clientconfig.NifiConfig, parentProcessGroupId, parameterContextId string) (*v1alpha1.NifiResourceStatus, error) {
 	var err error
 	status := &v1alpha1.NifiResourceStatus{}
 
 	if resource.Spec.IsProcessGroup() {
-		if status, err = processgroup.SyncProcessGroup(resource, config, parentProcessGroupId); err != nil {
+		if status, err = processgroup.SyncProcessGroup(resource, config, parentProcessGroupId, parameterContextId); err != nil {
 			return status, err
 		}
 	}
