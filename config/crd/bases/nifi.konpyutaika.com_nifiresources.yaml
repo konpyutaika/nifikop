@@ -40,6 +40,15 @@ spec:
                 x-kubernetes-preserve-unknown-fields: true
               displayName:
                 type: string
+              parameterContextRef:
+                properties:
+                  name:
+                    type: string
+                  namespace:
+                    type: string
+                required:
+                - name
+                type: object
               parentProcessGroupID:
                 type: string
               parentProcessGroupRef:

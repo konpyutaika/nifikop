@@ -2,9 +2,13 @@
 
 ### Added
 
+- [PR #767](https://github.com/konpyutaika/nifikop/pull/767) - **[Operator/NifiResource]** Added optional `parameterContextRef` to bind a NifiParameterContext to a process group.
+
 ### Changed
 
 ### Fixed Bugs
+
+- [PR #767](https://github.com/konpyutaika/nifikop/pull/767) - **[Operator/NifiResource]** A `NifiResource` without `spec.configuration` no longer fails to synchronize with `unexpected end of JSON input`.
 
 ### Deprecated
 

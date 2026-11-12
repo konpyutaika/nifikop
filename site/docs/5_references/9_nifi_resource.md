@@ -18,6 +18,9 @@ spec:
     namespace: nifikop
   type: process-group
   displayName: Process Group (Parent)
+  parameterContextRef:
+    name: dataflow-lei
+    namespace: nifikop
   configuration:
     comments: "I'm the parent"
     logFileSuffix: .parent
@@ -60,6 +63,13 @@ spec:
 |parentProcessGroupRef|[ResourceReference](#resourcereference)|the reference to the parent process group where you want to deploy your resource, if not set deploy at root level (is not used for all types of resource). |No| - |
 |displayName|string|the name of the resource (if not set, the name of the CR will be used). |No| - |
 |Configuration|[RawExtension](https://pkg.go.dev/k8s.io/apimachinery/pkg/runtime#RawExtension)|the configuration of the resource (e.g. the process group configuration). |No| - |
+|parameterContextRef|[ParameterContextReference](./4_nifi_parameter_context#parametercontextreference)|the reference to the NifiParameterContext to bind to the resource. Only used when type is `process-group`. The parameter context must target the same cluster as the resource. Removing the reference unbinds the parameter context from the process group. |No| - |
+
+:::note
+When `parameterContextRef` is set, the process group is only created once the referenced `NifiParameterContext` exists and has been created in NiFi (`status.id` set). Until then, a `ReferenceParameterContextNotReady` warning event is emitted and the reconciliation is requeued.
+
+Deleting a `NifiParameterContext` that is still bound to a process group unbinds it in NiFi. The `NifiResource` then reports `ReferenceParameterContextError` and is requeued until the parameter context exists again (the binding is then restored) or `parameterContextRef` is removed.
+:::
 
 ## NifiResourceStatus
 

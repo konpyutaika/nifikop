@@ -41,6 +41,10 @@ type NifiResourceSpec struct {
 	DisplayName string `json:"displayName,omitempty"`
 	// the configuration of the resource (e.g. the process group configuration).
 	Configuration runtime.RawExtension `json:"configuration,omitempty"`
+	// the reference to the NifiParameterContext to bind to the resource.
+	// Only used when type is process-group.
+	// +optional
+	ParameterContextRef *v1.ParameterContextReference `json:"parameterContextRef,omitempty"`
 }
 
 // NifiResourceStatus defines the observed state of NifiResource
@@ -93,7 +97,10 @@ func (r *NifiResourceSpec) GetParentProcessGroupID(rootProcessGroupId, parentPro
 }
 
 func (r *NifiResourceSpec) GetConfiguration() (map[string]interface{}, error) {
-	var configuration map[string]interface{}
+	configuration := map[string]interface{}{}
+	if len(r.Configuration.Raw) == 0 {
+		return configuration, nil
+	}
 	if err := json.Unmarshal(r.Configuration.Raw, &configuration); err != nil {
 		return nil, err
 	}
