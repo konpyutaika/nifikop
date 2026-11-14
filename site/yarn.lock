@@ -2084,18 +2084,6 @@
   dependencies:
     "@hapi/hoek" "^9.0.0"
 
-"@isaacs/balanced-match@^4.0.1":
-  version "4.0.1"
-  resolved "https://registry.npmjs.org/@isaacs/balanced-match/-/balanced-match-4.0.1.tgz"
-  integrity sha512-yzMTt9lEb8Gv7zRioUilSglI0c0smZ9k5D65677DLWLtWJaXIS3CqcGyUFByYKlnUj6TkjLVs54fBl6+TiGQDQ==
-
-"@isaacs/brace-expansion@^5.0.0":
-  version "5.0.1"
-  resolved "https://registry.yarnpkg.com/@isaacs/brace-expansion/-/brace-expansion-5.0.1.tgz#0ef5a92d91f2fff2a37646ce54da9e5f599f6eff"
-  integrity sha512-WMz71T1JS624nWj2n2fnYAuPovhv7EUhk69R6i9dsVyzxt5eM3bjwvgk9L+APE1TRscGysAVMANkB0jh0LQZrQ==
-  dependencies:
-    "@isaacs/balanced-match" "^4.0.1"
-
 "@isaacs/cliui@^8.0.2":
   version "8.0.2"
   resolved "https://registry.npmjs.org/@isaacs/cliui/-/cliui-8.0.2.tgz"
@@ -2107,6 +2095,11 @@
     strip-ansi-cjs "npm:strip-ansi@^6.0.1"
     wrap-ansi "^8.1.0"
     wrap-ansi-cjs "npm:wrap-ansi@^7.0.0"
+
+"@isaacs/nonrecursive-glob-match@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@isaacs/nonrecursive-glob-match/-/nonrecursive-glob-match-1.1.0.tgz#b1d69b8938aab4c292f7fde628c47dc1dbd737ef"
+  integrity sha512-GPm/Dbvk5RLmhRnxXIa7nTpK0xtl4E0wj0MslsuNiJ1FIROU+2+9lgUC/dgF7Ey4QCWhfEsgxilMRMCdHPfDfw==
 
 "@jest/schemas@^29.6.3":
   version "29.6.3"
@@ -3629,6 +3622,11 @@ balanced-match@^1.0.0:
   resolved "https://registry.npmjs.org/balanced-match/-/balanced-match-1.0.2.tgz"
   integrity sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==
 
+balanced-match@^4.0.2:
+  version "4.0.4"
+  resolved "https://registry.yarnpkg.com/balanced-match/-/balanced-match-4.0.4.tgz#bfb10662feed8196a2c62e7c68e17720c274179a"
+  integrity sha512-BLrgEcRTwX2o6gGxGOCNyMvGSp35YofuYzw9h1IMTRmKqttAZZVU67bdb9Pr2vUHA8+j3i2tJfjO6C6+4myGTA==
+
 baseline-browser-mapping@^2.11.12:
   version "2.11.20"
   resolved "https://registry.yarnpkg.com/baseline-browser-mapping/-/baseline-browser-mapping-2.11.20.tgz#26078c7a4b08299656ea7ddceaebec955dc44303"
@@ -3722,6 +3720,13 @@ brace-expansion@^2.0.1:
   integrity sha512-uZbew1NqdmPDTMJ8ah1y+b+9QEJrfkXFk3RcTQw3X0jW/xRUvFKsg1CfQdSYGdTbXZWExtU3J3ccxtnfw1Fi0g==
   dependencies:
     balanced-match "^1.0.0"
+
+brace-expansion@^5.0.12:
+  version "5.0.13"
+  resolved "https://registry.yarnpkg.com/brace-expansion/-/brace-expansion-5.0.13.tgz#e2d4497370f7e385e6f96b57bd7ff11d77d85851"
+  integrity sha512-Vh3dmFbc4wZeox7M9I/0L9GfFd83Su4+yCck/OF9Gi/P/dAHn0RT7X4K9R7gMNMhDck3DvhR6QXsnQdjjgwNvQ==
+  dependencies:
+    balanced-match "^4.0.2"
 
 braces@^3.0.3, braces@~3.0.2:
   version "3.0.3"
@@ -5394,14 +5399,14 @@ glob@^10.2.2:
     package-json-from-dist "^1.0.0"
     path-scurry "^1.11.1"
 
-glob@^13.0.0:
-  version "13.0.0"
-  resolved "https://registry.npmjs.org/glob/-/glob-13.0.0.tgz"
-  integrity sha512-tvZgpqk6fz4BaNZ66ZsRaZnbHvP/jG3uKJvAZOwEVUL4RTA5nJeeLYfyN9/VA8NX/V3IBG+hkeuGpKjvELkVhA==
+glob@^14.0.2:
+  version "14.0.2"
+  resolved "https://registry.yarnpkg.com/glob/-/glob-14.0.2.tgz#17a9838fb6502b6a32d2125fe55bff6a0960e2b7"
+  integrity sha512-vfMgTR2djMHPUchsJMLpZlYQvtjVL+mHpEr5wPpoCbQs2vr/FBNK+3Gnl9Ara1DSs4Aeg4eG9HiADb5/rkY/ZA==
   dependencies:
-    minimatch "^10.1.1"
-    minipass "^7.1.2"
-    path-scurry "^2.0.0"
+    minimatch "^11.0.0"
+    minipass "^7.1.3"
+    path-scurry "^3.0.0"
 
 glob@^8.0.0:
   version "8.1.0"
@@ -7972,12 +7977,13 @@ minimatch@3.1.2:
   dependencies:
     brace-expansion "^1.1.7"
 
-minimatch@^10.1.1:
-  version "10.1.1"
-  resolved "https://registry.npmjs.org/minimatch/-/minimatch-10.1.1.tgz"
-  integrity sha512-enIvLvRAFZYXJzkCYG5RKmPfrFArdLv+R+lbQ53BmIMLIry74bjKzX6iHAm8WYamJkhSSEabrWN5D97XnKObjQ==
+minimatch@^11.0.0:
+  version "11.0.8"
+  resolved "https://registry.yarnpkg.com/minimatch/-/minimatch-11.0.8.tgz#715fc3509cd7f76ed9af2f702a98411b1b0288c8"
+  integrity sha512-nFQuYSTVrGvysVBps5Ih+0BdnYFN/Cj3C816r6+p7yK+FHrVLGE4O4N9AFwykrlNlvM2HYt+Rad1Uiro6h88Ig==
   dependencies:
-    "@isaacs/brace-expansion" "^5.0.0"
+    "@isaacs/nonrecursive-glob-match" "^1.1.0"
+    brace-expansion "^5.0.12"
 
 minimatch@^5.0.1:
   version "5.1.6"
@@ -8007,10 +8013,10 @@ minimist@^1.2.0:
   resolved "https://registry.npmjs.org/minimist/-/minimist-1.2.8.tgz"
   integrity sha512-2yyAR8qBkN3YuheJanUpWC5U3bb5osDywNB8RzDVlDwDHbocAJveqqj1u8+SVD7jkWT4yvsHCpWqqWqAxb0zCA==
 
-"minipass@^5.0.0 || ^6.0.2 || ^7.0.0", minipass@^7.1.2:
-  version "7.1.2"
-  resolved "https://registry.npmjs.org/minipass/-/minipass-7.1.2.tgz"
-  integrity sha512-qOOzS1cBTWYF4BH8fVePDBOO9iptMnGUEZwNc/cMWnTV2nVLZ7VoNWEPHkYczZA0pdoA7dl6e7FL659nX9S2aw==
+"minipass@^5.0.0 || ^6.0.2 || ^7.0.0", minipass@^7.1.2, minipass@^7.1.3:
+  version "7.1.3"
+  resolved "https://registry.yarnpkg.com/minipass/-/minipass-7.1.3.tgz#79389b4eb1bb2d003a9bba87d492f2bd37bdc65b"
+  integrity sha512-tEBHqDnIoM/1rXME1zgka9g6Q2lcoCkxHLuc7ODJ5BxbP5d4c2Z5cGgtXAku59200Cx7diuHTOYfSBD8n6mm8A==
 
 mri@^1.1.0, mri@^1.2.0:
   version "1.2.0"
@@ -8506,10 +8512,10 @@ path-scurry@^1.11.1:
     lru-cache "^10.2.0"
     minipass "^5.0.0 || ^6.0.2 || ^7.0.0"
 
-path-scurry@^2.0.0:
-  version "2.0.1"
-  resolved "https://registry.npmjs.org/path-scurry/-/path-scurry-2.0.1.tgz"
-  integrity sha512-oWyT4gICAu+kaA7QWk/jvCHWarMKNs6pXOGWKDTr7cw4IGcUbW+PeTfbaQiLGheFRpjo6O9J0PmyMfQPjH71oA==
+path-scurry@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/path-scurry/-/path-scurry-3.0.0.tgz#384894267bb8d1889242d176433f91ae1eec5cbb"
+  integrity sha512-1pTbQqH1wIwMi/eleQ5leFTTCkzFsPcgXNjwOA8YGGW/W4/kHT3dssE7Z6NH+zuqNLOzOB0uaD61yl7cAcVhgg==
   dependencies:
     lru-cache "^11.0.0"
     minipass "^7.1.2"
