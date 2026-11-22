@@ -68,19 +68,19 @@ func MockGetClusterResponse(cluster *v1.NifiCluster, empty bool) map[string]inte
 			"nodes": []nigoapi.NodeDto{
 				{
 					NodeId:  nodesId[0],
-					Address: nifiutil.GenerateRequestNiFiNodeHostnameFromCluster(0, cluster),
+					Address: nifiutil.GenerateHostListenerNodeHostnameFromCluster(0, cluster),
 					ApiPort: httpContainerPort,
 					Status:  string(v1.ConnectStatus),
 				},
 				{
 					NodeId:  nodesId[1],
-					Address: nifiutil.GenerateRequestNiFiNodeHostnameFromCluster(1, cluster),
+					Address: nifiutil.GenerateHostListenerNodeHostnameFromCluster(1, cluster),
 					ApiPort: httpContainerPort,
 					Status:  string(v1.DisconnectStatus),
 				},
 				{
 					NodeId:  nodesId[2],
-					Address: nifiutil.GenerateRequestNiFiNodeHostnameFromCluster(2, cluster),
+					Address: nifiutil.GenerateHostListenerNodeHostnameFromCluster(2, cluster),
 					ApiPort: httpContainerPort,
 					Status:  string(v1.OffloadStatus),
 				},
@@ -94,7 +94,7 @@ func MockGetNodeResponse(nodeId int32, cluster *v1.NifiCluster) interface{} {
 		0: {
 			"node": nigoapi.NodeDto{
 				NodeId:  nodesId[0],
-				Address: nifiutil.GenerateRequestNiFiNodeHostnameFromCluster(0, cluster),
+				Address: nifiutil.GenerateHostListenerNodeHostnameFromCluster(0, cluster),
 				ApiPort: httpContainerPort,
 				Status:  string(v1.ConnectStatus),
 			},
@@ -102,7 +102,7 @@ func MockGetNodeResponse(nodeId int32, cluster *v1.NifiCluster) interface{} {
 		1: {
 			"node": nigoapi.NodeDto{
 				NodeId:  nodesId[1],
-				Address: nifiutil.GenerateRequestNiFiNodeHostnameFromCluster(1, cluster),
+				Address: nifiutil.GenerateHostListenerNodeHostnameFromCluster(1, cluster),
 				ApiPort: httpContainerPort,
 				Status:  string(v1.ConnectStatus),
 			},
@@ -110,7 +110,7 @@ func MockGetNodeResponse(nodeId int32, cluster *v1.NifiCluster) interface{} {
 		2: {
 			"node": nigoapi.NodeDto{
 				NodeId:  nodesId[2],
-				Address: nifiutil.GenerateRequestNiFiNodeHostnameFromCluster(2, cluster),
+				Address: nifiutil.GenerateHostListenerNodeHostnameFromCluster(2, cluster),
 				ApiPort: httpContainerPort,
 				Status:  string(v1.ConnectStatus),
 			},

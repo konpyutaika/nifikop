@@ -96,8 +96,8 @@ func testClusterConfig(t *testing.T, cluster *v1.NifiCluster, expectedUseSSL boo
 	}
 
 	assert.Equal(
-		fmt.Sprintf("%s-%s-node.%s.svc.cluster.local:%d",
-			clusterName, "%d", clusterNamespace, httpContainerPort),
+		fmt.Sprintf("%s-%s-node.%s-all-node.%s.svc.cluster.local:%d",
+			clusterName, "%d", clusterName, clusterNamespace, httpContainerPort),
 		conf.NodeURITemplate)
 
 	assert.Equal(1, len(conf.NodesURI))

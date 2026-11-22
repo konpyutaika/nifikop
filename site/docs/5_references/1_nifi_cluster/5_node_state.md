@@ -65,6 +65,7 @@ Holds information about nifi state
 |DisconnectStatus|DISCONNECTED|states that the NiFi node is disconnected from NiFi Cluster.|
 |OffloadNodeAction|OFFLOADING|states that the NiFi node is offloading data to NiFi Cluster.|
 |OffloadStatus|OFFLOADED|states that the NiFi node offloaded data to NiFi Cluster.|
+|CancelPendingPodAction|CANCEL_PENDING_POD|Checks whether NiFi registered an unscheduled pod before the operator cancels its join.|
 |RemovePodAction|POD_REMOVING|states that the NiFi node pod and object related are removing by operator.|
 |RemovePodStatus|POD_REMOVED|states that the NiFi node pod and object related have been removed by operator.|
 |RemoveNodeAction|REMOVING|states that the NiFi node is removing from NiFi Cluster.|

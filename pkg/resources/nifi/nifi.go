@@ -506,99 +506,89 @@ func (r *Reconciler) reconcileNifiPodDelete(log zap.Logger) error {
 		}
 	}
 
-	// Wait for actual pod removal, including after a restart between DELETE and the status update.
+	// A pod may disappear between any two status writes, including just after offload.
 	for id, state := range r.NifiCluster.Status.NodesState {
-		action := state.GracefulActionState
-		if present[id] || action.State != v1.GracefulDownscaleRunning || action.ActionStep != v1.RemovePodAction {
+		if present[id] || state.GracefulActionState.State == v1.GracefulDownscaleSucceeded {
 			continue
 		}
-		if state.PodIsReady {
-			if err := k8sutil.UpdateNodeStatus(r.Client, []string{id}, r.NifiCluster, r.NifiClusterCurrentStatus, false, log); err != nil {
-				return errors.WrapIfWithDetails(err, "could not clear removed pod readiness", "id", id)
+		nodeID, err := nifiutil.ParseStringToInt32(id)
+		if err != nil {
+			return errors.WrapIf(err, "invalid NiFi node status ID")
+		}
+		if _, desired := specIDs[nodeID]; !desired {
+			if err := r.reconcileRemovedNode(log, nil, nodeID); err != nil {
+				return err
 			}
-		}
-		action.ActionStep = v1.RemovePodStatus
-		if len(specIDs) == 0 {
-			action.State = v1.GracefulDownscaleSucceeded
-		}
-		if err := k8sutil.UpdateNodeStatus(r.Client, []string{id}, r.NifiCluster, r.NifiClusterCurrentStatus, action, log); err != nil {
-			return errors.WrapIfWithDetails(err, "could not record pod removal", "id", id)
 		}
 	}
 	return nil
 }
 
-func (r *Reconciler) reconcileRemovedNode(log zap.Logger, node *corev1.Pod, nodeID int32) error {
+func (r *Reconciler) reconcileRemovedNode(log zap.Logger, pod *corev1.Pod, nodeID int32) error {
 	id := fmt.Sprint(nodeID)
 	state := r.NifiCluster.Status.NodesState[id]
-	ready := node.DeletionTimestamp == nil && k8sutil.PodReady(node)
+	ready := pod != nil && pod.DeletionTimestamp == nil && k8sutil.PodReady(pod)
 	if state.PodIsReady != ready {
 		if err := k8sutil.UpdateNodeStatus(r.Client, []string{id}, r.NifiCluster, r.NifiClusterCurrentStatus, ready, log); err != nil {
 			return errors.WrapIfWithDetails(err, "could not update removed node readiness", "id", id)
 		}
 	}
-	if node.DeletionTimestamp != nil {
+	if pod != nil && pod.DeletionTimestamp != nil {
 		return nil
 	}
 
 	action := state.GracefulActionState
-	if len(r.NifiCluster.Spec.Nodes) > 0 {
-		if !action.State.IsDownscale() {
-			if action.State == v1.GracefulUpscaleRunning || action.State == "" {
-				log.Warn("Starting graceful downscale for orphaned NiFi pod", zap.String("pod", node.Name),
-					zap.String("nodeId", id), zap.String("actionStep", string(action.ActionStep)))
-				if r.Recorder != nil {
-					r.Recorder.Eventf(r.NifiCluster, corev1.EventTypeWarning, "OrphanedNode",
-						"Starting graceful downscale for pod %s (node %s, previous state %s)", node.Name, id, action.State)
-				}
+	setAction := func(state v1.State, step v1.ActionStep) error {
+		return k8sutil.UpdateNodeStatus(r.Client, []string{id}, r.NifiCluster, r.NifiClusterCurrentStatus,
+			v1.GracefulActionState{State: state, ActionStep: step}, log)
+	}
+	shutdown := len(r.NifiCluster.Spec.Nodes) == 0
+	if !shutdown {
+		if !action.State.IsDownscale() || (action.State == v1.GracefulDownscaleRequired && action.ActionStep == "") {
+			if pod == nil || k8sutil.PodNeverScheduled(pod) {
+				return setAction(v1.GracefulDownscaleRequired, v1.CancelPendingPodAction)
 			}
-			return k8sutil.UpdateNodeStatus(r.Client, []string{id}, r.NifiCluster, r.NifiClusterCurrentStatus,
-				v1.GracefulActionState{State: v1.GracefulDownscaleRequired}, log)
+			if !action.State.IsDownscale() {
+				if r.Recorder != nil && (action.State == v1.GracefulUpscaleRunning || action.State == "") {
+					r.Recorder.Eventf(r.NifiCluster, corev1.EventTypeWarning, "OrphanedNode",
+						"Starting graceful downscale for node %s (previous state %s)", id, action.State)
+				}
+				return setAction(v1.GracefulDownscaleRequired, "")
+			}
 		}
-		if action.State != v1.GracefulDownscaleRunning || (action.ActionStep != v1.OffloadStatus && action.ActionStep != v1.RemovePodAction) {
+		if action.State != v1.GracefulDownscaleRunning {
+			return nil
+		}
+		switch action.ActionStep {
+		case v1.CancelPendingPodAction:
+			// NiFi confirmed absence. If scheduling won the race, resume a normal drain.
+			if pod != nil {
+				if !k8sutil.PodNeverScheduled(pod) {
+					return setAction(v1.GracefulDownscaleRequired, "")
+				}
+				return client.IgnoreNotFound(r.Client.Delete(context.TODO(), pod, client.Preconditions{
+					UID: &pod.UID, ResourceVersion: &pod.ResourceVersion,
+				}))
+			}
+		case v1.OffloadStatus:
+			if err := r.deleteOffloadedClaims(id); err != nil {
+				return err
+			}
+		case v1.RemovePodAction:
+			// Resume a previously authorized deletion.
+		default:
 			return nil
 		}
 	}
+
+	// Claim reclamation happens only in OFFLOADED. Shutdown, cancelled joins and
+	// retries from POD_REMOVING must preserve any repository data on disk.
 	if action.ActionStep != v1.RemovePodAction {
-		action.State = v1.GracefulDownscaleRunning
-		action.ActionStep = v1.RemovePodAction
-		if err := k8sutil.UpdateNodeStatus(r.Client, []string{id}, r.NifiCluster, r.NifiClusterCurrentStatus, action, log); err != nil {
-			return errors.WrapIfWithDetails(err, "could not record pod deletion", "id", id)
+		if err := setAction(v1.GracefulDownscaleRunning, v1.RemovePodAction); err != nil {
+			return err
 		}
 	}
-
-	for _, volume := range node.Spec.Volumes {
-		if volume.PersistentVolumeClaim == nil {
-			continue
-		}
-		pvcFound := &corev1.PersistentVolumeClaim{}
-		if err := r.Client.Get(context.TODO(),
-			types.NamespacedName{
-				Name:      volume.PersistentVolumeClaim.ClaimName,
-				Namespace: r.NifiCluster.Namespace,
-			},
-			pvcFound,
-		); err != nil {
-			if apierrors.IsNotFound(err) {
-				continue
-			}
-			return errors.WrapIfWithDetails(err, "could not get pvc for node", "id", id)
-		}
-
-		// If this is a nifi data volume AND it has a Delete reclaim policy, then delete it. Otherwise, it is configured to be retained.
-		if pvcFound.Labels[nifiutil.NifiDataVolumeMountKey] == "true" && pvcFound.Labels[nifiutil.NifiVolumeReclaimPolicyKey] == string(corev1.PersistentVolumeReclaimDelete) {
-			err := r.Client.Delete(context.TODO(), &corev1.PersistentVolumeClaim{ObjectMeta: metav1.ObjectMeta{
-				Name:      volume.PersistentVolumeClaim.ClaimName,
-				Namespace: r.NifiCluster.Namespace,
-			}})
-			if client.IgnoreNotFound(err) != nil {
-				return errors.WrapIfWithDetails(err, "could not delete pvc for node", "id", id)
-			}
-		} else {
-			log.Debug("Not deleting PVC because it should be retained.", zap.String("nodeId", id), zap.String("pvcName", pvcFound.Name))
-		}
-	}
-	meta := metav1.ObjectMeta{Name: fmt.Sprintf(templates.NodeConfigTemplate+"-%s", r.NifiCluster.Name, id), Namespace: node.Namespace}
+	meta := metav1.ObjectMeta{Name: fmt.Sprintf(templates.NodeConfigTemplate+"-%s", r.NifiCluster.Name, id), Namespace: r.NifiCluster.Namespace}
 	if err := r.Client.Delete(context.TODO(), &corev1.Secret{ObjectMeta: meta}); client.IgnoreNotFound(err) != nil {
 		return errors.WrapIfWithDetails(err, "could not delete config secret for node", "id", id)
 	}
@@ -608,8 +598,49 @@ func (r *Reconciler) reconcileRemovedNode(log zap.Logger, node *corev1.Pod, node
 			return errors.WrapIfWithDetails(err, "could not delete service for node", "id", id)
 		}
 	}
-	log.Debug("Deleting pod", zap.String("pod", node.Name))
-	return client.IgnoreNotFound(r.Client.Delete(context.TODO(), node))
+	if pod != nil {
+		return client.IgnoreNotFound(r.Client.Delete(context.TODO(), pod, client.Preconditions{UID: &pod.UID}))
+	}
+	if shutdown {
+		return setAction(v1.GracefulDownscaleSucceeded, v1.RemovePodStatus)
+	}
+	return setAction(v1.GracefulDownscaleRunning, v1.RemovePodStatus)
+}
+
+func (r *Reconciler) deleteOffloadedClaims(id string) error {
+	claims := &corev1.PersistentVolumeClaimList{}
+	err := r.DirectClient.List(context.TODO(), claims, client.InNamespace(r.NifiCluster.Namespace), client.MatchingLabels{
+		"nifi_cr": r.NifiCluster.Name, "nodeId": id, nifiutil.NifiDataVolumeMountKey: "true",
+		nifiutil.NifiVolumeReclaimPolicyKey: string(corev1.PersistentVolumeReclaimDelete),
+	})
+	if err != nil {
+		return errors.WrapIfWithDetails(err, "could not list offloaded node PVCs", "id", id)
+	}
+	if len(claims.Items) == 0 {
+		return nil
+	}
+	// A cached OFFLOADED status can outlive a change in desired membership.
+	// Validate it against the API server before reclaiming the listed claim versions.
+	latest := &v1.NifiCluster{}
+	if err := r.DirectClient.Get(context.TODO(), client.ObjectKeyFromObject(r.NifiCluster), latest); err != nil {
+		return err
+	}
+	if latest.UID != r.NifiCluster.UID || latest.Generation != r.NifiCluster.Generation ||
+		latest.Status.NodesState[id].GracefulActionState != r.NifiCluster.Status.NodesState[id].GracefulActionState {
+		return apierrors.NewConflict(v1.GroupVersion.WithResource("nificlusters").GroupResource(), latest.Name,
+			fmt.Errorf("membership or offload status changed before reclaiming PVCs for node %s", id))
+	}
+	for i := range claims.Items {
+		claim := &claims.Items[i]
+		if !metav1.IsControlledBy(claim, r.NifiCluster) || claim.DeletionTimestamp != nil {
+			continue
+		}
+		err := r.Client.Delete(context.TODO(), claim, client.Preconditions{UID: &claim.UID, ResourceVersion: &claim.ResourceVersion})
+		if client.IgnoreNotFound(err) != nil {
+			return errors.WrapIfWithDetails(err, "could not delete offloaded node PVC", "name", claim.Name)
+		}
+	}
+	return nil
 }
 
 func (r *Reconciler) getServerAndClientDetails(nodeId int32) (string, string, []string, error) {

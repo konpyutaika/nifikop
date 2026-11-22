@@ -25,10 +25,8 @@ func UpScaleCluster(nodeId, namespace, clusterName string) (v1.ActionStep, strin
 
 // DisconnectClusterNode, perform a node disconnection.
 func DisconnectClusterNode(config *clientconfig.NifiConfig, nodeId string) (v1.ActionStep, string, error) {
-	var err error
-
 	// Extract nifi node Id, from nifi node address.
-	int32NodeId, _ := nifiutil.ParseStringToInt32(nodeId)
+	int32NodeId, err := nifiutil.ParseStringToInt32(nodeId)
 	if err != nil {
 		return "", "", err
 	}
@@ -51,10 +49,8 @@ func DisconnectClusterNode(config *clientconfig.NifiConfig, nodeId string) (v1.A
 
 // OffloadCluster, perform offload data from a node.
 func OffloadClusterNode(config *clientconfig.NifiConfig, nodeId string) (v1.ActionStep, string, error) {
-	var err error
-
 	// Extract nifi node Id, from nifi node address.
-	int32NodeId, _ := nifiutil.ParseStringToInt32(nodeId)
+	int32NodeId, err := nifiutil.ParseStringToInt32(nodeId)
 	if err != nil {
 		return "", "", err
 	}
@@ -77,10 +73,8 @@ func OffloadClusterNode(config *clientconfig.NifiConfig, nodeId string) (v1.Acti
 
 // ConnectClusterNode, perform node connection.
 func ConnectClusterNode(config *clientconfig.NifiConfig, nodeId string) (v1.ActionStep, string, error) {
-	var err error
-
 	// Extract nifi node Id, from nifi node address.
-	int32NodeId, _ := nifiutil.ParseStringToInt32(nodeId)
+	int32NodeId, err := nifiutil.ParseStringToInt32(nodeId)
 	if err != nil {
 		return "", "", err
 	}
@@ -103,10 +97,8 @@ func ConnectClusterNode(config *clientconfig.NifiConfig, nodeId string) (v1.Acti
 
 // RemoveClusterNode, perform node connection.
 func RemoveClusterNode(config *clientconfig.NifiConfig, nodeId string) (v1.ActionStep, string, error) {
-	var err error
-
 	// Extract NiFi node Id, from NiFi node address.
-	int32NodeId, _ := nifiutil.ParseStringToInt32(nodeId)
+	int32NodeId, err := nifiutil.ParseStringToInt32(nodeId)
 	if err != nil {
 		return "", "", err
 	}
@@ -135,8 +127,6 @@ func RemoveClusterNode(config *clientconfig.NifiConfig, nodeId string) (v1.Actio
 // CheckIfCCTaskFinished checks whether the given CC Task ID finished or not
 // headlessServiceEnabled bool, availableNodes []v1.Node, serverPort int32, nodeId, namespace, clusterName string.
 func CheckIfNCActionStepFinished(actionStep v1.ActionStep, config *clientconfig.NifiConfig, nodeId string) (bool, error) {
-	var err error
-
 	// Extract nifi node Id, from nifi node address.
 	int32NodeId, err := nifiutil.ParseStringToInt32(nodeId)
 	if err != nil {
@@ -149,12 +139,12 @@ func CheckIfNCActionStepFinished(actionStep v1.ActionStep, config *clientconfig.
 	}
 
 	nodeEntity, err := nClient.GetClusterNode(int32NodeId)
-	if (err == nificlient.ErrNifiClusterNodeNotFound || err == nificlient.ErrNifiClusterReturned404) && actionStep == v1.RemoveNodeAction {
-		return true, nil
+	if err == nificlient.ErrNifiClusterNodeNotFound || err == nificlient.ErrNifiClusterReturned404 {
+		return actionStep == v1.RemoveNodeAction, nil
 	}
 
 	if err != nil {
-		return false, nil
+		return false, err
 	}
 
 	nodeStatus := nodeEntity.Node.Status
@@ -169,10 +159,6 @@ func CheckIfNCActionStepFinished(actionStep v1.ActionStep, config *clientconfig.
 		}
 	case v1.ConnectNodeAction:
 		if nodeStatus == string(v1.ConnectStatus) {
-			return true, nil
-		}
-	case v1.RemoveNodeAction:
-		if nodeStatus == string(v1.DisconnectStatus) {
 			return true, nil
 		}
 	}

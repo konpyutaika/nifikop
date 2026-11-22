@@ -58,9 +58,14 @@ func scalingClient(t *testing.T, objects ...client.Object) client.Client {
 
 type scalingNiFi struct {
 	nificlient.NifiClient
-	user      *nigoapi.UserEntity
-	grants    map[string][]nigoapi.TenantEntity
-	policyErr error
+	user          *nigoapi.UserEntity
+	grants        map[string][]nigoapi.TenantEntity
+	policyErr     error
+	membership    map[int32]string
+	membershipErr error
+	disconnects   []int32
+	offloads      []int32
+	removals      []int32
 }
 
 func (n *scalingNiFi) GetUsers() ([]nigoapi.UserEntity, error) { return nil, nil }
@@ -80,8 +85,31 @@ func (n *scalingNiFi) UpdateAccessPolicy(policy nigoapi.AccessPolicyEntity) (*ni
 	n.grants[policy.Component.Action+policy.Component.Resource] = policy.Component.Users
 	return &policy, nil
 }
-func (n *scalingNiFi) GetClusterNode(int32) (*nigoapi.NodeEntity, error) {
-	return &nigoapi.NodeEntity{Node: &nigoapi.NodeDto{Status: string(v1.ConnectStatus)}}, nil
+func (n *scalingNiFi) GetClusterNode(id int32) (*nigoapi.NodeEntity, error) {
+	if n.membershipErr != nil {
+		return nil, n.membershipErr
+	}
+	status := string(v1.ConnectStatus)
+	if n.membership != nil {
+		var ok bool
+		if status, ok = n.membership[id]; !ok {
+			return nil, nificlient.ErrNifiClusterNodeNotFound
+		}
+	}
+	return &nigoapi.NodeEntity{Node: &nigoapi.NodeDto{Status: status}}, nil
+}
+func (n *scalingNiFi) DisconnectClusterNode(id int32) (*nigoapi.NodeEntity, error) {
+	n.disconnects = append(n.disconnects, id)
+	return n.GetClusterNode(id)
+}
+func (n *scalingNiFi) OffloadClusterNode(id int32) (*nigoapi.NodeEntity, error) {
+	n.offloads = append(n.offloads, id)
+	return n.GetClusterNode(id)
+}
+func (n *scalingNiFi) RemoveClusterNode(id int32) error {
+	n.removals = append(n.removals, id)
+	delete(n.membership, id)
+	return nil
 }
 
 func useScalingNiFi(t *testing.T, n *scalingNiFi) {
@@ -222,4 +250,144 @@ func TestAutoscalerWaitsForJoiningAndDrainingNodes(t *testing.T) {
 	reconcile()
 	require.Equal(t, v1alpha1.AutoscalerStateInSync, group.Status.State)
 	require.EqualValues(t, 2, group.Status.Replicas)
+}
+
+func TestWaitingJoinAllowsDrainAndStatusCleanup(t *testing.T) {
+	ctx := context.Background()
+	cluster := scalingCluster()
+	started := time.Now().UTC().Format(nifiutil.TimeStampLayout)
+	cluster.Status.NodesState["1"] = v1.NodeState{GracefulActionState: v1.GracefulActionState{
+		State: v1.GracefulUpscaleRunning, ActionStep: v1.ConnectNodeAction, TaskStarted: started,
+	}}
+	cluster.Status.NodesState["2"] = v1.NodeState{GracefulActionState: v1.GracefulActionState{State: v1.GracefulDownscaleRequired}}
+	cluster.Status.NodesState["3"] = v1.NodeState{GracefulActionState: v1.GracefulActionState{State: v1.GracefulDownscaleSucceeded}}
+	k8s := scalingClient(t, cluster)
+	nifi := &scalingNiFi{membership: map[int32]string{2: string(v1.DisconnectStatus)}}
+	useScalingNiFi(t, nifi)
+	r := NifiClusterTaskReconciler{Client: k8s, Log: *zap.NewNop(), Recorder: record.NewFakeRecorder(8)}
+	key := client.ObjectKeyFromObject(cluster)
+	for _, step := range []v1.ActionStep{v1.DisconnectNodeAction, v1.DisconnectStatus, v1.OffloadNodeAction, v1.OffloadStatus} {
+		result, err := r.Reconcile(ctx, ctrl.Request{NamespacedName: key})
+		require.NoError(t, err)
+		require.Positive(t, result.RequeueAfter)
+		require.NoError(t, k8s.Get(ctx, key, cluster))
+		require.Equal(t, step, cluster.Status.NodesState["2"].GracefulActionState.ActionStep)
+		require.Equal(t, v1.ConnectNodeAction, cluster.Status.NodesState["1"].GracefulActionState.ActionStep)
+		require.NotContains(t, cluster.Status.NodesState, "3")
+		if step == v1.OffloadNodeAction {
+			nifi.membership[2] = string(v1.OffloadStatus)
+		}
+	}
+	require.Equal(t, []int32{2}, nifi.disconnects)
+	require.Equal(t, []int32{2}, nifi.offloads)
+
+	cluster.Status.NodesState["2"] = v1.NodeState{GracefulActionState: v1.GracefulActionState{State: v1.GracefulDownscaleRunning, ActionStep: v1.RemovePodStatus}}
+	require.NoError(t, k8s.Status().Update(ctx, cluster))
+	for range 3 {
+		_, err := r.Reconcile(ctx, ctrl.Request{NamespacedName: key})
+		require.NoError(t, err)
+	}
+	require.NoError(t, k8s.Get(ctx, key, cluster))
+	require.NotContains(t, cluster.Status.NodesState, "2")
+	require.Equal(t, []int32{2}, nifi.removals)
+}
+
+func TestDownscaleRollbackReconnectDeadline(t *testing.T) {
+	now := time.Now().UTC()
+	for _, tc := range []struct {
+		name, started string
+		expired       bool
+	}{
+		{"within deadline", now.Format(nifiutil.TimeStampLayout), false},
+		{"expired", now.Add(-time.Hour).Format(nifiutil.TimeStampLayout), true},
+		{"legacy missing start", "", true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx := context.Background()
+			cluster := scalingCluster()
+			cluster.Spec.Nodes = cluster.Spec.Nodes[:1]
+			action := v1.GracefulActionState{State: v1.GracefulDownscaleRequired, ActionStep: v1.ConnectNodeAction, TaskStarted: tc.started}
+			cluster.Status.NodesState["1"] = v1.NodeState{GracefulActionState: action}
+			k8s := scalingClient(t, cluster)
+			nifi := &scalingNiFi{membership: map[int32]string{1: string(v1.ConnectNodeAction)}}
+			useScalingNiFi(t, nifi)
+			recorder := record.NewFakeRecorder(8)
+			r := NifiClusterTaskReconciler{Client: k8s, Log: *zap.NewNop(), Recorder: recorder}
+			req := ctrl.Request{NamespacedName: client.ObjectKeyFromObject(cluster)}
+			_, err := r.Reconcile(ctx, req)
+			require.NoError(t, err)
+			require.NoError(t, k8s.Get(ctx, req.NamespacedName, cluster))
+			require.Empty(t, nifi.disconnects)
+			if !tc.expired {
+				require.Equal(t, action, cluster.Status.NodesState["1"].GracefulActionState)
+				return
+			}
+			require.Equal(t, v1.GracefulActionState{State: v1.GracefulDownscaleRequired}, cluster.Status.NodesState["1"].GracefulActionState)
+			require.NotEmpty(t, recorder.Events)
+			require.Contains(t, <-recorder.Events, "Warning RollbackReconnectExpired")
+			_, err = r.Reconcile(ctx, req)
+			require.NoError(t, err)
+			require.NoError(t, k8s.Get(ctx, req.NamespacedName, cluster))
+			require.Equal(t, v1.DisconnectNodeAction, cluster.Status.NodesState["1"].GracefulActionState.ActionStep)
+			require.Equal(t, []int32{1}, nifi.disconnects)
+		})
+	}
+}
+
+func TestCancelPendingJoinChecksMembership(t *testing.T) {
+	for _, tc := range []struct {
+		name      string
+		members   map[int32]string
+		err       error
+		wantState v1.State
+		wantStep  v1.ActionStep
+	}{
+		{"absent", map[int32]string{}, nil, v1.GracefulDownscaleRunning, v1.CancelPendingPodAction},
+		{"registered", map[int32]string{1: string(v1.ConnectStatus)}, nil, v1.GracefulDownscaleRunning, v1.DisconnectNodeAction},
+		{"unreachable", nil, errors.New("connection refused"), v1.GracefulDownscaleRequired, v1.CancelPendingPodAction},
+		{"HTTP 404", nil, nificlient.ErrNifiClusterReturned404, v1.GracefulDownscaleRequired, v1.CancelPendingPodAction},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx := context.Background()
+			cluster := scalingCluster()
+			cluster.Spec.Nodes = cluster.Spec.Nodes[:1]
+			cluster.Status.NodesState["1"] = v1.NodeState{GracefulActionState: v1.GracefulActionState{State: v1.GracefulDownscaleRequired, ActionStep: v1.CancelPendingPodAction}}
+			k8s := scalingClient(t, cluster)
+			useScalingNiFi(t, &scalingNiFi{membership: tc.members, membershipErr: tc.err})
+			r := NifiClusterTaskReconciler{Client: k8s, Log: *zap.NewNop(), Recorder: record.NewFakeRecorder(8)}
+			key := client.ObjectKeyFromObject(cluster)
+			_, err := r.Reconcile(ctx, ctrl.Request{NamespacedName: key})
+			require.NoError(t, err)
+			require.NoError(t, k8s.Get(ctx, key, cluster))
+			action := cluster.Status.NodesState["1"].GracefulActionState
+			require.Equal(t, tc.wantState, action.State)
+			require.Equal(t, tc.wantStep, action.ActionStep)
+		})
+	}
+}
+
+func TestAutoscalerCancelsOnlyUnscheduledJoiningCandidates(t *testing.T) {
+	for _, nodeName := range []string{"", "worker"} {
+		t.Run("assigned="+nodeName, func(t *testing.T) {
+			ctx := context.Background()
+			cluster := scalingCluster()
+			cluster.Status.NodesState["1"] = v1.NodeState{GracefulActionState: v1.GracefulActionState{State: v1.GracefulUpscaleRunning, ActionStep: v1.ConnectNodeAction}}
+			group := &v1alpha1.NifiNodeGroupAutoscaler{ObjectMeta: metav1.ObjectMeta{Name: "scale", Namespace: cluster.Namespace},
+				Spec: v1alpha1.NifiNodeGroupAutoscalerSpec{Replicas: 0, ClusterRef: v1.ClusterReference{Name: cluster.Name}, NodeLabelsSelector: &metav1.LabelSelector{MatchLabels: map[string]string{"pool": "a"}}}}
+			pod := &corev1.Pod{ObjectMeta: metav1.ObjectMeta{Name: "joining", Namespace: cluster.Namespace,
+				Labels: map[string]string{"app": "nifi", "nifi_cr": cluster.Name, "pool": "a", "nodeId": "1"}},
+				Spec: corev1.PodSpec{NodeName: nodeName}, Status: corev1.PodStatus{Phase: corev1.PodPending}}
+			k8s := scalingClient(t, cluster, group, pod)
+			r := NifiNodeGroupAutoscalerReconciler{Client: k8s, APIReader: k8s, Log: *zap.NewNop(), Recorder: record.NewFakeRecorder(8)}
+			_, err := r.Reconcile(ctx, ctrl.Request{NamespacedName: client.ObjectKeyFromObject(group)})
+			require.NoError(t, err)
+			require.NoError(t, k8s.Get(ctx, client.ObjectKeyFromObject(cluster), cluster))
+			want := 2
+			if nodeName == "" {
+				want = 1
+			}
+			require.Len(t, cluster.Spec.Nodes, want)
+			require.EqualValues(t, 0, cluster.Spec.Nodes[0].Id)
+		})
+	}
 }
