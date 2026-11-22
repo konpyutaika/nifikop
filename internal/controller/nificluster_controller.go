@@ -138,8 +138,10 @@ func (r *NifiClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 			"NifiCluster starting reconciliation")
 	}
 
+	nifiReconciler := nifi.New(r.Client, r.DirectClient, r.Scheme, instance, current.Status)
+	nifiReconciler.Recorder = r.Recorder
 	reconcilers := []resources.ComponentReconciler{
-		nifi.New(r.Client, r.DirectClient, r.Scheme, instance, current.Status),
+		nifiReconciler,
 	}
 
 	intervalNotReady := util.GetRequeueInterval(r.RequeueIntervals["CLUSTER_TASK_NOT_READY_REQUEUE_INTERVAL"], r.RequeueOffset)

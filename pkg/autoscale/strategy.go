@@ -1,14 +1,14 @@
 package autoscale
 
 import (
-	"sort"
+	"strconv"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/util/sets"
 
 	v1 "github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/api/v1alpha1"
-	"github.com/konpyutaika/nifikop/pkg/util"
 )
 
 type HorizontalDownscaleStrategy interface {
@@ -58,6 +58,7 @@ func (lifo *LIFOHorizontalDownscaleStrategy) Type() v1alpha1.ClusterScalingStrat
 // Simple upscale strategy
 // A simple cluster upscale operation is simply adding a node to the existing node set.
 type SimpleHorizontalUpscaleStrategy struct {
+	PodNodeIDs              []string
 	NifiCluster             *v1.NifiCluster
 	NifiNodeGroupAutoscaler *v1alpha1.NifiNodeGroupAutoscaler
 }
@@ -76,8 +77,12 @@ func (simple *SimpleHorizontalUpscaleStrategy) ScaleUp(numNodesToAdd int32) (new
 		return nil, err
 	}
 
-	// when computing new node IDs, we consider the entire cluster so that we don't inadvertntly re-use existing IDs
-	newNodeIds := ComputeNewNodeIds(simple.NifiCluster.Spec.Nodes, numNodesToAdd)
+	// A removed node keeps its ID until both its pod and its status have gone.
+	reserved := append([]string(nil), simple.PodNodeIDs...)
+	for id := range simple.NifiCluster.Status.NodesState {
+		reserved = append(reserved, id)
+	}
+	newNodeIds := ComputeNewNodeIds(simple.NifiCluster.Spec.Nodes, numNodesToAdd, reserved...)
 
 	for _, id := range newNodeIds {
 		newNodes = append(newNodes, v1.Node{
@@ -106,42 +111,17 @@ func getManagedNodes(autoscaler *v1alpha1.NifiNodeGroupAutoscaler, nodes []v1.No
 	return managedNodes, nil
 }
 
-// New nodes are assigned an Id in the following manner:
-//
-// - Assigned node Ids will always be a non-negative integer starting with zero
-//
-// - extract and sort the node Ids in the provided node list
-//
-// - iterate through the node Id list starting with zero. For any unassigned node Id, assign it
-//
-// - return the list of assigned node Ids.
-func ComputeNewNodeIds(nodes []v1.Node, numNewNodes int32) []int32 {
-	nodeIdList := util.NodesToIdList(nodes)
-	sort.Slice(nodeIdList, func(i, j int) bool {
-		return nodeIdList[i] < nodeIdList[j]
-	})
-
-	newNodeIds := []int32{}
-	index := int32(0)
-
-	// assign IDs in any gaps in the existing node list, starting with zero
-	for i := int32(0); len(nodeIdList) > 0 && i < nodeIdList[len(nodeIdList)-1] && int32(len(newNodeIds)) < numNewNodes; i++ {
-		if nodeIdList[index] == i {
-			index++
-		} else {
-			newNodeIds = append(newNodeIds, i)
+// ComputeNewNodeIds returns the lowest available non-negative IDs in the cluster.
+func ComputeNewNodeIds(nodes []v1.Node, numNewNodes int32, reservedIDs ...string) []int32 {
+	used := sets.New(reservedIDs...)
+	for _, node := range nodes {
+		used.Insert(strconv.FormatInt(int64(node.Id), 10))
+	}
+	ids := []int32{}
+	for id := int32(0); int32(len(ids)) < numNewNodes; id++ {
+		if !used.Has(strconv.FormatInt(int64(id), 10)) {
+			ids = append(ids, id)
 		}
 	}
-
-	// retrieve the max id to start from it
-	max, err := util.MaxSlice32(nodeIdList)
-	if err != nil {
-		max = -1
-	}
-	// add any remaining nodes needed
-	remainder := numNewNodes - int32(len(newNodeIds))
-	for j := int32(max + 1); j <= remainder+max; j++ {
-		newNodeIds = append(newNodeIds, j)
-	}
-	return newNodeIds
+	return ids
 }

@@ -24,6 +24,7 @@ import (
 
 	"emperror.dev/errors"
 	"go.uber.org/zap"
+	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -85,6 +86,12 @@ func (r *NifiClusterTaskReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 
 	for nodeId, nodeStatus := range instance.Status.NodesState {
 		if nodeStatus.GracefulActionState.State.IsRunningState() {
+			action := nodeStatus.GracefulActionState
+			if started, err := nifiutil.ParseTimeStampToUnixTime(action.TaskStarted); err == nil &&
+				time.Since(started).Minutes() > instance.Spec.NifiClusterTaskSpec.GetDurationMinutes() {
+				r.Recorder.Eventf(instance, corev1.EventTypeWarning, "GracefulTaskOverdue",
+					"Node %s has been in %s (%s) since %s", nodeId, action.State, action.ActionStep, action.TaskStarted)
+			}
 			nodesWithRunningNCTask = append(nodesWithRunningNCTask, nodeId)
 		}
 	}
@@ -140,14 +147,19 @@ func (r *NifiClusterTaskReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 
 	for nodeId, nodeStatus := range instance.Status.NodesState {
 		if nodeStatus.GracefulActionState.State == v1.GracefulDownscaleSucceeded {
-			nodesWithDownscaleSucceeded = append(nodesWithDownscaleRequired, nodeId)
+			nodesWithDownscaleSucceeded = append(nodesWithDownscaleSucceeded, nodeId)
 		}
 	}
 
 	if len(nodesWithDownscaleSucceeded) > 0 {
-		_ = r.handleNodeRemoveStatus(instance, current.Status, nodesWithDownscaleSucceeded)
+		if err := r.handleNodeRemoveStatus(instance, current.Status, nodesWithDownscaleSucceeded); err != nil {
+			return RequeueWithError(r.Log, "Failed to remove downscaled node status", err)
+		}
 	}
 
+	if len(nodesWithRunningNCTask) > 0 {
+		return RequeueAfter(intervalRunning)
+	}
 	return Reconciled()
 }
 
@@ -282,6 +294,16 @@ func (r *NifiClusterTaskReconciler) handlePodRunningTask(nifiCluster *v1.NifiClu
 			}
 		}
 
+		// CONNECTED is recorded by NiFi. Pod readiness is tracked independently by the cluster reconciler.
+		action := nifiCluster.Status.NodesState[nodeId].GracefulActionState
+		if action.State == v1.GracefulUpscaleRunning && action.ActionStep == v1.ConnectStatus {
+			if err := k8sutil.UpdateNodeStatus(r.Client, []string{nodeId}, nifiCluster, currentStatus,
+				v1.GracefulActionState{State: v1.GracefulUpscaleSucceeded}, log); err != nil {
+				return errors.WrapIfWithDetails(err, "could not complete node upscale", "id", nodeId)
+			}
+			continue
+		}
+
 		// Check if node finished to disconnect
 		if nifiCluster.Status.NodesState[nodeId].GracefulActionState.ActionStep == v1.DisconnectNodeAction {
 			err := r.checkNCActionStep(nodeId, nifiCluster, currentStatus, v1.DisconnectStatus, nil)
@@ -388,6 +410,7 @@ func (r *NifiClusterTaskReconciler) checkNCActionStep(nodeId string, nifiCluster
 		if err != nil {
 			return errors.WrapIfWithDetails(err, "could not update status for node(s)", "clusterName", nifiCluster.Name, "id(s)", nodeId)
 		}
+		return nil
 	}
 
 	if nodeState.GracefulActionState.State.IsRunningState() {
@@ -396,13 +419,7 @@ func (r *NifiClusterTaskReconciler) checkNCActionStep(nodeId string, nifiCluster
 			return errors.WrapIf(err, "could not parse timestamp "+nodeState.GracefulActionState.TaskStarted)
 		}
 
-		time := time.Now().Format(nifiutil.TimeStampLayout)
-		now, err := nifiutil.ParseTimeStampToUnixTime(time)
-		if err != nil {
-			return errors.WrapIf(err, "could not parse timestamp "+time)
-		}
-
-		if now.Sub(parsedTime).Minutes() > nifiCluster.Spec.NifiClusterTaskSpec.GetDurationMinutes() {
+		if time.Since(parsedTime).Minutes() > nifiCluster.Spec.NifiClusterTaskSpec.GetDurationMinutes() {
 			requiredNCState, err := r.getCorrectRequiredNCState(nodeState.GracefulActionState.State)
 			if err != nil {
 				return err

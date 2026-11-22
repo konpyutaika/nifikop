@@ -2,11 +2,8 @@ package v1
 
 import (
 	"fmt"
-	"math"
 	"sort"
-	"strconv"
 	"strings"
-	"time"
 
 	cmmeta "github.com/cert-manager/cert-manager/pkg/apis/meta/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -1045,27 +1042,13 @@ func (p PairList) Less(i, j int) bool { return p[i].Value.Before(&p[j].Value) }
 // LIFO will not be able to reliably determine the oldest node. A rolling restart of nodes in the cluster will
 // resolve this issue going forward.
 func (cluster *NifiCluster) GetCreationTimeOrderedNodes() []Node {
-	nodeIdCreationPairs := PairList{}
-
-	for k, v := range cluster.Status.NodesState {
-		if v.CreationTime == nil {
-			nodeIdCreationPairs = append(nodeIdCreationPairs, Pair{k, metav1.NewTime(time.Now().UTC().Add(time.Duration(math.MaxInt64)))})
-		} else {
-			nodeIdCreationPairs = append(nodeIdCreationPairs, Pair{k, *v.CreationTime})
-		}
-	}
-
-	// nodeIdCreationPairs is now sorted by creation time in ascending order.
-	sort.Sort(nodeIdCreationPairs)
-
-	nodesMap := NodesToIdMap(cluster.Spec.Nodes)
-	timeOrderedNodes := []Node{}
-
-	for _, pair := range nodeIdCreationPairs {
-		id, _ := strconv.Atoi(pair.Key)
-		timeOrderedNodes = append(timeOrderedNodes, nodesMap[int32(id)])
-	}
-	return timeOrderedNodes
+	nodes := append([]Node(nil), cluster.Spec.Nodes...)
+	sort.SliceStable(nodes, func(i, j int) bool {
+		left := cluster.Status.NodesState[fmt.Sprint(nodes[i].Id)].CreationTime
+		right := cluster.Status.NodesState[fmt.Sprint(nodes[j].Id)].CreationTime
+		return left != nil && (right == nil || left.Before(right))
+	})
+	return nodes
 }
 
 func NodesToIdMap(nodes []Node) (nodeMap map[int32]Node) {

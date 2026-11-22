@@ -39,6 +39,7 @@ import (
 	"github.com/konpyutaika/nifikop/pkg/autoscale"
 	"github.com/konpyutaika/nifikop/pkg/k8sutil"
 	"github.com/konpyutaika/nifikop/pkg/util"
+	nifiutil "github.com/konpyutaika/nifikop/pkg/util/nifi"
 )
 
 var autoscalerFinalizer string = fmt.Sprintf("nifinodegroupautoscalers.%s/finalizer", v1alpha1.GroupVersion.Group)
@@ -114,69 +115,93 @@ func (r *NifiNodeGroupAutoscalerReconciler) Reconcile(ctx context.Context, req c
 		return RequeueWithError(r.Log, fmt.Sprintf("failed to look up cluster reference %v+", clusterRef), err)
 	}
 
-	// Determine how many replicas there currently are and how many are desired for the appropriate node group
-	numDesiredReplicas := nodeGroupAutoscaler.Spec.Replicas
-	currentReplicas, err := r.getManagedNodes(nodeGroupAutoscaler, cluster.Spec.Nodes)
+	groupSelector, err := metav1.LabelSelectorAsSelector(nodeGroupAutoscaler.Spec.NodeLabelsSelector)
 	if err != nil {
-		return RequeueWithError(r.Log, "Failed to apply autoscaler node selector to cluster nodes", err)
+		return RequeueWithError(r.Log, "Invalid node group selector", err)
 	}
-	numCurrentReplicas := int32(len(currentReplicas))
-
-	// if the current number of nodes being managed by this autoscaler is different than the replica setting,
-	// then set the autoscaler status to out of sync to indicate we're changing the NifiCluster node config
-	// Additionally, if the autoscaler state is currently out of sync then scale up/down
-	if numDesiredReplicas != numCurrentReplicas || nodeGroupAutoscaler.Status.State == v1alpha1.AutoscalerStateOutOfSync {
-		r.Log.Info(fmt.Sprintf("Replicas changed from %d to %d", numCurrentReplicas, numDesiredReplicas))
-		if err = r.updateAutoscalerReplicaState(ctx, nodeGroupAutoscaler, current.Status, v1alpha1.AutoscalerStateOutOfSync); err != nil {
-			return RequeueWithError(r.Log, fmt.Sprintf("Failed to udpate node group autoscaler state for node group %s", nodeGroupAutoscaler.Spec.NodeConfigGroupId), err)
-		}
-
-		// json merge patch is a full-replace strategy. This means we must compute the entire NifiCluster.Spec.Nodes list as it should look after scaling.
-		// The optimistic lock here ensures that we only patch the latest version of the NifiCluster to avoid stomping on changes any other process makes.
-		// Ideally, we could use a strategic merge, but it's not supported for CRDs: https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/#advanced-features-and-flexibility
-		clusterPatch := runtimeClient.MergeFromWithOptions(cluster.DeepCopy(), runtimeClient.MergeFromWithOptimisticLock{})
-
-		if numDesiredReplicas > numCurrentReplicas {
-			// need to increase node group
-			numNodesToAdd := numDesiredReplicas - numCurrentReplicas
-			r.Log.Info(fmt.Sprintf("Adding %d more nodes to cluster %s spec.nodes configuration for node group %s", numNodesToAdd, cluster.Name, nodeGroupAutoscaler.Spec.NodeConfigGroupId))
-
-			if err = r.scaleUp(nodeGroupAutoscaler, cluster, numNodesToAdd); err != nil {
-				return RequeueWithError(r.Log, fmt.Sprintf("Failed to scale cluster %s up for node group %s", cluster.Name, nodeGroupAutoscaler.Spec.NodeConfigGroupId), err)
-			}
-		} else if numDesiredReplicas < numCurrentReplicas {
-			// need to decrease node group
-			numNodesToRemove := numCurrentReplicas - numDesiredReplicas
-			r.Log.Info(fmt.Sprintf("Removing %d nodes from cluster %s spec.nodes configuration for node group %s", numNodesToRemove, cluster.Name, nodeGroupAutoscaler.Spec.NodeConfigGroupId))
-
-			if err = r.scaleDown(nodeGroupAutoscaler, cluster, numNodesToRemove); err != nil {
-				return RequeueWithError(r.Log, fmt.Sprintf("Failed to scale cluster %s down for node group %s", cluster.Name, nodeGroupAutoscaler.Spec.NodeConfigGroupId), err)
+	var specReplicas int32
+	var joining bool
+	specIDs := v1.NodesToIdMap(cluster.Spec.Nodes)
+	for _, node := range cluster.Spec.Nodes {
+		if groupSelector.Matches(labels.Set(node.Labels)) {
+			specReplicas++
+			state := cluster.Status.NodesState[fmt.Sprint(node.Id)].GracefulActionState.State
+			if state == "" || state == v1.GracefulUpscaleRequired || state == v1.GracefulUpscaleRunning {
+				joining = true
 			}
 		}
-
-		// patch nificluster resource with added/removed nodes
-		if err = r.Client.Patch(ctx, cluster, clusterPatch); err != nil {
-			return RequeueWithError(r.Log, fmt.Sprintf("Failed to patch nifi cluster with changes in nodes. Tried to apply the following patch:\n %v+", clusterPatch), err)
-		}
-
-		// update autoscaler state to InSync.
-		if err = r.updateAutoscalerReplicaState(ctx, nodeGroupAutoscaler, current.Status, v1alpha1.AutoscalerStateInSync); err != nil {
-			return RequeueWithError(r.Log, fmt.Sprintf("Failed to udpate node group autoscaler state for node group %s", nodeGroupAutoscaler.Spec.NodeConfigGroupId), err)
-		}
-	} else {
-		r.Log.Info("Cluster replicas config and current number of replicas are the same", zap.Int32("replicas", nodeGroupAutoscaler.Spec.Replicas))
 	}
 
-	// update replica and replica status
-	if err = r.updateAutoscalerReplicaStatus(ctx, cluster, current.Status, nodeGroupAutoscaler); err != nil {
-		return RequeueWithError(r.Log, fmt.Sprintf("Failed to update node group autoscaler replica status for node group %s", nodeGroupAutoscaler.Spec.NodeConfigGroupId), err)
+	clusterLabels := labels.Set(nifiutil.LabelsForNifi(cluster.Name))
+	pods := &corev1.PodList{}
+	if err := r.APIReader.List(ctx, pods, runtimeClient.InNamespace(cluster.Namespace), runtimeClient.MatchingLabels(clusterLabels)); err != nil {
+		return RequeueWithError(r.Log, "Failed to list NiFi cluster pods", err)
+	}
+	var replicas int32
+	var draining bool
+	var podNodeIDs []string
+	for _, pod := range pods.Items {
+		id, ok := pod.Labels["nodeId"]
+		if !ok {
+			continue
+		}
+		podNodeIDs = append(podNodeIDs, id)
+		if groupSelector.Matches(labels.Set(pod.Labels)) {
+			replicas++
+			nodeID, err := nifiutil.ParseStringToInt32(id)
+			if err != nil {
+				return RequeueWithError(r.Log, "Invalid NiFi pod nodeId", err)
+			}
+			if _, present := specIDs[nodeID]; !present {
+				draining = true
+			}
+		}
+	}
+
+	target := nodeGroupAutoscaler.Spec.Replicas
+	state := v1alpha1.AutoscalerStateOutOfSync
+	if target == specReplicas && target == replicas && !draining {
+		state = v1alpha1.AutoscalerStateInSync
+	}
+	requirements, _ := clusterLabels.AsSelector().Requirements()
+	nodeGroupAutoscaler.Status = v1alpha1.NifiNodeGroupAutoscalerStatus{
+		State:    state,
+		Replicas: v1alpha1.ClusterReplicas(replicas),
+		Selector: v1alpha1.ClusterReplicaSelector(groupSelector.Add(requirements...).String()),
+	}
+	if err := r.updateStatus(ctx, nodeGroupAutoscaler, current.Status); err != nil {
+		return RequeueWithError(r.Log, "Failed to update node group autoscaler status", err)
+	}
+	if state != current.Status.State {
+		reason := "Synchronizing"
+		if state == v1alpha1.AutoscalerStateInSync {
+			reason = "Synchronized"
+		}
+		r.Recorder.Eventf(nodeGroupAutoscaler, corev1.EventTypeNormal, reason,
+			"Requested %d replicas, with %d nodes in spec and %d pods", target, specReplicas, replicas)
+	}
+
+	clusterPatch := runtimeClient.MergeFromWithOptions(cluster.DeepCopy(), runtimeClient.MergeFromWithOptimisticLock{})
+	switch {
+	case target > specReplicas && !draining:
+		err = r.scaleUp(nodeGroupAutoscaler, cluster, target-specReplicas, podNodeIDs)
+	case target < specReplicas && !joining:
+		err = r.scaleDown(nodeGroupAutoscaler, cluster, specReplicas-target)
+	default:
+		return RequeueAfter(util.GetRequeueInterval(r.RequeueInterval, r.RequeueOffset))
+	}
+	if err != nil {
+		return RequeueWithError(r.Log, "Failed to scale NiFi cluster", err)
+	}
+	if err := r.Client.Patch(ctx, cluster, clusterPatch); err != nil {
+		return RequeueWithError(r.Log, "Failed to patch NiFi cluster nodes", err)
 	}
 
 	return RequeueAfter(util.GetRequeueInterval(r.RequeueInterval, r.RequeueOffset))
 }
 
 // scaleUp updates the provided cluster.Spec.Nodes list with the appropriate numNodesToAdd according to the autoscaler.Spec.UpscaleStrategy.
-func (r *NifiNodeGroupAutoscalerReconciler) scaleUp(autoscaler *v1alpha1.NifiNodeGroupAutoscaler, cluster *v1.NifiCluster, numNodesToAdd int32) error {
+func (r *NifiNodeGroupAutoscalerReconciler) scaleUp(autoscaler *v1alpha1.NifiNodeGroupAutoscaler, cluster *v1.NifiCluster, numNodesToAdd int32, podNodeIDs []string) error {
 	switch autoscaler.Spec.UpscaleStrategy {
 	// Right now Simple is the only option and the default
 	case v1alpha1.SimpleClusterUpscaleStrategy:
@@ -184,6 +209,7 @@ func (r *NifiNodeGroupAutoscalerReconciler) scaleUp(autoscaler *v1alpha1.NifiNod
 	default:
 		r.Log.Info(fmt.Sprintf("Using Simple upscale strategy for cluster %s node group %s", cluster.Name, autoscaler.Spec.NodeConfigGroupId))
 		simple := &autoscale.SimpleHorizontalUpscaleStrategy{
+			PodNodeIDs:              podNodeIDs,
 			NifiCluster:             cluster,
 			NifiNodeGroupAutoscaler: autoscaler,
 		}
@@ -224,79 +250,6 @@ func (r *NifiNodeGroupAutoscalerReconciler) scaleDown(autoscaler *v1alpha1.NifiN
 	}
 
 	return nil
-}
-
-// updateAutoscalerReplicaState updates the state of the autoscaler.
-func (r *NifiNodeGroupAutoscalerReconciler) updateAutoscalerReplicaState(ctx context.Context, autoscaler *v1alpha1.NifiNodeGroupAutoscaler,
-	currentStatus v1alpha1.NifiNodeGroupAutoscalerStatus, state v1alpha1.NodeGroupAutoscalerState) error {
-	autoscaler.Status.State = state
-	switch state {
-	case v1alpha1.AutoscalerStateInSync:
-		r.Recorder.Event(autoscaler, corev1.EventTypeNormal, "Synchronized", "Successfully synchronized node group autoscaler.")
-	case v1alpha1.AutoscalerStateOutOfSync:
-		r.Recorder.Event(autoscaler, corev1.EventTypeNormal, "Synchronizing", "The number of replicas for this node group has changed. Synchronizing.")
-	}
-	return r.updateStatus(ctx, autoscaler, currentStatus)
-}
-
-// TODO: discuss about replacing by looking for NifiCluster.Spec.Nodes instead
-// updateAutoscalerReplicaStatus updates autoscaler replica status to inform the k8s scale subresource.
-func (r *NifiNodeGroupAutoscalerReconciler) updateAutoscalerReplicaStatus(ctx context.Context, nifiCluster *v1.NifiCluster,
-	currentStatus v1alpha1.NifiNodeGroupAutoscalerStatus, autoscaler *v1alpha1.NifiNodeGroupAutoscaler) error {
-	podList, err := r.getCurrentReplicaPods(ctx, autoscaler)
-	if err != nil {
-		return err
-	}
-
-	replicas := v1alpha1.ClusterReplicas(int32(len(podList.Items)))
-	selector, err := metav1.LabelSelectorAsSelector(&metav1.LabelSelector{
-		MatchLabels: autoscaler.Spec.NodeLabelsSelector.MatchLabels,
-	})
-	if err != nil {
-		return errors.WrapIf(err, "Failed to get label selector to update CR")
-	}
-
-	replicaSelector := v1alpha1.ClusterReplicaSelector(selector.String())
-	autoscaler.Status.Replicas = replicas
-	autoscaler.Status.Selector = replicaSelector
-
-	return r.updateStatus(ctx, autoscaler, currentStatus)
-}
-
-// getCurrentReplicaPods searches for any pods created in this node scaler's node group.
-func (r *NifiNodeGroupAutoscalerReconciler) getCurrentReplicaPods(ctx context.Context, autoscaler *v1alpha1.NifiNodeGroupAutoscaler) (*corev1.PodList, error) {
-	podList := &corev1.PodList{}
-	replicaLabels, err := autoscaler.Spec.NifiNodeGroupSelectorAsMap()
-	if err != nil {
-		return nil, err
-	}
-	// find replica pods for this autoscaler
-	labelsToMatch := []map[string]string{
-		replicaLabels,
-	}
-	matchingLabels := runtimeClient.MatchingLabels(util.MergeLabels(labelsToMatch...))
-
-	err = r.Client.List(ctx, podList,
-		runtimeClient.ListOption(runtimeClient.InNamespace(autoscaler.Namespace)), runtimeClient.ListOption(matchingLabels))
-	if err != nil {
-		return nil, errors.WrapIf(err, fmt.Sprintf("failed to query for replica podList for node group %s", autoscaler.Spec.NodeConfigGroupId))
-	}
-	return podList, nil
-}
-
-// getManagedNodes filters a set of nodes by an autoscaler's configured node selector.
-func (r *NifiNodeGroupAutoscalerReconciler) getManagedNodes(autoscaler *v1alpha1.NifiNodeGroupAutoscaler, nodes []v1.Node) (managedNodes []v1.Node, err error) {
-	selector, err := metav1.LabelSelectorAsSelector(autoscaler.Spec.NodeLabelsSelector)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, node := range nodes {
-		if selector.Matches(labels.Set(node.Labels)) {
-			managedNodes = append(managedNodes, node)
-		}
-	}
-	return managedNodes, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
