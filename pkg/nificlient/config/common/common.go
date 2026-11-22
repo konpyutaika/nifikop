@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"strings"
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -85,9 +84,8 @@ func generateNodesURITemplate(cluster *v1.NifiCluster) string {
 			nifi.RootNodeNameTemplate +
 			nifi.SuffixNodeNameTemplate
 
-	return nodeNameTemplate + fmt.Sprintf(".%s",
-		strings.SplitAfterN(nifi.GenerateRequestNiFiNodeAddressFromCluster(0, cluster), ".", 2)[1],
-	)
+	// NiFi advertises its pod hostname under the cluster service in both service modes.
+	return nodeNameTemplate + "." + nifi.GenerateRequestNiFiAllNodeAddressFromCluster(cluster)
 }
 
 func generateNodesAddressFromTemplate(nodes []v1.Node, template string) map[int32]clientconfig.NodeUri {

@@ -416,6 +416,8 @@ const (
 	OffloadNodeAction ActionStep = "OFFLOADING"
 	// OffloadStatus states that the NiFi node offloaded data to NiFi Cluster.
 	OffloadStatus ActionStep = "OFFLOADED"
+	// CancelPendingPodAction checks NiFi membership before cancelling an unscheduled pod.
+	CancelPendingPodAction ActionStep = "CANCEL_PENDING_POD"
 	// RemovePodAction states that the NiFi node pod and object related are removing by operator.
 	RemovePodAction ActionStep = "POD_REMOVING"
 	// RemovePodAction states that the NiFi node pod and object related have been removed by operator.

@@ -107,6 +107,10 @@ func New(t interface{}, err error, msg string, wrapArgs ...interface{}) error {
 		wrapped = errors.WrapIfWithDetails(err, msg, wrapArgs...)
 	}
 	switch t.(type) {
+	case NifiClusterNotReady:
+		return NifiClusterNotReady{wrapped}
+	case NifiClusterTaskRunning:
+		return NifiClusterTaskRunning{wrapped}
 	case ResourceNotReady:
 		return ResourceNotReady{wrapped}
 	case APIFailure:

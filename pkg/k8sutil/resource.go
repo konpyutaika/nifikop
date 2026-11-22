@@ -182,6 +182,13 @@ func IsPodContainsPendingContainer(pod *corev1.Pod) bool {
 	return false
 }
 
+// PodNeverScheduled reports whether the pod is still waiting for its first node assignment.
+func PodNeverScheduled(pod *corev1.Pod) bool {
+	return pod.Status.Phase == corev1.PodPending && pod.Spec.NodeName == "" &&
+		len(pod.Status.InitContainerStatuses) == 0 && len(pod.Status.ContainerStatuses) == 0 &&
+		len(pod.Status.EphemeralContainerStatuses) == 0
+}
+
 func PodReady(pod *corev1.Pod) bool {
 	for i := range pod.Status.Conditions {
 		if pod.Status.Conditions[i].Type == corev1.PodReady && pod.Status.Conditions[i].Status == corev1.ConditionTrue {

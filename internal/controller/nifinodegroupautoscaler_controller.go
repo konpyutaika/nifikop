@@ -71,8 +71,6 @@ type NifiNodeGroupAutoscalerReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.11.0/pkg/reconcile
 func (r *NifiNodeGroupAutoscalerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	// @TODO: Manage dead lock when pending node because not enough resources
-	// by implementing a brut force deletion on nificluster controller.
 	nodeGroupAutoscaler := &v1alpha1.NifiNodeGroupAutoscaler{}
 	err := r.Client.Get(ctx, req.NamespacedName, nodeGroupAutoscaler)
 
@@ -120,14 +118,14 @@ func (r *NifiNodeGroupAutoscalerReconciler) Reconcile(ctx context.Context, req c
 		return RequeueWithError(r.Log, "Invalid node group selector", err)
 	}
 	var specReplicas int32
-	var joining bool
+	joining := make(map[int32]v1.ActionStep)
 	specIDs := v1.NodesToIdMap(cluster.Spec.Nodes)
 	for _, node := range cluster.Spec.Nodes {
 		if groupSelector.Matches(labels.Set(node.Labels)) {
 			specReplicas++
-			state := cluster.Status.NodesState[fmt.Sprint(node.Id)].GracefulActionState.State
-			if state == "" || state == v1.GracefulUpscaleRequired || state == v1.GracefulUpscaleRunning {
-				joining = true
+			action := cluster.Status.NodesState[fmt.Sprint(node.Id)].GracefulActionState
+			if action.State == "" || action.State == v1.GracefulUpscaleRequired || action.State == v1.GracefulUpscaleRunning {
+				joining[node.Id] = action.ActionStep
 			}
 		}
 	}
@@ -140,6 +138,10 @@ func (r *NifiNodeGroupAutoscalerReconciler) Reconcile(ctx context.Context, req c
 	var replicas int32
 	var draining bool
 	var podNodeIDs []string
+	var pending map[int32]bool
+	if len(joining) > 0 {
+		pending = make(map[int32]bool)
+	}
 	for _, pod := range pods.Items {
 		id, ok := pod.Labels["nodeId"]
 		if !ok {
@@ -151,6 +153,10 @@ func (r *NifiNodeGroupAutoscalerReconciler) Reconcile(ctx context.Context, req c
 			nodeID, err := nifiutil.ParseStringToInt32(id)
 			if err != nil {
 				return RequeueWithError(r.Log, "Invalid NiFi pod nodeId", err)
+			}
+			step, isJoining := joining[nodeID]
+			if isJoining && (step == "" || step == v1.ConnectNodeAction) && pod.DeletionTimestamp == nil && k8sutil.PodNeverScheduled(&pod) {
+				pending[nodeID] = true
 			}
 			if _, present := specIDs[nodeID]; !present {
 				draining = true
@@ -185,8 +191,11 @@ func (r *NifiNodeGroupAutoscalerReconciler) Reconcile(ctx context.Context, req c
 	switch {
 	case target > specReplicas && !draining:
 		err = r.scaleUp(nodeGroupAutoscaler, cluster, target-specReplicas, podNodeIDs)
-	case target < specReplicas && !joining:
-		err = r.scaleDown(nodeGroupAutoscaler, cluster, specReplicas-target)
+	case target < specReplicas:
+		err = r.scaleDown(nodeGroupAutoscaler, cluster, specReplicas-target, pending)
+		if err == nil && len(cluster.Spec.Nodes) == len(specIDs) {
+			return RequeueAfter(util.GetRequeueInterval(r.RequeueInterval, r.RequeueOffset))
+		}
 	default:
 		return RequeueAfter(util.GetRequeueInterval(r.RequeueInterval, r.RequeueOffset))
 	}
@@ -226,7 +235,7 @@ func (r *NifiNodeGroupAutoscalerReconciler) scaleUp(autoscaler *v1alpha1.NifiNod
 }
 
 // scaleUp updates the provided cluster.Spec.Nodes list with the appropriate numNodesToRemove according to the autoscaler.Spec.DownscaleStrategy.
-func (r *NifiNodeGroupAutoscalerReconciler) scaleDown(autoscaler *v1alpha1.NifiNodeGroupAutoscaler, cluster *v1.NifiCluster, numNodesToRemove int32) error {
+func (r *NifiNodeGroupAutoscalerReconciler) scaleDown(autoscaler *v1alpha1.NifiNodeGroupAutoscaler, cluster *v1.NifiCluster, numNodesToRemove int32, pending map[int32]bool) error {
 	switch autoscaler.Spec.DownscaleStrategy {
 	// Right now LIFO is the only option and the default
 	case v1alpha1.LIFOClusterDownscaleStrategy:
@@ -242,7 +251,19 @@ func (r *NifiNodeGroupAutoscalerReconciler) scaleDown(autoscaler *v1alpha1.NifiN
 		if err != nil {
 			return errors.WrapIf(err, "Failed to scale cluster down via LIFO strategy.")
 		}
-		// remove the computed set of nodes from the cluster
+		// During a join, only cancel LIFO candidates that Kubernetes has never scheduled.
+		if pending != nil {
+			candidates := nodesToRemove
+			nodesToRemove = nil
+			for _, node := range candidates {
+				if pending[node.Id] {
+					nodesToRemove = append(nodesToRemove, node)
+				}
+			}
+		}
+		if len(nodesToRemove) == 0 {
+			return nil
+		}
 		cluster.Spec.Nodes = util.SubtractNodes(cluster.Spec.Nodes, nodesToRemove)
 
 		r.Recorder.Eventf(autoscaler, corev1.EventTypeNormal, "Downscaling",

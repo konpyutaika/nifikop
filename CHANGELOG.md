@@ -6,6 +6,8 @@
 
 ### Fixed Bugs
 
+- [PR #774](https://github.com/konpyutaika/nifikop/pull/774) - **[Operator/NifiCluster]** Recover stalled autoscaling operations, cancel unscheduled joins safely, and retain repository PVCs when scaling to zero.
+
 ### Deprecated
 
 ### Removed

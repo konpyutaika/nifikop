@@ -31,6 +31,8 @@ For the moment, we have implemented it as follows in the operator:
 4. Once the pod deletion completes, delete the node.
 5. Once the delete request has finished, remove the node from the NifiCluster status.
 
+When you remove every node from `spec.nodes`, NiFiKop shuts down the pods and retains their repository PVCs, including claims configured with the `Delete` reclaim policy. No peer remains to receive an offload. Restore the same node IDs and storage configuration to reuse those claims. Queued FlowFiles on ephemeral storage are lost when their pod is removed. Drain those queues before scaling to zero.
+
 In addition, we have a regular check that ensure that all nodes have been removed.
 
 In this task, you will first perform a scale up, in adding an new node. Then, you will remove another node that the one created, and observe the decommission's steps.

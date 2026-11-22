@@ -8,6 +8,7 @@ import (
 
 	v1 "github.com/konpyutaika/nifikop/api/v1"
 	"github.com/konpyutaika/nifikop/pkg/pki"
+	nifiutil "github.com/konpyutaika/nifikop/pkg/util/nifi"
 )
 
 const (
@@ -90,8 +91,8 @@ func testClusterConfig(t *testing.T, cluster *v1.NifiCluster, expectedUseSSL boo
 	//}
 
 	assert.Equal(
-		fmt.Sprintf("%s-%s-node.%s.svc.cluster.local:%d",
-			clusterName, "%d", clusterNamespace, httpContainerPort),
+		fmt.Sprintf("%s-%s-node.%s-all-node.%s.svc.cluster.local:%d",
+			clusterName, "%d", clusterName, clusterNamespace, httpContainerPort),
 		conf.NodeURITemplate)
 
 	assert.Equal(1, len(conf.NodesURI))
@@ -131,12 +132,18 @@ func TestGenerateNodesAddress(t *testing.T) {
 }
 
 func TestGenerateNodesURITemplate(t *testing.T) {
-	assert := assert.New(t)
-
-	cluster := testCluster(t)
-
-	assert.Equal(
-		fmt.Sprintf("%s-%s-node.%s.svc.cluster.local:%d",
-			clusterName, "%d", clusterNamespace, httpContainerPort),
-		generateNodesURITemplate(cluster))
+	for _, headless := range []bool{true, false} {
+		for _, externalDNS := range []bool{true, false} {
+			t.Run(fmt.Sprintf("headless=%t,externalDNS=%t", headless, externalDNS), func(t *testing.T) {
+				cluster := testCluster(t)
+				cluster.Spec.Service.HeadlessEnabled = headless
+				cluster.Spec.Service.ServiceTemplate = "%s-custom"
+				cluster.Spec.ListenersConfig.ClusterDomain = "example.test"
+				cluster.Spec.ListenersConfig.UseExternalDNS = externalDNS
+				conf := ClusterConfig(cluster)
+				assert.Equal(t, nifiutil.GenerateHostListenerNodeAddressFromCluster(succeededNodeId, cluster), fmt.Sprintf(conf.NodeURITemplate, succeededNodeId))
+				assert.Equal(t, nifiutil.GenerateRequestNiFiNodeAddressFromCluster(succeededNodeId, cluster), conf.NodesURI[succeededNodeId].RequestHost)
+			})
+		}
+	}
 }
