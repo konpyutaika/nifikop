@@ -32,6 +32,9 @@ orbs:
       operator-build:
         docker:
           - image: ghcr.io/konpyutaika/docker-images/nifikop-build:1.27.1@sha256:3cdb95e36363eb6b73880703c1de353bfd732ca585c96857265cf8fda262badf
+        environment:
+          # Use the patched compiler for all jobs, including go install outside the main module.
+          GOTOOLCHAIN: go1.27.4
     # Define jobs list
     jobs:
       # Build job, which build operator docker image (with operator-sdk build)

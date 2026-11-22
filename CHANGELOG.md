@@ -4,6 +4,8 @@
 
 ### Changed
 
+- [PR #774](https://github.com/konpyutaika/nifikop/pull/774) - **[Operator]** Build with Go 1.27.4 and update `golang.org/x/net` to v0.60.0 to address security advisories.
+
 ### Fixed Bugs
 
 - [PR #774](https://github.com/konpyutaika/nifikop/pull/774) - **[Operator/NifiCluster]** Recover stalled autoscaling operations, cancel unscheduled joins safely, and retain repository PVCs when scaling to zero.
