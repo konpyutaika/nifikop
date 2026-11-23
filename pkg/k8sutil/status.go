@@ -33,61 +33,15 @@ func IsMarkedForDeletion(m metav1.ObjectMeta) bool {
 func UpdateNodeStatus(c client.Client, nodeIds []string, cluster *v1.NifiCluster, currentStatus v1.NifiClusterStatus, state interface{}, logger zap.Logger) error {
 	typeMeta := cluster.TypeMeta
 
-	for _, nodeId := range nodeIds {
-		if cluster.Status.NodesState == nil {
-			switch s := state.(type) {
-			case v1.GracefulActionState:
-				cluster.Status.NodesState = map[string]v1.NodeState{nodeId: {GracefulActionState: s}}
-			case v1.ConfigurationState:
-				cluster.Status.NodesState = map[string]v1.NodeState{nodeId: {ConfigurationState: s}}
-			case v1.InitClusterNode:
-				cluster.Status.NodesState = map[string]v1.NodeState{nodeId: {InitClusterNode: s}}
-			case bool:
-				cluster.Status.NodesState = map[string]v1.NodeState{nodeId: {PodIsReady: s}}
-			case metav1.Time:
-				if cluster.Status.NodesState[nodeId].CreationTime == nil {
-					cluster.Status.NodesState = map[string]v1.NodeState{nodeId: {CreationTime: &s}}
-				} else {
-					cluster.Status.NodesState = map[string]v1.NodeState{nodeId: {LastUpdatedTime: s}}
-				}
-			}
-		} else if val, ok := cluster.Status.NodesState[nodeId]; ok {
-			switch s := state.(type) {
-			case v1.GracefulActionState:
-				val.GracefulActionState = s
-			case v1.ConfigurationState:
-				val.ConfigurationState = s
-			case v1.InitClusterNode:
-				val.InitClusterNode = s
-			case bool:
-				val.PodIsReady = s
-			case metav1.Time:
-				if cluster.Status.NodesState[nodeId].CreationTime == nil {
-					val.CreationTime = &s
-				} else {
-					val.LastUpdatedTime = s
-				}
-			}
-			cluster.Status.NodesState[nodeId] = val
-		} else {
-			switch s := state.(type) {
-			case v1.GracefulActionState:
-				cluster.Status.NodesState[nodeId] = v1.NodeState{GracefulActionState: s}
-			case v1.ConfigurationState:
-				cluster.Status.NodesState[nodeId] = v1.NodeState{ConfigurationState: s}
-			case v1.InitClusterNode:
-				cluster.Status.NodesState[nodeId] = v1.NodeState{InitClusterNode: s}
-			case bool:
-				cluster.Status.NodesState[nodeId] = v1.NodeState{PodIsReady: s}
-			case metav1.Time:
-				if cluster.Status.NodesState[nodeId].CreationTime == nil {
-					cluster.Status.NodesState = map[string]v1.NodeState{nodeId: {CreationTime: &s}}
-				} else {
-					cluster.Status.NodesState = map[string]v1.NodeState{nodeId: {LastUpdatedTime: s}}
-				}
-			}
+	generation := cluster.Generation
+	previous := make(map[string]v1.NodeState, len(nodeIds))
+	for _, id := range nodeIds {
+		if node, ok := cluster.Status.NodesState[id]; ok {
+			previous[id] = node
 		}
 	}
+
+	setNodeStatus(cluster, nodeIds, state)
 
 	if !reflect.DeepEqual(cluster.Status, currentStatus) {
 		err := c.Status().Update(context.Background(), cluster)
@@ -98,6 +52,7 @@ func UpdateNodeStatus(c client.Client, nodeIds []string, cluster *v1.NifiCluster
 			if !apierrors.IsConflict(err) {
 				return errors.WrapIff(err, "could not update Nifi node(s) %s state", strings.Join(nodeIds, ","))
 			}
+			conflict := err
 			err := c.Get(context.TODO(), types.NamespacedName{
 				Namespace: cluster.Namespace,
 				Name:      cluster.Name,
@@ -106,62 +61,20 @@ func UpdateNodeStatus(c client.Client, nodeIds []string, cluster *v1.NifiCluster
 				return errors.WrapIf(err, "could not get config for updating status")
 			}
 
-			for _, nodeId := range nodeIds {
-				if cluster.Status.NodesState == nil {
-					switch s := state.(type) {
-					case v1.GracefulActionState:
-						cluster.Status.NodesState = map[string]v1.NodeState{nodeId: {GracefulActionState: s}}
-					case v1.ConfigurationState:
-						cluster.Status.NodesState = map[string]v1.NodeState{nodeId: {ConfigurationState: s}}
-					case v1.InitClusterNode:
-						cluster.Status.NodesState = map[string]v1.NodeState{nodeId: {InitClusterNode: s}}
-					case bool:
-						cluster.Status.NodesState = map[string]v1.NodeState{nodeId: {PodIsReady: s}}
-					case metav1.Time:
-						if cluster.Status.NodesState[nodeId].CreationTime == nil {
-							cluster.Status.NodesState = map[string]v1.NodeState{nodeId: {CreationTime: &s}}
-						} else {
-							cluster.Status.NodesState = map[string]v1.NodeState{nodeId: {LastUpdatedTime: s}}
-						}
-					}
-				} else if val, ok := cluster.Status.NodesState[nodeId]; ok {
-					switch s := state.(type) {
-					case v1.GracefulActionState:
-						val.GracefulActionState = s
-					case v1.ConfigurationState:
-						val.ConfigurationState = s
-					case v1.InitClusterNode:
-						val.InitClusterNode = s
-					case bool:
-						val.PodIsReady = s
-					case metav1.Time:
-						if cluster.Status.NodesState[nodeId].CreationTime == nil {
-							val.CreationTime = &s
-						} else {
-							val.LastUpdatedTime = s
-						}
-					}
-					cluster.Status.NodesState[nodeId] = val
-				} else {
-					switch s := state.(type) {
-					case v1.GracefulActionState:
-						cluster.Status.NodesState[nodeId] = v1.NodeState{GracefulActionState: s}
-					case v1.ConfigurationState:
-						cluster.Status.NodesState[nodeId] = v1.NodeState{ConfigurationState: s}
-					case v1.InitClusterNode:
-						cluster.Status.NodesState[nodeId] = v1.NodeState{InitClusterNode: s}
-					case bool:
-						cluster.Status.NodesState[nodeId] = v1.NodeState{PodIsReady: s}
-					case metav1.Time:
-						if cluster.Status.NodesState[nodeId].CreationTime == nil {
-							cluster.Status.NodesState = map[string]v1.NodeState{nodeId: {CreationTime: &s}}
-						} else {
-							cluster.Status.NodesState = map[string]v1.NodeState{nodeId: {LastUpdatedTime: s}}
-						}
-					}
+			// Re-evaluate the transition if another reconciler changed membership or advanced the task.
+			if generation != cluster.Generation {
+				return conflict
+			}
+			for _, id := range nodeIds {
+				before, existed := previous[id]
+				latest, exists := cluster.Status.NodesState[id]
+				if existed != exists || before.GracefulActionState != latest.GracefulActionState {
+					return conflict
 				}
 			}
 
+			currentStatus = *cluster.Status.DeepCopy()
+			setNodeStatus(cluster, nodeIds, state)
 			err = updateClusterStatus(c, cluster, currentStatus)
 			if err != nil {
 				return errors.WrapIff(err, "could not update Nifi clusters node(s) %s state", strings.Join(nodeIds, ","))
@@ -174,6 +87,32 @@ func UpdateNodeStatus(c client.Client, nodeIds []string, cluster *v1.NifiCluster
 		zap.String("clusterName", cluster.Name),
 		zap.Strings("nodeIds", nodeIds))
 	return nil
+}
+
+func setNodeStatus(cluster *v1.NifiCluster, ids []string, value interface{}) {
+	if cluster.Status.NodesState == nil {
+		cluster.Status.NodesState = make(map[string]v1.NodeState)
+	}
+	for _, id := range ids {
+		node := cluster.Status.NodesState[id]
+		switch state := value.(type) {
+		case v1.GracefulActionState:
+			node.GracefulActionState = state
+		case v1.ConfigurationState:
+			node.ConfigurationState = state
+		case v1.InitClusterNode:
+			node.InitClusterNode = state
+		case bool:
+			node.PodIsReady = state
+		case metav1.Time:
+			if node.CreationTime == nil {
+				node.CreationTime = &state
+			} else {
+				node.LastUpdatedTime = state
+			}
+		}
+		cluster.Status.NodesState[id] = node
+	}
 }
 
 // DeleteStatus deletes the given node state from the CR.
@@ -192,25 +131,8 @@ func DeleteStatus(c client.Client, nodeId string, cluster *v1.NifiCluster, curre
 			err = c.Update(context.Background(), cluster)
 		}
 		if err != nil {
-			if !apierrors.IsConflict(err) {
-				return errors.WrapIff(err, "could not delete Nifi cluster node %s state ", nodeId)
-			}
-			err := c.Get(context.TODO(), types.NamespacedName{
-				Namespace: cluster.Namespace,
-				Name:      cluster.Name,
-			}, cluster)
-			if err != nil {
-				return errors.WrapIf(err, "could not get config for updating status")
-			}
-			nodeStatus = cluster.Status.NodesState
-
-			delete(nodeStatus, nodeId)
-
-			cluster.Status.NodesState = nodeStatus
-			err = updateClusterStatus(c, cluster, currentStatus)
-			if err != nil {
-				return errors.WrapIff(err, "could not delete Nifi clusters node %s state ", nodeId)
-			}
+			// A conflicting update may have reintroduced the node. Reconcile the latest snapshot.
+			return errors.WrapIff(err, "could not delete Nifi cluster node %s state", nodeId)
 		}
 	}
 
@@ -348,6 +270,7 @@ func updateClusterStatus(c client.Client, cluster *v1.NifiCluster, currentStatus
 		if apierrors.IsNotFound(err) {
 			return c.Update(context.Background(), cluster)
 		}
+		return err
 	}
 	return nil
 }

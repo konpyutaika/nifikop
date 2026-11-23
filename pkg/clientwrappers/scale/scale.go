@@ -18,7 +18,7 @@ var log = common.CustomLogger().Named("scale-method")
 // UpScaleCluster upscales Nifi cluster.
 func UpScaleCluster(nodeId, namespace, clusterName string) (v1.ActionStep, string, error) {
 	actionStep := v1.ConnectNodeAction
-	currentTime := time.Now()
+	currentTime := time.Now().UTC()
 	startTimeStamp := currentTime.Format(nifiutil.TimeStampLayout)
 	return actionStep, startTimeStamp, nil
 }
@@ -44,7 +44,7 @@ func DisconnectClusterNode(config *clientconfig.NifiConfig, nodeId string) (v1.A
 	}
 
 	log.Info("Disconnect in nifi node")
-	startTimeStamp := time.Now().Format(nifiutil.TimeStampLayout)
+	startTimeStamp := time.Now().UTC().Format(nifiutil.TimeStampLayout)
 	actionStep := v1.DisconnectNodeAction
 	return actionStep, startTimeStamp, nil
 }
@@ -70,7 +70,7 @@ func OffloadClusterNode(config *clientconfig.NifiConfig, nodeId string) (v1.Acti
 	}
 
 	log.Info("Offload in nifi node")
-	startTimeStamp := time.Now().Format(nifiutil.TimeStampLayout)
+	startTimeStamp := time.Now().UTC().Format(nifiutil.TimeStampLayout)
 	actionStep := v1.OffloadNodeAction
 	return actionStep, startTimeStamp, nil
 }
@@ -96,8 +96,8 @@ func ConnectClusterNode(config *clientconfig.NifiConfig, nodeId string) (v1.Acti
 	}
 
 	log.Info("Connect in nifi node")
-	startTimeStamp := time.Now().Format(nifiutil.TimeStampLayout)
-	actionStep := v1.OffloadNodeAction
+	startTimeStamp := time.Now().UTC().Format(nifiutil.TimeStampLayout)
+	actionStep := v1.ConnectNodeAction
 	return actionStep, startTimeStamp, nil
 }
 
@@ -119,14 +119,14 @@ func RemoveClusterNode(config *clientconfig.NifiConfig, nodeId string) (v1.Actio
 	err = nClient.RemoveClusterNode(int32NodeId)
 	if err := clientwrappers.ErrorUpdateOperation(log, err, "Disconnect node gracefully"); err != nil {
 		if err == nificlient.ErrNifiClusterNodeNotFound {
-			currentTime := time.Now()
+			currentTime := time.Now().UTC()
 			return v1.RemoveNodeAction, currentTime.Format(nifiutil.TimeStampLayout), nil
 		}
 		return "", "", err
 	}
 
 	log.Info("Remove nifi node")
-	startTimeStamp := time.Now().Format(nifiutil.TimeStampLayout)
+	startTimeStamp := time.Now().UTC().Format(nifiutil.TimeStampLayout)
 	actionStep := v1.RemoveNodeAction
 	return actionStep, startTimeStamp, nil
 }

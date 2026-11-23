@@ -82,8 +82,8 @@ func UpdateAccessPolicy(
 	}
 
 	updateAccessPolicyEntity(accessPolicy, addUsers, removeUsers, addUserGroups, removeUserGroups, config, entity)
-	_, _ = nClient.UpdateAccessPolicy(*entity)
-	return clientwrappers.ErrorUpdateOperation(log, err, "Update user")
+	_, err = nClient.UpdateAccessPolicy(*entity)
+	return clientwrappers.ErrorUpdateOperation(log, err, "Update access policy")
 }
 
 func UpdateAccessPolicyEntity(
@@ -106,8 +106,8 @@ func UpdateAccessPolicyEntity(
 	addRemoveUsersFromAccessPolicyEntity(addUsers, removeUsers, entity)
 	addRemoveUserGroupsFromAccessPolicyEntity(addUserGroups, removeUserGroups, entity)
 
-	_, _ = nClient.UpdateAccessPolicy(*entity)
-	return clientwrappers.ErrorUpdateOperation(log, err, "Update user")
+	_, err = nClient.UpdateAccessPolicy(*entity)
+	return clientwrappers.ErrorUpdateOperation(log, err, "Update access policy")
 }
 
 func updateAccessPolicyEntity(

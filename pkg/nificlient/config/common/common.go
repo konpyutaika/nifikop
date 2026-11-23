@@ -65,6 +65,10 @@ func generateNodesAddress(cluster *v1.NifiCluster) map[int32]clientconfig.NodeUr
 	addresses := make(map[int32]clientconfig.NodeUri)
 
 	for nId, state := range cluster.Status.NodesState {
+		// A connected node may still be waiting for its proxy policies or its pod probe.
+		if state.GracefulActionState.State == v1.GracefulUpscaleSucceeded && !state.PodIsReady {
+			continue
+		}
 		if !(state.GracefulActionState.State.IsRunningState() || state.GracefulActionState.State.IsRequiredState()) && state.GracefulActionState.ActionStep != v1.RemoveStatus {
 			addresses[util.ConvertStringToInt32(nId)] = clientconfig.NodeUri{
 				HostListener: nifi.GenerateHostListenerNodeAddressFromCluster(util.ConvertStringToInt32(nId), cluster),

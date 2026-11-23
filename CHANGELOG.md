@@ -6,6 +6,8 @@
 
 ### Fixed Bugs
 
+- [PR #777](https://github.com/konpyutaika/nifikop/pull/777) - **[Operator/NifiCluster]** Unblock autoscaling during node joins and recover orphaned pods through graceful downscale.
+
 ### Deprecated
 
 ### Removed

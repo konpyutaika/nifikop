@@ -27,13 +27,22 @@ func (c InternalCluster) IsExternal() bool {
 }
 
 func (c InternalCluster) IsReady(log zap.Logger) bool {
-	for _, nodeState := range c.Status.NodesState {
+	var blocked map[string]v1.NodeState
+	for id, nodeState := range c.Status.NodesState {
 		if nodeState.ConfigurationState != v1.ConfigInSync || nodeState.GracefulActionState.State != v1.GracefulUpscaleSucceeded ||
 			!nodeState.PodIsReady {
-			return false
+			if blocked == nil {
+				blocked = make(map[string]v1.NodeState)
+			}
+			blocked[id] = nodeState
 		}
 	}
-	return c.Status.State.IsReady()
+	ready := c.Status.State.IsReady() && len(blocked) == 0
+	if !ready {
+		log.Info("Waiting for NiFi cluster readiness", zap.String("cluster", c.ClusterLabelString()),
+			zap.String("state", string(c.Status.State)), zap.Any("unreadyNodes", blocked))
+	}
+	return ready
 }
 
 func (c *InternalCluster) Id() string {
