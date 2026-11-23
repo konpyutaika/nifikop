@@ -29,7 +29,11 @@ func (c *certManager) FinalizeUserCertificate(ctx context.Context, user *v1.Nifi
 
 // ReconcileUserCertificate ensures a certificate/secret combination using cert-manager.
 func (c *certManager) ReconcileUserCertificate(ctx context.Context, logger zap.Logger, user *v1.NifiUser, scheme *runtime.Scheme) (*pkicommon.UserCertificate, error) {
-	var err error
+	user, err := c.liveNifiUser(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+
 	var secret *corev1.Secret
 	// See if we have an existing certificate for this user already
 	_, err = c.getUserCertificate(ctx, user)
@@ -70,6 +74,23 @@ func (c *certManager) ReconcileUserCertificate(ctx context.Context, logger zap.L
 		Certificate: secret.Data[corev1.TLSCertKey],
 		Key:         secret.Data[corev1.TLSPrivateKeyKey],
 	}, nil
+}
+
+// liveNifiUser returns the NifiUser as stored in the API. Callers from ReconcilePKI pass
+// template objects without a UID; owner references on Certificate resources require it.
+func (c *certManager) liveNifiUser(ctx context.Context, user *v1.NifiUser) (*v1.NifiUser, error) {
+	if user.UID != "" {
+		return user, nil
+	}
+	live := &v1.NifiUser{}
+	err := c.client.Get(ctx, types.NamespacedName{Name: user.Name, Namespace: user.Namespace}, live)
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			return nil, errorfactory.New(errorfactory.ResourceNotReady{}, err, "nifi user not found")
+		}
+		return nil, errorfactory.New(errorfactory.APIFailure{}, err, "failed to look up nifi user")
+	}
+	return live, nil
 }
 
 // ensureJKSPassword ensures the JKS password secret exists before cert-manager provisions

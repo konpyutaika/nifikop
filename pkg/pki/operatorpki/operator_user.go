@@ -47,6 +47,22 @@ const (
 	jksPasswordLength = 16
 )
 
+// liveNifiUser returns the NifiUser as stored in the API when the caller only has a template.
+func (o *operatorPKI) liveNifiUser(ctx context.Context, user *v1.NifiUser) (*v1.NifiUser, error) {
+	if user.UID != "" {
+		return user, nil
+	}
+	live := &v1.NifiUser{}
+	err := o.client.Get(ctx, types.NamespacedName{Name: user.Name, Namespace: user.Namespace}, live)
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			return nil, errorfactory.New(errorfactory.ResourceNotReady{}, err, "nifi user not found")
+		}
+		return nil, errorfactory.New(errorfactory.APIFailure{}, err, "failed to look up nifi user")
+	}
+	return live, nil
+}
+
 // FinalizeUserCertificate is a no-op: user secrets carry a controller reference to the
 // NifiUser, so Kubernetes garbage collects them. This mirrors the cert-manager backend.
 func (o *operatorPKI) FinalizeUserCertificate(ctx context.Context, user *v1.NifiUser) error {
@@ -59,6 +75,11 @@ func (o *operatorPKI) FinalizeUserCertificate(ctx context.Context, user *v1.Nifi
 func (o *operatorPKI) ReconcileUserCertificate(ctx context.Context, logger zap.Logger, user *v1.NifiUser,
 	scheme *runtime.Scheme,
 ) (*pkicommon.UserCertificate, error) {
+	user, err := o.liveNifiUser(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+
 	if err := o.supported(); err != nil {
 		return nil, err
 	}
