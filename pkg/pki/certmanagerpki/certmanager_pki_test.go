@@ -18,16 +18,23 @@ import (
 
 var log = common.CustomLogger().Named("testing")
 
+func populateUserSecretData(cert, key []byte) map[string][]byte {
+	return map[string][]byte{
+		corev1.TLSCertKey:          cert,
+		corev1.TLSPrivateKeyKey:    key,
+		common2.CoreCACertKey:      cert,
+		common2.TLSJKSKeyStore:     []byte("keystore"),
+		common2.TLSJKSTrustStore:   []byte("truststore"),
+		common2.PasswordKey:        []byte("password"),
+	}
+}
+
 func newNodeServerSecret(nodeId int32) *corev1.Secret {
 	secret := &corev1.Secret{}
 	secret.Name = fmt.Sprintf(pkicommon.NodeServerCertTemplate, "test", nodeId)
 	secret.Namespace = "test-namespace"
 	cert, key, _, _ := certutil.GenerateTestCert()
-	secret.Data = map[string][]byte{
-		corev1.TLSCertKey:       cert,
-		corev1.TLSPrivateKeyKey: key,
-		common2.CoreCACertKey:   cert,
-	}
+	secret.Data = populateUserSecretData(cert, key)
 	return secret
 }
 
@@ -36,11 +43,7 @@ func newControllerSecret() *corev1.Secret {
 	secret.Name = fmt.Sprintf("%s-controller", "test")
 	secret.Namespace = "test-namespace"
 	cert, key, _, _ := certutil.GenerateTestCert()
-	secret.Data = map[string][]byte{
-		corev1.TLSCertKey:       cert,
-		corev1.TLSPrivateKeyKey: key,
-		common2.CoreCACertKey:   cert,
-	}
+	secret.Data = populateUserSecretData(cert, key)
 	return secret
 }
 
@@ -59,7 +62,7 @@ func newCASecret() *corev1.Secret {
 
 func newPreCreatedSecret() *corev1.Secret {
 	secret := &corev1.Secret{}
-	secret.Name = "test-controller"
+	secret.Name = "test-provided-ca"
 	secret.Namespace = "test-namespace"
 	cert, key, _, _ := certutil.GenerateTestCert()
 	secret.Data = map[string][]byte{
@@ -78,32 +81,31 @@ func TestFinalizePKI(t *testing.T) {
 }
 
 func TestReconcilePKI(t *testing.T) {
-	cluster := newMockCluster()
-	manager := newMock(cluster)
 	ctx := context.Background()
+	cluster := newMockCluster()
 
+	// Populate user and CA secrets before reconciling so certificate validation can succeed.
+	manager := newMock(cluster)
 	for _, node := range cluster.Spec.Nodes {
 		manager.client.Create(ctx, newNodeServerSecret(node.Id))
-		if err := manager.ReconcilePKI(ctx, *log, scheme.Scheme, []string{}); err != nil {
-			if reflect.TypeOf(err) != reflect.TypeOf(errorfactory.ResourceNotReady{}) {
-				t.Error("Expected not ready error, got:", reflect.TypeOf(err))
-			}
-		}
 	}
-
 	manager.client.Create(ctx, newControllerSecret())
-	if err := manager.ReconcilePKI(ctx, *log, scheme.Scheme, []string{}); err != nil {
-		if reflect.TypeOf(err) != reflect.TypeOf(errorfactory.ResourceNotReady{}) {
-			t.Error("Expected not ready error, got:", reflect.TypeOf(err))
-		}
-	}
-
 	manager.client.Create(ctx, newCASecret())
+
 	if err := manager.ReconcilePKI(ctx, *log, scheme.Scheme, []string{}); err != nil {
 		t.Error("Expected successful reconcile, got:", err)
 	}
 
+	// ReconcilePKI blocks until each NifiUser certificate secret is populated.
+	manager = newMock(cluster)
+	if err := manager.ReconcilePKI(ctx, *log, scheme.Scheme, []string{}); err == nil {
+		t.Error("Expected error before user certificate secrets exist")
+	} else if reflect.TypeOf(err) != reflect.TypeOf(errorfactory.ResourceNotReady{}) {
+		t.Error("Expected not ready error, got:", reflect.TypeOf(err), err)
+	}
+
 	cluster.Spec.ListenersConfig.SSLSecrets.Create = false
+	cluster.Spec.ListenersConfig.SSLSecrets.TLSSecretName = "test-provided-ca"
 	manager = newMock(cluster)
 	if err := manager.ReconcilePKI(ctx, *log, scheme.Scheme, []string{}); err == nil {
 		t.Error("Expected error got nil")
@@ -111,6 +113,12 @@ func TestReconcilePKI(t *testing.T) {
 		t.Error("Expected not ready error, got:", reflect.TypeOf(err))
 	}
 	manager.client.Create(ctx, newPreCreatedSecret())
+	for _, node := range cluster.Spec.Nodes {
+		manager.client.Create(ctx, newNodeServerSecret(node.Id))
+	}
+	// Provided-CA mode uses tlsSecretName for the CA; the controller user certificate
+	// still needs its own secret at the controller identity name.
+	manager.client.Create(ctx, newControllerSecret())
 	if err := manager.ReconcilePKI(ctx, *log, scheme.Scheme, []string{}); err != nil {
 		t.Error("Expected successful reconcile, got:", err)
 	}

@@ -95,6 +95,18 @@ func (c *certManager) ReconcilePKI(ctx context.Context, logger zap.Logger, schem
 		}
 	}
 
+	// Ensure controller and node certificate secrets exist and are populated before
+	// the cluster reconciler creates or updates NiFi pods.
+	for _, o := range resources {
+		user, ok := o.(*v1.NifiUser)
+		if !ok {
+			continue
+		}
+		if _, err := c.ReconcileUserCertificate(ctx, logger, user, scheme); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
