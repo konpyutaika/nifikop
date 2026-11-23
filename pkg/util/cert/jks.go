@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"time"
 
-	keystore "github.com/pavel-v-chernykh/keystore-go"
+	keystore "github.com/pavlo-v-chernykh/keystore-go/v4"
 )
 
 const (
@@ -69,16 +69,17 @@ func GenerateJKSKeyStore(clientCert, clientKey, clientCA, password []byte) (out 
 		}
 	}
 
-	jks := keystore.KeyStore{
-		JKSKeyAlias: &keystore.PrivateKeyEntry{
-			Entry:     keystore.Entry{CreationDate: time.Now()},
-			PrivKey:   key,
-			CertChain: certBundle,
-		},
+	jks := keystore.New()
+	if err = jks.SetPrivateKeyEntry(JKSKeyAlias, keystore.PrivateKeyEntry{
+		CreationTime:     time.Now(),
+		PrivateKey:       key,
+		CertificateChain: certBundle,
+	}, password); err != nil {
+		return nil, err
 	}
 
 	var outBuf bytes.Buffer
-	if err = keystore.Encode(&outBuf, jks, password); err != nil {
+	if err = jks.Store(&outBuf, password); err != nil {
 		return nil, err
 	}
 	return outBuf.Bytes(), nil
@@ -92,21 +93,23 @@ func GenerateJKSTrustStore(clientCA, password []byte) (out []byte, err error) {
 		return nil, err
 	}
 
-	jks := keystore.KeyStore{}
+	jks := keystore.New()
 	for i, cert := range chain {
 		alias := JKSCAAlias
 		if i > 0 {
 			// Keep additional issuers addressable rather than overwriting the first entry.
 			alias = fmt.Sprintf("%s-%d", JKSCAAlias, i)
 		}
-		jks[alias] = &keystore.TrustedCertificateEntry{
-			Entry:       keystore.Entry{CreationDate: time.Now()},
-			Certificate: keystore.Certificate{Type: "X.509", Content: cert.Raw},
+		if err = jks.SetTrustedCertificateEntry(alias, keystore.TrustedCertificateEntry{
+			CreationTime: time.Now(),
+			Certificate:  keystore.Certificate{Type: "X.509", Content: cert.Raw},
+		}); err != nil {
+			return nil, err
 		}
 	}
 
 	var outBuf bytes.Buffer
-	if err = keystore.Encode(&outBuf, jks, password); err != nil {
+	if err = jks.Store(&outBuf, password); err != nil {
 		return nil, err
 	}
 	return outBuf.Bytes(), nil

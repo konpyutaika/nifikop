@@ -4,6 +4,8 @@
 
 ### Changed
 
+- [PR #776](https://github.com/konpyutaika/nifikop/pull/776) - **[Operator]** Build with Go 1.27.4 and update `golang.org/x/net`, OpenTelemetry, and the JKS keystore library to address security advisories.
+
 ### Fixed Bugs
 
 ### Deprecated

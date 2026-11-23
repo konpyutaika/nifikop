@@ -16,7 +16,7 @@ import (
 	"reflect"
 	"time"
 
-	keystore "github.com/pavel-v-chernykh/keystore-go"
+	keystore "github.com/pavlo-v-chernykh/keystore-go/v4"
 	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -366,29 +366,29 @@ func userCertificateFromSecret(secret *corev1.Secret) *pkicommon.UserCertificate
 func keyStoresMatch(secret *corev1.Secret, leaf *x509.Certificate, ca *certificateAuthority) bool {
 	password := secret.Data[v1.PasswordKey]
 
-	keyStore, err := keystore.Decode(bytes.NewReader(secret.Data[v1.TLSJKSKeyStore]), password)
-	if err != nil {
+	keyStore := keystore.New()
+	if err := keyStore.Load(bytes.NewReader(secret.Data[v1.TLSJKSKeyStore]), password); err != nil {
 		return false
 	}
-	entry, ok := keyStore[certutil.JKSKeyAlias].(*keystore.PrivateKeyEntry)
-	if !ok || len(entry.PrivKey) == 0 || len(entry.CertChain) == 0 {
+	entry, err := keyStore.GetPrivateKeyEntry(certutil.JKSKeyAlias, password)
+	if err != nil || len(entry.PrivateKey) == 0 || len(entry.CertificateChain) == 0 {
 		return false
 	}
-	if !bytes.Equal(entry.CertChain[0].Content, leaf.Raw) {
+	if !bytes.Equal(entry.CertificateChain[0].Content, leaf.Raw) {
 		return false
 	}
 	// The chain NiFi presents must be exactly what issue builds: the leaf, then every
 	// certificate of the CA bundle in order (a supplied CA may carry its own issuers).
 	caChain, err := certutil.DecodeCertificateChain(ca.CertPEM)
-	if err != nil || len(entry.CertChain) != 1+len(caChain) {
+	if err != nil || len(entry.CertificateChain) != 1+len(caChain) {
 		return false
 	}
 	for i, cert := range caChain {
-		if !bytes.Equal(entry.CertChain[i+1].Content, cert.Raw) {
+		if !bytes.Equal(entry.CertificateChain[i+1].Content, cert.Raw) {
 			return false
 		}
 	}
-	privateKey, err := parsePrivateKeyDER(entry.PrivKey)
+	privateKey, err := parsePrivateKeyDER(entry.PrivateKey)
 	if err != nil {
 		return false
 	}
@@ -397,15 +397,12 @@ func keyStoresMatch(secret *corev1.Secret, leaf *x509.Certificate, ca *certifica
 		return false
 	}
 
-	trustStore, err := keystore.Decode(bytes.NewReader(secret.Data[v1.TLSJKSTrustStore]), password)
-	if err != nil {
+	trustStore := keystore.New()
+	if err := trustStore.Load(bytes.NewReader(secret.Data[v1.TLSJKSTrustStore]), password); err != nil {
 		return false
 	}
-	trusted, ok := trustStore[certutil.JKSCAAlias].(*keystore.TrustedCertificateEntry)
-	if !ok {
-		return false
-	}
-	return bytes.Equal(trusted.Certificate.Content, ca.Certificate.Raw)
+	trusted, err := trustStore.GetTrustedCertificateEntry(certutil.JKSCAAlias)
+	return err == nil && bytes.Equal(trusted.Certificate.Content, ca.Certificate.Raw)
 }
 
 // needsRenewal reports whether a certificate is far enough through its own lifetime to

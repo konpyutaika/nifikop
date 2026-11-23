@@ -15,7 +15,7 @@ import (
 	"time"
 
 	certv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
-	keystore "github.com/pavel-v-chernykh/keystore-go"
+	keystore "github.com/pavlo-v-chernykh/keystore-go/v4"
 	corev1 "k8s.io/api/core/v1"
 
 	v1 "github.com/konpyutaika/nifikop/api/v1"
@@ -121,29 +121,24 @@ func GenerateJKS(clientCert, clientKey, clientCA []byte) (out, passw []byte, err
 		Content: cert.Raw,
 	}}
 
-	jks := keystore.KeyStore{
-		cert.Subject.CommonName: &keystore.PrivateKeyEntry{
-			Entry: keystore.Entry{
-				CreationDate: time.Now(),
-			},
-			PrivKey:   key,
-			CertChain: certBundle,
-		},
+	passw = GeneratePass(16)
+	jks := keystore.New(keystore.WithCaseExactAliases())
+	if err = jks.SetPrivateKeyEntry(cert.Subject.CommonName, keystore.PrivateKeyEntry{
+		CreationTime:     time.Now(),
+		PrivateKey:       key,
+		CertificateChain: certBundle,
+	}, passw); err != nil {
+		return nil, nil, err
 	}
-
-	jks["trusted_ca"] = &keystore.TrustedCertificateEntry{
-		Entry: keystore.Entry{
-			CreationDate: time.Now(),
-		},
-		Certificate: keystore.Certificate{
-			Type:    "X.509",
-			Content: ca.Raw,
-		},
+	if err = jks.SetTrustedCertificateEntry("trusted_ca", keystore.TrustedCertificateEntry{
+		CreationTime: time.Now(),
+		Certificate:  keystore.Certificate{Type: "X.509", Content: ca.Raw},
+	}); err != nil {
+		return nil, nil, err
 	}
 
 	var outBuf bytes.Buffer
-	passw = GeneratePass(16)
-	err = keystore.Encode(&outBuf, jks, passw)
+	err = jks.Store(&outBuf, passw)
 	return outBuf.Bytes(), passw, err
 }
 

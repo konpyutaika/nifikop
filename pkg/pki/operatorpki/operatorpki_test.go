@@ -19,7 +19,7 @@ import (
 	"time"
 
 	cmmeta "github.com/cert-manager/cert-manager/pkg/apis/meta/v1"
-	keystore "github.com/pavel-v-chernykh/keystore-go"
+	keystore "github.com/pavlo-v-chernykh/keystore-go/v4"
 	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -242,23 +242,23 @@ func TestUserKeyStoresOpenWithStoredPassword(t *testing.T) {
 	}
 	password := secret.Data[v1.PasswordKey]
 
-	ks, err := keystore.Decode(bytes.NewReader(secret.Data[v1.TLSJKSKeyStore]), password)
-	if err != nil {
+	ks := keystore.New()
+	if err := ks.Load(bytes.NewReader(secret.Data[v1.TLSJKSKeyStore]), password); err != nil {
 		t.Fatal("Expected the keystore to open with the stored password, got:", err)
 	}
-	entry, ok := ks[certutil.JKSKeyAlias].(*keystore.PrivateKeyEntry)
-	if !ok {
+	entry, err := ks.GetPrivateKeyEntry(certutil.JKSKeyAlias, password)
+	if err != nil {
 		t.Fatal("Expected a private key entry in the keystore")
 	}
-	if len(entry.CertChain) < 2 {
-		t.Error("Expected the keystore chain to hold the certificate and its issuer, got:", len(entry.CertChain))
+	if len(entry.CertificateChain) < 2 {
+		t.Error("Expected the keystore chain to hold the certificate and its issuer, got:", len(entry.CertificateChain))
 	}
 
-	ts, err := keystore.Decode(bytes.NewReader(secret.Data[v1.TLSJKSTrustStore]), password)
-	if err != nil {
+	ts := keystore.New()
+	if err := ts.Load(bytes.NewReader(secret.Data[v1.TLSJKSTrustStore]), password); err != nil {
 		t.Fatal("Expected the truststore to open with the stored password, got:", err)
 	}
-	if _, ok := ts[certutil.JKSCAAlias].(*keystore.TrustedCertificateEntry); !ok {
+	if !ts.IsTrustedCertificateEntry(certutil.JKSCAAlias) {
 		t.Error("Expected the CA to be trusted in the truststore")
 	}
 }
@@ -591,7 +591,8 @@ func TestCorruptKeyStoreIsReissued(t *testing.T) {
 	if err := manager.client.Get(ctx, name, secret); err != nil {
 		t.Fatal("Expected the user secret to exist, got:", err)
 	}
-	if _, err := keystore.Decode(bytes.NewReader(secret.Data[v1.TLSJKSKeyStore]),
+	ks := keystore.New()
+	if err := ks.Load(bytes.NewReader(secret.Data[v1.TLSJKSKeyStore]),
 		secret.Data[v1.PasswordKey]); err != nil {
 		t.Error("Expected the keystore to be rebuilt, got:", err)
 	}
@@ -895,7 +896,7 @@ func TestEmptyKeyStoreIsReissued(t *testing.T) {
 	}
 
 	var empty bytes.Buffer
-	if err := keystore.Encode(&empty, keystore.KeyStore{}, secret.Data[v1.PasswordKey]); err != nil {
+	if err := keystore.New().Store(&empty, secret.Data[v1.PasswordKey]); err != nil {
 		t.Fatal("Could not build an empty keystore:", err)
 	}
 	secret.Data[v1.TLSJKSKeyStore] = empty.Bytes()
@@ -910,12 +911,12 @@ func TestEmptyKeyStoreIsReissued(t *testing.T) {
 	if err := manager.client.Get(ctx, name, secret); err != nil {
 		t.Fatal("Expected the user secret to exist, got:", err)
 	}
-	rebuilt, err := keystore.Decode(bytes.NewReader(secret.Data[v1.TLSJKSKeyStore]), secret.Data[v1.PasswordKey])
-	if err != nil {
+	rebuilt := keystore.New()
+	if err := rebuilt.Load(bytes.NewReader(secret.Data[v1.TLSJKSKeyStore]), secret.Data[v1.PasswordKey]); err != nil {
 		t.Fatal("Expected a readable keystore, got:", err)
 	}
-	entry, ok := rebuilt[certutil.JKSKeyAlias].(*keystore.PrivateKeyEntry)
-	if !ok || len(entry.PrivKey) == 0 {
+	entry, err := rebuilt.GetPrivateKeyEntry(certutil.JKSKeyAlias, secret.Data[v1.PasswordKey])
+	if err != nil || len(entry.PrivateKey) == 0 {
 		t.Error("Expected the keystore to be rebuilt with its private key entry")
 	}
 }
@@ -2041,21 +2042,21 @@ func TestProvidedCABundleIsStable(t *testing.T) {
 	if err := manager.client.Get(ctx, name, secret); err != nil {
 		t.Fatal("Expected the user secret to exist, got:", err)
 	}
-	ks, err := keystore.Decode(bytes.NewReader(secret.Data[v1.TLSJKSKeyStore]), secret.Data[v1.PasswordKey])
-	if err != nil {
+	ks := keystore.New()
+	if err := ks.Load(bytes.NewReader(secret.Data[v1.TLSJKSKeyStore]), secret.Data[v1.PasswordKey]); err != nil {
 		t.Fatal("Expected the keystore to open, got:", err)
 	}
-	entry, ok := ks[certutil.JKSKeyAlias].(*keystore.PrivateKeyEntry)
-	if !ok {
+	entry, err := ks.GetPrivateKeyEntry(certutil.JKSKeyAlias, secret.Data[v1.PasswordKey])
+	if err != nil {
 		t.Fatal("Expected a private key entry in the keystore")
 	}
 	want, err := certutil.DecodeCertificateChain(bundle)
 	if err != nil {
 		t.Fatal("Could not decode the bundle:", err)
 	}
-	if len(entry.CertChain) != 3 ||
-		!bytes.Equal(entry.CertChain[1].Content, want[0].Raw) || !bytes.Equal(entry.CertChain[2].Content, want[1].Raw) {
-		t.Fatal("Expected the keystore chain to be leaf, intermediate, root; got entries:", len(entry.CertChain))
+	if len(entry.CertificateChain) != 3 ||
+		!bytes.Equal(entry.CertificateChain[1].Content, want[0].Raw) || !bytes.Equal(entry.CertificateChain[2].Content, want[1].Raw) {
+		t.Fatal("Expected the keystore chain to be leaf, intermediate, root; got entries:", len(entry.CertificateChain))
 	}
 
 	before := secret.ResourceVersion
@@ -2161,15 +2162,15 @@ func TestKeyStoreWithWrongChainIsReissued(t *testing.T) {
 			if err := manager.client.Get(ctx, name, secret); err != nil {
 				t.Fatal("Expected the user secret to exist, got:", err)
 			}
-			ks, err := keystore.Decode(bytes.NewReader(secret.Data[v1.TLSJKSKeyStore]), secret.Data[v1.PasswordKey])
-			if err != nil {
+			ks := keystore.New()
+			if err := ks.Load(bytes.NewReader(secret.Data[v1.TLSJKSKeyStore]), secret.Data[v1.PasswordKey]); err != nil {
 				t.Fatal("Expected the rebuilt keystore to open, got:", err)
 			}
-			entry, ok := ks[certutil.JKSKeyAlias].(*keystore.PrivateKeyEntry)
-			if !ok {
+			entry, err := ks.GetPrivateKeyEntry(certutil.JKSKeyAlias, secret.Data[v1.PasswordKey])
+			if err != nil {
 				t.Fatal("Expected a private key entry in the keystore")
 			}
-			if len(entry.CertChain) != 2 || !bytes.Equal(entry.CertChain[1].Content, caBlock.Bytes) {
+			if len(entry.CertificateChain) != 2 || !bytes.Equal(entry.CertificateChain[1].Content, caBlock.Bytes) {
 				t.Error("Expected the keystore chain to be rebuilt as the leaf followed by the cluster CA")
 			}
 		})
