@@ -37,9 +37,8 @@ func (c *certManager) ReconcileUserCertificate(ctx context.Context, logger zap.L
 
 	if err != nil && apierrors.IsNotFound(err) {
 		// the certificate does not exist, let's make one
-		// check if jks is required and create password for it
 		if user.Spec.IncludeJKS {
-			if err := c.injectJKSPassword(ctx, user); err != nil {
+			if err := c.ensureJKSPassword(ctx, user); err != nil {
 				return nil, err
 			}
 		}
@@ -73,7 +72,25 @@ func (c *certManager) ReconcileUserCertificate(ctx context.Context, logger zap.L
 	}, nil
 }
 
-// injectJKSPassword ensures that a secret contains JKS password when requested.
+// ensureJKSPassword ensures the JKS password secret exists before cert-manager provisions
+// keystores. If the secret is already present, nothing is created or overwritten.
+func (c *certManager) ensureJKSPassword(ctx context.Context, user *v1.NifiUser) error {
+	secret := &corev1.Secret{}
+	err := c.client.Get(ctx, types.NamespacedName{Name: user.Spec.SecretName, Namespace: user.Namespace}, secret)
+	switch {
+	case err == nil:
+		if len(secret.Data[v1.PasswordKey]) > 0 {
+			return nil
+		}
+		return c.addJKSPassword(ctx, secret)
+	case apierrors.IsNotFound(err):
+		return c.injectJKSPassword(ctx, user)
+	default:
+		return errorfactory.New(errorfactory.APIFailure{}, err, "failed to look up JKS password secret")
+	}
+}
+
+// injectJKSPassword creates a secret containing a JKS password when requested.
 func (c *certManager) injectJKSPassword(ctx context.Context, user *v1.NifiUser) error {
 	var err error
 	secret := &corev1.Secret{
@@ -91,6 +108,20 @@ func (c *certManager) injectJKSPassword(ctx context.Context, user *v1.NifiUser) 
 		return errorfactory.New(errorfactory.APIFailure{}, err, "could not create secret with jks password")
 	}
 
+	return nil
+}
+
+// addJKSPassword adds a JKS password to an existing secret that cert-manager will populate.
+func (c *certManager) addJKSPassword(ctx context.Context, secret *corev1.Secret) error {
+	var err error
+	updated := secret.DeepCopy()
+	updated, err = certutil.EnsureSecretPassJKS(updated)
+	if err != nil {
+		return errorfactory.New(errorfactory.InternalError{}, err, "could not inject secret with jks password")
+	}
+	if err = c.client.Update(ctx, updated); err != nil {
+		return errorfactory.New(errorfactory.APIFailure{}, err, "could not update secret with jks password")
+	}
 	return nil
 }
 

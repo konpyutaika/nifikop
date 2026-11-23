@@ -44,6 +44,12 @@ func (o *operatorPKI) ReconcilePKI(ctx context.Context, logger zap.Logger, schem
 		if err := o.reconcileUser(ctx, logger, user); err != nil {
 			return err
 		}
+		// Issue or renew the certificate before the cluster reconciler mounts these
+		// secrets on pods. Relying only on the NifiUser controller leaves a race where
+		// nodes can start with missing, stale or invalid TLS material.
+		if _, err := o.ReconcileUserCertificate(ctx, logger, user, scheme); err != nil {
+			return err
+		}
 	}
 
 	return nil

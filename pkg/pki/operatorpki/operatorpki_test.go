@@ -1274,7 +1274,7 @@ func TestIdentityMismatchIsReissued(t *testing.T) {
 			manager := newMock(cluster)
 			ctx := context.Background()
 
-			if err := manager.ReconcilePKI(ctx, *log, scheme.Scheme, []string{}); err != nil {
+			if _, err := manager.ensureCA(ctx, scheme.Scheme); err != nil {
 				t.Fatal("Expected no error, got:", err)
 			}
 			user := pkicommon.ControllerUserForCluster(cluster)
@@ -1577,7 +1577,7 @@ func TestForeignUserSecretUntouched(t *testing.T) {
 			cluster := newMockCluster()
 			manager := newMock(cluster)
 			ctx := context.Background()
-			if err := manager.ReconcilePKI(ctx, *log, scheme.Scheme, []string{}); err != nil {
+			if _, err := manager.ensureCA(ctx, scheme.Scheme); err != nil {
 				t.Fatal("Expected no error, got:", err)
 			}
 			user := pkicommon.ControllerUserForCluster(cluster)
@@ -1605,6 +1605,7 @@ func TestForeignUserSecretUntouched(t *testing.T) {
 // only one still carrying the owner this backend gave it is deleted.
 func TestFinalizePKIDeletesOnlyOwnedSecrets(t *testing.T) {
 	cluster := newMockCluster()
+	cluster.Spec.Nodes = []v1.Node{{Id: 0}} // one operator-issued node cert; other names are stand-ins
 	manager := newMock(cluster)
 	ctx := context.Background()
 
@@ -1612,20 +1613,9 @@ func TestFinalizePKIDeletesOnlyOwnedSecrets(t *testing.T) {
 		t.Fatal("Expected no error, got:", err)
 	}
 	controllerUser := pkicommon.ControllerUserForCluster(cluster)
-	if _, err := manager.ReconcileUserCertificate(ctx, *log, controllerUser, scheme.Scheme); err != nil {
-		t.Fatal("Expected no error, got:", err)
-	}
 
 	nodeSecret := func(id int32) string { return fmt.Sprintf(pkicommon.NodeServerCertTemplate, cluster.Name, id) }
-	controller := true
-	// Node 0: ours, controlled by its NifiUser. Node 1: unowned. Node 2: someone else's.
-	seed(t, manager, &corev1.Secret{ObjectMeta: metav1.ObjectMeta{
-		Name: nodeSecret(0), Namespace: cluster.Namespace,
-		OwnerReferences: []metav1.OwnerReference{{
-			APIVersion: v1.GroupVersion.String(), Kind: "NifiUser",
-			Name: pkicommon.GetNodeUserName(cluster, 0), UID: "node-user-uid", Controller: &controller,
-		}},
-	}})
+	// Node 0: issued by ReconcilePKI. Nodes 1 and 2 are unrelated secrets at predictable names.
 	unowned := seed(t, manager, &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: nodeSecret(1), Namespace: cluster.Namespace}})
 	foreign := seed(t, manager, &corev1.Secret{ObjectMeta: metav1.ObjectMeta{
 		Name: nodeSecret(2), Namespace: cluster.Namespace, OwnerReferences: foreignController(),
